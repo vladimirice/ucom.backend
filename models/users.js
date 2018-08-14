@@ -1,11 +1,8 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const Users = sequelize.define('Users', {
-    email: {
+    account_name: {
       type: DataTypes.STRING
-    },
-    password: {
-      type: DataTypes.STRING(1024)
     },
     nickname: {
       type: DataTypes.STRING
@@ -16,10 +13,10 @@ module.exports = (sequelize, DataTypes) => {
     last_name: {
       type: DataTypes.STRING
     },
-    phone_number: {
+    email: {
       type: DataTypes.STRING
     },
-    logo_url: {
+    phone_number: {
       type: DataTypes.STRING
     },
     birthday: {
@@ -37,17 +34,8 @@ module.exports = (sequelize, DataTypes) => {
     address: {
       type: DataTypes.STRING
     },
-    referral_url: {
-      type: DataTypes.STRING
-    },
     mood_message: {
       type: DataTypes.STRING
-    },
-    user_rate: {
-      type: DataTypes.DECIMAL(10, 2)
-    },
-    user_rate_position: {
-      type: DataTypes.INTEGER
     },
   }, {
     underscored: true,
