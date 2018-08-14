@@ -4,3 +4,5 @@ alias seeds_init="node_modules/.bin/sequelize db:seed:undo:all && node_modules/.
 alias dmm="node_modules/.bin/sequelize db:migrate";
 alias dmg="node_modules/.bin/sequelize migration:generate ";
 alias dmu="node_modules/.bin/sequelize db:migrate:undo";
+alias ds='docker-machine start && eval $(docker-machine env default)'
+alias de='eval $(docker-machine env default)'
