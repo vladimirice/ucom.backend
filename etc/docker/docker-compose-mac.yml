@@ -1,0 +1,40 @@
+#mac version
+version: '2'
+
+networks:
+  uos_backend_network:
+    ipam:
+      driver: default
+      config:
+      - subnet: 173.18.212.0/24
+services:
+  db:
+    container_name: uos_backend_postgres
+    hostname: uos-backend-postgres.dev
+    image: postgres
+    environment:
+      - POSTGRES_USER=uos
+      - POSTGRES_PASSWORD=uos
+      - POSTGRES_DB=uos_backend_app
+    networks:
+      uos_backend_network:
+        ipv4_address: 173.18.212.10
+    expose:
+    - "5432"
+    ports:
+    - "5433:5432"
+  db_test:
+    container_name: uos_backend_postgres_test
+    hostname: uos-backend-postgres-test.dev
+    image: postgres
+    environment:
+      - POSTGRES_USER=uos
+      - POSTGRES_PASSWORD=uos
+      - POSTGRES_DB=uos_backend_app
+    networks:
+      uos_backend_network:
+        ipv4_address: 173.18.212.11
+    expose:
+    - "5432"
+    ports:
+    - "5434:5432"
