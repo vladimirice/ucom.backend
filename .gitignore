@@ -61,3 +61,6 @@ typings/
 .next
 .idea
 docker-compose.yml
+config/production.json
+# TODO remove package-lock from gitignore
+package-lock.json
