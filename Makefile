@@ -1,3 +1,14 @@
+SEQ_EXEC_FILE=node_modules/.bin/sequelize
+
+DB_DROP_COMMAND=${SEQ_EXEC_FILE} db:drop
+DB_CREATE_COMMAND=${SEQ_EXEC_FILE} db:create
+DB_MIGRATE_COMMAND=${SEQ_EXEC_FILE} db:migrate
+DB_SEEDS_COMMAND=${SEQ_EXEC_FILE} db:seed:all
+DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
+
+ENV_VALUE_TEST=test
+ENV_VALUE_DEV=development
+
 d-up:
 	docker-compose up -d --build
 
@@ -15,3 +26,15 @@ docker-set-hosts-mac:
 
 d-db:
 	docker-compose exec --user=root db /bin/bash
+
+docker-init-test-db:
+	NODE_ENV=${ENV_VALUE_TEST} ${DB_DROP_COMMAND}
+	NODE_ENV=${ENV_VALUE_TEST} ${DB_CREATE_COMMAND}
+	NODE_ENV=${ENV_VALUE_TEST} ${DB_MIGRATE_COMMAND}
+	NODE_ENV=${ENV_VALUE_TEST} ${DB_SEEDS_COMMAND}
+
+docker-init-dev-db:
+	NODE_ENV=${ENV_VALUE_DEV} ${DB_DROP_COMMAND}
+	NODE_ENV=${ENV_VALUE_DEV} ${DB_CREATE_COMMAND}
+	NODE_ENV=${ENV_VALUE_DEV} ${DB_MIGRATE_COMMAND}
+	NODE_ENV=${ENV_VALUE_DEV} ${DB_SEEDS_COMMAND}

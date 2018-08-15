@@ -1,6 +1,6 @@
 const request = require('supertest');
 const models = require('../../models');
-const usersSeeds = require('../../seeds/users');
+const usersSeeds = require('../../seeders/users');
 const server = require('../../app');
 
 describe('Users API', () => {
@@ -12,7 +12,7 @@ describe('Users API', () => {
     await models.Users.bulkCreate(usersSeeds);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await models.sequelize.close();
   });
 

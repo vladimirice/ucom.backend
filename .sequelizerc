@@ -1,0 +1,5 @@
+const path = __dirname + `/config/sequelize-cli-config.js`;
+
+module.exports = {
+  'config': path
+}

@@ -1,0 +1,11 @@
+{
+  "db": {
+    "username": "uos",
+    "password": "uos",
+    "database": "uos_backend_app",
+    "host": "uos-backend-postgres.dev",
+    "port": "5433",
+    "dialect": "postgres",
+    "logging": false
+  }
+}
