@@ -31,8 +31,6 @@ router.post('/register', async function (req, res, next) {
     return res.status(400).send(AuthValidator.formatErrorMessages(error.details));
   }
 
-  // TODO change token secret phrase
-
   if (!EosJsEcc.isValidPublic(payload.public_key)) {
     return next(new AppError('Public key is not valid', 400));
   }
