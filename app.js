@@ -6,6 +6,7 @@ const logger = require('morgan');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
+const myselfRouter = require('./routes/myself');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use(function (req, res, next) {
 app.use('/api/v1', indexRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/myself', myselfRouter);
 require('./lib/auth/passport');
 
 // catch 404 and forward to error handler

@@ -122,18 +122,4 @@ describe('Test auth workflow', () => {
     expect(body.hasOwnProperty('error')).toBeTruthy();
     expect(body.error).toMatch('Public key is not valid');
   })
-
-  /*
-
-  Receive
-  account_name
-  public_key
-  sign
-
-  verify sign
-  create new user
-  return jwt token
-
-
-   */
 });
