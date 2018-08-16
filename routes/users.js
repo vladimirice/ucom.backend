@@ -15,4 +15,9 @@ router.get('/:user_id', async function(req, res, next) {
   res.send(user);
 });
 
+router.get('/', async function(req, res, next) {
+  const user = await models.Users.findAll();
+  res.send(user);
+});
+
 module.exports = router;

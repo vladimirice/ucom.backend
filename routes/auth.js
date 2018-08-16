@@ -7,6 +7,20 @@ const passport = require('passport');
 const _ = require('lodash');
 const EosJsEcc = require('../lib/crypto/eosjs-ecc');
 const {AppError} = require('../lib/api/errors');
+const usersSeeds = require('../seeders/eos_accounts');
+
+/* test method */
+router.post('/generate_sign', async function (req, res, next) {
+  const account_name = req.body.account_name;
+
+  const sign = EosJsEcc.sign(account_name, usersSeeds[0].private_key);
+
+  res.send({
+    'sign': sign,
+    'public_key': usersSeeds[0].public_key
+  })
+
+});
 
 router.post('/register', async function (req, res, next) {
   const payload = _.pick(req.body, ['account_name', 'public_key', 'sign']);
