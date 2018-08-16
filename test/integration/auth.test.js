@@ -75,17 +75,17 @@ describe('Test auth workflow', () => {
     ;
 
     expect(res.status).toBe(400);
-    const body = res.body;
+    const body = res.body.errors;
     expect(body.length).toBe(2);
 
 
     const publicKeyError = body.find((e) => e.field === 'public_key');
     expect(publicKeyError).toBeDefined();
-    expect(publicKeyError.message).toMatch('"public_key" is required');
+    expect(publicKeyError.message).toMatch('Public key is required');
 
     const signError = body.find((e) => e.field === 'sign');
     expect(signError).toBeDefined();
-    expect(signError.message).toMatch('"sign" is required');
+    expect(signError.message).toMatch('Sign is required');
   });
 
 

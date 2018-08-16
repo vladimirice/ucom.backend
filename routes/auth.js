@@ -28,7 +28,9 @@ router.post('/register', async function (req, res, next) {
 
   const { error } = AuthValidator.validateRegistration(req.body);
   if (error) {
-    return res.status(400).send(AuthValidator.formatErrorMessages(error.details));
+    return res.status(400).send({
+      "errors": AuthValidator.formatErrorMessages(error.details)
+    });
   }
 
   if (!EosJsEcc.isValidPublic(payload.public_key)) {
