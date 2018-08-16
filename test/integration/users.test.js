@@ -24,6 +24,7 @@ describe('Users API', () => {
     ;
 
     const body = res.body;
+
     expect(res.status).toBe(200);
 
     expect(body.hasOwnProperty('account_address'));

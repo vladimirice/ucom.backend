@@ -31,6 +31,7 @@ Create models with help of sequelize
 Start pm2 with ecosystem
 ```
     pm2 start ecosystem.config.js --env production --only uos_backend
+    pm2 restart ecosystem.config.js --env production --only uos_backend
 ```
 
 ## Further steps

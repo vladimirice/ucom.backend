@@ -1,13 +1,14 @@
 const express = require('express');
 const router  = express.Router();
 const models  = require('../models');
-
 const jwt      = require('jsonwebtoken');
 const passport = require('passport');
 const _ = require('lodash');
 const EosJsEcc = require('../lib/crypto/eosjs-ecc');
 const {AppError} = require('../lib/api/errors');
 const usersSeeds = require('../seeders/eos_accounts');
+const AuthValidator = require('../lib/auth/validators');
+const config = require('config');
 
 /* test method */
 router.post('/generate_sign', async function (req, res, next) {
@@ -25,7 +26,11 @@ router.post('/generate_sign', async function (req, res, next) {
 router.post('/register', async function (req, res, next) {
   const payload = _.pick(req.body, ['account_name', 'public_key', 'sign']);
 
-  // TODO - validate input data
+  const { error } = AuthValidator.validateRegistration(req.body);
+  if (error) {
+    return res.status(400).send(AuthValidator.formatErrorMessages(error.details));
+  }
+
   // TODO change token secret phrase
 
   if (!EosJsEcc.isValidPublic(payload.public_key)) {
@@ -51,9 +56,7 @@ router.post('/register', async function (req, res, next) {
       });
     }
 
-
-
-    const token = jwt.sign(_.pick(user, ['id', 'account_name']), 'your_jwt_secret');
+    const token = jwt.sign(_.pick(user, ['id', 'account_name']), config.get('auth').jwt_secret_key);
 
     res.send({
       'success': true,

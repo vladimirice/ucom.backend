@@ -66,6 +66,29 @@ describe('Test auth workflow', () => {
   });
 
 
+  it('Should receive validatoin error if no fields provided', async () => {
+    const res = await request(server)
+      .post(registerUrl)
+      .send({
+        'account_name': eosAccount.account_name,
+      })
+    ;
+
+    expect(res.status).toBe(400);
+    const body = res.body;
+    expect(body.length).toBe(2);
+
+
+    const publicKeyError = body.find((e) => e.field === 'public_key');
+    expect(publicKeyError).toBeDefined();
+    expect(publicKeyError.message).toMatch('"public_key" is required');
+
+    const signError = body.find((e) => e.field === 'sign');
+    expect(signError).toBeDefined();
+    expect(signError.message).toMatch('"sign" is required');
+  });
+
+
   it('Should receive signature error if sign is not valid', async () => {
     const res = await request(server)
       .post(registerUrl)
