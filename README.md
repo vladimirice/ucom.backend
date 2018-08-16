@@ -21,9 +21,19 @@ In order to install database (PostgreSQL):
 ### Commands for Linux
 TODO
 
-## Shortcuts
+## For reference
 
-node_modules/.bin/sequelize model:generate --name Users --attributes email:string,password:string
+Create models with help of sequelize
+```
+    node_modules/.bin/sequelize model:generate --name Users --attributes email:string,password:string
+```
+
+Start pm2 with ecosystem
+```
+    pm2 start ecosystem.config.js --env production --only uos_backend
+```
+
+## Further steps
 
 Create user tables with relations
 Provide an api to get users
@@ -32,3 +42,7 @@ Provide an api to get users
 step 2 - add relations
 step 3 - add joi for validation
 step 4 - provide auth
+
+
+Auth
+* passport
