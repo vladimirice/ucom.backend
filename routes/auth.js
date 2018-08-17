@@ -10,6 +10,7 @@ const usersSeeds = require('../seeders/eos_accounts');
 const AuthValidator = require('../lib/auth/validators');
 const config = require('config');
 const AuthService = require('../lib/auth/authService');
+const eosApi = require('../lib/eos/eosApi');
 
 /* test method */
 router.post('/generate_sign', async function (req, res, next) {
@@ -44,6 +45,19 @@ router.post('/register', async function (req, res, next) {
 
     if (!isSignValid) {
       return next(new AppError('Signature is not valid', 400));
+    }
+
+    const doesAccountExists = await eosApi.doesAccountExist(payload.account_name);
+
+    if(!doesAccountExists) {
+      return res.status(400).send({
+        'errors' : [
+          {
+            'field': 'account_name',
+            'message': 'Such account does not exists in blockchain'
+          }
+        ]
+      });
     }
 
     user = await models.Users.findOne({where: {account_name: payload.account_name}});
