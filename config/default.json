@@ -10,5 +10,12 @@
   },
   "auth": {
     "jwt_secret_key": "secret_key"
+  },
+  "eosConfig": {
+    "httpEndpoint": "http://142.93.100.96:8888"
+  },
+  "eosAccounts": {
+    "creatorAccountName": "12345",
+    "creatorPrivateKey": "12345"
   }
 }

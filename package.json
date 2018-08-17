@@ -10,6 +10,7 @@
     "config": "^2.0.1",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.9",
+    "eosjs": "^16.0.2",
     "eosjs-ecc": "^4.0.3",
     "expect": "^23.5.0",
     "express": "~4.16.0",
@@ -25,6 +26,7 @@
     "pg-hstore": "^2.3.2",
     "sequelize": "^4.38.0",
     "sequelize-cli": "^4.0.0",
+    "sha256": "^0.2.0",
     "supertest": "^3.1.0"
   }
 }

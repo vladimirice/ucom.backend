@@ -24,23 +24,24 @@ describe('Test auth workflow', () => {
     await models.sequelize.close();
   });
 
-  it('Send correct auth request and receive token and new user', async () => {
-    const sign = EosJsEcc.sign(eosAccount.account_name, eosAccount.private_key);
-
-    const res = await request(server)
-      .post(registerUrl)
-      .send({
-        'account_name': eosAccount.account_name,
-        'public_key': eosAccount.public_key,
-        'sign': sign
-      })
-    ;
-
-    AuthHelper.validateAuthResponse(res, eosAccount.account_name);
-
-    const user = await models.Users.findOne({where: {account_name: eosAccount.account_name}});
-    expect(user).not.toBeNull();
-  });
+  // TODO registration
+  // it('Send correct auth request and receive token and new user', async () => {
+  //   const sign = EosJsEcc.sign(eosAccount.account_name, eosAccount.private_key);
+  //
+  //   const res = await request(server)
+  //     .post(registerUrl)
+  //     .send({
+  //       'account_name': eosAccount.account_name,
+  //       'public_key': eosAccount.public_key,
+  //       'sign': sign
+  //     })
+  //   ;
+  //
+  //   AuthHelper.validateAuthResponse(res, eosAccount.account_name);
+  //
+  //   const user = await models.Users.findOne({where: {account_name: eosAccount.account_name}});
+  //   expect(user).not.toBeNull();
+  // });
 
 
   it('Send correct auth request but with already existed user', async () => {
@@ -63,7 +64,7 @@ describe('Test auth workflow', () => {
     AuthHelper.validateAuthResponse(res, account_name);
     const usersCountAfter = await models.Users.count({where: {account_name: account_name}});
     expect(usersCountAfter).toBe(usersCountBefore);
-  });
+  }, 10000);
 
 
   it('Should receive validatoin error if no fields provided', async () => {

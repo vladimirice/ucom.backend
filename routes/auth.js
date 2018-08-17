@@ -9,6 +9,7 @@ const {AppError} = require('../lib/api/errors');
 const usersSeeds = require('../seeders/eos_accounts');
 const AuthValidator = require('../lib/auth/validators');
 const config = require('config');
+const AuthService = require('../lib/auth/authService');
 
 /* test method */
 router.post('/generate_sign', async function (req, res, next) {
@@ -56,7 +57,7 @@ router.post('/register', async function (req, res, next) {
       });
     }
 
-    const token = jwt.sign(_.pick(user, ['id', 'account_name']), config.get('auth').jwt_secret_key);
+    const token = AuthService.getNewJwtToken(user);
 
     res.send({
       'success': true,

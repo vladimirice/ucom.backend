@@ -62,5 +62,7 @@ typings/
 .idea
 docker-compose.yml
 config/production.json
+config/development.json
 # TODO remove package-lock from gitignore
 package-lock.json
+playground.js
