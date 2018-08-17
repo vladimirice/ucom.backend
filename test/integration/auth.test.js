@@ -44,6 +44,32 @@ describe('Test auth workflow', () => {
   // });
 
 
+  // TODO - it name type exception
+
+
+  it('Send correct auth request but with account which does not exist in blockchain', async () => {
+    const account_name = 'testuser';
+
+    const sign = EosJsEcc.sign(account_name, eosAccount.private_key);
+
+    const res = await request(server)
+      .post(registerUrl)
+      .send({
+        'account_name': account_name,
+        'public_key': eosAccount.public_key,
+        'sign': sign
+      })
+    ;
+
+    expect(res.status).toBe(400);
+    const body = res.body.errors;
+    expect(body.length).toBe(1);
+
+    const publicKeyError = body.find((e) => e.field === 'account_name');
+    expect(publicKeyError).toBeDefined();
+    expect(publicKeyError.message).toMatch('Such account does not exists in blockchain');
+  });
+
   it('Send correct auth request but with already existed user', async () => {
     const account_name = usersSeeds[0].account_name;
 
