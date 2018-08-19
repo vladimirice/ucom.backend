@@ -2,23 +2,21 @@ const request = require('supertest');
 const models = require('../../models');
 const usersSeeds = require('../../seeders/users');
 const server = require('../../app');
-const EosJsEcc = require('../../lib/crypto/eosjs-ecc');
-const eosAccounts = require('../../seeders/eos_accounts');
 const expect = require('expect');
-const AuthHelper = require('./helpers/auth-helper');
 const AuthService = require('../../lib/auth/authService');
 
-const eosAccount = eosAccounts[0];
 const myselfUrl = '/api/v1/myself';
+
+const vladSeed = usersSeeds[0];
 
 
 describe('Myself API', () => {
   beforeEach(async () => {
-    await models.Users.destroy({
+    await models['Users'].destroy({
       where: {},
     });
 
-    await models.Users.bulkCreate(usersSeeds);
+    await models['Users'].bulkCreate(usersSeeds);
   });
 
   afterAll(async () => {
@@ -46,5 +44,34 @@ describe('Myself API', () => {
 
     expect(body.hasOwnProperty('account_name'));
     expect(body.account_name).toMatch(usersSeeds[0].account_name);
+  });
+
+  it('Change logged user data', async function() {
+    const token = AuthService.getNewJwtToken(vladSeed);
+
+    const fieldsToChange = {
+      first_name: 'vladislav',
+      last_name: 'Ivanych'
+    };
+
+    const res = await request(server)
+      .patch(myselfUrl)
+      .set('Authorization', `Bearer ${token}`)
+      .send(fieldsToChange)
+    ;
+
+    expect(res.status).toBe(200);
+    const responseUser = res.body;
+
+    const changedUser = await models['Users'].findById(vladSeed.id);
+    expect(changedUser.account_name).toBe(vladSeed.account_name);
+
+    for (let fieldToChange in fieldsToChange) {
+      if (fieldsToChange.hasOwnProperty(fieldToChange)) {
+        expect(changedUser[fieldToChange]).not.toBe(vladSeed[fieldToChange]);
+        expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
+      }
+
+    }
   });
 });
