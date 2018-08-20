@@ -8,7 +8,7 @@ const expect = require('expect');
 const AuthHelper = require('./helpers/auth-helper');
 
 const eosAccount = eosAccounts[0];
-const registerUrl = '/api/v1/auth/register';
+const registerUrl = '/api/v1/auth/login';
 
 describe('Test auth workflow', () => {
 

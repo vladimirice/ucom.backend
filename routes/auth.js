@@ -25,7 +25,7 @@ router.post('/generate_sign', async function (req, res, next) {
 
 });
 
-router.post('/register', async function (req, res, next) {
+router.post('/login', async function (req, res, next) {
   const payload = _.pick(req.body, ['account_name', 'public_key', 'sign']);
 
   const { error } = AuthValidator.validateRegistration(req.body);
@@ -63,11 +63,10 @@ router.post('/register', async function (req, res, next) {
     user = await models.Users.findOne({where: {account_name: payload.account_name}});
 
     if (!user) {
-      user = await models.Users.create({
-        account_name: payload.account_name,
-        nickname: payload.account_name,
-        created_at: new Date(),
-        updated_at: new Date()
+      res.send({
+        'errors': {
+          'account_name': 'This user is not registered'
+        }
       });
     }
 
@@ -82,31 +81,6 @@ router.post('/register', async function (req, res, next) {
   } catch (e) {
     return next(new AppError(e.message, 400));
   }
-});
-
-/* POST login. */
-router.post('/login', function (req, res, next) {
-
-  passport.authenticate('local', {session: false}, (err, user, info) => {
-    if (err || !user) {
-      return res.status(400).json({
-        message: info ? info.message : 'Login failed',
-        user   : user
-      });
-    }
-
-    req.login(user.dataValues, {session: false}, (err) => {
-      if (err) {
-        res.send(err);
-      }
-
-      const token = jwt.sign(_.pick(user, ['id', 'email']), 'your_jwt_secret');
-
-      return res.header('Authorization', `Bearer ${token}`).json({user});
-    });
-  })
-  (req, res);
-
 });
 
 module.exports = router;
