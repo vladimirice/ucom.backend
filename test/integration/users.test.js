@@ -5,10 +5,7 @@ const server = require('../../app');
 
 describe('Users API', () => {
   beforeEach(async () => {
-    await models.Users.destroy({
-      where: {},
-    });
-
+    await models.Users.destroy({truncate: true});
     await models.Users.bulkCreate(usersSeeds);
   });
 

@@ -14,9 +14,8 @@ describe('Test auth workflow', () => {
 
   beforeEach(async () => {
     await models.Users.destroy({
-      where: {},
+      truncate: true,
     });
-
     await models.Users.bulkCreate(usersSeeds);
   });
 
@@ -43,14 +42,10 @@ describe('Test auth workflow', () => {
   //   expect(user).not.toBeNull();
   // });
 
-
-  // TODO - it name type exception
-
-
   it('Send correct auth request but with account which does not exist in blockchain', async () => {
     const account_name = 'testuser';
 
-    const sign = EosJsEcc.sign(account_name, eosAccount.private_key);
+    const sign = await EosJsEcc.sign(account_name, eosAccount.private_key);
 
     const res = await request(server)
       .post(registerUrl)

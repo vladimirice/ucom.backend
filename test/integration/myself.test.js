@@ -11,11 +11,11 @@ const vladSeed = usersSeeds[0];
 
 
 describe('Myself API', () => {
+
   beforeEach(async () => {
     await models['Users'].destroy({
-      where: {},
+      truncate: true
     });
-
     await models['Users'].bulkCreate(usersSeeds);
   });
 
@@ -32,7 +32,7 @@ describe('Myself API', () => {
   });
 
   it('Get logged user data', async function ()  {
-    const token = AuthService.getNewJwtToken(usersSeeds[0]);
+    const token = await AuthService.getNewJwtToken(vladSeed);
 
     const res = await request(server)
       .get(myselfUrl)
@@ -62,12 +62,27 @@ describe('Myself API', () => {
       .send(fieldsToChange)
     ;
 
-    let bbb = 0;
+    expect(res.status).toBe(400);
+    const body = res.body.errors;
+    expect(body.length).toBe(1);
+
+    const emailError = body.find((e) => e.field === 'email');
+    expect(emailError).toBeDefined();
+    expect(emailError.message).toMatch('Email is invalid');
+
+    // Nothing is changed in DB
+    const dbUser = await models['Users'].findById(vladSeed.id);
+
+    for (let fieldToChange in fieldsToChange) {
+      if (fieldsToChange.hasOwnProperty(fieldToChange)) {
+        expect(dbUser[fieldToChange]).toBe(vladSeed[fieldToChange]);
+      }
+    }
 
   });
 
   it('Change logged user data', async function() {
-    const token = AuthService.getNewJwtToken(vladSeed);
+    const token = await AuthService.getNewJwtToken(vladSeed);
 
     const fieldsToChange = {
       first_name: 'vladislav',
@@ -92,7 +107,6 @@ describe('Myself API', () => {
         expect(changedUser[fieldToChange]).not.toBe(vladSeed[fieldToChange]);
         expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
       }
-
     }
   });
 });

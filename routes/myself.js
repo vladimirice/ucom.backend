@@ -12,8 +12,6 @@ router.get('/', passport.authenticate('jwt', {session: false}), async function(r
 router.patch('/', passport.authenticate('jwt', {session: false}), async function(req, res, next) {
   const parameters = _.pick(req.body, UsersValidator.getFields());
 
-  // TODO - provide validation
-
   req.user.validate()
     .then((res) => {
       return req.user.update({
@@ -24,7 +22,18 @@ router.patch('/', passport.authenticate('jwt', {session: false}), async function
       res.send(req.user);
     })
     .catch((err) => {
-      res.status(400).send(err);
+      let errorResponse = [];
+
+      err.errors.forEach((error) => {
+        errorResponse.push({
+          'field': error.path,
+          'message': error.message,
+        });
+      });
+
+      res.status(400).send({
+        'errors': errorResponse
+      });
     });
 });
 
