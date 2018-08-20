@@ -46,12 +46,33 @@ describe('Myself API', () => {
     expect(body.account_name).toMatch(usersSeeds[0].account_name);
   });
 
+
+  it('Should return error if email is not valid', async () => {
+    const token = AuthService.getNewJwtToken(vladSeed);
+
+    const fieldsToChange = {
+      first_name: 'vladislav',
+      last_name: 'Ivanych',
+      email: 'invalidEmail'
+    };
+
+    const res = await request(server)
+      .patch(myselfUrl)
+      .set('Authorization', `Bearer ${token}`)
+      .send(fieldsToChange)
+    ;
+
+    let bbb = 0;
+
+  });
+
   it('Change logged user data', async function() {
     const token = AuthService.getNewJwtToken(vladSeed);
 
     const fieldsToChange = {
       first_name: 'vladislav',
-      last_name: 'Ivanych'
+      last_name: 'Ivanych',
+      email: 'email@example.com'
     };
 
     const res = await request(server)

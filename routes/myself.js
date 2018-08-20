@@ -14,11 +14,18 @@ router.patch('/', passport.authenticate('jwt', {session: false}), async function
 
   // TODO - provide validation
 
-  await req.user.update({
-    ...parameters
-  });
-
-  res.send(req.user);
+  req.user.validate()
+    .then((res) => {
+      return req.user.update({
+        ...parameters
+      });
+    })
+    .then((user) => {
+      res.send(req.user);
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 });
 
 module.exports = router;
