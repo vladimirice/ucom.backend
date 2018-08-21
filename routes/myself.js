@@ -4,13 +4,18 @@ const passport = require('passport');
 const UsersValidator = require('../lib/validator/users-validator');
 const _ = require('lodash');
 
+const { cpUpload } = require('../lib/users/avatar-upload-middleware');
+
 router.get('/', passport.authenticate('jwt', {session: false}), async function(req, res, next) {
   res.send(req.user)
 });
 
-
-router.patch('/', passport.authenticate('jwt', {session: false}), async function(req, res, next) {
+router.patch('/', [passport.authenticate('jwt', {session: false}), cpUpload], async function(req, res, next) {
   const parameters = _.pick(req.body, UsersValidator.getFields());
+
+  if (req.files && req.files['avatar_filename'] && req.files['avatar_filename'][0] && req.files['avatar_filename'][0].filename) {
+    parameters['avatar_filename'] = req.files['avatar_filename'][0].filename;
+  }
 
   req.user.validate()
     .then((res) => {

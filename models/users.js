@@ -43,6 +43,9 @@ module.exports = (sequelize, DataTypes) => {
     mood_message: {
       type: DataTypes.STRING
     },
+    avatar_filename: {
+      type: DataTypes.STRING
+    },
   }, {
     underscored: true,
   });

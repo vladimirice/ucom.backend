@@ -66,3 +66,5 @@ config/development.json
 # TODO remove package-lock from gitignore
 package-lock.json
 playground.js
+public/upload/*
+!public/upload/.gitkeep

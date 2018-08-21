@@ -13,7 +13,8 @@ const usersSeeds = [{
     address: 'Tverskaya, 1',
     mood_message: 'Be always positive',
     created_at: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
+    avatar_filename: null
   }, {
     id: 2,
     account_name: 'jane',
@@ -29,7 +30,8 @@ const usersSeeds = [{
     address: 'LA street, 12',
     mood_message: 'Everything is always ok',
     created_at: new Date(),
-    updated_at: new Date()
+    updated_at: new Date(),
+    avatar_filename: null,
   },
 ];
 

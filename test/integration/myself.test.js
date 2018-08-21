@@ -4,11 +4,15 @@ const usersSeeds = require('../../seeders/users');
 const server = require('../../app');
 const expect = require('expect');
 const AuthService = require('../../lib/auth/authService');
+const fs = require('fs');
+
+const avatarPath = `${__dirname}/../../seeders/images/ankr_network.png`;
 
 const myselfUrl = '/api/v1/myself';
 
 const vladSeed = usersSeeds[0];
 
+const { avatarStoragePath } = require('../../lib/users/avatar-upload-middleware');
 
 describe('Myself API', () => {
 
@@ -108,5 +112,27 @@ describe('Myself API', () => {
         expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
       }
     }
+  });
+
+  it('Test avatar uploading', async () => {
+    const token = await AuthService.getNewJwtToken(vladSeed);
+
+    expect(fs.existsSync(avatarPath)).toBeTruthy();
+
+    const res = await request(server)
+      .patch(myselfUrl)
+      .set('Authorization', `Bearer ${token}`)
+      .attach('avatar_filename', avatarPath)
+    ;
+
+    expect(res.status).toBe(200);
+    const body = res.body;
+
+    expect(fs.existsSync(`${avatarStoragePath}/${body.avatar_filename}`)).toBeTruthy();
+
+    const avatarFetchRes = await request(server)
+      .get(`/upload/${body.avatar_filename}`);
+
+    expect(avatarFetchRes.status).toBe(200);
   });
 });
