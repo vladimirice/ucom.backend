@@ -2,19 +2,25 @@
 module.exports = (sequelize, DataTypes) => {
   const Users = sequelize.define('Users', {
     account_name: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     nickname: {
       type: DataTypes.STRING
     },
     first_name: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     last_name: {
       type: DataTypes.STRING
     },
     email: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      validate: {
+        isEmail: {
+          args: true,
+          msg: 'Email is invalid'
+        },
+      }
     },
     phone_number: {
       type: DataTypes.STRING
@@ -35,6 +41,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING
     },
     mood_message: {
+      type: DataTypes.STRING
+    },
+    avatar_filename: {
+      type: DataTypes.STRING
+    },
+    public_key: {
       type: DataTypes.STRING
     },
   }, {

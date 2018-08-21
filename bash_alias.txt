@@ -2,7 +2,7 @@ alias rundev="DEBUG=icorocks-v3:* npm start"
 alias psqlrun="pg_ctl -D /usr/local/var/postgres -l logfile start";
 alias seeds_init="node_modules/.bin/sequelize db:seed:undo:all && node_modules/.bin/sequelize db:seed:all";
 alias dmm="node_modules/.bin/sequelize db:migrate";
-alias dmg="node_modules/.bin/sequelize migration:generate ";
+alias dmg="node_modules/.bin/sequelize migration:generate --name ";
 alias dmu="node_modules/.bin/sequelize db:migrate:undo";
 alias ds='docker-machine start && eval $(docker-machine env default)'
 alias de='eval $(docker-machine env default)'
