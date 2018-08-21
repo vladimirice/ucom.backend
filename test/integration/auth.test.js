@@ -143,5 +143,27 @@ describe('Test auth workflow', () => {
 
     expect(body.hasOwnProperty('error')).toBeTruthy();
     expect(body.error).toMatch('Public key is not valid');
-  })
+  });
+
+  it('Send incorrect sign for existed account', async () => {
+    const account_name = usersSeeds[0].account_name;
+
+    const usersCountBefore = await models.Users.count({where: {account_name: account_name}});
+    expect(usersCountBefore).toBe(1);
+
+    const sign = EosJsEcc.sign(account_name, eosAccount.private_key);
+
+    const res = await request(server)
+      .post(registerUrl)
+      .send({
+        'account_name': account_name,
+        'public_key': eosAccount.public_key,
+        'sign': sign
+      })
+    ;
+
+    AuthHelper.validateAuthResponse(res, account_name);
+    const usersCountAfter = await models.Users.count({where: {account_name: account_name}});
+    expect(usersCountAfter).toBe(usersCountBefore);
+  }, 10000);
 });

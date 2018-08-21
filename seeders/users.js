@@ -14,7 +14,8 @@ const usersSeeds = [{
     mood_message: 'Be always positive',
     created_at: new Date(),
     updated_at: new Date(),
-    avatar_filename: null
+    avatar_filename: null,
+    public_key: null
   }, {
     id: 2,
     account_name: 'jane',
@@ -32,6 +33,7 @@ const usersSeeds = [{
     created_at: new Date(),
     updated_at: new Date(),
     avatar_filename: null,
+    public_key: null
   },
 ];
 

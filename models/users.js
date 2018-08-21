@@ -46,6 +46,9 @@ module.exports = (sequelize, DataTypes) => {
     avatar_filename: {
       type: DataTypes.STRING
     },
+    public_key: {
+      type: DataTypes.STRING
+    },
   }, {
     underscored: true,
   });
