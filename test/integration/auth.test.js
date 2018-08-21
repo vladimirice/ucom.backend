@@ -68,7 +68,7 @@ describe('Test auth workflow', () => {
 
     const publicKeyError = body.find((e) => e.field === 'account_name');
     expect(publicKeyError).toBeDefined();
-    expect(publicKeyError.message).toMatch('Such account does not exists in blockchain');
+    expect(publicKeyError.message).toMatch('Such account does not exist in blockchain');
   });
 
   it('Send correct auth request but with already existed user', async () => {

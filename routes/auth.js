@@ -42,7 +42,7 @@ router.post('/login', async function (req, res, next) {
       'errors' : [
         {
           'field': 'account_name',
-          'message': 'Such account does not exists in blockchain'
+          'message': 'Such account does not exist in blockchain'
         }
       ]
     });
@@ -57,7 +57,14 @@ router.post('/login', async function (req, res, next) {
     isSignValid = EosJsEcc.verify(payload.sign, payload.account_name, user.public_key);
 
     if (!isSignValid) {
-      return next(new AppError('Signature is not valid', 400));
+      return res.status(400).send({
+        'errors' : [
+          {
+            'field': 'account_name',
+            'message': 'Such account does not exist in blockchain'
+          }
+        ]
+      });
     }
 
     const doesAccountExists = await eosApi.doesAccountExist(payload.account_name);
