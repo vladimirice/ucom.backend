@@ -35,13 +35,26 @@ router.post('/login', async function (req, res, next) {
     });
   }
 
+  const user = await models['Users'].findOne({where: {account_name: payload.account_name}});
+
+  if (!user) {
+    return res.status(400).send({
+      'errors' : [
+        {
+          'field': 'account_name',
+          'message': 'Such account does not exists in blockchain'
+        }
+      ]
+    });
+  }
+
   if (!EosJsEcc.isValidPublic(payload.public_key)) {
     return next(new AppError('Public key is not valid', 400));
   }
 
-  let isSignValid, user;
+  let isSignValid;
   try {
-    isSignValid = EosJsEcc.verify(payload.sign, payload.account_name, payload.public_key);
+    isSignValid = EosJsEcc.verify(payload.sign, payload.account_name, user.public_key);
 
     if (!isSignValid) {
       return next(new AppError('Signature is not valid', 400));
@@ -59,8 +72,6 @@ router.post('/login', async function (req, res, next) {
         ]
       });
     }
-
-    user = await models.Users.findOne({where: {account_name: payload.account_name}});
 
     if (!user) {
       res.send({

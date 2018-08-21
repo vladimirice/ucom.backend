@@ -1,7 +1,14 @@
 module.exports = [
   {
-    'private_key': '5KbdbCDGe2ie7Stsk6HPSt2PWfkCqS4nYi8zddEQoxB8CU2H1GA',
-    'public_key': 'ZGV8QmspP1DjGjMQGcfmk9YwvwXBc2ZTNjdZZKLQJ2xBvHaf42SW6',
-    'account_name': 'g5420x5220d6800x8750',
-  }
+    'account_name': 'vlad',
+    'brainkey': 'ketupa bleaty swoon unstrap encrisp proarmy verbena fakery cranium add caprid popper',
+    'private_key': '5Hq7Bb6ntCXJzEKSmELemLYhs3iUGX7wBh3CPUSgmEBLnnPSpX6',
+    'public_key': 'EOS7u9ckBz7Qi3LVsN7kM9wViX7Qya7XL5eWZg3vg6nKARyk8xV8U',
+  },
+  {
+    'account_name': 'jane',
+    'brainkey': 'linable thack baglike opium excyst bepaid untooth shippo jingly demount gith infant',
+    'private_key': '5Ke5uSaPTQubXTJW9EVhzvK8mvTB1v28WfPpCostFpBk1Cx1EgN',
+    'public_key': 'EOS5SURs5Evb2e3ybaxFdRvLjLzqHUixx7SJEHz1uqTLy36C7MRsm',
+  },
 ];
