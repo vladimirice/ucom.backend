@@ -3,11 +3,12 @@ const router = express.Router();
 let models = require('../models');
 const {AppError} = require('../lib/api/errors');
 const passport = require('passport');
+const UsersRepository = require('../lib/users/users-repository');
 
 /* GET users listing. */
 router.get('/:user_id', async function(req, res, next) {
   const userId = parseInt(req.params.user_id);
-  const user = await models.Users.findById(userId);
+  const user = await UsersRepository.getUserById(userId);
 
   if (!user) {
     return next(new AppError("User not found", 404));

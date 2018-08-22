@@ -1,30 +1,29 @@
 const request = require('supertest');
 const models = require('../../models');
-const usersSeeds = require('../../seeders/users');
 const server = require('../../app');
 const expect = require('expect');
 const AuthService = require('../../lib/auth/authService');
 const fs = require('fs');
 
+const UsersHelper = require('./helpers/users-helper');
+const SeedsHelper = require('./helpers/seeds-helper');
+
 const avatarPath = `${__dirname}/../../seeders/images/ankr_network.png`;
 
 const myselfUrl = '/api/v1/myself';
 
-const vladSeed = usersSeeds[0];
+const vladSeed = UsersHelper.getUserVladSeed();
 
 const { avatarStoragePath } = require('../../lib/users/avatar-upload-middleware');
 
 describe('Myself API', () => {
 
   beforeEach(async () => {
-    await models['Users'].destroy({
-      truncate: true
-    });
-    await models['Users'].bulkCreate(usersSeeds);
+    await SeedsHelper.initSeeds();
   });
 
   afterAll(async () => {
-    await models.sequelize.close();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   it ('Get 401 error to access user editing without token', async () => {
@@ -44,12 +43,9 @@ describe('Myself API', () => {
     ;
 
     expect(res.status).toBe(200);
-    const body = res.body;
 
-    expect(body.hasOwnProperty('account_name'));
-    expect(body.account_name).toMatch(usersSeeds[0].account_name);
+    UsersHelper.validateUserJson(res.body, vladSeed);
   });
-
 
   it('Should return error if email is not valid', async () => {
     const token = AuthService.getNewJwtToken(vladSeed);
@@ -112,6 +108,8 @@ describe('Myself API', () => {
         expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
       }
     }
+
+    UsersHelper.validateUserJson(res.body, vladSeed);
   });
 
   it('Test avatar uploading', async () => {

@@ -1,31 +1,31 @@
 const request = require('supertest');
-const models = require('../../models');
-const usersSeeds = require('../../seeders/users');
 const server = require('../../app');
+const UsersHelper = require('./helpers/users-helper');
+const SeedsHelper = require('./helpers/seeds-helper');
+
+const userVlad = UsersHelper.getUserVladSeed();
 
 describe('Users API', () => {
   beforeEach(async () => {
-    await models.Users.destroy({truncate: true});
-    await models.Users.bulkCreate(usersSeeds);
+    await SeedsHelper.initSeeds();
   });
 
   afterAll(async () => {
-    await models.sequelize.close();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
-  it('GET /users', async () => {
-    const userAdmin = usersSeeds[0];
+  it('GET user by ID without auth', async () => {
 
     const res = await request(server)
-      .get(`/api/v1/users/${userAdmin.id}`)
+      .get(`/api/v1/users/${userVlad.id}`)
     ;
 
     const body = res.body;
 
     expect(res.status).toBe(200);
 
-    expect(body.hasOwnProperty('account_address'));
-    expect(body.account_name).toBe(userAdmin.account_name);
+    expect(typeof body).toBe('object');
+    UsersHelper.validateUserJson(body, userVlad);
   });
 
   it('GET 404 if there is no user with ID', async () => {

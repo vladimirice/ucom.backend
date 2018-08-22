@@ -1,32 +1,29 @@
 const request = require('supertest');
 const models = require('../../models');
-const usersSeeds = require('../../seeders/users');
 const server = require('../../app');
 const EosJsEcc = require('../../lib/crypto/eosjs-ecc');
-const eosAccounts = require('../../seeders/eos_accounts');
-const expect = require('expect');
-const AuthHelper = require('./helpers/auth-helper');
 
-const eosAccount = eosAccounts[0];
+const AuthHelper = require('./helpers/auth-helper');
+const UsersHelper = require('./helpers/users-helper');
+const SeedsHelper = require('./helpers/seeds-helper');
+
+const eosAccount = UsersHelper.getVladEosAccount();
 const registerUrl = '/api/v1/auth/login';
 
-const vladSeed = usersSeeds[0];
-const vladEosAccount = eosAccounts[0];
+const vladSeed = UsersHelper.getUserVladSeed();
+const vladEosAccount = UsersHelper.getVladEosAccount();
 
-const janeSeed = usersSeeds[1];
-const janeEosAccount = eosAccounts[1];
+const janeSeed = UsersHelper.getUserJaneSeed();
+const janeEosAccount = UsersHelper.getJaneEosAccount();
 
 describe('Test auth workflow', () => {
 
   beforeEach(async () => {
-    await models.Users.destroy({
-      truncate: true,
-    });
-    await models.Users.bulkCreate(usersSeeds);
+    await SeedsHelper.initSeeds();
   });
 
   afterAll(async () => {
-    await models.sequelize.close();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   // TODO registration

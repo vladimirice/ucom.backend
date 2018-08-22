@@ -49,11 +49,41 @@ module.exports = (sequelize, DataTypes) => {
     public_key: {
       type: DataTypes.STRING
     },
+    currency_to_show: {
+      type: DataTypes.STRING
+    },
+    first_currency: {
+      type: DataTypes.STRING
+    },
+    first_currency_year: {
+      type: DataTypes.STRING
+    },
+    personal_website_url: {
+      type: DataTypes.STRING
+    },
   }, {
     underscored: true,
+    freezeTableName: true,
+    tableName: 'Users',
   });
   Users.associate = function(models) {
-    // associations can be defined here
+    models['Users'].hasMany(models['users_education'], {
+      foreignKey: 'user_id',
+      sourceKey: 'id',
+      as: {
+        singular: "users_education",
+        plural: "users_education"
+      }
+    });
+    models['Users'].hasMany(models['users_jobs'], {
+      foreignKey: 'user_id',
+      sourceKey: 'id',
+      as: {
+        singular: "users_jobs",
+        plural: "users_jobs"
+      }
+    })
   };
+
   return Users;
 };

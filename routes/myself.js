@@ -3,11 +3,14 @@ const router = express.Router();
 const passport = require('passport');
 const UsersValidator = require('../lib/validator/users-validator');
 const _ = require('lodash');
+const UsersRepository = require('../lib/users/users-repository');
 
 const { cpUpload } = require('../lib/users/avatar-upload-middleware');
 
 router.get('/', passport.authenticate('jwt', {session: false}), async function(req, res, next) {
-  res.send(req.user)
+  const user = await UsersRepository.getUserById(req.user.id);
+
+  res.send(user)
 });
 
 router.patch('/', [passport.authenticate('jwt', {session: false}), cpUpload], async function(req, res, next) {
@@ -23,8 +26,11 @@ router.patch('/', [passport.authenticate('jwt', {session: false}), cpUpload], as
         ...parameters
       });
     })
+    .then(() => {
+      return UsersRepository.getUserById(req.user.id);
+    })
     .then((user) => {
-      res.send(req.user);
+      res.send(user);
     })
     .catch((err) => {
       let errorResponse = [];

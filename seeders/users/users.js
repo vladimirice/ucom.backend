@@ -15,7 +15,11 @@ const usersSeeds = [{
     created_at: new Date(),
     updated_at: new Date(),
     avatar_filename: null,
-    public_key: 'EOS7u9ckBz7Qi3LVsN7kM9wViX7Qya7XL5eWZg3vg6nKARyk8xV8U'
+    public_key: 'EOS7u9ckBz7Qi3LVsN7kM9wViX7Qya7XL5eWZg3vg6nKARyk8xV8U',
+    currency_to_show: 'ETH',
+    first_currency: 'BTC',
+    first_currency_year: '2008',
+    personal_website_url: 'https://www.blockchain.com/'
   }, {
     id: 2,
     account_name: 'jane',
@@ -33,10 +37,12 @@ const usersSeeds = [{
     created_at: new Date(),
     updated_at: new Date(),
     avatar_filename: null,
-    public_key: 'EOS5SURs5Evb2e3ybaxFdRvLjLzqHUixx7SJEHz1uqTLy36C7MRsm'
+    public_key: 'EOS5SURs5Evb2e3ybaxFdRvLjLzqHUixx7SJEHz1uqTLy36C7MRsm',
+    currency_to_show: 'EOS',
+    first_currency: 'ETH',
+    first_currency_year: '2012',
+    personal_website_url: 'https://bitcointalk.org/'
   },
 ];
 
 module.exports = usersSeeds;
-
-
