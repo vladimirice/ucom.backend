@@ -1,5 +1,6 @@
 const usersSeeds = require('../../../seeders/users/users');
 const eosAccounts = require('../../../seeders/users/eos_accounts');
+const AuthService = require('../../../lib/auth/authService');
 
 class UsersHelper {
   static validateUserJson(body, expectedUser) {
@@ -11,6 +12,16 @@ class UsersHelper {
 
     expect(typeof body['users_education']).toBe('object');
     expect(typeof body['users_jobs']).toBe('object');
+  }
+
+  static getUserVlad() {
+    const vladSeed = UsersHelper.getUserVladSeed();
+    const token = AuthService.getNewJwtToken(vladSeed);
+
+    return {
+      ...vladSeed,
+      token
+    }
   }
 
   static getUserVladSeed() {

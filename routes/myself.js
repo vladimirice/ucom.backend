@@ -20,6 +20,27 @@ router.patch('/', [passport.authenticate('jwt', {session: false}), cpUpload], as
     parameters['avatar_filename'] = req.files['avatar_filename'][0].filename;
   }
 
+  let user = await UsersRepository.getUserById(req.user.id);
+
+
+  user.users_education[0].title = 'Strange title';
+
+  user.save().then((res) => {
+
+  });
+
+
+  req.user.getUsersEducation().then(associatedTasks => {
+    const absdc= 0;
+  });
+  //
+  //
+  //
+  // req.user.setUsersEducation[{
+  //
+  // }];
+
+
   req.user.validate()
     .then((res) => {
       return req.user.update({

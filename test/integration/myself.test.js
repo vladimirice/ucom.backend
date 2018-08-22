@@ -2,17 +2,17 @@ const request = require('supertest');
 const models = require('../../models');
 const server = require('../../app');
 const expect = require('expect');
-const AuthService = require('../../lib/auth/authService');
 const fs = require('fs');
 
 const UsersHelper = require('./helpers/users-helper');
 const SeedsHelper = require('./helpers/seeds-helper');
+const UsersRepository = require('./../../lib/users/users-repository');
 
 const avatarPath = `${__dirname}/../../seeders/images/ankr_network.png`;
 
 const myselfUrl = '/api/v1/myself';
 
-const vladSeed = UsersHelper.getUserVladSeed();
+const userVlad = UsersHelper.getUserVlad();
 
 const { avatarStoragePath } = require('../../lib/users/avatar-upload-middleware');
 
@@ -35,21 +35,17 @@ describe('Myself API', () => {
   });
 
   it('Get logged user data', async function ()  {
-    const token = await AuthService.getNewJwtToken(vladSeed);
-
     const res = await request(server)
       .get(myselfUrl)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${userVlad.token}`)
     ;
 
     expect(res.status).toBe(200);
 
-    UsersHelper.validateUserJson(res.body, vladSeed);
+    UsersHelper.validateUserJson(res.body, userVlad);
   });
 
   it('Should return error if email is not valid', async () => {
-    const token = AuthService.getNewJwtToken(vladSeed);
-
     const fieldsToChange = {
       first_name: 'vladislav',
       last_name: 'Ivanych',
@@ -58,7 +54,7 @@ describe('Myself API', () => {
 
     const res = await request(server)
       .patch(myselfUrl)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${userVlad.token}`)
       .send(fieldsToChange)
     ;
 
@@ -71,19 +67,17 @@ describe('Myself API', () => {
     expect(emailError.message).toMatch('Email is invalid');
 
     // Nothing is changed in DB
-    const dbUser = await models['Users'].findById(vladSeed.id);
+    const dbUser = await models['Users'].findById(userVlad.id);
 
     for (let fieldToChange in fieldsToChange) {
       if (fieldsToChange.hasOwnProperty(fieldToChange)) {
-        expect(dbUser[fieldToChange]).toBe(vladSeed[fieldToChange]);
+        expect(dbUser[fieldToChange]).toBe(userVlad[fieldToChange]);
       }
     }
 
   });
 
   it('Change logged user data', async function() {
-    const token = await AuthService.getNewJwtToken(vladSeed);
-
     const fieldsToChange = {
       first_name: 'vladislav',
       last_name: 'Ivanych',
@@ -92,34 +86,32 @@ describe('Myself API', () => {
 
     const res = await request(server)
       .patch(myselfUrl)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${userVlad.token}`)
       .send(fieldsToChange)
     ;
 
     expect(res.status).toBe(200);
     const responseUser = res.body;
 
-    const changedUser = await models['Users'].findById(vladSeed.id);
-    expect(changedUser.account_name).toBe(vladSeed.account_name);
+    const changedUser = await models['Users'].findById(userVlad.id);
+    expect(changedUser.account_name).toBe(userVlad.account_name);
 
     for (let fieldToChange in fieldsToChange) {
       if (fieldsToChange.hasOwnProperty(fieldToChange)) {
-        expect(changedUser[fieldToChange]).not.toBe(vladSeed[fieldToChange]);
+        expect(changedUser[fieldToChange]).not.toBe(userVlad[fieldToChange]);
         expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
       }
     }
 
-    UsersHelper.validateUserJson(res.body, vladSeed);
+    UsersHelper.validateUserJson(res.body, userVlad);
   });
 
   it('Test avatar uploading', async () => {
-    const token = await AuthService.getNewJwtToken(vladSeed);
-
     expect(fs.existsSync(avatarPath)).toBeTruthy();
 
     const res = await request(server)
       .patch(myselfUrl)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${userVlad.token}`)
       .attach('avatar_filename', avatarPath)
     ;
 
@@ -132,5 +124,44 @@ describe('Myself API', () => {
       .get(`/upload/${body.avatar_filename}`);
 
     expect(avatarFetchRes.status).toBe(200);
+  });
+
+  // it('Update user education and user job', async () => {
+  //   const dbUser = await UsersRepository.getUserById(userVlad.id);
+  //
+  // });
+
+
+  it('User education and job editing', async () => {
+    // const dbUser = await UsersRepository.getUserById(userVlad.id);
+    // let usersEducation = [];
+    //
+    // dbUser.users_education.forEach((data) => {
+    //   usersEducation.push(data.toJSON());
+    // });
+    //
+    // usersEducation[0]['title'] = 'Strange University';
+
+    // const dbUser = UR
+
+    const fieldsToChange = {
+      users_education: [{
+        id: 1,
+        title: 'Strange University'
+      }],
+    };
+
+    const res = await request(server)
+      .patch(myselfUrl)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+      .send(fieldsToChange)
+    ;
+
+    expect(res.status).toBe(200);
+    const body = res.body;
+
+    const firstEducation = body.users_education.find((data) => data.id === 1);
+
+    expect(firstEducation.title).toBe('Strange University');
   });
 });
