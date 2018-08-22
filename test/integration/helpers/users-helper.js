@@ -3,15 +3,21 @@ const eosAccounts = require('../../../seeders/users/eos_accounts');
 const AuthService = require('../../../lib/auth/authService');
 
 class UsersHelper {
-  static validateUserJson(body, expectedUser) {
+  static validateUserJson(body, expectedUser, userFromDb) {
+
     expect(body.hasOwnProperty('account_name')).toBeTruthy();
     expect(body.account_name).toBe(expectedUser.account_name);
 
-    expect(body.hasOwnProperty('users_education')).toBeTruthy();
-    expect(body.hasOwnProperty('users_jobs')).toBeTruthy();
+    const fieldsToCheck = [
+        'users_education',
+        'users_jobs'
+    ];
 
-    expect(typeof body['users_education']).toBe('object');
-    expect(typeof body['users_jobs']).toBe('object');
+    fieldsToCheck.forEach(field => {
+      expect(body.hasOwnProperty(field)).toBeTruthy();
+      expect(typeof body[field]).toBe('object');
+      expect(JSON.stringify(body[field])).toBe(JSON.stringify(userFromDb[field]))
+    });
   }
 
   static getUserVlad() {

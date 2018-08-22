@@ -42,7 +42,9 @@ describe('Myself API', () => {
 
     expect(res.status).toBe(200);
 
-    UsersHelper.validateUserJson(res.body, userVlad);
+    const user = await UsersRepository.getUserById(userVlad.id);
+
+    UsersHelper.validateUserJson(res.body, userVlad, user);
   });
 
   it('Should return error if email is not valid', async () => {
@@ -77,34 +79,34 @@ describe('Myself API', () => {
 
   });
 
-  it('Change logged user data', async function() {
-    const fieldsToChange = {
-      first_name: 'vladislav',
-      last_name: 'Ivanych',
-      email: 'email@example.com'
-    };
-
-    const res = await request(server)
-      .patch(myselfUrl)
-      .set('Authorization', `Bearer ${userVlad.token}`)
-      .send(fieldsToChange)
-    ;
-
-    expect(res.status).toBe(200);
-    const responseUser = res.body;
-
-    const changedUser = await models['Users'].findById(userVlad.id);
-    expect(changedUser.account_name).toBe(userVlad.account_name);
-
-    for (let fieldToChange in fieldsToChange) {
-      if (fieldsToChange.hasOwnProperty(fieldToChange)) {
-        expect(changedUser[fieldToChange]).not.toBe(userVlad[fieldToChange]);
-        expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
-      }
-    }
-
-    UsersHelper.validateUserJson(res.body, userVlad);
-  });
+  // it('Change logged user data', async function() {
+  //   const fieldsToChange = {
+  //     first_name: 'vladislav',
+  //     last_name: 'Ivanych',
+  //     email: 'email@example.com'
+  //   };
+  //
+  //   const res = await request(server)
+  //     .patch(myselfUrl)
+  //     .set('Authorization', `Bearer ${userVlad.token}`)
+  //     .send(fieldsToChange)
+  //   ;
+  //
+  //   expect(res.status).toBe(200);
+  //   const responseUser = res.body;
+  //
+  //   const changedUser = await models['Users'].findById(userVlad.id);
+  //   expect(changedUser.account_name).toBe(userVlad.account_name);
+  //
+  //   for (let fieldToChange in fieldsToChange) {
+  //     if (fieldsToChange.hasOwnProperty(fieldToChange)) {
+  //       expect(changedUser[fieldToChange]).not.toBe(userVlad[fieldToChange]);
+  //       expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
+  //     }
+  //   }
+  //
+  //   UsersHelper.validateUserJson(res.body, userVlad);
+  // });
 
   it('Test avatar uploading', async () => {
     expect(fs.existsSync(avatarPath)).toBeTruthy();
@@ -126,29 +128,31 @@ describe('Myself API', () => {
     expect(avatarFetchRes.status).toBe(200);
   });
 
-  // it('Update user education and user job', async () => {
-  //   const dbUser = await UsersRepository.getUserById(userVlad.id);
-  //
-  // });
-
-
   it('User education and job editing', async () => {
-    // const dbUser = await UsersRepository.getUserById(userVlad.id);
-    // let usersEducation = [];
-    //
-    // dbUser.users_education.forEach((data) => {
-    //   usersEducation.push(data.toJSON());
-    // });
-    //
-    // usersEducation[0]['title'] = 'Strange University';
 
-    // const dbUser = UR
+    const userHimselfFieldsToChange = {
+      first_name: 'vladislav',
+      last_name: 'Ivanych',
+      email: 'email@example.com'
+    };
 
+    // update title of one of the education
+    // add new education
     const fieldsToChange = {
+      ... userHimselfFieldsToChange,
+
       users_education: [{
         id: 1,
         title: 'Strange University'
+      }, {
+        title: 'University of Mars'
       }],
+      users_jobs: [{
+        id: 2,
+        title: 'Very strange job title'
+      }, {
+        title: 'Kaspersky beta tester'
+      }]
     };
 
     const res = await request(server)
@@ -160,8 +164,41 @@ describe('Myself API', () => {
     expect(res.status).toBe(200);
     const body = res.body;
 
-    const firstEducation = body.users_education.find((data) => data.id === 1);
+    const updatedUser = await UsersRepository.getUserById(userVlad.id);
 
+    // check jobs
+    const userJobs = updatedUser.users_jobs;
+    const changedJob = userJobs.find(data => data.id === fieldsToChange['users_jobs'][0]['id']);
+    expect(changedJob.title).toBe(fieldsToChange['users_jobs'][0]['title']);
+
+    const newJob = userJobs.find(data => data.title === fieldsToChange['users_jobs'][1]['title']);
+    expect(newJob).toBeDefined();
+    expect(newJob.user_id).toBe(userVlad.id);
+    expect(userJobs.length).toBe(2);
+
+    // Check education
+    const firstEducation = updatedUser.users_education.find(data => data.id === 1);
     expect(firstEducation.title).toBe('Strange University');
+
+    const MarsEducation = updatedUser.users_education.find(data => data.title === 'University of Mars');
+    expect(MarsEducation).toBeDefined();
+    expect(MarsEducation.user_id).toBe(userVlad.id);
+    expect(body.users_education.length).toBe(2);
+
+    // check user itself is updated
+
+    const responseUser = res.body;
+
+    const changedUser = await models['Users'].findById(userVlad.id);
+    expect(changedUser.account_name).toBe(userVlad.account_name);
+
+    for (let fieldToChange in userHimselfFieldsToChange) {
+      if (fieldsToChange.hasOwnProperty(fieldToChange)) {
+        expect(changedUser[fieldToChange]).not.toBe(userVlad[fieldToChange]);
+        expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
+      }
+    }
+
+    UsersHelper.validateUserJson(res.body, userVlad, updatedUser);
   });
 });
