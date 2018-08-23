@@ -2,7 +2,6 @@ const moment = require('moment');
 const DATE_FORMAT = 'YYYY-MM-DD';
 
 const usersEducation = [{
-  id: 1,
   title: 'Lomonosov Moscow State University',
   speciality: 'IT security',
   degree: 'Bachelor',
@@ -13,7 +12,6 @@ const usersEducation = [{
   created_at: new Date(),
   updated_at: new Date(),
 }, {
-  id: 2,
   title: 'Moscow Technological Institute',
   speciality: 'Business management',
   degree: 'MBA',
@@ -24,7 +22,6 @@ const usersEducation = [{
   created_at: new Date(),
   updated_at: new Date(),
 }, {
-  id: 3,
   title: 'Stanbridge University',
   speciality: 'Management of organizations',
   degree: 'Bachelor',

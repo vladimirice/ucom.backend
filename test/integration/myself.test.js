@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const UsersHelper = require('./helpers/users-helper');
 const SeedsHelper = require('./helpers/seeds-helper');
+const RequestHelper = require('./helpers/request-helper');
 const UsersRepository = require('./../../lib/users/users-repository');
 
 const avatarPath = `${__dirname}/../../seeders/images/ankr_network.png`;
@@ -26,14 +27,6 @@ describe('Myself API', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-  it ('Get 401 error to access user editing without token', async () => {
-    const res = await request(server)
-      .get(myselfUrl)
-    ;
-
-    expect(res.status).toBe(401);
-  });
-
   it('Get logged user data', async function ()  {
     const res = await request(server)
       .get(myselfUrl)
@@ -41,7 +34,6 @@ describe('Myself API', () => {
     ;
 
     expect(res.status).toBe(200);
-
     const user = await UsersRepository.getUserById(userVlad.id);
 
     UsersHelper.validateUserJson(res.body, userVlad, user);
@@ -133,7 +125,8 @@ describe('Myself API', () => {
     const userHimselfFieldsToChange = {
       first_name: 'vladislav',
       last_name: 'Ivanych',
-      email: 'email@example.com'
+      email: 'email@example.com',
+      personal_website_url: 'https://blockchain.info'
     };
 
     // update title of one of the education
@@ -147,12 +140,18 @@ describe('Myself API', () => {
       }, {
         title: 'University of Mars'
       }],
-      users_jobs: [{
-        id: 2,
-        title: 'Very strange job title'
-      }, {
-        title: 'Kaspersky beta tester'
-      }]
+      users_jobs: [
+        {
+          id: 1,
+          title: 'Very strange job title'
+        },
+        {
+          title: 'Kaspersky beta tester'
+        },
+        {
+          title: 'superhero'
+        }
+      ]
     };
 
     const res = await request(server)
@@ -171,10 +170,10 @@ describe('Myself API', () => {
     const changedJob = userJobs.find(data => data.id === fieldsToChange['users_jobs'][0]['id']);
     expect(changedJob.title).toBe(fieldsToChange['users_jobs'][0]['title']);
 
-    const newJob = userJobs.find(data => data.title === fieldsToChange['users_jobs'][1]['title']);
+    const newJob = userJobs.find(data => data.title === fieldsToChange['users_jobs'][2]['title']);
     expect(newJob).toBeDefined();
     expect(newJob.user_id).toBe(userVlad.id);
-    expect(userJobs.length).toBe(2);
+    expect(userJobs.length).toBe(3);
 
     // Check education
     const firstEducation = updatedUser.users_education.find(data => data.id === 1);
@@ -200,5 +199,61 @@ describe('Myself API', () => {
     }
 
     UsersHelper.validateUserJson(res.body, userVlad, updatedUser);
+  });
+
+  it('Update users sources', async () => {
+    // sources of user are fixed - now only 4 sources
+    // request - find all users sources by includes
+
+    // update title of one of the education
+    // add new education
+    const fieldsToChange = {
+      users_sources: [
+        {
+          id: 1,
+          source_url: 'https://myurl.com',
+          source_type_id: 1
+        },
+        {
+          // create new source
+          source_url: 'http://mysourceurl2.com',
+          source_type_id: 2
+        }
+        // and delete id = 2, because it is not mentioned
+      ],
+    };
+
+    const beforeUser = await UsersRepository.getUserById(userVlad.id);
+    const usersSourceToDelete = beforeUser['users_sources'].find((data) => data.id === 2);
+
+    const beforeLength = beforeUser['users_sources'].length;
+
+
+    const body = await RequestHelper.sendPatch(myselfUrl, userVlad.token, fieldsToChange);
+    const updatedUser = await UsersRepository.getUserById(userVlad.id);
+
+    UsersHelper.validateUserJson(body, userVlad, updatedUser);
+
+    const actualUserSources = updatedUser['users_sources'];
+
+    const expectedUserSources = fieldsToChange['users_sources'];
+
+    expectedUserSources.forEach(expectedSource => {
+      const actualSource = actualUserSources.find(data => data.source_url === expectedSource.source_url);
+
+      expect(actualSource).toBeDefined();
+      expect(expectedSource.source_type_id).toBe(actualSource.source_type_id);
+    });
+
+    expect(actualUserSources.find(data => data.id === 2)).not.toBeDefined();
+
+  });
+
+  it ('Get 401 error to access user editing without token', async () => {
+    const res = await request(server)
+      .get(myselfUrl)
+    ;
+
+    expect(res.status).toBe(401);
   });
 });

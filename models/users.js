@@ -82,7 +82,16 @@ module.exports = (sequelize, DataTypes) => {
         singular: "users_jobs",
         plural: "users_jobs"
       }
-    })
+    });
+    models['Users'].hasMany(models['users_sources'], {
+      foreignKey: 'user_id',
+      sourceKey: 'id',
+      as: {
+        singular: "users_sources",
+        plural: "users_sources"
+      }
+    });
+
   };
 
   return Users;

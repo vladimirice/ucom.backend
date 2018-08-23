@@ -27,7 +27,7 @@ describe('Users API', () => {
 
     expect(typeof body).toBe('object');
 
-    const user = UsersRepository.getUserById(userVlad.id);
+    const user = await UsersRepository.getUserById(userVlad.id);
 
     UsersHelper.validateUserJson(body, userVlad, user);
   });

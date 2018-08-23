@@ -1,5 +1,12 @@
 module.exports = (sequelize, DataTypes) => {
   const UsersEducation = sequelize.define('users_education', {
+    id: {
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+      type: DataTypes.INTEGER,
+      // defaultValue: sequelize.literal("nextval('users_education_id_seq')")
+    },
     title: {
       type: DataTypes.STRING,
     },

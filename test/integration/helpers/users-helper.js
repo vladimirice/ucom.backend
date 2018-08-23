@@ -10,7 +10,8 @@ class UsersHelper {
 
     const fieldsToCheck = [
         'users_education',
-        'users_jobs'
+        'users_jobs',
+        'users_sources'
     ];
 
     fieldsToCheck.forEach(field => {

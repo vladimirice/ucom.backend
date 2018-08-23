@@ -23,6 +23,7 @@ router.patch('/', [passport.authenticate('jwt', {session: false}), cpUpload], as
 
   const usersEducation = req.body['users_education'];
   const usersJobs = req.body['users_jobs'];
+  const usersSources = req.body['users_sources'];
 
   let user = await UsersRepository.getUserById(req.user.id);
 
@@ -34,6 +35,11 @@ router.patch('/', [passport.authenticate('jwt', {session: false}), cpUpload], as
   if (usersJobs) {
     const delta = getDelta(user.users_jobs, usersJobs);
     await updateRelations(user, delta, 'users_jobs')
+  }
+
+  if (usersSources) {
+    const delta = getDelta(user['users_sources'], usersSources);
+    await updateRelations(user, delta, 'users_sources');
   }
 
   // TODO update user in one transaction not in both
@@ -72,6 +78,10 @@ async function updateRelations(user, deltaData, modelName, userData) {
 
       // Update addresses
       await Promise.all([
+        deltaData.deleted.map(async data => {
+          await data.destroy({ transaction });
+        }),
+
         deltaData.added.map(async data => {
 
           data['user_id'] = user.id;
@@ -79,12 +89,10 @@ async function updateRelations(user, deltaData, modelName, userData) {
           let newModel = models[modelName].build(data);
           await newModel.save();
         }),
+
         deltaData.changed.map(async data => {
           const toUpdate = user[modelName].find(_data => _data.id === data.id);
           await toUpdate.update(data, { transaction });
-        }),
-        deltaData.deleted.map(async data => {
-          await data.destroy({ transaction });
         })
       ]);
 
@@ -98,9 +106,14 @@ async function updateRelations(user, deltaData, modelName, userData) {
 
 
 function getDelta(source, updated) {
-  const added = updated.filter(
-    updatedItem => source.find(sourceItem => sourceItem.id === updatedItem.id) === undefined
-  );
+  const added = updated.filter((updatedItem) => {
+
+    if (!updatedItem.hasOwnProperty('id')) {
+      return true;
+    }
+
+    return source.find(sourceItem => sourceItem.id === updatedItem.id) === undefined
+  });
 
   const changed = updated.filter(
     sourceItem => source.find(updatedItem => updatedItem.id === sourceItem.id) !== undefined
@@ -109,6 +122,10 @@ function getDelta(source, updated) {
   const deleted = source.filter(
     sourceItem => updated.find(updatedItem => updatedItem.id === sourceItem.id) === undefined
   );
+
+  // console.log(JSON.stringify(added, null, 2));
+  // console.log(JSON.stringify(changed, null, 2));
+  // console.log(JSON.stringify(deleted, null, 2));
 
   return {
     added,
