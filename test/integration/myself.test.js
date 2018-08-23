@@ -13,7 +13,7 @@ const avatarPath = `${__dirname}/../../seeders/images/ankr_network.png`;
 
 const myselfUrl = '/api/v1/myself';
 
-const userVlad = UsersHelper.getUserVlad();
+
 
 const { avatarStoragePath } = require('../../lib/users/avatar-upload-middleware');
 
@@ -28,6 +28,8 @@ describe('Myself API', () => {
   });
 
   it('Get logged user data', async function ()  {
+    const userVlad = await UsersHelper.getUserVlad();
+
     const res = await request(server)
       .get(myselfUrl)
       .set('Authorization', `Bearer ${userVlad.token}`)
@@ -40,6 +42,8 @@ describe('Myself API', () => {
   });
 
   it('Should return error if email is not valid', async () => {
+    const userVlad = await UsersHelper.getUserVlad();
+
     const fieldsToChange = {
       first_name: 'vladislav',
       last_name: 'Ivanych',
@@ -101,6 +105,8 @@ describe('Myself API', () => {
   // });
 
   it('Test avatar uploading', async () => {
+    const userVlad = await UsersHelper.getUserVlad();
+
     expect(fs.existsSync(avatarPath)).toBeTruthy();
 
     const res = await request(server)
@@ -121,6 +127,7 @@ describe('Myself API', () => {
   });
 
   it('User education and job editing', async () => {
+    const userVlad = await UsersHelper.getUserVlad();
 
     const userHimselfFieldsToChange = {
       first_name: 'vladislav',
@@ -202,6 +209,8 @@ describe('Myself API', () => {
   });
 
   it('Update users sources', async () => {
+    const userVlad = await UsersHelper.getUserVlad();
+
     // sources of user are fixed - now only 4 sources
     // request - find all users sources by includes
 
@@ -222,12 +231,6 @@ describe('Myself API', () => {
         // and delete id = 2, because it is not mentioned
       ],
     };
-
-    const beforeUser = await UsersRepository.getUserById(userVlad.id);
-    const usersSourceToDelete = beforeUser['users_sources'].find((data) => data.id === 2);
-
-    const beforeLength = beforeUser['users_sources'].length;
-
 
     const body = await RequestHelper.sendPatch(myselfUrl, userVlad.token, fieldsToChange);
     const updatedUser = await UsersRepository.getUserById(userVlad.id);

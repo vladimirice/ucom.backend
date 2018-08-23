@@ -1,5 +1,4 @@
 const request = require('supertest');
-const models = require('../../models');
 const server = require('../../app');
 const expect = require('expect');
 const fs = require('fs');
@@ -52,7 +51,8 @@ describe('Posts API', () => {
     PostHelper.validateResponseJson(res.body, firstPost);
   });
 
-  it('Create new post', async () => {
+
+  it('Create new post by form data', async () => {
     const userVlad = await UsersHelper.getUserVlad();
 
     const newPostFields = {
@@ -61,13 +61,16 @@ describe('Posts API', () => {
       'post_type_id': 1,
       'user_id': userVlad.id,
       'current_rate': 0,
-      'current_vote': 0
+      'current_vote': 0,
     };
 
     const res = await request(server)
       .post(postsUrl)
       .set('Authorization', `Bearer ${userVlad.token}`)
-      .send(newPostFields)
+      .field('title', newPostFields['title'])
+      .field('description', newPostFields['description'])
+      .field('post_type_id', newPostFields['post_type_id'])
+      .attach('main_image_filename', avatarPath)
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -77,6 +80,13 @@ describe('Posts API', () => {
     expect(newPost).toBeDefined();
 
     PostHelper.validateResponseJson(res.body, newPost);
+
+    expect(fs.existsSync(`${avatarStoragePath}/${res.body.main_image_filename}`)).toBeTruthy();
+
+    const avatarFetchRes = await request(server)
+      .get(`/upload/${res.body.main_image_filename}`);
+
+    expect(avatarFetchRes.status).toBe(200);
   });
 
   it('It is not possible to create post without token', async () => {
