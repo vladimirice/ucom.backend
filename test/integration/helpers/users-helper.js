@@ -1,6 +1,7 @@
 const usersSeeds = require('../../../seeders/users/users');
 const eosAccounts = require('../../../seeders/users/eos_accounts');
 const AuthService = require('../../../lib/auth/authService');
+const UsersRepository = require('../../../lib/users/users-repository');
 
 class UsersHelper {
   static validateUserJson(body, expectedUser, userFromDb) {
@@ -21,12 +22,20 @@ class UsersHelper {
     });
   }
 
-  static getUserVlad() {
+  static async getUserVlad() {
     const vladSeed = UsersHelper.getUserVladSeed();
+    const vladFromDb = await UsersRepository.getUserByAccountName(vladSeed.account_name);
+    expect(vladFromDb).toBeDefined();
+
+    const vladDbData = {
+      id: vladFromDb.id
+    };
+
     const token = AuthService.getNewJwtToken(vladSeed);
 
     return {
       ...vladSeed,
+      ...vladDbData,
       token
     }
   }

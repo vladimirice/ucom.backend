@@ -9,6 +9,7 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const myselfRouter = require('./routes/myself');
+const postsRouter = require('./routes/posts');
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/api/v1', indexRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/myself', myselfRouter);
+app.use('/api/v1/posts', postsRouter);
 require('./lib/auth/passport');
 
 // catch 404 and forward to error handler
