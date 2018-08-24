@@ -31,11 +31,14 @@ router.post('/image', [descriptionParser], async (req, res) => {
 /* Get post by ID */
 router.get('/:post_id', async (req, res, next) => {
   const postId = parseInt(req.params['post_id']);
-  const post = await PostsRepository.findOneById(postId);
+  const post = await PostsRepository.findOneById(postId, true);
 
   if (!post) {
     return next(new AppError("Post not found", 404));
   }
+
+  clean(post);
+
   res.send(post);
 });
 
@@ -97,5 +100,17 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
   res.send(updatedPost);
 });
+
+function clean(obj) {
+  for (const propName in obj) {
+    if (!obj.hasOwnProperty(propName)) {
+      continue;
+    }
+
+    if (obj[propName] === null || obj[propName] === undefined) {
+      delete obj[propName];
+    }
+  }
+}
 
 module.exports = router;
