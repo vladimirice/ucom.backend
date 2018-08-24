@@ -31,4 +31,49 @@ router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
   res.send(newPost);
 });
 
+router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
+
+  const postId = parseInt(req.params['post_id']);
+  const userId = req['user'].id;
+
+  if (!postId) {
+    res.status(400).send({
+      'errors': {
+        field: 'post_id',
+        message: 'Provided post_id parameter is not a correct integer'
+      }
+    })
+  }
+
+  const post = await PostsRepository.findOneByIdAndAuthor(postId, userId);
+
+  if (!post) {
+    return res.status(404).send({
+      'errors': {
+        field: 'post entity',
+        message: 'Post is not found'
+      }
+    })
+  }
+
+  // Lets change file
+  const files = req['files'];
+  if (files && files['main_image_filename'] && files['main_image_filename'][0] && files['main_image_filename'][0].filename) {
+    req.body['main_image_filename'] = files['main_image_filename'][0].filename;
+  }
+
+  // TODO remove unused files
+  // TODO avoid changing
+
+  const parameters = req.body;
+
+  parameters['id'] = post.id;
+  parameters['user_id'] = req['user'].id;
+
+
+  const updatedPost = await post.update(parameters);
+
+  res.send(updatedPost);
+});
+
 module.exports = router;

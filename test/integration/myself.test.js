@@ -126,7 +126,7 @@ describe('Myself API', () => {
     expect(avatarFetchRes.status).toBe(200);
   });
 
-  it('User education and job editing', async () => {
+  it('Update logged user data', async () => {
     const userVlad = await UsersHelper.getUserVlad();
 
     const userHimselfFieldsToChange = {

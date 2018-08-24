@@ -40,6 +40,24 @@ class UsersHelper {
     }
   }
 
+  static async getUserJane() {
+    const seed = UsersHelper.getUserJaneSeed();
+    const fromDb = await UsersRepository.getUserByAccountName(seed.account_name);
+    expect(fromDb).toBeDefined();
+
+    const data = {
+      id: fromDb.id
+    };
+
+    const token = AuthService.getNewJwtToken(seed);
+
+    return {
+      ...seed,
+      ...data,
+      token
+    }
+  }
+
   static getUserVladSeed() {
     return usersSeeds[0];
   }

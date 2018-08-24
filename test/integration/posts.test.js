@@ -91,6 +91,71 @@ describe('Posts API', () => {
     expect(avatarFetchRes.status).toBe(200);
   });
 
+  it('Update post by its author', async () => {
+    const userVlad = await UsersHelper.getUserVlad();
+    const vladPosts = await PostsRepository.findAllByAuthor(userVlad.id);
+
+    const firstPostBefore = vladPosts[0];
+
+    const fieldsToChange = {
+      'title': 'This is title to change',
+      'description': 'Also necessary to change description',
+      'leading_text': 'And leading text',
+    };
+
+    const res = await request(server)
+      .patch(`${postsUrl}/${firstPostBefore.id}`)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+      .field('title',         fieldsToChange['title'])
+      .field('description',   fieldsToChange['description'])
+      .field('leading_text',  fieldsToChange['leading_text'])
+      .attach('main_image_filename', avatarPath)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    const firstPostAfter = await PostsRepository.findOneById(firstPostBefore.id, true);
+
+    const body = res.body;
+
+    PostHelper.validateResponseJson(body, firstPostAfter);
+
+    // Check post is changed
+    for (const field in fieldsToChange) {
+      expect(firstPostBefore.hasOwnProperty(field)).toBeTruthy();
+      expect(firstPostAfter.hasOwnProperty(field)).toBeTruthy();
+      expect(body.hasOwnProperty(field)).toBeTruthy();
+
+      expect(firstPostAfter[field]).not.toBe(firstPostBefore[field]);
+      expect(firstPostAfter[field]).toBe(fieldsToChange[field]);
+    }
+
+    // Check image changing process
+    expect(fs.existsSync(`${avatarStoragePath}/${res.body.main_image_filename}`)).toBeTruthy();
+    expect(firstPostAfter.main_image_filename).not.toBe(firstPostBefore.main_image_filename);
+    const avatarFetchRes = await request(server)
+      .get(`/upload/${res.body.main_image_filename}`);
+    expect(avatarFetchRes.status).toBe(200);
+  });
+
+
+  it('Not possible to update post by user who is not its author', async () => {
+    const userVlad = await UsersHelper.getUserVlad();
+    const userJane = await UsersHelper.getUserJane();
+
+    const janePosts = await PostsRepository.findAllByAuthor(userJane.id);
+
+    const firstPost = janePosts[0];
+
+    const res = await request(server)
+      .patch(`${postsUrl}/${firstPost.id}`)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+      .field('title', 'Vlad title for Jane post')
+    ;
+
+    ResponseHelper.expectStatusNotFound(res);
+  });
+
   it('It is not possible to create post without token', async () => {
     const res = await request(server)
       .post(postsUrl)
