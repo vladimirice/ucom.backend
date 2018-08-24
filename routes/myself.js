@@ -1,31 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const passport = require('passport');
 const UsersValidator = require('../lib/validator/users-validator');
 const _ = require('lodash');
 const UsersRepository = require('../lib/users/users-repository');
 const models = require('../models');
-
+const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/users/avatar-upload-middleware');
 
-router.get('/', passport.authenticate('jwt', {session: false}), async function(req, res, next) {
-  const user = await UsersRepository.getUserById(req.user.id);
+router.get('/', [authTokenMiddleWare], async function(req, res) {
+  const user = await UsersRepository.getUserById(req['user'].id);
 
   res.send(user)
 });
 
-router.patch('/', [passport.authenticate('jwt', {session: false}), cpUpload], async function(req, res, next) {
+router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
   const parameters = _.pick(req.body, UsersValidator.getFields());
 
-  if (req.files && req.files['avatar_filename'] && req.files['avatar_filename'][0] && req.files['avatar_filename'][0].filename) {
-    parameters['avatar_filename'] = req.files['avatar_filename'][0].filename;
+  const files = req['files'];
+
+  if (files && files['avatar_filename'] && files['avatar_filename'][0] && files['avatar_filename'][0].filename) {
+    parameters['avatar_filename'] = files['avatar_filename'][0].filename;
   }
 
   const usersEducation = req.body['users_education'];
   const usersJobs = req.body['users_jobs'];
   const usersSources = req.body['users_sources'];
 
-  let user = await UsersRepository.getUserById(req.user.id);
+  let user = await UsersRepository.getUserById(req['user'].id);
 
   if (usersEducation) {
     const educationDelta = getDelta(user.users_education, usersEducation);
@@ -44,14 +45,14 @@ router.patch('/', [passport.authenticate('jwt', {session: false}), cpUpload], as
 
   // TODO update user in one transaction not in both
 
-  req.user.validate()
-    .then((res) => {
-      return req.user.update({
+  req['user'].validate()
+    .then(() => {
+      return req['user'].update({
         ...parameters
       });
     })
     .then(() => {
-      return UsersRepository.getUserById(req.user.id);
+      return UsersRepository.getUserById(req['user'].id);
     })
     .then((user) => {
       res.send(user);
