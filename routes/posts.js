@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 /* Upload post picture (for description) */
-router.post('/image', [authTokenMiddleWare, descriptionParser], async (req, res) => {
+router.post('/image', [descriptionParser], async (req, res) => {
   const filename = req['files']['image'][0].filename;
 
   res.send({
