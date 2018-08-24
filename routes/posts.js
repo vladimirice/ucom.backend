@@ -4,7 +4,8 @@ const PostsRepository = require('../lib/posts/posts-repository');
 const {AppError} = require('../lib/api/errors');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
-const { descriptionParser, descriptionStoragePath } = require('../lib/posts/post-description-image-middleware');
+const { descriptionParser } = require('../lib/posts/post-description-image-middleware');
+const config = require('config');
 
 /* Get all posts */
 router.get('/', async (req, res) => {
@@ -16,10 +17,14 @@ router.get('/', async (req, res) => {
 /* Upload post picture (for description) */
 router.post('/image', [descriptionParser], async (req, res) => {
   const filename = req['files']['image'][0].filename;
+  const rootUrl = config.get('host')['root_url'];
 
   res.send({
-    'image_filename': filename,
-    'image_url': `/upload/${filename}`
+    'files': [
+      {
+        "url": `${rootUrl}/upload/${filename}`
+      }
+    ]
   });
 });
 

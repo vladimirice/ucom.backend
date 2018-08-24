@@ -1,4 +1,7 @@
 {
+  "host": {
+    "root_url": "http://localhost:3000"
+  },
   "db": {
     "username": "uos",
     "password": "uos",
