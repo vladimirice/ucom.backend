@@ -31,7 +31,7 @@ describe('API to upload post description content', () => {
     const post = await PostsRepository.findAuthorFistPost(userVlad.id);
 
     const res = await request(server)
-      .post(`${postsUrl}/${post.id}/image`)
+      .post(`${postsUrl}/image`)
       .set('Authorization', `Bearer ${userVlad.token}`)
       .attach('image', imagePath)
     ;
