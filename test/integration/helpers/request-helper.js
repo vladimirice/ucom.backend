@@ -13,6 +13,12 @@ class RequestHelper {
 
     return res.body;
   }
+
+  static createWithBearer(user) {
+    return request(server)
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+  }
 }
 
 module.exports = RequestHelper;

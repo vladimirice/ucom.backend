@@ -27,6 +27,10 @@ docker-set-hosts-mac:
 d-db:
 	docker-compose exec --user=root db /bin/bash
 
+dmm:
+	NODE_ENV=${ENV_VALUE_DEV} ${DB_MIGRATE_COMMAND}
+	make ditd
+
 docker-init-test-db ditd:
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_DROP_COMMAND}
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_CREATE_COMMAND}
