@@ -4,11 +4,23 @@ const PostsRepository = require('../lib/posts/posts-repository');
 const {AppError} = require('../lib/api/errors');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
+const { descriptionParser, descriptionStoragePath } = require('../lib/posts/post-description-image-middleware');
 
 router.get('/', async (req, res) => {
   const posts = await PostsRepository.findAllPosts();
 
   res.send(posts);
+});
+
+router.post('/:post_id/image', [authTokenMiddleWare, descriptionParser], async (req, res, next) => {
+  req['postId'] = parseInt(req.params['post_id']);
+
+  const filename = req['files']['image'][0].filename;
+
+  res.send({
+    'image_filename': filename,
+    'image_url': `/upload/${filename}`
+  });
 });
 
 router.get('/:post_id', async (req, res, next) => {
