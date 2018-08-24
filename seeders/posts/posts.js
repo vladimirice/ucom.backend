@@ -7,6 +7,7 @@ const seeds = [
     current_vote: 50,
     current_rate: 5700,
     user_id: 1,
+    leading_text: 'Special update for our EOS people',
     created_at: new Date(),
     updated_at: new Date()
   },
@@ -18,6 +19,7 @@ const seeds = [
     current_vote: 73,
     current_rate: 8450,
     user_id: 1,
+    leading_text: 'ETH is nod dead. ETH is cool',
     created_at: new Date(),
     updated_at: new Date()
   },
@@ -29,6 +31,7 @@ const seeds = [
     current_vote: 120,
     current_rate: 11450,
     user_id: 2,
+    leading_text: 'Hey. Here is a cool announcement. Please read quickly and be the first.',
     created_at: new Date(),
     updated_at: new Date()
   },
@@ -40,6 +43,7 @@ const seeds = [
     current_vote: 87,
     current_rate: 9860,
     user_id: 2,
+    leading_text: 'Marketing is a core instrument to develop the product.',
     created_at: new Date(),
     updated_at: new Date()
   },

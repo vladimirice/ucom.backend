@@ -58,6 +58,7 @@ describe('Posts API', () => {
     const newPostFields = {
       'title': 'Extremely new post',
       'description': 'Our super post description',
+      'leading_text': 'extremely leading text',
       'post_type_id': 1,
       'user_id': userVlad.id,
       'current_rate': 0,
@@ -70,6 +71,7 @@ describe('Posts API', () => {
       .field('title', newPostFields['title'])
       .field('description', newPostFields['description'])
       .field('post_type_id', newPostFields['post_type_id'])
+      .field('leading_text', newPostFields['leading_text'])
       .attach('main_image_filename', avatarPath)
     ;
 

@@ -21,6 +21,9 @@ module.exports = (sequelize, DataTypes) => {
     user_id: {
       type: DataTypes.INTEGER
     },
+    leading_text: {
+      type: DataTypes.TEXT
+    },
   }, {
     underscored: true,
     freezeTableName: true,
