@@ -9,7 +9,8 @@ class PostsHelper {
 
     const onlyExistance = {
       'created_at': true,
-      'updated_at': true
+      'updated_at': true,
+      'User': true
     };
 
     for (const field in expectedPost) {
@@ -25,7 +26,6 @@ class PostsHelper {
       if (expectedPost[field] === null || expectedPost[field] === undefined) {
         continue;
       }
-
 
       expect(expectedPost[field]).toBe(body[field]);
     }

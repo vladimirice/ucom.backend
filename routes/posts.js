@@ -70,7 +70,7 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     })
   }
 
-  const post = await PostsRepository.findOneByIdAndAuthor(postId, userId);
+  const post = await PostsRepository.findOneByIdAndAuthor(postId, userId, false);
 
   if (!post) {
     return res.status(404).send({

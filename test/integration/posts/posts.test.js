@@ -30,14 +30,20 @@ describe('Posts API', () => {
 
   describe('GET posts', () => {
     it('Get all posts', async () => {
+
       const res = await request(server)
         .get(postsUrl)
       ;
 
       expect(res.status).toBe(200);
 
+      const body = res.body;
+
       const posts = await PostsRepository.findAllPosts();
-      expect(res.body.length).toBe(posts.length);
+      expect(body.length).toBe(posts.length);
+
+      expect(body[0].hasOwnProperty('User')).toBeTruthy();
+
     });
 
     it('Get one post', async () => {
@@ -87,7 +93,7 @@ describe('Posts API', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    const posts = await PostsRepository.findAllPosts();
+    const posts = await PostsRepository.findAllByAuthor(userVlad.id);
     const newPost = posts.find(data => data.title === newPostFields['title']);
     expect(newPost).toBeDefined();
 
@@ -124,7 +130,7 @@ describe('Posts API', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    const firstPostAfter = await PostsRepository.findOneById(firstPostBefore.id, true);
+    const firstPostAfter = await PostsRepository.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id, true);
 
     const body = res.body;
 
