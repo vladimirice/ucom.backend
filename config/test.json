@@ -6,7 +6,7 @@
     "host": "uos-backend-postgres.dev",
     "port": "5434",
     "dialect": "postgres",
-    "logging": true
+    "logging": false
   },
   "eosConfig": {
     "httpEndpoint": "http://142.93.100.96:8888"

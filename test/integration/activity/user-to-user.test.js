@@ -1,12 +1,11 @@
 const request = require('supertest');
 const server = require('../../../app');
-const config = require('config');
 const UserHelper = require('../helpers/users-helper');
 
 const SeedsHelper = require('../helpers/seeds-helper');
-const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const ActivityUserUserRepository = require('../../../lib/activity/activity-user-user-repository');
+const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 
 
 describe('User to user activity', () => {
@@ -29,11 +28,15 @@ describe('User to user activity', () => {
       ;
 
       ResponseHelper.expectStatusOk(res);
+      const follows = await ActivityUserUserRepository.getFollowActivityForUser(userVlad.id, userJane.id);
 
-      // API to eat fact that vlad pressed follow button of Jane account
-      // Result - follow is written to database. In test env there are no any blockchain
-      // Interactions
-      // Step 2 - blockchain interactions based on records
+      expect(follows).toBeDefined();
+
+      expect(follows.user_id_from).toBe(userVlad.id);
+      expect(follows.user_id_to).toBe(userJane.id);
+      expect(follows.activity_type_id).toBe(ActivityDictionary.getFollowId());
+
+      // TODO mock transaction sending in blockchain
     });
 
     it('Not possible to follow without auth token', async () => {
