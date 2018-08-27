@@ -22,6 +22,11 @@ class PostsHelper {
         continue;
       }
 
+      if (expectedPost[field] === null || expectedPost[field] === undefined) {
+        continue;
+      }
+
+
       expect(expectedPost[field]).toBe(body[field]);
     }
   }

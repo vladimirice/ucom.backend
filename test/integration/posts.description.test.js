@@ -32,7 +32,7 @@ describe('API to upload post description content', () => {
 
     const res = await request(server)
       .post(`${postsUrl}/image`)
-      .set('Authorization', `Bearer ${userVlad.token}`)
+      // .set('Authorization', `Bearer ${userVlad.token}`)
       .attach('image', imagePath)
     ;
 

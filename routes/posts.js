@@ -4,7 +4,8 @@ const PostsRepository = require('../lib/posts/posts-repository');
 const {AppError} = require('../lib/api/errors');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
-const { descriptionParser, descriptionStoragePath } = require('../lib/posts/post-description-image-middleware');
+const { descriptionParser } = require('../lib/posts/post-description-image-middleware');
+const config = require('config');
 
 /* Get all posts */
 router.get('/', async (req, res) => {
@@ -14,23 +15,30 @@ router.get('/', async (req, res) => {
 });
 
 /* Upload post picture (for description) */
-router.post('/image', [authTokenMiddleWare, descriptionParser], async (req, res) => {
+router.post('/image', [descriptionParser], async (req, res) => {
   const filename = req['files']['image'][0].filename;
+  const rootUrl = config.get('host')['root_url'];
 
   res.send({
-    'image_filename': filename,
-    'image_url': `/upload/${filename}`
+    'files': [
+      {
+        "url": `${rootUrl}/upload/${filename}`
+      }
+    ]
   });
 });
 
 /* Get post by ID */
 router.get('/:post_id', async (req, res, next) => {
   const postId = parseInt(req.params['post_id']);
-  const post = await PostsRepository.findOneById(postId);
+  const post = await PostsRepository.findOneById(postId, true);
 
   if (!post) {
     return next(new AppError("Post not found", 404));
   }
+
+  clean(post);
+
   res.send(post);
 });
 
@@ -92,5 +100,17 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
   res.send(updatedPost);
 });
+
+function clean(obj) {
+  for (const propName in obj) {
+    if (!obj.hasOwnProperty(propName)) {
+      continue;
+    }
+
+    if (obj[propName] === null || obj[propName] === undefined) {
+      delete obj[propName];
+    }
+  }
+}
 
 module.exports = router;
