@@ -27,30 +27,54 @@ describe('Posts API', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-  it('Get all posts', async () => {
-    const res = await request(server)
-      .get(postsUrl)
-    ;
 
-    expect(res.status).toBe(200);
+  describe('GET posts', () => {
 
-    const posts = await PostsRepository.findAllPosts();
-    expect(res.body.length).toBe(posts.length);
+    it('Get all author related posts', async () => {
+
+      const userVlad = await UsersHelper.getUserVlad();
+
+      const url = `/api/v1/users/${userVlad.id}/posts`;
+
+      const res = await request(server)
+        .get(url)
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+    });
+
+    it('Get all posts', async () => {
+      const res = await request(server)
+        .get(postsUrl)
+      ;
+
+      expect(res.status).toBe(200);
+
+      const posts = await PostsRepository.findAllPosts();
+      expect(res.body.length).toBe(posts.length);
+    });
+
+    it('Get one post', async () => {
+      const posts = await PostsRepository.findAllPosts();
+
+      const firstPost = posts[0];
+
+      const res = await request(server)
+        .get(`${postsUrl}/${firstPost.id}`)
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+      PostHelper.validateResponseJson(res.body, firstPost);
+    });
+
+    it('Must be 404 response if post id is not correct', async () => {
+      const res = await request(server)
+        .get(`${postsUrl}/100500`)
+      ;
+
+      ResponseHelper.expectStatusNotFound(res);
+    });
   });
-
-  it('Get one post', async () => {
-    const posts = await PostsRepository.findAllPosts();
-
-    const firstPost = posts[0];
-
-    const res = await request(server)
-      .get(`${postsUrl}/${firstPost.id}`)
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-    PostHelper.validateResponseJson(res.body, firstPost);
-  });
-
 
   it('Create new post by form data', async () => {
     const userVlad = await UsersHelper.getUserVlad();
@@ -164,16 +188,4 @@ describe('Posts API', () => {
 
     ResponseHelper.expectStatusUnauthorized(res);
   });
-
-  it('Must be 404 response if post id is not correct', async () => {
-    const res = await request(server)
-      .get(`${postsUrl}/100500`)
-    ;
-
-    ResponseHelper.expectStatusNotFound(res);
-  });
-
-
-
-
 });
