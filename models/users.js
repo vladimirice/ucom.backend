@@ -61,6 +61,9 @@ module.exports = (sequelize, DataTypes) => {
     personal_website_url: {
       type: DataTypes.STRING
     },
+    achievements_filename: {
+      type: DataTypes.STRING
+    },
   }, {
     underscored: true,
     freezeTableName: true,

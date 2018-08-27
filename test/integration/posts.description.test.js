@@ -2,13 +2,10 @@ const request = require('supertest');
 const server = require('../../app');
 const expect = require('expect');
 const fs = require('fs');
+const config = require('config');
 
-const UsersHelper = require('./helpers/users-helper');
 const SeedsHelper = require('./helpers/seeds-helper');
 const ResponseHelper = require('./helpers/response-helper');
-
-
-const PostsRepository = require('./../../lib/posts/posts-repository');
 
 const imagePath = `${__dirname}/../../seeders/images/ankr_network.png`;
 
@@ -27,22 +24,26 @@ describe('API to upload post description content', () => {
   });
 
   it('Upload description image', async () => {
-    const userVlad = await UsersHelper.getUserVlad();
-    const post = await PostsRepository.findAuthorFistPost(userVlad.id);
 
     const res = await request(server)
       .post(`${postsUrl}/image`)
-      // .set('Authorization', `Bearer ${userVlad.token}`)
+      // .set('Authorization', `Bearer ${userVlad.token}`) // TODO #security implement auth to upload
       .attach('image', imagePath)
     ;
 
     ResponseHelper.expectStatusOk(res);
     const body = res.body;
+    const fileUrl = body['files'][0]['url'];
 
-    expect(fs.existsSync(`${avatarStoragePath}/${body['image_filename']}`)).toBeTruthy();
+    const filename = fileUrl.substring(fileUrl.lastIndexOf('/')+1);
+
+    expect(fs.existsSync(`${avatarStoragePath}/${filename}`)).toBeTruthy();
+
+
+    const rootUrl = config.get('host')['root_url'];
 
     const avatarFetchRes = await request(server)
-      .get(body['image_url'])
+      .get(fileUrl.replace(rootUrl, ''))
     ;
 
     ResponseHelper.expectStatusOk(avatarFetchRes);

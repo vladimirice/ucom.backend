@@ -22,6 +22,16 @@ class UsersHelper {
     });
   }
 
+  static async validateFilenameIsSaved(body, fileUploadField, userId) {
+    expect(body[fileUploadField]).toBeDefined();
+    expect(body[fileUploadField].length).toBeGreaterThan(0);
+
+    const dbUser = await UsersRepository.getUserById(userId);
+
+    expect(dbUser[fileUploadField]).toBeDefined();
+    expect(dbUser[fileUploadField]).toBe(body[fileUploadField]);
+  }
+
   static async getUserVlad() {
     const vladSeed = UsersHelper.getUserVladSeed();
     const vladFromDb = await UsersRepository.getUserByAccountName(vladSeed.account_name);

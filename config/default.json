@@ -1,6 +1,7 @@
 {
   "host": {
-    "root_url": "http://localhost:3000"
+    "root_url": "http://localhost:3000",
+    "profile_files_upload_dir": "/upload"
   },
   "db": {
     "username": "uos",

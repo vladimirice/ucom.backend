@@ -18,8 +18,13 @@ router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
 
   const files = req['files'];
 
+  // TODO #refactor
   if (files && files['avatar_filename'] && files['avatar_filename'][0] && files['avatar_filename'][0].filename) {
     parameters['avatar_filename'] = files['avatar_filename'][0].filename;
+  }
+
+  if (files && files['achievements_filename'] && files['achievements_filename'][0] && files['achievements_filename'][0].filename) {
+    parameters['achievements_filename'] = files['achievements_filename'][0].filename;
   }
 
   const usersEducation = req.body['users_education'];
@@ -30,7 +35,7 @@ router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
 
   if (usersEducation) {
     const educationDelta = getDelta(user.users_education, usersEducation);
-    await updateRelations(user, educationDelta, 'users_education', parameters)
+    await updateRelations(user, educationDelta, 'users_education')
   }
 
   if (usersJobs) {
@@ -43,7 +48,7 @@ router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
     await updateRelations(user, delta, 'users_sources');
   }
 
-  // TODO update user in one transaction not in both
+  // TODO #refactor update user in one transaction not in both
 
   req['user'].validate()
     .then(() => {

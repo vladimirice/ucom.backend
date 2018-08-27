@@ -7,6 +7,8 @@ const fs = require('fs');
 const UsersHelper = require('./helpers/users-helper');
 const SeedsHelper = require('./helpers/seeds-helper');
 const RequestHelper = require('./helpers/request-helper');
+const ResponseHelper = require('./helpers/response-helper');
+const FileToUploadHelper = require('./helpers/file-to-upload-helper');
 const UsersRepository = require('./../../lib/users/users-repository');
 
 const avatarPath = `${__dirname}/../../seeders/images/ankr_network.png`;
@@ -75,55 +77,41 @@ describe('Myself API', () => {
 
   });
 
-  // it('Change logged user data', async function() {
-  //   const fieldsToChange = {
-  //     first_name: 'vladislav',
-  //     last_name: 'Ivanych',
-  //     email: 'email@example.com'
-  //   };
-  //
-  //   const res = await request(server)
-  //     .patch(myselfUrl)
-  //     .set('Authorization', `Bearer ${userVlad.token}`)
-  //     .send(fieldsToChange)
-  //   ;
-  //
-  //   expect(res.status).toBe(200);
-  //   const responseUser = res.body;
-  //
-  //   const changedUser = await models['Users'].findById(userVlad.id);
-  //   expect(changedUser.account_name).toBe(userVlad.account_name);
-  //
-  //   for (let fieldToChange in fieldsToChange) {
-  //     if (fieldsToChange.hasOwnProperty(fieldToChange)) {
-  //       expect(changedUser[fieldToChange]).not.toBe(userVlad[fieldToChange]);
-  //       expect(changedUser[fieldToChange]).toBe(responseUser[fieldToChange]);
-  //     }
-  //   }
-  //
-  //   UsersHelper.validateUserJson(res.body, userVlad);
-  // });
-
   it('Test avatar uploading', async () => {
-    const userVlad = await UsersHelper.getUserVlad();
 
-    expect(fs.existsSync(avatarPath)).toBeTruthy();
+    const fileUploadField = 'avatar_filename';
+    const userVlad = await UsersHelper.getUserVlad();
 
     const res = await request(server)
       .patch(myselfUrl)
       .set('Authorization', `Bearer ${userVlad.token}`)
-      .attach('avatar_filename', avatarPath)
+      .attach(fileUploadField, FileToUploadHelper.getFilePath())
     ;
 
-    expect(res.status).toBe(200);
+    ResponseHelper.expectStatusOk(res);
     const body = res.body;
 
-    expect(fs.existsSync(`${avatarStoragePath}/${body.avatar_filename}`)).toBeTruthy();
+    await FileToUploadHelper.isFileUploaded(body[fileUploadField]);
+    await UsersHelper.validateFilenameIsSaved(body, fileUploadField, userVlad.id);
+  });
 
-    const avatarFetchRes = await request(server)
-      .get(`/upload/${body.avatar_filename}`);
+  it('Test achievements upload', async () => {
 
-    expect(avatarFetchRes.status).toBe(200);
+    const fileUploadField = 'achievements_filename';
+
+    const userVlad = await UsersHelper.getUserVlad();
+
+    const res = await request(server)
+      .patch(myselfUrl)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+      .attach(fileUploadField, FileToUploadHelper.getFilePath())
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+    const body = res.body;
+
+    await FileToUploadHelper.isFileUploaded(body[fileUploadField]);
+    await UsersHelper.validateFilenameIsSaved(body, fileUploadField, userVlad.id);
   });
 
   it('Update logged user data', async () => {
