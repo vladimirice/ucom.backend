@@ -64,6 +64,9 @@ module.exports = (sequelize, DataTypes) => {
     achievements_filename: {
       type: DataTypes.STRING
     },
+    current_rate: {
+      type: DataTypes.DECIMAL(10, 10)
+    },
   }, {
     underscored: true,
     freezeTableName: true,

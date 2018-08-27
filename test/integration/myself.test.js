@@ -2,7 +2,6 @@ const request = require('supertest');
 const models = require('../../models');
 const server = require('../../app');
 const expect = require('expect');
-const fs = require('fs');
 
 const UsersHelper = require('./helpers/users-helper');
 const SeedsHelper = require('./helpers/seeds-helper');
@@ -11,13 +10,7 @@ const ResponseHelper = require('./helpers/response-helper');
 const FileToUploadHelper = require('./helpers/file-to-upload-helper');
 const UsersRepository = require('./../../lib/users/users-repository');
 
-const avatarPath = `${__dirname}/../../seeders/images/ankr_network.png`;
-
 const myselfUrl = '/api/v1/myself';
-
-
-
-const { avatarStoragePath } = require('../../lib/users/avatar-upload-middleware');
 
 describe('Myself API', () => {
 
