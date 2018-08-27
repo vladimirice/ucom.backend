@@ -1,17 +1,17 @@
 const request = require('supertest');
-const server = require('../../app');
+const server = require('../../../app');
 const expect = require('expect');
 const fs = require('fs');
 const config = require('config');
 
-const SeedsHelper = require('./helpers/seeds-helper');
-const ResponseHelper = require('./helpers/response-helper');
+const SeedsHelper = require('../helpers/seeds-helper');
+const ResponseHelper = require('../helpers/response-helper');
 
-const imagePath = `${__dirname}/../../seeders/images/ankr_network.png`;
+const imagePath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
 const postsUrl = '/api/v1/posts';
 
-const { avatarStoragePath } = require('../../lib/users/avatar-upload-middleware');
+const { avatarStoragePath } = require('../../../lib/users/avatar-upload-middleware');
 
 
 describe('API to upload post description content', () => {

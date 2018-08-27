@@ -1,21 +1,21 @@
 const request = require('supertest');
-const server = require('../../app');
+const server = require('../../../app');
 const expect = require('expect');
 const fs = require('fs');
 
-const UsersHelper = require('./helpers/users-helper');
-const SeedsHelper = require('./helpers/seeds-helper');
-const PostHelper = require('./helpers/posts-helper');
-const ResponseHelper = require('./helpers/response-helper');
+const UsersHelper = require('../helpers/users-helper');
+const SeedsHelper = require('../helpers/seeds-helper');
+const PostHelper = require('../helpers/posts-helper');
+const ResponseHelper = require('../helpers/response-helper');
 
 
-const PostsRepository = require('./../../lib/posts/posts-repository');
+const PostsRepository = require('./../../../lib/posts/posts-repository');
 
-const avatarPath = `${__dirname}/../../seeders/images/ankr_network.png`;
+const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
 const postsUrl = '/api/v1/posts';
 
-const { avatarStoragePath } = require('../../lib/users/avatar-upload-middleware');
+const { avatarStoragePath } = require('../../../lib/users/avatar-upload-middleware');
 
 
 describe('Posts API', () => {
@@ -29,20 +29,6 @@ describe('Posts API', () => {
 
 
   describe('GET posts', () => {
-
-    it('Get all author related posts', async () => {
-
-      const userVlad = await UsersHelper.getUserVlad();
-
-      const url = `/api/v1/users/${userVlad.id}/posts`;
-
-      const res = await request(server)
-        .get(url)
-      ;
-
-      ResponseHelper.expectStatusOk(res);
-    });
-
     it('Get all posts', async () => {
       const res = await request(server)
         .get(postsUrl)
