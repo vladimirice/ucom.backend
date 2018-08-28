@@ -1,17 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const PostsRepository = require('../lib/posts/posts-repository');
+const PostsService = require('../lib/posts/post-service');
 const {AppError} = require('../lib/api/errors');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
 const { descriptionParser } = require('../lib/posts/post-description-image-middleware');
 const config = require('config');
+const PostService = require('../lib/posts/post-service');
 
 /* Get all posts */
 router.get('/', async (req, res) => {
-  const posts = await PostsRepository.findAllPosts();
+  const posts = await PostService.findAll();
 
   res.send(posts);
+});
+
+/* Get post by ID */
+router.get('/:post_id', async (req, res, next) => {
+  const postId = parseInt(req.params['post_id']);
+
+  const post = await PostService.findOneById(postId, true);
+
+  if (!post) {
+    return next(new AppError("Post not found", 404));
+  }
+
+  clean(post);
+
+  res.send(post);
 });
 
 /* Upload post picture (for description) */
@@ -28,30 +45,11 @@ router.post('/image', [descriptionParser], async (req, res) => {
   });
 });
 
-/* Get post by ID */
-router.get('/:post_id', async (req, res, next) => {
-  const postId = parseInt(req.params['post_id']);
-  const post = await PostsRepository.findOneById(postId, true);
-
-  if (!post) {
-    return next(new AppError("Post not found", 404));
-  }
-
-  clean(post);
-
-  res.send(post);
-});
-
 /* Create new post */
 router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  const newPost = await PostService.createNewPost(req);
 
-  const files = req['files'];
-
-  if (files && files['main_image_filename'] && files['main_image_filename'][0] && files['main_image_filename'][0].filename) {
-    req.body['main_image_filename'] = files['main_image_filename'][0].filename;
-  }
-
-  const newPost = await PostsRepository.createNewPost(req.body, req['user']);
+  PostService.processOneAfterQuery(newPost);
 
   res.send(newPost);
 });
@@ -70,7 +68,7 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     })
   }
 
-  const post = await PostsRepository.findOneByIdAndAuthor(postId, userId, false);
+  const post = await PostService.findOneByIdAndAuthor(postId, userId, false);
 
   if (!post) {
     return res.status(404).send({
@@ -88,7 +86,7 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   }
 
   // TODO remove unused files
-  // TODO avoid changing
+  // TODO avoid changing fields like rate, userId, etc.
 
   const parameters = req.body;
 
@@ -107,7 +105,7 @@ function clean(obj) {
       continue;
     }
 
-    if (obj[propName] === null || obj[propName] === undefined) {
+    if (obj[propName] === null || obj[propName] === undefined || obj[propName] === 'null') {
       delete obj[propName];
     }
   }

@@ -1,12 +1,12 @@
 const express = require('express');
 const router  = express.Router();
-const models  = require('../models');
 const _ = require('lodash');
 const EosJsEcc = require('../lib/crypto/eosjs-ecc');
 const {AppError} = require('../lib/api/errors');
 const AuthValidator = require('../lib/auth/validators');
 const AuthService = require('../lib/auth/authService');
 const eosApi = require('../lib/eos/eosApi');
+const UsersService = require('../lib/users/users-service');
 
 router.post('/login', async function (req, res, next) {
   const payload = _.pick(req.body, ['account_name', 'public_key', 'sign']);
@@ -18,7 +18,7 @@ router.post('/login', async function (req, res, next) {
     });
   }
 
-  const user = await models['Users'].findOne({where: {account_name: payload.account_name}});
+  const user = await UsersService.findOneByAccountName(payload.account_name);
 
   if (!user) {
     return res.status(400).send({
@@ -60,14 +60,6 @@ router.post('/login', async function (req, res, next) {
             'message': 'Such account does not exists in blockchain'
           }
         ]
-      });
-    }
-
-    if (!user) {
-      res.send({
-        'errors': {
-          'account_name': 'This user is not registered'
-        }
       });
     }
 

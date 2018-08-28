@@ -5,7 +5,7 @@ const UsersHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const ResponseHelper = require('../helpers/response-helper');
 
-const PostsRepository = require('./../../../lib/posts/posts-repository');
+const PostsService = require('./../../../lib/posts/post-service');
 
 describe('Posts API', () => {
   beforeEach(async () => {
@@ -29,7 +29,7 @@ describe('Posts API', () => {
 
       ResponseHelper.expectStatusOk(res);
 
-      const userPosts = await PostsRepository.findAllByAuthor(userVlad.id);
+      const userPosts = await PostsService.findAllByAuthor(userVlad.id);
 
       ResponseHelper.compareObjectArrays(userPosts, res.body);
     });

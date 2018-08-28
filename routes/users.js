@@ -1,14 +1,18 @@
 const express = require('express');
 const router = express.Router();
-let models = require('../models');
 const {AppError} = require('../lib/api/errors');
-const UsersRepository = require('../lib/users/users-repository');
-const PostsRepository = require('../lib/posts/posts-repository');
+const PostsService = require('../lib/posts/post-service');
+const UserService = require('../lib/users/users-service');
 
 /* GET users listing. */
 router.get('/:user_id', async function(req, res, next) {
   const userId = parseInt(req.params.user_id);
-  const user = await UsersRepository.getUserById(userId);
+
+  if (!userId) {
+    return next(new AppError("User not found", 404));
+  }
+
+  const user = await UserService.getUserById(userId);
 
   if (!user) {
     return next(new AppError("User not found", 404));
@@ -18,8 +22,9 @@ router.get('/:user_id', async function(req, res, next) {
 });
 
 router.get('/', async function(req, res) {
-  const user = await models['Users'].findAll();
-  res.send(user);
+  const users = await UserService.findAll();
+
+  res.send(users);
 });
 
 router.get('/:user_id/posts', async function(req, res) {
@@ -29,7 +34,7 @@ router.get('/:user_id/posts', async function(req, res) {
     return res.status(400).send('User ID is not correct');
   }
 
-  const posts = await PostsRepository.findAllByAuthor(userId);
+  const posts = await PostsService.findAllByAuthor(userId);
 
   res.send(posts);
 });

@@ -8,8 +8,7 @@ const SeedsHelper = require('../helpers/seeds-helper');
 const PostHelper = require('../helpers/posts-helper');
 const ResponseHelper = require('../helpers/response-helper');
 
-
-const PostsRepository = require('./../../../lib/posts/posts-repository');
+const PostsService = require('./../../../lib/posts/post-service');
 
 const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
@@ -39,7 +38,7 @@ describe('Posts API', () => {
 
       const body = res.body;
 
-      const posts = await PostsRepository.findAllPosts();
+      const posts = await PostsService.findAll();
       expect(body.length).toBe(posts.length);
 
       expect(body[0].hasOwnProperty('User')).toBeTruthy();
@@ -47,7 +46,7 @@ describe('Posts API', () => {
     });
 
     it('Get one post', async () => {
-      const posts = await PostsRepository.findAllPosts();
+      const posts = await PostsService.findAll();
 
       const firstPost = posts[0];
 
@@ -77,7 +76,7 @@ describe('Posts API', () => {
       'leading_text': 'extremely leading text',
       'post_type_id': 1,
       'user_id': userVlad.id,
-      'current_rate': 0,
+      'current_rate': 0.0000000000,
       'current_vote': 0,
     };
 
@@ -93,7 +92,7 @@ describe('Posts API', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    const posts = await PostsRepository.findAllByAuthor(userVlad.id);
+    const posts = await PostsService.findAllByAuthor(userVlad.id);
     const newPost = posts.find(data => data.title === newPostFields['title']);
     expect(newPost).toBeDefined();
 
@@ -109,7 +108,7 @@ describe('Posts API', () => {
 
   it('Update post by its author', async () => {
     const userVlad = await UsersHelper.getUserVlad();
-    const vladPosts = await PostsRepository.findAllByAuthor(userVlad.id);
+    const vladPosts = await PostsService.findAllByAuthor(userVlad.id);
 
     const firstPostBefore = vladPosts[0];
 
@@ -130,7 +129,7 @@ describe('Posts API', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    const firstPostAfter = await PostsRepository.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id, true);
+    const firstPostAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id, true);
 
     const body = res.body;
 
@@ -159,7 +158,7 @@ describe('Posts API', () => {
     const userVlad = await UsersHelper.getUserVlad();
     const userJane = await UsersHelper.getUserJane();
 
-    const janePosts = await PostsRepository.findAllByAuthor(userJane.id);
+    const janePosts = await PostsService.findAllByAuthor(userJane.id);
 
     const firstPost = janePosts[0];
 

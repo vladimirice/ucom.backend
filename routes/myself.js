@@ -3,12 +3,13 @@ const router = express.Router();
 const UsersValidator = require('../lib/validator/users-validator');
 const _ = require('lodash');
 const UsersRepository = require('../lib/users/users-repository');
+const UserService = require('../lib/users/users-service');
 const models = require('../models');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/users/avatar-upload-middleware');
 
 router.get('/', [authTokenMiddleWare], async function(req, res) {
-  const user = await UsersRepository.getUserById(req['user'].id);
+  const user = await UserService.getUserById(req['user'].id);
 
   res.send(user)
 });
