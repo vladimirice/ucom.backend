@@ -9,6 +9,8 @@ const { descriptionParser } = require('../lib/posts/post-description-image-middl
 const config = require('config');
 const PostService = require('../lib/posts/post-service');
 const ActivityService = require('../lib/activity/activity-service');
+const AuthService = require('../lib/auth/authService');
+const CurrentUserMiddleware = require('../lib/auth/current-user-middleware');
 
 /* Get all posts */
 router.get('/', async (req, res) => {
@@ -18,7 +20,7 @@ router.get('/', async (req, res) => {
 });
 
 /* Get post by ID */
-router.get('/:post_id', async (req, res, next) => {
+router.get('/:post_id', [CurrentUserMiddleware], async (req, res, next) => {
   const postId = parseInt(req.params['post_id']);
 
   const post = await PostService.findOneById(postId, true);
@@ -47,7 +49,7 @@ router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
   }
 
   // TODO check does exists only
-  const postTo = await PostsRepository.findOneById(postIdTo);
+  const postTo = await PostService.findOneById(postIdTo);
 
   const userFrom = req['user'];
 
@@ -86,9 +88,10 @@ router.post('/image', [descriptionParser], async (req, res) => {
 router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const newPost = await PostService.createNewPost(req);
 
-  PostService.processOneAfterQuery(newPost);
+  const postToJson = newPost.toJSON();
+  PostService.processOneAfterQuery(postToJson);
 
-  res.send(newPost);
+  res.send(postToJson);
 });
 
 router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
@@ -105,7 +108,7 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     })
   }
 
-  const post = await PostService.findOneByIdAndAuthor(postId, userId, false);
+  const post = await PostService.findOneByIdAndAuthor(postId, userId, false, false);
 
   if (!post) {
     return res.status(404).send({
@@ -130,10 +133,13 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   parameters['id'] = post.id;
   parameters['user_id'] = req['user'].id;
 
-
   const updatedPost = await post.update(parameters);
 
-  res.send(updatedPost);
+  const updatedPostJson = post.toJSON();
+
+  PostService.processOneAfterQuery(updatedPostJson);
+
+  res.send(updatedPostJson);
 });
 
 

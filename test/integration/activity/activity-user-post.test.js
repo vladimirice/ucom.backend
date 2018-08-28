@@ -54,6 +54,7 @@ describe('User to user activity', () => {
       expect(res.body['current_vote']).toBe(postVotesBefore + 1);
 
       expect(res.body.hasOwnProperty('myselfData')).toBeTruthy();
+      expect(res.body.myselfData.myselfVote).toBe('upvote');
     });
 
     it('Should return 400 if postID is not a valid integer', async () => {

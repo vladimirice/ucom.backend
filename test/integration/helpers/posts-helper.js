@@ -6,6 +6,9 @@ class PostsHelper {
     expect(body.hasOwnProperty('title')).toBeTruthy();
     expect(body.title).toBe(expectedPost.title);
 
+    expect(body.hasOwnProperty('myselfData')).toBeTruthy();
+    expect(body.myselfData).toEqual(expectedPost.myselfData);
+
 
     const onlyExistance = {
       'created_at': true,
@@ -27,7 +30,7 @@ class PostsHelper {
         continue;
       }
 
-      expect(expectedPost[field]).toBe(body[field]);
+      expect(expectedPost[field]).toEqual(body[field]);
     }
   }
 }

@@ -16,7 +16,13 @@ const postsUrl = '/api/v1/posts';
 
 const { avatarStoragePath } = require('../../../lib/users/avatar-upload-middleware');
 
+let userVlad;
+
 describe('Posts API', () => {
+  beforeAll(async () => {
+    userVlad = await UsersHelper.getUserVlad();
+  });
+
   beforeEach(async () => {
     await SeedsHelper.initSeeds();
   });
@@ -27,6 +33,7 @@ describe('Posts API', () => {
 
 
   describe('GET posts', () => {
+
     it('Get all posts', async () => {
 
       const res = await request(server)
@@ -54,6 +61,17 @@ describe('Posts API', () => {
 
       ResponseHelper.expectStatusOk(res);
       PostHelper.validateResponseJson(res.body, firstPost);
+    });
+
+    it('GET one post as authorized', async () => {
+      const posts = await PostsService.findAll();
+
+      const firstPost = posts[0];
+
+      const res = await request(server)
+        .get(`${postsUrl}/${firstPost.id}`)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
     });
 
     it('Must be 404 response if post id is not correct', async () => {
