@@ -94,7 +94,7 @@ async function updateRelations(user, deltaData, modelName, userData) {
           data['user_id'] = user.id;
 
           let newModel = models[modelName].build(data);
-          await newModel.save();
+          await newModel.save(); // TODO check is transaction work
         }),
 
         deltaData.changed.map(async data => {

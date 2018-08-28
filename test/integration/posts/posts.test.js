@@ -16,7 +16,6 @@ const postsUrl = '/api/v1/posts';
 
 const { avatarStoragePath } = require('../../../lib/users/avatar-upload-middleware');
 
-
 describe('Posts API', () => {
   beforeEach(async () => {
     await SeedsHelper.initSeeds();
@@ -42,7 +41,6 @@ describe('Posts API', () => {
       expect(body.length).toBe(posts.length);
 
       expect(body[0].hasOwnProperty('User')).toBeTruthy();
-
     });
 
     it('Get one post', async () => {

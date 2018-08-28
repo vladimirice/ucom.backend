@@ -8,6 +8,7 @@ const { cpUpload } = require('../lib/posts/post-edit-middleware');
 const { descriptionParser } = require('../lib/posts/post-description-image-middleware');
 const config = require('config');
 const PostService = require('../lib/posts/post-service');
+const ActivityService = require('../lib/activity/activity-service');
 
 /* Get all posts */
 router.get('/', async (req, res) => {
@@ -29,6 +30,42 @@ router.get('/:post_id', async (req, res, next) => {
   clean(post);
 
   res.send(post);
+});
+
+
+router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
+
+  // TODO receive raw transaction and send it to blockchain
+  const postIdTo = parseInt(req.params.post_id);
+
+  if (!postIdTo) {
+    return res.status(400).send({
+      'errors': {
+        'post_id': 'Post ID is not correct. Please provide integer value greater than 0',
+      }
+    });
+  }
+
+  // TODO check does exists only
+  const postTo = await PostsRepository.findOneById(postIdTo);
+
+  const userFrom = req['user'];
+
+  if (!postTo) {
+    return res.status(404).send({
+      'errors': {
+        'post_id': `There is post with ID ${postIdTo}`
+      }
+    });
+  }
+
+  // TODO #validation check is upvote already exists
+  await ActivityService.userUpvotesPost(userFrom.id, postTo.id);
+
+  // TODO #performance - update fetched post
+  const changedPost = await PostService.findOneById(postIdTo, true);
+
+  res.send(changedPost);
 });
 
 /* Upload post picture (for description) */
@@ -99,6 +136,8 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   res.send(updatedPost);
 });
 
+
+// TODO #refactor - move to service
 function clean(obj) {
   for (const propName in obj) {
     if (!obj.hasOwnProperty(propName)) {
