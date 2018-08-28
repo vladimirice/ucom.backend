@@ -61,7 +61,16 @@ router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
     });
   }
 
-  // TODO #validation check is upvote already exists
+  const doesExists = await ActivityService.doesUserVotePost(userFrom.id, postTo.id);
+
+  if (doesExists) {
+    return res.status(400).send({
+      'errors': {
+        'upvote': 'Vote duplication is not allowed'
+      }
+    });
+  }
+
   await ActivityService.userUpvotesPost(userFrom.id, postTo.id);
 
   // TODO #performance - update fetched post

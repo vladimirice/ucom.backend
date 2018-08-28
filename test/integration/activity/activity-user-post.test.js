@@ -8,7 +8,16 @@ const ActivityUserPostRepository = require('../../../lib/activity/activity-user-
 const PostService = require('../../../lib/posts/post-service');
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 
+let userVlad, userJane;
+
 describe('User to user activity', () => {
+  beforeAll(async () => {
+    [userVlad, userJane] = await Promise.all([
+      UserHelper.getUserVlad(),
+      UserHelper.getUserJane()
+    ]);
+  });
+
   beforeEach(async () => {
     await SeedsHelper.initSeeds();
   });
@@ -57,6 +66,25 @@ describe('User to user activity', () => {
       expect(res.body.myselfData.myselfVote).toBe('upvote');
     });
 
+    it('Not possible to upvote twice', async () => {
+      const posts = await PostService.findAllByAuthor(userVlad.id);
+      const postId = posts[0]['id'];
+
+      const res = await request(server)
+        .post(`/api/v1/posts/${postId}/upvote`)
+        .set('Authorization', `Bearer ${userJane.token}`)
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+
+      const responseTwo = await request(server)
+        .post(`/api/v1/posts/${postId}/upvote`)
+        .set('Authorization', `Bearer ${userJane.token}`)
+      ;
+
+      ResponseHelper.expectStatusBadRequest(responseTwo);
+    });
+
     it('Should return 400 if postID is not a valid integer', async () => {
       const postId = 'invalidPostId';
       const userJane = await UserHelper.getUserJane();
@@ -88,5 +116,6 @@ describe('User to user activity', () => {
 
       ResponseHelper.expectStatusUnauthorized(res);
     });
+
   });
 });
