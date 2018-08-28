@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const {AppError} = require('../lib/api/errors');
+const UsersRepository = require('../lib/users/users-repository');
+const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
+const ActivityUserUserRepository = require('../lib/activity/activity-user-user-repository');
 const PostsService = require('../lib/posts/post-service');
 const UserService = require('../lib/users/users-service');
 
@@ -38,5 +41,33 @@ router.get('/:user_id/posts', async function(req, res) {
 
   res.send(posts);
 });
+
+/* Create new user-user-activity */
+router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) {
+  // TODO receive raw transaction and send it to blockchain
+  const userToId = parseInt(req.params.user_id);
+  const userTo = UsersRepository.getUserById(userToId);
+  // TODO check is exists only
+  // TODO check is follow already exists
+  const userFrom = req['user'];
+
+  if (!userTo) {
+    return res.send({
+      'errors': {
+        'user_id': `There is no user with ID ${userToId}`
+      }
+    });
+  }
+
+  await ActivityUserUserRepository.createFollow(userFrom.id, userToId);
+
+
+  // await ActivityUserUserRepository.getFollowActivityForUser(userVlad.id, userJane.id);
+
+  res.send({
+    'status': 'ok'
+  });
+});
+
 
 module.exports = router;

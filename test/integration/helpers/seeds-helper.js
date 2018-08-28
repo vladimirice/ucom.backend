@@ -11,6 +11,7 @@ class SeedsHelper {
     await models['users_jobs'].destroy({where: {}});
     await models['users_sources'].destroy({where: {}});
     await models['posts'].destroy({where: {}});
+    await models['activity_user_user'].destroy({where: {}});
     await models['Users'].destroy({where: {}});
 
     await models['Users'].bulkCreate(usersSeeds);
