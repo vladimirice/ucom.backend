@@ -85,6 +85,19 @@ describe('User to user activity', () => {
       ResponseHelper.expectStatusBadRequest(responseTwo);
     });
 
+    it('Not possible to vote by myself post', async () => {
+      const posts = await PostService.findAllByAuthor(userVlad.id);
+      const postId = posts[0]['id'];
+
+      const res = await request(server)
+        .post(`/api/v1/posts/${postId}/upvote`)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+    });
+
+
     it('Should return 400 if postID is not a valid integer', async () => {
       const postId = 'invalidPostId';
       const userJane = await UserHelper.getUserJane();

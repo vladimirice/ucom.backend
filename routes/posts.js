@@ -71,7 +71,15 @@ router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
     });
   }
 
-  await ActivityService.userUpvotesPost(userFrom.id, postTo.id);
+  if (postTo.user_id === userFrom.id) {
+    return res.status(400).send({
+      'errors': {
+        'upvote': 'It is not allowed to vote for your own post'
+      }
+    });
+  }
+
+  await ActivityService.userUpvotesPost(userFrom, postTo);
 
   // TODO #performance - update fetched post
   const changedPost = await PostService.findOneById(postIdTo, true);
