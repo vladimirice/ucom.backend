@@ -26,25 +26,6 @@ describe('Test auth workflow', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-  // TODO registration
-  // it('Send correct auth request and receive token and new user', async () => {
-  //   const sign = EosJsEcc.sign(eosAccount.account_name, eosAccount.private_key);
-  //
-  //   const res = await request(server)
-  //     .post(registerUrl)
-  //     .send({
-  //       'account_name': eosAccount.account_name,
-  //       'public_key': eosAccount.public_key,
-  //       'sign': sign
-  //     })
-  //   ;
-  //
-  //   AuthHelper.validateAuthResponse(res, eosAccount.account_name);
-  //
-  //   const user = await models.Users.findOne({where: {account_name: eosAccount.account_name}});
-  //   expect(user).not.toBeNull();
-  // });
-
   it('Send correct auth request but with account which does not exist in blockchain', async () => {
     const account_name = 'testuser';
 
