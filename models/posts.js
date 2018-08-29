@@ -27,6 +27,9 @@ module.exports = (sequelize, DataTypes) => {
     blockchain_id: {
       type: DataTypes.STRING
     },
+    blockchain_status: {
+      type: DataTypes.INTEGER
+    },
   }, {
     underscored: true,
     freezeTableName: true,

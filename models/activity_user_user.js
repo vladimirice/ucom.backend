@@ -8,7 +8,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     user_id_to: {
       type: DataTypes.INTEGER
-    }
+    },
+    blockchain_status: {
+      type: DataTypes.INTEGER
+    },
   }, {
     underscored: true,
     freezeTableName: true,
