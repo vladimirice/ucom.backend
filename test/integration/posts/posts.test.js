@@ -63,17 +63,6 @@ describe('Posts API', () => {
       PostHelper.validateResponseJson(res.body, firstPost);
     });
 
-    it('GET one post as authorized', async () => {
-      const posts = await PostsService.findAll();
-
-      const firstPost = posts[0];
-
-      const res = await request(server)
-        .get(`${postsUrl}/${firstPost.id}`)
-        .set('Authorization', `Bearer ${userVlad.token}`)
-      ;
-    });
-
     it('Must be 404 response if post id is not correct', async () => {
       const res = await request(server)
         .get(`${postsUrl}/100500`)
