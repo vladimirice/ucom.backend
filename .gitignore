@@ -69,3 +69,4 @@ playground.js
 public/upload/*
 !public/upload/.gitkeep
 config/accounts-data.js
+di-example
