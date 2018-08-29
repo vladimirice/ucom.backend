@@ -8,6 +8,7 @@ const AuthService = require('../../lib/auth/authService');
 const eosApi = require('../../lib/eos/eosApi');
 const UsersService = require('../../lib/users/users-service');
 const EosAuth = require('../../lib/eos/eos-auth');
+const models = require('../../models');
 
 /* Check is account_name valid */
 router.post('/validate-account-name', async function (req, res) {
@@ -105,21 +106,22 @@ router.post('/', async function (req, res, next) {
       });
     }
 
-    // TODO register new user in backend
+    // TODO #refactor - move to Repository behind the service
+     const newUser = await models['Users'].create({
+        account_name: payload.account_name,
+        nickname: payload.account_name,
+        created_at: new Date(),
+        updated_at: new Date()
+      });
+
+    const token = AuthService.getNewJwtToken(newUser);
+
     // TODO register new user in blockchain
     // TODO save brainkey in database - MVP
 
-    const token = 'demoToken';
-
-    // const token = AuthService.getNewJwtToken(user);
-
     res.send({
-      'success': true,
       'token': token,
-      'user': {
-        'id': '100500',
-        'account_name': 'demoUserAccount'
-      }
+      'user': newUser
     });
 
   } catch (e) {

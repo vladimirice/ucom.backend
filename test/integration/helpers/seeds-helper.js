@@ -20,6 +20,12 @@ class SeedsHelper {
     await models['users_jobs'].bulkCreate(usersJobsSeeds);
     await models['users_sources'].bulkCreate(sourcesSeeds);
     await models['posts'].bulkCreate(postsSeeds);
+
+    usersSeeds.forEach(() => {
+      models.sequelize.query(`SELECT nextval('"Users_id_seq"')`).then(() => {
+
+      });
+    });
   }
 
   static async sequelizeAfterAll() {

@@ -41,6 +41,13 @@ describe('Test registration workflow', () => {
     ;
 
     ResponseHelper.expectStatusOk(res);
+
+    const authRes = await request(server)
+      .get('/api/v1/myself')
+      .set('Authorization', `Bearer ${res.body.token}`)
+    ;
+
+    ResponseHelper.expectStatusOk(authRes);
   });
 });
 
