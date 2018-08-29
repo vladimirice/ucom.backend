@@ -67,6 +67,15 @@ module.exports = (sequelize, DataTypes) => {
     current_rate: {
       type: DataTypes.DECIMAL(10, 10)
     },
+    private_key: {
+      type: DataTypes.STRING
+    },
+    blockchain_registration_status: {
+      type: DataTypes.INTEGER
+    },
+    owner_public_key: {
+      type: DataTypes.STRING
+    },
   }, {
     underscored: true,
     freezeTableName: true,

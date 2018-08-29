@@ -11,7 +11,7 @@ const UsersService = require('../lib/users/users-service');
 router.post('/login', async function (req, res, next) {
   const payload = _.pick(req.body, ['account_name', 'public_key', 'sign']);
 
-  const { error } = AuthValidator.validateRegistration(req.body);
+  const { error } = AuthValidator.validateLogin(req.body);
   if (error) {
     return res.status(400).send({
       "errors": AuthValidator.formatErrorMessages(error.details)

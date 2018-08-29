@@ -2,7 +2,6 @@ const request = require('supertest');
 const server = require('../../../app');
 const ResponseHelper = require('../helpers/response-helper');
 const RequestHelper = require('../helpers/request-helper');
-const UsersHelper = require('../helpers/users-helper');
 const EosJsEcc = require('eosjs-ecc');
 const AccountsData = require('../../../config/accounts-data');
 
@@ -22,10 +21,9 @@ describe('Test registration workflow', () => {
   // Public key must not match existing ones
 
   it('Register new user', async () => {
-
     const userVladData = AccountsData['vlad'];
 
-    const mockAccountName = 'vlad12345123';
+    const mockAccountName = 'vlad12312312';
 
     const sign = EosJsEcc.sign(mockAccountName, userVladData.activePk);
 
@@ -35,7 +33,7 @@ describe('Test registration workflow', () => {
         "account_name": mockAccountName,
         "sign": sign,
         "public_key": userVladData.activePubKey,
-        "brainkey" : "brainkey"
+        "brainkey" : 'avocate penance cadmium hoick flosh dysuric upplow renegue potoo expirer bookman puja'
       })
     ;
 
@@ -51,7 +49,7 @@ describe('Test registration workflow', () => {
     ;
 
     expect(patchResponse.status).toBe(200);
-  });
+  }, 10000);
 });
 
 // TODO registration
