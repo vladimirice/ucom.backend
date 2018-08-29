@@ -23,7 +23,6 @@ describe('Test registration workflow', () => {
 
   it('Register new user', async () => {
 
-    const userVlad = await UsersHelper.getUserVlad();
     const userVladData = AccountsData['vlad'];
 
     const mockAccountName = 'vlad12345123';
@@ -42,12 +41,16 @@ describe('Test registration workflow', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    const authRes = await request(server)
-      .get('/api/v1/myself')
+    const patchResponse = await request(server)
+      .patch('/api/v1/myself')
       .set('Authorization', `Bearer ${res.body.token}`)
+      .send({
+        'first_name': 12345,
+        'birthday': '',
+      })
     ;
 
-    ResponseHelper.expectStatusOk(authRes);
+    expect(patchResponse.status).toBe(200);
   });
 });
 

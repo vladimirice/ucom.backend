@@ -17,6 +17,14 @@ router.get('/', [authTokenMiddleWare], async function(req, res) {
 router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
   const parameters = _.pick(req.body, UsersValidator.getFields());
 
+
+  // TODO #refactor
+  for (const param in parameters) {
+    if (parameters[param] === '') {
+      parameters[param] = null;
+    }
+  }
+
   const files = req['files'];
 
   // TODO #refactor
