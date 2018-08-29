@@ -54,7 +54,7 @@ describe('Test registration workflow', () => {
     const res = await request(server)
       .post(RequestHelper.getCheckAccountNameRoute())
       .send({
-        'account_name': 'vlad12345123'
+        'account_name': 'vlad12312312'
       })
     ;
 
