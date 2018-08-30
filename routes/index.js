@@ -46,38 +46,4 @@ router.get('/rates', async function(req, res) {
   });
 });
 
-async function updateRatesByBlockchain() {
-  const importanceData = await EosImportance.getImportanceTableRows();
-
-  let promises = [];
-
-  await importanceData.forEach(async function(data) {
-    let sql = '';
-
-    if (data['acc_name'].startsWith("pst")) {
-      const post = await PostsRepository.findOneByBlockchainId(data['acc_name']);
-
-
-      // console.log(post);
-//
-      // sql = post ? post.title : 'no title';
-
-
-      sql = `UPDATE "posts" SET current_rate = ${data['value']} WHERE blockchain_id = '${data["acc_name"]}'`;
-    } else {
-      // sql = `UPDATE "Users" SET current_rate = ${data['value']} WHERE account_name = '${data["acc_name"]}'`;
-    }
-
-    promises.push(sql);
-  });
-
-  console.log(promises);
-
-  // return await Promise.all(promises);
-}
-
-
-
-
-
 module.exports = router;
