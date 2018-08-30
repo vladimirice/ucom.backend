@@ -1,18 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const {AppError} = require('../lib/api/errors');
-const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
-const { cpUpload } = require('../lib/posts/post-edit-middleware');
-const { descriptionParser } = require('../lib/posts/post-description-image-middleware');
+const {AppError, BadRequestError} = require('../../lib/api/errors');
+const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
+const { cpUpload } = require('../../lib/posts/post-edit-middleware');
+const { descriptionParser } = require('../../lib/posts/post-description-image-middleware');
 const config = require('config');
-const PostService = require('../lib/posts/post-service');
-const ActivityService = require('../lib/activity/activity-service');
-const CurrentUserMiddleware = require('../lib/auth/current-user-middleware');
-const PostTypeDictionary = require('../lib/posts/post-type-dictionary');
-const models = require('../models');
+const PostService = require('../../lib/posts/post-service');
+const ActivityService = require('../../lib/activity/activity-service');
+const CurrentUserMiddleware = require('../../lib/auth/current-user-middleware');
+const PostIdMiddleware = require('../../lib/auth/current-user-middleware');
+const PostTypeDictionary = require('../../lib/posts/post-type-dictionary');
+const models = require('../../models');
 
 /* Get all posts */
-router.get('/', async (req, res) => {
+router.get('/', [CurrentUserMiddleware], async (req, res) => {
   const posts = await PostService.findAll();
 
   res.send(posts);
@@ -22,10 +23,16 @@ router.get('/', async (req, res) => {
 router.get('/:post_id', [CurrentUserMiddleware], async (req, res, next) => {
   const postId = parseInt(req.params['post_id']);
 
+  if (!postId) {
+    throw new BadRequestError({
+      'post_id': 'Please provide valid ID'
+    })
+  }
+
   const post = await PostService.findOneById(postId, true);
 
   if (!post) {
-    return next(new AppError("Post not found", 404));
+    throw new AppError("Post not found", 404);
   }
 
   clean(post);
