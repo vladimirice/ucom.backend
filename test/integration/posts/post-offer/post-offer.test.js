@@ -1,7 +1,6 @@
 const request = require('supertest');
 const server = require('../../../../app');
 const expect = require('expect');
-const fs = require('fs');
 
 const UsersHelper = require('../../helpers/users-helper');
 const SeedsHelper = require('../../helpers/seeds-helper');
@@ -15,8 +14,6 @@ const PostsService = require('./../../../../lib/posts/post-service');
 const avatarPath = `${__dirname}/../../../../seeders/images/ankr_network.png`;
 
 const postOfferUrl = '/api/v1/posts/offers';
-
-const { avatarStoragePath } = require('../../../../lib/users/avatar-upload-middleware');
 
 let userVlad;
 
@@ -79,6 +76,22 @@ describe('Posts API', () => {
     PostHelper.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
 
     await FileToUploadHelper.isFileUploaded(lastPost.main_image_filename);
+  });
+
+  it('Get one post', async () => {
+    const post = await PostsService.findLastPostOffer(userVlad.id);
+
+    const res = await request(server)
+      .get(`/api/v1/posts/${post.id}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    expect(res.body['action_button_title']).toBeDefined();
+    expect(res.body['post_offer']).not.toBeDefined();
+
+    // TODO
+    // PostHelper.validateResponseJson(res.body, post);
   });
 
   it('Not possible to create post without token', async () => {

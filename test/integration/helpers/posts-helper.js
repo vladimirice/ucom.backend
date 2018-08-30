@@ -26,13 +26,13 @@ class PostsHelper {
     }
   }
 
-  static validateResponseJson(body, expectedPost) {
+  static validateResponseJson(actual, expected) {
 
-    expect(body.hasOwnProperty('title')).toBeTruthy();
-    expect(body.title).toBe(expectedPost.title);
+    expect(actual.hasOwnProperty('title')).toBeTruthy();
+    expect(actual.title).toBe(expected.title);
 
-    expect(body.hasOwnProperty('myselfData')).toBeTruthy();
-    expect(body.myselfData).toEqual(expectedPost.myselfData);
+    expect(actual.hasOwnProperty('myselfData')).toBeTruthy();
+    expect(actual.myselfData).toEqual(expected.myselfData);
 
 
     const onlyExistance = {
@@ -41,21 +41,21 @@ class PostsHelper {
       'User': true
     };
 
-    for (const field in expectedPost) {
-      if (!expectedPost.hasOwnProperty(field)) {
+    for (const field in expected) {
+      if (!expected.hasOwnProperty(field)) {
         continue;
       }
 
       if (onlyExistance[field]) {
-        expect(body[field]).toBeDefined();
+        expect(actual[field]).toBeDefined();
         continue;
       }
 
-      if (expectedPost[field] === null || expectedPost[field] === undefined) {
+      if (expected[field] === null || expected[field] === undefined) {
         continue;
       }
 
-      expect(expectedPost[field]).toEqual(body[field]);
+      expect(expected[field]).toEqual(actual[field]);
     }
   }
 }

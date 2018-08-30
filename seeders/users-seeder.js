@@ -3,6 +3,7 @@ const usersEducationSeeds = require('./users/users_education');
 const usersJobsSeeds = require('./users/users_jobs');
 const sourcesSeeds = require('./users/users_sources');
 const postsSeeds = require('./posts/posts');
+const postOfferSeeds = require('./posts/posts-offers');
 
 
 module.exports = {
@@ -19,6 +20,9 @@ module.exports = {
       })
       .then(() => {
         return queryInterface.bulkInsert('posts', postsSeeds, {})
+      })
+      .then(() => {
+        return queryInterface.bulkInsert('post_offer', postOfferSeeds, {})
       })
       .catch((err) => {
         throw new Error(err);
