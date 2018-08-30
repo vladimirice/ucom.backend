@@ -11,6 +11,7 @@ const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const myselfRouter = require('./routes/myself');
 const postsRouter = require('./routes/posts');
+const postsOffersRouter = require('./routes/posts/post-offer');
 const registrationRouter = require('./routes/auth/registration');
 const errorMiddleware = require('./lib/api/error-middleware');
 
@@ -47,6 +48,7 @@ app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/myself', myselfRouter);
 app.use('/api/v1/posts', postsRouter);
+app.use('/api/v1/posts/offers', postsOffersRouter);
 app.use('/api/v1/auth/registration', registrationRouter);
 require('./lib/auth/passport');
 

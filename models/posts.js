@@ -1,5 +1,7 @@
+const TABLE_NAME = 'posts';
+
 module.exports = (sequelize, DataTypes) => {
-  const Posts = sequelize.define('posts', {
+  const Posts = sequelize.define(TABLE_NAME, {
     post_type_id: {
       type: DataTypes.STRING,
     },
@@ -33,11 +35,12 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     underscored: true,
     freezeTableName: true,
-    tableName: 'posts',
+    tableName: TABLE_NAME,
   });
   Posts.associate = function(models) {
-    models['posts'].belongsTo(models['Users'], {foreignKey: 'user_id'});
-    models['posts'].hasMany(models['activity_user_post'], {foreignKey: 'post_id_to'});
+    models[TABLE_NAME].belongsTo(models['Users'], {foreignKey: 'user_id'});
+    models[TABLE_NAME].hasMany(models['activity_user_post'], {foreignKey: 'post_id_to'});
+    models[TABLE_NAME].hasOne(models['post_offer'], {foreignKey: 'post_id'});
   };
 
   return Posts;
