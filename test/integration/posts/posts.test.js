@@ -51,16 +51,14 @@ describe('Posts API', () => {
     });
 
     it('Get one post', async () => {
-      const posts = await PostsService.findAll();
-
-      const firstPost = posts[0];
+      const post = await PostsService.findLastMediaPost();
 
       const res = await request(server)
-        .get(`${postsUrl}/${firstPost.id}`)
+        .get(`${postsUrl}/${post.id}`)
       ;
 
       ResponseHelper.expectStatusOk(res);
-      PostHelper.validateResponseJson(res.body, firstPost);
+      PostHelper.validateResponseJson(res.body, post);
     });
 
     it('Must be 404 response if post id is not correct', async () => {

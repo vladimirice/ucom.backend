@@ -34,7 +34,6 @@ class PostsHelper {
     expect(actual.hasOwnProperty('myselfData')).toBeTruthy();
     expect(actual.myselfData).toEqual(expected.myselfData);
 
-
     const onlyExistance = {
       'created_at': true,
       'updated_at': true,
