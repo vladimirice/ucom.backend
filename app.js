@@ -1,4 +1,5 @@
 const createError = require('http-errors');
+require('express-async-errors');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
@@ -11,6 +12,7 @@ const authRouter = require('./routes/auth');
 const myselfRouter = require('./routes/myself');
 const postsRouter = require('./routes/posts');
 const registrationRouter = require('./routes/auth/registration');
+const errorMiddleware = require('./lib/api/error-middleware');
 
 const app = express();
 
@@ -53,19 +55,7 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
-app.use((err, req, res, next) => {
-  let response = {
-    error: err.message
-  };
-  if (err.errors) {
-    response.errors = err.errors;
-    if (!err.status) err.status = 400; // correct validation
-  }
-  let status = err.status || 500;
-
-  res.status(status);
-  res.send(response);
-});
+app.use(errorMiddleware);
 
 
 module.exports = app;
