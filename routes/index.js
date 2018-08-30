@@ -14,22 +14,29 @@ router.get('/rates', async function(req, res) {
   const postsData = await PostsRepository.findAllWithRates();
 
   const posts = postsData.map(rate => {
+
+    let current_rate = rate.current_rate * EosImportance.getImportanceMultiplier();
+    let author_current_rate = rate.User.current_rate * EosImportance.getImportanceMultiplier();
+
     return {
       'title': rate.title,
-      'current_rate': rate.current_rate * EosImportance.getImportanceMultiplier(),
+      'current_rate': current_rate.toFixed(),
       'current_votes': rate.current_vote,
       'author': rate.User.first_name,
-      'author_rate': rate.User.current_rate * EosImportance.getImportanceMultiplier()
+      'author_rate': author_current_rate.toFixed()
     }
   });
 
   const usersData = await UsersRepository.findAllWithRates();
 
   const users = usersData.map(data => {
+
+    let current_rate = data.current_rate * EosImportance.getImportanceMultiplier();
+
     return {
       'first_name': data.first_name,
       'account_name': data.account_name,
-      'current_rate': data.current_rate * EosImportance.getImportanceMultiplier()
+      'current_rate': current_rate.toFixed()
     }
   });
 
