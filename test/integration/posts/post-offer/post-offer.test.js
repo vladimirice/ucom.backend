@@ -5,6 +5,7 @@ const expect = require('expect');
 const UsersHelper = require('../../helpers/users-helper');
 const SeedsHelper = require('../../helpers/seeds-helper');
 const PostHelper = require('../../helpers/posts-helper');
+const RequestHelper = require('../../helpers/request-helper');
 const ResponseHelper = require('../../helpers/response-helper');
 const FileToUploadHelper = require('../../helpers/file-to-upload-helper');
 const PostTypeDictionary = require('../../../../lib/posts/post-type-dictionary');
@@ -14,6 +15,7 @@ const PostsService = require('./../../../../lib/posts/post-service');
 const avatarPath = `${__dirname}/../../../../seeders/images/ankr_network.png`;
 
 const postOfferUrl = '/api/v1/posts/offers';
+const rootUrl = RequestHelper.getPostsUrl();
 
 let userVlad;
 
@@ -28,6 +30,45 @@ describe('Posts API', () => {
 
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
+  });
+
+  it('Update post-offer by its author', async () => {
+    const userVlad = await UsersHelper.getUserVlad();
+    const firstPostBefore = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+
+    const fieldsToChange = {
+      'leading_text': 'And leading text',
+      'action_button_title': 'FOOBAR',
+    };
+
+    const res = await request(server)
+      .patch(`${rootUrl}/${firstPostBefore.id}`)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+      .field('leading_text',  fieldsToChange['leading_text'])
+      .field('action_button_title',  fieldsToChange['action_button_title'])
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    const firstPostAfter = await PostsService.findOneById(firstPostBefore.id);
+
+    ResponseHelper.expectValuesAreChanged(fieldsToChange, firstPostAfter);
+  });
+
+  it('Get one post', async () => {
+    const post = await PostsService.findLastPostOffer(userVlad.id);
+
+    const res = await request(server)
+      .get(`/api/v1/posts/${post.id}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    expect(res.body['action_button_title']).toBeDefined();
+    expect(res.body['post_offer']).not.toBeDefined();
+
+    // TODO
+    // PostHelper.validateResponseJson(res.body, post);
   });
 
   it('Create new post-offer', async() => {
@@ -76,22 +117,6 @@ describe('Posts API', () => {
     PostHelper.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
 
     await FileToUploadHelper.isFileUploaded(lastPost.main_image_filename);
-  });
-
-  it('Get one post', async () => {
-    const post = await PostsService.findLastPostOffer(userVlad.id);
-
-    const res = await request(server)
-      .get(`/api/v1/posts/${post.id}`)
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    expect(res.body['action_button_title']).toBeDefined();
-    expect(res.body['post_offer']).not.toBeDefined();
-
-    // TODO
-    // PostHelper.validateResponseJson(res.body, post);
   });
 
   it('Not possible to create post without token', async () => {

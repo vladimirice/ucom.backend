@@ -26,6 +26,13 @@ class ResponseHelper {
     });
   }
 
+  static expectValuesAreChanged(expected, actual) {
+    for (const field in expected) {
+      expect(actual.hasOwnProperty(field)).toBeTruthy();
+      expect(actual[field]).toBe(expected[field]);
+    }
+  }
+
 }
 
 module.exports = ResponseHelper;

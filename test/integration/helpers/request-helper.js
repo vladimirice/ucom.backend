@@ -4,6 +4,7 @@ const server = require('../../../app');
 
 const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
 const registrationRoute = '/api/v1/auth/registration';
+const postsUrl          = '/api/v1/posts';
 
 class RequestHelper {
   static getCheckAccountNameRoute() {
@@ -11,6 +12,10 @@ class RequestHelper {
   }
   static getRegistrationRoute() {
     return registrationRoute;
+  }
+
+  static getPostsUrl() {
+    return postsUrl;
   }
 
   static async sendPatch(url, token, payload) {

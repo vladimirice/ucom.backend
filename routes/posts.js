@@ -1,7 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const PostsRepository = require('../lib/posts/posts-repository');
-const PostsService = require('../lib/posts/post-service');
 const {AppError} = require('../lib/api/errors');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
@@ -9,8 +7,9 @@ const { descriptionParser } = require('../lib/posts/post-description-image-middl
 const config = require('config');
 const PostService = require('../lib/posts/post-service');
 const ActivityService = require('../lib/activity/activity-service');
-const AuthService = require('../lib/auth/authService');
 const CurrentUserMiddleware = require('../lib/auth/current-user-middleware');
+const PostTypeDictionary = require('../lib/posts/post-type-dictionary');
+const models = require('../models');
 
 /* Get all posts */
 router.get('/', async (req, res) => {
@@ -151,6 +150,15 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   parameters['user_id'] = req['user'].id;
 
   const updatedPost = await post.update(parameters);
+
+  // TODO #refactor
+  if (updatedPost.post_type_id === PostTypeDictionary.getTypeOffer()) {
+    await models['post_offer'].update(parameters, {
+      where: {
+        post_id: post.id,
+      }
+    });
+  }
 
   const updatedPostJson = post.toJSON();
 

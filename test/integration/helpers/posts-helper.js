@@ -38,7 +38,6 @@ class PostsHelper {
     const onlyExistance = {
       'created_at': true,
       'updated_at': true,
-      'User': true
     };
 
     for (const field in expected) {
@@ -47,7 +46,7 @@ class PostsHelper {
       }
 
       if (onlyExistance[field]) {
-        expect(actual[field]).toBeDefined();
+        expect(actual[field], `Field ${field} is not defined`).toBeDefined();
         continue;
       }
 
