@@ -60,6 +60,8 @@ describe('Posts API', () => {
 
       ResponseHelper.expectStatusOk(res);
       PostHelper.validateResponseJson(res.body, post);
+
+      expect(res.body['myselfData']['follow']).not.toBeDefined();
     });
 
     it('Must be 404 response if post id is not correct', async () => {
