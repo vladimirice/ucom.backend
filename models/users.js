@@ -107,6 +107,23 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
 
+    models['Users'].hasMany(models['activity_user_user'], {
+      foreignKey: 'user_id_from',
+      sourceKey: 'id',
+      as: {
+        singular: "I_follow",
+        plural: "I_follow"
+      }
+    });
+    models['Users'].hasMany(models['activity_user_user'], {
+      foreignKey: 'user_id_to',
+      sourceKey: 'id',
+      as: {
+        singular: "followed_by",
+        plural: "followed_by"
+      }
+    });
+
   };
 
   return Users;

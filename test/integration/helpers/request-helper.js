@@ -7,6 +7,10 @@ const registrationRoute = '/api/v1/auth/registration';
 const postsUrl          = '/api/v1/posts';
 
 class RequestHelper {
+  static getUserUrl(userId) {
+    return `/api/v1/users/${userId}`;
+  }
+
   static getFollowUrl(userId) {
     return `/api/v1/users/${userId}/follow`
   }

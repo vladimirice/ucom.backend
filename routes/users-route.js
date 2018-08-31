@@ -6,20 +6,13 @@ const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const ActivityService = require('../lib/activity/activity-service');
 const PostsService = require('../lib/posts/post-service');
 const UserService = require('../lib/users/users-service');
+const CurrentUserMiddleware = require('../lib/auth/current-user-middleware');
 
 /* GET users listing. */
-router.get('/:user_id', async function(req, res, next) {
-  const userId = parseInt(req.params.user_id);
-
-  if (!userId) {
-    return next(new AppError("User not found", 404));
-  }
+router.get('/:user_id', [CurrentUserMiddleware], async function(req, res, next) {
+  const userId = req['user_id'];
 
   const user = await UserService.getUserById(userId);
-
-  if (!user) {
-    return next(new AppError("User not found", 404));
-  }
 
   res.send(user);
 });
