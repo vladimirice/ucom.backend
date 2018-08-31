@@ -41,17 +41,17 @@ router.get('/rates', async function(req, res) {
   });
 
 
-  let postsHtml;
+  let postsHtml = '<h2>Posts ratings</h2>';
 
   const tdStyle = 'border: 1px solid black';
 
   postsHtml += '<table>';
   postsHtml += '<tr>';
-  postsHtml += `<td style="${tdStyle}">Post title</td>`;
-  postsHtml += `<td style="${tdStyle}">Post current rate</td>`;
-  postsHtml += `<td style="${tdStyle}">Post current votes</td>`;
-  postsHtml += `<td style="${tdStyle}">Post author</td>`;
-  postsHtml += `<td style="${tdStyle}">Post author rate</td>`;
+  postsHtml += `<td style="${tdStyle}"><b>Post title</b></td>`;
+  postsHtml += `<td style="${tdStyle}"><b>Post current rate</b></td>`;
+  postsHtml += `<td style="${tdStyle}"><b>Post current votes</b></td>`;
+  postsHtml += `<td style="${tdStyle}"><b>Post author</b></td>`;
+  postsHtml += `<td style="${tdStyle}"><b>Post author rate</b></td>`;
   postsHtml += '</tr>';
 
   for (let i = 0; i < posts.length; i++) {
