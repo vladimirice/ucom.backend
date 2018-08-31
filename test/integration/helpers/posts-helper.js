@@ -26,6 +26,13 @@ class PostsHelper {
     }
   }
 
+  static validatePatchResponse(res, expected) {
+    const body = res.body;
+
+    expect(body.post_id).toBeDefined();
+    expect(body.post_id).toBe(expected.id);
+  }
+
   static validateResponseJson(actual, expected) {
 
     expect(actual.hasOwnProperty('title')).toBeTruthy();

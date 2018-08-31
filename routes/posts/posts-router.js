@@ -8,9 +8,10 @@ const config = require('config');
 const PostService = require('../../lib/posts/post-service');
 const ActivityService = require('../../lib/activity/activity-service');
 const CurrentUserMiddleware = require('../../lib/auth/current-user-middleware');
-const PostIdMiddleware = require('../../lib/auth/current-user-middleware');
-const PostTypeDictionary = require('../../lib/posts/post-type-dictionary');
+
 const models = require('../../models');
+const AuthService = require('../../lib/auth/authService');
+require('express-async-errors');
 
 /* Get all posts */
 router.get('/', [CurrentUserMiddleware], async (req, res) => {
@@ -20,42 +21,19 @@ router.get('/', [CurrentUserMiddleware], async (req, res) => {
 });
 
 /* Get post by ID */
-router.get('/:post_id', [CurrentUserMiddleware], async (req, res, next) => {
-  const postId = parseInt(req.params['post_id']);
-
-  if (!postId) {
-    throw new BadRequestError({
-      'post_id': 'Please provide valid ID'
-    })
-  }
-
-  const post = await PostService.findOneById(postId, true);
-
-  if (!post) {
-    throw new AppError("Post not found", 404);
-  }
-
-  clean(post);
+router.get('/:post_id', [CurrentUserMiddleware], async (req, res) => {
+  const post = await PostService.findOneById(req['post_id']);
 
   res.send(post);
 });
-
 
 router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
 
   // TODO receive raw transaction and send it to blockchain
   const postIdTo = parseInt(req.params.post_id);
 
-  if (!postIdTo) {
-    return res.status(400).send({
-      'errors': {
-        'post_id': 'Post ID is not correct. Please provide integer value greater than 0',
-      }
-    });
-  }
-
   // TODO check does exists only
-  const postTo = await PostService.findOneById(postIdTo);
+  const postTo = await PostService.findOneById(req['post_id']);
 
   const userFrom = req['user'];
 
@@ -118,29 +96,8 @@ router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 });
 
 router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
-
-  const postId = parseInt(req.params['post_id']);
-  const userId = req['user'].id;
-
-  if (!postId) {
-    res.status(400).send({
-      'errors': {
-        field: 'post_id',
-        message: 'Provided post_id parameter is not a correct integer'
-      }
-    })
-  }
-
-  const post = await PostService.findOneByIdAndAuthor(postId, userId, false, false);
-
-  if (!post) {
-    return res.status(404).send({
-      'errors': {
-        field: 'post entity',
-        message: 'Post is not found'
-      }
-    })
-  }
+  const user_id = AuthService.getCurrentUserId();
+  const post_id = req['post_id'];
 
   // Lets change file
   const files = req['files'];
@@ -148,44 +105,38 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     req.body['main_image_filename'] = files['main_image_filename'][0].filename;
   }
 
-  // TODO remove unused files
-  // TODO avoid changing fields like rate, userId, etc.
+  const params = req.body;
 
-  const parameters = req.body;
+  const updatedPost = await PostService.updateAuthorPost(post_id, user_id, params);
 
-  parameters['id'] = post.id;
-  parameters['user_id'] = req['user'].id;
-
-  const updatedPost = await post.update(parameters);
-
-  // TODO #refactor
-  if (updatedPost.post_type_id === PostTypeDictionary.getTypeOffer()) {
-    await models['post_offer'].update(parameters, {
-      where: {
-        post_id: post.id,
-      }
-    });
-  }
-
-  const updatedPostJson = post.toJSON();
-
-  PostService.processOneAfterQuery(updatedPostJson);
-
-  res.send(updatedPostJson);
+  res.send({
+    'post_id': updatedPost.id
+  });
 });
 
+router.param('post_id', (req, res, next, post_id) => {
+  const value = parseInt(post_id);
 
-// TODO #refactor - move to service
-function clean(obj) {
-  for (const propName in obj) {
-    if (!obj.hasOwnProperty(propName)) {
-      continue;
-    }
-
-    if (obj[propName] === null || obj[propName] === undefined || obj[propName] === 'null') {
-      delete obj[propName];
-    }
+  if (!value) {
+    throw new BadRequestError({
+      'post_id': 'Post ID must be a valid integer'
+    })
   }
-}
+
+  models['posts'].count({
+    where: {
+      id: value
+    }
+  }).then(count => {
+
+    if (count === 0) {
+      throw new AppError(`There is no post with ID ${value}`, 404);
+    }
+    req['post_id'] = value;
+
+    next();
+
+  }).catch(next);
+});
 
 module.exports = router;

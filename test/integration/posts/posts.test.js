@@ -9,6 +9,7 @@ const PostHelper = require('../helpers/posts-helper');
 const ResponseHelper = require('../helpers/response-helper');
 
 const PostsService = require('./../../../lib/posts/post-service');
+const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 
 const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
@@ -115,6 +116,8 @@ describe('Posts API', () => {
 
     const firstPostBefore = vladPosts[0];
 
+    expect(firstPostBefore.main_image_filename).not.toBeDefined();
+
     const fieldsToChange = {
       'title': 'This is title to change',
       'description': 'Also necessary to change description',
@@ -132,28 +135,14 @@ describe('Posts API', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    const firstPostAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id, true);
+    const postAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id);
 
-    const body = res.body;
+    PostHelper.validatePatchResponse(res, postAfter);
 
-    PostHelper.validateResponseJson(body, firstPostAfter);
+    ResponseHelper.expectValuesAreChanged(fieldsToChange, postAfter);
 
-    // Check post is changed
-    for (const field in fieldsToChange) {
-      expect(firstPostBefore.hasOwnProperty(field)).toBeTruthy();
-      expect(firstPostAfter.hasOwnProperty(field)).toBeTruthy();
-      expect(body.hasOwnProperty(field)).toBeTruthy();
-
-      expect(firstPostAfter[field]).not.toBe(firstPostBefore[field]);
-      expect(firstPostAfter[field]).toBe(fieldsToChange[field]);
-    }
-
-    // Check image changing process
-    expect(fs.existsSync(`${avatarStoragePath}/${res.body.main_image_filename}`)).toBeTruthy();
-    expect(firstPostAfter.main_image_filename).not.toBe(firstPostBefore.main_image_filename);
-    const avatarFetchRes = await request(server)
-      .get(`/upload/${res.body.main_image_filename}`);
-    expect(avatarFetchRes.status).toBe(200);
+    expect(postAfter.main_image_filename).toBeDefined();
+    await FileToUploadHelper.isFileUploaded(postAfter.main_image_filename);
   });
 
 
