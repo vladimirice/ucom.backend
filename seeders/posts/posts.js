@@ -67,7 +67,7 @@ const seeds = [
     leading_text: 'Our cool offer is here',
     created_at: new Date(),
     updated_at: new Date(),
-    blockchain_id: null
+    blockchain_id: 'pstos5-15uv8u4jlhp11i8'
   }
 ];
 

@@ -8,12 +8,6 @@ const { cpUpload } = require('../../lib/posts/post-edit-middleware');
 /* create new offer */
 router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
-  /*
-    Create offer like simple post but create also related entity
-    Stage 1 - in one transaction with regular post
-    most of parameters are string or int so they are very simple
-   */
-
   const newPost = await PostOfferService.createNew(req);
 
   res.send({
