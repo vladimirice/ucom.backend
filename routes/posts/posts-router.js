@@ -27,6 +27,19 @@ router.get('/:post_id', [CurrentUserMiddleware], async (req, res) => {
   res.send(post);
 });
 
+
+router.post('/:post_id/join', [authTokenMiddleWare], async (req, res) => {
+  const userFrom = req['user'];
+  const post_id = req['post_id'];
+
+  await ActivityService.userJoinsPost(userFrom, post_id);
+
+  res.send({
+    post_id,
+    'user_id': userFrom.id,
+  });
+});
+
 router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
 
   // TODO receive raw transaction and send it to blockchain

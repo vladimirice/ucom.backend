@@ -7,6 +7,10 @@ const registrationRoute = '/api/v1/auth/registration';
 const postsUrl          = '/api/v1/posts';
 
 class RequestHelper {
+  static getJoinUrl(postId) {
+    return `/api/v1/posts/${postId}/join`;
+  }
+
   static getCheckAccountNameRoute() {
     return checkAccountRoute;
   }

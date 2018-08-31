@@ -27,7 +27,6 @@ describe('User to user activity', () => {
   });
 
   describe('Jane activity about Vlad posts', () => {
-
     it('Jane upvotes Vlad posts', async () => {
 
       const userVlad = await UserHelper.getUserVlad();
@@ -96,7 +95,6 @@ describe('User to user activity', () => {
 
       ResponseHelper.expectStatusBadRequest(res);
     });
-
 
     it('Should return 400 if postID is not a valid integer', async () => {
       const postId = 'invalidPostId';
