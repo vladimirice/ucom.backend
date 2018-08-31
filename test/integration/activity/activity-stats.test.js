@@ -7,6 +7,7 @@ const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const ActivityHelper = require('../helpers/activity-helper');
 const PostsService = require('../../../lib/posts/post-service');
+const PostsHelper = require('../helpers/posts-helper');
 
 let userVlad, userJane;
 
@@ -26,6 +27,28 @@ describe('Users activity stats', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
+  describe('Post-offer activity', () => {
+    it('Get info that user joined to post-offer', async () => {
+      const post = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+
+      await ActivityHelper.createJoin(userJane, post.id);
+
+      const responsePost = await PostsHelper.getPostByMyself(post.id, userJane);
+
+      expect(responsePost.hasOwnProperty('myselfData')).toBeTruthy();
+
+      expect(responsePost['myselfData'].hasOwnProperty('join')).toBeTruthy();
+      expect(responsePost['myselfData']['join']).toBeTruthy();
+    });
+
+    it('Get info that user has not joined to post', async () => {
+      const post = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+      const responsePost = await PostsHelper.getPostByMyself(post.id, userJane);
+
+      expect(responsePost['myselfData']['join']).toBeFalsy();
+    })
+  });
+
   it('Get info that user is followed by me', async () => {
     const followed = userJane;
 
@@ -41,25 +64,26 @@ describe('Users activity stats', () => {
     expect(userJaneBody['myselfData']['follow']).toBeTruthy();
   });
 
-  it('Myself data in post User info - not following', async () => {
-    const post = await PostsService.findLastMediaPostByAuthor(userJane.id);
+  describe('Post author myself activity', () => {
+    it('Myself data in post User info - not following', async () => {
+      const post = await PostsService.findLastMediaPostByAuthor(userJane.id);
 
-    const res = await request(server)
-      .get(`${RequestHelper.getPostsUrl()}/${post.id}`)
-      .set('Authorization', `Bearer ${userVlad.token}`)
-    ;
+      const res = await request(server)
+        .get(`${RequestHelper.getPostsUrl()}/${post.id}`)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
 
-    ResponseHelper.expectStatusOk(res);
+      ResponseHelper.expectStatusOk(res);
 
-    const body = res.body;
+      const body = res.body;
 
-    expect(body['User']).toBeDefined();
-    expect(body['User']['myselfData']).toBeDefined();
-    expect(body['User']['myselfData']['follow']).toBeDefined();
-    expect(body['User']['myselfData']['follow']).toBeFalsy();
-  });
+      expect(body['User']).toBeDefined();
+      expect(body['User']['myselfData']).toBeDefined();
+      expect(body['User']['myselfData']['follow']).toBeDefined();
+      expect(body['User']['myselfData']['follow']).toBeFalsy();
+    });
 
-  it('Myself data in post User info', async () => {
+    it('Myself data in post User info - following', async () => {
       await ActivityHelper.createFollow(userVlad, userJane);
 
       const post = await PostsService.findLastMediaPostByAuthor(userJane.id);
@@ -82,6 +106,7 @@ describe('Users activity stats', () => {
       expect(author['myselfData']['follow']).toBeTruthy();
 
       // TODO myself data upvote - check also
+    });
   });
 
   it('No myself data if no token', async () => {

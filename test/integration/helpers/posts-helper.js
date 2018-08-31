@@ -1,8 +1,9 @@
 const models = require('../../../models');
-
+const request = require('supertest');
+const server = require('../../../app');
+const RequestHelper = require('./request-helper');
 
 require('jest-expect-message');
-
 
 class PostsHelper {
 
@@ -31,6 +32,23 @@ class PostsHelper {
 
     expect(body.post_id).toBeDefined();
     expect(body.post_id).toBe(expected.id);
+  }
+
+  /**
+   *
+   * @param {number} postId
+   * @param {Object} myself
+   * @returns {Promise<string|*|string|HTMLElement|BodyInit|ReadableStream>}
+   */
+  static async getPostByMyself(postId, myself) {
+    const res = await request(server)
+      .get(`${RequestHelper.getPostsUrl()}/${postId}`)
+      .set('Authorization', `Bearer ${myself.token}`)
+    ;
+
+    expect(res.status).toBe(200);
+
+    return res.body;
   }
 
   static validateResponseJson(actual, expected) {
