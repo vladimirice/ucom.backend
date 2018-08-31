@@ -40,10 +40,41 @@ router.get('/rates', async function(req, res) {
     }
   });
 
-  res.send({
-    'posts': posts,
-    'users': users,
-  });
+
+  let postsHtml;
+
+  const tdStyle = 'border: 1px solid black';
+
+  postsHtml += '<table>';
+  postsHtml += '<tr>';
+  postsHtml += `<td style="${tdStyle}">Post title</td>`;
+  postsHtml += `<td style="${tdStyle}">Post current rate</td>`;
+  postsHtml += `<td style="${tdStyle}">Post current votes</td>`;
+  postsHtml += `<td style="${tdStyle}">Post author</td>`;
+  postsHtml += `<td style="${tdStyle}">Post author rate</td>`;
+  postsHtml += '</tr>';
+
+  for (let i = 0; i < posts.length; i++) {
+    const post = posts[i];
+    postsHtml += `<tr>`;
+    postsHtml += `<td style="${tdStyle}">${post['title']}</td>`;
+    postsHtml += `<td style="${tdStyle}">${post['current_rate']}</td>`;
+    postsHtml += `<td style="${tdStyle}">${post['current_votes']}</td>`;
+    postsHtml += `<td style="${tdStyle}">${post['author']}</td>`;
+    postsHtml += `<td style="${tdStyle}">${post['author_rate']}</td>`;
+
+    postsHtml += `</tr>`;
+  }
+
+  postsHtml += '</table>';
+
+  res.send(postsHtml);
+
+
+  // res.send({
+  //   'posts': posts,
+  //   'users': users,
+  // });
 });
 
 module.exports = router;
