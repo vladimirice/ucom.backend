@@ -6,6 +6,7 @@ const fs = require('fs');
 const UsersHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const PostHelper = require('../helpers/posts-helper');
+const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 
 const PostsService = require('./../../../lib/posts/post-service');
@@ -71,6 +72,25 @@ describe('Posts API', () => {
 
       ResponseHelper.expectStatusNotFound(res);
     });
+  });
+
+  it('User data inside post is normalized', async () => {
+    await UsersHelper.setSampleRateToUserVlad();
+
+    const post = await PostsService.findLastMediaPostByAuthor(userVlad.id);
+
+    const res = await request(server)
+      .get(`${RequestHelper.getPostsUrl()}/${post.id}`)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+    const body = res.body;
+
+    const author = body['User'];
+
+    expect(author).toBeDefined();
+    expect(parseInt(author.current_rate)).toBeGreaterThan(0);
   });
 
   it('Create new post by form data', async () => {

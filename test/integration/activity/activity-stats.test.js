@@ -73,10 +73,13 @@ describe('Users activity stats', () => {
 
       const body = res.body;
 
-      expect(body['User']).toBeDefined();
-      expect(body['User']['myselfData']).toBeDefined();
-      expect(body['User']['myselfData']['follow']).toBeDefined();
-      expect(body['User']['myselfData']['follow']).toBeTruthy();
+      const author = body['User'];
+
+      expect(author).toBeDefined();
+
+      expect(author['myselfData']).toBeDefined();
+      expect(author['myselfData']['follow']).toBeDefined();
+      expect(author['myselfData']['follow']).toBeTruthy();
 
       // TODO myself data upvote - check also
   });

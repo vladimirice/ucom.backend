@@ -4,6 +4,14 @@ const AuthService = require('../../../lib/auth/authService');
 const UsersRepository = require('../../../lib/users/users-repository');
 
 class UsersHelper {
+  static async  setSampleRateToUserVlad() {
+    const vladFromDb = await UsersRepository.getUserByAccountName('vlad');
+
+    await vladFromDb.update({
+      'current_rate': 0.1234
+    });
+  }
+
   static validateUserJson(body, expectedUser, userFromDb) {
 
     expect(body.hasOwnProperty('account_name')).toBeTruthy();
