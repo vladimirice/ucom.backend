@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const {AppError} = require('../lib/api/errors');
+const {AppError, BadRequestError} = require('../lib/api/errors');
 const UsersRepository = require('../lib/users/users-repository');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
-const ActivityUserUserRepository = require('../lib/activity/activity-user-user-repository');
 const ActivityService = require('../lib/activity/activity-service');
 const PostsService = require('../lib/posts/post-service');
 const UserService = require('../lib/users/users-service');
@@ -45,14 +44,38 @@ router.get('/:user_id/posts', async function(req, res) {
 
 /* Create new user-user-activity */
 router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) {
-  const userToId = parseInt(req.params.user_id);
   const userFrom = req['user'];
+  const userToId = req['user_id'];
 
   await ActivityService.userFollowsUser(userFrom, userToId);
 
   res.send({
-    'status': 'ok'
+    'user_id_from': userFrom.id,
+    'user_id_to': userToId,
+    'activity': 'follow'
   });
+});
+
+router.param('user_id', (req, res, next, incoming_id) => {
+  const value = parseInt(incoming_id);
+
+  if (!value) {
+    throw new BadRequestError({
+      'user_id': 'User ID must be a valid integer'
+    })
+  }
+
+  UsersRepository.doesUserExistWithId(value)
+  .then(doesExist => {
+
+    if (!doesExist) {
+      throw new AppError(`There is no user with ID ${value}`, 404);
+    }
+    req['user_id'] = value;
+
+    next();
+
+  }).catch(next);
 });
 
 

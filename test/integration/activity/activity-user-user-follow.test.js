@@ -56,9 +56,47 @@ describe('User to user activity', () => {
       ResponseHelper.expectStatusUnauthorized(res);
     });
 
-    // TODO
-    // Not possible to follow twice
-    // Not possible to follow myself
-    // Not possible to follow user which does not exist
+    it('Not possible to follow twice', async () => {
+      const res = await request(server)
+        .post(RequestHelper.getFollowUrl(userJane.id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+
+      const resTwice = await request(server)
+        .post(RequestHelper.getFollowUrl(userJane.id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      ResponseHelper.expectStatusBadRequest(resTwice);
+    });
+
+    it('Not possible to follow myself', async () => {
+      const res = await request(server)
+        .post(RequestHelper.getFollowUrl(userVlad.id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+    });
+
+    it('Not possible to follow user which does not exist', async () => {
+      const res = await request(server)
+        .post(RequestHelper.getFollowUrl(100500))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      ResponseHelper.expectStatusNotFound(res);
+    });
+
+    it('Not possible to follow user by its invalid ID', async () => {
+      const res = await request(server)
+        .post(RequestHelper.getFollowUrl('invalidID'))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+    });
   });
 });
