@@ -3,12 +3,22 @@ const server = require('../../../app');
 const UserHelper = require('../helpers/users-helper');
 
 const SeedsHelper = require('../helpers/seeds-helper');
+const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const ActivityUserUserRepository = require('../../../lib/activity/activity-user-user-repository');
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
+const BlockchainStatusDictionary = require('../../../lib/eos/eos-blockchain-status-dictionary');
 
+let userVlad, userJane;
 
 describe('User to user activity', () => {
+  beforeAll(async () => {
+    [userVlad, userJane] = await Promise.all([
+      UserHelper.getUserVlad(),
+      UserHelper.getUserJane()
+    ]);
+  });
+
   beforeEach(async () => {
     await SeedsHelper.initSeeds();
   });
@@ -17,13 +27,11 @@ describe('User to user activity', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-  describe('Vlad and Jane following activity', () => {
+  describe('Positive scenarios', async () => {
     it('Vlad follows Jane', async () => {
-      const userVlad = await UserHelper.getUserVlad();
-      const userJane = await UserHelper.getUserJane();
 
       const res = await request(server)
-        .post(`/api/v1/users/${userJane.id}/follow`)
+        .post(RequestHelper.getFollowUrl(userJane.id))
         .set('Authorization', `Bearer ${userVlad.token}`)
       ;
 
@@ -35,16 +43,22 @@ describe('User to user activity', () => {
       expect(follows.user_id_from).toBe(userVlad.id);
       expect(follows.user_id_to).toBe(userJane.id);
       expect(follows.activity_type_id).toBe(ActivityDictionary.getFollowId());
+      expect(parseInt(follows.blockchain_status)).toBe(BlockchainStatusDictionary.getNotRequiredToSend());
+    })
+  });
 
-      // TODO mock transaction sending in blockchain
-    });
-
+  describe('Negative scenarios', async () => {
     it('Not possible to follow without auth token', async () => {
       const res = await request(server)
-        .post('/api/v1/users/1/follow')
+        .post(RequestHelper.getFollowUrl(userJane.id))
       ;
 
       ResponseHelper.expectStatusUnauthorized(res);
     });
+
+    // TODO
+    // Not possible to follow twice
+    // Not possible to follow myself
+    // Not possible to follow user which does not exist
   });
 });

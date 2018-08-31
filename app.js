@@ -7,7 +7,7 @@ const path = require('path');
 
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const usersRouter = require('./routes/users-route');
 const authRouter = require('./routes/auth');
 const myselfRouter = require('./routes/myself');
 const postsRouter = require('./routes/posts/posts-router');
