@@ -15,6 +15,16 @@ describe('Users API', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
+  describe('User stats', () => {
+    it('User rate must be normalized', async () => {
+      const expectedRate = await UsersHelper.setSampleRateToUserVlad();
+
+      const user = await UsersHelper.requestUserById(userVlad.id);
+
+      expect(user.current_rate).toBe(expectedRate);
+    });
+  });
+
   it('GET user by ID without auth', async () => {
 
     const res = await request(server)

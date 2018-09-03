@@ -34,6 +34,10 @@ class RequestHelper {
     return postsUrl;
   }
 
+  static getOnePostUrl(post_id) {
+    return `${postsUrl}/${post_id}`;
+  }
+
   static async sendPatch(url, token, payload) {
     const res = await request(server)
       .patch(url)

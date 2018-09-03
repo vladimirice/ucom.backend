@@ -2,19 +2,42 @@ const usersSeeds = require('../../../seeders/users/users');
 const eosAccounts = require('../../../seeders/users/eos_accounts');
 const AuthService = require('../../../lib/auth/authService');
 const UsersRepository = require('../../../lib/users/users-repository');
+const ResponseHelper = require('../helpers/response-helper');
+const EosImportance = require('../../../lib/eos/eos-importance');
+const request = require('supertest');
+const server = require('../../../app');
+
 require('jest-expect-message');
 
 class UsersHelper {
-  static async  setSampleRateToUserVlad() {
+  static async setSampleRateToUserVlad() {
+    const rateToSet = 0.1234;
+
     const vladFromDb = await UsersRepository.getUserByAccountName('vlad');
 
     await vladFromDb.update({
-      'current_rate': 0.1234
+      'current_rate': rateToSet
     });
+
+    const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
+
+    return rateNormalized.toFixed();
   }
 
+  /**
+   *
+   * @param {integer} userId
+   * @returns {Promise<string|*|string|HTMLElement|BodyInit|ReadableStream>}
+   */
+  static async requestUserById(userId) {
+    const res = await request(server)
+      .get(`/api/v1/users/${userId}`)
+    ;
 
+    ResponseHelper.expectStatusOk(res);
 
+    return res.body;
+  }
 
   static validateUserJson(body, expectedUser, userFromDb) {
 

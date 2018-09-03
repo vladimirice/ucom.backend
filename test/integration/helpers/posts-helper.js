@@ -1,7 +1,7 @@
-const models = require('../../../models');
 const request = require('supertest');
 const server = require('../../../app');
 const RequestHelper = require('./request-helper');
+const ResponseHelper = require('./response-helper');
 
 require('jest-expect-message');
 
@@ -42,11 +42,26 @@ class PostsHelper {
    */
   static async getPostByMyself(postId, myself) {
     const res = await request(server)
-      .get(`${RequestHelper.getPostsUrl()}/${postId}`)
+      .get(`${RequestHelper.getOnePostUrl(postId)}`)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
     expect(res.status).toBe(200);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {integer} post_id
+   * @returns {Promise<Object>}
+   */
+  static async requestToPost(post_id) {
+    const res = await request(server)
+      .get(RequestHelper.getOnePostUrl(post_id))
+    ;
+
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -56,7 +71,7 @@ class PostsHelper {
     expect(actual.hasOwnProperty('title')).toBeTruthy();
     expect(actual.title).toBe(expected.title);
 
-    const onlyExistance = {
+    const checkExistsOnly = {
       'created_at': true,
       'updated_at': true,
     };
@@ -66,7 +81,7 @@ class PostsHelper {
         continue;
       }
 
-      if (onlyExistance[field]) {
+      if (checkExistsOnly[field]) {
         expect(actual[field], `Field ${field} is not defined`).toBeDefined();
         continue;
       }
