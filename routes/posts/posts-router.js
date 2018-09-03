@@ -7,9 +7,10 @@ const { descriptionParser } = require('../../lib/posts/post-description-image-mi
 const config = require('config');
 const PostService = require('../../lib/posts/post-service');
 const ActivityService = require('../../lib/activity/activity-service');
+const PostTypeDictionary = require('../../lib/posts/post-type-dictionary');
+const PostOfferService = require('../../lib/posts/post-offer/post-offer-service');
 
 const models = require('../../models');
-const AuthService = require('../../lib/auth/authService');
 require('express-async-errors');
 
 /* Get all posts */
@@ -25,7 +26,6 @@ router.get('/:post_id', async (req, res) => {
 
   res.send(post);
 });
-
 
 router.post('/:post_id/join', [authTokenMiddleWare], async (req, res) => {
   const userFrom = req['user'];
@@ -100,12 +100,38 @@ router.post('/image', [descriptionParser], async (req, res) => {
 
 /* Create new post */
 router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  const newPost = await PostService.createNewPost(req);
+  const postTypeId = parseInt(req.body['post_type_id']);
+  if (!postTypeId) {
+    throw new BadRequestError({
+      'post_type_id': 'Post Type Id must be a valid natural number'
+    })
+  }
+
+  let newPost;
+  switch (postTypeId) {
+    case PostTypeDictionary.getTypeMediaPost():
+      newPost = await PostService.createNewPost(req);
+      break;
+    case PostTypeDictionary.getTypeOffer():
+      newPost = await PostOfferService.createNew(req);
+      break;
+    default:
+      throw new BadRequestError({
+        'post_type_id': 'Provided post type ID is not supported'
+      });
+  }
 
   res.send({
     'id': newPost.id
   });
 });
+
+//
+//   res.send({
+//     'post_id': newPost.id,
+//     'main_image_filename': newPost.main_image_filename,
+//   });
+// });
 
 router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const user_id = req['user'].id;

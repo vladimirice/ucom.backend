@@ -11,6 +11,7 @@ const ResponseHelper = require('../helpers/response-helper');
 const PostsService = require('./../../../lib/posts/post-service');
 const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 const PostsRepository = require('./../../../lib/posts/posts-repository');
+const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 
 const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
@@ -92,101 +93,103 @@ describe('Posts API', () => {
     expect(parseInt(author.current_rate)).toBeGreaterThan(0);
   });
 
-  it('Create new post by form data', async () => {
-    const userVlad = await UsersHelper.getUserVlad();
+  describe('Create or Update post', function () {
+    it('Create new Media Post by form data', async () => {
+      const userVlad = await UsersHelper.getUserVlad();
 
-    const newPostFields = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'post_type_id': 1,
-      'user_id': userVlad.id,
-      'current_rate': 0.0000000000,
-      'current_vote': 0,
-    };
+      const newPostFields = {
+        'title': 'Extremely new post',
+        'description': 'Our super post description',
+        'leading_text': 'extremely leading text',
+        'post_type_id': PostTypeDictionary.getTypeMediaPost(),
+        'user_id': userVlad.id,
+        'current_rate': 0.0000000000,
+        'current_vote': 0,
+      };
 
-    const res = await request(server)
-      .post(postsUrl)
-      .set('Authorization', `Bearer ${userVlad.token}`)
-      .field('title', newPostFields['title'])
-      .field('description', newPostFields['description'])
-      .field('post_type_id', newPostFields['post_type_id'])
-      .field('leading_text', newPostFields['leading_text'])
-      .attach('main_image_filename', avatarPath)
-    ;
+      const res = await request(server)
+        .post(postsUrl)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .field('title', newPostFields['title'])
+        .field('description', newPostFields['description'])
+        .field('post_type_id', newPostFields['post_type_id'])
+        .field('leading_text', newPostFields['leading_text'])
+        .attach('main_image_filename', avatarPath)
+      ;
 
-    ResponseHelper.expectStatusOk(res);
+      ResponseHelper.expectStatusOk(res);
 
-    const posts = await PostsRepository.findAllByAuthor(userVlad.id);
-    const newPost = posts.find(data => data.title === newPostFields['title']);
-    expect(newPost).toBeDefined();
+      const posts = await PostsRepository.findAllByAuthor(userVlad.id);
+      const newPost = posts.find(data => data.title === newPostFields['title']);
+      expect(newPost).toBeDefined();
 
-    const body = res.body;
+      const body = res.body;
 
-    expect(body.id).toBe(newPost.id);
+      expect(body.id).toBe(newPost.id);
 
-    await FileToUploadHelper.isFileUploaded(newPost.main_image_filename);
-  });
-
-  it('Update post by its author', async () => {
-    const userVlad = await UsersHelper.getUserVlad();
-    const vladPosts = await PostsRepository.findAllByAuthor(userVlad.id);
-
-    const firstPostBefore = vladPosts[0];
-
-    expect(firstPostBefore.main_image_filename).toBeNull();
-
-    const fieldsToChange = {
-      'title': 'This is title to change',
-      'description': 'Also necessary to change description',
-      'leading_text': 'And leading text',
-    };
-
-    const res = await request(server)
-      .patch(`${postsUrl}/${firstPostBefore.id}`)
-      .set('Authorization', `Bearer ${userVlad.token}`)
-      .field('title',         fieldsToChange['title'])
-      .field('description',   fieldsToChange['description'])
-      .field('leading_text',  fieldsToChange['leading_text'])
-      .attach('main_image_filename', avatarPath)
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    const postAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id);
-
-    PostHelper.validatePatchResponse(res, postAfter);
-
-    ResponseHelper.expectValuesAreChanged(fieldsToChange, postAfter);
-
-    expect(postAfter.main_image_filename).toBeDefined();
-    await FileToUploadHelper.isFileUploaded(postAfter.main_image_filename);
-  });
+      await FileToUploadHelper.isFileUploaded(newPost.main_image_filename);
+    });
 
 
-  it('Not possible to update post by user who is not its author', async () => {
-    const userVlad = await UsersHelper.getUserVlad();
-    const userJane = await UsersHelper.getUserJane();
+    it('Update post by its author', async () => {
+      const userVlad = await UsersHelper.getUserVlad();
+      const vladPosts = await PostsRepository.findAllByAuthor(userVlad.id);
 
-    const janePosts = await PostsRepository.findAllByAuthor(userJane.id);
+      const firstPostBefore = vladPosts[0];
 
-    const firstPost = janePosts[0];
+      expect(firstPostBefore.main_image_filename).toBeNull();
 
-    const res = await request(server)
-      .patch(`${postsUrl}/${firstPost.id}`)
-      .set('Authorization', `Bearer ${userVlad.token}`)
-      .field('title', 'Vlad title for Jane post')
-    ;
+      const fieldsToChange = {
+        'title': 'This is title to change',
+        'description': 'Also necessary to change description',
+        'leading_text': 'And leading text',
+      };
 
-    ResponseHelper.expectStatusNotFound(res);
-  });
+      const res = await request(server)
+        .patch(`${postsUrl}/${firstPostBefore.id}`)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .field('title',         fieldsToChange['title'])
+        .field('description',   fieldsToChange['description'])
+        .field('leading_text',  fieldsToChange['leading_text'])
+        .attach('main_image_filename', avatarPath)
+      ;
 
-  it('It is not possible to create post without token', async () => {
+      ResponseHelper.expectStatusOk(res);
 
-    const res = await request(server)
-      .post(postsUrl)
-    ;
+      const postAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id);
 
-    ResponseHelper.expectStatusUnauthorized(res);
+      PostHelper.validatePatchResponse(res, postAfter);
+
+      ResponseHelper.expectValuesAreChanged(fieldsToChange, postAfter);
+
+      expect(postAfter.main_image_filename).toBeDefined();
+      await FileToUploadHelper.isFileUploaded(postAfter.main_image_filename);
+    });
+
+    it('Not possible to update post by user who is not its author', async () => {
+      const userVlad = await UsersHelper.getUserVlad();
+      const userJane = await UsersHelper.getUserJane();
+
+      const janePosts = await PostsRepository.findAllByAuthor(userJane.id);
+
+      const firstPost = janePosts[0];
+
+      const res = await request(server)
+        .patch(`${postsUrl}/${firstPost.id}`)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .field('title', 'Vlad title for Jane post')
+      ;
+
+      ResponseHelper.expectStatusNotFound(res);
+    });
+
+    it('It is not possible to create post without token', async () => {
+
+      const res = await request(server)
+        .post(postsUrl)
+      ;
+
+      ResponseHelper.expectStatusUnauthorized(res);
+    });
   });
 });
