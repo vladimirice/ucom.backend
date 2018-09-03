@@ -49,6 +49,45 @@ describe('Users activity stats', () => {
     })
   });
 
+
+  it('List of post does not contain myself statuses', async () => {
+    const postToUpvote = await PostsService.findLastMediaPostByAuthor(userJane.id);
+
+    await ActivityHelper.createPostUpvote(userVlad, postToUpvote.id);
+
+    const res = await request(server)
+      .get(RequestHelper.getPostsUrl())
+    ;
+
+    res.body.forEach(post => {
+      expect(post.title).toBeDefined();
+      expect(post.myselfData).not.toBeDefined();
+    });
+  });
+
+  it('List of posts must contain post upvote status of myself', async () => {
+    const postToUpvote = await PostsService.findLastMediaPostByAuthor(userJane.id);
+
+    await ActivityHelper.createPostUpvote(userVlad, postToUpvote.id);
+
+    const res = await request(server)
+      .get(RequestHelper.getPostsUrl())
+      .set('Authorization', `Bearer ${userVlad.token}`)
+    ;
+
+    const posts = res.body;
+
+    const upvotedPost = posts.find(post => post.id === postToUpvote.id);
+
+    expect(upvotedPost.myselfData).toBeDefined();
+    expect(upvotedPost.myselfData.myselfVote).toBeDefined();
+    expect(upvotedPost.myselfData.myselfVote).toBe('upvote');
+
+    const notUpvotedPost = posts.find(post => post.id !== postToUpvote.id);
+
+    expect(notUpvotedPost.myselfData.myselfVote).toBe('no_vote');
+  });
+
   it('Get info that user is followed by me', async () => {
     const followed = userJane;
 
@@ -56,6 +95,7 @@ describe('Users activity stats', () => {
 
     const userJaneResponse = await request(server)
       .get(RequestHelper.getUserUrl(followed.id))
+      .set('Authorization', `Bearer ${userVlad.token}`)
     ;
 
     const userJaneBody = userJaneResponse.body;

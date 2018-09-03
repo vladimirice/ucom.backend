@@ -14,6 +14,7 @@ const postsRouter = require('./routes/posts/posts-router');
 const postsOffersRouter = require('./routes/posts/post-offer-router');
 const registrationRouter = require('./routes/auth/registration');
 const errorMiddleware = require('./lib/api/error-middleware');
+const diContainerMiddleware = require('./lib/api/di-container-middleware');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(diContainerMiddleware);
 
 app.use(express.static(path.join(__dirname, 'public')));
 

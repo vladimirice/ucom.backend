@@ -14,6 +14,15 @@ class ActivityHelper {
     ResponseHelper.expectStatusOk(res);
   }
 
+  static async createPostUpvote(whoUpvote, postId) {
+    const res = await request(server)
+      .post(`/api/v1/posts/${postId}/upvote`)
+      .set('Authorization', `Bearer ${whoUpvote.token}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+  }
+
   static async createJoin(userJoined, postIdTo) {
 
     const res = await request(server)

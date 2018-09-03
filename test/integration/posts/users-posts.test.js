@@ -3,9 +3,9 @@ const server = require('../../../app');
 
 const UsersHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
+const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
-
-const PostsService = require('./../../../lib/posts/post-service');
+const PostRepository = require('./../../../lib/posts/posts-repository');
 
 describe('Posts API', () => {
   beforeEach(async () => {
@@ -21,17 +21,21 @@ describe('Posts API', () => {
     it('Get all author related posts', async () => {
       const userVlad = await UsersHelper.getUserVlad();
 
-      const url = `/api/v1/users/${userVlad.id}/posts`;
-
       const res = await request(server)
-        .get(url)
+        .get(RequestHelper.getUserPostsUrl(userVlad.id))
       ;
 
       ResponseHelper.expectStatusOk(res);
 
-      const userPosts = await PostsService.findAllByAuthor(userVlad.id);
+      const body = res.body;
 
-      ResponseHelper.compareObjectArrays(userPosts, res.body);
+      const userPosts = await PostRepository.findAllByAuthor(userVlad.id);
+      expect(userPosts.length).toBe(body.length);
+
+      userPosts.forEach(expectedPost => {
+        const actualPost = body.find(post => post.id === expectedPost.id);
+        expect(actualPost).toBeDefined();
+      });
     });
   });
 });

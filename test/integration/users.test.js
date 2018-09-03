@@ -32,13 +32,6 @@ describe('Users API', () => {
     UsersHelper.validateUserJson(body, userVlad, user);
   });
 
-
-  it('Get all users', async () => {
-    const res = await request(server)
-      .get(`/api/v1/users`)
-    ;
-  });
-
   it('GET 404 if there is no user with ID', async () => {
     const res = await request(server)
       .get(`/api/v1/users/1000`)

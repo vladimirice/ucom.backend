@@ -8,12 +8,15 @@ const models = require('../models');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/users/avatar-upload-middleware');
 
+/* Get myself data (Information for profile) */
 router.get('/', [authTokenMiddleWare], async function(req, res) {
-  const user = await UserService.getUserById(req['user'].id);
+  const currentUserId = req['user'].id;
+  const user = await getUserService(req).getUserById(currentUserId);
 
   res.send(user)
 });
 
+/* Update Myself Profile */
 router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
   const parameters = _.pick(req.body, UsersValidator.getFields());
 
@@ -147,6 +150,15 @@ function getDelta(source, updated) {
     changed,
     deleted
   };
+}
+
+/**
+ *
+ * @param {Object} req
+ * @returns {UserService}
+ */
+function getUserService(req) {
+  return req['container'].get('user-service');
 }
 
 module.exports = router;

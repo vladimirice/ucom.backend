@@ -6,8 +6,12 @@ const UsersRepository = require('../lib/users/users-repository');
 
 /* GET home page. */
 router.get('/', async function(req, res) {
-  // await getPromise();
-  throw new Error('User not found');
+  const container = req['container'];
+  const currentUser = container.get('current-user');
+
+  res.send({
+    'current_user_id': 'test',
+  });
 });
 
 router.get('/rates', async function(req, res) {

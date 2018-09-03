@@ -11,6 +11,7 @@ const ResponseHelper = require('../helpers/response-helper');
 
 const PostsService = require('./../../../lib/posts/post-service');
 const FileToUploadHelper = require('../helpers/file-to-upload-helper');
+const PostsRepository = require('./../../../lib/posts/posts-repository');
 
 const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
@@ -46,7 +47,7 @@ describe('Posts API', () => {
 
       const body = res.body;
 
-      const posts = await PostsService.findAll();
+      const posts = await PostsRepository.findAllPosts();
       expect(body.length).toBe(posts.length);
 
       expect(body[0].hasOwnProperty('User')).toBeTruthy();
@@ -118,27 +119,24 @@ describe('Posts API', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    const posts = await PostsService.findAllByAuthor(userVlad.id);
+    const posts = await PostsRepository.findAllByAuthor(userVlad.id);
     const newPost = posts.find(data => data.title === newPostFields['title']);
     expect(newPost).toBeDefined();
 
-    PostHelper.validateResponseJson(res.body, newPost);
+    const body = res.body;
 
-    expect(fs.existsSync(`${avatarStoragePath}/${res.body.main_image_filename}`)).toBeTruthy();
+    expect(body.id).toBe(newPost.id);
 
-    const avatarFetchRes = await request(server)
-      .get(`/upload/${res.body.main_image_filename}`);
-
-    expect(avatarFetchRes.status).toBe(200);
+    await FileToUploadHelper.isFileUploaded(newPost.main_image_filename);
   });
 
   it('Update post by its author', async () => {
     const userVlad = await UsersHelper.getUserVlad();
-    const vladPosts = await PostsService.findAllByAuthor(userVlad.id);
+    const vladPosts = await PostsRepository.findAllByAuthor(userVlad.id);
 
     const firstPostBefore = vladPosts[0];
 
-    expect(firstPostBefore.main_image_filename).not.toBeDefined();
+    expect(firstPostBefore.main_image_filename).toBeNull();
 
     const fieldsToChange = {
       'title': 'This is title to change',
@@ -172,7 +170,7 @@ describe('Posts API', () => {
     const userVlad = await UsersHelper.getUserVlad();
     const userJane = await UsersHelper.getUserJane();
 
-    const janePosts = await PostsService.findAllByAuthor(userJane.id);
+    const janePosts = await PostsRepository.findAllByAuthor(userJane.id);
 
     const firstPost = janePosts[0];
 
@@ -186,9 +184,9 @@ describe('Posts API', () => {
   });
 
   it('It is not possible to create post without token', async () => {
+
     const res = await request(server)
       .post(postsUrl)
-      .set('Authorization', `Bearer wrong token`)
     ;
 
     ResponseHelper.expectStatusUnauthorized(res);

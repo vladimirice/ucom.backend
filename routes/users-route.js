@@ -6,31 +6,26 @@ const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const ActivityService = require('../lib/activity/activity-service');
 const PostsService = require('../lib/posts/post-service');
 const UserService = require('../lib/users/users-service');
-const CurrentUserMiddleware = require('../lib/auth/current-user-middleware');
 
 /* GET users listing. */
-router.get('/:user_id', [CurrentUserMiddleware], async function(req, res, next) {
+router.get('/:user_id', async function(req, res) {
   const userId = req['user_id'];
-
-  const user = await UserService.getUserById(userId);
+  const user = await getUserService(req).getUserById(userId);
 
   res.send(user);
 });
 
+/* GET all users */
 router.get('/', async function(req, res) {
   const users = await UserService.findAll();
 
   res.send(users);
 });
 
+/* GET all user posts */
 router.get('/:user_id/posts', async function(req, res) {
-  const userId = parseInt(req.params.user_id);
-
-  if (!userId) {
-    return res.status(400).send('User ID is not correct');
-  }
-
-  const posts = await PostsService.findAllByAuthor(userId);
+  const userId = req['user_id'];
+  const posts = await getPostService(req).findAllByAuthor(userId);
 
   res.send(posts);
 });
@@ -71,5 +66,22 @@ router.param('user_id', (req, res, next, incoming_id) => {
   }).catch(next);
 });
 
+/**
+ *
+ * @param {Object} req
+ * @returns {UserService}
+ */
+function getUserService(req) {
+  return req['container'].get('user-service');
+}
+
+/**
+ *
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+  return req['container'].get('post-service');
+}
 
 module.exports = router;

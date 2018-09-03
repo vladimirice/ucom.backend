@@ -1,3 +1,5 @@
+require('jest-expect-message');
+
 class ResponseHelper {
   static expectStatusOk(res) {
     expect(res.status).toBe(200);
@@ -28,8 +30,8 @@ class ResponseHelper {
 
   static expectValuesAreChanged(expected, actual) {
     for (const field in expected) {
-      expect(actual.hasOwnProperty(field)).toBeTruthy();
-      expect(actual[field]).toBe(expected[field]);
+      expect(actual.hasOwnProperty(field), `There is no property in actual: ${field}`).toBeTruthy();
+      expect(actual[field], `${field} does not match expected value`).toBe(expected[field]);
     }
   }
 

@@ -5,8 +5,8 @@ const UserHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const ActivityUserPostRepository = require('../../../lib/activity/activity-user-post-repository');
-const PostService = require('../../../lib/posts/post-service');
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
+const PostRepository = require('../../../lib/posts/posts-repository');
 
 let userVlad, userJane;
 
@@ -33,7 +33,7 @@ describe('User to user activity', () => {
 
       const [userJane, posts] = await Promise.all([
         UserHelper.getUserJane(),
-        PostService.findAllByAuthor(userVlad.id)
+        PostRepository.findAllByAuthor(userVlad.id)
       ]);
 
       const postId = posts[0]['id'];
@@ -49,7 +49,7 @@ describe('User to user activity', () => {
 
       const [ userUpvote, changedPost ]= await Promise.all([
         ActivityUserPostRepository.getUserPostUpvote(userJane.id, postId),
-        PostService.findOneById(postId),
+        PostRepository.findOneById(postId)
       ]);
 
       expect(userUpvote).toBeDefined();
@@ -60,13 +60,10 @@ describe('User to user activity', () => {
 
       expect(changedPost['current_vote']).toBe(postVotesBefore + 1);
       expect(res.body['current_vote']).toBe(postVotesBefore + 1);
-
-      expect(res.body.hasOwnProperty('myselfData')).toBeTruthy();
-      expect(res.body.myselfData.myselfVote).toBe('upvote');
     });
 
     it('Not possible to upvote twice', async () => {
-      const posts = await PostService.findAllByAuthor(userVlad.id);
+      const posts = await PostRepository.findAllByAuthor(userVlad.id);
       const postId = posts[0]['id'];
 
       const res = await request(server)
@@ -85,7 +82,7 @@ describe('User to user activity', () => {
     });
 
     it('Not possible to vote by myself post', async () => {
-      const posts = await PostService.findAllByAuthor(userVlad.id);
+      const posts = await PostRepository.findAllByAuthor(userVlad.id);
       const postId = posts[0]['id'];
 
       const res = await request(server)

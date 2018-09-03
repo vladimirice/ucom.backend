@@ -7,22 +7,21 @@ const { descriptionParser } = require('../../lib/posts/post-description-image-mi
 const config = require('config');
 const PostService = require('../../lib/posts/post-service');
 const ActivityService = require('../../lib/activity/activity-service');
-const CurrentUserMiddleware = require('../../lib/auth/current-user-middleware');
 
 const models = require('../../models');
 const AuthService = require('../../lib/auth/authService');
 require('express-async-errors');
 
 /* Get all posts */
-router.get('/', [CurrentUserMiddleware], async (req, res) => {
-  const posts = await PostService.findAll();
+router.get('/', async (req, res) => {
+  const posts = await getPostService(req).findAll();
 
   res.send(posts);
 });
 
 /* Get post by ID */
-router.get('/:post_id', [CurrentUserMiddleware], async (req, res) => {
-  const post = await PostService.findOneById(req['post_id']);
+router.get('/:post_id', async (req, res) => {
+  const post = await getPostService(req).findOneById(req['post_id']);
 
   res.send(post);
 });
@@ -41,12 +40,12 @@ router.post('/:post_id/join', [authTokenMiddleWare], async (req, res) => {
 });
 
 router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
+  const postService = getPostService(req);
 
-  // TODO receive raw transaction and send it to blockchain
-  const postIdTo = parseInt(req.params.post_id);
+  const postIdTo = req['post_id'];
 
   // TODO check does exists only
-  const postTo = await PostService.findOneById(req['post_id']);
+  const postTo = await postService.findOneById(postIdTo);
 
   const userFrom = req['user'];
 
@@ -58,7 +57,7 @@ router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
     });
   }
 
-  const doesExists = await ActivityService.doesUserVotePost(userFrom.id, postTo.id);
+  const doesExists = await ActivityService.doesUserVotePost(userFrom.id, postIdTo);
 
   if (doesExists) {
     return res.status(400).send({
@@ -78,10 +77,11 @@ router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
 
   await ActivityService.userUpvotesPost(userFrom, postTo);
 
-  // TODO #performance - update fetched post
-  const changedPost = await PostService.findOneById(postIdTo, true);
+  const changedPost = await postService.findOneById(postIdTo);
 
-  res.send(changedPost);
+  res.send({
+    'current_vote': changedPost.current_vote,
+  });
 });
 
 /* Upload post picture (for description) */
@@ -102,14 +102,13 @@ router.post('/image', [descriptionParser], async (req, res) => {
 router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const newPost = await PostService.createNewPost(req);
 
-  const postToJson = newPost.toJSON();
-  PostService.processOneAfterQuery(postToJson);
-
-  res.send(postToJson);
+  res.send({
+    'id': newPost.id
+  });
 });
 
 router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  const user_id = AuthService.getCurrentUserId();
+  const user_id = req['user'].id;
   const post_id = req['post_id'];
 
   // Lets change file
@@ -151,5 +150,14 @@ router.param('post_id', (req, res, next, post_id) => {
 
   }).catch(next);
 });
+
+/**
+ *
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+  return req['container'].get('post-service');
+}
 
 module.exports = router;

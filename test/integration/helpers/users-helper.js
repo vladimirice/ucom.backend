@@ -2,6 +2,7 @@ const usersSeeds = require('../../../seeders/users/users');
 const eosAccounts = require('../../../seeders/users/eos_accounts');
 const AuthService = require('../../../lib/auth/authService');
 const UsersRepository = require('../../../lib/users/users-repository');
+require('jest-expect-message');
 
 class UsersHelper {
   static async  setSampleRateToUserVlad() {
@@ -11,6 +12,9 @@ class UsersHelper {
       'current_rate': 0.1234
     });
   }
+
+
+
 
   static validateUserJson(body, expectedUser, userFromDb) {
 

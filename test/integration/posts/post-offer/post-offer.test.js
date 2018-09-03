@@ -9,6 +9,7 @@ const RequestHelper = require('../../helpers/request-helper');
 const ResponseHelper = require('../../helpers/response-helper');
 const FileToUploadHelper = require('../../helpers/file-to-upload-helper');
 const PostTypeDictionary = require('../../../../lib/posts/post-type-dictionary');
+const PostOfferRepository = require('../../../../lib/posts/post-offer/post-offer-repository');
 
 const PostsService = require('./../../../../lib/posts/post-service');
 
@@ -38,6 +39,9 @@ describe('Posts API', () => {
 
     const fieldsToChange = {
       'leading_text': 'And leading text',
+    };
+
+    const fieldsPostOfferToChange = {
       'action_button_title': 'FOOBAR',
     };
 
@@ -45,14 +49,15 @@ describe('Posts API', () => {
       .patch(`${rootUrl}/${firstPostBefore.id}`)
       .set('Authorization', `Bearer ${userVlad.token}`)
       .field('leading_text',  fieldsToChange['leading_text'])
-      .field('action_button_title',  fieldsToChange['action_button_title'])
+      .field('action_button_title',  fieldsPostOfferToChange['action_button_title'])
     ;
 
     ResponseHelper.expectStatusOk(res);
 
-    const firstPostAfter = await PostsService.findOneById(firstPostBefore.id);
+    const firstPostAfter = await PostOfferRepository.findOneById(firstPostBefore.id, true);
 
     ResponseHelper.expectValuesAreChanged(fieldsToChange, firstPostAfter);
+    ResponseHelper.expectValuesAreChanged(fieldsPostOfferToChange, firstPostAfter['post_offer']);
   });
 
   it('Get one post', async () => {
