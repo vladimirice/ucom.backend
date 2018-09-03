@@ -1,7 +1,6 @@
 const request = require('supertest');
 const server = require('../../../app');
 const expect = require('expect');
-const fs = require('fs');
 
 const UsersHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
@@ -17,7 +16,6 @@ const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
 const postsUrl = '/api/v1/posts';
 
-const { avatarStoragePath } = require('../../../lib/users/avatar-upload-middleware');
 
 let userVlad;
 
