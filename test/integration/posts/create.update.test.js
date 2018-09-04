@@ -192,8 +192,8 @@ describe('Posts API', () => {
         .field('action_button_title', newPostOfferFields['action_button_title'])
         .field('action_button_url', newPostOfferFields['action_button_url'])
         .field('action_duration_in_days', newPostOfferFields['action_duration_in_days'])
-        .field('post_users_team[0][user_id]', newPostUsersTeamFields[0]['user_id'])
-        .field('post_users_team[1][user_id]', newPostUsersTeamFields[1]['user_id'])
+        .field('post_users_team[0][id]', newPostUsersTeamFields[0]['user_id'])
+        .field('post_users_team[1][id]', newPostUsersTeamFields[1]['user_id'])
         .attach('main_image_filename', avatarPath)
       ;
 
