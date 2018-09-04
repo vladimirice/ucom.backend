@@ -10,7 +10,7 @@ const UserService = require('../lib/users/users-service');
 router.get('/search', async (req, res) => {
   const query = req.query['q'];
 
-  const users = UserService.findByNameFields(query);
+  const users = await UserService.findByNameFields(query);
 
   res.send(users);
 });
