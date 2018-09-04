@@ -2,7 +2,7 @@ const request = require('supertest');
 const server = require('../../../../app');
 const expect = require('expect');
 
-const UsersHelper = require('../../helpers/users-helper');
+const UserHelper = require('../../helpers/users-helper');
 const SeedsHelper = require('../../helpers/seeds-helper');
 const PostHelper = require('../../helpers/posts-helper');
 const RequestHelper = require('../../helpers/request-helper');
@@ -18,11 +18,14 @@ const avatarPath = `${__dirname}/../../../../seeders/images/ankr_network.png`;
 const postOfferUrl = '/api/v1/posts';
 const rootUrl = RequestHelper.getPostsUrl();
 
-let userVlad;
+let userVlad, userJane;
 
 describe('Posts API', () => {
   beforeAll(async () => {
-    userVlad = await UsersHelper.getUserVlad();
+    [userVlad, userJane] = await Promise.all([
+      UserHelper.getUserVlad(),
+      UserHelper.getUserJane()
+    ]);
   });
 
   beforeEach(async () => {
@@ -34,7 +37,7 @@ describe('Posts API', () => {
   });
 
   it('Update post-offer by its author', async () => {
-    const userVlad = await UsersHelper.getUserVlad();
+    const userVlad = await UserHelper.getUserVlad();
     const firstPostBefore = await PostsService.findLastPostOfferByAuthor(userVlad.id);
 
     const fieldsToChange = {
@@ -97,6 +100,15 @@ describe('Posts API', () => {
       'action_duration_in_days': 500,
     };
 
+    let newPostUsersTeamFields = [
+      {
+        'user_id': userVlad.id,
+      },
+      {
+        'user_id': userJane.id,
+      },
+    ];
+
     const res = await request(server)
       .post(postOfferUrl)
       .set('Authorization', `Bearer ${userVlad.token}`)
@@ -107,6 +119,8 @@ describe('Posts API', () => {
       .field('action_button_title', newPostOfferFields['action_button_title'])
       .field('action_button_url', newPostOfferFields['action_button_url'])
       .field('action_duration_in_days', newPostOfferFields['action_duration_in_days'])
+      .field('post_users_team[0][user_id]', newPostUsersTeamFields[0]['user_id'])
+      .field('post_users_team[1][user_id]', newPostUsersTeamFields[1]['user_id'])
       .attach('main_image_filename', avatarPath)
     ;
 
@@ -123,6 +137,14 @@ describe('Posts API', () => {
     PostHelper.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
 
     await FileToUploadHelper.isFileUploaded(lastPost.main_image_filename);
+
+    const postUsersTeam = lastPost['post_users_team'];
+    expect(postUsersTeam).toBeDefined();
+    newPostUsersTeamFields.forEach(teamMember => {
+      const record = postUsersTeam.find(data => data.user_id === teamMember.user_id);
+      expect(record).toBeDefined();
+      expect(record.post_id).toBe(lastPost.id);
+    });
   });
 
   it('Not possible to create post without token', async () => {

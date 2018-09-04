@@ -41,6 +41,13 @@ module.exports = (sequelize, DataTypes) => {
     models[TABLE_NAME].belongsTo(models['Users'], {foreignKey: 'user_id'});
     models[TABLE_NAME].hasMany(models['activity_user_post'], {foreignKey: 'post_id_to'});
     models[TABLE_NAME].hasOne(models['post_offer'], {foreignKey: 'post_id'});
+    models[TABLE_NAME].hasMany(models['post_users_team'], {
+      foreignKey: 'post_id',
+      as: {
+        singular: "post_users_team",
+        plural: "post_users_team"
+      }
+    });
   };
 
   return Posts;

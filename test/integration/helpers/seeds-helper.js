@@ -16,6 +16,7 @@ class SeedsHelper {
     await models['users_sources'].destroy({where: {}});
     await models['activity_user_post'].destroy({where: {}});
     await models['post_offer'].destroy({where: {}});
+    await models['post_users_team'].destroy({where: {}});
     await models['posts'].destroy({where: {}});
     await models['activity_user_user'].destroy({where: {}});
     await models['Users'].destroy({where: {}});
