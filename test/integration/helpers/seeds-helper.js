@@ -5,6 +5,7 @@ const usersEducationSeeds = require('../../../seeders/users/users_education');
 const sourcesSeeds = require('../../../seeders/users/users_sources');
 const postsSeeds = require('../../../seeders/posts/posts');
 const postsOffersSeeds = require('../../../seeders/posts/posts-offers');
+const postUsersTeamSeeds = require('../../../seeders/posts/posts-users-team');
 
 // SELECT sequence_name FROM information_schema.sequences;
 
@@ -34,6 +35,7 @@ class SeedsHelper {
     await models['users_sources'].bulkCreate(sourcesSeeds);
     await models['posts'].bulkCreate(postsSeeds);
     await models['post_offer'].bulkCreate(postsOffersSeeds);
+    await models['post_users_team'].bulkCreate(postUsersTeamSeeds);
 
     // TODO user sql reset instead
     usersSeeds.forEach(() => {
@@ -48,6 +50,7 @@ class SeedsHelper {
     await models['Users'].bulkCreate(usersSeeds);
     await models['posts'].bulkCreate(postsSeeds);
     await models['post_offer'].bulkCreate(postsOffersSeeds);
+    await models['post_users_team'].bulkCreate(postUsersTeamSeeds);
 
     usersSeeds.forEach(() => {
       models.sequelize.query(`SELECT nextval('"Users_id_seq"')`).then(() => {

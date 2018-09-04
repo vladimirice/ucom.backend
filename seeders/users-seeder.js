@@ -4,7 +4,7 @@ const usersJobsSeeds = require('./users/users_jobs');
 const sourcesSeeds = require('./users/users_sources');
 const postsSeeds = require('./posts/posts');
 const postOfferSeeds = require('./posts/posts-offers');
-
+const postUsersTeamSeeds = require('./posts/posts-users-team');
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -23,6 +23,9 @@ module.exports = {
       })
       .then(() => {
         return queryInterface.bulkInsert('post_offer', postOfferSeeds, {})
+      })
+      .then(() => {
+        return queryInterface.bulkInsert('post_users_team', postUsersTeamSeeds, {})
       })
       .catch((err) => {
         throw new Error(err);

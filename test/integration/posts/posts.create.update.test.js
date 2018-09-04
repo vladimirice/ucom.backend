@@ -77,9 +77,7 @@ describe('Posts API', () => {
 
     it('Update post by its author', async () => {
       const userVlad = await UserHelper.getUserVlad();
-      const vladPosts = await PostsRepository.findAllByAuthor(userVlad.id);
-
-      const firstPostBefore = vladPosts[0];
+      const firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
 
       expect(firstPostBefore.main_image_filename).toBeNull();
 
@@ -220,6 +218,53 @@ describe('Posts API', () => {
       });
     });
 
+    describe('Update posts', async () => {
+      it('Update post-offer by its author', async () => {
+        const userVlad = await UserHelper.getUserVlad();
+        const firstPostBefore = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+
+        const fieldsToChange = {
+          'leading_text': 'And leading text',
+        };
+
+        const fieldsPostOfferToChange = {
+          'action_button_title': 'FOOBAR',
+        };
+
+        // Remove userVlad and add userJane
+        const boardToChange = [
+          {
+            user_id: userJane.id
+          }
+        ];
+
+        const res = await request(server)
+          .patch(`${rootUrl}/${firstPostBefore.id}`)
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('leading_text',  fieldsToChange['leading_text'])
+          .field('action_button_title',  fieldsPostOfferToChange['action_button_title'])
+          .field('post_users_team[0][id]', boardToChange[0]['user_id'])
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        const firstPostAfter = await PostOfferRepository.findOneById(firstPostBefore.id, true);
+
+        ResponseHelper.expectValuesAreChanged(fieldsToChange, firstPostAfter);
+        ResponseHelper.expectValuesAreChanged(fieldsPostOfferToChange, firstPostAfter['post_offer']);
+
+        const postUsersTeam = firstPostAfter['post_users_team'];
+        expect(postUsersTeam).toBeDefined();
+        expect(postUsersTeam.length).toBe(1);
+
+        const userJaneInTeam = postUsersTeam.find(data => data.user_id === userJane.id);
+        expect(userJaneInTeam).toBeDefined();
+        expect(userJaneInTeam.post_id).toBe(firstPostBefore.id);
+
+        const userVladInTeam = postUsersTeam.find(data => data.user_id === userVlad.id);
+        expect(userVladInTeam).not.toBeDefined();
+      });
+    });
 
     describe('Negative scenarios', async () => {
       it('Not possible to update post by user who is not its author', async () => {
