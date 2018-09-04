@@ -5,6 +5,7 @@ const server = require('../../../app');
 const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
 const registrationRoute = '/api/v1/auth/registration';
 const postsUrl          = '/api/v1/posts';
+const usersUrl          = '/api/v1/users';
 
 class RequestHelper {
   static getUserPostsUrl(userId) {
@@ -32,6 +33,15 @@ class RequestHelper {
 
   static getPostsUrl() {
     return postsUrl;
+  }
+
+  /**
+   *
+   * @param {string} query
+   * @returns {string}
+   */
+  static getUserSearchUrl(query) {
+    return `${usersUrl}/search?q=${query}`
   }
 
   static getOnePostUrl(post_id) {

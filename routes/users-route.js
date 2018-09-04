@@ -4,8 +4,16 @@ const {AppError, BadRequestError} = require('../lib/api/errors');
 const UsersRepository = require('../lib/users/users-repository');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const ActivityService = require('../lib/activity/activity-service');
-const PostsService = require('../lib/posts/post-service');
 const UserService = require('../lib/users/users-service');
+
+/* Find users by name fields - shortcut */
+router.get('/search', async (req, res) => {
+  const query = req.query['q'];
+
+  const users = UserService.findByNameFields(query);
+
+  res.send(users);
+});
 
 /* GET users listing. */
 router.get('/:user_id', async function(req, res) {

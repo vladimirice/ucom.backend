@@ -1,14 +1,14 @@
 const request = require('supertest');
-const models = require('../../models');
-const server = require('../../app');
+const models = require('../../../models');
+const server = require('../../../app');
 const expect = require('expect');
 
-const UsersHelper = require('./helpers/users-helper');
-const SeedsHelper = require('./helpers/seeds-helper');
-const RequestHelper = require('./helpers/request-helper');
-const ResponseHelper = require('./helpers/response-helper');
-const FileToUploadHelper = require('./helpers/file-to-upload-helper');
-const UsersRepository = require('./../../lib/users/users-repository');
+const UsersHelper = require('../helpers/users-helper');
+const SeedsHelper = require('../helpers/seeds-helper');
+const RequestHelper = require('../helpers/request-helper');
+const ResponseHelper = require('../helpers/response-helper');
+const FileToUploadHelper = require('../helpers/file-to-upload-helper');
+const UsersRepository = require('./../../../lib/users/users-repository');
 
 const myselfUrl = '/api/v1/myself';
 
