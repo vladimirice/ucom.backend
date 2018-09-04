@@ -83,6 +83,52 @@ describe('Posts API', () => {
     // TODO - no post_type_id or it is malformed
   });
 
+
+  it('Create new post-offer without board', async () => {
+    let newPostFields = {
+      'title': 'Extremely new post',
+      'description': 'Our super post description',
+      'leading_text': 'extremely leading text',
+      'user_id': userVlad.id,
+      'post_type_id': PostTypeDictionary.getTypeOffer(),
+      'current_rate': '0.0000000000',
+      'current_vote': 0,
+    };
+
+    let newPostOfferFields = {
+      'action_button_title': 'TEST_BUTTON_CONTENT',
+    };
+
+    const res = await request(server)
+      .post(postOfferUrl)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+      .field('title', newPostFields['title'])
+      .field('description', newPostFields['description'])
+      .field('leading_text', newPostFields['leading_text'])
+      .field('post_type_id', newPostFields['post_type_id'])
+      .field('action_button_title', newPostOfferFields['action_button_title'])
+      .attach('main_image_filename', avatarPath)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+    expect(lastPost).toBeDefined();
+    expect(lastPost['post_offer']).not.toBeNull();
+
+    expect(res.body.id).toBe(lastPost.id);
+    PostHelper.validateDbEntity(newPostFields, lastPost);
+
+    newPostOfferFields['post_id'] = res.body.id;
+    PostHelper.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
+
+    await FileToUploadHelper.isFileUploaded(lastPost.main_image_filename);
+
+    const postUsersTeam = lastPost['post_users_team'];
+    expect(postUsersTeam).toBeDefined();
+    expect(postUsersTeam.length).toBe(0);
+  });
+
   it('Create new post-offer', async() => {
     let newPostFields = {
       'title': 'Extremely new post',
