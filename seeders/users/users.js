@@ -20,7 +20,8 @@ const usersSeeds = [{
     first_currency: 'BTC',
     first_currency_year: '2008',
     personal_website_url: 'https://www.blockchain.com/'
-  }, {
+  },
+  {
     id: 2,
     account_name: 'jane',
     nickname: 'jane',
@@ -42,6 +43,52 @@ const usersSeeds = [{
     first_currency: 'ETH',
     first_currency_year: '2012',
     personal_website_url: 'https://bitcointalk.org/'
+  },
+  {
+    id: 3,
+    account_name: 'petr',
+    nickname: 'petr',
+    first_name: 'Petr',
+    last_name: 'Pavlov',
+    email: 'petr.pavlov@example.com',
+    phone_number: '+19161234999',
+    birthday: new Date(1969, 1, 11),
+    about: 'I am a crypto trader',
+    country: 'US',
+    city: 'NY',
+    address: 'NY street, 1',
+    mood_message: 'Catch the candle',
+    created_at: new Date(),
+    updated_at: new Date(),
+    avatar_filename: null,
+    public_key: 'sample_public_key',
+    currency_to_show: 'BTH',
+    first_currency: 'BTH',
+    first_currency_year: '2009',
+    personal_website_url: 'https://example.com/'
+  },
+  {
+    id: 4,
+    account_name: 'rokky',
+    nickname: 'rokky',
+    first_name: 'Rokky',
+    last_name: 'Semenov',
+    email: 'rokky.semenov@example.com',
+    phone_number: '+19161234111',
+    birthday: new Date(1991, 10, 1),
+    about: 'Im completely beginner in blockchain',
+    country: 'RU',
+    city: 'SPB',
+    address: 'Nevsky street, 8',
+    mood_message: 'Blockchain rocks!',
+    created_at: new Date(),
+    updated_at: new Date(),
+    avatar_filename: null,
+    public_key: 'sample_public_key_2',
+    currency_to_show: 'ETH',
+    first_currency: 'ETH',
+    first_currency_year: '2015',
+    personal_website_url: 'https://example2.org/'
   },
 ];
 

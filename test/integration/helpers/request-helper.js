@@ -48,6 +48,15 @@ class RequestHelper {
     return `${postsUrl}/${post_id}`;
   }
 
+  /**
+   *
+   * @param {number} post_id
+   * @returns {string}
+   */
+  static getCommentsUrl(post_id) {
+    return `/api/v1/posts/${post_id}/comments`;
+  }
+
   static async sendPatch(url, token, payload) {
     const res = await request(server)
       .patch(url)

@@ -4,6 +4,9 @@ class ResponseHelper {
   static expectStatusOk(res) {
     expect(res.status).toBe(200);
   }
+  static expectStatusCreated(res) {
+    expect(res.status).toBe(201);
+  }
 
   static expectStatusNotFound(res) {
     expect(res.status).toBe(404);

@@ -152,6 +152,16 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   });
 });
 
+/* Create comment */
+router.post('/:post_id/comments', [authTokenMiddleWare], (req, res, next) => {
+
+  const a = 0;
+
+  res.status(201).send({
+    'status': 'ok',
+  })
+});
+
 router.param('post_id', (req, res, next, post_id) => {
   const value = parseInt(post_id);
 

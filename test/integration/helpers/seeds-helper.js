@@ -6,24 +6,28 @@ const sourcesSeeds = require('../../../seeders/users/users_sources');
 const postsSeeds = require('../../../seeders/posts/posts');
 const postsOffersSeeds = require('../../../seeders/posts/posts-offers');
 const postUsersTeamSeeds = require('../../../seeders/posts/posts-users-team');
+const commentsSeeds = require('../../../seeders/comments/comments-seeds');
 
 // SELECT sequence_name FROM information_schema.sequences;
 
 class SeedsHelper {
 
   static async destroyTables() {
+    // TODO use drop table instead
     await models['users_education'].destroy({where: {}});
     await models['users_jobs'].destroy({where: {}});
     await models['users_sources'].destroy({where: {}});
     await models['activity_user_post'].destroy({where: {}});
     await models['post_offer'].destroy({where: {}});
     await models['post_users_team'].destroy({where: {}});
+    await models['comments'].destroy({where: {}});
     await models['posts'].destroy({where: {}});
     await models['activity_user_user'].destroy({where: {}});
     await models['Users'].destroy({where: {}});
 
     // TODO reset all sequences
     await models.sequelize.query(`ALTER SEQUENCE posts_id_seq RESTART;`);
+    await models.sequelize.query(`ALTER SEQUENCE comments_id_seq RESTART;`);
   }
 
   static async initSeeds() {
@@ -36,6 +40,10 @@ class SeedsHelper {
     await models['posts'].bulkCreate(postsSeeds);
     await models['post_offer'].bulkCreate(postsOffersSeeds);
     await models['post_users_team'].bulkCreate(postUsersTeamSeeds);
+    await models['comments'].bulkCreate(commentsSeeds);
+
+
+
 
     // TODO user sql reset instead
     usersSeeds.forEach(() => {
