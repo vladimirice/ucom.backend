@@ -22,7 +22,7 @@ const postsUrl = '/api/v1/posts';
 
 let userVlad, userJane;
 
-describe('Commends', () => {
+describe('Comments', () => {
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
     [userVlad, userJane] = await Promise.all([
@@ -41,24 +41,24 @@ describe('Commends', () => {
 
   describe('Positive scenarios', async () => {
 
-    // it('Create new comment for the post directly', async () => {
-    //
-    //   const post_id = 1;
-    //
-    //   const res = await request(server)
-    //     .post(RequestHelper.getCommentsUrl(post_id))
-    //     .set('Authorization', `Bearer ${userVlad.token}`)
-    //     .send({
-    //       'description': 'comment description',
-    //       'parent_id': null
-    //     })
-    //   ;
-    //
-    //   const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
-    //   expect(lastComment).not.toBeNull();
-    //
-    //   ResponseHelper.expectStatusCreated(res);
-    // });
+    it('Create new comment for the post directly', async () => {
+
+      const post_id = 1;
+
+      const res = await request(server)
+        .post(RequestHelper.getCommentsUrl(post_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send({
+          'description': 'comment description',
+          'parent_id': null
+        })
+      ;
+
+      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+      expect(lastComment).not.toBeNull();
+
+      ResponseHelper.expectStatusCreated(res);
+    });
 
     it('Create comment on comment', async () => {
 
