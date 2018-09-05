@@ -29,7 +29,7 @@ describe('Users API', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    expect(res.body.length).toBe(2);
+    expect(res.body.length).toBe(3);
 
     const vladResponse = res.body.find(data => data.id === userVlad.id);
     const janeResponse = res.body.find(data => data.id === userJane.id);

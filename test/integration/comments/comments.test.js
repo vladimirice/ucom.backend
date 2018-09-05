@@ -10,6 +10,7 @@ const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 const PostOfferRepository = require('../../../lib/posts/post-offer/post-offer-repository');
 const PostsRepository = require('../../../lib/posts/posts-repository');
+const CommentsRepository = require('../../../lib/comments/comments-repository');
 
 const PostsService = require('./../../../lib/posts/post-service');
 
@@ -31,17 +32,16 @@ describe('Commends', () => {
   });
 
   beforeEach(async () => {
-    await SeedsHelper.initPostOfferSeeds();
+    await SeedsHelper.initSeeds();
   });
 
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-
   describe('Positive scenarios', async () => {
 
-    it('Create new comment for the post', async () => {
+    it('Create new comment for the post directly', async () => {
 
       const post_id = 1;
 
@@ -50,10 +50,18 @@ describe('Commends', () => {
         .set('Authorization', `Bearer ${userVlad.token}`)
         .send({
           'description': 'comment description',
+          'parent_id': null
         })
       ;
 
+      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+      expect(lastComment).not.toBeNull();
+
       ResponseHelper.expectStatusCreated(res);
+    });
+
+    it('Create comment on comment', async () => {
+
     });
   });
 

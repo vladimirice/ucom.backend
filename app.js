@@ -2,9 +2,9 @@ const createError = require('http-errors');
 require('express-async-errors');
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const logger = require('morgan');
+const morgan = require('morgan');
 const path = require('path');
-
+const winston = require('./config/winston');
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users-route');
@@ -17,7 +17,14 @@ const diContainerMiddleware = require('./lib/api/di-container-middleware');
 
 const app = express();
 
-app.use(logger('dev'));
+process.on('uncaughtException', (ex) => { winston.error(ex); });
+process.on('unhandledRejection', (ex) => { throw ex; });
+
+// throw new Error('test error'); // // // // // // // // // // // // // //
+// const p = Promise.reject(new Error('rejected promise')); p.then();
+
+app.use(morgan('combined', { stream: winston.stream }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
