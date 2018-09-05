@@ -37,7 +37,7 @@ module.exports = {
       "ref"  : "origin/master",
       "repo" : "git@bitbucket.org:gravityprotocol/uos.app.backend.git",
       "path" : "/var/www/uos.app.backend",
-      "post-deploy" : "npm install && pm2 startOrRestart ecosystem.json --env production"
+      // "post-deploy" : "npm install && pm2 startOrRestart ecosystem.json --env production"
     },
   }
 };
