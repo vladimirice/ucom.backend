@@ -28,6 +28,22 @@ describe('Comments', () => {
 
   describe('Positive scenarios', async () => {
 
+    it('Get posts with comments', async () => {
+
+      const post_id = 1;
+
+      const res = await request(server)
+        .get(RequestHelper.getOnePostUrl(post_id))
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+
+      const body = res.body;
+
+      expect(body.comments).toBeDefined();
+      expect(body['User']).toBeDefined();
+    });
+
     it('Create new comment for the post directly', async () => {
 
       const post_id = 1;

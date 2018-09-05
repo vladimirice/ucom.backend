@@ -39,6 +39,13 @@ module.exports = (sequelize, DataTypes) => {
   });
   Posts.associate = function(models) {
     models[TABLE_NAME].belongsTo(models['Users'], {foreignKey: 'user_id'});
+    models[TABLE_NAME].hasMany(models['comments'], {
+      foreignKey: 'commentable_id',
+      as: {
+        singular: "comments",
+        plural: "comments"
+      }
+    });
     models[TABLE_NAME].hasMany(models['activity_user_post'], {foreignKey: 'post_id_to'});
     models[TABLE_NAME].hasOne(models['post_offer'], {foreignKey: 'post_id'});
     models[TABLE_NAME].hasMany(models['post_users_team'], {

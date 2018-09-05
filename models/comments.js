@@ -1,7 +1,7 @@
 const TABLE_NAME = 'comments';
 
 module.exports = (db, Sequelize) => {
-  const Model = db.define(TABLE_NAME, {
+  const Comments = db.define(TABLE_NAME, {
     description: {
       type: Sequelize.TEXT,
       allowNull: false,
@@ -42,8 +42,10 @@ module.exports = (db, Sequelize) => {
     freezeTableName: true,
     tableName: TABLE_NAME,
   });
-  Model.associate = function(models) {
+  Comments.associate = function(models) {
+    models[TABLE_NAME].belongsTo(models.Users, {foreignKey: 'user_id'});
+    models[TABLE_NAME].belongsTo(models['posts'], {foreignKey: 'commentable_id'});
   };
 
-  return Model;
+  return Comments;
 };
