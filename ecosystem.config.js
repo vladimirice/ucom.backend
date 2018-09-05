@@ -19,9 +19,15 @@ module.exports = {
   },
   {
     name: 'uos_backend_importance_worker',
-    script: 'bin/worker-update-importance',
+    script: 'bin/worker-update-importance.js',
     watch: false,
-    cron_restart: "* * * * *"
+    cron_restart: "* * * * *",
+    env: {
+      "NODE_ENV": "development"
+    },
+    env_production : {
+      NODE_ENV: 'production',
+    },
   }
   ],
 };
