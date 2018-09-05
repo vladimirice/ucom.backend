@@ -158,10 +158,28 @@ router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
 
   const newComment = await getCommentsService(req).createNewComment(req['body'], req['post_id']);
 
-  res.status(201).send({
-    'id': newComment.id,
-    'path': JSON.stringify(newComment.path),
-  })
+  const createdCommentModel = await models['comments'].findOne({
+    where: {
+      id: newComment.id,
+    },
+    include: [
+      {
+        model: models['Users'],
+        attributes: [
+          'id', 'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename',
+        ],
+        as: 'User'
+      },
+    ]
+  });
+
+  const createdComment = createdCommentModel.toJSON();
+
+  createdComment.path = createdComment.path.replace('[', '');
+  createdComment.path = createdComment.path.replace(']', '');
+  createdComment.path = createdComment.path.replace(/,/g, '');
+
+  res.status(201).send(createdComment)
 });
 
 router.param('post_id', (req, res, next, post_id) => {

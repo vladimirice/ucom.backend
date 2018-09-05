@@ -1,8 +1,12 @@
 #!/bin/bash
-cd /var/www/uos.app.backend
-pwd
 . ~/.nvm/nvm.sh
 . ~/.bashrc
+
+cd /var/www/uos.app.backend
+pwd
+echo "Making git pull..."
+git pull
+echo "Git pull is ended"
 echo "Applying migrations..."
 NODE_ENV=production node_modules/.bin/sequelize db:migrate
 echo "Applying migrations done"
