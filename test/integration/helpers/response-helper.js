@@ -20,6 +20,7 @@ class ResponseHelper {
     expect(res.status).toBe(401);
   }
 
+  // noinspection JSUnusedGlobalSymbols
   static compareObjectArrays(expected, actual) {
     expect(actual.length).toBe(expected.length);
 
@@ -31,13 +32,12 @@ class ResponseHelper {
     });
   }
 
-  static expectValuesAreChanged(expected, actual) {
+  static expectValuesAreExpected(expected, actual) {
     for (const field in expected) {
       expect(actual.hasOwnProperty(field), `There is no property in actual: ${field}`).toBeTruthy();
-      expect(actual[field], `${field} does not match expected value`).toBe(expected[field]);
+      expect(actual[field], `${field} does not match expected value`).toEqual(expected[field]);
     }
   }
-
 }
 
 module.exports = ResponseHelper;

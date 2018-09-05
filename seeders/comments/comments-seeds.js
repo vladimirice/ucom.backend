@@ -7,7 +7,7 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id1',
     parent_id: null,
     user_id: 3,
-    path: '[1]',
+    path: [1],
   },
   {
     // id = 2
@@ -17,7 +17,7 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id2',
     parent_id: null,
     user_id: 4,
-    path: '[2]',
+    path: [2],
   },
   {
     // id = 3
@@ -27,7 +27,7 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id3',
     parent_id: 2,
     user_id: 2,
-    path: '[2,3]',
+    path: [2,3],
   },
   {
     // id = 4
@@ -37,6 +37,6 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id4',
     parent_id: 3,
     user_id: 4,
-    path: '[2,3,4]',
+    path: [2,3,4],
   }
 ];

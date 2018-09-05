@@ -14,7 +14,7 @@ module.exports = (db, Sequelize) => {
     },
     path: {
       type: Sequelize.JSONB,
-      allowNull: false,
+      allowNull: true,
     },
     commentable_id: {
       type: Sequelize.INTEGER,
@@ -27,7 +27,7 @@ module.exports = (db, Sequelize) => {
     },
     blockchain_id: {
       type: Sequelize.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     parent_id: {
       type: Sequelize.INTEGER,

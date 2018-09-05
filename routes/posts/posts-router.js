@@ -154,12 +154,13 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
 });
 
 /* Create comment */
-router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res, next) => {
+router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
 
-  await getCommentsService(req).createNewComment(req.body);
+  const newComment = await getCommentsService(req).createNewComment(req['body'], req['post_id']);
 
   res.status(201).send({
-    'status': 'ok',
+    'id': newComment.id,
+    'path': JSON.stringify(newComment.path),
   })
 });
 

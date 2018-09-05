@@ -24,6 +24,7 @@ let userVlad, userJane;
 
 describe('Posts API', () => {
   beforeAll(async () => {
+    // noinspection JSCheckFunctionSignatures
     [userVlad, userJane] = await Promise.all([
       UserHelper.getUserVlad(),
       UserHelper.getUserJane()
@@ -102,7 +103,7 @@ describe('Posts API', () => {
 
       PostHelper.validatePatchResponse(res, postAfter);
 
-      ResponseHelper.expectValuesAreChanged(fieldsToChange, postAfter);
+      ResponseHelper.expectValuesAreExpected(fieldsToChange, postAfter);
 
       expect(postAfter.main_image_filename).toBeDefined();
       await FileToUploadHelper.isFileUploaded(postAfter.main_image_filename);
@@ -250,8 +251,8 @@ describe('Posts API', () => {
 
         const firstPostAfter = await PostOfferRepository.findOneById(firstPostBefore.id, true);
 
-        ResponseHelper.expectValuesAreChanged(fieldsToChange, firstPostAfter);
-        ResponseHelper.expectValuesAreChanged(fieldsPostOfferToChange, firstPostAfter['post_offer']);
+        ResponseHelper.expectValuesAreExpected(fieldsToChange, firstPostAfter);
+        ResponseHelper.expectValuesAreExpected(fieldsPostOfferToChange, firstPostAfter['post_offer']);
 
         const postUsersTeam = firstPostAfter['post_users_team'];
         expect(postUsersTeam).toBeDefined();
