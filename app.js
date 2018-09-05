@@ -6,6 +6,8 @@ const morgan = require('morgan');
 const path = require('path');
 const winston = require('./config/winston');
 
+global.reqlib = require('app-root-path').require;
+
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users-route');
 const authRouter = require('./routes/auth');
