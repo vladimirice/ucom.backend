@@ -31,7 +31,8 @@ dmm:
 	NODE_ENV=${ENV_VALUE_DEV} ${DB_MIGRATE_COMMAND}
 	make ditd
 
-deploy:
+deploy d:
+	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy.sh
 
 docker-init-test-db ditd:

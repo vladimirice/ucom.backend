@@ -155,8 +155,9 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
 /* Create comment */
 router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
+  const currentUser = req['user'];
 
-  const newComment = await getCommentsService(req).createNewComment(req['body'], req['post_id']);
+  const newComment = await getCommentsService(req).createNewComment(req['body'], req['post_id'], currentUser);
 
   const createdCommentModel = await models['comments'].findOne({
     where: {
