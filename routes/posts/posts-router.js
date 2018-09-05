@@ -133,6 +133,7 @@ router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 //   });
 // });
 
+/* Update Post */
 router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const user_id = req['user'].id;
   const post_id = req['post_id'];
