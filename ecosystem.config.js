@@ -1,5 +1,6 @@
 module.exports = {
-  apps : [{
+  apps : [
+  {
     name      : 'uos_backend',
     script    : 'bin/www',
     watch: true,
@@ -30,19 +31,4 @@ module.exports = {
     },
   }
   ],
-  "deploy" : {
-    "production" : {
-      "user" : "dev",
-      "host" : ["5.9.119.5"],
-      "ref"  : "origin/master",
-      "repo" : "git@bitbucket.org:gravityprotocol/uos.app.backend.git",
-      "path" : "/var/www/uos.app.backend",
-      // "post-deploy" : "npm install && pm2 startOrRestart ecosystem.json --env production"
-    },
-  }
 };
-
-{
-
-
-}
