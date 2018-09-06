@@ -7,9 +7,17 @@ const CommentsRepository = require('../../lib/comments/comments-repository');
 
 /* create comment on comment */
 router.post('/:post_id/comments/:comment_id', [authTokenMiddleWare], async (req, res) => {
-  res.send({
-    status: 'ok',
-  })
+  const commentService = getCommentsService(req);
+
+  const newComment = await commentService.createNewCommentOnComment(
+    req['body'],
+    req['post_id'],
+    req['comment_id']
+  );
+
+  const forResponse = await commentService.findOneForApiResponse(newComment.id, req['post_id']);
+
+  res.status(201).send(forResponse)
 });
 
 /* Create comment directly to post*/

@@ -20,6 +20,25 @@ class ResponseHelper {
     expect(res.status).toBe(401);
   }
 
+  /**
+   *
+   * @param {Object} res
+   * @param {Object} invalidFields
+   */
+  static checkValidErrorResponse(res, invalidFields) {
+    const errorsArray = res.body.errors;
+
+    expect(errorsArray).toBeDefined();
+
+    invalidFields.forEach(field => {
+      const target = errorsArray.find(err => err.field === field);
+      expect(target).toBeDefined();
+      expect(target.message).toBeDefined();
+      expect(target.message).toMatch(field);
+    });
+
+  }
+
   // noinspection JSUnusedGlobalSymbols
   static compareObjectArrays(expected, actual) {
     expect(actual.length).toBe(expected.length);

@@ -8,6 +8,7 @@ module.exports = [
     parent_id: null,
     user_id: 3,
     path: [1],
+    depth: 0,
   },
   {
     // id = 2
@@ -18,6 +19,7 @@ module.exports = [
     parent_id: null,
     user_id: 4,
     path: [2],
+    depth: 0,
   },
   {
     // id = 3
@@ -28,6 +30,7 @@ module.exports = [
     parent_id: 2,
     user_id: 2,
     path: [2,3],
+    depth: 1,
   },
   {
     // id = 4
@@ -38,5 +41,6 @@ module.exports = [
     parent_id: 3,
     user_id: 4,
     path: [2,3,4],
+    depth: 2,
   }
 ];

@@ -37,6 +37,10 @@ module.exports = (db, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
     },
+    depth: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
   }, {
     underscored: true,
     freezeTableName: true,
@@ -48,6 +52,11 @@ module.exports = (db, Sequelize) => {
     models[TABLE_NAME].belongsTo(models['posts'], {foreignKey: 'commentable_id'});
   };
 
+
+  Model.prototype.getPathAsJson = function() {
+    return JSON.parse(this.path);
+  };
+
   Model.apiResponseFields = function() {
     return [
       'id',
@@ -55,23 +64,30 @@ module.exports = (db, Sequelize) => {
       'current_vote',
       'path',
       'parent_id',
+      'depth',
       'created_at',
       'updated_at',
       'User'
     ];
   };
 
-  Model.prototype.toApiResponseJson = function() {
-    this.path = this.path.replace('[', '');
-    this.path = this.path.replace(']', '');
-    this.path = this.path.replace(/,/g, '');
-
+  Model.prototype.toApiResponseJson = function(maxDepth) {
     let result = {};
     Model.apiResponseFields().forEach(attribute => {
       result[attribute] = this[attribute];
     });
 
     result['User'] = result['User'].toJSON();
+
+    let expectedPathAsArray = JSON.parse(result['path']);
+
+    const zerosToAdd = (maxDepth + 1) - expectedPathAsArray.length;
+
+    for (let i = 0; i < zerosToAdd; i++) {
+      expectedPathAsArray.push(0);
+    }
+
+    result['path'] = +expectedPathAsArray.join('');
 
     return result;
   };

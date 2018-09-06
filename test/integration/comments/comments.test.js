@@ -44,22 +44,71 @@ describe('Comments', () => {
       expect(body['User']).toBeDefined();
     });
 
-    it('Create comment on comment', async () => {
+    it('Create comment on comment - middle depth', async () => {
+      // TODO
+    });
+
+    it('Path when added comment has max depth', async () => {
+      // TODO
+    });
+
+    it('Create comment on comment - one level depth', async () => {
       const post_id = 1;
-      const comment_id = 1;
+      const parent_comment_id = 1;
 
       const fieldsToSet = {
-        'description': 'comment description',
-        'parent_id': null,
+        'description': 'comment on comment description',
       };
 
       const res = await request(server)
-        .post(RequestHelper.getCommentOnCommentUrl(post_id, comment_id))
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, parent_comment_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .send(fieldsToSet)
       ;
 
-      ResponseHelper.expectStatusOk(res);
+      ResponseHelper.expectStatusCreated(res);
+
+      const body = res.body;
+
+      CommentsHelper.checkCommentResponseBody(body);
+      UserHelper.checkShortUserInfoResponse(body['User']);
+
+      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+
+
+      let expectedPathAsArray = [
+        parent_comment_id,
+        lastComment.id
+      ];
+
+      // TODO move this separately
+      const maxDepth = await CommentsRepository.getMaxDepthByCommentableId(post_id);
+      const zerosToAdd = (maxDepth + 1) - expectedPathAsArray.length;
+      for (let i = 0; i < zerosToAdd; i++) {
+        expectedPathAsArray.push(0);
+      }
+
+      const expectedPathAsNumber = +expectedPathAsArray.join('');
+      expect(body.path).toBe(expectedPathAsNumber);
+
+      expect(lastComment).not.toBeNull();
+      expect(lastComment['blockchain_id']).not.toBeNull();
+
+      let expectedFields = fieldsToSet;
+      expectedFields['current_vote'] = 0;
+      expectedFields['commentable_id'] = post_id;
+      expectedFields['user_id'] = userVlad.id;
+      expectedFields['parent_id'] = parent_comment_id;
+
+      expectedFields['path'] = [
+        parent_comment_id,
+        lastComment.id
+      ];
+      expectedFields['depth'] = 1;
+
+      expectedFields['blockchain_status'] = 10;
+
+      ResponseHelper.expectValuesAreExpected(expectedFields, lastComment);
     });
 
     it('Create new comment for the post directly', async () => {
@@ -226,5 +275,33 @@ describe('Comments', () => {
 
       ResponseHelper.expectStatusUnauthorized(res);
     });
+
+    it('Try to send not allowed field', async () => {
+      const post_id = 1;
+      const comment_id = 1;
+
+      const fieldsToSet = {
+        'description': 'comment description',
+        'parent_id': 1,
+        'commentable_id': 10,
+        'user_id': 10,
+        'id': 1
+      };
+
+      const res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, comment_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send(fieldsToSet)
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+
+      ResponseHelper.checkValidErrorResponse(res, [
+        'commentable_id',
+        'user_id',
+        'id',
+        'parent_id'
+      ]);
+    })
   });
 });
