@@ -7,6 +7,7 @@ const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const CommentsRepository = require('../../../lib/comments/comments-repository');
 const CommentsHelper = require('../helpers/comments-helper');
+const CommentsService = require('../../../lib/comments/comments-service');
 
 let userVlad, userJane;
 
@@ -67,7 +68,10 @@ describe('Comments', () => {
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
       expect(lastComment).not.toBeNull();
-      expect(body.path).toBe(+`${lastComment.id}00`);
+
+
+
+      expect(body.path).toBe(+`${lastComment.id}000000000`);
 
       expect(lastComment['blockchain_id']).not.toBeNull();
       expect(lastComment['parent_id']).toBeNull();
@@ -107,7 +111,7 @@ describe('Comments', () => {
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
 
-      expect(body.path).toBe(+`${parent_comment_id}${lastComment.id}0`);
+      expect(body.path).toBe(+`${parent_comment_id}${lastComment.id}00000000`);
 
       expect(lastComment).not.toBeNull();
       expect(lastComment['blockchain_id']).not.toBeNull();
@@ -129,16 +133,91 @@ describe('Comments', () => {
       ResponseHelper.expectValuesAreExpected(expectedFields, lastComment);
     });
 
-    it('Create comment on comment - middle depth', async () => {
-      // TODO
-    });
+    it('Path when added comment has middle depth', async () => {
+      const post_id = 1;
+      const parent_comment_id = 5;
 
-    it('Path when added comment has max depth', async () => {
-      // TODO
+      const fieldsToSet = {
+        'description': 'comment on comment description',
+      };
+
+      const res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, parent_comment_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send(fieldsToSet)
+      ;
+
+      ResponseHelper.expectStatusCreated(res);
+
+      const body = res.body;
+
+      CommentsHelper.checkCommentResponseBody(body);
+      UserHelper.checkShortUserInfoResponse(body['User']);
+
+      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+
+      const parentComment = await CommentsRepository.findOneById(parent_comment_id);
+
+      let expectedPathJson = parentComment.getPathAsJson();
+      expectedPathJson.push(lastComment.id);
+
+      expect(body.path).toBe(+`${expectedPathJson.join('')}00000`);
+
+      expect(lastComment).not.toBeNull();
+      expect(lastComment['blockchain_id']).not.toBeNull();
+
+      let expectedFields = fieldsToSet;
+      expectedFields['current_vote'] = 0;
+      expectedFields['commentable_id'] = post_id;
+      expectedFields['user_id'] = userVlad.id;
+      expectedFields['parent_id'] = parent_comment_id;
+
+      expectedFields['path'] = expectedPathJson;
+      expectedFields['depth'] = 4;
+
+      expectedFields['blockchain_status'] = 10;
+
+      ResponseHelper.expectValuesAreExpected(expectedFields, lastComment);
     });
   });
 
   describe('Negative scenarios', () => {
+
+    it('Not possible to exceed max comments depth', async () => {
+      const post_id = 1;
+
+      const maxDepthComment = await CommentsRepository.getWithMaxDepthByCommentableId(post_id);
+      const maxDepth = CommentsService.getMaxDepth();
+
+      let lastCommentId = maxDepthComment.id;
+      let lastDepth = maxDepthComment.depth;
+      let res;
+
+      do {
+        res = await request(server)
+          .post(RequestHelper.getCommentOnCommentUrl(post_id, lastCommentId))
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .send({
+            'description': 'comment on comment description',
+          })
+        ;
+
+        ResponseHelper.expectStatusCreated(res);
+
+        lastCommentId = +res.body.id;
+        lastDepth = res.body.depth;
+      } while (lastDepth < maxDepth);
+
+      res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, lastCommentId))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send({
+          'description': 'comment on comment description',
+        })
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+    });
 
     it('Not possible to post comment without auth token', async () => {
       const post_id = 1;

@@ -42,5 +42,16 @@ module.exports = [
     user_id: 4,
     path: [2,3,4],
     depth: 2,
+  },
+  {
+    // id = 5
+    description: 'Please everybody to be polite',
+    commentable_id: 1,
+    blockchain_status: 10,
+    blockchain_id: 'sample_comment_blockchain_id4',
+    parent_id: 3,
+    user_id: 2,
+    path: [2,3,4,5],
+    depth: 3,
   }
 ];
