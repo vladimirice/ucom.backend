@@ -15,7 +15,7 @@ router.get('/search', async (req, res) => {
   res.send(users);
 });
 
-/* GET users listing. */
+/* GET one user */
 router.get('/:user_id', async function(req, res) {
   const userId = req['user_id'];
   const user = await getUserService(req).getUserById(userId);

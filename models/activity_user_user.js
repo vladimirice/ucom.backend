@@ -1,5 +1,7 @@
+const TABLE_NAME = 'activity_user_user';
+
 module.exports = (sequelize, DataTypes) => {
-  const ActivityUserUser = sequelize.define('activity_user_user', {
+  const ActivityUserUser = sequelize.define(TABLE_NAME, {
     activity_type_id: {
       type: DataTypes.INTEGER,
     },
@@ -15,9 +17,13 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     underscored: true,
     freezeTableName: true,
-    tableName: 'activity_user_user',
+    tableName: TABLE_NAME,
   });
   ActivityUserUser.associate = function(models) {
+    models[TABLE_NAME].belongsTo(models.Users, {
+      foreignKey: 'user_id_from',
+      as: 'follower'
+    });
   };
   return ActivityUserUser;
 };

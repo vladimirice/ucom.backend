@@ -3,11 +3,8 @@ const server = require('../../../app');
 const UsersHelper = require('./../helpers/users-helper');
 const SeedsHelper = require('./../helpers/seeds-helper');
 const UsersRepository = require('../../../lib/users/users-repository');
-const RequestHelper = require('../helpers/request-helper');
-const ResponseHelper = require('../helpers/response-helper');
 
 const userVlad = UsersHelper.getUserVladSeed();
-const userJane = UsersHelper.getUserJaneSeed();
 
 describe('Users API', () => {
   beforeEach(async () => {

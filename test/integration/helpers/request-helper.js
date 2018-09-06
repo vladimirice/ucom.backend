@@ -1,5 +1,6 @@
 const request = require('supertest');
 const server = require('../../../app');
+const ResponseHelper = require('./response-helper');
 
 
 const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
@@ -10,6 +11,22 @@ const usersUrl          = '/api/v1/users';
 class RequestHelper {
   static getUserPostsUrl(userId) {
     return `/api/v1/users/${userId}/posts`;
+  }
+
+
+  /**
+   *
+   * @param {number} userId
+   * @returns {Promise<Object>}
+   */
+  static async requestUserById(userId) {
+    const res = await request(server)
+      .get(this.getUserUrl(userId))
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
   }
 
   static getUserUrl(userId) {
@@ -64,7 +81,7 @@ class RequestHelper {
    * @returns {string}
    */
   static getCommentOnCommentUrl(post_id, comment_id) {
-    return `/api/v1/posts/${post_id}/comments/${comment_id}`;
+    return `/api/v1/posts/${post_id}/comments/${comment_id}/comments`;
   }
 
   static async sendPatch(url, token, payload) {

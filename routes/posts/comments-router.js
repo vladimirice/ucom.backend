@@ -6,7 +6,7 @@ const CommentsRepository = require('../../lib/comments/comments-repository');
 
 
 /* create comment on comment */
-router.post('/:post_id/comments/:comment_id', [authTokenMiddleWare], async (req, res) => {
+router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare], async (req, res) => {
   const commentService = getCommentsService(req);
 
   const newComment = await commentService.createNewCommentOnComment(

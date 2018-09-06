@@ -9,13 +9,14 @@ const ActivityHelper = require('../helpers/activity-helper');
 const PostsService = require('../../../lib/posts/post-service');
 const PostsHelper = require('../helpers/posts-helper');
 
-let userVlad, userJane;
+let userVlad, userJane, userPetr;
 
 describe('Users activity stats', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await Promise.all([
+    [userVlad, userJane, userPetr] = await Promise.all([
       UserHelper.getUserVlad(),
-      UserHelper.getUserJane()
+      UserHelper.getUserJane(),
+      UserHelper.getUserPetr(),
     ]);
   });
 
@@ -25,6 +26,38 @@ describe('Users activity stats', () => {
 
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
+  });
+
+  describe('User-to-user activity', () => {
+    it('Get user info with his followers', async () => {
+
+      await ActivityHelper.createFollow(userJane, userVlad);
+      await ActivityHelper.createFollow(userPetr, userVlad);
+      const user = await RequestHelper.requestUserById(userVlad.id);
+
+      const followedBy = user['followed_by'];
+      expect(followedBy).toBeDefined();
+      expect(followedBy.length).toBeGreaterThan(0);
+
+      followedBy.forEach(follower => {
+        UserHelper.checkShortUserInfoResponse(follower);
+      });
+    });
+
+
+    it('There is no followers of user', async () => {
+      // TODO
+    });
+
+
+    it('Get myself info with his followers', async () => {
+      // TODO
+    });
+
+
+    it('There is no followers of myself', async () => {
+      // TODO
+    });
   });
 
   describe('Post-offer activity', () => {

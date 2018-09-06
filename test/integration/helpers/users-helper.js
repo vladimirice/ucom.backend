@@ -13,12 +13,11 @@ require('jest-expect-message');
 class UsersHelper {
 
   /**
-   *
    * @param {Object} actual
    */
   static checkShortUserInfoResponse(actual) {
     UsersRepository.getModel().shortUserInfoFields().forEach(field => {
-      expect(actual[field]).toBeDefined();
+      expect(actual[field], `There is no field ${field}`).toBeDefined();
     });
   }
 
@@ -93,6 +92,26 @@ class UsersHelper {
     return {
       ...vladSeed,
       ...vladDbData,
+      token
+    }
+  }
+
+  /**
+   *
+   * @returns {Promise<Object>}
+   */
+  static async getUserPetr() {
+    const fromDb = await UsersRepository.getUserByAccountName('petr');
+    expect(fromDb).toBeDefined();
+
+    const data = {
+      id: fromDb.id
+    };
+
+    const token = AuthService.getNewJwtToken(fromDb);
+
+    return {
+      ...data,
       token
     }
   }
