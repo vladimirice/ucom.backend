@@ -75,21 +75,7 @@ describe('Comments', () => {
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
 
-
-      let expectedPathAsArray = [
-        parent_comment_id,
-        lastComment.id
-      ];
-
-      // TODO move this separately
-      const maxDepth = await CommentsRepository.getMaxDepthByCommentableId(post_id);
-      const zerosToAdd = (maxDepth + 1) - expectedPathAsArray.length;
-      for (let i = 0; i < zerosToAdd; i++) {
-        expectedPathAsArray.push(0);
-      }
-
-      const expectedPathAsNumber = +expectedPathAsArray.join('');
-      expect(body.path).toBe(expectedPathAsNumber);
+      expect(body.path).toBe(+`${parent_comment_id}${lastComment.id}0`);
 
       expect(lastComment).not.toBeNull();
       expect(lastComment['blockchain_id']).not.toBeNull();
@@ -112,12 +98,10 @@ describe('Comments', () => {
     });
 
     it('Create new comment for the post directly', async () => {
-
       const post_id = 1;
 
       const fieldsToSet = {
         'description': 'comment description',
-        'parent_id': null,
       };
 
       const res = await request(server)
@@ -135,6 +119,7 @@ describe('Comments', () => {
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
       expect(lastComment).not.toBeNull();
+      expect(body.path).toBe(+`${lastComment.id}00`);
 
       expect(lastComment['blockchain_id']).not.toBeNull();
       expect(lastComment['parent_id']).toBeNull();

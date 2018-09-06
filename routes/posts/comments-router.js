@@ -22,16 +22,12 @@ router.post('/:post_id/comments/:comment_id', [authTokenMiddleWare], async (req,
 
 /* Create comment directly to post*/
 router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
-  const currentUser = req['user'];
+  const commentService = getCommentsService(req);
 
-  const newComment = await getCommentsService(req).createNewComment(req['body'], req['post_id'], currentUser);
+  const newComment = await commentService.createNewComment(req['body'], req['post_id']);
+  const forResponse = await commentService.findOneForApiResponse(newComment.id, req['post_id']);
 
-  // TODO #refactor optimization
-  const createdCommentModel = await CommentsRepository.findOneById(newComment.id);
-
-  const createdComment = createdCommentModel.toApiResponseJson();
-
-  res.status(201).send(createdComment)
+  res.status(201).send(forResponse)
 });
 
 router.param('comment_id', (req, res, next, comment_id) => {
