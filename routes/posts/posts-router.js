@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+const router = require('./comments-router');
 const {AppError, BadRequestError} = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../../lib/posts/post-edit-middleware');
@@ -9,8 +8,8 @@ const PostService = require('../../lib/posts/post-service');
 const ActivityService = require('../../lib/activity/activity-service');
 const PostTypeDictionary = require('../../lib/posts/post-type-dictionary');
 const PostOfferService = require('../../lib/posts/post-offer/post-offer-service');
+const PostRepository = require('../../lib/posts/posts-repository');
 
-const models = require('../../models');
 require('express-async-errors');
 
 /* Get all posts */
@@ -134,6 +133,7 @@ router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 // });
 
 /* Update Post */
+// noinspection JSUnresolvedFunction
 router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const user_id = req['user'].id;
   const post_id = req['post_id'];
@@ -153,32 +153,6 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   });
 });
 
-/* Create comment */
-router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
-  const currentUser = req['user'];
-
-  const newComment = await getCommentsService(req).createNewComment(req['body'], req['post_id'], currentUser);
-
-  const createdCommentModel = await models['comments'].findOne({
-    where: {
-      id: newComment.id,
-    },
-    include: [
-      {
-        model: models['Users'],
-        attributes: [
-          'id', 'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename',
-        ],
-        as: 'User'
-      },
-    ]
-  });
-
-  const createdComment = createdCommentModel.toApiResponseJson();
-
-  res.status(201).send(createdComment)
-});
-
 router.param('post_id', (req, res, next, post_id) => {
   const value = parseInt(post_id);
 
@@ -188,7 +162,7 @@ router.param('post_id', (req, res, next, post_id) => {
     })
   }
 
-  models['posts'].count({
+  PostRepository.getModel().count({
     where: {
       id: value
     }
@@ -210,14 +184,6 @@ router.param('post_id', (req, res, next, post_id) => {
  */
 function getPostService(req) {
   return req['container'].get('post-service');
-}
-
-/**
- * @param {Object} req
- * @returns {CommentsService}
- */
-function getCommentsService(req) {
-  return req['container'].get('comments-service');
 }
 
 module.exports = router;

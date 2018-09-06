@@ -28,7 +28,6 @@ describe('Comments', () => {
   });
 
   describe('Positive scenarios', async () => {
-
     it('Get posts with comments', async () => {
 
       const post_id = 1;
@@ -43,6 +42,24 @@ describe('Comments', () => {
 
       expect(body.comments).toBeDefined();
       expect(body['User']).toBeDefined();
+    });
+
+    it('Create comment on comment', async () => {
+      const post_id = 1;
+      const comment_id = 1;
+
+      const fieldsToSet = {
+        'description': 'comment description',
+        'parent_id': null,
+      };
+
+      const res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, comment_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send(fieldsToSet)
+      ;
+
+      ResponseHelper.expectStatusOk(res);
     });
 
     it('Create new comment for the post directly', async () => {
@@ -83,12 +100,6 @@ describe('Comments', () => {
       expectedFields['blockchain_status'] = 10;
 
       ResponseHelper.expectValuesAreExpected(expectedFields, lastComment);
-
-
-    });
-
-    it('Create comment on comment', async () => {
-      // TODO
     });
   });
 
@@ -135,6 +146,85 @@ describe('Comments', () => {
       ;
 
       ResponseHelper.expectStatusNotFound(res);
+    });
+
+    it('Not possible to create comment on comment for the post which does not exist', async () => {
+      const post_id = 100500;
+      const comment_id = 1;
+
+      // noinspection JSCheckFunctionSignatures
+      const res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, comment_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send({
+          'description': 'comment description',
+        })
+      ;
+
+      ResponseHelper.expectStatusNotFound(res);
+    });
+
+    it('Not possible to create comment on comment for the post with malformed ID', async () => {
+      const post_id = 'malformed';
+      const comment_id = 1;
+
+      // noinspection JSCheckFunctionSignatures
+      const res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, comment_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send({
+          'description': 'comment description',
+        })
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+    });
+
+    it('Not possible to create comment on comment for the comment which does not exist', async () => {
+      const post_id = 1;
+      const comment_id = 100500;
+
+      // noinspection JSCheckFunctionSignatures
+      const res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, comment_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send({
+          'description': 'comment description',
+        })
+      ;
+
+      ResponseHelper.expectStatusNotFound(res);
+    });
+
+    it('Not possible to create comment on comment for the comment with malformed ID', async () => {
+      const post_id = 1;
+      const comment_id = 'malformed';
+
+      // noinspection JSCheckFunctionSignatures
+      const res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, comment_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send({
+          'description': 'comment description',
+        })
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+    });
+
+    it('Not possible to to create comment on comment without auth token', async () => {
+      const post_id = 1;
+      const comment_id = 1;
+
+      // noinspection JSCheckFunctionSignatures
+      const res = await request(server)
+        .post(RequestHelper.getCommentOnCommentUrl(post_id, comment_id))
+        .send({
+          'description': 'comment description',
+        })
+      ;
+
+      ResponseHelper.expectStatusUnauthorized(res);
     });
   });
 });
