@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 
 /* Get post by ID */
 router.get('/:post_id', async (req, res) => {
-  const post = await getPostService(req).findOneById(req['post_id']);
+  const post = await getPostService(req).findOneByIdAndProcess(req['post_id']);
 
   res.send(post);
 });
@@ -44,7 +44,7 @@ router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
   const postIdTo = req['post_id'];
 
   // TODO check does exists only
-  const postTo = await postService.findOneById(postIdTo);
+  const postTo = await postService.findOneByIdAndProcess(postIdTo);
 
   const userFrom = req['user'];
 
@@ -76,7 +76,7 @@ router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
 
   await ActivityService.userUpvotesPost(userFrom, postTo);
 
-  const changedPost = await postService.findOneById(postIdTo);
+  const changedPost = await postService.findOneByIdAndProcess(postIdTo);
 
   res.send({
     'current_vote': changedPost.current_vote,

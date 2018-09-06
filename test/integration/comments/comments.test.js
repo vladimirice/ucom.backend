@@ -38,12 +38,30 @@ describe('Comments', () => {
       ;
 
       ResponseHelper.expectStatusOk(res);
-      // TODO - check that sorting and depth are provided
-
       const body = res.body;
 
       expect(body.comments).toBeDefined();
       expect(body['User']).toBeDefined();
+
+
+      let sortedComments = body.comments.map(comment => {
+        return {
+          id: comment.id,
+          path: comment.path
+        }
+      });
+
+      sortedComments.sort((a, b) => {
+        if (a.path < b.path)
+          return -1;
+        if (a.path > b.path)
+          return 1;
+        return 0;
+      });
+
+      for (let i = 0; i < sortedComments.length; i++) {
+        expect(body.comments[i]['id']).toBe(sortedComments[i]['id']);
+      }
     });
 
     it('Create new comment for the post directly', async () => {

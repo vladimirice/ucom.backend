@@ -48,10 +48,43 @@ module.exports = [
     description: 'Please everybody to be polite',
     commentable_id: 1,
     blockchain_status: 10,
-    blockchain_id: 'sample_comment_blockchain_id4',
-    parent_id: 3,
+    blockchain_id: 'sample_comment_blockchain_id5',
+    parent_id: 4,
     user_id: 2,
     path: [2,3,4,5],
+    depth: 3,
+  },
+  {
+    // id = 6
+    description: 'Thanks a lot for the post',
+    commentable_id: 1,
+    blockchain_status: 10,
+    blockchain_id: 'sample_comment_blockchain_id6',
+    parent_id: null,
+    user_id: 2,
+    path: [6],
+    depth: 0,
+  },
+  {
+    // id = 7
+    description: 'Please listen this guy carefully',
+    commentable_id: 1,
+    blockchain_status: 10,
+    blockchain_id: 'sample_comment_blockchain_id6',
+    parent_id: 3,
+    user_id: 2,
+    path: [2,3,7],
+    depth: 2,
+  },
+  {
+    // id = 8
+    description: 'Please listen this guy carefully',
+    commentable_id: 1,
+    blockchain_status: 10,
+    blockchain_id: 'sample_comment_blockchain_id6',
+    parent_id: 4,
+    user_id: 2,
+    path: [2,3,4,8],
     depth: 3,
   }
 ];
