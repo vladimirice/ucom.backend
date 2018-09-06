@@ -6,6 +6,7 @@ const EosJsEcc = require('../../lib/crypto/eosjs-ecc');
 const AuthHelper = require('./helpers/auth-helper');
 const UsersHelper = require('./helpers/users-helper');
 const SeedsHelper = require('./helpers/seeds-helper');
+const ResponseHelper = require('./helpers/response-helper');
 
 const eosAccount = UsersHelper.getVladEosAccount();
 const registerUrl = '/api/v1/auth/login';
@@ -107,11 +108,11 @@ describe('Test auth workflow', () => {
       })
     ;
 
-    expect(res.status).toBe(400);
+    ResponseHelper.expectStatusBadRequest(res);
     const body = res.body;
 
-    expect(body.hasOwnProperty('error')).toBeTruthy();
-    expect(body.error).toMatch('Expecting signature like');
+    expect(body.hasOwnProperty('errors')).toBeTruthy();
+    expect(body.errors).toMatch('Expecting signature like');
   });
 
   it('Should receive public key error', async () => {
@@ -124,11 +125,12 @@ describe('Test auth workflow', () => {
       })
     ;
 
-    expect(res.status).toBe(400);
+
+    ResponseHelper.expectStatusBadRequest(res);
     const body = res.body;
 
-    expect(body.hasOwnProperty('error')).toBeTruthy();
-    expect(body.error).toMatch('Public key is not valid');
+    expect(body.hasOwnProperty('errors')).toBeTruthy();
+    expect(body.errors).toMatch('Public key is not valid');
   });
 
   it('Send account name and sign of invalid private key', async () => {

@@ -59,6 +59,8 @@ describe('Users activity stats', () => {
       .get(RequestHelper.getPostsUrl())
     ;
 
+    ResponseHelper.expectStatusOk(res);
+
     res.body.forEach(post => {
       expect(post.title).toBeDefined();
       expect(post.myselfData).not.toBeDefined();
