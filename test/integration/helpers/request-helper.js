@@ -52,6 +52,10 @@ class RequestHelper {
     return postsUrl;
   }
 
+  static getUsersUrl() {
+    return usersUrl;
+  }
+
   /**
    *
    * @param {string} query

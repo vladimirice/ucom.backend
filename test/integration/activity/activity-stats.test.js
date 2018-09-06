@@ -28,38 +28,6 @@ describe('Users activity stats', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-  describe('User-to-user activity', () => {
-    it('Get user info with his followers', async () => {
-
-      await ActivityHelper.createFollow(userJane, userVlad);
-      await ActivityHelper.createFollow(userPetr, userVlad);
-      const user = await RequestHelper.requestUserById(userVlad.id);
-
-      const followedBy = user['followed_by'];
-      expect(followedBy).toBeDefined();
-      expect(followedBy.length).toBeGreaterThan(0);
-
-      followedBy.forEach(follower => {
-        UserHelper.checkShortUserInfoResponse(follower);
-      });
-    });
-
-
-    it('There is no followers of user', async () => {
-      // TODO
-    });
-
-
-    it('Get myself info with his followers', async () => {
-      // TODO
-    });
-
-
-    it('There is no followers of myself', async () => {
-      // TODO
-    });
-  });
-
   describe('Post-offer activity', () => {
     it('Get info that user joined to post-offer', async () => {
       const post = await PostsService.findLastPostOfferByAuthor(userVlad.id);

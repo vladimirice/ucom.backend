@@ -8,26 +8,60 @@ const ResponseHelper = require('../helpers/response-helper');
 const ActivityUserUserRepository = require('../../../lib/activity/activity-user-user-repository');
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 const BlockchainStatusDictionary = require('../../../lib/eos/eos-blockchain-status-dictionary');
+const ActivityHelper = require('../helpers/activity-helper');
 
-let userVlad, userJane;
+let userVlad, userJane, userPetr;
 
 describe('User to user activity', () => {
-  beforeAll(async () => {
-    [userVlad, userJane] = await Promise.all([
+  beforeAll(async () => { await SeedsHelper.destroyTables(); });
+
+  beforeEach(async () => {
+    await SeedsHelper.initSeedsForUsers();
+
+    [userVlad, userJane, userPetr] = await Promise.all([
       UserHelper.getUserVlad(),
-      UserHelper.getUserJane()
+      UserHelper.getUserJane(),
+      UserHelper.getUserPetr()
     ]);
   });
 
-  beforeEach(async () => {
-    await SeedsHelper.initSeeds();
-  });
-
-  afterAll(async () => {
-    await SeedsHelper.sequelizeAfterAll();
-  });
+  afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
 
   describe('Positive scenarios', async () => {
+    describe('User-to-user activity', () => {
+      it('Get user info with his followers', async () => {
+
+        await ActivityHelper.createFollow(userJane, userVlad);
+        await ActivityHelper.createFollow(userPetr, userVlad);
+        const user = await RequestHelper.requestUserById(userVlad.id);
+
+        const followedBy = user['followed_by'];
+        expect(followedBy).toBeDefined();
+        expect(followedBy.length).toBeGreaterThan(0);
+
+        followedBy.forEach(follower => {
+          UserHelper.checkShortUserInfoResponse(follower);
+        });
+      });
+
+      it('There is no followers of user', async () => {
+        const user = await RequestHelper.requestUserById(userPetr.id);
+
+        const followedBy = user['followed_by'];
+        expect(followedBy).toBeDefined();
+        expect(followedBy.length).toBe(0);
+      });
+
+      it('Get myself info with his followers', async () => {
+        // TODO
+      });
+
+
+      it('There is no followers of myself', async () => {
+        // TODO
+      });
+    });
+
     it('Vlad follows Jane', async () => {
 
       const res = await request(server)

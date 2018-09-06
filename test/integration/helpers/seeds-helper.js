@@ -30,6 +30,15 @@ class SeedsHelper {
     await models.sequelize.query(`ALTER SEQUENCE comments_id_seq RESTART;`);
   }
 
+  static async initSeedsForUsers() {
+    await models['activity_user_user'].destroy({where: {}});
+    await models['Users'].destroy({where: {}});
+    await models.sequelize.query(`ALTER SEQUENCE activity_user_user_id_seq RESTART;`);
+    await models.sequelize.query(`ALTER SEQUENCE "Users_id_seq" RESTART;`);
+
+    await models['Users'].bulkCreate(usersSeeds);
+  }
+
   static async initSeeds() {
     await this.destroyTables();
 
@@ -41,9 +50,6 @@ class SeedsHelper {
     await models['post_offer'].bulkCreate(postsOffersSeeds);
     await models['post_users_team'].bulkCreate(postUsersTeamSeeds);
     await models['comments'].bulkCreate(commentsSeeds);
-
-
-
 
     // TODO user sql reset instead
     usersSeeds.forEach(() => {

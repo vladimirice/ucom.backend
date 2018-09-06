@@ -124,6 +124,15 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
 
+    Users.getSensitiveData = function() {
+      return [
+        'private_key',
+        'blockchain_registration_status',
+        'owner_public_key',
+        'public_key'
+      ];
+    };
+
     Users.shortUserInfoFields = function() {
       return [
         'id', 'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename',
