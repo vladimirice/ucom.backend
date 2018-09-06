@@ -1,7 +1,7 @@
 const TABLE_NAME = 'comments';
 
 module.exports = (db, Sequelize) => {
-  const Comments = db.define(TABLE_NAME, {
+  const Model = db.define(TABLE_NAME, {
     description: {
       type: Sequelize.TEXT,
       allowNull: false,
@@ -42,10 +42,39 @@ module.exports = (db, Sequelize) => {
     freezeTableName: true,
     tableName: TABLE_NAME,
   });
-  Comments.associate = function(models) {
+
+  Model.associate = function(models) {
     models[TABLE_NAME].belongsTo(models.Users, {foreignKey: 'user_id'});
     models[TABLE_NAME].belongsTo(models['posts'], {foreignKey: 'commentable_id'});
   };
 
-  return Comments;
+  Model.apiResponseFields = function() {
+    return [
+      'id',
+      'description',
+      'current_vote',
+      'path',
+      'parent_id',
+      'created_at',
+      'updated_at',
+      'User'
+    ];
+  };
+
+  Model.prototype.toApiResponseJson = function() {
+    this.path = this.path.replace('[', '');
+    this.path = this.path.replace(']', '');
+    this.path = this.path.replace(/,/g, '');
+
+    let result = {};
+    Model.apiResponseFields().forEach(attribute => {
+      result[attribute] = this[attribute];
+    });
+
+    result['User'] = result['User'].toJSON();
+
+    return result;
+  };
+
+  return Model;
 };

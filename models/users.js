@@ -124,6 +124,11 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
 
+    Users.shortUserInfoFields = function() {
+      return [
+        'id', 'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename',
+      ];
+    };
   };
 
   return Users;

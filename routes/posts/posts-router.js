@@ -174,11 +174,7 @@ router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
     ]
   });
 
-  const createdComment = createdCommentModel.toJSON();
-
-  createdComment.path = createdComment.path.replace('[', '');
-  createdComment.path = createdComment.path.replace(']', '');
-  createdComment.path = createdComment.path.replace(/,/g, '');
+  const createdComment = createdCommentModel.toApiResponseJson();
 
   res.status(201).send(createdComment)
 });

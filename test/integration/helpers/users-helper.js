@@ -7,9 +7,21 @@ const EosImportance = require('../../../lib/eos/eos-importance');
 const request = require('supertest');
 const server = require('../../../app');
 
+
 require('jest-expect-message');
 
 class UsersHelper {
+
+  /**
+   *
+   * @param {Object} actual
+   */
+  static checkShortUserInfoResponse(actual) {
+    UsersRepository.getModel().shortUserInfoFields().forEach(field => {
+      expect(actual[field]).toBeDefined();
+    });
+  }
+
   static async setSampleRateToUserVlad() {
     const rateToSet = 0.1234;
 

@@ -6,6 +6,7 @@ const SeedsHelper = require('../helpers/seeds-helper');
 const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const CommentsRepository = require('../../../lib/comments/comments-repository');
+const CommentsHelper = require('../helpers/comments-helper');
 
 let userVlad, userJane;
 
@@ -61,6 +62,11 @@ describe('Comments', () => {
 
       ResponseHelper.expectStatusCreated(res);
 
+      const body = res.body;
+
+      CommentsHelper.checkCommentResponseBody(body);
+      UserHelper.checkShortUserInfoResponse(body['User']);
+
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
       expect(lastComment).not.toBeNull();
 
@@ -77,10 +83,12 @@ describe('Comments', () => {
       expectedFields['blockchain_status'] = 10;
 
       ResponseHelper.expectValuesAreExpected(expectedFields, lastComment);
+
+
     });
 
     it('Create comment on comment', async () => {
-
+      // TODO
     });
   });
 
