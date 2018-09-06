@@ -37,6 +37,7 @@ describe('Comments', () => {
       ;
 
       ResponseHelper.expectStatusOk(res);
+      // TODO - check that sorting and depth are provided
 
       const body = res.body;
 
@@ -44,12 +45,43 @@ describe('Comments', () => {
       expect(body['User']).toBeDefined();
     });
 
-    it('Create comment on comment - middle depth', async () => {
-      // TODO
-    });
+    it('Create new comment for the post directly', async () => {
+      const post_id = 1;
 
-    it('Path when added comment has max depth', async () => {
-      // TODO
+      const fieldsToSet = {
+        'description': 'comment description',
+      };
+
+      const res = await request(server)
+        .post(RequestHelper.getCommentsUrl(post_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .send(fieldsToSet)
+      ;
+
+      ResponseHelper.expectStatusCreated(res);
+
+      const body = res.body;
+
+      CommentsHelper.checkCommentResponseBody(body);
+      UserHelper.checkShortUserInfoResponse(body['User']);
+
+      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+      expect(lastComment).not.toBeNull();
+      expect(body.path).toBe(+`${lastComment.id}00`);
+
+      expect(lastComment['blockchain_id']).not.toBeNull();
+      expect(lastComment['parent_id']).toBeNull();
+
+      let expectedFields = fieldsToSet;
+      expectedFields['current_vote'] = 0;
+      expectedFields['commentable_id'] = post_id;
+      expectedFields['user_id'] = userVlad.id;
+      expectedFields['path'] = [
+        lastComment.id
+      ];
+      expectedFields['blockchain_status'] = 10;
+
+      ResponseHelper.expectValuesAreExpected(expectedFields, lastComment);
     });
 
     it('Create comment on comment - one level depth', async () => {
@@ -97,43 +129,12 @@ describe('Comments', () => {
       ResponseHelper.expectValuesAreExpected(expectedFields, lastComment);
     });
 
-    it('Create new comment for the post directly', async () => {
-      const post_id = 1;
+    it('Create comment on comment - middle depth', async () => {
+      // TODO
+    });
 
-      const fieldsToSet = {
-        'description': 'comment description',
-      };
-
-      const res = await request(server)
-        .post(RequestHelper.getCommentsUrl(post_id))
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .send(fieldsToSet)
-      ;
-
-      ResponseHelper.expectStatusCreated(res);
-
-      const body = res.body;
-
-      CommentsHelper.checkCommentResponseBody(body);
-      UserHelper.checkShortUserInfoResponse(body['User']);
-
-      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
-      expect(lastComment).not.toBeNull();
-      expect(body.path).toBe(+`${lastComment.id}00`);
-
-      expect(lastComment['blockchain_id']).not.toBeNull();
-      expect(lastComment['parent_id']).toBeNull();
-
-      let expectedFields = fieldsToSet;
-      expectedFields['current_vote'] = 0;
-      expectedFields['commentable_id'] = post_id;
-      expectedFields['user_id'] = userVlad.id;
-      expectedFields['path'] = [
-        lastComment.id
-      ];
-      expectedFields['blockchain_status'] = 10;
-
-      ResponseHelper.expectValuesAreExpected(expectedFields, lastComment);
+    it('Path when added comment has max depth', async () => {
+      // TODO
     });
   });
 

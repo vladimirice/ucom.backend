@@ -15,7 +15,7 @@ router.post('/:post_id/comments/:comment_id', [authTokenMiddleWare], async (req,
     req['comment_id']
   );
 
-  const forResponse = await commentService.findOneForApiResponse(newComment.id, req['post_id']);
+  const forResponse = await commentService.findOneForApiResponse(newComment.id);
 
   res.status(201).send(forResponse)
 });
@@ -25,7 +25,7 @@ router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
   const commentService = getCommentsService(req);
 
   const newComment = await commentService.createNewComment(req['body'], req['post_id']);
-  const forResponse = await commentService.findOneForApiResponse(newComment.id, req['post_id']);
+  const forResponse = await commentService.findOneForApiResponse(newComment.id);
 
   res.status(201).send(forResponse)
 });
