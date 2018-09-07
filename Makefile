@@ -35,6 +35,9 @@ deploy d:
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy.sh
 
+pm2-prod-logs ppl:
+	ssh dev@5.9.119.5 'bash -s' < ./pm2_production_logs.sh
+
 docker-init-test-db ditd:
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_DROP_COMMAND}
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_CREATE_COMMAND}
