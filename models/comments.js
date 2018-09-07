@@ -101,7 +101,7 @@ module.exports = (db, Sequelize) => {
 
     result['User'] = result['User'].toJSON();
 
-    result['path'] = this.getPathAsNumber(maxDepth);
+    result['path'] = JSON.parse(result['path']);
 
     return result;
   };
