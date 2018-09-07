@@ -46,6 +46,8 @@ module.exports = (sequelize, DataTypes) => {
     return [
       'id',
       'title',
+      'description',
+      'leading_text',
       'current_vote',
       'current_rate',
       'main_image_filename'
