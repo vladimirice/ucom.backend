@@ -51,6 +51,39 @@ class ResponseHelper {
     });
   }
 
+  /**
+   *
+   * @param {Object[]} actualArray
+   * @param {string[]} expectedInEvery
+   */
+  static expectAllFieldsExistenceForArray(actualArray, expectedInEvery) {
+    actualArray.forEach(model => {
+      this.expectAllFieldsExistence(model, expectedInEvery);
+    })
+  }
+
+  /**
+   *
+   * @param {Object} actual
+   * @param {string[]} expected
+   */
+  static expectAllFieldsExistence(actual, expected) {
+    const actualKeys = Object.keys(actual).sort();
+
+    const expectedSorted = expected.sort();
+
+    expect(actualKeys).toEqual(expectedSorted);
+
+    // expectedSorted.forEach((field, i) => {
+    //   expect(actualKeys[i], `It seems that there is an extra field in response ${actualKeys[i]}`).toBe(field);
+    // });
+    //
+    // expect(
+    //   Object.keys(actual).length,
+    //   `There are extra fields at the end of object. Expected: ${JSON.stringify(expected, null, 2)}, actual: ${JSON.stringify(Object.keys(actual), null, 2)}`
+    // ).toBe(expected.length);
+  }
+
   static expectValuesAreExpected(expected, actual) {
     for (const field in expected) {
       expect(actual.hasOwnProperty(field), `There is no property in actual: ${field}`).toBeTruthy();

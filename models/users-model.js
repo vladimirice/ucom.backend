@@ -133,10 +133,23 @@ module.exports = (sequelize, DataTypes) => {
       ];
     };
 
-    Users.shortUserInfoFields = function() {
+    /**
+     *
+     * @returns {string[]}
+     */
+    Users.getFieldsForPreview = function() {
       return [
-        'id', 'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename',
+        'id', 'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename', 'current_rate',
       ];
+    };
+
+    /**
+     * @deprecated - renamed
+     * @see getFieldsForPreview
+     * @returns {string[]}
+     */
+    Users.shortUserInfoFields = function() {
+      return Users.getFieldsForPreview();
     };
   };
 

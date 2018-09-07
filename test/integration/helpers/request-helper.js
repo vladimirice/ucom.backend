@@ -7,10 +7,28 @@ const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
 const registrationRoute = '/api/v1/auth/registration';
 const postsUrl          = '/api/v1/posts';
 const usersUrl          = '/api/v1/users';
+const myselfUrl          = '/api/v1/myself';
 
 class RequestHelper {
   static getUserPostsUrl(userId) {
     return `/api/v1/users/${userId}/posts`;
+  }
+
+
+  /**
+   *
+   * @param {Object} user
+   * @returns {Promise<Object>}
+   */
+  static async requestMyself(user) {
+    const res = await request(server)
+      .get(myselfUrl)
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
   }
 
 

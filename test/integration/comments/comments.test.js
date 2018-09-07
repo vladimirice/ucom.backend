@@ -7,7 +7,7 @@ const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const CommentsRepository = require('../../../lib/comments/comments-repository');
 const CommentsHelper = require('../helpers/comments-helper');
-const CommentsService = require('../../../lib/comments/comments-service');
+const UserRepository = require('../../../lib/users/users-repository');
 
 let userVlad, userJane;
 
@@ -41,7 +41,12 @@ describe('Comments', () => {
       const body = res.body;
 
       expect(body.comments).toBeDefined();
-      expect(body['User']).toBeDefined();
+
+      let expected = UserRepository.getModel().getFieldsForPreview();
+
+      expected.push('followed_by');
+
+      UserHelper.checkIncludedUserPreview(body, expected);
 
       body.comments.forEach(comment => {
         expect(Array.isArray(comment.path)).toBeTruthy();
@@ -87,7 +92,7 @@ describe('Comments', () => {
       expect(Array.isArray(body.path)).toBeTruthy();
 
       CommentsHelper.checkCommentResponseBody(body);
-      UserHelper.checkShortUserInfoResponse(body['User']);
+      UserHelper.checkIncludedUserPreview(body);
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
       expect(lastComment).not.toBeNull();
@@ -131,7 +136,7 @@ describe('Comments', () => {
       expect(Array.isArray(body.path)).toBeTruthy();
 
       CommentsHelper.checkCommentResponseBody(body);
-      UserHelper.checkShortUserInfoResponse(body['User']);
+      UserHelper.checkIncludedUserPreview(body);
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
 
@@ -176,7 +181,7 @@ describe('Comments', () => {
       const body = res.body;
 
       CommentsHelper.checkCommentResponseBody(body);
-      UserHelper.checkShortUserInfoResponse(body['User']);
+      UserHelper.checkIncludedUserPreview(body);
       expect(Array.isArray(body.path)).toBeTruthy();
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);

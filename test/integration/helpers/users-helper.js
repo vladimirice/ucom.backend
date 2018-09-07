@@ -13,12 +13,28 @@ require('jest-expect-message');
 class UsersHelper {
 
   /**
-   * @param {Object} actual
+   *
+   * @param {Object[]}models
    */
-  static checkShortUserInfoResponse(actual) {
-    UsersRepository.getModel().shortUserInfoFields().forEach(field => {
-      expect(actual[field], `There is no field ${field}`).toBeDefined();
-    });
+  static checkIncludedUserPreviewForArray(models) {
+    models.forEach(model => {
+      this.checkIncludedUserPreview(model);
+    })
+  }
+
+  /**
+   *
+   * @param {Object} model - model with included user
+   * @param {string[]|null} expected - model with included user
+   */
+  static checkIncludedUserPreview(model, expected = null) {
+    expect(model['User']).toBeDefined();
+    expect(model['User'] instanceof Object).toBeTruthy();
+
+    if (!expected) {
+      expected = UsersRepository.getModel().getFieldsForPreview().sort();
+    }
+    ResponseHelper.expectAllFieldsExistence(model['User'], expected);
   }
 
   static async setSampleRateToUserVlad() {

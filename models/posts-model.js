@@ -37,6 +37,20 @@ module.exports = (sequelize, DataTypes) => {
     freezeTableName: true,
     tableName: TABLE_NAME,
   });
+
+  /**
+   *
+   * @returns {string[]}
+   */
+  Posts.getFieldsForPreview = function () {
+    return [
+      'id',
+      'title',
+      'current_vote',
+      'current_rate',
+    ];
+  };
+
   Posts.associate = function(models) {
     models[TABLE_NAME].belongsTo(models['Users'], {foreignKey: 'user_id'});
     models[TABLE_NAME].hasMany(models['comments'], {

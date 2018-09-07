@@ -10,6 +10,8 @@ const ActivityDictionary = require('../../../lib/activity/activity-types-diction
 const BlockchainStatusDictionary = require('../../../lib/eos/eos-blockchain-status-dictionary');
 const ActivityHelper = require('../helpers/activity-helper');
 
+require('jest-expect-message');
+
 let userVlad, userJane, userPetr;
 
 describe('User to user activity', () => {
@@ -18,6 +20,7 @@ describe('User to user activity', () => {
   beforeEach(async () => {
     await SeedsHelper.initSeedsForUsers();
 
+    // noinspection JSCheckFunctionSignatures
     [userVlad, userJane, userPetr] = await Promise.all([
       UserHelper.getUserVlad(),
       UserHelper.getUserJane(),
@@ -40,7 +43,9 @@ describe('User to user activity', () => {
         expect(followedBy.length).toBeGreaterThan(0);
 
         followedBy.forEach(follower => {
-          UserHelper.checkShortUserInfoResponse(follower);
+          UserHelper.checkIncludedUserPreview({
+            'User': follower
+          });
         });
       });
 
@@ -53,12 +58,28 @@ describe('User to user activity', () => {
       });
 
       it('Get myself info with his followers', async () => {
-        // TODO
+        await ActivityHelper.createFollow(userJane, userPetr);
+        await ActivityHelper.createFollow(userVlad, userPetr);
+
+        const user = await RequestHelper.requestMyself(userPetr);
+
+        const followedBy = user['followed_by'];
+        expect(followedBy).toBeDefined();
+        expect(followedBy.length).toBeGreaterThan(0);
+
+        followedBy.forEach(follower => {
+          UserHelper.checkIncludedUserPreview({
+            'User': follower
+          });
+        });
       });
 
-
       it('There is no followers of myself', async () => {
-        // TODO
+        const user = await RequestHelper.requestMyself(userPetr);
+
+        const followedBy = user['followed_by'];
+        expect(followedBy).toBeDefined();
+        expect(followedBy.length).toBe(0);
       });
     });
 

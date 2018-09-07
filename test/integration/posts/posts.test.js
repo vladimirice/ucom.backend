@@ -9,14 +9,11 @@ const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 
 const PostsService = require('./../../../lib/posts/post-service');
-const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 const PostsRepository = require('./../../../lib/posts/posts-repository');
-const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
-
-const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
 const postsUrl = '/api/v1/posts';
 
+require('jest-expect-message');
 
 let userVlad;
 
@@ -42,14 +39,23 @@ describe('Posts API', () => {
         .get(postsUrl)
       ;
 
-      expect(res.status).toBe(200);
-
+      ResponseHelper.expectStatusOk(res);
       const body = res.body;
 
       const posts = await PostsRepository.findAllPosts();
       expect(body.length).toBe(posts.length);
 
       expect(body[0].hasOwnProperty('User')).toBeTruthy();
+
+      let postFields = PostsRepository.getModel().getFieldsForPreview();
+
+      postFields.push('activity_user_posts');
+      postFields.push('post_users_team');
+      postFields.push('User');
+
+      UsersHelper.checkIncludedUserPreviewForArray(body);
+
+      ResponseHelper.expectAllFieldsExistenceForArray(body, postFields);
     });
 
     it('Get one post', async () => {
