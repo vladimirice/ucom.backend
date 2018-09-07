@@ -16,6 +16,7 @@ describe('Users API', () => {
   beforeEach(async () => {
     await SeedsHelper.initSeedsForUsers();
 
+    // noinspection JSCheckFunctionSignatures
     [userVlad, userJane, userPetr] = await Promise.all([
       UserHelper.getUserVlad(),
       UserHelper.getUserJane(),

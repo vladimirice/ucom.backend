@@ -24,6 +24,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'user_id_from',
       as: 'follower'
     });
+
+    models[TABLE_NAME].belongsTo(models.Users, {
+      foreignKey: 'user_id_to',
+      as: 'is_followed'
+    });
   };
   return ActivityUserUser;
 };

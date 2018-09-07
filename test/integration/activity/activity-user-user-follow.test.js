@@ -49,6 +49,22 @@ describe('User to user activity', () => {
         });
       });
 
+      it('Get user info with I_follow', async () => {
+        await ActivityHelper.createFollow(userPetr, userVlad);
+        await ActivityHelper.createFollow(userPetr, userJane);
+        const user = await RequestHelper.requestUserById(userPetr.id);
+
+        const iFollow = user['I_follow'];
+        expect(iFollow).toBeDefined();
+        expect(iFollow.length).toBeGreaterThan(0);
+
+        iFollow.forEach(follower => {
+          UserHelper.checkIncludedUserPreview({
+            'User': follower
+          });
+        });
+      });
+
       it('There is no followers of user', async () => {
         const user = await RequestHelper.requestUserById(userPetr.id);
 
@@ -56,6 +72,15 @@ describe('User to user activity', () => {
         expect(followedBy).toBeDefined();
         expect(followedBy.length).toBe(0);
       });
+
+      it('There is no I_follow of user', async () => {
+        const user = await RequestHelper.requestUserById(userPetr.id);
+
+        const iFollow = user['I_follow'];
+        expect(iFollow).toBeDefined();
+        expect(iFollow.length).toBe(0);
+      });
+
 
       it('Get myself info with his followers', async () => {
         await ActivityHelper.createFollow(userJane, userPetr);
@@ -72,6 +97,30 @@ describe('User to user activity', () => {
             'User': follower
           });
         });
+      });
+
+      it('Get myself info with I_follow', async () => {
+        await ActivityHelper.createFollow(userPetr, userVlad);
+        await ActivityHelper.createFollow(userPetr, userJane);
+        const user = await RequestHelper.requestMyself(userPetr);
+
+        const iFollow = user['I_follow'];
+        expect(iFollow).toBeDefined();
+        expect(iFollow.length).toBeGreaterThan(0);
+
+        iFollow.forEach(follower => {
+          UserHelper.checkIncludedUserPreview({
+            'User': follower
+          });
+        });
+      });
+
+      it('There is no I_follow of myself', async () => {
+        const user = await RequestHelper.requestMyself(userPetr);
+
+        const iFollow = user['I_follow'];
+        expect(iFollow).toBeDefined();
+        expect(iFollow.length).toBe(0);
       });
 
       it('There is no followers of myself', async () => {
