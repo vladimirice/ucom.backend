@@ -87,9 +87,10 @@ class PostsHelper {
    *
    * @param {number} page
    * @param {number} perPage
-   * @returns {Promise<void>}
+   * @param {boolean} dataOnly
+   * @returns {Promise<Object>}
    */
-  static async requestAllPostsWithPagination(page, perPage) {
+  static async requestAllPostsWithPagination(page, perPage, dataOnly = false) {
     let url = RequestHelper.getPostsUrl() + '?';
 
     let params = [];
@@ -109,7 +110,11 @@ class PostsHelper {
 
     ResponseHelper.expectStatusOk(res);
 
-    return res.body.data;
+    if (dataOnly) {
+      return res.body.data;
+    }
+
+    return res.body;
   }
 
   static validateResponseJson(actual, expected) {

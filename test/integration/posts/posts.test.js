@@ -7,7 +7,6 @@ const SeedsHelper = require('../helpers/seeds-helper');
 const PostHelper = require('../helpers/posts-helper');
 const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
-const PostsHelper = require('../helpers/posts-helper');
 const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 
 const PostsService = require('./../../../lib/posts/post-service');
@@ -75,19 +74,26 @@ describe('Posts API', () => {
     describe('Test pagination', async () => {
 
       it('Every request should contain correct metadata', async () => {
-        const hasMoreMetadata = {
-          'total_amount': 1000,
-          'page': 1,
-          'per_page': 5,
-          'has_more': false,
-        };
-
         const perPage = 2;
         let page = 1;
 
-        const firstPage = await PostHelper.requestAllPostsWithPagination(page, perPage);
+        const response = await PostHelper.requestAllPostsWithPagination(page, perPage);
 
-        // expect(firstPage['metadata']).toBeDefined();
+        const metadata = response['metadata'];
+
+        const totalAmount = await PostsRepository.countAllPosts();
+
+        expect(metadata).toBeDefined();
+        expect(metadata.has_more).toBeTruthy();
+        expect(metadata.page).toBe(page);
+        expect(metadata.per_page).toBe(perPage);
+        expect(metadata.total_amount).toBe(totalAmount);
+
+        const lastPage = totalAmount - perPage;
+
+        const lastResponse = await PostHelper.requestAllPostsWithPagination(lastPage, perPage);
+
+        expect(lastResponse.metadata.has_more).toBeFalsy();
       });
 
       it('Get two post pages', async () => {
@@ -95,7 +101,7 @@ describe('Posts API', () => {
         let page = 1;
 
         const posts = await PostsRepository.findAllPosts(true);
-        const firstPage = await PostHelper.requestAllPostsWithPagination(page, perPage);
+        const firstPage = await PostHelper.requestAllPostsWithPagination(page, perPage, true);
 
         const expectedIdsOfFirstPage = [
           posts[page - 1].id,
@@ -109,7 +115,7 @@ describe('Posts API', () => {
         });
 
         page = 2;
-        const secondPage = await PostHelper.requestAllPostsWithPagination(page, perPage);
+        const secondPage = await PostHelper.requestAllPostsWithPagination(page, perPage, true);
 
         const expectedIdsOfSecondPage = [
           posts[page].id,

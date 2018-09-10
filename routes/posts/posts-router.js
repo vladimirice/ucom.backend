@@ -14,12 +14,9 @@ require('express-async-errors');
 
 /* Get all posts */
 router.get('/', async (req, res) => {
-  const posts = await getPostService(req).findAll(req.query);
+  const result = await getPostService(req).findAll(req.query);
 
-  res.send({
-    data: posts,
-    metadata: {}
-  });
+  res.send(result);
 });
 
 /* Get post by ID */
