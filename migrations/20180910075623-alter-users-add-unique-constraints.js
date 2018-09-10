@@ -19,16 +19,16 @@ module.exports = {
       .then(() => {
         return queryInterface.changeColumn(TABLE_NAME, 'email', {
           type: Sequelize.STRING,
-          required: true,
-          allowNull: false,
+          required: false,
+          allowNull: true,
           unique: true
         })
       })
       .then(() => {
         return queryInterface.changeColumn(TABLE_NAME, 'phone_number', {
           type: Sequelize.STRING,
-          required: true,
-          allowNull: false,
+          required: false,
+          allowNull: true,
           unique: true
         })
       })
