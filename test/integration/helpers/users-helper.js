@@ -25,6 +25,23 @@ class UsersHelper {
 
   /**
    *
+   * @param {number} userId
+   * @param {string }fieldToBeNull
+   * @returns {Promise<void>}
+   */
+  static async makeUserFieldNull(userId, fieldToBeNull) {
+    await UsersRepository.getModel().update({
+      fieldToBeNull: null
+    }, {
+      where: {
+        id: userId
+      }
+
+      });
+  }
+
+  /**
+   *
    * @param {Object} model - model with included user
    * @param {string[]|null} expected - model with included user
    */

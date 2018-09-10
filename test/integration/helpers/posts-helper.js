@@ -2,10 +2,26 @@ const request = require('supertest');
 const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
+const PostRepository = require('../../../lib/posts/posts-repository');
 
 require('jest-expect-message');
 
 class PostsHelper {
+
+  /**
+   *
+   * @param {number} postId
+   * @param {string }fieldToBeNull
+   * @returns {Promise<void>}
+   */
+  static async makeFieldNull(postId, fieldToBeNull) {
+    let toUpdate = {};
+    toUpdate[fieldToBeNull] = null;
+
+    const res = await PostRepository.getModel().update(toUpdate,
+      { where: { id: postId } }
+    );
+  }
 
   static validateDbEntity(expected, actual) {
     const checkIsExistOnly = {

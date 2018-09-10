@@ -78,9 +78,12 @@ describe('Posts API', () => {
 
     it('Update post by its author', async () => {
       const userVlad = await UserHelper.getUserVlad();
-      const firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
 
-      expect(firstPostBefore.main_image_filename).toBeNull();
+      let firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
+      await PostHelper.makeFieldNull(firstPostBefore.id, 'main_image_filename');
+      firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
+
+      expect(firstPostBefore['main_image_filename']).toBeNull();
 
       const fieldsToChange = {
         'title': 'This is title to change',
@@ -89,7 +92,7 @@ describe('Posts API', () => {
       };
 
       const res = await request(server)
-        .patch(`${postsUrl}/${firstPostBefore.id}`)
+        .patch(`${postsUrl}/${firstPostBefore['id']}`)
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('title',         fieldsToChange['title'])
         .field('description',   fieldsToChange['description'])
@@ -99,7 +102,7 @@ describe('Posts API', () => {
 
       ResponseHelper.expectStatusOk(res);
 
-      const postAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id);
+      const postAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore['id'], userVlad.id);
 
       PostHelper.validatePatchResponse(res, postAfter);
 
