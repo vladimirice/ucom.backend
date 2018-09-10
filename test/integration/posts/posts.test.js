@@ -36,7 +36,7 @@ describe('Posts API', () => {
     it('Get all posts', async () => {
 
       const res = await request(server)
-        .get(postsUrl)
+        .get(RequestHelper.getPostsUrl())
       ;
 
       ResponseHelper.expectStatusOk(res);
