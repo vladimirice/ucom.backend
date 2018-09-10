@@ -74,13 +74,20 @@ describe('Posts API', () => {
 
     describe('Test pagination', async () => {
 
-      it('Every request should contain total amount of elements provided inside metadata', async () => {
-        // "metadata": {
-        //   "timestamp": 1525137187,
-        //     "num_cryptocurrencies": 1602,
-        //     "error": null
-        // }
-        // TODO
+      it('Every request should contain correct metadata', async () => {
+        const hasMoreMetadata = {
+          'total_amount': 1000,
+          'page': 1,
+          'per_page': 5,
+          'has_more': false,
+        };
+
+        const perPage = 2;
+        let page = 1;
+
+        const firstPage = await PostHelper.requestAllPostsWithPagination(page, perPage);
+
+        expect(firstPage['metadata']).toBeDefined();
       });
 
       it('Get two post pages', async () => {
