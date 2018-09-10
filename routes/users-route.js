@@ -25,7 +25,10 @@ router.get('/:user_id', async function(req, res) {
 
 /* GET all users */
 router.get('/', async function(req, res) {
-  const users = await UserService.findAll();
+  const userService = getUserService(req);
+
+
+  const users = await userService.findAll();
 
   res.send(users);
 });

@@ -2,6 +2,7 @@ const usersSeeds = require('../../../seeders/users/users');
 const eosAccounts = require('../../../seeders/users/eos_accounts');
 const AuthService = require('../../../lib/auth/authService');
 const UsersRepository = require('../../../lib/users/users-repository');
+const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const EosImportance = require('../../../lib/eos/eos-importance');
 const request = require('supertest');
@@ -113,11 +114,59 @@ class UsersHelper {
   }
 
   /**
+   * @param {Object} user
+   * @returns {Promise<Object[]>}
+   */
+  static async requestUserListByMyself(user) {
+    const res = await request(server)
+      .get(RequestHelper.getUsersUrl())
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
+  /**
+   * @returns {Promise<Object[]>}
+   */
+  static async requestUserListAsGuest() {
+    const res = await request(server)
+      .get(RequestHelper.getUsersUrl())
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
+  /**
    *
    * @returns {Promise<Object>}
    */
   static async getUserPetr() {
     const fromDb = await UsersRepository.getUserByAccountName('petr');
+    expect(fromDb).toBeDefined();
+
+    const data = {
+      id: fromDb.id
+    };
+
+    const token = AuthService.getNewJwtToken(fromDb);
+
+    return {
+      ...data,
+      token
+    }
+  }
+
+  /**
+   *
+   * @returns {Promise<Object>}
+   */
+  static async getUserRokky() {
+    const fromDb = await UsersRepository.getUserByAccountName('rokky');
     expect(fromDb).toBeDefined();
 
     const data = {

@@ -12,7 +12,7 @@ const ActivityHelper = require('../helpers/activity-helper');
 
 require('jest-expect-message');
 
-let userVlad, userJane, userPetr;
+let userVlad, userJane, userPetr, userRokky;
 
 describe('User to user activity', () => {
   beforeAll(async () => { await SeedsHelper.destroyTables(); });
@@ -21,10 +21,11 @@ describe('User to user activity', () => {
     await SeedsHelper.initSeedsForUsers();
 
     // noinspection JSCheckFunctionSignatures
-    [userVlad, userJane, userPetr] = await Promise.all([
+    [userVlad, userJane, userPetr, userRokky] = await Promise.all([
       UserHelper.getUserVlad(),
       UserHelper.getUserJane(),
-      UserHelper.getUserPetr()
+      UserHelper.getUserPetr(),
+      UserHelper.getUserRokky()
     ]);
   });
 
@@ -32,6 +33,40 @@ describe('User to user activity', () => {
 
   describe('Positive scenarios', async () => {
     describe('User-to-user activity', () => {
+
+      describe('User-to-user myself data inside lists', () => {
+        it('User list must contain myselfData with follow status', async () => {
+          await ActivityHelper.createFollow(userPetr, userVlad);
+          await ActivityHelper.createFollow(userPetr, userJane);
+
+          const users = await UserHelper.requestUserListByMyself(userPetr);
+
+          const responseVlad = users.find(data => data.id === userVlad.id);
+          expect(responseVlad.myselfData).toBeDefined();
+          expect(responseVlad.myselfData.follow).toBeTruthy();
+
+          const responseJane = users.find(data => data.id === userJane.id);
+          expect(responseJane.myselfData).toBeDefined();
+          expect(responseJane.myselfData.follow).toBeTruthy();
+
+          const responseRokky = users.find(data => data.id === userRokky.id);
+          expect(responseRokky.myselfData).toBeDefined();
+          expect(responseRokky.myselfData.follow).toBeFalsy();
+        });
+
+        it('There is no myself data if user is not logged in', async () => {
+          await ActivityHelper.createFollow(userPetr, userVlad);
+          await ActivityHelper.createFollow(userPetr, userJane);
+
+          const users = await UserHelper.requestUserListAsGuest();
+
+          users.forEach(user => {
+            expect(user.myselfData).not.toBeDefined();
+          });
+        });
+
+      });
+
       it('Get user info with his followers', async () => {
 
         await ActivityHelper.createFollow(userJane, userVlad);
