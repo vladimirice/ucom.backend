@@ -7,6 +7,7 @@ const SeedsHelper = require('../helpers/seeds-helper');
 const PostHelper = require('../helpers/posts-helper');
 const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
+const PostsHelper = require('../helpers/posts-helper');
 
 const PostsService = require('./../../../lib/posts/post-service');
 const PostsRepository = require('./../../../lib/posts/posts-repository');
@@ -32,6 +33,56 @@ describe('Posts API', () => {
 
 
   describe('GET posts', () => {
+
+    describe('Test pagination', async () => {
+
+      it('Every request should contain total amount of elements provided inside metadata', async () => {
+        // "metadata": {
+        //   "timestamp": 1525137187,
+        //     "num_cryptocurrencies": 1602,
+        //     "error": null
+        // }
+        // TODO
+      });
+
+      it('Get two post pages', async () => {
+        const perPage = 2;
+        let page = 1;
+
+        const posts = await PostsRepository.findAllPosts(true);
+        const firstPage = await PostHelper.requestAllPostsWithPagination(page, perPage);
+
+        const expectedIdsOfFirstPage = [
+          posts[page - 1].id,
+          posts[page].id,
+        ];
+
+        expect(firstPage.length).toBe(perPage);
+
+        firstPage.forEach((post, i) => {
+          expect(post.id).toBe(expectedIdsOfFirstPage[i])
+        });
+
+        page = 2;
+        const secondPage = await PostHelper.requestAllPostsWithPagination(page, perPage);
+
+        const expectedIdsOfSecondPage = [
+          posts[page].id,
+          posts[page + 1].id,
+        ];
+
+        expect(secondPage.length).toBe(perPage);
+
+        secondPage.forEach((post, i) => {
+          expect(post.id).toBe(expectedIdsOfSecondPage[i])
+        });
+
+      });
+
+      it('Page 0 and page 1 behavior must be the same', async () => {
+        // TODO
+      });
+    });
 
     it('Get all posts', async () => {
 

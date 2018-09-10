@@ -82,6 +82,35 @@ class PostsHelper {
     return res.body;
   }
 
+  /**
+   *
+   * @param {number} page
+   * @param {number} perPage
+   * @returns {Promise<void>}
+   */
+  static async requestAllPostsWithPagination(page, perPage) {
+    let url = RequestHelper.getPostsUrl() + '?';
+
+    let params = [];
+
+    if (page) {
+      params.push(`page=${page}`);
+    }
+
+    if (perPage) {
+      params.push(`per_page=${perPage}`);
+    }
+
+    url += params.join('&');
+    const res = await request(server)
+      .get(url)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
   static validateResponseJson(actual, expected) {
 
     expect(actual.hasOwnProperty('title')).toBeTruthy();

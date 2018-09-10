@@ -50,7 +50,8 @@ module.exports = (sequelize, DataTypes) => {
       'leading_text',
       'current_vote',
       'current_rate',
-      'main_image_filename'
+      'main_image_filename',
+      'user_id'
     ];
   };
 

@@ -14,7 +14,9 @@ require('express-async-errors');
 
 /* Get all posts */
 router.get('/', async (req, res) => {
-  const posts = await getPostService(req).findAll();
+  // TODO Implement pagination
+
+  const posts = await getPostService(req).findAll(req.query);
 
   res.send(posts);
 });
