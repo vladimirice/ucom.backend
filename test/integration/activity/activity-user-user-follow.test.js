@@ -68,20 +68,34 @@ describe('User to user activity', () => {
       });
 
       it('Get user info with his followers', async () => {
-
         await ActivityHelper.createFollow(userJane, userVlad);
         await ActivityHelper.createFollow(userPetr, userVlad);
+
+        await ActivityHelper.createFollow(userVlad, userRokky);
+        await ActivityHelper.createFollow(userVlad, userJane);
+
+        const janeSampleRate = await UserHelper.setSampleRateToUser(userJane);
         const user = await RequestHelper.requestUserById(userVlad.id);
 
         const followedBy = user['followed_by'];
         expect(followedBy).toBeDefined();
         expect(followedBy.length).toBeGreaterThan(0);
 
+        const iFollow = user['I_follow'];
+        expect(iFollow).toBeDefined();
+        expect(iFollow.length).toBeGreaterThan(0);
+
         followedBy.forEach(follower => {
           UserHelper.checkIncludedUserPreview({
             'User': follower
           });
         });
+
+        const userJaneResponse = followedBy.find(data => data.id === userJane.id);
+        expect(+userJaneResponse.current_rate).toBe(+janeSampleRate);
+
+        const userJaneFromIFollow = iFollow.find(data => data.id === userJane.id);
+        expect(+userJaneFromIFollow.current_rate).toBe(+janeSampleRate);
       });
 
       it('Get user info with I_follow', async () => {

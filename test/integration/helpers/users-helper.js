@@ -71,6 +71,30 @@ class UsersHelper {
 
   /**
    *
+   * @param {Object} user
+   * @returns {Promise<number>}
+   */
+  static async setSampleRateToUser(user) {
+    const rateToSet = 0.1234;
+
+    await UsersRepository.getModel().update(
+      {
+        'current_rate': rateToSet
+      },
+      {
+        where: {
+          id: user.id
+        }
+      }
+    );
+
+    const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
+
+    return +rateNormalized.toFixed();
+  }
+
+  /**
+   *
    * @param {integer} userId
    * @returns {Promise<string|*|string|HTMLElement|BodyInit|ReadableStream>}
    */
