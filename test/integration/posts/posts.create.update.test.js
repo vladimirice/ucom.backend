@@ -11,6 +11,7 @@ const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 const PostOfferRepository = require('../../../lib/posts/post-offer/post-offer-repository');
 const PostsRepository = require('../../../lib/posts/posts-repository');
+const PostStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
 
 const PostsService = require('./../../../lib/posts/post-service');
 
@@ -74,6 +75,11 @@ describe('Posts API', () => {
       expect(body.id).toBe(newPost.id);
 
       await FileToUploadHelper.isFileUploaded(newPost.main_image_filename);
+
+      const postStatsModel = await PostStatsRepository.findOneByPostId(newPost.id);
+      expect(postStatsModel).toBeDefined();
+
+      expect(postStatsModel.comments_count).toBe(0);
     });
 
     it('Update post by its author', async () => {
@@ -111,7 +117,6 @@ describe('Posts API', () => {
       expect(postAfter.main_image_filename).toBeDefined();
       await FileToUploadHelper.isFileUploaded(postAfter.main_image_filename);
     });
-
 
     it('Create new post-offer without board', async () => {
       let newPostFields = {
@@ -156,6 +161,11 @@ describe('Posts API', () => {
       const postUsersTeam = lastPost['post_users_team'];
       expect(postUsersTeam).toBeDefined();
       expect(postUsersTeam.length).toBe(0);
+
+      const postStats = await PostStatsRepository.findOneByPostId(lastPost.id);
+
+      expect(postStats).not.toBeNull();
+
     });
 
     it('Create new post-offer', async() => {

@@ -74,6 +74,9 @@ module.exports = (sequelize, DataTypes) => {
         plural: "post_users_team"
       }
     });
+    models[TABLE_NAME].hasOne(models['post_stats'], {
+      foreignKey: 'post_id',
+    });
   };
 
   return Posts;
