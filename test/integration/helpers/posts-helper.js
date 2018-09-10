@@ -18,7 +18,7 @@ class PostsHelper {
     let toUpdate = {};
     toUpdate[fieldToBeNull] = null;
 
-    const res = await PostRepository.getModel().update(toUpdate,
+    await PostRepository.getModel().update(toUpdate,
       { where: { id: postId } }
     );
   }
