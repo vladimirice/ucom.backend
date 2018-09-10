@@ -13,6 +13,7 @@ let userVlad, userJane, userPetr;
 
 describe('Users activity stats', () => {
   beforeAll(async () => {
+    // noinspection JSCheckFunctionSignatures
     [userVlad, userJane, userPetr] = await Promise.all([
       UserHelper.getUserVlad(),
       UserHelper.getUserJane(),
@@ -62,7 +63,7 @@ describe('Users activity stats', () => {
 
     ResponseHelper.expectStatusOk(res);
 
-    res.body.forEach(post => {
+    res.body.data.forEach(post => {
       expect(post.title).toBeDefined();
       expect(post.myselfData).not.toBeDefined();
     });
@@ -78,7 +79,7 @@ describe('Users activity stats', () => {
       .set('Authorization', `Bearer ${userVlad.token}`)
     ;
 
-    const posts = res.body;
+    const posts = res.body.data;
 
     const upvotedPost = posts.find(post => post.id === postToUpvote.id);
 

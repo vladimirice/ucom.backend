@@ -109,7 +109,7 @@ class PostsHelper {
 
     ResponseHelper.expectStatusOk(res);
 
-    return res.body;
+    return res.body.data;
   }
 
   static validateResponseJson(actual, expected) {
