@@ -8,9 +8,11 @@ const PostHelper = require('../helpers/posts-helper');
 const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const PostsHelper = require('../helpers/posts-helper');
+const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 
 const PostsService = require('./../../../lib/posts/post-service');
 const PostsRepository = require('./../../../lib/posts/posts-repository');
+const PostOfferRepository = require('./../../../lib/posts/post-offer/post-offer-repository');
 
 const postsUrl = '/api/v1/posts';
 
@@ -33,6 +35,42 @@ describe('Posts API', () => {
 
 
   describe('GET posts', () => {
+
+
+    describe('Test filtering', () => {
+
+      it('GET only media posts', async () => {
+        let url = RequestHelper.getPostsUrl();
+        url += `?post_type_id=${PostTypeDictionary.getTypeMediaPost()}`;
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+        const mediaPosts = res.body;
+
+        const mediaPostsFromDb = await PostsRepository.findAllMediaPosts(true);
+
+        expect(mediaPosts.length).toBe(mediaPostsFromDb.length);
+      });
+
+      it('GET only post-offers', async () => {
+        let url = RequestHelper.getPostsUrl();
+        url += `?post_type_id=${PostTypeDictionary.getTypeOffer()}`;
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+        const fromRequest = res.body;
+
+        const fromDb = await PostOfferRepository.findAllPostOffers(true);
+
+        expect(fromRequest.length).toBe(fromDb.length);
+      });
+    });
 
     describe('Test pagination', async () => {
 

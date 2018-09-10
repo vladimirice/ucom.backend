@@ -82,6 +82,7 @@ class PostsHelper {
     return res.body;
   }
 
+
   /**
    *
    * @param {number} page
