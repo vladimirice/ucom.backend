@@ -9,7 +9,6 @@ const ActivityService = require('../../lib/activity/activity-service');
 const PostTypeDictionary = require('../../lib/posts/post-type-dictionary');
 const PostOfferService = require('../../lib/posts/post-offer/post-offer-service');
 const PostRepository = require('../../lib/posts/posts-repository');
-
 require('express-async-errors');
 
 /* Get all posts */

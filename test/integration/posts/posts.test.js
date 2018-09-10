@@ -32,12 +32,8 @@ describe('Posts API', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-
   describe('GET posts', () => {
-
-
     describe('Test filtering', () => {
-
       it('GET only media posts', async () => {
         let url = RequestHelper.getPostsUrl();
         url += `?post_type_id=${PostTypeDictionary.getTypeMediaPost()}`;
@@ -70,9 +66,7 @@ describe('Posts API', () => {
         expect(fromRequest.length).toBe(fromDb.length);
       });
     });
-
     describe('Test pagination', async () => {
-
       it('Every request should contain correct metadata', async () => {
         const perPage = 2;
         let page = 1;
@@ -100,7 +94,11 @@ describe('Posts API', () => {
         const perPage = 2;
         let page = 1;
 
-        const posts = await PostsRepository.findAllPosts(true);
+        const posts = await PostsRepository.findAllPosts(true, {
+          'order': [
+            ['id', 'DESC']
+          ]
+        });
         const firstPage = await PostHelper.requestAllPostsWithPagination(page, perPage, true);
 
         const expectedIdsOfFirstPage = [
@@ -131,7 +129,74 @@ describe('Posts API', () => {
       });
 
       it('Page 0 and page 1 behavior must be the same', async () => {
-        // TODO
+        const perPage = 2;
+
+        const pageIsZeroResponse = await PostHelper.requestAllPostsWithPagination(1, perPage, true);
+        const pageIsOneResponse = await PostHelper.requestAllPostsWithPagination(1, perPage, true);
+
+        expect(JSON.stringify(pageIsZeroResponse)).toBe(JSON.stringify(pageIsOneResponse));
+      });
+    });
+
+    describe('Test sorting', async () => {
+      it('Sort by current_rate DESC', async () => {
+        // title, comments_count, rate
+
+        const url = RequestHelper.getPostsUrl() + '?sort_by=-current_rate,-id';
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        const minPostId = await PostsRepository.findMinPostIdByParameter('current_rate');
+        const maxPostId = await PostsRepository.findMaxPostIdByParameter('current_rate');
+
+        const posts = res.body.data;
+
+        expect(posts[posts.length - 1].id).toBe(minPostId);
+        expect(posts[0].id).toBe(maxPostId);
+      });
+
+      it('Sort by current_rate ASC', async () => {
+        // title, comments_count, rate
+
+        const url = RequestHelper.getPostsUrl() + '?sort_by=+current_rate,-id';
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        const minPostId = await PostsRepository.findMinPostIdByParameter('current_rate');
+        const maxPostId = await PostsRepository.findMaxPostIdByParameter('current_rate');
+
+        const posts = res.body.data;
+
+        expect(posts[posts.length - 1].id).toBe(maxPostId);
+        expect(posts[0].id).toBe(minPostId);
+      });
+
+      it('Sort by title DESC', async () => {
+        // title, comments_count, rate
+
+        const url = RequestHelper.getPostsUrl() + '?sort_by=+title,-id';
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        const minPostId = await PostsRepository.findMinPostIdByParameter('title');
+        const maxPostId = await PostsRepository.findMaxPostIdByParameter('title');
+
+        const posts = res.body.data;
+
+        expect(posts[posts.length - 1].id).toBe(maxPostId);
+        expect(posts[0].id).toBe(minPostId);
       });
     });
 
