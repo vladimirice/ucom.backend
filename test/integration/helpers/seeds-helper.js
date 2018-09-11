@@ -14,17 +14,20 @@ const minorTables = [
   'users_education',
   'users_jobs',
   'users_sources',
-  'activity_user_post',
+
   'post_offer',
   'post_users_team',
 
-  'comments',
   'post_stats',
+
   'activity_user_user',
+  'activity_user_post',
+  'activity_user_comment'
 ];
 
 // Truncated in order
 const majorTables = [
+  'comments',
   'posts',
   'Users',
 ];
@@ -74,9 +77,14 @@ class SeedsHelper {
     await models['Users'].bulkCreate(usersSeeds);
   }
 
-  static async seedDb() {
+  static async seedMainTables() {
     await models['Users'].bulkCreate(usersSeeds);
     await models['posts'].bulkCreate(postsSeeds);
+    await models['comments'].bulkCreate(commentsSeeds);
+  }
+
+  static async seedDb() {
+    await this.seedMainTables();
 
     await Promise.all([
       models['users_education'].bulkCreate(usersEducationSeeds),
@@ -85,8 +93,13 @@ class SeedsHelper {
       models['post_offer'].bulkCreate(postsOffersSeeds),
       models['post_stats'].bulkCreate(postStatsSeeds),
       models['post_users_team'].bulkCreate(postUsersTeamSeeds),
-      models['comments'].bulkCreate(commentsSeeds),
     ]);
+  }
+
+  static async initCommentSeeds() {
+    await this.destroyTables();
+
+    await this.seedMainTables();
   }
 
   static async initSeeds() {

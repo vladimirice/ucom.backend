@@ -5,6 +5,18 @@ const {AppError, BadRequestError} = require('../../lib/api/errors');
 const CommentsRepository = require('../../lib/comments/comments-repository');
 
 
+/* Upvote post comment */
+router.post('/:post_id/comments/:comment_id/upvote', [authTokenMiddleWare], async (req, res) => {
+  const commentService = getCommentsService(req);
+
+  await commentService.upvoteComment(req['user'], req['comment_id']);
+
+  res.send({
+    status: 'ok',
+  })
+});
+
+
 /* create comment on comment */
 router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare], async (req, res) => {
   const commentService = getCommentsService(req);
