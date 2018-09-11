@@ -96,6 +96,7 @@ describe('Posts API', () => {
 
         const posts = await PostsRepository.findAllPosts(true, {
           'order': [
+            ['current_rate', 'DESC'],
             ['id', 'DESC']
           ]
         });
