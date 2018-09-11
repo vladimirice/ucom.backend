@@ -67,6 +67,13 @@ describe('Posts API', () => {
       });
     });
     describe('Test pagination', async () => {
+
+      it('Test request', async () => {
+
+        const a = await PostHelper.requestToGetPostsAsGuest('sort_by=comments_count');
+
+      });
+
       it('Every request should contain correct metadata', async () => {
         const perPage = 2;
         let page = 1;
