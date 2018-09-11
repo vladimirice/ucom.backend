@@ -68,12 +68,6 @@ describe('Posts API', () => {
     });
     describe('Test pagination', async () => {
 
-      it('Test request', async () => {
-
-        const a = await PostHelper.requestToGetPostsAsGuest('sort_by=comments_count');
-
-      });
-
       it('Every request should contain correct metadata', async () => {
         const perPage = 2;
         let page = 1;
@@ -228,6 +222,44 @@ describe('Posts API', () => {
         await Promise.all(setComments);
 
         const posts = await PostHelper.requestToGetPostsAsGuest('sort_by=-comments_count');
+
+        postToComments.forEach((data, index) => {
+          expect(posts[index].id).toBe(data.post_id);
+        });
+      });
+
+      it('Sort by comments_count ASC', async () => {
+        const postToComments = [
+          {
+            post_id: 2,
+            comments_count: 0,
+          },
+          {
+            post_id: 5,
+            comments_count: 10
+          },
+          {
+            post_id: 4,
+            comments_count: 100
+          },
+          {
+            post_id: 1,
+            comments_count: 150
+          },
+
+          {
+            post_id: 3,
+            comments_count: 200
+          },
+        ];
+
+        const setComments = [];
+        postToComments.forEach(data => {
+          setComments.push(PostHelper.setCommentCountDirectly(data.post_id, data.comments_count));
+        });
+        await Promise.all(setComments);
+
+        const posts = await PostHelper.requestToGetPostsAsGuest('sort_by=comments_count');
 
         postToComments.forEach((data, index) => {
           expect(posts[index].id).toBe(data.post_id);
