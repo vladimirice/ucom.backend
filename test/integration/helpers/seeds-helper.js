@@ -61,18 +61,24 @@ class SeedsHelper {
     await models['Users'].bulkCreate(usersSeeds);
   }
 
+  static async seedDb() {
+    await models['Users'].bulkCreate(usersSeeds);
+    await models['posts'].bulkCreate(postsSeeds);
+
+    await Promise.all([
+      models['users_education'].bulkCreate(usersEducationSeeds),
+      models['users_jobs'].bulkCreate(usersJobsSeeds),
+      models['users_sources'].bulkCreate(sourcesSeeds),
+      models['post_offer'].bulkCreate(postsOffersSeeds),
+      models['post_stats'].bulkCreate(postStatsSeeds),
+      models['post_users_team'].bulkCreate(postUsersTeamSeeds),
+      models['comments'].bulkCreate(commentsSeeds),
+    ]);
+  }
+
   static async initSeeds() {
     await this.destroyTables();
-
-    await models['Users'].bulkCreate(usersSeeds);
-    await models['users_education'].bulkCreate(usersEducationSeeds);
-    await models['users_jobs'].bulkCreate(usersJobsSeeds);
-    await models['users_sources'].bulkCreate(sourcesSeeds);
-    await models['posts'].bulkCreate(postsSeeds);
-    await models['post_offer'].bulkCreate(postsOffersSeeds);
-    await models['post_stats'].bulkCreate(postStatsSeeds);
-    await models['post_users_team'].bulkCreate(postUsersTeamSeeds);
-    await models['comments'].bulkCreate(commentsSeeds);
+    await this.seedDb();
 
     // TODO user sql reset instead
     usersSeeds.forEach(() => {

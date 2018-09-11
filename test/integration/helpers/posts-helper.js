@@ -109,6 +109,20 @@ class PostsHelper {
 
   /**
    *
+   * @returns {Promise<Object[]>}
+   */
+  static async requestToGetPostsAsGuest() {
+    const res = await request(server)
+      .get(`${RequestHelper.getPostsUrl()}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body.data;
+  }
+
+  /**
+   *
    * @param {number} postId
    * @param {Object} myself
    * @returns {Promise<string|*|string|HTMLElement|BodyInit|ReadableStream>}

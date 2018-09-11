@@ -76,6 +76,7 @@ module.exports = (sequelize, DataTypes) => {
     });
     models[TABLE_NAME].hasOne(models['post_stats'], {
       foreignKey: 'post_id',
+      as: 'post_stats'
     });
   };
 

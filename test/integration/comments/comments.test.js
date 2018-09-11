@@ -31,6 +31,30 @@ describe('Comments', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
+
+  describe('should show comment_count stats for list of posts', async () => {
+
+    it('should show comment_count for list of posts', async function () {
+      const posts = await PostHelper.requestToGetPostsAsGuest();
+
+      posts.forEach(post => {
+        expect(post).toHaveProperty('post_stats');
+        expect(post['post_stats']).toHaveProperty('comments_count', 0);
+      });
+    });
+
+    it('should show correct comment_count for post which has comments', async () => {
+      const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
+      await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+
+      const posts = await PostHelper.requestToGetPostsAsGuest();
+
+      const newPostData = posts.find(data => data.id === newPostId);
+
+      expect(newPostData['post_stats']['comments_count']).toBe(1);
+    });
+  });
+
   describe('should update post comment stats', async () => {
 
     describe('Media post related tests', function () {
