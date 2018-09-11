@@ -31,9 +31,7 @@ describe('Comments', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-
   describe('should show comment_count stats for list of posts', async () => {
-
     it('should show comment_count for list of posts', async function () {
       const posts = await PostHelper.requestToGetPostsAsGuest();
 

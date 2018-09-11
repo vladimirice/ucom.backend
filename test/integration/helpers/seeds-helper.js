@@ -32,6 +32,24 @@ const majorTables = [
 class SeedsHelper {
 
   static async destroyTables() {
+
+    // noinspection SqlResolve
+    const allSequences = await models.sequelize.query(`SELECT sequence_name FROM information_schema.sequences;`);
+
+    let resetSequencePromises = [];
+
+    allSequences[0].forEach(data => {
+      let name = data['sequence_name'];
+
+      if (name === 'Users_id_seq') {
+        name = '"Users_id_seq"';
+      }
+
+      resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`));
+    });
+
+    await Promise.all(resetSequencePromises);
+
     const params = {where: {}};
 
     const minorTablesPromises = [];
@@ -45,11 +63,6 @@ class SeedsHelper {
     for (let i = 0; i < majorTables.length; i++) {
       await models[majorTables[i]].destroy(params);
     }
-
-    // TODO reset all sequences
-    // SELECT sequence_name FROM information_schema.sequences;
-    await models.sequelize.query(`ALTER SEQUENCE posts_id_seq RESTART;`);
-    await models.sequelize.query(`ALTER SEQUENCE comments_id_seq RESTART;`);
   }
 
   static async initSeedsForUsers() {

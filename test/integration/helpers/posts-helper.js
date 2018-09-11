@@ -1,9 +1,14 @@
+const reqlib = require('app-root-path').require;
+
 const request = require('supertest');
 const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 const PostRepository = require('../../../lib/posts/posts-repository');
 const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
+
+const PostStatsRepository = reqlib('/lib/posts/stats/post-stats-repository');
+
 
 require('jest-expect-message');
 
@@ -107,13 +112,39 @@ class PostsHelper {
     expect(body.post_id).toBe(expected.id);
   }
 
+
   /**
    *
+   * @param {number} post_id
+   * @param {number} commentsCount
+   * @returns {Promise<void>}
+   */
+  static async setCommentCountDirectly(post_id, commentsCount) {
+    await PostStatsRepository.getModel().update({
+      'comments_count': commentsCount
+    }, {
+      where: {
+        post_id
+      }
+    })
+
+  }
+
+  /**
+   *
+   * @param {string | null } queryString
    * @returns {Promise<Object[]>}
    */
-  static async requestToGetPostsAsGuest() {
+  static async requestToGetPostsAsGuest(queryString = null) {
+
+    let url = RequestHelper.getPostsUrl();
+
+    if (queryString) {
+      url+= '?' + queryString;
+    }
+
     const res = await request(server)
-      .get(`${RequestHelper.getPostsUrl()}`)
+      .get(url)
     ;
 
     ResponseHelper.expectStatusOk(res);
