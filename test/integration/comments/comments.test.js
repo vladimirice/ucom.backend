@@ -1,13 +1,16 @@
 const request = require('supertest');
 const server = require('../../../app');
+const reqlib = require('app-root-path').require;
 
 const UserHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
-const CommentsRepository = require('../../../lib/comments/comments-repository');
+const CommentsRepository = reqlib('/lib/comments/comments-repository');
 const CommentsHelper = require('../helpers/comments-helper');
-const UserRepository = require('../../../lib/users/users-repository');
+const UserRepository = reqlib('/lib/users/users-repository');
+const PostService = reqlib('/lib/posts/post-service');
+const PostHelper = require('../helpers/posts-helper');
 
 let userVlad, userJane;
 
@@ -26,6 +29,62 @@ describe('Comments', () => {
 
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
+  });
+
+  describe('should update post comment stats', async () => {
+
+    describe('Media post related tests', function () {
+      it('should create post with comment_count equal to zero', async () => {
+        const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
+
+        const postStats = await PostService.findPostStatsById(newPostId);
+        expect(postStats.comments_count).toBe(0);
+      });
+
+      it('should increase comment amount when new comment is created for media post', async () => {
+        const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
+        await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+
+        const postStats = await PostService.findPostStatsById(newPostId);
+        expect(postStats.comments_count).toBe(1);
+      });
+
+      it('should increase comment count for comment on comment action for media post', async () => {
+        const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
+        const newRootComment = await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+        await CommentsHelper.requestToCreateCommentOnComment(newPostId, newRootComment.id, userVlad);
+
+        const postStats = await PostService.findPostStatsById(newPostId);
+
+        expect(postStats.comments_count).toBe(2);
+      });
+    });
+
+    describe('Post-offer related actions', function () {
+      it('should create new with comment_count equal to zero', async () => {
+        const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
+        const postStats = await PostService.findPostStatsById(newPostId);
+        expect(postStats.comments_count).toBe(0);
+      });
+
+      it('should increase comment amount when new comment is created', async () => {
+        const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
+        await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+
+        const postStats = await PostService.findPostStatsById(newPostId);
+        expect(postStats.comments_count).toBe(1);
+      });
+
+      it('should increase comment count for comment on comment action for media post', async () => {
+        const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
+        const newRootComment = await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+        await CommentsHelper.requestToCreateCommentOnComment(newPostId, newRootComment.id, userVlad);
+
+        const postStats = await PostService.findPostStatsById(newPostId);
+
+        expect(postStats.comments_count).toBe(2);
+      });
+    });
   });
 
   describe('Positive scenarios', async () => {
@@ -86,6 +145,8 @@ describe('Comments', () => {
       ;
 
       ResponseHelper.expectStatusCreated(res);
+
+      // Expect comments amount will be increased
 
       const body = res.body;
 

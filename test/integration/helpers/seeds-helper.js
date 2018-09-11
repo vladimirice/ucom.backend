@@ -5,28 +5,49 @@ const usersEducationSeeds = require('../../../seeders/users/users_education');
 const sourcesSeeds = require('../../../seeders/users/users_sources');
 const postsSeeds = require('../../../seeders/posts/posts');
 const postsOffersSeeds = require('../../../seeders/posts/posts-offers');
+const postStatsSeeds = require('../../../seeders/posts/post-stats-seeds');
 const postUsersTeamSeeds = require('../../../seeders/posts/posts-users-team');
 const commentsSeeds = require('../../../seeders/comments/comments-seeds');
 
-// SELECT sequence_name FROM information_schema.sequences;
+// Truncated async
+const minorTables = [
+  'users_education',
+  'users_jobs',
+  'users_sources',
+  'activity_user_post',
+  'post_offer',
+  'post_users_team',
+
+  'comments',
+  'post_stats',
+  'activity_user_user',
+];
+
+// Truncated in order
+const majorTables = [
+  'posts',
+  'Users',
+];
 
 class SeedsHelper {
 
   static async destroyTables() {
-    // TODO use drop table instead
-    await models['users_education'].destroy({where: {}});
-    await models['users_jobs'].destroy({where: {}});
-    await models['users_sources'].destroy({where: {}});
-    await models['activity_user_post'].destroy({where: {}});
-    await models['post_offer'].destroy({where: {}});
-    await models['post_users_team'].destroy({where: {}});
-    await models['comments'].destroy({where: {}});
-    await models['post_stats'].destroy({where: {}});
-    await models['posts'].destroy({where: {}});
-    await models['activity_user_user'].destroy({where: {}});
-    await models['Users'].destroy({where: {}});
+    const params = {where: {}};
+
+    const minorTablesPromises = [];
+
+    minorTables.forEach(table => {
+      minorTablesPromises.push(models[table].destroy(params));
+    });
+
+    await Promise.all(minorTablesPromises);
+
+    for (let i = 0; i < majorTables.length; i++) {
+      await models[majorTables[i]].destroy(params);
+    }
 
     // TODO reset all sequences
+    // SELECT sequence_name FROM information_schema.sequences;
     await models.sequelize.query(`ALTER SEQUENCE posts_id_seq RESTART;`);
     await models.sequelize.query(`ALTER SEQUENCE comments_id_seq RESTART;`);
   }
@@ -49,6 +70,7 @@ class SeedsHelper {
     await models['users_sources'].bulkCreate(sourcesSeeds);
     await models['posts'].bulkCreate(postsSeeds);
     await models['post_offer'].bulkCreate(postsOffersSeeds);
+    await models['post_stats'].bulkCreate(postStatsSeeds);
     await models['post_users_team'].bulkCreate(postUsersTeamSeeds);
     await models['comments'].bulkCreate(commentsSeeds);
 

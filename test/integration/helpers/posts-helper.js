@@ -3,10 +3,67 @@ const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 const PostRepository = require('../../../lib/posts/posts-repository');
+const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 
 require('jest-expect-message');
 
 class PostsHelper {
+
+  /**
+   *
+   * @param {Object} user
+   * @returns {Promise<number>}
+   */
+  static async requestToCreateMediaPost(user) {
+    const newPostFields = {
+      'title': 'Extremely new post',
+      'description': 'Our super post description',
+      'leading_text': 'extremely leading text',
+      'post_type_id': PostTypeDictionary.getTypeMediaPost(),
+      'user_id': user.id,
+      'current_rate': 0.0000000000,
+      'current_vote': 0,
+    };
+
+    const res = await request(server)
+      .post(RequestHelper.getPostsUrl())
+      .set('Authorization', `Bearer ${user.token}`)
+      .send(newPostFields)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return +res.body.id;
+  }
+
+  /**
+   *
+   * @param {Object} user
+   * @returns {Promise<number>}
+   */
+  static async requestToCreatePostOffer(user) {
+    let newPostFields = {
+      'title': 'Extremely new post',
+      'description': 'Our super post description',
+      'leading_text': 'extremely leading text',
+      'user_id': user,
+      'post_type_id': PostTypeDictionary.getTypeOffer(),
+      'current_rate': '0.0000000000',
+      'current_vote': 0,
+      'action_button_title': 'TEST_BUTTON_CONTENT',
+    };
+
+    const res = await request(server)
+      .post(RequestHelper.getPostsUrl())
+      .set('Authorization', `Bearer ${user.token}`)
+      .send(newPostFields)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return +res.body.id;
+  }
+
 
   /**
    *

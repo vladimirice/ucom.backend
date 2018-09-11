@@ -76,7 +76,7 @@ describe('Posts API', () => {
 
       await FileToUploadHelper.isFileUploaded(newPost.main_image_filename);
 
-      const postStatsModel = await PostStatsRepository.findOneByPostId(newPost.id);
+      const postStatsModel = await PostStatsRepository.findOneByPostId(newPost.id, true);
       expect(postStatsModel).toBeDefined();
 
       expect(postStatsModel.comments_count).toBe(0);
@@ -162,7 +162,7 @@ describe('Posts API', () => {
       expect(postUsersTeam).toBeDefined();
       expect(postUsersTeam.length).toBe(0);
 
-      const postStats = await PostStatsRepository.findOneByPostId(lastPost.id);
+      const postStats = await PostStatsRepository.findOneByPostId(lastPost.id, true);
 
       expect(postStats).not.toBeNull();
 

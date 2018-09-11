@@ -25,6 +25,8 @@ router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
   const commentService = getCommentsService(req);
 
   const newComment = await commentService.createNewComment(req['body'], req['post_id']);
+
+  // TODO #opt need optimization
   const forResponse = await commentService.findOneForApiResponse(newComment.id);
 
   res.status(201).send(forResponse)
