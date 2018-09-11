@@ -162,7 +162,7 @@ describe('Posts API', () => {
       it('Sort by current_rate ASC', async () => {
         // title, comments_count, rate
 
-        const url = RequestHelper.getPostsUrl() + '?sort_by=+current_rate,-id';
+        const url = RequestHelper.getPostsUrl() + '?sort_by=current_rate,-id';
 
         const res = await request(server)
           .get(url)
@@ -181,7 +181,7 @@ describe('Posts API', () => {
 
       it('Sort by title DESC', async () => {
 
-        const url = RequestHelper.getPostsUrl() + '?sort_by=+title,-id';
+        const url = RequestHelper.getPostsUrl() + '?sort_by=title,-id';
 
         const res = await request(server)
           .get(url)
@@ -220,12 +220,12 @@ describe('Posts API', () => {
         });
         await Promise.all(setComments);
 
-        const posts = await PostHelper.requestToGetPostsAsGuest('sort_by=-comments_count,-id');
+        const posts = await PostHelper.requestToGetPostsAsGuest('sort_by=-comments_count');
 
         postToComments.forEach((data, index) => {
           expect(posts[index].id).toBe(data.post_id);
         });
-      })
+      });
     });
 
     it('Get all posts', async () => {
