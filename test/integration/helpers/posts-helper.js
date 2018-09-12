@@ -203,6 +203,32 @@ class PostsHelper {
 
   /**
    *
+   * @param postId
+   * @param user
+   * @param {Array} teamUsers - exactly two board members are allowed
+   * @returns {Promise<Object>}
+   */
+  static async requestToSetPostTeam(postId, user, teamUsers) {
+    const boardToChange = teamUsers.map(user => {
+      return {
+        user_id: user.id
+      }
+    });
+
+    const res = await request(server)
+      .patch(RequestHelper.getOnePostUrl(postId))
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('post_users_team[0][id]', boardToChange[0]['user_id'])
+      .field('post_users_team[1][id]', boardToChange[1]['user_id'])
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res;
+  }
+
+  /**
+   *
    * @param {Object} whoUpvote
    * @param {number} postId
    * @returns {Promise<void>}

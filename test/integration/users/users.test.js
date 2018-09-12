@@ -26,16 +26,6 @@ describe('Users API', () => {
 
   afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
 
-  describe('User stats', () => {
-    it('User rate must be normalized', async () => {
-      const expectedRate = await UserHelper.setSampleRateToUserVlad();
-
-      const user = await UserHelper.requestUserById(userVlad.id);
-
-      expect(user.current_rate).toBe(expectedRate);
-    });
-  });
-
   it('GET all users', async () => {
     const res = await request(server)
       .get(RequestHelper.getUsersUrl())

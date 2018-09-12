@@ -25,23 +25,6 @@ class UsersHelper {
 
   /**
    *
-   * @param {number} userId
-   * @param {string }fieldToBeNull
-   * @returns {Promise<void>}
-   */
-  static async makeUserFieldNull(userId, fieldToBeNull) {
-    await UsersRepository.getModel().update({
-      fieldToBeNull: null
-    }, {
-      where: {
-        id: userId
-      }
-
-      });
-  }
-
-  /**
-   *
    * @param {Object} model - model with included user
    * @param {string[]|null} expected - model with included user
    */
@@ -55,6 +38,11 @@ class UsersHelper {
     ResponseHelper.expectAllFieldsExistence(model['User'], expected);
   }
 
+  /**
+   * @deprecated
+   * @see setSampleRateToUser
+   * @returns {Promise<string>}
+   */
   static async setSampleRateToUserVlad() {
     const rateToSet = 0.1234;
 
@@ -72,10 +60,10 @@ class UsersHelper {
   /**
    *
    * @param {Object} user
+   * @param {number} rateToSet
    * @returns {Promise<number>}
    */
-  static async setSampleRateToUser(user) {
-    const rateToSet = 0.1234;
+  static async setSampleRateToUser(user, rateToSet = 0.1235) {
 
     await UsersRepository.getModel().update(
       {
@@ -136,6 +124,10 @@ class UsersHelper {
     expect(dbUser[fileUploadField]).toBe(body[fileUploadField]);
   }
 
+  /**
+   *
+   * @returns {PromiseLike<{id: *, token: *}>}
+   */
   static async getUserVlad() {
     const vladSeed = UsersHelper.getUserVladSeed();
     const vladFromDb = await UsersRepository.getUserByAccountName(vladSeed.account_name);
@@ -222,6 +214,10 @@ class UsersHelper {
     }
   }
 
+  /**
+   *
+   * @returns {PromiseLike<{id: *, token: *}>}
+   */
   static async getUserJane() {
     const seed = UsersHelper.getUserJaneSeed();
     const fromDb = await UsersRepository.getUserByAccountName(seed.account_name);
