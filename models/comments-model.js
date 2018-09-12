@@ -50,6 +50,13 @@ module.exports = (db, Sequelize) => {
   Model.associate = function(models) {
     models[TABLE_NAME].belongsTo(models.Users, {foreignKey: 'user_id'});
     models[TABLE_NAME].belongsTo(models['posts'], {foreignKey: 'commentable_id'});
+    models[TABLE_NAME].hasMany(models['activity_user_comment'], {
+      foreignKey: 'comment_id_to',
+      as: {
+        singular: 'activity_user_comment',
+        plural: 'activity_user_comment',
+      }
+    });
   };
 
 

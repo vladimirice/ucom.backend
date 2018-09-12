@@ -184,6 +184,38 @@ class PostsHelper {
     return res.body;
   }
 
+  /**
+   *
+   * @param {number} post_id
+   * @param {Object} user
+   * @returns {Promise<Object>}
+   */
+  static async requestToGetOnePostAsMyself(post_id, user) {
+    const res = await request(server)
+      .get(RequestHelper.getOnePostUrl(post_id))
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {number} post_id
+   * @returns {Promise<Object>}
+   */
+  static async requestToGetOnePostAsGuest(post_id) {
+    const res = await request(server)
+      .get(RequestHelper.getOnePostUrl(post_id))
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
 
   /**
    *

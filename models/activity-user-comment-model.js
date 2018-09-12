@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
     tableName: TABLE_NAME,
   });
   Model.associate = function(models) {
+
   };
 
   return Model;

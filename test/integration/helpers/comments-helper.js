@@ -14,13 +14,13 @@ class CommentsHelper {
    * @param {Object} user
    * @returns {Promise<Object>}
    */
-  static async requestToUpvotePost(post_id, comment_id, user) {
+  static async requestToUpvoteComment(post_id, comment_id, user) {
     const res = await request(server)
       .post(`/api/v1/posts/${post_id}/comments/${comment_id}/upvote`)
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return res.body;
   }
