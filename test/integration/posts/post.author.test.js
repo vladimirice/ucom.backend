@@ -29,7 +29,7 @@ describe('Posts API', () => {
   });
 
   it('Post author must have correct rating', async () => {
-    const expectedRate = await UserHelper.setSampleRateToUserVlad();
+    const expectedRate = await UserHelper.setSampleRateToUser(userVlad);
 
     const post = await PostRepository.findLastByAuthor(userVlad.id);
     // const postAndMyself = await PostHelper.getPostByMyself(post.id, userVlad);

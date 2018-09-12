@@ -24,9 +24,9 @@ describe('Users activity stats', () => {
 
   describe('User rate', () => {
     it('User rate must be normalized', async () => {
-      const expectedRate = await UserHelper.setSampleRateToUser(userVlad);
+      const expectedRate = await helpers.UserHelper.setSampleRateToUser(userVlad);
 
-      const user = await UserHelper.requestUserById(userVlad.id);
+      const user = await helpers.UserHelper.requestUserById(userVlad.id);
 
       expect(user.current_rate).toBe(expectedRate);
     });
@@ -53,20 +53,5 @@ describe('Users activity stats', () => {
       const teamJane = team.find(member => member.id === userJane.id);
       expect(teamJane.current_rate).toBe(expectedJaneRate);
     });
-
-    it('Update post-offer by its author', async () => {
-      // const userVlad = await UserHelper.getUserVlad();
-
-
-
-      // ResponseHelper.expectStatusOk(res);
-    })
-
-  });
-
-  it('Get user followers list', async () => {
-    // TODO
-    // Get user followers list inside user data
-    // get followers list inside myself data
   });
 });
