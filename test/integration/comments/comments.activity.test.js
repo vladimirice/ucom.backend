@@ -122,7 +122,7 @@ describe('Comments', () => {
 
         expect(votesAfter).toBe(votesBefore + 1);
 
-        // expect(userActivity.blockchain_status).toBe(10); // TODO
+        expect(userActivity.blockchain_status).toBe(10);
       });
     });
     describe('Negative scenarios', () => {
@@ -192,7 +192,7 @@ describe('Comments', () => {
 
         expect(votesAfter).toBe(votesBefore - 1);
 
-        // expect(userActivity.blockchain_status).toBe(10); // TODO
+        expect(userActivity.blockchain_status).toBe(10);
       });
     });
     describe('Negative scenarios', () => {
