@@ -12,6 +12,13 @@ router.post('/:post_id/comments/:comment_id/upvote', [authTokenMiddleWare], asyn
   res.status(201).send(response)
 });
 
+/* Upvote post comment */
+router.post('/:post_id/comments/:comment_id/downvote', [authTokenMiddleWare], async (req, res) => {
+  const response = await getCommentsService(req).downvoteComment(req['user'], req['comment_id']);
+
+  res.status(201).send(response)
+});
+
 /* create comment on comment */
 router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare], async (req, res) => {
   const commentService = getCommentsService(req);
