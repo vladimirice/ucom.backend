@@ -27,6 +27,24 @@ class CommentsHelper {
 
   /**
    *
+   * @param {number} post_id
+   * @param {number} comment_id
+   * @param {Object} user
+   * @returns {Promise<Object>}
+   */
+  static async requestToDownvoteComment(post_id, comment_id, user) {
+    const res = await request(server)
+      .post(`/api/v1/posts/${post_id}/comments/${comment_id}/downvote`)
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    ResponseHelper.expectStatusCreated(res);
+
+    return res.body;
+  }
+
+  /**
+   *
    * @param {Object} actual
    */
   static checkCommentResponseBody(actual) {

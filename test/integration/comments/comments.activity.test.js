@@ -23,16 +23,10 @@ describe('Comments', () => {
     ]);
   });
 
-  beforeEach(async () => {
-    await SeedsHelper.initCommentSeeds();
-  });
-
-  afterAll(async () => {
-    await SeedsHelper.sequelizeAfterAll();
-  });
+  beforeEach(async () => { await SeedsHelper.initCommentSeeds(); });
+  afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
 
   describe('User upvotes comment', () => {
-
     describe('Positive scenarios', () => {
       it('User upvotes comment', async () => {
         const post_id = 1;
@@ -97,7 +91,6 @@ describe('Comments', () => {
         });
       });
     });
-
     describe('Negative scenarios', () => {
       it('should not be possible to upvote without auth token', async () => {
         const post_id = 1;
@@ -139,17 +132,75 @@ describe('Comments', () => {
     });
   });
 
-  /*
+  describe('User downvotes comment', () => {
+    describe('Positive scenarios', () => {
+      it('User downvotes comment', async () => {
+        const post_id = 1;
+        const newComment = await CommentsHelper.requestToCreateComment(post_id, userJane);
 
-  * User upvotes comment like a post
-  * Comment has vote counter but in stats table not in main table because it is stats.
-  * Comment has myself data to show current user related activity.
-  * Required only for post comments - myself data
+        const comment_id = newComment.id;
 
+        const votesBefore = await CommentsRepository.getCommentCurrentVote(comment_id);
 
+        const body = await CommentsHelper.requestToDownvoteComment(post_id, comment_id, userVlad);
+        expect(body.current_vote).toBeDefined();
+        expect(body.current_vote).toBe(votesBefore - 1);
 
-   */
+        // const userActivity = await ActivityUserCommentRepository.getUserCommentUpvote(userVlad.id, comment_id);
+        //
+        // expect(userActivity).not.toBeNull();
+        //
+        // expect(userActivity.activity_type_id).toBe(ActivityDictionary.getUpvoteId());
+        // expect(userActivity.user_id_from).toBe(userVlad.id);
+        // expect(userActivity.comment_id_to).toBe(comment_id);
+        //
+        // const votesAfter = await CommentsRepository.getCommentCurrentVote(comment_id);
+        //
+        // expect(votesAfter).toBe(votesBefore + 1);
 
-  // Comment upvoting
+        // expect(userActivity.blockchain_status).toBe(10); // TODO
+      });
 
+      it('should be myself data about comments in post comments list', async () => {
+        // TODO
+        // const post_id = 1;
+        //
+        // const newCommentOne = await CommentsHelper.requestToCreateComment(post_id, userJane);
+        // const newCommentTwo = await CommentsHelper.requestToCreateComment(post_id, userPetr);
+        // await CommentsHelper.requestToUpvoteComment(post_id, newCommentOne.id, userVlad);
+        // await CommentsHelper.requestToUpvoteComment(post_id, newCommentTwo.id, userVlad);
+        //
+        // const post = await PostHelper.requestToGetOnePostAsMyself(post_id, userVlad);
+        //
+        // const comments = post['comments'];
+        //
+        // const upvotedCommentOne = comments.find(comment => comment.id === newCommentOne.id);
+        // expect(upvotedCommentOne.myselfData).toBeDefined();
+        // expect(upvotedCommentOne.myselfData.myselfVote).toBe('upvote');
+        //
+        // const upvotedCommentTwo = comments.find(comment => comment.id === newCommentTwo.id);
+        // expect(upvotedCommentTwo.myselfData).toBeDefined();
+        // expect(upvotedCommentTwo.myselfData.myselfVote).toBe('upvote');
+        //
+        // const notUpvotedComment = comments.find(comment => ![newCommentOne.id, newCommentTwo.id].includes(comment.id));
+        // expect(notUpvotedComment.myselfData).toBeDefined();
+        // expect(notUpvotedComment.myselfData.myselfVote).toBe('no_vote');
+      });
+
+      it('should be no myself data if no auth token', async () => {
+        // TODO
+        // const post_id = 1;
+        //
+        // const post = await PostHelper.requestToGetOnePostAsGuest(post_id);
+        // const comments = post['comments'];
+        //
+        // comments.forEach(comment => {
+        //   expect(comment.myselfData).not.toBeDefined();
+        // });
+      });
+    });
+    describe('Negative scenarios', () => {
+      // TODO
+    });
+  });
 });
