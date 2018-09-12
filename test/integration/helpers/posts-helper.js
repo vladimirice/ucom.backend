@@ -203,6 +203,21 @@ class PostsHelper {
 
   /**
    *
+   * @param {Object} whoUpvote
+   * @param {number} postId
+   * @returns {Promise<void>}
+   */
+  static async requestToUpvotePost(whoUpvote, postId) {
+    const res = await request(server)
+      .post(`/api/v1/posts/${postId}/upvote`)
+      .set('Authorization', `Bearer ${whoUpvote.token}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+  }
+
+  /**
+   *
    * @param {number} post_id
    * @returns {Promise<Object>}
    */

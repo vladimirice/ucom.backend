@@ -1,3 +1,8 @@
+const reqlib = require('app-root-path').require;
+
+
+const helpers = require('../helpers');
+
 const request = require('supertest');
 const server = require('../../../app');
 const UserHelper = require('../helpers/users-helper');
@@ -8,13 +13,14 @@ const ActivityUserPostRepository = require('../../../lib/activity/activity-user-
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 const PostRepository = require('../../../lib/posts/posts-repository');
 
-let userVlad, userJane;
+let userVlad, userJane, userPetr;
 
 describe('User to user activity', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await Promise.all([
+    [userVlad, userJane, userPetr] = await Promise.all([
       UserHelper.getUserVlad(),
-      UserHelper.getUserJane()
+      UserHelper.getUserJane(),
+      UserHelper.getUserPetr()
     ]);
   });
 

@@ -14,6 +14,13 @@ class ActivityHelper {
     ResponseHelper.expectStatusOk(res);
   }
 
+  /**
+   * @deprecated
+   * @see PostHelper:createPostUpvote
+   * @param whoUpvote
+   * @param postId
+   * @returns {Promise<void>}
+   */
   static async createPostUpvote(whoUpvote, postId) {
     const res = await request(server)
       .post(`/api/v1/posts/${postId}/upvote`)
