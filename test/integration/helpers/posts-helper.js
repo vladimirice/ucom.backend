@@ -239,7 +239,24 @@ class PostsHelper {
       .set('Authorization', `Bearer ${whoUpvote.token}`)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusCreated(res);
+  }
+
+  /**
+   *
+   * @param {Object} user
+   * @param {number} postId
+   * @returns {Promise<void>}
+   */
+  static async requestToDownvotePost(user, postId) {
+    const res = await request(server)
+      .post(`/api/v1/posts/${postId}/downvote`)
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    ResponseHelper.expectStatusCreated(res);
+
+    return res.body;
   }
 
   /**

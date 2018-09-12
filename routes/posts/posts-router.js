@@ -37,6 +37,13 @@ router.post('/:post_id/join', [authTokenMiddleWare], async (req, res) => {
   });
 });
 
+router.post('/:post_id/downvote', [authTokenMiddleWare], async (req, res) => {
+  const postService = getPostService(req);
+  const result = await postService.userDownvotesPost(req['user'], req['post_id']);
+
+  return res.status(201).send(result);
+});
+
 router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
   const postService = getPostService(req);
 
