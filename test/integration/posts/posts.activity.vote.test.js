@@ -49,7 +49,7 @@ describe('User to post activity', () => {
         expect(userUpvote.user_id_from).toBe(userJane.id);
         expect(userUpvote.post_id_to).toBe(post.id);
         expect(userUpvote.activity_type_id).toBe(ActivityDictionary.getUpvoteId());
-        expect(userUpvote.blockchain_status).toBe(10);
+        expect(+userUpvote.blockchain_status).toBe(10);
       });
     });
     describe('Negative scenarios', () => {
@@ -130,7 +130,7 @@ describe('User to post activity', () => {
         expect(activity.post_id_to).toBe(post_id);
         expect(activity.activity_type_id).toBe(ActivityDictionary.getDownvoteId());
 
-        expect(activity.blockchain_status).toBe(10);
+        expect(+activity.blockchain_status).toBe(10);
       });
     });
     describe('Negative scenarios', () => {
