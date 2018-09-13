@@ -12,7 +12,10 @@ const ActivityHelper = require('../helpers/activity-helper');
 
 require('jest-expect-message');
 
-let userVlad, userJane, userPetr, userRokky;
+let userVlad;
+let userJane;
+let userPetr;
+let userRokky;
 
 describe('User to user activity', () => {
   beforeAll(async () => { await SeedsHelper.destroyTables(); });
@@ -25,7 +28,7 @@ describe('User to user activity', () => {
       UserHelper.getUserVlad(),
       UserHelper.getUserJane(),
       UserHelper.getUserPetr(),
-      UserHelper.getUserRokky()
+      UserHelper.getUserRokky(),
     ]);
   });
 

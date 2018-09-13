@@ -38,6 +38,9 @@ deploy d:
 pm2-prod-logs ppl:
 	ssh dev@5.9.119.5 'bash -s' < ./pm2_production_logs.sh
 
+ipfs-tunnel:
+	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
+
 docker-init-test-db ditd:
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_DROP_COMMAND}
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_CREATE_COMMAND}
