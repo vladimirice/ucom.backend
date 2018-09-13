@@ -55,6 +55,10 @@ class RequestHelper {
     return `/api/v1/users/${userId}/follow`
   }
 
+  static getUnfollowUrl(userId) {
+    return `/api/v1/users/${userId}/unfollow`
+  }
+
   static getJoinUrl(postId) {
     return `/api/v1/posts/${postId}/join`;
   }

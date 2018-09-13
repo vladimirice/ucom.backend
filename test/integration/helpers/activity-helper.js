@@ -5,13 +5,30 @@ const server = require('../../../app');
 const PostService = require('../../../lib/posts/post-service');
 
 class ActivityHelper {
-  static async createFollow(follower, followed) {
+  static async requestToCreateFollow(whoActs, targetUser) {
     const res = await request(server)
-      .post(RequestHelper.getFollowUrl(followed.id))
-      .set('Authorization', `Bearer ${follower.token}`)
+      .post(RequestHelper.getFollowUrl(targetUser.id))
+      .set('Authorization', `Bearer ${whoActs.token}`)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusCreated(res);
+  }
+
+  /**
+   *
+   * @param {Object} whoActs
+   * @param {Object} targetUser
+   * @returns {Promise<{Object}>}
+   */
+  static async requestToCreateUnfollow(whoActs, targetUser) {
+    const res = await request(server)
+      .post(RequestHelper.getUnfollowUrl(targetUser.id))
+      .set('Authorization', `Bearer ${whoActs.token}`)
+    ;
+
+    ResponseHelper.expectStatusCreated(res);
+
+    return res.body;
   }
 
   /**

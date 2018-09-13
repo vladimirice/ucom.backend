@@ -96,7 +96,7 @@ describe('Users activity stats', () => {
   it('Get info that user is followed by me', async () => {
     const followed = userJane;
 
-    await ActivityHelper.createFollow(userVlad, userJane);
+    await ActivityHelper.requestToCreateFollow(userVlad, userJane);
 
     const userJaneResponse = await request(server)
       .get(RequestHelper.getUserUrl(followed.id))
@@ -129,7 +129,7 @@ describe('Users activity stats', () => {
     });
 
     it('Myself data in post User info - following', async () => {
-      await ActivityHelper.createFollow(userVlad, userJane);
+      await ActivityHelper.requestToCreateFollow(userVlad, userJane);
 
       const post = await PostsService.findLastMediaPostByAuthor(userJane.id);
 

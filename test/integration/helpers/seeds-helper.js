@@ -68,6 +68,15 @@ class SeedsHelper {
     }
   }
 
+  /**
+   *
+   * @param {string} tableName
+   * @returns {Promise<void>}
+   */
+  static async truncateTable(tableName) {
+    await models[tableName].destroy({where: {}});
+  }
+
   static async initSeedsForUsers() {
     await models['activity_user_user'].destroy({where: {}});
     await models['Users'].destroy({where: {}});

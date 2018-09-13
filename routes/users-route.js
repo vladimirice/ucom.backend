@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const status = require('statuses');
+
 const {AppError, BadRequestError} = require('../lib/api/errors');
 const UsersRepository = require('../lib/users/users-repository');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const ActivityService = require('../lib/activity/activity-service');
+const UserActivityService = require('../lib/users/user-activity-service');
 const UserService = require('../lib/users/users-service');
 
 /* Find users by name fields - shortcut */
@@ -41,17 +44,27 @@ router.get('/:user_id/posts', async function(req, res) {
   res.send(posts);
 });
 
-/* Create new user-user-activity */
+/* One user follows other user */
 router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) {
   const userFrom = req['user'];
   const userToId = req['user_id'];
 
-  await ActivityService.userFollowsUser(userFrom, userToId);
+  await UserActivityService.userFollowsAnotherUser(userFrom, userToId);
 
-  res.send({
-    'user_id_from': userFrom.id,
-    'user_id_to': userToId,
-    'activity': 'follow'
+  res.status(status('201')).send({
+    'success': true,
+  });
+});
+
+/* One user unfollows other user */
+router.post('/:user_id/unfollow', [authTokenMiddleWare], async function(req, res) {
+  const userFrom = req['user'];
+  const userIdTo = req['user_id'];
+
+  await UserActivityService.userUnfollowsUser(userFrom, userIdTo);
+
+  res.status(status('201')).send({
+    status: 'ok'
   });
 });
 
