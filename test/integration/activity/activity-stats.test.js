@@ -9,7 +9,9 @@ const ActivityHelper = require('../helpers/activity-helper');
 const PostsService = require('../../../lib/posts/post-service');
 const PostsHelper = require('../helpers/posts-helper');
 
-let userVlad, userJane, userPetr;
+let userVlad;
+let userJane;
+let userPetr;
 
 describe('Users activity stats', () => {
   beforeAll(async () => {
@@ -39,18 +41,17 @@ describe('Users activity stats', () => {
 
       expect(responsePost.hasOwnProperty('myselfData')).toBeTruthy();
 
-      expect(responsePost['myselfData'].hasOwnProperty('join')).toBeTruthy();
-      expect(responsePost['myselfData']['join']).toBeTruthy();
+      expect(responsePost.myselfData.hasOwnProperty('join')).toBeTruthy();
+      expect(responsePost.myselfData.join).toBeTruthy();
     });
 
     it('Get info that user has not joined to post', async () => {
       const post = await PostsService.findLastPostOfferByAuthor(userVlad.id);
       const responsePost = await PostsHelper.getPostByMyself(post.id, userJane);
 
-      expect(responsePost['myselfData']['join']).toBeFalsy();
-    })
+      expect(responsePost.myselfData.join).toBeFalsy();
+    });
   });
-
 
   it('List of post does not contain myself statuses', async () => {
     const postToUpvote = await PostsService.findLastMediaPostByAuthor(userJane.id);
@@ -104,8 +105,8 @@ describe('Users activity stats', () => {
 
     const userJaneBody = userJaneResponse.body;
 
-    expect(userJaneBody['myselfData']).toBeDefined();
-    expect(userJaneBody['myselfData']['follow']).toBeTruthy();
+    expect(userJaneBody.myselfData).toBeDefined();
+    expect(userJaneBody.myselfData.follow).toBeTruthy();
   });
 
   describe('Post author myself activity', () => {
