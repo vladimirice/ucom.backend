@@ -240,6 +240,8 @@ class PostsHelper {
     ;
 
     ResponseHelper.expectStatusCreated(res);
+
+    return res.body;
   }
 
   /**

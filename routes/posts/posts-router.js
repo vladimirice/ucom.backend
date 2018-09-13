@@ -37,56 +37,16 @@ router.post('/:post_id/join', [authTokenMiddleWare], async (req, res) => {
   });
 });
 
-router.post('/:post_id/downvote', [authTokenMiddleWare], async (req, res) => {
-  const postService = getPostService(req);
-  const result = await postService.userDownvotesPost(req['user'], req['post_id']);
+router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
+  const result = await getPostService(req).userUpvotesPost(req['user'], req['post_id']);
 
   return res.status(201).send(result);
 });
 
-router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
-  const postService = getPostService(req);
+router.post('/:post_id/downvote', [authTokenMiddleWare], async (req, res) => {
+  const result = await getPostService(req).userDownvotesPost(req['user'], req['post_id']);
 
-  const postIdTo = req['post_id'];
-
-  // TODO check does exists only
-  const postTo = await postService.findOneByIdAndProcess(postIdTo);
-
-  const userFrom = req['user'];
-
-  if (!postTo) {
-    return res.status(404).send({
-      'errors': {
-        'post_id': `There is post with ID ${postIdTo}`
-      }
-    });
-  }
-
-  const doesExists = await ActivityService.doesUserVotePost(userFrom.id, postIdTo);
-
-  if (doesExists) {
-    return res.status(400).send({
-      'errors': {
-        'upvote': 'Vote duplication is not allowed'
-      }
-    });
-  }
-
-  if (postTo.user_id === userFrom.id) {
-    return res.status(400).send({
-      'errors': {
-        'upvote': 'It is not allowed to vote for your own post'
-      }
-    });
-  }
-
-  await ActivityService.userUpvotesPost(userFrom, postTo);
-
-  const changedPost = await postService.findOneByIdAndProcess(postIdTo);
-
-  res.send({
-    'current_vote': changedPost.current_vote,
-  });
+  return res.status(201).send(result);
 });
 
 /* Upload post picture (for description) */
