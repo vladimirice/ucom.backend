@@ -55,7 +55,7 @@ describe('Users activity stats', () => {
   it('List of post does not contain myself statuses', async () => {
     const postToUpvote = await PostsService.findLastMediaPostByAuthor(userJane.id);
 
-    await ActivityHelper.createPostUpvote(userVlad, postToUpvote.id);
+    await PostsHelper.requestToUpvotePost(userVlad, postToUpvote.id);
 
     const res = await request(server)
       .get(RequestHelper.getPostsUrl())
@@ -72,7 +72,7 @@ describe('Users activity stats', () => {
   it('List of posts must contain post upvote status of myself', async () => {
     const postToUpvote = await PostsService.findLastMediaPostByAuthor(userJane.id);
 
-    await ActivityHelper.createPostUpvote(userVlad, postToUpvote.id);
+    await PostsHelper.requestToUpvotePost(userVlad, postToUpvote.id);
 
     const res = await request(server)
       .get(RequestHelper.getPostsUrl())
