@@ -125,7 +125,7 @@ describe('Comments', () => {
 
       let expected = UserRepository.getModel().getFieldsForPreview();
 
-      expected.push('followed_by');
+      // expected.push('followed_by');
 
       UserHelper.checkIncludedUserPreview(body, expected);
 

@@ -14,6 +14,12 @@ class ActivityHelper {
     ResponseHelper.expectStatusCreated(res);
   }
 
+  static async requestToCreateFollowHistory(whoActs, targetUser) {
+    await ActivityHelper.requestToCreateFollow(whoActs, targetUser);
+    await ActivityHelper.requestToCreateUnfollow(whoActs, targetUser);
+    await ActivityHelper.requestToCreateFollow(whoActs, targetUser);
+  }
+
   /**
    *
    * @param {Object} whoActs

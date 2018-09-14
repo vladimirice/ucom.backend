@@ -33,13 +33,46 @@ class RequestHelper {
 
 
   /**
-   *
+   * @deprecated
+   * @see requestUserByIdAsGuest
    * @param {number} userId
    * @returns {Promise<Object>}
    */
   static async requestUserById(userId) {
     const res = await request(server)
       .get(this.getUserUrl(userId))
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} user
+   * @returns {Promise<Object>}
+   */
+  static async requestUserByIdAsGuest(user) {
+    const res = await request(server)
+      .get(this.getUserUrl(user.id))
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} myself
+   * @param {Object} userToRequest
+   * @returns {Promise<Object>}
+   */
+  static async requestUserByIdAsMyself(myself, userToRequest) {
+    const res = await request(server)
+      .get(this.getUserUrl(userToRequest.id))
+      .set('Authorization', `Bearer ${myself.token}`)
     ;
 
     ResponseHelper.expectStatusOk(res);

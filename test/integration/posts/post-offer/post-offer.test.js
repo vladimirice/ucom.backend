@@ -2,6 +2,8 @@ const request = require('supertest');
 const server = require('../../../../app');
 const expect = require('expect');
 
+const helpers = require('../../helpers');
+
 const UserHelper = require('../../helpers/users-helper');
 const SeedsHelper = require('../../helpers/seeds-helper');
 const RequestHelper = require('../../helpers/request-helper');
@@ -27,6 +29,28 @@ describe('Posts API', () => {
 
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
+  });
+
+  describe('Post-offer activity', () => {
+    it('Get info that user joined to post-offer', async () => {
+      const post = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+
+      await helpers.ActivityHelper.createJoin(userJane, post.id);
+
+      const responsePost = await helpers.PostHelper.getPostByMyself(post.id, userJane);
+
+      expect(responsePost.hasOwnProperty('myselfData')).toBeTruthy();
+
+      expect(responsePost.myselfData.hasOwnProperty('join')).toBeTruthy();
+      expect(responsePost.myselfData.join).toBeTruthy();
+    });
+
+    it('Get info that user has not joined to post', async () => {
+      const post = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+      const responsePost = await helpers.PostHelper.getPostByMyself(post.id, userJane);
+
+      expect(responsePost.myselfData.join).toBeFalsy();
+    });
   });
 
   it('Get one post', async () => {

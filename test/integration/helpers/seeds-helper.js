@@ -79,11 +79,15 @@ class SeedsHelper {
 
   static async initSeedsForUsers() {
     await models['activity_user_user'].destroy({where: {}});
+    await models['posts'].destroy({where: {}});
     await models['Users'].destroy({where: {}});
+
     await models.sequelize.query(`ALTER SEQUENCE activity_user_user_id_seq RESTART;`);
     await models.sequelize.query(`ALTER SEQUENCE "Users_id_seq" RESTART;`);
+    await models.sequelize.query(`ALTER SEQUENCE posts_id_seq RESTART;`);
 
     await models['Users'].bulkCreate(usersSeeds);
+    await models['posts'].bulkCreate(postsSeeds);
   }
 
   static async seedMainTables() {

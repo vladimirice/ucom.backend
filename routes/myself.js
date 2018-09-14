@@ -11,7 +11,7 @@ const { cpUpload } = require('../lib/users/avatar-upload-middleware');
 /* Get myself data (Information for profile) */
 router.get('/', [authTokenMiddleWare], async function(req, res) {
   const currentUserId = req['user'].id;
-  const user = await getUserService(req).getUserById(currentUserId);
+  const user = await getUserService(req).getUserByIdAndProcess(currentUserId);
 
   res.send(user)
 });

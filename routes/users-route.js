@@ -20,18 +20,14 @@ router.get('/search', async (req, res) => {
 
 /* GET one user */
 router.get('/:user_id', async function(req, res) {
-  const userId = req['user_id'];
-  const user = await getUserService(req).getUserById(userId);
+  const user = await getUserService(req).getUserByIdAndProcess(req['user_id']);
 
   res.send(user);
 });
 
 /* GET all users */
 router.get('/', async function(req, res) {
-  const userService = getUserService(req);
-
-
-  const users = await userService.findAll();
+  const users = await getUserService(req).findAllAndProcessForList();
 
   res.send(users);
 });

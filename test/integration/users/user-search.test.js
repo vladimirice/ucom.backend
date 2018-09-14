@@ -23,10 +23,6 @@ describe('Users API', () => {
       .get(RequestHelper.getUserSearchUrl('a'))
     ;
 
-    // const res = await request(server)
-    //   .get('/api/v1/users/?' + 'account_name[like]=vl&nickname[like]=vl&first_name[like]=vl&op=or')
-    // ;
-
     ResponseHelper.expectStatusOk(res);
 
     expect(res.body.length).toBe(3);

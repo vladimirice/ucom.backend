@@ -10,6 +10,7 @@ const ActivityUserUserRepository = require('../../../lib/users/activity-user-use
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 const ActivityHelper = require('../helpers/activity-helper');
 const BlockchainStatusDictionary = require('../../../lib/eos/eos-blockchain-status-dictionary');
+const PostRepository = require('../../../lib/posts/posts-repository');
 
 require('jest-expect-message');
 
@@ -86,7 +87,6 @@ describe('User to user activity', () => {
       });
     })
   });
-
   describe('Unfollow workflow', () => {
 
     describe('Positive scenarios', () => {
@@ -109,7 +109,6 @@ describe('User to user activity', () => {
         await ActivityHelper.requestToCreateUnfollow(userPetr, userVlad);
         await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
       });
-
     });
 
     describe('Negative scenarios', () => {
@@ -158,157 +157,150 @@ describe('User to user activity', () => {
     });
   });
 
-  describe('User followers and I_follow and myself data', () => {
-      describe('User-to-user myself data inside lists', () => {
-        it('User list must contain myselfData with actual follow status', async () => {
+  describe('User list. MyselfData', () => {
+    it('MyselfData. User list must contain myselfData with actual follow status', async () => {
+
+      await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
+      await ActivityHelper.requestToCreateUnfollow(userPetr, userVlad);
 
 
-          await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
-          await ActivityHelper.requestToCreateUnfollow(userPetr, userVlad);
-          await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
+      await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
+      await ActivityHelper.requestToCreateFollow(userPetr, userJane);
+      await ActivityHelper.requestToCreateFollow(userJane, userPetr);
 
+      const users = await UserHelper.requestUserListByMyself(userPetr);
 
-          const users = await UserHelper.requestUserListByMyself(userPetr);
+      const responseVlad = users.find(data => data.id === userVlad.id);
+      expect(responseVlad.myselfData.follow).toBeTruthy();
 
-          const responseVlad = users.find(data => data.id === userVlad.id);
-          expect(responseVlad.myselfData).toBeDefined();
-          expect(responseVlad.myselfData.follow).toBeTruthy();
+      const responseJane = users.find(data => data.id === userJane.id);
+      expect(responseJane.myselfData.follow).toBeTruthy();
+      expect(responseJane.myselfData.myFollower).toBeTruthy();
 
-          const responseJane = users.find(data => data.id === userJane.id);
-          expect(responseJane.myselfData).toBeDefined();
-          expect(responseJane.myselfData.follow).toBeTruthy();
-
-          const responseRokky = users.find(data => data.id === userRokky.id);
-          expect(responseRokky.myselfData).toBeDefined();
-          expect(responseRokky.myselfData.follow).toBeFalsy();
-        });
-
-        it('There is no myself data if user is not logged in', async () => {
-          await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
-          await ActivityHelper.requestToCreateFollow(userPetr, userJane);
-
-          const users = await UserHelper.requestUserListAsGuest();
-
-          users.forEach(user => {
-            expect(user.myselfData).not.toBeDefined();
-          });
-        });
-
-      });
-
-      it('Get user info with his followers', async () => {
-        await ActivityHelper.requestToCreateFollow(userJane, userVlad);
-        await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
-
-        await ActivityHelper.requestToCreateFollow(userVlad, userRokky);
-        await ActivityHelper.requestToCreateFollow(userVlad, userJane);
-
-        const janeSampleRate = await UserHelper.setSampleRateToUser(userJane);
-        const user = await RequestHelper.requestUserById(userVlad.id);
-
-        const followedBy = user['followed_by'];
-        expect(followedBy).toBeDefined();
-        expect(followedBy.length).toBeGreaterThan(0);
-
-        const iFollow = user['I_follow'];
-        expect(iFollow).toBeDefined();
-        expect(iFollow.length).toBeGreaterThan(0);
-
-        followedBy.forEach(follower => {
-          UserHelper.checkIncludedUserPreview({
-            'User': follower
-          });
-        });
-
-        const userJaneResponse = followedBy.find(data => data.id === userJane.id);
-        expect(+userJaneResponse.current_rate).toBe(+janeSampleRate);
-
-        const userJaneFromIFollow = iFollow.find(data => data.id === userJane.id);
-        expect(+userJaneFromIFollow.current_rate).toBe(+janeSampleRate);
-      });
-
-      it('Get user info with I_follow', async () => {
-        await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
-        await ActivityHelper.requestToCreateFollow(userPetr, userJane);
-        const user = await RequestHelper.requestUserById(userPetr.id);
-
-        const iFollow = user['I_follow'];
-        expect(iFollow).toBeDefined();
-        expect(iFollow.length).toBeGreaterThan(0);
-
-        iFollow.forEach(follower => {
-          UserHelper.checkIncludedUserPreview({
-            'User': follower
-          });
-        });
-      });
-
-      it('There is no followers of user', async () => {
-        const user = await RequestHelper.requestUserById(userPetr.id);
-
-        const followedBy = user['followed_by'];
-        expect(followedBy).toBeDefined();
-        expect(followedBy.length).toBe(0);
-      });
-
-      it('There is no I_follow of user', async () => {
-        const user = await RequestHelper.requestUserById(userPetr.id);
-
-        const iFollow = user['I_follow'];
-        expect(iFollow).toBeDefined();
-        expect(iFollow.length).toBe(0);
-      });
-
-
-      it('Get myself info with his followers', async () => {
-        await ActivityHelper.requestToCreateFollow(userJane, userPetr);
-        await ActivityHelper.requestToCreateFollow(userVlad, userPetr);
-
-        const user = await RequestHelper.requestMyself(userPetr);
-
-        const followedBy = user['followed_by'];
-        expect(followedBy).toBeDefined();
-        expect(followedBy.length).toBeGreaterThan(0);
-
-        followedBy.forEach(follower => {
-          UserHelper.checkIncludedUserPreview({
-            'User': follower
-          });
-        });
-      });
-
-      it('Get myself info with I_follow', async () => {
-        await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
-        await ActivityHelper.requestToCreateFollow(userPetr, userJane);
-        const user = await RequestHelper.requestMyself(userPetr);
-
-        const iFollow = user['I_follow'];
-        expect(iFollow).toBeDefined();
-        expect(iFollow.length).toBeGreaterThan(0);
-
-        iFollow.forEach(follower => {
-          UserHelper.checkIncludedUserPreview({
-            'User': follower
-          });
-        });
-      });
-
-      it('There is no I_follow of myself', async () => {
-        const user = await RequestHelper.requestMyself(userPetr);
-
-        const iFollow = user['I_follow'];
-        expect(iFollow).toBeDefined();
-        expect(iFollow.length).toBe(0);
-      });
-
-      it('There is no followers of myself', async () => {
-        const user = await RequestHelper.requestMyself(userPetr);
-
-        const followedBy = user['followed_by'];
-        expect(followedBy).toBeDefined();
-        expect(followedBy.length).toBe(0);
-      });
+      const responseRokky = users.find(data => data.id === userRokky.id);
+      expect(responseRokky.myselfData).toBeDefined();
+      expect(responseRokky.myselfData.follow).toBeFalsy();
     });
+    it('MyselfData. There is no myself data if user is not logged in', async () => {
+      await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
+      await ActivityHelper.requestToCreateFollow(userPetr, userJane);
+
+      const users = await UserHelper.requestUserListAsGuest();
+
+      const userWithMyself = users.some(user => user.myselfData !== undefined);
+
+      expect(userWithMyself).toBeFalsy();
+    });
+  });
+
+  describe('Single user. I_follow, followed_by and myselfData', () => {
+    it('I_follow and followed_by of single user - exists', async () => {
+      const IFollowExpected = [
+        userVlad,
+        userRokky
+      ];
+
+      const followedByExpected = [
+        userJane,
+        userVlad
+      ];
+
+      await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
+      await ActivityHelper.requestToCreateFollow(userPetr, userRokky);
+
+      await ActivityHelper.requestToCreateFollow(userJane, userPetr);
+      await ActivityHelper.requestToCreateUnfollow(userJane, userPetr);
+      await ActivityHelper.requestToCreateFollow(userJane, userPetr);
+      await ActivityHelper.requestToCreateFollow(userVlad, userPetr);
+
+      const janeSampleRate = await UserHelper.setSampleRateToUser(userJane);
+      const userRokkySampleRate = await UserHelper.setSampleRateToUser(userRokky);
+      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
+
+      const followedBy = user['followed_by'];
+      expect(followedBy).toBeDefined();
+      followedByExpected.forEach(user => {
+        expect(followedBy.some(data => data.id === user.id)).toBeTruthy();
+      });
+
+      const iFollow = user['I_follow'];
+      expect(iFollow).toBeDefined();
+      IFollowExpected.forEach(user => {
+        expect(iFollow.some(data => data.id === user.id)).toBeTruthy();
+      });
+
+      followedBy.forEach(follower => {
+        UserHelper.checkIncludedUserPreview({
+          'User': follower
+        });
+      });
+
+      const userJaneResponse = followedBy.find(data => data.id === userJane.id);
+      expect(+userJaneResponse.current_rate).toBe(+janeSampleRate);
+
+      const userRokkyResponse = iFollow.find(data => data.id === userRokky.id);
+      expect(+userRokkyResponse.current_rate).toBe(+userRokkySampleRate);
+    });
+    it('I_follow and followed_by of single user - does not exist', async () => {
+      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
+
+      const followedBy = user['followed_by'];
+      expect(followedBy).toBeDefined();
+      expect(followedBy.length).toBe(0);
+
+      const iFollow = user['I_follow'];
+      expect(iFollow).toBeDefined();
+      expect(iFollow.length).toBe(0);
+    });
+
+    it('MyselfData exists.', async () => {
+      await helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
+      const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
+
+      expect(user.myselfData).toBeDefined();
+      expect(user.myselfData.follow).toBeTruthy();
+      expect(user.myselfData.myFollower).toBeFalsy();
+    });
+
+    it('MyselfData. Does not exist if no token', async () => {
+      await helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
+      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
+
+      expect(user.myselfData).not.toBeDefined();
+    });
+  });
+
+  describe('Post author myself activity', () => {
+    it('Myself data in post User info - following', async () => {
+      await ActivityHelper.requestToCreateFollow(userVlad, userJane);
+
+      const postId = await PostRepository.findLastMediaPostIdByAuthor(userJane.id);
+
+      const body = await helpers.PostHelper.requestToGetOnePostAsMyself(postId, userVlad);
+
+      const author = body.User;
+      expect(author).toBeDefined();
+
+      expect(author.myselfData).toBeDefined();
+      expect(author.myselfData.follow).toBeDefined();
+      expect(author.myselfData.follow).toBeTruthy();
+    });
+
+    it('Myself data in post User info - not following', async () => {
+
+      const postId = await PostRepository.findLastMediaPostIdByAuthor(userVlad.id);
+
+      const body = await helpers.PostHelper.requestToGetOnePostAsMyself(postId, userVlad);
+
+      const author = body.User;
+
+      expect(author).toBeDefined();
+
+      expect(author.myselfData).toBeDefined();
+      expect(author.myselfData.follow).toBeDefined();
+      expect(author.myselfData.follow).toBeFalsy();
+    });
+  });
 
   describe('General negative scenarios', async () => {
     it('Not possible to follow user which does not exist', async () => {

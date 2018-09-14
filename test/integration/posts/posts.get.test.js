@@ -2,6 +2,8 @@ const request = require('supertest');
 const server = require('../../../app');
 const expect = require('expect');
 
+const helpers = require('../helpers');
+
 const UsersHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const PostHelper = require('../helpers/posts-helper');
@@ -18,10 +20,12 @@ const postsUrl = '/api/v1/posts';
 require('jest-expect-message');
 
 let userVlad;
+let userJane;
 
 describe('Posts API', () => {
   beforeAll(async () => {
     userVlad = await UsersHelper.getUserVlad();
+    userJane = await UsersHelper.getUserJane();
   });
 
   beforeEach(async () => {
@@ -31,6 +35,24 @@ describe('Posts API', () => {
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
   });
+
+  it('List of post does not contain myself statuses', async () => {
+    const postToUpvote = await PostsService.findLastMediaPostByAuthor(userJane.id);
+
+    await helpers.PostHelper.requestToUpvotePost(userVlad, postToUpvote.id);
+
+    const res = await request(server)
+      .get(RequestHelper.getPostsUrl())
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    res.body.data.forEach(post => {
+      expect(post.title).toBeDefined();
+      expect(post.myselfData).not.toBeDefined();
+    });
+  });
+
 
   describe('GET posts', () => {
     describe('Test filtering', () => {
@@ -316,7 +338,7 @@ describe('Posts API', () => {
   });
 
   it('User data inside post is normalized', async () => {
-    await UsersHelper.setSampleRateToUserVlad();
+    await UsersHelper.setSampleRateToUser(userVlad);
 
     const post = await PostsService.findLastMediaPostByAuthor(userVlad.id);
 

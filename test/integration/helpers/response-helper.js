@@ -2,22 +2,22 @@ require('jest-expect-message');
 
 class ResponseHelper {
   static expectStatusOk(res) {
-    expect(res.status).toBe(200);
+    expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(200);
   }
   static expectStatusCreated(res) {
-    expect(res.status).toBe(201);
+    expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(201);
   }
 
   static expectStatusNotFound(res) {
-    expect(res.status).toBe(404);
+    expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(404);
   }
 
   static expectStatusBadRequest(res) {
-    expect(res.status).toBe(400);
+    expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(400);
   }
 
   static expectStatusUnauthorized(res) {
-    expect(res.status).toBe(401);
+    expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(401);
   }
 
   /**
