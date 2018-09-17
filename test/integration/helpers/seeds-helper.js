@@ -11,6 +11,8 @@ const commentsSeeds = require('../../../seeders/comments/comments-seeds');
 
 // Truncated async
 const minorTables = [
+  'ipfs_meta',
+
   'users_education',
   'users_jobs',
   'users_sources',
@@ -118,12 +120,6 @@ class SeedsHelper {
   static async initSeeds() {
     await this.destroyTables();
     await this.seedDb();
-
-    // TODO user sql reset instead
-    usersSeeds.forEach(() => {
-      models.sequelize.query(`SELECT nextval('"Users_id_seq"')`).then(() => {
-      });
-    });
   }
 
   static async initPostOfferSeeds() {

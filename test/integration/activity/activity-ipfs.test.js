@@ -5,10 +5,10 @@ const helpers = require('../helpers');
 const moment = require('moment');
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
-const rabbitMqConfig = require('config')['rabbitmq'];
+const IpfsMetaRepository = require('../../../lib/ipfs/ipfs-meta-repository');
+const IpfsApi = require('../../../lib/ipfs/ipfs-api');
 
-const open = require('amqplib').connect(rabbitMqConfig['connection_string']);
-
+jest.mock('../../../lib/ipfs/ipfs-api');
 
 let userVlad;
 let userJane;
@@ -33,46 +33,35 @@ describe('IPFS consumer', () => {
     await helpers.SeedsHelper.sequelizeAfterAll();
   });
 
-
-  it('playground', async () => {
-
-    const wrapper = await channelWrapper.getChannel();
-
-    await wrapper._channel.purgeQueue('rxQueueName');
-
-    await wrapper.sendToQueue('rxQueueName', {hello: 'world'});
-
-
-    // const message = 'hello';
-    // await channelWrapper.publish('activity', 'content-creation', new Buffer(message));
-
-    // channelWrapper.sendTo('ipfs', {hello: 'world'})
-    //   .then(function() {
-    //     return console.log("Message was sent!  Hooray!");
-    //   }).catch(function(err) {
-    //   return console.log("Message was rejected...  Boo!");
-    // });
-    // RabbitMqService
-  });
-
-
   it('should consume message properly', async () => {
-    // Push message to queue
-    // run consumer
-    // check that consumer related job is done
-
-    // Convert it to integration test
-    // Check consumer work
-
-    const data = await PostRepository.findOneById(1, null, true);
+    const post_id = 1;
+    const data = await PostRepository.findOneById(post_id, null, true);
     const bindingKey = 'content-creation';
 
     const jobPayload = PostRepository.getModel().getPayloadForJob(data);
+    await RabbitMqService.purgeIpfsQueue();
 
     await ActivityProducer.publish(jobPayload, bindingKey);
 
-    await IpfsConsumer.consume(true);
-  });
+    await IpfsConsumer.consume();
+
+    const ipfsMeta = await IpfsMetaRepository.findAllMetaByPostId(post_id);
+
+    expect(ipfsMeta).not.toBeNull();
+
+    const ipfsMockDataResponse = await IpfsApi.addFileToIpfs('mock-content');
+    const ipfsMockData = ipfsMockDataResponse[0];
+
+    const expectedValues = {
+      'hash': ipfsMockData.hash,
+      'path': ipfsMockData.path,
+      'ipfs_size': ipfsMockData.size,
+      'ipfs_status': 1,
+      'post_id': post_id
+    };
+
+    helpers.ResponseHelper.expectValuesAreExpected(expectedValues, ipfsMeta);
+  }, 10000);
 
   it('check that message with post content is placed to the queue', async () => {
     // TODO produce not by test but by code of post creation

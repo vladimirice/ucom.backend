@@ -2,7 +2,6 @@ const TABLE_NAME = 'posts';
 const moment = require('moment');
 
 const _ = require('lodash');
-const serialize = require('serialize-javascript');
 
 module.exports = (sequelize, DataTypes) => {
   const Posts = sequelize.define(TABLE_NAME, {
