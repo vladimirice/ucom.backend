@@ -1,4 +1,8 @@
 const TABLE_NAME = 'posts';
+const moment = require('moment');
+
+const _ = require('lodash');
+const serialize = require('serialize-javascript');
 
 module.exports = (sequelize, DataTypes) => {
   const Posts = sequelize.define(TABLE_NAME, {
@@ -53,6 +57,35 @@ module.exports = (sequelize, DataTypes) => {
       'main_image_filename',
       'user_id',
       'post_type_id'
+    ];
+  };
+
+  /**
+   *
+   * @param {Object} modelAsObject - object not model
+   * @returns {string} json string
+   */
+  Posts.getPayloadForJob = function (modelAsObject) {
+    const fields = Posts.getFieldsForJob();
+
+    const forJson = _.pick(modelAsObject, fields);
+
+    forJson['created_at'] = parseInt(moment(forJson['created_at']).valueOf() / 1000);
+    forJson['updated_at'] = parseInt(moment(forJson['updated_at']).valueOf() / 1000);
+
+    return JSON.stringify(forJson);
+  };
+
+  Posts.getFieldsForJob = function () {
+    return [
+      'id', // Should be generated for ipfs separately
+      'title',
+      'leading_text',
+      'description',
+      'user_id', // better to use account name
+      'main_image_filename', // better to store full url and save image to ipfs
+      'created_at',
+      'updated_at',
     ];
   };
 

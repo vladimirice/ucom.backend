@@ -21,5 +21,10 @@
   "eosAccounts": {
     "creatorAccountName": "12345",
     "creatorPrivateKey": "12345"
+  },
+  "rabbitmq": {
+    "connection_string": "amqp://guest:guest@127.0.0.1:5672",
+    "activity_exchange_name": "activity",
+    "ipfs_queue_name": "ipfs"
   }
 }

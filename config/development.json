@@ -2,5 +2,8 @@
   "eosAccounts": {
     "creator_account_name": "eosio",
     "creator_private_key": "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3"
+  },
+  "rabbitmq": {
+   "connection_string": "amqp://admin:rCxdeLWokwW6ZAXu@5.9.119.5:5672"
   }
 }
