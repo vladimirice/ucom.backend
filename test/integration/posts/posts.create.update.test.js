@@ -226,6 +226,22 @@ describe('Posts API', () => {
 
       expect(postStats).not.toBeNull();
 
+      // UPDATE only button
+      const fieldsPostOfferToChange = {
+        'action_button_title': 'FOOBAR',
+      };
+
+      const patchRes = await request(server)
+        .patch(`${rootUrl}/${lastPost.id}`)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .field('action_button_title',  fieldsPostOfferToChange['action_button_title'])
+        .field('post_users_team[]', '') // this is to catch and fix bug by TDD
+      ;
+
+      ResponseHelper.expectStatusOk(patchRes);
+
+      const firstPostAfter = await PostOfferRepository.findOneById(lastPost.id, true);
+      expect(firstPostAfter['post_offer']['action_button_title']).toBe(fieldsPostOfferToChange['action_button_title']);
     });
 
     it('Create new post-offer', async() => {
