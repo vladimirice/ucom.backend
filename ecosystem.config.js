@@ -33,12 +33,13 @@ module.exports = {
   {
     name: 'uos_backend_ipfs_consumer',
     script: 'bin/ipfs-consumer.js',
-    watch: false,
+    watch: true,
     env: {
       "NODE_ENV": "development"
     },
     env_production : {
       NODE_ENV: 'production',
+      watch: false,
     },
     env_test : {
       NODE_ENV: 'test',

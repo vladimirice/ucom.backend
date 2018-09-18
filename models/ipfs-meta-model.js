@@ -1,4 +1,4 @@
-const TABLE_NAME = 'ipfs_meta';
+const TABLE_NAME = 'post_ipfs_meta';
 
 module.exports = (db, Sequelize) => {
   const Model = db.define(TABLE_NAME, {

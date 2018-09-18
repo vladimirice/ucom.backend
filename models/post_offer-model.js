@@ -1,7 +1,7 @@
 const TABLE_NAME = 'post_offer';
 
 module.exports = (db, Sequelize) => {
-  const UsersEducation = db.define(TABLE_NAME, {
+  const Model = db.define(TABLE_NAME, {
     action_button_title: {
       type: Sequelize.STRING,
     },
@@ -17,8 +17,17 @@ module.exports = (db, Sequelize) => {
     tableName: TABLE_NAME,
     timestamps: false,
   });
-  UsersEducation.associate = function(models) {
+  Model.associate = function(models) {
     models[TABLE_NAME].belongsTo(models['posts'], {foreignKey: 'post_id'});
   };
-  return UsersEducation;
+
+  Model.getPostOfferAttributesForIpfs = function() {
+    return [
+      'action_button_title',
+      'action_button_url',
+      'action_duration_in_days'
+    ];
+  };
+
+  return Model;
 };

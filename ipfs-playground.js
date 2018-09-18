@@ -1,28 +1,14 @@
 // jscs:disable
 
-// const postContentAsHtml = '<p>hello from post content </p>';
-
-
-const service = require('./lib/jobs/rabbitmq-service');
-
-(async () => {
-  const connection = await service._getConnection();
-
-
-})();
+const postContentAsHtml = '<p>hello from post content </p>';
 
 
 
+const IpfsApi = require('./lib/ipfs/ipfs-api');
 
-// const ActivityProducer = require('./lib/activity/activity-producer');
-// ActivityProducer.publish('Hello from producer', 'content-creation');
-
-
-// const IpfsApi = require('./lib/ipfs/ipfs-api');
-//
-// IpfsApi.addFileToIpfs(postContentAsHtml).then(res => {
-//   console.log(res);
-// });
+IpfsApi.addFileToIpfs(postContentAsHtml).then(res => {
+  console.log(res);
+});
 
 
 /*

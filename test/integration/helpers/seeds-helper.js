@@ -11,7 +11,7 @@ const commentsSeeds = require('../../../seeders/comments/comments-seeds');
 
 // Truncated async
 const minorTables = [
-  'ipfs_meta',
+  'post_ipfs_meta',
 
   'users_education',
   'users_jobs',

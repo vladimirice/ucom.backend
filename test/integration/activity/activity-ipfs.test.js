@@ -1,15 +1,13 @@
-const PostRepository = require('../../../lib/posts/posts-repository');
-const ActivityProducer = require('../../../lib/jobs/activity-producer');
-const IpfsConsumer = require('../../../lib/ipfs/ipfs-consumer');
 const helpers = require('../helpers');
-const moment = require('moment');
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 const delay = require('delay');
 
 const IpfsMetaRepository = require('../../../lib/ipfs/ipfs-meta-repository');
 const IpfsApi = require('../../../lib/ipfs/ipfs-api');
-
-jest.mock('../../../lib/ipfs/ipfs-api');
+const PostJobSerializer = require('../../../lib/posts/post-job-serializer');
+const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
+const PostRepository = require('../../../lib/posts/posts-repository');
+const PostOfferRepository = require('../../../lib/posts/post-offer/post-offer-repository');
 
 let userVlad;
 let userJane;
@@ -34,57 +32,84 @@ describe('IPFS consumer', () => {
     await helpers.SeedsHelper.sequelizeAfterAll();
   });
 
-  it('should consume message properly', async () => {
-    const channel = await RabbitMqService.getChannel();
+  describe('Correct post data for IPFS', () => {
+    it('Media Post.', async () => {
+      // This is actually must be unit test
+      const newPostId = await helpers.PostHelper.requestToCreateMediaPost(userVlad);
+
+      const postJobPayload = {
+        id: newPostId,
+        post_type_id: PostTypeDictionary.getTypeMediaPost(),
+      };
+
+      const data = await PostJobSerializer.getPostDataForIpfs(postJobPayload);
+
+      let expectedAttributes = PostRepository.getModel().getMediaPostAttributesForIpfs();
+
+      expectedAttributes.push('User.account_name');
+      helpers.ResponseHelper.expectAllFieldsExistence(data, expectedAttributes);
+    });
+
+    it('Post Offer', async () => {
+      // This is actually must be unit test
+      const newPostId = await helpers.PostHelper.requestToCreatePostOffer(userVlad);
+
+      const postJobPayload = {
+        id: newPostId,
+        post_type_id: PostTypeDictionary.getTypeOffer(),
+      };
+
+      const data = await PostJobSerializer.getPostDataForIpfs(postJobPayload);
+
+      let expectedAttributes = PostRepository.getModel().getMediaPostAttributesForIpfs();
+
+      const expectedPostOfferAttributes = PostOfferRepository.getPostOfferModel().getPostOfferAttributesForIpfs();
+
+      expectedPostOfferAttributes.forEach(attribute => {
+        expectedAttributes.push(`post_offer.${attribute}`);
+      });
+
+      expectedAttributes.push('User.account_name');
+      helpers.ResponseHelper.expectAllFieldsExistence(data, expectedAttributes);
+    });
+  });
+
+  it('should produce, consume and save ipfs meta for Post-Offer', async () => {
     await RabbitMqService.purgeIpfsQueue();
 
-    const newPostId = await helpers.PostHelper.requestToCreateMediaPost(userVlad);
+    const newPostId = await helpers.PostHelper.requestToCreatePostOffer(userVlad);
 
     let ipfsMeta = null;
 
     while(!ipfsMeta) {
-      ipfsMeta = await IpfsMetaRepository.findAllMetaByPostId(newPostId);
+      ipfsMeta = await IpfsMetaRepository.findAllPostMetaByPostId(newPostId);
       await delay(500);
     }
 
     expect(ipfsMeta).not.toBeNull();
+    expect(ipfsMeta.post_id).toBe(newPostId);
 
-    const ipfsMockDataResponse = await IpfsApi.addFileToIpfs('mock-content');
-    const ipfsMockData = ipfsMockDataResponse[0];
+    const newPost = await PostRepository.findOneById(newPostId, null, true);
 
-    const expectedValues = {
-      'hash': ipfsMockData.hash,
-      'path': ipfsMockData.path,
-      'ipfs_size': ipfsMockData.size,
-      'ipfs_status': 1,
-      'post_id': newPostId
+    const ipfsContent = await IpfsApi.getFileFromIpfs(ipfsMeta.hash);
+
+    const ipfsContentDecoded = JSON.parse(ipfsContent);
+
+    const expectedIpfsValues = {
+      'User.account_name': userVlad.account_name,
+      'blockchain_id': newPost.blockchain_id,
+      'description': newPost.description,
+      'id': newPost.id,
+      'leading_text': newPost.leading_text,
+      'main_image_filename': newPost.main_image_filename,
+      'post_type_id': newPost.post_type_id,
+      'title': newPost.title,
+      'user_id': userVlad.id,
+      'post_offer.action_button_title': 'TEST_BUTTON_CONTENT',
+      'post_offer.action_button_url': null,
+      'post_offer.action_duration_in_days': null,
     };
 
-    helpers.ResponseHelper.expectValuesAreExpected(expectedValues, ipfsMeta);
+    helpers.ResponseHelper.expectValuesAreExpected(expectedIpfsValues, ipfsContentDecoded);
   }, 10000);
-
-  // it('check that message with post content is placed to the queue', async () => {
-  //   const channel = await RabbitMqService.getChannel();
-  //   await RabbitMqService.purgeIpfsQueue();
-  //
-  //   const newPostId = await helpers.PostHelper.requestToCreateMediaPost(userVlad);
-  //
-  //   // return;
-  //
-  //   const queueAfter = await channel.assertQueue(RabbitMqService.getIpfsQueueName());
-  //   expect(queueAfter.messageCount).toBe(1);
-  //
-  //   const message = await channel.get(RabbitMqService.getIpfsQueueName());
-  //   channel.ack(message);
-  //   const actual = JSON.parse(message.content.toString());
-  //
-  //   actual.created_at = moment(actual.created_at).valueOf();
-  //   actual.updated_at = moment(actual.updated_at).valueOf();
-  //
-  //   const newPost = await PostRepository.findOneById(newPostId, null, true);
-  //
-  //   const jobPayload = await PostRepository.getModel().getPayloadForJob(newPost);
-  //
-  //   expect(actual).toEqual(JSON.parse(jobPayload));
-  // }, 10000);
 });
