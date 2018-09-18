@@ -83,6 +83,8 @@ module.exports = (sequelize, DataTypes) => {
       'description',
       'user_id', // better to use account name
       'main_image_filename', // better to store full url and save image to ipfs
+      'post_type_id',
+      'blockchain_id',
       'created_at',
       'updated_at',
     ];

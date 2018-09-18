@@ -34,18 +34,14 @@ describe('IPFS consumer', () => {
   });
 
   it('should consume message properly', async () => {
-    const post_id = 1;
-    const data = await PostRepository.findOneById(post_id, null, true);
-    const bindingKey = 'content-creation';
-
-    const jobPayload = PostRepository.getModel().getPayloadForJob(data);
+    const channel = await RabbitMqService.getChannel();
     await RabbitMqService.purgeIpfsQueue();
 
-    await ActivityProducer.publish(jobPayload, bindingKey);
+    const newPostId = await helpers.PostHelper.requestToCreateMediaPost(userVlad);
 
     await IpfsConsumer.consume();
 
-    const ipfsMeta = await IpfsMetaRepository.findAllMetaByPostId(post_id);
+    const ipfsMeta = await IpfsMetaRepository.findAllMetaByPostId(newPostId);
 
     expect(ipfsMeta).not.toBeNull();
 
@@ -57,28 +53,20 @@ describe('IPFS consumer', () => {
       'path': ipfsMockData.path,
       'ipfs_size': ipfsMockData.size,
       'ipfs_status': 1,
-      'post_id': post_id
+      'post_id': newPostId
     };
 
     helpers.ResponseHelper.expectValuesAreExpected(expectedValues, ipfsMeta);
   }, 10000);
 
   it('check that message with post content is placed to the queue', async () => {
-    // TODO produce not by test but by code of post creation
-    const data = await PostRepository.findOneById(1, null, true);
-    const bindingKey = 'content-creation';
-
-    const jobPayload = PostRepository.getModel().getPayloadForJob(data);
-
     const channel = await RabbitMqService.getChannel();
     await RabbitMqService.purgeIpfsQueue();
 
-    await ActivityProducer.publish(jobPayload, bindingKey);
+    const newPostId = await helpers.PostHelper.requestToCreateMediaPost(userVlad);
 
     const queueAfter = await channel.assertQueue('ipfs');
-
     expect(queueAfter.messageCount).toBe(1);
-
 
     const message = await channel.get('ipfs');
     channel.ack(message);
@@ -87,6 +75,9 @@ describe('IPFS consumer', () => {
     actual.created_at = moment(actual.created_at).valueOf();
     actual.updated_at = moment(actual.updated_at).valueOf();
 
+    const newPost = await PostRepository.findOneById(newPostId, null, true);
+
+    const jobPayload = await PostRepository.getModel().getPayloadForJob(newPost);
 
     expect(actual).toEqual(JSON.parse(jobPayload));
   }, 10000);

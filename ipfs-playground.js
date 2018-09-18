@@ -4,17 +4,16 @@ const postContentAsHtml = '<p>hello from post content </p>';
 
 
 
-class IpfsPlayground {
-
-}
-
 
 // const ActivityProducer = require('./lib/activity/activity-producer');
 // ActivityProducer.publish('Hello from producer', 'content-creation');
 
-const IpfsConsumer = require('./lib/ipfs/ipfs-consumer');
-IpfsConsumer.consume().then();
 
+const IpfsApi = require('./lib/ipfs/ipfs-api');
+
+IpfsApi.addFileToIpfs(postContentAsHtml).then(res => {
+  console.log(res);
+});
 
 
 /*
