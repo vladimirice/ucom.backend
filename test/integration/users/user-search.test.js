@@ -1,20 +1,30 @@
 const request = require('supertest');
 const server = require('../../../app');
-const UsersHelper = require('./../helpers/users-helper');
-const SeedsHelper = require('./../helpers/seeds-helper');
 const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 
-const userVlad = UsersHelper.getUserVladSeed();
-const userJane = UsersHelper.getUserJaneSeed();
+const helpers = require('../helpers');
+
+let userVlad;
+let userJane;
+let userPetr;
 
 describe('Users API', () => {
+  beforeAll(async () => {
+    // noinspection JSCheckFunctionSignatures
+    [userVlad, userJane, userPetr] = await Promise.all([
+      helpers.UserHelper.getUserVlad(),
+      helpers.UserHelper.getUserJane(),
+      helpers.UserHelper.getUserPetr(),
+    ]);
+  });
+
   beforeEach(async () => {
-    await SeedsHelper.initSeeds();
+    await helpers.SeedsHelper.initSeeds();
   });
 
   afterAll(async () => {
-    await SeedsHelper.sequelizeAfterAll();
+    await helpers.SeedsHelper.sequelizeAfterAll();
   });
 
   it('GET two users by searching shortcut', async () => {
