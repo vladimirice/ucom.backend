@@ -200,6 +200,7 @@ describe('Posts API', () => {
         .field('leading_text', newPostFields['leading_text'])
         .field('post_type_id', newPostFields['post_type_id'])
         .field('action_button_title', newPostOfferFields['action_button_title'])
+        .field('post_users_team[]', '') // this is to catch and fix bug by TDD
         .attach('main_image_filename', avatarPath)
       ;
 
