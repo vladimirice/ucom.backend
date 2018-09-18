@@ -69,6 +69,25 @@ class PostsHelper {
     return +res.body.id;
   }
 
+  static async requestSampleMediaPostChange(user, post_id) {
+    const fieldsToChange = {
+      'title': 'This is title to change',
+      'description': 'Also necessary to change description',
+      'leading_text': 'And leading text',
+    };
+
+    const res = await request(server)
+      .patch(RequestHelper.getOnePostUrl(post_id))
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('title',         fieldsToChange['title'])
+      .field('description',   fieldsToChange['description'])
+      .field('leading_text',  fieldsToChange['leading_text'])
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body.post_id;
+  }
 
   /**
    *

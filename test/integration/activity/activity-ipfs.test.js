@@ -32,6 +32,43 @@ describe('IPFS consumer', () => {
     await helpers.SeedsHelper.sequelizeAfterAll();
   });
 
+  describe('Send post updates to IPFS also', () => {
+    it('Send media post updates. Post offer process is the same', async () => {
+      const post_id = 1;
+      await helpers.PostHelper.requestSampleMediaPostChange(userVlad, post_id);
+
+      let ipfsMeta = null;
+
+      while(!ipfsMeta) {
+        ipfsMeta = await IpfsMetaRepository.findAllPostMetaByPostId(post_id);
+        await delay(500);
+      }
+
+      expect(ipfsMeta).not.toBeNull();
+      expect(ipfsMeta.post_id).toBe(post_id);
+
+      const newPost = await PostRepository.findOneById(post_id, null, true);
+
+      const ipfsContent = await IpfsApi.getFileFromIpfs(ipfsMeta.hash);
+
+      const ipfsContentDecoded = JSON.parse(ipfsContent);
+
+      const expectedIpfsValues = {
+        'User.account_name': userVlad.account_name,
+        'blockchain_id': newPost.blockchain_id,
+        'description': newPost.description,
+        'id': newPost.id,
+        'leading_text': newPost.leading_text,
+        'main_image_filename': newPost.main_image_filename,
+        'post_type_id': newPost.post_type_id,
+        'title': newPost.title,
+        'user_id': userVlad.id,
+      };
+
+      helpers.ResponseHelper.expectValuesAreExpected(expectedIpfsValues, ipfsContentDecoded);
+    }, 10000);
+  });
+
   describe('Correct post data for IPFS', () => {
     it('Media Post.', async () => {
       // This is actually must be unit test
