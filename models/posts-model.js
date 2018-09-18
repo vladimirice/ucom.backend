@@ -1,5 +1,6 @@
 const TABLE_NAME = 'posts';
 const moment = require('moment');
+const sanitizeHtml = require('sanitize-html');
 
 const _ = require('lodash');
 
@@ -56,6 +57,19 @@ module.exports = (sequelize, DataTypes) => {
       'main_image_filename',
       'user_id',
       'post_type_id'
+    ];
+  };
+
+  Posts.getHtmlFields = function () {
+    return [
+      'description',
+    ];
+  };
+
+  Posts.getSimpleTextFields = function () {
+    return [
+      'title',
+      'leading_text'
     ];
   };
 

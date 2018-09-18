@@ -21,6 +21,13 @@ module.exports = (db, Sequelize) => {
     models[TABLE_NAME].belongsTo(models['posts'], {foreignKey: 'post_id'});
   };
 
+  Model.getSimpleTextFields = function () {
+    return [
+      'action_button_title',
+      'action_button_url',
+    ];
+  };
+
   Model.getPostOfferAttributesForIpfs = function() {
     return [
       'action_button_title',

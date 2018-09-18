@@ -2,6 +2,8 @@ const request = require('supertest');
 const server = require('../../../app');
 const expect = require('expect');
 
+const helpers = require('../helpers');
+
 const UserHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const PostHelper = require('../helpers/posts-helper');
@@ -39,6 +41,63 @@ describe('Posts API', () => {
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
   });
+
+
+  describe('Sanitizing', () => {
+    it('should sanitize post text fields', async () => {
+      const post_id = 1;
+
+      const fieldsToChange = {
+        'title': '<script>alert("hello world!")</script><p>Html content</p> Simple text',
+        'leading_text': '<script>alert("hello world!")</script><p>Html content</p> Simple text',
+        'description': '<script>alert("hello world!")</script><p>Html text</p>',
+      };
+
+      const res = await request(server)
+        .patch(helpers.RequestHelper.getOnePostUrl(post_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .field('title',         fieldsToChange['title'])
+        .field('description',   fieldsToChange['description'])
+        .field('leading_text',  fieldsToChange['leading_text'])
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+
+      const updatedPostId = res.body.post_id;
+
+      const updatedPost = await PostsRepository.findOneById(updatedPostId);
+
+      expect(updatedPost.title).toBe('Html content Simple text');
+      expect(updatedPost.leading_text).toBe('Html content Simple text');
+      expect(updatedPost.description).toBe('<p>Html text</p>');
+    });
+
+    it('should sanitize post offer extra fields', async () => {
+      const post_id = 5;
+
+      const fieldsToChange = {
+        'action_button_title': '<script>alert("hello world!")</script><p>Html content</p> Simple text',
+        'action_button_url': '<script>alert("hello world!")</script><a href="http://example.com">simple link</a>',
+      };
+
+      const res = await request(server)
+        .patch(helpers.RequestHelper.getOnePostUrl(post_id))
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .field('action_button_title', fieldsToChange['action_button_title'])
+        .field('action_button_url',   fieldsToChange['action_button_url'])
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+
+      const updatedPostId = res.body.post_id;
+
+      const updatedPost = await PostOfferRepository.findOneById(updatedPostId);
+
+      expect(updatedPost['post_offer'].action_button_title).toBe('Html content Simple text');
+      expect(updatedPost['post_offer'].action_button_url).toBe('<a href="http://example.com">simple link</a>');
+    });
+  });
+
   describe('Media post', function () {
 
     it('Create new Media Post by form data', async () => {
