@@ -18,7 +18,7 @@ describe('Test registration workflow', () => {
   });
 
 
-  // TODO #autotest Public key must not match existing ones bec
+  // TODO #autotest Public key must not match existing one
   it('Register new user', async () => {
 
     const userVladData = AccountsData['karolinaer'];

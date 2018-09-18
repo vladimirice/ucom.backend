@@ -1,5 +1,5 @@
 const usersSeeds = [{
-    id: 1,
+    // id = 1
     account_name: 'vlad',
     nickname: 'vlad',
     first_name: 'Vlad',
@@ -22,7 +22,7 @@ const usersSeeds = [{
     personal_website_url: 'https://www.blockchain.com/'
   },
   {
-    id: 2,
+    // id = 2
     account_name: 'jane',
     nickname: 'jane',
     first_name: 'Jane',
@@ -45,7 +45,7 @@ const usersSeeds = [{
     personal_website_url: 'https://bitcointalk.org/'
   },
   {
-    id: 3,
+    // id = 3
     account_name: 'petr',
     nickname: 'petr',
     first_name: 'Petr',
@@ -68,7 +68,7 @@ const usersSeeds = [{
     personal_website_url: 'https://example.com/'
   },
   {
-    id: 4,
+    // id = 4
     account_name: 'rokky',
     nickname: 'rokky',
     first_name: 'Rokky',

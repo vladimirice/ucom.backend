@@ -137,7 +137,7 @@ class UsersHelper {
       id: vladFromDb.id
     };
 
-    const token = AuthService.getNewJwtToken(vladSeed);
+    const token = AuthService.getNewJwtToken(vladDbData);
 
     return {
       ...vladSeed,
@@ -186,7 +186,7 @@ class UsersHelper {
       id: fromDb.id
     };
 
-    const token = AuthService.getNewJwtToken(fromDb);
+    const token = AuthService.getNewJwtToken(data);
 
     return {
       ...data,
@@ -206,7 +206,7 @@ class UsersHelper {
       id: fromDb.id
     };
 
-    const token = AuthService.getNewJwtToken(fromDb);
+    const token = AuthService.getNewJwtToken(data);
 
     return {
       ...data,
@@ -227,7 +227,7 @@ class UsersHelper {
       id: fromDb.id
     };
 
-    const token = AuthService.getNewJwtToken(seed);
+    const token = AuthService.getNewJwtToken(data);
 
     return {
       ...seed,
