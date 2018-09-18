@@ -43,6 +43,7 @@
     "winston": "3.0.0"
   },
   "devDependencies": {
+    "delay": "4.0.1",
     "jest-expect-message": "1.0.0"
   }
 }

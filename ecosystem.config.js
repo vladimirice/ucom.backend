@@ -29,6 +29,20 @@ module.exports = {
     env_production : {
       NODE_ENV: 'production',
     },
+  },
+  {
+    name: 'uos_backend_ipfs_consumer',
+    script: 'bin/ipfs-consumer.js',
+    watch: false,
+    env: {
+      "NODE_ENV": "development"
+    },
+    env_production : {
+      NODE_ENV: 'production',
+    },
+    env_test : {
+      NODE_ENV: 'test',
+    },
   }
   ],
 };
