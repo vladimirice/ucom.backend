@@ -42,6 +42,7 @@
     "statuses": "1.5.0",
     "supertest": "^3.1.0",
     "uniqid": "5.0.3",
+    "uos-app-transaction": "git+ssh://git@bitbucket.org/gravityprotocol/uos.app.transaction.git",
     "winston": "3.0.0"
   },
   "devDependencies": {

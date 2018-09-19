@@ -14,4 +14,5 @@ alias pm-r-p='pm2 restart ecosystem.config.js --env production --only uos_backen
 alias pm-s-p='pm2 start ecosystem.config.js --env production'
 alias pm-r-wp='pm2 restart ecosystem.config.js --env production --only uos_backend'
 alias pm-r-c-t='pm2 restart ecosystem.config.js --env test --only uos_backend_ipfs_consumer'
+alias restart-bc='pm2 restart ecosystem.config.js --env test --only uos_backend_blockchain_consumer'
 alias pmrcp='pm2 restart ecosystem.config.js --env production --only uos_backend_ipfs_consumer'

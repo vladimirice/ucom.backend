@@ -19,7 +19,8 @@ const usersSeeds = [{
     currency_to_show: 'ETH',
     first_currency: 'BTC',
     first_currency_year: '2008',
-    personal_website_url: 'https://www.blockchain.com/'
+    personal_website_url: 'https://www.blockchain.com/',
+    private_key: '5Hq7Bb6ntCXJzEKSmELemLYhs3iUGX7wBh3CPUSgmEBLnnPSpX6',
   },
   {
     // id = 2

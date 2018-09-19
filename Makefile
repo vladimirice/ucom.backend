@@ -42,6 +42,9 @@ pm2-prod-logs ppl:
 ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
 
+local-logs:
+	tail -f logs/app.log
+
 docker-init-test-db ditd:
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_DROP_COMMAND}
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_CREATE_COMMAND}

@@ -22,6 +22,7 @@
   "rabbitmq": {
     "connection_string": "amqp://guest:guest@127.0.0.1:5672",
     "activity_exchange_name": "activity_test",
-    "ipfs_queue_name": "ipfs_test"
+    "ipfs_queue_name": "ipfs_test",
+    "blockchain_queue_name": "blockchain_test"
   }
 }
