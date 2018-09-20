@@ -2,4 +2,4 @@
 . ~/.nvm/nvm.sh
 . ~/.bashrc
 
-pm2 logs uos_backend
+tail -f /var/www/uos.app.backend/logs/app.log

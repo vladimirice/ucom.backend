@@ -36,8 +36,11 @@ deploy d:
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy.sh
 
-pm2-prod-logs ppl:
+prod-logs:
 	ssh dev@5.9.119.5 'bash -s' < ./pm2_production_logs.sh
+
+prod-console:
+	ssh dev@5.9.119.5 'bash -s' < ./pm2_api_console.sh
 
 ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
