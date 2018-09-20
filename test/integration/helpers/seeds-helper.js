@@ -8,6 +8,22 @@ const postsOffersSeeds = require('../../../seeders/posts/posts-offers');
 const postStatsSeeds = require('../../../seeders/posts/post-stats-seeds');
 const postUsersTeamSeeds = require('../../../seeders/posts/posts-users-team');
 const commentsSeeds = require('../../../seeders/comments/comments-seeds');
+const UsersHelper = require('../helpers/users-helper');
+
+const OrganizationsRepositories = require('../../../lib/organizations/repository');
+const UsersRepositories = require('../../../lib/users/repository');
+
+const seedsDir = '../../../seeders';
+
+const tableToSeeds = {
+  [OrganizationsRepositories.Main.getOrganizationsModelName()] : require(`${seedsDir}/organizations/organizations-seeds`),
+  [UsersRepositories.Main.getUsersModelName()] : require(`${seedsDir}/users/users`),
+};
+
+const tableToSequence = {
+  [OrganizationsRepositories.Main.getOrganizationsModelName()]  : 'organizations_id_seq',
+  [UsersRepositories.Main.getUsersModelName()]                  : '"Users_id_seq"'
+};
 
 // Truncated async
 const minorTables = [
@@ -29,12 +45,40 @@ const minorTables = [
 
 // Truncated in order
 const majorTables = [
+  'organizations',
   'comments',
   'posts',
   'Users',
 ];
 
 class SeedsHelper {
+
+  static async beforeAllRoutine() {
+    await this.destroyTables();
+
+    const usersModel = UsersRepositories.Main.getUsersModelName();
+
+    // init users
+    const usersSequence = tableToSequence[usersModel];
+    const usersSeeds    = tableToSeeds[usersModel];
+
+    await this._resetSequence(usersSequence);
+    await this._bulkCreate(usersModel, usersSeeds);
+
+    return await Promise.all([
+        UsersHelper.getUserVlad(),
+        UsersHelper.getUserJane(),
+        UsersHelper.getUserPetr(),
+      ]);
+  }
+
+  static async _resetSequence(name) {
+    return models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`);
+  }
+
+  static async _bulkCreate(name, seeds) {
+    return models[name].bulkCreate(seeds)
+  }
 
   static async destroyTables() {
 
@@ -117,6 +161,15 @@ class SeedsHelper {
     await this.seedMainTables();
   }
 
+  static async resetOrganizationRelatedSeeds() {
+    const tables = [
+      OrganizationsRepositories.Main.getOrganizationsModelName(),
+    ];
+
+    await this._truncateTablesByList(tables);
+    await this._initTablesByList(tables, []);
+  }
+
   static async initSeeds() {
     await this.destroyTables();
     await this.seedDb();
@@ -139,6 +192,46 @@ class SeedsHelper {
 
   static async sequelizeAfterAll() {
     await models.sequelize.close();
+  }
+
+
+  /**
+   *
+   * @param {Array} tables
+   * @return {Promise<void>}
+   */
+  static async _truncateTablesByList(tables) {
+    const params = {where: {}};
+
+    let promises = [];
+
+    tables.forEach(table => {
+      promises.push(models[table].destroy(params));
+
+      const sequenceName = tableToSequence[table];
+
+      if (sequenceName) {
+        promises.push(models.sequelize.query(`ALTER SEQUENCE ${sequenceName} RESTART;`))
+      }
+    });
+
+    await Promise.all(promises);
+  }
+
+  /**
+   *
+   * @param {Array} syncInit
+   * @param {Array} asyncInit
+   * @return {Promise<void>}
+   * @private
+   */
+  static async _initTablesByList(syncInit, asyncInit) {
+
+    for (let i = 0; i < syncInit.length; i++) {
+      const table = syncInit[i];
+      const seeds = tableToSeeds[table];
+      await models[table].bulkCreate(seeds);
+    }
   }
 }
 

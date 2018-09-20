@@ -6,4 +6,5 @@ module.exports = {
   UserHelper:     require('./users-helper'),
   ActivityHelper: require('./activity-helper'),
   SeedsHelper:    require('./seeds-helper'),
+  Organizations:  require('./organizations-helper'),
 };

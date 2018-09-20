@@ -17,6 +17,23 @@ class RequestHelper {
 
   /**
    *
+   * @return {string}
+   */
+  static getOrganizationsUrl() {
+    return `/api/v1/organizations`;
+  }
+
+  /**
+   *
+   * @param id
+   * @return {string}
+   */
+  static getOneOrganizationUrl(id) {
+    return `/api/v1/organizations/${id}`;
+  }
+
+  /**
+   *
    * @param {Object} user
    * @returns {Promise<Object>}
    */

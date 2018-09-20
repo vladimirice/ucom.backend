@@ -14,6 +14,7 @@ const authRouter = require('./routes/auth');
 const myselfRouter = require('./routes/myself');
 const postsRouter = require('./routes/posts/posts-router');
 const registrationRouter = require('./routes/auth/registration');
+const organizationsRouter = require('./routes/organizations/organizations-router');
 const errorMiddleware = require('./lib/api/error-middleware');
 const diContainerMiddleware = require('./lib/api/di-container-middleware');
 const EosApi = require('./lib/eos/eosApi');
@@ -22,9 +23,6 @@ const app = express();
 
 process.on('uncaughtException', (ex) => { winston.error(ex); });
 process.on('unhandledRejection', (ex) => { throw ex; });
-
-// throw new Error('test error'); // // // // // // // // // // // // // //
-// const p = Promise.reject(new Error('rejected promise')); p.then();
 
 app.use(morgan('combined', { stream: winston.stream }));
 
@@ -60,8 +58,10 @@ app.use('/api/v1', indexRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/myself', myselfRouter);
+// noinspection JSCheckFunctionSignatures
 app.use('/api/v1/posts', postsRouter);
 app.use('/api/v1/auth/registration', registrationRouter);
+app.use('/api/v1/organizations', organizationsRouter);
 require('./lib/auth/passport');
 
 // catch 404 and forward to error handler

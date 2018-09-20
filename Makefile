@@ -28,10 +28,6 @@ docker-set-hosts-mac:
 d-db:
 	docker-compose exec --user=root db /bin/bash
 
-dmm:
-	NODE_ENV=${ENV_VALUE_DEV} ${DB_MIGRATE_COMMAND}
-	make ditd
-
 deploy d:
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy.sh
@@ -47,6 +43,9 @@ ipfs-tunnel:
 
 local-logs:
 	tail -f logs/app.log
+
+database-migrations-migrate dmm:
+	node_modules/.bin/sequelize db:migrate
 
 stop-all-c:
 	pm2 stop uos_backend_blockchain_consumer
