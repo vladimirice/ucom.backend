@@ -16,6 +16,7 @@ const postsRouter = require('./routes/posts/posts-router');
 const registrationRouter = require('./routes/auth/registration');
 const errorMiddleware = require('./lib/api/error-middleware');
 const diContainerMiddleware = require('./lib/api/di-container-middleware');
+const EosApi = require('./lib/eos/eosApi');
 
 const app = express();
 
@@ -52,6 +53,8 @@ app.use(function (req, res, next) {
   // Pass to next layer of middleware
   next();
 });
+
+EosApi.initTransactionFactory();
 
 app.use('/api/v1', indexRouter);
 app.use('/api/v1/users', usersRouter);

@@ -5,9 +5,9 @@ const status = require('statuses');
 const {AppError, BadRequestError} = require('../lib/api/errors');
 const UsersRepository = require('../lib/users/users-repository');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
-const ActivityService = require('../lib/activity/activity-service');
 const UserActivityService = require('../lib/users/user-activity-service');
 const UserService = require('../lib/users/users-service');
+const winston = require('../config/winston');
 
 /* Find users by name fields - shortcut */
 router.get('/search', async (req, res) => {
@@ -45,6 +45,8 @@ router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) 
   const userFrom = req['user'];
   const userToId = req['user_id'];
 
+  winston.info('Action - user follows other user. Request body is: ', JSON.stringify(req['body']));
+
   await UserActivityService.userFollowsAnotherUser(userFrom, userToId);
 
   res.status(status('201')).send({
@@ -56,6 +58,8 @@ router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) 
 router.post('/:user_id/unfollow', [authTokenMiddleWare], async function(req, res) {
   const userFrom = req['user'];
   const userIdTo = req['user_id'];
+
+  winston.info('Action - user unfollows other user user. Request body is: ', JSON.stringify(req['body']));
 
   await UserActivityService.userUnfollowsUser(userFrom, userIdTo);
 

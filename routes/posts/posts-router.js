@@ -106,6 +106,7 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
   // Lets change file
   const files = req['files'];
+  // noinspection OverlyComplexBooleanExpressionJS
   if (files && files['main_image_filename'] && files['main_image_filename'][0] && files['main_image_filename'][0].filename) {
     req.body['main_image_filename'] = files['main_image_filename'][0].filename;
   }

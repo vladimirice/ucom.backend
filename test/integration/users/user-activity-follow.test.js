@@ -101,14 +101,14 @@ describe('User to user activity', () => {
         expect(activity.user_id_from).toBe(userVlad.id);
         expect(activity.user_id_to).toBe(userJane.id);
         expect(activity.activity_type_id).toBe(ActivityDictionary.getUnfollowId());
-        expect(+activity.blockchain_status).toBe(BlockchainStatusDictionary.getNotRequiredToSend());
-      });
+        expect(+activity.blockchain_status).toBe(BlockchainStatusDictionary.getStatusIsSent());
+      }, 10000);
 
       it('should allow to create follow record after follow-unfollow workflow', async () => {
-        await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
-        await ActivityHelper.requestToCreateUnfollow(userPetr, userVlad);
-        await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
-      });
+        await ActivityHelper.requestToCreateFollow(userVlad, userPetr);
+        await ActivityHelper.requestToCreateUnfollow(userVlad, userPetr);
+        await ActivityHelper.requestToCreateFollow(userVlad, userPetr);
+      }, 50000);
     });
 
     describe('Negative scenarios', () => {
@@ -145,7 +145,7 @@ describe('User to user activity', () => {
         ;
 
         ResponseHelper.expectStatusBadRequest(res);
-      });
+      }, 10000);
 
       it('should not be possible to follow without token', async () => {
         const res = await request(server)
@@ -180,7 +180,7 @@ describe('User to user activity', () => {
       const responseRokky = users.find(data => data.id === userRokky.id);
       expect(responseRokky.myselfData).toBeDefined();
       expect(responseRokky.myselfData.follow).toBeFalsy();
-    });
+    }, 50000);
     it('MyselfData. There is no myself data if user is not logged in', async () => {
       await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
       await ActivityHelper.requestToCreateFollow(userPetr, userJane);
@@ -190,7 +190,7 @@ describe('User to user activity', () => {
       const userWithMyself = users.some(user => user.myselfData !== undefined);
 
       expect(userWithMyself).toBeFalsy();
-    });
+    }, 30000);
   });
 
   describe('Single user. I_follow, followed_by and myselfData', () => {

@@ -45,6 +45,17 @@ ipfs-tunnel:
 local-logs:
 	tail -f logs/app.log
 
+stop-all-c:
+	pm2 stop uos_backend_blockchain_consumer
+	pm2 stop uos_backend_ipfs_consumer
+
+restart-blockchain-consumer rbc:
+	pm2 restart ecosystem.config.js --env test --only uos_backend_blockchain_consumer
+
+restart-all-consumers rac:
+	pm2 restart ecosystem.config.js --env test --only uos_backend_blockchain_consumer
+	pm2 restart ecosystem.config.js --env test --only uos_backend_ipfs_consumer
+
 docker-init-test-db ditd:
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_DROP_COMMAND}
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_CREATE_COMMAND}
