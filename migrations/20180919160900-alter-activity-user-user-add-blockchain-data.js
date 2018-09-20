@@ -11,7 +11,9 @@ module.exports = {
         type: Sequelize.TEXT,
         required: false,
         allowNull: true
-      })
+      }).then(() => {
+        return queryInterface.sequelize.query('ALTER TABLE activity_user_user ALTER COLUMN blockchain_status TYPE integer USING (blockchain_status::integer);');
+      });
     });
   },
 
