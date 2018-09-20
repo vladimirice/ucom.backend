@@ -14,6 +14,12 @@ module.exports = (sequelize, DataTypes) => {
     blockchain_status: {
       type: DataTypes.INTEGER
     },
+    signed_transaction: {
+      type: DataTypes.TEXT
+    },
+    blockchain_response: {
+      type: DataTypes.TEXT
+    }
   }, {
     underscored: true,
     freezeTableName: true,

@@ -19,7 +19,8 @@ const usersSeeds = [{
     currency_to_show: 'ETH',
     first_currency: 'BTC',
     first_currency_year: '2008',
-    personal_website_url: 'https://www.blockchain.com/'
+    personal_website_url: 'https://www.blockchain.com/',
+    private_key: '5Hq7Bb6ntCXJzEKSmELemLYhs3iUGX7wBh3CPUSgmEBLnnPSpX6',
   },
   {
     // id = 2
@@ -42,7 +43,8 @@ const usersSeeds = [{
     currency_to_show: 'EOS',
     first_currency: 'ETH',
     first_currency_year: '2012',
-    personal_website_url: 'https://bitcointalk.org/'
+    personal_website_url: 'https://bitcointalk.org/',
+    private_key: '5Ke5uSaPTQubXTJW9EVhzvK8mvTB1v28WfPpCostFpBk1Cx1EgN',
   },
   {
     // id = 3
@@ -65,7 +67,8 @@ const usersSeeds = [{
     currency_to_show: 'BTH',
     first_currency: 'BTH',
     first_currency_year: '2009',
-    personal_website_url: 'https://example.com/'
+    personal_website_url: 'https://example.com/',
+    private_key: '5KRL4nV8Gcp6AkrBjJDPvkDgxr1Jq3DrsorNApwax8m5eieg4Bj',
   },
   {
     // id = 4
