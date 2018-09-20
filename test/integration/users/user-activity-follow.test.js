@@ -101,8 +101,7 @@ describe('User to user activity', () => {
         expect(activity.user_id_from).toBe(userVlad.id);
         expect(activity.user_id_to).toBe(userJane.id);
         expect(activity.activity_type_id).toBe(ActivityDictionary.getUnfollowId());
-        expect(+activity.blockchain_status).toBe(BlockchainStatusDictionary.getStatusIsSent());
-      }, 10000);
+      }, 30000);
 
       it('should allow to create follow record after follow-unfollow workflow', async () => {
         await ActivityHelper.requestToCreateFollow(userVlad, userPetr);
@@ -145,7 +144,7 @@ describe('User to user activity', () => {
         ;
 
         ResponseHelper.expectStatusBadRequest(res);
-      }, 10000);
+      }, 30000);
 
       it('should not be possible to follow without token', async () => {
         const res = await request(server)
@@ -240,7 +239,7 @@ describe('User to user activity', () => {
 
       const userRokkyResponse = iFollow.find(data => data.id === userRokky.id);
       expect(+userRokkyResponse.current_rate).toBe(+userRokkySampleRate);
-    });
+    }, 50000);
     it('I_follow and followed_by of single user - does not exist', async () => {
       const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
 
@@ -260,14 +259,14 @@ describe('User to user activity', () => {
       expect(user.myselfData).toBeDefined();
       expect(user.myselfData.follow).toBeTruthy();
       expect(user.myselfData.myFollower).toBeFalsy();
-    });
+    }, 50000);
 
     it('MyselfData. Does not exist if no token', async () => {
       await helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
       const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
 
       expect(user.myselfData).not.toBeDefined();
-    });
+    }, 50000);
   });
 
   describe('Post author myself activity', () => {
