@@ -22,6 +22,29 @@ describe('Organizations. Create-update requests', () => {
 
   describe('Create organization', () => {
     describe('Positive scenarios', () => {
+      it('Should allow empty fields', async () => {
+        const user = userVlad;
+
+        const res = await request(server)
+          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${user.token}`)
+          .field('title', 'title')
+          .field('nickname', 'nickname')
+          .field('email', '')
+          .field('personal_website_url', '')
+          .field('phone_number', '')
+        ;
+
+        helpers.ResponseHelper.expectStatusCreated(res);
+
+        const lastOrg = await OrganizationsRepositories.Main.findLastByAuthor(user.id);
+
+        expect(lastOrg.phone_number).toBe('');
+        expect(lastOrg.personal_website_url).toBe('');
+        expect(lastOrg.email).toBe('');
+      });
+
+
       it('should create new organization - simple fields set only', async () => {
         let newModelFields = {
           'title': 'Extremely new org',
@@ -125,10 +148,6 @@ describe('Organizations. Create-update requests', () => {
         helpers.ResponseHelper.expectStatusUnauthorized(res);
       });
 
-      it('should be error related to malformed fields', async () => {
-
-      });
-
       it('should not be possible to create organization without required fields', async () => {
 
         const res = await request(server)
@@ -156,16 +175,28 @@ describe('Organizations. Create-update requests', () => {
         // TODO
       });
 
-      it('should not be possible to set organization ID', async () => {
+      it('should not be possible to set organization ID directly', async () => {
         // TODO
       });
 
-      it('should not be possible to set user_id via request', async () => {
+      it('should not be possible to set user_id directly', async () => {
         // TODO
       });
 
-      it('should throw an error if not unique field is provided', async () => {
-        // TODO
+      it('should throw an error if NOT unique fields is provided', async () => {
+        // const user = userVlad;
+        //
+        // const existingOrg = await OrganizationsRepositories.Main.findFirstByAuthor(user.id);
+        //
+        // const res = await request(server)
+        //   .post(helpers.RequestHelper.getOrganizationsUrl())
+        //   .set('Authorization', `Bearer ${user.token}`)
+        //   .field('title', 'somehow new title')
+        //   .field('email', existingOrg.email)
+        //   .field('nickname', existingOrg.nickname)
+        // ;
+        //
+        // helpers.ResponseHelper.expectStatusBadRequest(res);
       });
     });
   });
