@@ -29,7 +29,7 @@ class RequestHelper {
    * @return {string}
    */
   static getOneOrganizationUrl(id) {
-    return `/api/v1/organizations/${id}`;
+    return `${this.getOrganizationsUrl()}/${id}`;
   }
 
   /**

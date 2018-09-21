@@ -1,7 +1,7 @@
 module.exports = [
   {
     // id = 1
-    'avatar_filename': null,
+    'avatar_filename': 'sample_filename_1.jpg',
     'title': 'Vlad Inc',
     'currency_to_show': 'BTC',
     'powered_by': 'BTC',
@@ -19,7 +19,7 @@ module.exports = [
   },
   {
     // id = 2
-    'avatar_filename': null,
+    'avatar_filename': 'sample_filename_2.jpg',
     'title': 'Vlad Mega Corp',
     'currency_to_show': 'ETH',
     'powered_by': 'ETH',
@@ -37,7 +37,7 @@ module.exports = [
   },
   {
     // id = 3
-    'avatar_filename': null,
+    'avatar_filename': 'sample_filename_3.jpg',
     'title': 'Jane Inc',
     'currency_to_show': 'EOS',
     'powered_by': 'EOS',
@@ -55,7 +55,7 @@ module.exports = [
   },
   {
     // id = 4
-    'avatar_filename': null,
+    'avatar_filename': 'sample_filename_4.jpg',
     'title': 'Jane Mega Corp',
     'currency_to_show': 'UOS',
     'powered_by': 'UOS',

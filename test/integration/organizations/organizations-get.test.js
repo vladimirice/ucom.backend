@@ -27,19 +27,16 @@ describe('Organizations. Get requests', () => {
 
       helpers.Organizations.checkOrganizationsPreviewFields(organizations);
     });
-
-    it('Get all organizations by user ID', async () => {
-      // TODO
-    });
   });
 
   describe('One organization', () => {
-    it('Get one organization by ID', async () => {
-      // TODO
-    });
+    it('Get one organization by ID as guest', async () => {
+      const model_id = 1;
 
-    it('Get one organization by ID and author ID', async () => {
-      // TODO
+      const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(model_id);
+
+      expect(model).toBeDefined();
+      expect(model.id).toBe(model_id);
     });
   });
 });

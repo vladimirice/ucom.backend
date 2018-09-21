@@ -2,23 +2,16 @@ const express = require('express');
 const router = express.Router();
 const {AppError, BadRequestError} = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
-// const { cpUpload } = require('../../lib/posts/post-edit-middleware');
+const { cpUpload } = require('../../lib/organizations/middleware/organization-create-edit-middleware');
 const OrganisationsRepositories = require('../../lib/organizations/repository');
 
 require('express-async-errors');
 
 /* Get all organizations */
 router.get('/', async (req, res) => {
-
-  const service = getOrganizationService(req);
-
   const response = await getOrganizationService(req).getAllForPreview();
 
   res.send(response);
-
-  // const result = await getOrganizationService(req).findAll(req.query);
-
-  // res.send(result);
 });
 
 /* Get one organization by ID */
@@ -31,42 +24,23 @@ router.get('/:organization_id', async (req, res) => {
 });
 
 /* Create new organization */
-router.post('/', [authTokenMiddleWare], async (req, res) => {
+router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  const model = await getOrganizationService(req).processNewOrganizationCreation(req);
+
   return res.status(201).send({
-    status: 'ok',
+      'id': model.id,
   });
-
-
-  // const postTypeId = parseInt(req.body['post_type_id']);
-  // if (!postTypeId) {
-  //   throw new BadRequestError({
-  //     'post_type_id': 'Post Type Id must be a valid natural number'
-  //   })
-  // }
-  //
-  // let newPost;
-  // switch (postTypeId) {
-  //   case PostTypeDictionary.getTypeMediaPost():
-  //     newPost = await PostService.createNewPost(req);
-  //     break;
-  //   case PostTypeDictionary.getTypeOffer():
-  //     newPost = await PostOfferService.createNew(req);
-  //     break;
-  //   default:
-  //     throw new BadRequestError({
-  //       'post_type_id': 'Provided post type ID is not supported'
-  //     });
-  // }
-  //
-  // res.send({
-  //   'id': newPost.id
-  // });
 });
 
 
 /* Update organization */
-router.patch('/:organization_id', [authTokenMiddleWare], async (req, res) => {
-  return res.status(201).send({
+router.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
+
+  const model = await getOrganizationService(req).updateOrganization(req);
+
+
+
+  return res.status(200).send({
     status: 'ok',
   });
 
