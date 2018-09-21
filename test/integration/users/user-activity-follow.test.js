@@ -48,10 +48,7 @@ describe('User to user activity', () => {
         expect(activity.user_id_from).toBe(userVlad.id);
         expect(activity.user_id_to).toBe(userJane.id);
         expect(activity.activity_type_id).toBe(ActivityDictionary.getFollowId());
-
-        // TODO - blockchain
-        expect(+activity.blockchain_status).toBe(BlockchainStatusDictionary.getNotRequiredToSend());
-      })
+      }, 50000)
     });
 
     describe('Follow Negative scenarios', () => {

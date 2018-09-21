@@ -67,7 +67,6 @@ describe('Organizations. Create-update requests', () => {
         helpers.ResponseHelper.expectStatusUnauthorized(res);
       });
 
-
       it('Malformed request to create organization', async () => {
         // TODO
       });
