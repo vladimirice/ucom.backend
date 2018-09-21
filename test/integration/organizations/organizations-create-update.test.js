@@ -30,7 +30,6 @@ describe('Organizations. Create-update requests', () => {
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', 'title')
           .field('nickname', 'nickname')
-          .field('email', '')
           .field('personal_website_url', '')
           .field('phone_number', '')
         ;
@@ -41,7 +40,6 @@ describe('Organizations. Create-update requests', () => {
 
         expect(lastOrg.phone_number).toBe('');
         expect(lastOrg.personal_website_url).toBe('');
-        expect(lastOrg.email).toBe('');
       });
 
 
@@ -112,6 +110,27 @@ describe('Organizations. Create-update requests', () => {
 
       it('should be possible to create two organizations with empty emails - no unique error', async () => {
         // TODO
+      });
+
+      it('Empty values of unique fields must be written to DB as nulls', async () => {
+        const user = userPetr;
+
+        const res = await request(server)
+          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${user.token}`)
+          .field('title', 'Title12345')
+          .field('nickname', '123nickname123')
+          .field('email', '')
+          .field('currency_to_show', '')
+        ;
+        helpers.ResponseHelper.expectStatusCreated(res);
+
+        const lastOrg = await OrganizationsRepositories.Main.findLastByAuthor(user.id);
+
+        expect(lastOrg.id).toBe(res.body.id);
+        expect(lastOrg.email).toBeNull();
+        expect(lastOrg.currency_to_show).toBe('');
+
       });
 
       it('should sanitize user input when creation is in process', async () => {

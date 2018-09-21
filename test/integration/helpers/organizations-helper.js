@@ -98,6 +98,24 @@ class OrganizationsHelper {
 
   /**
    *
+   * @param {Object} user
+   * @return {Promise<Object>}
+   */
+  static async requestToCreateOrgWithMinimumFields(user) {
+    const res = await request(server)
+      .post(RequestHelper.getOrganizationsUrl())
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('title', 'Title12345')
+      .field('nickname', '123nickname123')
+    ;
+
+    ResponseHelper.expectStatusCreated(res);
+
+    return res.body;
+  }
+
+  /**
+   *
    * @param {number} org_id
    * @param {Object} user
    * @param {Object} newModelFields
