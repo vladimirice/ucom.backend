@@ -109,7 +109,36 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should be possible to create two organizations with empty emails - no unique error', async () => {
-        // TODO
+        const countBefore = await OrganizationsRepositories.Main.countAllOrganizations();
+
+        const requestOnePromise = request(server)
+          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${userPetr.token}`)
+          .field('title', 'Title12345')
+          .field('nickname', '123nickname123')
+          .field('email', '')
+          .field('currency_to_show', '')
+        ;
+        const requestTwoPromise = request(server)
+          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${userPetr.token}`)
+          .field('title', 'Title1234567')
+          .field('nickname', '123nickname123567')
+          .field('email', '')
+          .field('currency_to_show', '')
+        ;
+
+        const [resultOne, resultTwo] = await Promise.all([
+          requestOnePromise,
+          requestTwoPromise
+        ]);
+
+        helpers.ResponseHelper.expectStatusCreated(resultOne);
+        helpers.ResponseHelper.expectStatusCreated(resultTwo);
+
+        const countAfter = await OrganizationsRepositories.Main.countAllOrganizations();
+
+        expect(countAfter).toBe(countBefore + 2);
       });
 
       it('Empty values of unique fields must be written to DB as nulls', async () => {
