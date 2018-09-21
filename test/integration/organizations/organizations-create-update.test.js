@@ -184,19 +184,45 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should throw an error if NOT unique fields is provided', async () => {
-        // const user = userVlad;
-        //
-        // const existingOrg = await OrganizationsRepositories.Main.findFirstByAuthor(user.id);
-        //
-        // const res = await request(server)
-        //   .post(helpers.RequestHelper.getOrganizationsUrl())
-        //   .set('Authorization', `Bearer ${user.token}`)
-        //   .field('title', 'somehow new title')
-        //   .field('email', existingOrg.email)
-        //   .field('nickname', existingOrg.nickname)
-        // ;
-        //
-        // helpers.ResponseHelper.expectStatusBadRequest(res);
+        const user = userVlad;
+
+        const existingOrg = await OrganizationsRepositories.Main.findFirstByAuthor(user.id);
+
+        const twoFieldsRes = await request(server)
+          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${user.token}`)
+          .field('title', 'somehow new title')
+          .field('email', existingOrg.email)
+          .field('nickname', existingOrg.nickname)
+        ;
+
+        helpers.ResponseHelper.expectStatusBadRequest(twoFieldsRes);
+
+        const errors = twoFieldsRes.body.errors;
+        expect(errors).toBeDefined();
+        expect(errors.length).toBe(2);
+
+        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
+        expect(errors.some(error => error.field === 'email')).toBeTruthy();
+
+        const oneFieldRes = await request(server)
+          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${user.token}`)
+          .field('title', 'somehow new title')
+          .field('email', 'unique_email@gmail.com')
+          .field('nickname', existingOrg.nickname)
+        ;
+
+        helpers.ResponseHelper.expectStatusBadRequest(oneFieldRes);
+
+        const oneFieldErrors = oneFieldRes.body.errors;
+        expect(oneFieldErrors).toBeDefined();
+        expect(oneFieldErrors.length).toBe(1);
+
+        expect(oneFieldErrors.some(error => error.field === 'nickname')).toBeTruthy();
+        expect(oneFieldErrors.some(error => error.field === 'email')).toBeFalsy();
+
+        // If only one duplication then only one error
       });
     });
   });
