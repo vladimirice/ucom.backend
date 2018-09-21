@@ -1,7 +1,4 @@
 const TABLE_NAME = 'organizations';
-const moment = require('moment');
-
-const _ = require('lodash');
 
 module.exports = (db, Sequelize) => {
   const Model = db.define(TABLE_NAME, {
@@ -70,6 +67,10 @@ module.exports = (db, Sequelize) => {
     return [];
   };
 
+  /**
+   *
+   * @return {string[]}
+   */
   Model.getSimpleTextFields = function () {
     return [
       'title',
@@ -83,12 +84,11 @@ module.exports = (db, Sequelize) => {
       'city',
       'address',
       'personal_website_url',
-      ''
     ];
   };
 
   Model.associate = function(models) {
-    models[TABLE_NAME].belongsTo(models['Users'], {foreignKey: 'user_id'});
+    models[TABLE_NAME].belongsTo(models.Users, {foreignKey: 'user_id'});
 
     // models[TABLE_NAME].hasMany(models['activity_user_post'], {foreignKey: 'post_id_to'});
     // models[TABLE_NAME].hasMany(models['post_users_team'], {

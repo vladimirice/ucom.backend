@@ -47,7 +47,7 @@ local-logs:
 database-migrations-migrate dmm:
 	node_modules/.bin/sequelize db:migrate
 
-stop-all-c:
+stop-all-c sac:
 	pm2 stop uos_backend_blockchain_consumer
 	pm2 stop uos_backend_ipfs_consumer
 

@@ -77,6 +77,27 @@ class OrganizationsHelper {
 
   /**
    *
+   * @return {Object}
+   */
+  static getSampleOrganizationsParams() {
+    return {
+      'title': 'Extremely new org',
+      'currency_to_show': 'CPX',
+      'powered_by': 'CPX',
+      'about': 'Extremely cool new about org',
+      'nickname': 'extreme_nick',
+      'email': 'extreme_email@gmail.com',
+      'phone_number': '+19999999',
+      'country': 'USA',
+      'city': 'LA',
+      'address': 'La alley, 18',
+      'personal_website_url': 'https://extreme.com',
+      'avatar_filename': FileToUploadHelper.getFilePath(),
+    }
+  }
+
+  /**
+   *
    * @param {Object} user
    * @param {Object} requiredFields
    * @return {Promise<Object>}
@@ -87,37 +108,24 @@ class OrganizationsHelper {
     if (requiredFields) {
       newModelFields = requiredFields;
     } else {
-      newModelFields = {
-        'title': 'Extremely new org',
-        'currency_to_show': 'CPX',
-        'powered_by': 'CPX',
-        'about': 'Extremely cool new about org',
-        'nickname': 'extreme_nick',
-        'email': 'extreme_email@gmail.com',
-        'phone_number': '+19999999',
-        'country': 'USA',
-        'city': 'LA',
-        'address': 'La alley, 18',
-        'personal_website_url': 'https://extreme.com',
-        'avatar_filename': FileToUploadHelper.getFilePath(),
-      };
+      newModelFields = this.getSampleOrganizationsParams();
     }
 
     const res = await request(server)
       .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title', newModelFields['title'])
-      .field('currency_to_show', newModelFields['currency_to_show'])
-      .field('powered_by', newModelFields['powered_by'])
-      .field('about', newModelFields['about'])
-      .field('nickname', newModelFields['nickname'])
-      .field('email', newModelFields['email'])
-      .field('phone_number', newModelFields['phone_number'])
-      .field('country', newModelFields['country'])
-      .field('city', newModelFields['city'])
-      .field('address', newModelFields['address'])
-      .field('personal_website_url', newModelFields['personal_website_url'])
-      .attach('avatar_filename', newModelFields['avatar_filename'])
+      .field('title', newModelFields.title)
+      .field('currency_to_show', newModelFields.currency_to_show)
+      .field('powered_by', newModelFields.powered_by)
+      .field('about', newModelFields.about)
+      .field('nickname', newModelFields.nickname)
+      .field('email', newModelFields.email)
+      .field('phone_number', newModelFields.phone_number)
+      .field('country', newModelFields.country)
+      .field('city', newModelFields.city)
+      .field('address', newModelFields.address)
+      .field('personal_website_url', newModelFields.personal_website_url)
+      .attach('avatar_filename', newModelFields.avatar_filename)
     ;
 
     ResponseHelper.expectStatusCreated(res);

@@ -1,4 +1,5 @@
 const helpers = require('../helpers');
+const _ = require('lodash');
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
 
 const request = require('supertest');
@@ -52,8 +53,27 @@ describe('Organizations. Create-update requests', () => {
         await helpers.Organizations.isAvatarImageUploaded(lastModel.avatar_filename);
       });
 
-      it('should sanitize user input', async () => {
-        // TODO
+      it('should sanitize user input when creation is in process', async () => {
+
+        const sampleFields = helpers.Organizations.getSampleOrganizationsParams();
+
+        let infectedFields = _.clone(sampleFields);
+        const textFields = OrganizationsRepositories.Main.getModelSimpleTextFields();
+
+        const injection = '<script>alert("Hello");</script><img src="https://hacked.url"/>';
+
+        textFields.forEach(field => {
+          if (infectedFields[field]) {
+            infectedFields[field] += injection;
+          }
+        });
+
+        await helpers.Organizations.requestToCreateNewOrganization(userPetr, infectedFields);
+        const lastModel = await OrganizationsRepositories.Main.findLastByAuthor(userPetr.id);
+
+        delete sampleFields.avatar_filename;
+
+        helpers.ResponseHelper.expectValuesAreExpected(sampleFields, lastModel);
       });
     });
 
