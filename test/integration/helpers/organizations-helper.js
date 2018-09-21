@@ -86,14 +86,45 @@ class OrganizationsHelper {
       'powered_by': 'CPX',
       'about': 'Extremely cool new about org',
       'nickname': 'extreme_nick',
-      'email': 'extreme_email@gmail.com',
+      'email': 'extremeemail@gmail.com',
       'phone_number': '+19999999',
       'country': 'USA',
       'city': 'LA',
       'address': 'La alley, 18',
       'personal_website_url': 'https://extreme.com',
-      'avatar_filename': FileToUploadHelper.getFilePath(),
+      'avatar_filename': FileToUploadHelper.getSampleFilePathToUpload(),
     }
+  }
+
+  /**
+   *
+   * @param {number} org_id
+   * @param {Object} user
+   * @param {Object} newModelFields
+   * @return {Promise<Object>}
+   */
+  static async requestToUpdateOrganization(org_id, user, newModelFields) {
+
+    const res = await request(server)
+      .patch(RequestHelper.getOneOrganizationUrl(org_id))
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('title', newModelFields.title)
+      .field('currency_to_show', newModelFields.currency_to_show)
+      .field('powered_by', newModelFields.powered_by)
+      .field('about', newModelFields.about)
+      .field('nickname', newModelFields.nickname)
+      .field('email', newModelFields.email)
+      .field('phone_number', newModelFields.phone_number)
+      .field('country', newModelFields.country)
+      .field('city', newModelFields.city)
+      .field('address', newModelFields.address)
+      .field('personal_website_url', newModelFields.personal_website_url)
+      .attach('avatar_filename', newModelFields.avatar_filename)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
   }
 
   /**
