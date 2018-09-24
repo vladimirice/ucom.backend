@@ -238,12 +238,23 @@ describe('Organizations. Create-update requests', () => {
         expect(errors.some(data => data.field === 'personal_website_url')).toBeTruthy();
       });
 
-      it('should not be possible to set organization ID directly', async () => {
-        // TODO
-      });
+      it('should not be possible to set organization ID or user_id directly', async () => {
+        const res = await request(server)
+          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${userPetr.token}`)
+          .field('title', 'my_own_title')
+          .field('nickname', 'my_own_nickname')
+          .field('id', 100500)
+          .field('user_id', userVlad.id)
+        ;
 
-      it('should not be possible to set user_id directly', async () => {
-        // TODO
+        helpers.ResponseHelper.expectStatusCreated(res);
+
+        const lastOrg = await OrganizationsRepositories.Main.findLastByAuthor(userPetr.id);
+
+        expect(lastOrg.id).toBe(res.body.id);
+        expect(lastOrg.id).not.toBe(100500);
+        expect(lastOrg.user_id).not.toBe(userVlad.id);
       });
 
       it('should throw an error if NOT unique fields is provided', async () => {
@@ -315,10 +326,71 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should sanitize org updating input', async () => {
-        // TODO
+        const org_id = 1;
+        const user = userVlad;
+
+        const injection = '<script>alert("Hello");</script><img src="https://hacked.url"/>';
+
+        let newModelFields = {
+          'title': 'expectedTitle',
+          'nickname': 'expectedNickname',
+          'powered_by': 'PAI',
+          'about': 'expectedAbout',
+          'country': 'Russia',
+        };
+
+        let infectedFields = {};
+        for (const field in newModelFields) {
+          infectedFields[field] = newModelFields[field] + injection;
+        }
+
+        const res = await request(server)
+          .patch(helpers.RequestHelper.getOneOrganizationUrl(org_id))
+          .set('Authorization', `Bearer ${user.token}`)
+          .field('title',       infectedFields.title)
+          .field('nickname',    infectedFields.nickname)
+          .field('powered_by',  infectedFields.powered_by)
+          .field('about',       infectedFields.about)
+          .field('country',     infectedFields.country)
+        ;
+
+        helpers.ResponseHelper.expectStatusOk(res);
+
+        const lastModel = await OrganizationsRepositories.Main.findOneById(org_id);
+
+        helpers.ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
       });
 
-      it('should be possible to update organization itself without changing email - no unique error', async () => {
+      it('should be possible to update organization itself without changing unique fields - no unique error', async () => {
+        const org_id = 1;
+        const user = userVlad;
+
+        const org = await OrganizationsRepositories.Main.findOneById(org_id);
+
+        let newModelFields = {
+          'title':    org.title,
+          'nickname': org.nickname,
+          'email':    org.email,
+          'about':    'expectedAbout',
+        };
+
+        const res = await request(server)
+          .patch(helpers.RequestHelper.getOneOrganizationUrl(org_id))
+          .set('Authorization', `Bearer ${user.token}`)
+          .field('title',       newModelFields.title)
+          .field('nickname',    newModelFields.nickname)
+          .field('email',       newModelFields.email)
+          .field('about',       newModelFields.about)
+        ;
+
+        helpers.ResponseHelper.expectStatusOk(res);
+
+        const lastModel = await OrganizationsRepositories.Main.findOneById(org_id);
+
+        helpers.ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
+      });
+
+      it('should not be possible to update field setting not unique fields', async () => {
         // TODO
       });
 
@@ -362,6 +434,14 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it ('should not be possible to update org using not existed organization ID', async () => {
+        // TODO
+      });
+
+      it('should be two errors if one org has given email, and other has given nickname', async () => {
+        // TODO
+      });
+
+      it('should not be possible to update with given nickname, if email is same as given org but nickname is same as in other', async () => {
         // TODO
       });
 
