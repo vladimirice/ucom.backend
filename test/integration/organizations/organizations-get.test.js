@@ -37,6 +37,8 @@ describe('Organizations. Get requests', () => {
 
       expect(model).toBeDefined();
       expect(model.id).toBe(model_id);
+
+      helpers.UserHelper.checkIncludedUserPreview(model);
     });
   });
 });

@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 
 /* Get one organization by ID */
 router.get('/:organization_id', async (req, res) => {
-  const targetId = req['organization_id'];
+  const targetId = req.organization_id;
 
   const model = await getOrganizationService(req).findOneByIdAndProcess(targetId);
 

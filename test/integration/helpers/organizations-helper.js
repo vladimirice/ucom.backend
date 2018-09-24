@@ -63,7 +63,6 @@ class OrganizationsHelper {
   }
 
   static async requestToGetOneOrganizationAsGuest(model_id) {
-
     const url = RequestHelper.getOneOrganizationUrl(model_id);
 
     const res = await request(server)

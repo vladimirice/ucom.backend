@@ -220,7 +220,21 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should not be possible to create organization with malformed email or url', async () => {
-        // TODO
+        const res = await request(server)
+          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${userPetr.token}`)
+          .field('title', 'my_own_title')
+          .field('nickname', 'my_own_nickname')
+          .field('email', 'wrong_email')
+          .field('personal_website_url', 'wrong_url')
+        ;
+
+        helpers.ResponseHelper.expectStatusBadRequest(res);
+
+        const errors = res.body.errors;
+
+        expect(errors.some(data => data.field === 'email')).toBeTruthy();
+        expect(errors.some(data => data.field === 'personal_website_url')).toBeTruthy();
       });
 
       it('should not be possible to set organization ID directly', async () => {

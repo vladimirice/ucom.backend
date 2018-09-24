@@ -29,13 +29,13 @@ class UsersHelper {
    * @param {string[]|null} expected - model with included user
    */
   static checkIncludedUserPreview(model, expected = null) {
-    expect(model['User']).toBeDefined();
-    expect(model['User'] instanceof Object).toBeTruthy();
+    expect(model.User).toBeDefined();
+    expect(model.User instanceof Object).toBeTruthy();
 
     if (!expected) {
       expected = UsersRepository.getModel().getFieldsForPreview().sort();
     }
-    ResponseHelper.expectAllFieldsExistence(model['User'], expected);
+    ResponseHelper.expectAllFieldsExistence(model.User, expected);
   }
 
   /**
