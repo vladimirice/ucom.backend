@@ -40,5 +40,43 @@ describe('Organizations. Get requests', () => {
 
       helpers.UserHelper.checkIncludedUserPreview(model);
     });
+
+    it('should not contain myself data if requesting as guest', async () => {
+      const model_id = 1;
+
+      const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(model_id);
+      expect(model.myselfData).not.toBeDefined();
+    });
+
+    it('should contain myselfData if requesting with token', async () => {
+      const model_id = 1;
+
+      const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, model_id);
+      const myselfData = model.myselfData;
+
+      expect(myselfData).toBeDefined();
+
+      expect(myselfData.follow).toBeDefined();
+      expect(myselfData.editable).toBeDefined();
+      expect(myselfData.member).toBeDefined();
+    });
+
+    it('should contain myselfData editable false if request not from author', async () => {
+      const model_id = await OrganizationsRepositories.Main.findLastIdByAuthor(userVlad.id);
+      const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userJane, model_id);
+
+      expect(model.myselfData.editable).toBeFalsy();
+      expect(model.myselfData.member).toBeFalsy();
+    });
+
+    it('should contain myselfData editable true and member true if author request his organization', async () => {
+      const user = userVlad;
+
+      const model_id = await OrganizationsRepositories.Main.findLastIdByAuthor(user.id);
+      const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(user, model_id);
+
+      expect(model.myselfData.editable).toBeTruthy();
+      expect(model.myselfData.member).toBeTruthy();
+    });
   });
 });

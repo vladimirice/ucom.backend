@@ -62,11 +62,35 @@ class OrganizationsHelper {
     return res.body.data;
   }
 
+  /**
+   *
+   * @param {number} model_id
+   * @return {Promise<Object>}
+   */
   static async requestToGetOneOrganizationAsGuest(model_id) {
     const url = RequestHelper.getOneOrganizationUrl(model_id);
 
     const res = await request(server)
       .get(url)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body.data;
+  }
+
+  /**
+   *
+   * @param {Object} user - myself
+   * @param {number} model_id
+   * @return {Promise<Object>}
+   */
+  static async requestToGetOneOrganizationAsMyself(user, model_id) {
+    const url = RequestHelper.getOneOrganizationUrl(model_id);
+
+    const res = await request(server)
+      .get(url)
+      .set('Authorization', `Bearer ${user.token}`)
     ;
 
     ResponseHelper.expectStatusOk(res);
