@@ -79,6 +79,34 @@ class OrganizationsHelper {
     return res.body.data;
   }
 
+  // noinspection JSUnusedGlobalSymbols
+  /**
+   *
+   * @param {Object[]}models
+   */
+  static checkIncludedOrganizationPreviewForArray(models) {
+    models.forEach(model => {
+      this.checkIncludedOrganizationPreview(model);
+    })
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {string[]}givenExpected
+   */
+  static checkIncludedOrganizationPreview(model, givenExpected = null) {
+    const targetModels = model.organizations;
+
+    expect(targetModels).toBeDefined();
+
+    const expected = givenExpected ? givenExpected : OrganizationsRepositories.Main.getOrganizationModel().getFieldsForPreview().sort();
+
+    targetModels.forEach(model => {
+      ResponseHelper.expectAllFieldsExistence(model, expected);
+    });
+  }
+
   /**
    *
    * @param {Object} user - myself
@@ -119,6 +147,7 @@ class OrganizationsHelper {
     }
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {Object} user

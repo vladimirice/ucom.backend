@@ -8,10 +8,11 @@ const server = require('../../../app');
 let userVlad;
 let userJane;
 let userPetr;
+let userRokky;
 
 describe('Organizations. Create-update requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane, userPetr] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => { await helpers.SeedsHelper.sequelizeAfterAll(); });

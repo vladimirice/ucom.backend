@@ -1,6 +1,7 @@
-'use strict';
+const TABLE_NAME = 'Users';
+
 module.exports = (sequelize, DataTypes) => {
-  const Users = sequelize.define('Users', {
+  const Users = sequelize.define(TABLE_NAME, {
     account_name: {
       type: DataTypes.STRING,
     },
@@ -15,12 +16,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     email: {
       type: DataTypes.STRING,
-      validate: {
-        isEmail: {
-          args: true,
-          msg: 'Email is invalid'
-        },
-      }
     },
     phone_number: {
       type: DataTypes.STRING
@@ -82,7 +77,7 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'Users',
   });
   Users.associate = function(models) {
-    models['Users'].hasMany(models['users_education'], {
+    models[TABLE_NAME].hasMany(models.users_education, {
       foreignKey: 'user_id',
       sourceKey: 'id',
       as: {
@@ -90,7 +85,10 @@ module.exports = (sequelize, DataTypes) => {
         plural: "users_education"
       }
     });
-    models['Users'].hasMany(models['users_jobs'], {
+    models.Users.hasMany(models.organizations, {
+      foreignKey: 'user_id',
+    });
+    models[TABLE_NAME].hasMany(models.users_jobs, {
       foreignKey: 'user_id',
       sourceKey: 'id',
       as: {
@@ -98,7 +96,7 @@ module.exports = (sequelize, DataTypes) => {
         plural: "users_jobs"
       }
     });
-    models['Users'].hasMany(models['users_sources'], {
+    models[TABLE_NAME].hasMany(models.users_sources, {
       foreignKey: 'user_id',
       sourceKey: 'id',
       as: {
@@ -107,7 +105,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
 
-    models['Users'].hasMany(models['activity_user_user'], {
+    models[TABLE_NAME].hasMany(models.activity_user_user, {
       foreignKey: 'user_id_from',
       sourceKey: 'id',
       as: {
@@ -115,7 +113,7 @@ module.exports = (sequelize, DataTypes) => {
         plural: "I_follow"
       }
     });
-    models['Users'].hasMany(models['activity_user_user'], {
+    models[TABLE_NAME].hasMany(models.activity_user_user, {
       foreignKey: 'user_id_to',
       sourceKey: 'id',
       as: {
@@ -141,15 +139,6 @@ module.exports = (sequelize, DataTypes) => {
       return [
         'id', 'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename', 'current_rate',
       ];
-    };
-
-    /**
-     * @deprecated - renamed
-     * @see getFieldsForPreview
-     * @returns {string[]}
-     */
-    Users.shortUserInfoFields = function() {
-      return Users.getFieldsForPreview();
     };
   };
 

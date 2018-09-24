@@ -26,35 +26,14 @@ class UsersHelper {
   /**
    *
    * @param {Object} model - model with included user
-   * @param {string[]|null} expected - model with included user
+   * @param {string[]|null} givenExpected - model with included user
    */
-  static checkIncludedUserPreview(model, expected = null) {
+  static checkIncludedUserPreview(model, givenExpected = null) {
     expect(model.User).toBeDefined();
     expect(model.User instanceof Object).toBeTruthy();
 
-    if (!expected) {
-      expected = UsersRepository.getModel().getFieldsForPreview().sort();
-    }
+    const expected = givenExpected ? givenExpected : UsersRepository.getModel().getFieldsForPreview().sort();
     ResponseHelper.expectAllFieldsExistence(model.User, expected);
-  }
-
-  /**
-   * @deprecated
-   * @see setSampleRateToUser
-   * @returns {Promise<string>}
-   */
-  static async setSampleRateToUserVlad() {
-    const rateToSet = 0.1234;
-
-    const vladFromDb = await UsersRepository.getUserByAccountName('vlad');
-
-    await vladFromDb.update({
-      'current_rate': rateToSet
-    });
-
-    const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
-
-    return rateNormalized.toFixed();
   }
 
   /**
@@ -79,6 +58,22 @@ class UsersHelper {
     const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
 
     return +rateNormalized.toFixed();
+  }
+
+
+  /**
+   *
+   * @param {number} user_id
+   * @return {Promise<Object>}
+   */
+  static async requestToGetUserAsGuest(user_id) {
+    const res = await request(server)
+      .get(RequestHelper.getUserUrl(user_id))
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
   }
 
   /**

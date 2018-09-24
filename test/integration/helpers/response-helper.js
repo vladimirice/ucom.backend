@@ -73,15 +73,6 @@ class ResponseHelper {
     const expectedSorted = expected.sort();
 
     expect(actualKeys).toEqual(expectedSorted);
-
-    // expectedSorted.forEach((field, i) => {
-    //   expect(actualKeys[i], `It seems that there is an extra field in response ${actualKeys[i]}`).toBe(field);
-    // });
-    //
-    // expect(
-    //   Object.keys(actual).length,
-    //   `There are extra fields at the end of object. Expected: ${JSON.stringify(expected, null, 2)}, actual: ${JSON.stringify(Object.keys(actual), null, 2)}`
-    // ).toBe(expected.length);
   }
 
   /**

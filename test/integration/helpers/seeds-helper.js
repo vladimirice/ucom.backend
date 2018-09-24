@@ -69,6 +69,7 @@ class SeedsHelper {
         UsersHelper.getUserVlad(),
         UsersHelper.getUserJane(),
         UsersHelper.getUserPetr(),
+        UsersHelper.getUserRokky(),
       ]);
   }
 
@@ -88,7 +89,7 @@ class SeedsHelper {
     let resetSequencePromises = [];
 
     allSequences[0].forEach(data => {
-      let name = data['sequence_name'];
+      let name = data.sequence_name;
 
       if (name === 'Users_id_seq') {
         name = '"Users_id_seq"';
@@ -124,34 +125,34 @@ class SeedsHelper {
   }
 
   static async initSeedsForUsers() {
-    await models['activity_user_user'].destroy({where: {}});
-    await models['posts'].destroy({where: {}});
-    await models['Users'].destroy({where: {}});
+    await models.activity_user_user.destroy({where: {}});
+    await models.posts.destroy({where: {}});
+    await models.Users.destroy({where: {}});
 
     await models.sequelize.query(`ALTER SEQUENCE activity_user_user_id_seq RESTART;`);
     await models.sequelize.query(`ALTER SEQUENCE "Users_id_seq" RESTART;`);
     await models.sequelize.query(`ALTER SEQUENCE posts_id_seq RESTART;`);
 
-    await models['Users'].bulkCreate(usersSeeds);
-    await models['posts'].bulkCreate(postsSeeds);
+    await models.Users.bulkCreate(usersSeeds);
+    await models.posts.bulkCreate(postsSeeds);
   }
 
   static async seedMainTables() {
-    await models['Users'].bulkCreate(usersSeeds);
-    await models['posts'].bulkCreate(postsSeeds);
-    await models['comments'].bulkCreate(commentsSeeds);
+    await models.Users.bulkCreate(usersSeeds);
+    await models.posts.bulkCreate(postsSeeds);
+    await models.comments.bulkCreate(commentsSeeds);
   }
 
   static async seedDb() {
     await this.seedMainTables();
 
     await Promise.all([
-      models['users_education'].bulkCreate(usersEducationSeeds),
-      models['users_jobs'].bulkCreate(usersJobsSeeds),
-      models['users_sources'].bulkCreate(sourcesSeeds),
-      models['post_offer'].bulkCreate(postsOffersSeeds),
-      models['post_stats'].bulkCreate(postStatsSeeds),
-      models['post_users_team'].bulkCreate(postUsersTeamSeeds),
+      models.users_education.bulkCreate(usersEducationSeeds),
+      models.users_jobs.bulkCreate(usersJobsSeeds),
+      models.users_sources.bulkCreate(sourcesSeeds),
+      models.post_offer.bulkCreate(postsOffersSeeds),
+      models.post_stats.bulkCreate(postStatsSeeds),
+      models.post_users_team.bulkCreate(postUsersTeamSeeds),
     ]);
   }
 
@@ -178,11 +179,12 @@ class SeedsHelper {
   static async initPostOfferSeeds() {
     await this.destroyTables();
 
-    await models['Users'].bulkCreate(usersSeeds);
-    await models['posts'].bulkCreate(postsSeeds);
-    await models['post_offer'].bulkCreate(postsOffersSeeds);
-    await models['post_users_team'].bulkCreate(postUsersTeamSeeds);
+    await models.Users.bulkCreate(usersSeeds);
+    await models.posts.bulkCreate(postsSeeds);
+    await models.post_offer.bulkCreate(postsOffersSeeds);
+    await models.post_users_team.bulkCreate(postUsersTeamSeeds);
 
+    // noinspection JSUnresolvedFunction
     usersSeeds.forEach(() => {
       models.sequelize.query(`SELECT nextval('"Users_id_seq"')`).then(() => {
       });

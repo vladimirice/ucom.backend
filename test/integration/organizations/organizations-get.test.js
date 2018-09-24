@@ -4,16 +4,44 @@ const OrganizationsRepositories = require('../../../lib/organizations/repository
 let userVlad;
 let userJane;
 let userPetr;
+let userRokky;
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane, userPetr] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => { await helpers.SeedsHelper.sequelizeAfterAll(); });
 
   beforeEach(async () => {
     await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
+  });
+
+  describe('Users with organizations data', () => {
+    it('should contain organizations list for GET one user by ID', async () => {
+      const user_id = 1;
+      const model = await helpers.Users.requestToGetUserAsGuest(user_id);
+      const organizations = model.organizations;
+
+      expect(organizations).toBeDefined();
+
+      const expectedModels = await OrganizationsRepositories.Main.findAllForPreviewByUserId(user_id);
+
+      expect(organizations.length).toBe(expectedModels.length);
+
+      expectedModels.forEach(model => {
+        expect(organizations.some(org => org.id === model.id)).toBeTruthy();
+      });
+
+      helpers.Organizations.checkIncludedOrganizationPreview(model);
+    });
+
+    it('should not contain empty organizations array', async () => {
+      const model = await helpers.Users.requestToGetUserAsGuest(userRokky.id);
+
+      expect(model.organizations).toBeDefined();
+      expect(model.organizations.length).toBe(0);
+    });
   });
 
   describe('Organization lists', () => {

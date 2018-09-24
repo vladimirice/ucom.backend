@@ -73,10 +73,10 @@ module.exports = [
   },
   {
     // id = 5
-    'title': 'jane_mega_but_small',
-    'nickname': 'jane_mega_but_small',
+    'title': 'vlad_mega_but_small',
+    'nickname': 'vlad_mega_but_small',
     'created_at': new Date(2015, 9, 10),
     'update_at': new Date(2015, 11, 12),
-    'user_id': 1, // userJane
+    'user_id': 1, // userVlad
   },
 ];

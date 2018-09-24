@@ -11,16 +11,16 @@ const winston = require('../config/winston');
 
 /* Find users by name fields - shortcut */
 router.get('/search', async (req, res) => {
-  const query = req.query['q'];
+  const query = req.query.q;
 
   const users = await UserService.findByNameFields(query);
 
   res.send(users);
 });
 
-/* GET one user */
+/* get one user */
 router.get('/:user_id', async function(req, res) {
-  const user = await getUserService(req).getUserByIdAndProcess(req['user_id']);
+  const user = await getUserService(req).getUserByIdAndProcess(req.user_id);
 
   res.send(user);
 });
@@ -34,7 +34,7 @@ router.get('/', async function(req, res) {
 
 /* GET all user posts */
 router.get('/:user_id/posts', async function(req, res) {
-  const userId = req['user_id'];
+  const userId = req.user_id;
   const posts = await getPostService(req).findAllByAuthor(userId);
 
   res.send(posts);
@@ -42,10 +42,10 @@ router.get('/:user_id/posts', async function(req, res) {
 
 /* One user follows other user */
 router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) {
-  const userFrom = req['user'];
-  const userToId = req['user_id'];
+  const userFrom = req.user;
+  const userToId = req.user_id;
 
-  winston.info('Action - user follows other user. Request body is: ', JSON.stringify(req['body']));
+  winston.info('Action - user follows other user. Request body is: ', JSON.stringify(req.body));
 
   await UserActivityService.userFollowsAnotherUser(userFrom, userToId);
 
@@ -56,10 +56,10 @@ router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) 
 
 /* One user unfollows other user */
 router.post('/:user_id/unfollow', [authTokenMiddleWare], async function(req, res) {
-  const userFrom = req['user'];
-  const userIdTo = req['user_id'];
+  const userFrom = req.user;
+  const userIdTo = req.user_id;
 
-  winston.info('Action - user unfollows other user user. Request body is: ', JSON.stringify(req['body']));
+  winston.info('Action - user unfollows other user user. Request body is: ', JSON.stringify(req.body));
 
   await UserActivityService.userUnfollowsUser(userFrom, userIdTo);
 
@@ -83,7 +83,8 @@ router.param('user_id', (req, res, next, incoming_id) => {
     if (!doesExist) {
       throw new AppError(`There is no user with ID ${value}`, 404);
     }
-    req['user_id'] = value;
+    // noinspection JSUndefinedPropertyAssignment
+    req.user_id = value;
 
     next();
 
@@ -96,7 +97,7 @@ router.param('user_id', (req, res, next, incoming_id) => {
  * @returns {UserService}
  */
 function getUserService(req) {
-  return req['container'].get('user-service');
+  return req.container.get('user-service');
 }
 
 /**
@@ -105,7 +106,7 @@ function getUserService(req) {
  * @returns {PostService}
  */
 function getPostService(req) {
-  return req['container'].get('post-service');
+  return req.container.get('post-service');
 }
 
 module.exports = router;
