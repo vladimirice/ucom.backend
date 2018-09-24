@@ -390,11 +390,8 @@ describe('Organizations. Create-update requests', () => {
         helpers.ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
       });
 
-      it('should not be possible to update field setting not unique fields', async () => {
-        // TODO
-      });
-
       it('should be possible to update organization with random extra fields', async () => {
+        // Required because frontend will send fields which are not been implemented in backend
         const user = userJane;
         const orgBefore = await OrganizationsRepositories.Main.findLastByAuthor(user.id);
         const org_id = orgBefore.id;
@@ -430,19 +427,96 @@ describe('Organizations. Create-update requests', () => {
     });
     describe('Negative scenarios', () => {
       it ('should not be possible to update org using malformed organization ID', async () => {
-        // TODO
+        const currentOrgId = 'malformed';
+
+        const res = await request(server)
+          .patch(helpers.RequestHelper.getOneOrganizationUrl(currentOrgId))
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title',     'new_title')
+          .field('nickname',  'new_nickname')
+        ;
+
+        helpers.ResponseHelper.expectStatusBadRequest(res);
       });
 
       it ('should not be possible to update org using not existed organization ID', async () => {
-        // TODO
+        const currentOrgId = 100500;
+
+        const res = await request(server)
+          .patch(helpers.RequestHelper.getOneOrganizationUrl(currentOrgId))
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title',     'new_title')
+          .field('nickname',  'new_nickname')
+        ;
+
+        helpers.ResponseHelper.expectStatusNotFound(res);
       });
 
       it('should be two errors if one org has given email, and other has given nickname', async () => {
-        // TODO
+        const currentOrgId = 1;
+        const orgIdToTakeEmail = 2;
+        const orgIdToTakeNickname = 3;
+
+        const [currentOrg, orgToTakeEmail, orgToTakeNickname] = await Promise.all([
+          OrganizationsRepositories.Main.findOneById(currentOrgId),
+          OrganizationsRepositories.Main.findOneById(orgIdToTakeEmail),
+          OrganizationsRepositories.Main.findOneById(orgIdToTakeNickname)
+        ]);
+
+        const newModelFields = {
+          'title':    currentOrg.title,
+          'email':    orgToTakeEmail.email,
+          'nickname': orgToTakeNickname.nickname,
+        };
+
+        const res = await request(server)
+          .patch(helpers.RequestHelper.getOneOrganizationUrl(currentOrgId))
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title',     newModelFields.title)
+          .field('email',     newModelFields.email)
+          .field('nickname',  newModelFields.nickname)
+        ;
+
+        helpers.ResponseHelper.expectStatusBadRequest(res);
+        const errors = res.body.errors;
+
+        expect(errors.length).toBe(2);
+
+        expect(errors).toBeDefined();
+        expect(errors.some(error => error.field === 'email')).toBeTruthy();
+        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
       });
 
-      it('should not be possible to update with given nickname, if email is same as given org but nickname is same as in other', async () => {
-        // TODO
+      it('should not be possible to update with given nickname, if email is same as given org but nickname is same as in other org', async () => {
+        const current_org_id = 1;
+        const other_org_id = 2;
+
+        const [currentOrg, otherOrg] = await Promise.all([
+          OrganizationsRepositories.Main.findOneById(current_org_id),
+          OrganizationsRepositories.Main.findOneById(other_org_id)
+        ]);
+
+        const newModelFields = {
+          'title':    currentOrg.title,
+          'email':    currentOrg.email,
+          'nickname': otherOrg.nickname,
+        };
+
+        const res = await request(server)
+          .patch(helpers.RequestHelper.getOneOrganizationUrl(current_org_id))
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title', newModelFields.title)
+          .field('email', newModelFields.email)
+          .field('nickname', newModelFields.nickname)
+        ;
+
+        helpers.ResponseHelper.expectStatusBadRequest(res);
+        const errors = res.body.errors;
+        expect(errors.length).toBe(1);
+
+        expect(errors).toBeDefined();
+        expect(errors.some(error => error.field === 'email')).toBeFalsy();
+        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
       });
 
       it('should not be possible to update org without auth token', async () => {
