@@ -25,9 +25,6 @@ router.get('/:organization_id', async (req, res) => {
 
 /* Create new organization */
 router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  req.signed_transaction = 'sample_signed';
-  req.blockchain_id = 'sample_blockchain_id';
-
   const model = await getOrganizationService(req).processNewOrganizationCreation(req);
 
   return res.status(201).send({
@@ -38,10 +35,7 @@ router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
 /* Update organization */
 router.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
-
-  const model = await getOrganizationService(req).updateOrganization(req);
-
-
+  await getOrganizationService(req).updateOrganization(req);
 
   return res.status(200).send({
     status: 'ok',

@@ -9,4 +9,5 @@ module.exports = {
   SeedsHelper:    require('./seeds-helper'),
   Organizations:  require('./organizations-helper'),
   FileToUpload:  require('./file-to-upload-helper'),
+  EosTransaction:  require('./eos-transaction-helpers'),
 };

@@ -6,6 +6,10 @@ module.exports = (db, Sequelize) => {
       type: Sequelize.SMALLINT,
       required: true,
     },
+    activity_group_id: {
+      type: Sequelize.SMALLINT,
+      required: true,
+    },
     user_id_from: {
       type: Sequelize.INTEGER,
       required: true,

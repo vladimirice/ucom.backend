@@ -38,6 +38,9 @@ module.exports = (db, Sequelize) => {
     personal_website_url: {
       type: Sequelize.STRING,
     },
+    blockchain_id: {
+      type: Sequelize.STRING,
+    },
     created_at: {
       type: Sequelize.DATE,
     },
