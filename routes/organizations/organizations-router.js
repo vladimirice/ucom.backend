@@ -35,10 +35,7 @@ router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
 /* Update organization */
 router.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
-
-  const model = await getOrganizationService(req).updateOrganization(req);
-
-
+  await getOrganizationService(req).updateOrganization(req);
 
   return res.status(200).send({
     status: 'ok',
