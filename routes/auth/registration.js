@@ -85,8 +85,8 @@ router.post('/', [ upload.array() ], async function (req, res, next) {
 });
 
 /* Check is account_name valid */
-router.post('/validate-account-name', async function (req, res) {
-  const account_name = req.body['account_name'];
+router.post('/validate-account-name', [ upload.array() ], async function (req, res) {
+  const account_name = req.body.account_name;
 
   try {
     await AuthValidator.validateNewAccountName(account_name);

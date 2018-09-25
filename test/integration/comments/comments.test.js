@@ -293,43 +293,6 @@ describe('Comments', () => {
   });
 
   describe('Negative scenarios', () => {
-
-    // it('Not possible to exceed max comments depth', async () => {
-    //   const post_id = 1;
-    //
-    //   const maxDepthComment = await CommentsRepository.getWithMaxDepthByCommentableId(post_id);
-    //   const maxDepth = CommentsService.getMaxDepth();
-    //
-    //   let lastCommentId = maxDepthComment.id;
-    //   let lastDepth = maxDepthComment.depth;
-    //   let res;
-    //
-    //   do {
-    //     res = await request(server)
-    //       .post(RequestHelper.getCommentOnCommentUrl(post_id, lastCommentId))
-    //       .set('Authorization', `Bearer ${userVlad.token}`)
-    //       .send({
-    //         'description': 'comment on comment description',
-    //       })
-    //     ;
-    //
-    //     ResponseHelper.expectStatusCreated(res);
-    //
-    //     lastCommentId = +res.body.id;
-    //     lastDepth = res.body.depth;
-    //   } while (lastDepth < maxDepth);
-    //
-    //   res = await request(server)
-    //     .post(RequestHelper.getCommentOnCommentUrl(post_id, lastCommentId))
-    //     .set('Authorization', `Bearer ${userVlad.token}`)
-    //     .send({
-    //       'description': 'comment on comment description',
-    //     })
-    //   ;
-    //
-    //   ResponseHelper.expectStatusBadRequest(res);
-    // });
-
     it('Not possible to post comment without auth token', async () => {
       const post_id = 1;
 

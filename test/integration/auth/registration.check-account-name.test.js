@@ -19,9 +19,7 @@ describe('Test registration workflow', () => {
 
     const res = await request(server)
       .post(RequestHelper.getCheckAccountNameRoute())
-      .send({
-        'account_name': 'vladInvalid9'
-      })
+      .field('account_name', 'vladInvalid9')
     ;
 
     ResponseHelper.expectStatusBadRequest(res);
@@ -31,9 +29,7 @@ describe('Test registration workflow', () => {
 
     const res = await request(server)
       .post(RequestHelper.getCheckAccountNameRoute())
-      .send({
-        'wrong_parameter': 'vladInvalid9'
-      })
+      .field('wrong_parameter', 'vladInvalid9')
     ;
 
     ResponseHelper.expectStatusBadRequest(res);
@@ -42,9 +38,7 @@ describe('Test registration workflow', () => {
   it('Must return error if account name is already taken', async () => {
     const res = await request(server)
       .post(RequestHelper.getCheckAccountNameRoute())
-      .send({
-        'account_name': 'vlad'
-      })
+      .field('account_name', 'vlad')
     ;
 
     ResponseHelper.expectStatusBadRequest(res);
@@ -53,12 +47,9 @@ describe('Test registration workflow', () => {
   it('Must return OK if account name is valid and free to register', async () => {
     const res = await request(server)
       .post(RequestHelper.getCheckAccountNameRoute())
-      .send({
-        'account_name': 'vlad12312312'
-      })
+      .field('account_name', 'vlad12312312')
     ;
 
     ResponseHelper.expectStatusOk(res);
   });
-
 });
