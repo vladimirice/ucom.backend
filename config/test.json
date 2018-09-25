@@ -12,7 +12,7 @@
     "httpEndpoint": "http://142.93.100.96:8888"
   },
   "auth": {
-    "jwt_secret_key": "secret_key"
+    "jwt_secret_key": "secret_key_test"
   },
   "ipfs": {
     "host": "85.10.211.115",

@@ -8,6 +8,8 @@ const UsersHelper = require('./helpers/users-helper');
 const SeedsHelper = require('./helpers/seeds-helper');
 const ResponseHelper = require('./helpers/response-helper');
 
+const helpers = require('./helpers');
+
 const eosAccount = UsersHelper.getVladEosAccount();
 const registerUrl = '/api/v1/auth/login';
 
@@ -55,7 +57,7 @@ describe('Test auth workflow', () => {
     const private_key = janeEosAccount.private_key;
     const public_key = janeSeed.public_key;
 
-    const usersCountBefore = await models['Users'].count({where: {account_name: account_name}});
+    const usersCountBefore = await models.Users.count({where: {account_name: account_name}});
     expect(usersCountBefore).toBe(1);
 
     const sign = EosJsEcc.sign(account_name, private_key);
@@ -70,7 +72,7 @@ describe('Test auth workflow', () => {
     ;
 
     AuthHelper.validateAuthResponse(res, account_name);
-    const usersCountAfter = await models['Users'].count({where: {account_name: account_name}});
+    const usersCountAfter = await models.Users.count({where: {account_name: account_name}});
     expect(usersCountAfter).toBe(usersCountBefore);
   }, 10000);
 
@@ -131,6 +133,17 @@ describe('Test auth workflow', () => {
 
     expect(body.hasOwnProperty('errors')).toBeTruthy();
     expect(body.errors).toMatch('Public key is not valid');
+  });
+
+  it('should return 401 if token is malformed', async () => {
+    const oldToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNTM3ODc0NzI4fQ.thvAtbCYq8ubbI7mXZgXyQBEmqxZpmbRWuZyCuElaD0';
+
+    const res = await request(server)
+      .get(helpers.RequestHelper.getUsersUrl())
+      .set('Authorization', `Bearer ${oldToken}`)
+    ;
+
+    ResponseHelper.expectStatusUnauthorized(res);
   });
 
   it('Send account name and sign of invalid private key', async () => {
