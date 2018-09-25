@@ -8,9 +8,11 @@ const AuthService = require('../../lib/auth/authService');
 const models = require('../../models');
 const EosAuth = require('../../lib/eos/eos-auth');
 const UserService = require('../../lib/users/users-service');
+const multer = require('multer');
+const upload = multer();
 
 /* Register new user */
-router.post('/', async function (req, res, next) {
+router.post('/', [ upload.array() ], async function (req, res, next) {
   const payload = _.pick(req.body, ['account_name', 'public_key', 'sign', 'brainkey']);
 
   const { error } = AuthValidator.validateRegistration(req.body);

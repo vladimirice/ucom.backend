@@ -17,11 +17,10 @@ describe('Test registration workflow', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-
   // TODO #autotest Public key must not match existing one
   it('Register new user', async () => {
 
-    const userVladData = AccountsData['karolinaer'];
+    const userVladData = AccountsData.karolinaer;
 
     const mockAccountName = 'vlad12312312';
 
@@ -29,12 +28,10 @@ describe('Test registration workflow', () => {
 
     const res = await request(server)
       .post(RequestHelper.getRegistrationRoute())
-      .send({
-        "account_name": mockAccountName,
-        "sign": sign,
-        "public_key": userVladData.activePubKey,
-        "brainkey" : 'avocate penance cadmium hoick flosh dysuric upplow renegue potoo expirer bookman puja'
-      })
+      .field("account_name", mockAccountName)
+      .field("sign", sign)
+      .field("public_key", userVladData.activePubKey)
+      .field("brainkey", 'avocate penance cadmium hoick flosh dysuric upplow renegue potoo expirer bookman puja')
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -51,22 +48,3 @@ describe('Test registration workflow', () => {
     expect(patchResponse.status).toBe(200);
   }, 10000);
 });
-
-// TODO registration
-// it('Send correct auth request and receive token and new user', async () => {
-//   const sign = EosJsEcc.sign(eosAccount.account_name, eosAccount.private_key);
-//
-//   const res = await request(server)
-//     .post(registerUrl)
-//     .send({
-//       'account_name': eosAccount.account_name,
-//       'public_key': eosAccount.public_key,
-//       'sign': sign
-//     })
-//   ;
-//
-//   AuthHelper.validateAuthResponse(res, eosAccount.account_name);
-//
-//   const user = await models.Users.findOne({where: {account_name: eosAccount.account_name}});
-//   expect(user).not.toBeNull();
-// });

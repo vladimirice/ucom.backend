@@ -1,14 +1,14 @@
 const request = require('supertest');
-const models = require('../../models');
-const server = require('../../app');
-const EosJsEcc = require('../../lib/crypto/eosjs-ecc');
+const models = require('../../../models');
+const server = require('../../../app');
+const EosJsEcc = require('../../../lib/crypto/eosjs-ecc');
 
-const AuthHelper = require('./helpers/auth-helper');
-const UsersHelper = require('./helpers/users-helper');
-const SeedsHelper = require('./helpers/seeds-helper');
-const ResponseHelper = require('./helpers/response-helper');
+const AuthHelper = require('../helpers/auth-helper');
+const UsersHelper = require('../helpers/users-helper');
+const SeedsHelper = require('../helpers/seeds-helper');
+const ResponseHelper = require('../helpers/response-helper');
 
-const helpers = require('./helpers');
+const helpers = require('../helpers');
 
 const eosAccount = UsersHelper.getVladEosAccount();
 const registerUrl = '/api/v1/auth/login';
