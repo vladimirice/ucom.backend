@@ -39,10 +39,8 @@ describe('Test registration workflow', () => {
     const patchResponse = await request(server)
       .patch('/api/v1/myself')
       .set('Authorization', `Bearer ${res.body.token}`)
-      .send({
-        'first_name': 12345,
-        'birthday': '',
-      })
+      .field('first_name', 12345)
+      .field('birthday', '')
     ;
 
     expect(patchResponse.status).toBe(200);

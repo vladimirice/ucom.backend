@@ -61,11 +61,9 @@ describe('Test auth workflow', () => {
 
     const res = await request(server)
       .post(registerUrl)
-      .send({
-        'account_name': account_name,
-        'public_key': eosAccount.public_key,
-        'sign': sign
-      })
+      .field('account_name', account_name)
+      .field('public_key', eosAccount.public_key)
+      .field('sign', sign)
     ;
 
     expect(res.status).toBe(400);
@@ -80,9 +78,7 @@ describe('Test auth workflow', () => {
   it('Should receive validation error if no fields provided', async () => {
     const res = await request(server)
       .post(registerUrl)
-      .send({
-        'account_name': eosAccount.account_name,
-      })
+      .field('account_name', eosAccount.account_name)
     ;
 
     expect(res.status).toBe(400);
@@ -103,11 +99,9 @@ describe('Test auth workflow', () => {
   it('Should receive signature error if sign is not valid', async () => {
     const res = await request(server)
       .post(registerUrl)
-      .send({
-        'account_name': eosAccount.account_name,
-        'public_key': eosAccount.public_key,
-        'sign': 'invalidSign'
-      })
+      .field('account_name', eosAccount.account_name)
+      .field('public_key', eosAccount.public_key)
+      .field('sign', 'invalidSign')
     ;
 
     ResponseHelper.expectStatusBadRequest(res);
@@ -120,13 +114,10 @@ describe('Test auth workflow', () => {
   it('Should receive public key error', async () => {
     const res = await request(server)
       .post(registerUrl)
-      .send({
-        'account_name': eosAccount.account_name,
-        'public_key': 'invalid public key',
-        'sign': 'invalidSign'
-      })
+      .field('account_name', eosAccount.account_name)
+      .field('public_key', 'invalid public key')
+      .field('sign', 'invalidSign')
     ;
-
 
     ResponseHelper.expectStatusBadRequest(res);
     const body = res.body;
@@ -155,11 +146,9 @@ describe('Test auth workflow', () => {
 
     const res = await request(server)
       .post(registerUrl)
-      .send({
-        'account_name': account_name,
-        'public_key': public_key,
-        'sign': sign
-      })
+      .field('account_name', account_name)
+      .field('public_key', public_key)
+      .field('sign', sign)
     ;
 
     expect(res.status).toBe(400);
