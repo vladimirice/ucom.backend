@@ -29,6 +29,31 @@ describe('Test auth workflow', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
+  describe('Positive scenarios', () => {
+    // TODO put here all positive scenarios
+    it('Send correct login request with already existed user', async () => {
+      const account_name = janeSeed.account_name;
+      const private_key = janeEosAccount.private_key;
+      const public_key = janeSeed.public_key;
+
+      const usersCountBefore = await models.Users.count({where: {account_name: account_name}});
+      expect(usersCountBefore).toBe(1);
+
+      const sign = EosJsEcc.sign(account_name, private_key);
+
+      const res = await request(server)
+        .post(registerUrl)
+        .field('account_name', account_name)
+        .field('public_key', public_key)
+        .field('sign', sign)
+      ;
+
+      AuthHelper.validateAuthResponse(res, account_name);
+      const usersCountAfter = await models.Users.count({where: {account_name: account_name}});
+      expect(usersCountAfter).toBe(usersCountBefore);
+    }, 10000);
+  });
+
   it('Send correct auth request but with account which does not exist in blockchain', async () => {
     const account_name = 'testuser';
 
@@ -51,31 +76,6 @@ describe('Test auth workflow', () => {
     expect(publicKeyError).toBeDefined();
     expect(publicKeyError.message).toMatch('Such account does not exist in blockchain');
   });
-
-  it('Send correct auth request but with already existed user', async () => {
-    const account_name = janeSeed.account_name;
-    const private_key = janeEosAccount.private_key;
-    const public_key = janeSeed.public_key;
-
-    const usersCountBefore = await models.Users.count({where: {account_name: account_name}});
-    expect(usersCountBefore).toBe(1);
-
-    const sign = EosJsEcc.sign(account_name, private_key);
-
-    const res = await request(server)
-      .post(registerUrl)
-      .send({
-        'account_name': account_name,
-        'public_key': public_key,
-        'sign': sign
-      })
-    ;
-
-    AuthHelper.validateAuthResponse(res, account_name);
-    const usersCountAfter = await models.Users.count({where: {account_name: account_name}});
-    expect(usersCountAfter).toBe(usersCountBefore);
-  }, 10000);
-
 
   it('Should receive validation error if no fields provided', async () => {
     const res = await request(server)

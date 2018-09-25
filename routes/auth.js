@@ -8,7 +8,10 @@ const AuthService = require('../lib/auth/authService');
 const eosApi = require('../lib/eos/eosApi');
 const UsersService = require('../lib/users/users-service');
 
-router.post('/login', async function (req, res, next) {
+const multer = require('multer');
+const upload = multer();
+
+router.post('/login', [upload.array()], async function (req, res, next) {
   const payload = _.pick(req.body, ['account_name', 'public_key', 'sign']);
 
   const { error } = AuthValidator.validateLogin(req.body);
