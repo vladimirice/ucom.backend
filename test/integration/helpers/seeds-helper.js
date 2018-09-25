@@ -21,12 +21,14 @@ const tableToSeeds = {
 };
 
 const tableToSequence = {
+  [UsersRepositories.Activity.getModelName()]  : 'users_activity_id_seq',
   [OrganizationsRepositories.Main.getOrganizationsModelName()]  : 'organizations_id_seq',
   [UsersRepositories.Main.getUsersModelName()]                  : '"Users_id_seq"'
 };
 
 // Truncated async
 const minorTables = [
+  UsersRepositories.Activity.getModelName(),
   'post_ipfs_meta',
 
   'users_education',
@@ -164,6 +166,7 @@ class SeedsHelper {
 
   static async resetOrganizationRelatedSeeds() {
     const tables = [
+      UsersRepositories.Activity.getModelName(),
       OrganizationsRepositories.Main.getOrganizationsModelName(),
     ];
 
@@ -232,7 +235,10 @@ class SeedsHelper {
     for (let i = 0; i < syncInit.length; i++) {
       const table = syncInit[i];
       const seeds = tableToSeeds[table];
-      await models[table].bulkCreate(seeds);
+
+      if (seeds) {
+        await models[table].bulkCreate(seeds);
+      }
     }
   }
 }
