@@ -34,6 +34,7 @@ describe('Organizations. Blockchain transactions', () => {
         await delay(500);
       }
 
+      // noinspection JSUnresolvedFunction
       const expected = {
         activity_type_id: ContentTypeDictionary.getTypeOrganization(),
         activity_group_id: ActivityGroupDictionary.getGroupContentCreation(),
@@ -44,6 +45,8 @@ describe('Organizations. Blockchain transactions', () => {
 
       // noinspection JSCheckFunctionSignatures
       activity.entity_id_to = parseInt(activity.entity_id_to);
+
+      expect(activity.blockchain_status).toBe(1);
 
       expect(JSON.parse(activity.signed_transaction)).toMatchObject(helpers.EosTransaction.getPartOfSignedOrgTransaction());
       expect(JSON.parse(activity.blockchain_response)).toMatchObject(helpers.EosTransaction.getPartOfBlockchainResponseOnOrgCreation());
