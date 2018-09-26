@@ -37,7 +37,7 @@ describe('Organizations. Create-update requests', () => {
 
   describe('Create organization', () => {
     describe('Positive scenarios', () => {
-      it('Should allow empty fields', async () => {
+      it('Should allow empty fields when creation', async () => {
         const user = userVlad;
 
         const res = await request(server)
@@ -57,7 +57,7 @@ describe('Organizations. Create-update requests', () => {
         expect(lastOrg.personal_website_url).toBe('');
       });
 
-      it('should create new organization - simple fields set only', async () => {
+      it('should create new organization - simple fields set only, without board', async () => {
         let newModelFields = {
           'title': 'Extremely new org',
           'currency_to_show': 'CPX',
@@ -357,18 +357,37 @@ describe('Organizations. Create-update requests', () => {
 
   describe('Update organization', () => {
     describe('Positive scenarios', () => {
-      it('should be possible to update organization', async () => {
+      it('should be possible to update organization with users team updating', async () => {
+        const org_id = 1;
         const user = userVlad;
-        const orgBefore = await OrganizationsRepositories.Main.findLastByAuthor(user.id);
+        const orgBefore = await OrganizationsRepositories.Main.findOneById(org_id);
 
         const avatarFilenameBefore = orgBefore.avatar_filename;
 
         let sampleOrganizationFields = helpers.Organizations.getSampleOrganizationsParams();
         sampleOrganizationFields.title = 'New title which is changed';
 
-        await helpers.Organizations.requestToUpdateOrganization(orgBefore.id, user, sampleOrganizationFields);
+        // remove Jane, add Rokky and preserve Petr
+        const newUsersTeam = [
+          {
+            user_id: userPetr.id
+          },
+          {
+            user_id: userRokky.id
+          },
+          {
+            user_id: user.id // try to add author to the board - should be ignored // TODO
+          }
+        ];
 
-        const orgAfter = await OrganizationsRepositories.Main.findLastByAuthor(user.id);
+        await helpers.Organizations.requestToUpdateOrganization(
+          orgBefore.id,
+          user,
+          sampleOrganizationFields,
+          newUsersTeam
+        );
+
+        const orgAfter = await OrganizationsRepositories.Main.findOneById(org_id);
         const avatarFilenameAfter = orgAfter.avatar_filename;
 
         delete sampleOrganizationFields.avatar_filename;
@@ -377,6 +396,18 @@ describe('Organizations. Create-update requests', () => {
 
         expect(avatarFilenameAfter).not.toBe(avatarFilenameBefore);
         await helpers.Organizations.isAvatarImageUploaded(avatarFilenameAfter);
+
+        const usersTeam = orgAfter['users_team'];
+        expect(usersTeam).toBeDefined();
+
+        expect(usersTeam.some(data => data.user_id === userJane.id)).toBeFalsy();
+        expect(usersTeam.some(data => data.user_id === userRokky.id)).toBeTruthy();
+        expect(usersTeam.some(data => data.user_id === userPetr.id)).toBeTruthy();
+        expect(usersTeam.some(data => data.user_id === userVlad.id)).toBeFalsy();
+      });
+
+      it('should be possible to remove all board by clearing it', async () => {
+        // TODO
       });
 
       it('should sanitize org updating input', async () => {

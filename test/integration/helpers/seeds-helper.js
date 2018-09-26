@@ -12,12 +12,14 @@ const UsersHelper = require('../helpers/users-helper');
 
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
 const UsersRepositories = require('../../../lib/users/repository');
+const UsersModelProvider = require('../../../lib/users/users-model-provider');
 
 const seedsDir = '../../../seeders';
 
 const tableToSeeds = {
-  [OrganizationsRepositories.Main.getOrganizationsModelName()] : require(`${seedsDir}/organizations/organizations-seeds`),
-  [UsersRepositories.Main.getUsersModelName()] : require(`${seedsDir}/users/users`),
+  [OrganizationsRepositories.Main.getOrganizationsModelName()]: require(`${seedsDir}/organizations/organizations-seeds`),
+  [UsersRepositories.Main.getUsersModelName()]:                 require(`${seedsDir}/users/users`),
+  [UsersModelProvider.getUsersTeamTableName()]:                 require(`${seedsDir}/users/users-team-seeds`),
 };
 
 // Truncated async

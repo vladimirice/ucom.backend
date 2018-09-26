@@ -171,9 +171,10 @@ class OrganizationsHelper {
    * @param {number} org_id
    * @param {Object} user
    * @param {Object} newModelFields
+   * @param {Object[]} usersTeam
    * @return {Promise<Object>}
    */
-  static async requestToUpdateOrganization(org_id, user, newModelFields) {
+  static async requestToUpdateOrganization(org_id, user, newModelFields, usersTeam) {
 
     const res = await request(server)
       .patch(RequestHelper.getOneOrganizationUrl(org_id))
@@ -189,6 +190,11 @@ class OrganizationsHelper {
       .field('city', newModelFields.city)
       .field('address', newModelFields.address)
       .field('personal_website_url', newModelFields.personal_website_url)
+
+      .field('users_team[0][id]', usersTeam[0]['user_id'])
+      .field('users_team[1][id]', usersTeam[1]['user_id'])
+      .field('users_team[2][id]', usersTeam[2]['user_id'])
+
       .attach('avatar_filename', newModelFields.avatar_filename)
     ;
 
@@ -226,6 +232,7 @@ class OrganizationsHelper {
       .field('city', newModelFields.city)
       .field('address', newModelFields.address)
       .field('personal_website_url', newModelFields.personal_website_url)
+      .field('users_team[]', '') // this is to catch and fix bug by TDD
       .attach('avatar_filename', newModelFields.avatar_filename)
     ;
 
