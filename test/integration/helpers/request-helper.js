@@ -9,9 +9,21 @@ const postsUrl          = '/api/v1/posts';
 const usersUrl          = '/api/v1/users';
 const myselfUrl          = '/api/v1/myself';
 
+
+const apiV1Prefix = '/api/v1';
+const blockchainRouterPrefix = '/blockchain';
+
 class RequestHelper {
   static getUserPostsUrl(userId) {
     return `/api/v1/users/${userId}/posts`;
+  }
+
+  /**
+   *
+   * @return {string}
+   */
+  static getBlockchainContentUniqidUrl() {
+    return `${apiV1Prefix}${blockchainRouterPrefix}/content/uniqid`;
   }
 
 
@@ -25,13 +37,14 @@ class RequestHelper {
 
   /**
    *
-   * @param id
+   * @param {number} id
    * @return {string}
    */
   static getOneOrganizationUrl(id) {
     return `${this.getOrganizationsUrl()}/${id}`;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {Object} user
