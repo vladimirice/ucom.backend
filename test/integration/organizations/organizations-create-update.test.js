@@ -511,6 +511,19 @@ describe('Organizations. Create-update requests', () => {
       });
     });
     describe('Negative scenarios', () => {
+      it('should not be possible to update organizations by user who is not author', async () => {
+        const org_id = 1;
+
+        const res = await request(server)
+          .patch(helpers.RequestHelper.getOneOrganizationUrl(org_id))
+          .set('Authorization', `Bearer ${userRokky.token}`)
+          .field('title',       'sample_title100500')
+          .field('nickname',    'sample_nickname100500')
+        ;
+
+        helpers.ResponseHelper.expectStatusForbidden(res);
+      });
+
       it('should not be possible to change avatar filename without attaching a file', async () => {
         const org_id = 1;
 

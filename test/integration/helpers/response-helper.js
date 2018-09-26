@@ -20,6 +20,10 @@ class ResponseHelper {
     expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(401);
   }
 
+  static expectStatusForbidden(res) {
+    expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(403);
+  }
+
   /**
    *
    * @param {Object} res
