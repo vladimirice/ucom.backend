@@ -20,15 +20,10 @@ const tableToSeeds = {
   [UsersRepositories.Main.getUsersModelName()] : require(`${seedsDir}/users/users`),
 };
 
-const tableToSequence = {
-  [UsersRepositories.Activity.getModelName()]  : 'users_activity_id_seq',
-  [OrganizationsRepositories.Main.getOrganizationsModelName()]  : 'organizations_id_seq',
-  [UsersRepositories.Main.getUsersModelName()]                  : '"Users_id_seq"'
-};
-
 // Truncated async
 const minorTables = [
   UsersRepositories.Activity.getModelName(),
+  UsersRepositories.UsersTeam.getModelName(),
   'post_ipfs_meta',
 
   'users_education',
@@ -61,7 +56,7 @@ class SeedsHelper {
     const usersModel = UsersRepositories.Main.getUsersModelName();
 
     // init users
-    const usersSequence = tableToSequence[usersModel];
+    const usersSequence = this.getSequenceNameByModelName(usersModel);
     const usersSeeds    = tableToSeeds[usersModel];
 
     await this._resetSequence(usersSequence);
@@ -73,6 +68,19 @@ class SeedsHelper {
         UsersHelper.getUserPetr(),
         UsersHelper.getUserRokky(),
       ]);
+  }
+
+  /**
+   *
+   * @param {string} name
+   * @return {string}
+   */
+  static getSequenceNameByModelName(name) {
+    if (name === UsersRepositories.Main.getUsersModelName()) {
+      return '"Users_id_seq"';
+    }
+
+    return `${name}_id_seq`;
   }
 
   static async _resetSequence(name) {
@@ -167,6 +175,7 @@ class SeedsHelper {
   static async resetOrganizationRelatedSeeds() {
     const tables = [
       UsersRepositories.Activity.getModelName(),
+      UsersRepositories.UsersTeam.getModelName(),
       OrganizationsRepositories.Main.getOrganizationsModelName(),
     ];
 
@@ -213,11 +222,8 @@ class SeedsHelper {
     tables.forEach(table => {
       promises.push(models[table].destroy(params));
 
-      const sequenceName = tableToSequence[table];
-
-      if (sequenceName) {
-        promises.push(models.sequelize.query(`ALTER SEQUENCE ${sequenceName} RESTART;`))
-      }
+      const sequenceName = SeedsHelper.getSequenceNameByModelName(table);
+      promises.push(models.sequelize.query(`ALTER SEQUENCE ${sequenceName} RESTART;`))
     });
 
     await Promise.all(promises);

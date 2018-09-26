@@ -1,4 +1,5 @@
 const TABLE_NAME = 'organizations';
+const USERS_TEAM_TABLE_NAME = 'users_team';
 
 module.exports = (db, Sequelize) => {
   const Model = db.define(TABLE_NAME, {
@@ -104,6 +105,14 @@ module.exports = (db, Sequelize) => {
 
   Model.associate = function(models) {
     models[TABLE_NAME].belongsTo(models.Users, {foreignKey: 'user_id'});
+
+    models[TABLE_NAME].hasMany(models[USERS_TEAM_TABLE_NAME], {
+      foreignKey: 'entity_id',
+      as: {
+        singular: USERS_TEAM_TABLE_NAME,
+        plural: USERS_TEAM_TABLE_NAME,
+      }
+    });
 
     // models[TABLE_NAME].hasMany(models['activity_user_post'], {foreignKey: 'post_id_to'});
     // models[TABLE_NAME].hasMany(models['post_users_team'], {

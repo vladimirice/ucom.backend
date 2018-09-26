@@ -17,14 +17,12 @@ UserActivityService._sendPayloadToRabbit = function (activity, scope) {
   console.log('SEND TO RABBIT MOCK IS CALLED');
 };
 
-
 OrganizationService._addSignedTransactionsForOrganizationCreation = async function (req) {
   console.log('MOCK add signed transaction is called');
 
   req.blockchain_id = 'sample_blockchain_id';
   req.signed_transaction = 'sample_signed_transaction';
 };
-
 
 describe('Organizations. Create-update requests', () => {
   beforeAll(async () => {
@@ -58,7 +56,6 @@ describe('Organizations. Create-update requests', () => {
         expect(lastOrg.phone_number).toBe('');
         expect(lastOrg.personal_website_url).toBe('');
       });
-
 
       it('should create new organization - simple fields set only', async () => {
         let newModelFields = {
@@ -200,6 +197,47 @@ describe('Organizations. Create-update requests', () => {
         delete sampleFields.avatar_filename;
 
         helpers.ResponseHelper.expectValuesAreExpected(sampleFields, lastModel);
+      });
+
+      it('should allow to add board to the organization', async () => {
+        const author = userVlad;
+        const newPostUsersTeamFields = [
+          {
+            'user_id': userJane.id,
+          },
+          {
+            'user_id': userPetr.id,
+          },
+        ];
+
+        const res = await request(server)
+          .post(helpers.Req.getOrganizationsUrl())
+          .set('Authorization', `Bearer ${author.token}`)
+          .field('title',             'sample_title')
+          .field('nickname',          'sample_nickname')
+          .field('users_team[0][id]', newPostUsersTeamFields[0]['user_id'])
+          .field('users_team[1][id]', newPostUsersTeamFields[1]['user_id'])
+          .field('users_team[2][id]', author.id)
+        ;
+
+        helpers.Res.expectStatusCreated(res);
+
+        const lastModel = await OrganizationsRepositories.Main.findLastByAuthor(author.id);
+
+        const usersTeam = lastModel['users_team'];
+        expect(usersTeam).toBeDefined();
+        expect(usersTeam.length).toBe(2);
+
+        newPostUsersTeamFields.forEach(teamMember => {
+          const record = usersTeam.find(data => data.user_id === teamMember.user_id);
+          expect(record).toBeDefined();
+          expect(+record.entity_id).toBe(+lastModel.id);
+          expect(record.entity_name).toMatch('org');
+          expect(record.status).toBe(0);
+        });
+
+        // should not add author to the board - ignore it
+        expect(usersTeam.some(data => data.user_id === author.id)).toBeFalsy();
       });
     });
 
@@ -445,6 +483,7 @@ describe('Organizations. Create-update requests', () => {
       it ('should not be possible to update org using malformed organization ID', async () => {
         const currentOrgId = 'malformed';
 
+        // noinspection JSCheckFunctionSignatures
         const res = await request(server)
           .patch(helpers.RequestHelper.getOneOrganizationUrl(currentOrgId))
           .set('Authorization', `Bearer ${userVlad.token}`)

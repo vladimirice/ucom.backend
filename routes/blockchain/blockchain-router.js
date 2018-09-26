@@ -5,7 +5,6 @@ const { BadRequestError } = require('../../lib/api/errors');
 const multer = require('multer');
 const upload = multer();
 
-
 router.post('/content/uniqid', [ upload.array() ], async (req, res) => {
   const scope = req.body.scope;
 

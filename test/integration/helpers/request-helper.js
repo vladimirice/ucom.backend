@@ -32,7 +32,7 @@ class RequestHelper {
    * @return {string}
    */
   static getOrganizationsUrl() {
-    return `/api/v1/organizations`;
+    return `${apiV1Prefix}/organizations`;
   }
 
   /**

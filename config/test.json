@@ -9,7 +9,7 @@
     "logging": false
   },
   "eosConfig": {
-    "httpEndpoint": "http://142.93.100.96:8888"
+    "httpEndpoint": "https://api.uos.u.community:7888"
   },
   "auth": {
     "jwt_secret_key": "secret_key_test"
