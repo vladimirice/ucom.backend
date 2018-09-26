@@ -78,7 +78,9 @@ describe('Posts API', () => {
   });
 
   describe('Negative scenarios', function () {
-    // TODO - no post_type_id or it is malformed
+    it('no post_type_id or it is malformed', async () => {
+      // TODO
+    });
   });
 
   it('Not possible to create post without token', async () => {

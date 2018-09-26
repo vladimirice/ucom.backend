@@ -42,7 +42,6 @@ describe('Posts API', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-
   describe('Sanitizing', () => {
     it('should preserve images', async () => {
       const post_id = 1;
@@ -305,7 +304,7 @@ describe('Posts API', () => {
       expect(firstPostAfter['post_offer']['action_button_title']).toBe(fieldsPostOfferToChange['action_button_title']);
     });
 
-    it('Create new post-offer', async() => {
+    it('Create new post-offer with board', async() => {
       let newPostFields = {
         'title': 'Extremely new post',
         'description': 'Our super post description',

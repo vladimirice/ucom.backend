@@ -53,6 +53,14 @@ describe('Organizations. Blockchain transactions', () => {
 
       helpers.ResponseHelper.expectValuesAreExpected(expected, activity);
     }, 20000);
+
+    it('should process media post creation by RabbitMq', async () => {
+      // TODO
+    });
+
+    it('should process post-offer creation by RabbitMq', async () => {
+      // TODO
+    });
   });
 
 });
