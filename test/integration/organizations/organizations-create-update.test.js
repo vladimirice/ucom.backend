@@ -511,6 +511,27 @@ describe('Organizations. Create-update requests', () => {
       });
     });
     describe('Negative scenarios', () => {
+      it('should not be possible to change avatar filename without attaching a file', async () => {
+        const org_id = 1;
+
+        const orgBefore = await OrganizationsRepositories.Main.findOneById(org_id);
+
+        const res = await request(server)
+          .patch(helpers.RequestHelper.getOneOrganizationUrl(org_id))
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title',       'sample_title100500')
+          .field('nickname',    'sample_nickname100500')
+          .field('avatar_filename', 'avatar_is_changed.jpg')
+        ;
+
+        helpers.ResponseHelper.expectStatusOk(res);
+
+        const orgAfter = await OrganizationsRepositories.Main.findOneById(org_id);
+
+         expect(orgAfter.avatar_filename).toBe(orgBefore.avatar_filename);
+         expect(orgAfter.avatar_filename).not.toBe('avatar_is_changed.jpg');
+      });
+
       it ('should not be possible to update org using malformed organization ID', async () => {
         const currentOrgId = 'malformed';
 
