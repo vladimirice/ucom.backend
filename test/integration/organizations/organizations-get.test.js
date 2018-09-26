@@ -29,6 +29,12 @@ describe('Organizations. Get requests', () => {
 
       expect(organizations.length).toBe(expectedModels.length);
 
+      organizations.forEach(org => {
+        if (org.avatar_filename) {
+          expect(org.avatar_filename).toMatch('organizations/');
+        }
+      });
+
       expectedModels.forEach(model => {
         expect(organizations.some(org => org.id === model.id)).toBeTruthy();
       });
