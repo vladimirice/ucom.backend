@@ -70,6 +70,8 @@ describe('Organizations. Get requests', () => {
 
       expect(model.users_team).toBeDefined();
       expect(model.users_team.length).toBeGreaterThan(0);
+
+      expect(model.avatar_filename).toMatch('organizations/');
     });
 
     it('should not contain myself data if requesting as guest', async () => {
