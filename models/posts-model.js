@@ -1,6 +1,5 @@
 const TABLE_NAME = 'posts';
 const moment = require('moment');
-const sanitizeHtml = require('sanitize-html');
 
 const _ = require('lodash');
 
@@ -126,6 +125,9 @@ module.exports = (sequelize, DataTypes) => {
 
   Posts.associate = function(models) {
     models[TABLE_NAME].belongsTo(models['Users'], {foreignKey: 'user_id'});
+
+    models[TABLE_NAME].belongsTo(models['organizations'], {foreignKey: 'organization_id'});
+
     models[TABLE_NAME].hasMany(models['comments'], {
       foreignKey: 'commentable_id',
       as: {

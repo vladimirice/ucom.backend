@@ -20,11 +20,18 @@ describe('Organizations. Get requests', () => {
   describe('Organization feed', () => {
     it('should get organizations posts for the feed', async () => {
       const org_id = 1;
-      const posts = await helpers.Org.requestToGetOrgPosts(org_id);
+      const postsResponse = await helpers.Org.requestToGetOrgPosts(org_id);
 
-      expect(posts.data.length).toBe(2);
+      const posts = postsResponse.data;
 
-      // TODO - every post should contain info about author and organization
+      expect(posts.length).toBe(2);
+
+      posts.forEach(post => {
+        expect(post.User).toBeDefined();
+        expect(post.organization).toBeDefined();
+
+        expect(post.organization.avatar_filename).toMatch('organizations/');
+      });
     });
   });
 
