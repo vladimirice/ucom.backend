@@ -9,7 +9,6 @@ const ResponseHelper = require('../helpers/response-helper');
 const ActivityUserUserRepository = require('../../../lib/users/activity-user-user-repository');
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 const ActivityHelper = require('../helpers/activity-helper');
-const BlockchainStatusDictionary = require('../../../lib/eos/eos-blockchain-status-dictionary');
 const PostRepository = require('../../../lib/posts/posts-repository');
 
 require('jest-expect-message');
@@ -18,6 +17,9 @@ let userVlad;
 let userJane;
 let userPetr;
 let userRokky;
+
+helpers.EosTransaction.mockUsersActivityBackendSigner();
+helpers.EosTransaction.mockUserActivitySendToRabbit();
 
 describe('User to user activity', () => {
   beforeAll(async () => { await helpers.SeedsHelper.destroyTables(); });

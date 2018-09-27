@@ -184,6 +184,8 @@ class SeedsHelper {
     const tables = [
       UsersRepositories.Activity.getModelName(),
       UsersRepositories.UsersTeam.getModelName(),
+      'post_stats',
+      'post_ipfs_meta',
       PostRepositories.MediaPosts.getModelName(),
       OrganizationsRepositories.Main.getOrganizationsModelName(),
     ];

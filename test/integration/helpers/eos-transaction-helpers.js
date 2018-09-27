@@ -1,4 +1,22 @@
+const UserActivityService = require('../../../lib/users/user-activity-service');
+
 class EosTransactionHelper {
+  static mockUsersActivityBackendSigner() {
+    // noinspection JSUnusedLocalSymbols
+    UserActivityService._getSignedFollowTransaction = async function(userFrom, userToAccountName, activityTypeId) {
+      // console.log('MOCK UserActivityService._getSignedFollowTransaction is called');
+
+      return 'sample_signed_transaction';
+    }
+  }
+
+  static mockUserActivitySendToRabbit() {
+    // noinspection JSUnusedLocalSymbols
+    UserActivityService._sendPayloadToRabbit = function (activity, scope) {
+      // console.log('SEND TO RABBIT MOCK IS CALLED');
+    };
+  }
+
   /**
    *
    * @return {Object}
