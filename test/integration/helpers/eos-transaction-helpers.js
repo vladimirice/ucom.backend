@@ -48,8 +48,8 @@ class EosTransactionHelper {
           {
             "receipt": {
               "receiver": "tst.activity",
-              "code_sequence": 1,
-              "abi_sequence": 1
+              // "code_sequence": 1,
+              // "abi_sequence": 1
             },
             "act": {
               "account": "tst.activity",

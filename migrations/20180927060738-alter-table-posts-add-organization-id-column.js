@@ -6,7 +6,7 @@ module.exports = {
 
     const sql = `
       ALTER TABLE ${TABLE_NAME} ADD COLUMN ${COLUMN_NAME} INTEGER 
-      constraint ${TABLE_NAME}_organization_id_fkey references organizations (id)`
+     `
     ;
 
     return queryInterface.sequelize.query(sql);

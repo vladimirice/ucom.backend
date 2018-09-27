@@ -142,6 +142,7 @@ class SeedsHelper {
   static async initSeedsForUsers() {
     await models.activity_user_user.destroy({where: {}});
     await models.posts.destroy({where: {}});
+    await models.organizations.destroy({where: {}});
     await models.Users.destroy({where: {}});
 
     await models.sequelize.query(`ALTER SEQUENCE activity_user_user_id_seq RESTART;`);
@@ -149,6 +150,7 @@ class SeedsHelper {
     await models.sequelize.query(`ALTER SEQUENCE posts_id_seq RESTART;`);
 
     await models.Users.bulkCreate(usersSeeds);
+    await models.organizations.bulkCreate(organizationsSeeds);
     await models.posts.bulkCreate(postsSeeds);
   }
 
@@ -206,6 +208,7 @@ class SeedsHelper {
     await this.destroyTables();
 
     await models.Users.bulkCreate(usersSeeds);
+    await models.organizations.bulkCreate(organizationsSeeds);
     await models.posts.bulkCreate(postsSeeds);
     await models.post_offer.bulkCreate(postsOffersSeeds);
     await models.post_users_team.bulkCreate(postUsersTeamSeeds);
