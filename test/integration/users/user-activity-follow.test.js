@@ -73,7 +73,7 @@ describe('User to user activity', () => {
         ;
 
         ResponseHelper.expectStatusBadRequest(res);
-      });
+      }, 10000);
 
       it('should not be possible to follow without token', async () => {
         const res = await request(server)
@@ -81,7 +81,7 @@ describe('User to user activity', () => {
         ;
 
         ResponseHelper.expectStatusUnauthorized(res);
-      });
+      }, 10000);
     })
   });
   describe('Unfollow workflow', () => {
@@ -280,7 +280,7 @@ describe('User to user activity', () => {
       expect(author.myselfData).toBeDefined();
       expect(author.myselfData.follow).toBeDefined();
       expect(author.myselfData.follow).toBeTruthy();
-    });
+    }, 10000);
 
     it('Myself data in post User info - not following', async () => {
 
