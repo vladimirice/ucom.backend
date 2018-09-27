@@ -76,8 +76,8 @@ describe('Organizations. Blockchain transactions', () => {
       }, 20000);
     });
 
-    it('should create and process new organization post offer transaction', async () => {
-      // TODO
-    });
+    // it('should create and process new organization post offer transaction', async () => {
+    //   // TODO
+    // });
   });
 });
