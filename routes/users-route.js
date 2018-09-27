@@ -45,7 +45,7 @@ router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) 
   const userFrom = req.user;
   const userToId = req.user_id;
 
-  winston.info('Action - user follows other user. Request body is: ', JSON.stringify(req.body));
+  console.log('Action - user follows other user. Request body is: ', JSON.stringify(req.body));
 
   await UserActivityService.userFollowsAnotherUser(userFrom, userToId);
 
