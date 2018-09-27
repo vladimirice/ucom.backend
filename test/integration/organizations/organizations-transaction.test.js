@@ -3,6 +3,8 @@ const delay = require('delay');
 
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 const UsersRepositories = require('../../../lib/users/repository');
+const UsersActivityRepository = UsersRepositories.Activity;
+
 const { ContentTypeDictionary } = require('uos-app-transaction');
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 
@@ -52,14 +54,30 @@ describe('Organizations. Blockchain transactions', () => {
 
       helpers.ResponseHelper.expectValuesAreExpected(expected, activity);
     }, 20000);
+  });
 
-    it('should process media post creation by RabbitMq', async () => {
-      // TODO
+  describe('Organization posting related transactions', () => {
+    describe('Positive scenarios', () => {
+      it('should create and process new organization media post transaction', async () => {
+        await RabbitMqService.purgeBlockchainQueue();
+
+        const user = userVlad;
+        const org_id = 1;
+        let activity = null;
+
+        await helpers.Post.requestToCreateMediaPostOfOrganization(user, org_id);
+        while(!activity) {
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
+          await delay(100);
+        }
+
+        expect(JSON.parse(activity.signed_transaction)).toMatchObject(helpers.EosTransaction.getPartOfSignedOrgCreatesMediaPostTransaction());
+        expect(JSON.parse(activity.blockchain_response)).toMatchObject(helpers.EosTransaction.getPartOfBlockchainResponseOnOrgCreatesMediaPost());
+      }, 20000);
     });
 
-    it('should process post-offer creation by RabbitMq', async () => {
+    it('should create and process new organization post offer transaction', async () => {
       // TODO
     });
   });
-
 });

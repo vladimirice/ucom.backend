@@ -23,6 +23,8 @@ describe('Organizations. Get requests', () => {
       const posts = await helpers.Org.requestToGetOrgPosts(org_id);
 
       expect(posts.data.length).toBe(2);
+
+      // TODO - every post should contain info about author and organization
     });
   });
 

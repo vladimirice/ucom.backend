@@ -2,6 +2,23 @@ const helpers = require('../helpers');
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
 const PostsRepository = require('../../../lib/posts/repository');
 
+const UsersActivityService = require('../../../lib/users/user-activity-service');
+const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
+
+
+// noinspection JSUnusedLocalSymbols
+UsersActivityService.createAndSignOrganizationCreatesPostTransaction = async function(
+  userFrom,
+  organizationBlockchainId,
+  postBlockchainId,
+  postTypeId
+) {
+  console.log('MOCK org create post sign is called');
+  return 'sample_signed_transaction';
+};
+
+
 let userVlad;
 let userJane;
 let userPetr;
@@ -25,6 +42,25 @@ describe('Organizations. Get requests', () => {
 
   describe('User creates post on behalf of organization', () => {
     describe('Positive scenarios', () => {
+        it('should create valid activity record', async () => {
+          const user = userVlad;
+          const org_id = 1;
+
+          const body = await helpers.Post.requestToCreateMediaPostOfOrganization(user, org_id);
+          const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, body.id);
+          expect(activity).not.toBeNull();
+
+          const expectedValues = {
+            activity_group_id: ActivityGroupDictionary.getGroupContentCreationByOrganization(),
+            activity_type_id: 1, // media post creation
+            entity_id_to: "" + body.id,
+            entity_name: 'posts',
+            user_id_from: user.id
+          };
+
+          helpers.Res.expectValuesAreExpected(expectedValues, activity);
+        });
+
         it('should be possible to create media post on behalf of organization by org author', async () => {
           const user = userVlad;
           const org_id = 1;
@@ -33,6 +69,8 @@ describe('Organizations. Get requests', () => {
 
           const newPost = await PostsRepository.MediaPosts.findLastMediaPostByAuthor(user.id);
           expect(newPost.organization_id).toBe(org_id);
+
+          // TODO check last activity
         });
 
         it('should be possible to create media post on behalf of organization by org team member', async () => {
