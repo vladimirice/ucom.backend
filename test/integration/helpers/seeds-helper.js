@@ -8,6 +8,7 @@ const postsOffersSeeds = require('../../../seeders/posts/posts-offers');
 const postStatsSeeds = require('../../../seeders/posts/post-stats-seeds');
 const postUsersTeamSeeds = require('../../../seeders/posts/posts-users-team');
 const commentsSeeds = require('../../../seeders/comments/comments-seeds');
+const organizationsSeeds = require('../../../seeders/organizations/organizations-seeds');
 const UsersHelper = require('../helpers/users-helper');
 
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
@@ -49,7 +50,6 @@ const majorTables = [
   'comments',
   'posts',
   'organizations',
-
   'Users',
 ];
 
@@ -154,6 +154,7 @@ class SeedsHelper {
 
   static async seedMainTables() {
     await models.Users.bulkCreate(usersSeeds);
+    await models.organizations.bulkCreate(organizationsSeeds);
     await models.posts.bulkCreate(postsSeeds);
     await models.comments.bulkCreate(commentsSeeds);
   }
