@@ -8,6 +8,8 @@ const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const UserActivityService = require('../lib/users/user-activity-service');
 const UserService = require('../lib/users/users-service');
 const winston = require('../config/winston');
+const multer = require('multer');
+const upload = multer();
 
 /* Find users by name fields - shortcut */
 router.get('/search', async (req, res) => {
@@ -41,7 +43,7 @@ router.get('/:user_id/posts', async function(req, res) {
 });
 
 /* One user follows other user */
-router.post('/:user_id/follow', [authTokenMiddleWare], async function(req, res) {
+router.post('/:user_id/follow', [authTokenMiddleWare, upload.array() ], async function(req, res) {
   const userFrom = req.user;
   const userToId = req.user_id;
 
