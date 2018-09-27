@@ -12,6 +12,7 @@ const UsersHelper = require('../helpers/users-helper');
 
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
 const UsersRepositories = require('../../../lib/users/repository');
+const PostRepositories = require('../../../lib/posts/repository');
 const UsersModelProvider = require('../../../lib/users/users-model-provider');
 
 const seedsDir = '../../../seeders';
@@ -44,9 +45,10 @@ const minorTables = [
 
 // Truncated in order
 const majorTables = [
-  'organizations',
   'comments',
   'posts',
+  'organizations',
+
   'Users',
 ];
 
@@ -178,6 +180,7 @@ class SeedsHelper {
     const tables = [
       UsersRepositories.Activity.getModelName(),
       UsersRepositories.UsersTeam.getModelName(),
+      PostRepositories.MediaPosts.getModelName(),
       OrganizationsRepositories.Main.getOrganizationsModelName(),
     ];
 

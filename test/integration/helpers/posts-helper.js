@@ -17,6 +17,36 @@ class PostsHelper {
   /**
    *
    * @param {Object} user
+   * @param {number} org_id
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   */
+  static async requestToCreateMediaPostOfOrganization(user, org_id, expectedStatus = 200) {
+    const newPostFields = {
+      'title': 'Extremely new post',
+      'description': 'Our super post description',
+      'leading_text': 'extremely leading text',
+      'post_type_id': 1,
+    };
+
+    const res = await request(server)
+      .post(RequestHelper.getPostsUrl())
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('title', newPostFields['title'])
+      .field('description', newPostFields['description'])
+      .field('post_type_id', newPostFields['post_type_id'])
+      .field('leading_text', newPostFields['leading_text'])
+      .field('organization_id', org_id)
+    ;
+
+    expect(res.status).toBe(expectedStatus);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} user
    * @returns {Promise<number>}
    */
   static async requestToCreateMediaPost(user) {

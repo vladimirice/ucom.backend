@@ -1,8 +1,7 @@
 const helpers = require('../helpers');
 const _ = require('lodash');
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
-const UserActivityService = require('../../../lib/users/user-activity-service');
-const OrganizationService = require('../../../lib/organizations/service/organization-service');
+
 
 const request = require('supertest');
 const server = require('../../../app');
@@ -12,17 +11,8 @@ let userJane;
 let userPetr;
 let userRokky;
 
-// noinspection JSUnusedLocalSymbols
-UserActivityService._sendPayloadToRabbit = function (activity, scope) {
-  console.log('SEND TO RABBIT MOCK IS CALLED');
-};
 
-OrganizationService._addSignedTransactionsForOrganizationCreation = async function (req) {
-  console.log('MOCK add signed transaction is called');
-
-  req.blockchain_id = 'sample_blockchain_id';
-  req.signed_transaction = 'sample_signed_transaction';
-};
+helpers.Org.mockBlockchainPart();
 
 describe('Organizations. Create-update requests', () => {
   beforeAll(async () => {
