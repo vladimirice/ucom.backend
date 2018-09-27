@@ -11,7 +11,7 @@ const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
-const PostOfferRepository = require('../../../lib/posts/post-offer/post-offer-repository');
+const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
 const PostsRepository = require('../../../lib/posts/posts-repository');
 const PostStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
 

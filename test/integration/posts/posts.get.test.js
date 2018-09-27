@@ -13,7 +13,7 @@ const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 
 const PostsService = require('./../../../lib/posts/post-service');
 const PostsRepository = require('./../../../lib/posts/posts-repository');
-const PostOfferRepository = require('./../../../lib/posts/post-offer/post-offer-repository');
+const PostOfferRepository = require('./../../../lib/posts/repository');
 
 const postsUrl = '/api/v1/posts';
 

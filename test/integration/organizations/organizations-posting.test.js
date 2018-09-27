@@ -1,11 +1,6 @@
 const helpers = require('../helpers');
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
-const { ContentTypeDictionary } = require('uos-app-transaction');
 const PostsRepository = require('../../../lib/posts/repository');
-const request = require('supertest');
-const server = require('../../../app');
-
-
 
 let userVlad;
 let userJane;
@@ -37,14 +32,10 @@ describe('Organizations. Get requests', () => {
           await helpers.Post.requestToCreateMediaPostOfOrganization(user, org_id);
 
           const newPost = await PostsRepository.MediaPosts.findLastMediaPostByAuthor(user.id);
-
           expect(newPost.organization_id).toBe(org_id);
         });
 
         it('should be possible to create media post on behalf of organization by org team member', async () => {
-
-
-
           // TODO
         });
 
@@ -86,7 +77,6 @@ describe('Organizations. Get requests', () => {
       it('should not be possible to update post and change author_id', async () => {
         // TODO - move to post autotests
       });
-
     });
   });
 

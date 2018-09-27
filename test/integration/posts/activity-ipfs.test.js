@@ -7,7 +7,7 @@ const IpfsApi = require('../../../lib/ipfs/ipfs-api');
 const PostJobSerializer = require('../../../lib/posts/post-job-serializer');
 const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 const PostRepository = require('../../../lib/posts/posts-repository');
-const PostOfferRepository = require('../../../lib/posts/post-offer/post-offer-repository');
+const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
 
 let userVlad;
 let userJane;

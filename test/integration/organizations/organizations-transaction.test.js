@@ -6,7 +6,6 @@ const UsersRepositories = require('../../../lib/users/repository');
 const { ContentTypeDictionary } = require('uos-app-transaction');
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 
-
 let userVlad;
 let userJane;
 let userPetr;
