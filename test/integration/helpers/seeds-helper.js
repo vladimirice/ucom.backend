@@ -21,6 +21,7 @@ const tableToSeeds = {
   [OrganizationsRepositories.Main.getOrganizationsModelName()]: require(`${seedsDir}/organizations/organizations-seeds`),
   [UsersRepositories.Main.getUsersModelName()]:                 require(`${seedsDir}/users/users`),
   [UsersModelProvider.getUsersTeamTableName()]:                 require(`${seedsDir}/users/users-team-seeds`),
+  [PostRepositories.MediaPosts.getModelName()]:                 require(`${seedsDir}/posts/posts`),
 };
 
 // Truncated async
@@ -184,8 +185,15 @@ class SeedsHelper {
       OrganizationsRepositories.Main.getOrganizationsModelName(),
     ];
 
+    const tablesToInsert = [
+      UsersRepositories.Activity.getModelName(),
+      UsersRepositories.UsersTeam.getModelName(),
+      OrganizationsRepositories.Main.getOrganizationsModelName(),
+      PostRepositories.MediaPosts.getModelName(),
+    ];
+
     await this._truncateTablesByList(tables);
-    await this._initTablesByList(tables, []);
+    await this._initTablesByList(tablesToInsert, []);
   }
 
   static async initSeeds() {

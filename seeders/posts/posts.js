@@ -11,7 +11,8 @@ const seeds = [
     leading_text: 'Special update for our EOS people',
     created_at: new Date(),
     updated_at: new Date(),
-    blockchain_id: 'pstms1-yed143ojlcdq0dl'
+    blockchain_id: 'pstms1-yed143ojlcdq0dl',
+    organization_id: 1
   },
   {
     // id: 2
@@ -25,7 +26,8 @@ const seeds = [
     leading_text: 'ETH is nod dead. ETH is cool',
     created_at: new Date(),
     updated_at: new Date(),
-    blockchain_id: 'pstms2-yed14jljlcgmepl'
+    blockchain_id: 'pstms2-yed14jljlcgmepl',
+    organization_id: 1,
   },
   {
     // id: 3

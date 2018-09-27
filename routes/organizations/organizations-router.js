@@ -33,6 +33,14 @@ router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 });
 
 
+/* GET one organization posts */
+router.get('/:organization_id/posts', async function(req, res) {
+  const orgId = req.organization_id;
+  const response = await getPostService(req).findAllByOrganization(orgId);
+
+  res.send(response);
+});
+
 /* Update organization */
 router.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   await getOrganizationService(req).updateOrganization(req);
@@ -91,6 +99,14 @@ router.param('organization_id', (req, res, next, organization_id) => {
  */
 function getOrganizationService(req) {
   return req['container'].get('organizations-service');
+}
+
+/**
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+  return req['container'].get('post-service');
 }
 
 module.exports = router;

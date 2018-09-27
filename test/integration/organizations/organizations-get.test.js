@@ -17,6 +17,15 @@ describe('Organizations. Get requests', () => {
     await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
   });
 
+  describe('Organization feed', () => {
+    it('should get organizations posts for the feed', async () => {
+      const org_id = 1;
+      const posts = await helpers.Org.requestToGetOrgPosts(org_id);
+
+      expect(posts.data.length).toBe(2);
+    });
+  });
+
   describe('Users with organizations data', () => {
     it('should contain organizations list for GET one user by ID', async () => {
       const user_id = 1;

@@ -13,6 +13,21 @@ const OrganizationService = require('../../../lib/organizations/service/organiza
 require('jest-expect-message');
 class OrganizationsHelper {
 
+  /**
+   *
+   * @param {number} orgId
+   * @param {number} expectedStatus
+   * @return {Promise<void>}
+   */
+  static async requestToGetOrgPosts(orgId, expectedStatus = 200) {
+    const res = await request(server)
+      .get(RequestHelper.getOrganizationsPostsUrl(orgId))
+    ;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
   static mockBlockchainPart() {
     // noinspection JSUnusedLocalSymbols
     UserActivityService._sendPayloadToRabbit = function (activity, scope) {

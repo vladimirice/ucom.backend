@@ -27,6 +27,15 @@ class ResponseHelper {
   /**
    *
    * @param {Object} res
+   * @param {number} status
+   */
+  static expectStatusToBe(res, status) {
+    expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(status);
+  }
+
+  /**
+   *
+   * @param {Object} res
    * @param {Object} invalidFields
    */
   static checkValidErrorResponse(res, invalidFields) {

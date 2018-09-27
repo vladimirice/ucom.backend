@@ -10,11 +10,25 @@ const postsUrl          = `${apiV1Prefix}/posts`;
 const usersUrl          = '/api/v1/users';
 const myselfUrl          = '/api/v1/myself';
 
-
-
 const blockchainRouterPrefix = '/blockchain';
 
 class RequestHelper {
+
+
+  /**
+   *
+   * @param {number} orgId
+   * @return {string}
+   */
+  static getOrganizationsPostsUrl(orgId) {
+    return `${apiV1Prefix}/organizations/${orgId}/posts`;
+  }
+
+  /**
+   *
+   * @param {number} userId
+   * @return {string}
+   */
   static getUserPostsUrl(userId) {
     return `/api/v1/users/${userId}/posts`;
   }
