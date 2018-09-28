@@ -131,6 +131,7 @@ function getDelta(source, updated) {
 
   const added = updated.filter((updatedItem) => {
     console.log('Updated item is: ', JSON.stringify(updatedItem, null, 2));
+    console.log('Type of updated item', typeof updatedItem);
 
     if (!updatedItem.hasOwnProperty('id')) {
       return true;
