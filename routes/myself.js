@@ -18,8 +18,8 @@ router.get('/', [authTokenMiddleWare], async function(req, res) {
 
 /* Update Myself Profile */
 router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
+  console.log('Patch request body is: ', JSON.stringify(req.body, null, 2));
   const parameters = _.pick(req.body, UsersValidator.getFields());
-
 
   // TODO #refactor
   for (const param in parameters) {
@@ -39,11 +39,13 @@ router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
     parameters['achievements_filename'] = files['achievements_filename'][0].filename;
   }
 
+
   const usersEducation  = _.filter(req.body['users_education']);
   const usersJobs       = _.filter(req.body['users_jobs']);
   const usersSources    = _.filter(req.body['users_sources']);
 
   let user = await UsersRepository.getUserById(req['user'].id);
+
 
   if (usersEducation && !_.isEmpty(usersEducation)) {
     const educationDelta = getDelta(user.users_education, usersEducation);
