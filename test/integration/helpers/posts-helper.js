@@ -14,6 +14,41 @@ require('jest-expect-message');
 
 class PostsHelper {
 
+
+  /**
+   *
+   * @param {Object} user
+   * @param {number} post_id
+   * @param {Object|null} fieldsToChange
+   * @param {number} expectedStatus
+   * @return {Promise<void>}
+   */
+  static async updatePostWithFields(post_id, user, fieldsToChange = null, expectedStatus = 200) {
+    if (!fieldsToChange) {
+      // noinspection AssignmentToFunctionParameterJS
+      fieldsToChange = {
+        'title': 'This is title to change',
+        'description': 'Also necessary to change description',
+        'leading_text': 'And leading text',
+      };
+    }
+
+    const req = request(server)
+      .patch(RequestHelper.getOnePostUrl(post_id))
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    for (const field in fieldsToChange) {
+      req.field(field, fieldsToChange[field]);
+    }
+
+    const res = await req;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
   /**
    *
    * @param {Object} user
@@ -252,8 +287,8 @@ class PostsHelper {
 
   /**
    *
-   * @param postId
-   * @param user
+   * @param {number} postId
+   * @param {Object} user
    * @param {Array} teamUsers - exactly two board members are allowed
    * @returns {Promise<Object>}
    */

@@ -37,14 +37,14 @@ describe('Organizations. Get requests', () => {
 
   describe('Users with organizations data', () => {
     it('should contain organizations list for GET one user by ID', async () => {
-      const user_id = 1;
+      const user_id = userJane.id;
+
       const model = await helpers.Users.requestToGetUserAsGuest(user_id);
       const organizations = model.organizations;
 
       expect(organizations).toBeDefined();
 
-      const expectedModels = await OrganizationsRepositories.Main.findAllForPreviewByUserId(user_id);
-
+      const expectedModels = await OrganizationsRepositories.Main.findAllAvailableForUser(user_id);
       expect(organizations.length).toBe(expectedModels.length);
 
       organizations.forEach(org => {

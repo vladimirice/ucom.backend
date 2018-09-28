@@ -7,6 +7,7 @@ const config = require('config');
 const PostService = require('../../lib/posts/post-service');
 const ActivityService = require('../../lib/activity/activity-service');
 const PostRepository = require('../../lib/posts/posts-repository');
+
 require('express-async-errors');
 
 /* Get all posts */
