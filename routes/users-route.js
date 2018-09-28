@@ -47,7 +47,9 @@ router.post('/:user_id/follow', [authTokenMiddleWare, upload.array() ], async fu
   const userFrom = req.user;
   const userToId = req.user_id;
 
-  winston.info('Action - user follows other user user. Request body is: ', JSON.stringify(req.body));
+  const signed_transaction = req.body.signed_transaction;
+
+  winston.info('Action - user follows other user user. Request body is: ', signed_transaction);
 
   await UserActivityService.userFollowsAnotherUser(userFrom, userToId, req.body);
 
