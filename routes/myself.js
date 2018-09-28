@@ -126,7 +126,11 @@ async function updateRelations(user, deltaData, modelName, userData) {
 
 
 function getDelta(source, updated) {
+  console.log('Updated array is: ', JSON.stringify(updated, null, 2));
+
+
   const added = updated.filter((updatedItem) => {
+    console.log('Updated item is: ', JSON.stringify(updatedItem, null, 2));
 
     if (!updatedItem.hasOwnProperty('id')) {
       return true;
