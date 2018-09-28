@@ -39,23 +39,23 @@ router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
     parameters['achievements_filename'] = files['achievements_filename'][0].filename;
   }
 
-  const usersEducation = req.body['users_education'];
-  const usersJobs = req.body['users_jobs'];
-  const usersSources = req.body['users_sources'];
+  const usersEducation  = _.filter(req.body['users_education']);
+  const usersJobs       = _.filter(req.body['users_jobs']);
+  const usersSources    = _.filter(req.body['users_sources']);
 
   let user = await UsersRepository.getUserById(req['user'].id);
 
-  if (usersEducation) {
+  if (usersEducation && !_.isEmpty(usersEducation)) {
     const educationDelta = getDelta(user.users_education, usersEducation);
     await updateRelations(user, educationDelta, 'users_education')
   }
 
-  if (usersJobs) {
+  if (usersJobs && !_.isEmpty(usersJobs)) {
     const delta = getDelta(user.users_jobs, usersJobs);
     await updateRelations(user, delta, 'users_jobs')
   }
 
-  if (usersSources) {
+  if (usersSources && !_.isEmpty(usersSources)) {
     const delta = getDelta(user['users_sources'], usersSources);
     await updateRelations(user, delta, 'users_sources');
   }
