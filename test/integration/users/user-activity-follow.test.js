@@ -40,6 +40,22 @@ describe('User to user activity', () => {
 
   describe('Follow workflow', () => {
     describe('Follow Positive scenarios', () => {
+      // it('Vlad follows Jane - sends transaction from frontend.', async () => {
+      //   const targetUser = userJane;
+      //   const whoActs = userVlad;
+      //
+      //   const signed_transaction = 'signed_12345';
+      //
+      //   const res = await request(server)
+      //     .post(RequestHelper.getFollowUrl(targetUser.id))
+      //     .set('Authorization', `Bearer ${whoActs.token}`)
+      //     .field('signed_transaction', signed_transaction)
+      //   ;
+      //
+      //   ResponseHelper.expectStatusCreated(res);
+      // });
+
+
       it('Vlad follows Jane', async () => {
 
         await helpers.ActivityHelper.requestToCreateFollow(userVlad, userJane);

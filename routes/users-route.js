@@ -47,9 +47,7 @@ router.post('/:user_id/follow', [authTokenMiddleWare, upload.array() ], async fu
   const userFrom = req.user;
   const userToId = req.user_id;
 
-  const signed_transaction = req.body.signed_transaction;
-
-  winston.info('Action - user follows other user user. Request body is: ', signed_transaction);
+  winston.info(`Action - user follows other user. Request body is: ${JSON.stringify(req.body)}`);
 
   await UserActivityService.userFollowsAnotherUser(userFrom, userToId, req.body);
 
@@ -63,7 +61,7 @@ router.post('/:user_id/unfollow', [authTokenMiddleWare], async function(req, res
   const userFrom = req.user;
   const userIdTo = req.user_id;
 
-  winston.info('Action - user unfollows other user user. Request body is: ', JSON.stringify(req.body));
+  winston.info(`Action - user UNfollows other user. Request body is: ${JSON.stringify(req.body)}`);
 
   await UserActivityService.userUnfollowsUser(userFrom, userIdTo);
 
