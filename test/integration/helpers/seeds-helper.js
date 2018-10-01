@@ -15,6 +15,7 @@ const OrganizationsRepositories = require('../../../lib/organizations/repository
 const UsersRepositories = require('../../../lib/users/repository');
 const PostRepositories = require('../../../lib/posts/repository');
 const UsersModelProvider = require('../../../lib/users/users-model-provider');
+const EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
 
 const seedsDir = '../../../seeders';
 
@@ -187,6 +188,7 @@ class SeedsHelper {
       'post_stats',
       'post_ipfs_meta',
       PostRepositories.MediaPosts.getModelName(),
+      EntityModelProvider.getSourcesTableName(),
       OrganizationsRepositories.Main.getOrganizationsModelName(),
     ];
 

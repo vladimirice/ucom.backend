@@ -1,10 +1,11 @@
 const helpers = require('../helpers');
 const _ = require('lodash');
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
-
+const EntitySourceRepository = require('../../../lib/entities/repository').Sources;
 
 const request = require('supertest');
 const server = require('../../../app');
+const models = require('../../../models');
 
 let userVlad;
 let userJane;
@@ -27,6 +28,49 @@ describe('Organizations. Create-update requests', () => {
 
   describe('Create organization', () => {
     describe('Positive scenarios', () => {
+      it ('should be possible to create one with social networks', async () => {
+
+        const user = userVlad;
+
+        const fields = {
+          'title': 'new title',
+          'nickname': 'new_nick_name',
+        };
+
+        const socialNetworks = [
+          {
+            source_url: 'https://myurl.com',
+            source_type_id: 1,
+            // source_group_id: 1, - is set by social networks block
+            // entity_id: 1 - organization ID
+            // entity_name: org,
+            // text_data: // JSON - text, description
+          },
+          {
+            source_url: 'http://mysourceurl2.com',
+            source_type_id: 2
+          }
+        ];
+
+        const body = await helpers.Org.requestToCreateNew(user, fields, socialNetworks);
+
+        const sources = await EntitySourceRepository.findAllByEntity(body.id, 'org');
+
+        expect(sources.length).toBe(socialNetworks.length);
+
+        socialNetworks.forEach(expected => {
+          const actual = sources.find(data => data.source_url === expected.source_url);
+
+          expect(actual.source_type_id).toBe(expected.source_type_id);
+          expect(actual.source_group_id).toBe(1);
+
+          expect(actual.text_data).toBe('');
+          expect(actual.is_official).toBe(false);
+          expect(actual.source_entity_id).toBeNull();
+          expect(actual.source_entity_name).toBeNull();
+        });
+      });
+
       it('Should allow empty fields when creation', async () => {
         const user = userVlad;
 
@@ -347,6 +391,11 @@ describe('Organizations. Create-update requests', () => {
 
   describe('Update organization', () => {
     describe('Positive scenarios', () => {
+      it('should be possible to update social networks of organization', async () => {
+        // TODO
+        // use bulk create right inside test
+      });
+
       it('should be possible to update organization with users team updating', async () => {
         const org_id = 1;
         const user = userVlad;

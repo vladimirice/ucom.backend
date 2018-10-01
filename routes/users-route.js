@@ -11,6 +11,8 @@ const winston = require('../config/winston');
 const multer = require('multer');
 const upload = multer();
 
+const models = require('../models');
+
 /* Find users by name fields - shortcut */
 router.get('/search', async (req, res) => {
   const query = req.query.q;
@@ -18,6 +20,33 @@ router.get('/search', async (req, res) => {
   const users = await UserService.findByNameFields(query);
 
   res.send(users);
+});
+
+router.get('/sample', async function(req, res) {
+  const socialNetworks = [
+    {
+      source_url: 'https://myurl.com',
+      source_type_id: 1,
+      source_group_id: 1,
+      entity_id: 1,
+      entity_name: 'org',
+      text_data: 'json_data'
+    },
+    {
+      source_url: 'https://myurl.com',
+      source_type_id: 2,
+      source_group_id: 1,
+      entity_id: 1,
+      entity_name: 'org',
+      text_data: 'json_data'
+    }
+  ];
+
+  await models['entity_sources'].bulkCreate(socialNetworks);
+
+  res.send({
+    status: 'ok',
+  })
 });
 
 /* get one user */

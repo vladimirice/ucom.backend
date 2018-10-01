@@ -237,6 +237,40 @@ class OrganizationsHelper {
   /**
    *
    * @param {Object} user
+   * @param {Object} fields
+   * @param {Object[]} socialNetworks
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   */
+  static async requestToCreateNew(user, fields, socialNetworks = [], expectedStatus = 201) {
+    const req = request(server)
+      .post(RequestHelper.getOrganizationsUrl())
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    for (const field in fields) {
+      req.field(field, fields[field]);
+    }
+
+    socialNetworks.forEach((source, i) => {
+      for (const field in source) {
+        // noinspection JSUnfilteredForInLoop
+        const fieldName = `entity_sources[${i}][${field}]`;
+        // noinspection JSUnfilteredForInLoop
+        req.field(fieldName, source[field])
+      }
+    });
+
+    const res = await req;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
+  /**
+   * @deprecated
+   * @see requestToCreateNew
+   * @param {Object} user
    * @param {Object} requiredFields
    * @return {Promise<Object>}
    */
