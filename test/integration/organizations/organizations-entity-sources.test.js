@@ -1,13 +1,6 @@
 const helpers = require('../helpers');
-const _ = require('lodash');
-const faker = require('faker');
-
-const OrganizationsRepositories = require('../../../lib/organizations/repository');
-const EntitySourceRepository = require('../../../lib/entities/repository').Sources;
 const OrgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
-
-const request = require('supertest');
-const server = require('../../../app');
+const UsersModelProvider = require('../../../lib/users/users-model-provider');
 
 let userVlad;
 let userJane;
@@ -32,44 +25,36 @@ describe('Organizations. Entity source related creation-updating', () => {
   describe('Searching for existing community and partnership', async () => {
     describe('Positive scenarios', () => {
 
-      it('Find organizations as community', async () => {
-        const body = await helpers.Org.requestToSearchCommunity('Inc');
+      it('Find organizations as community and be case insensitive', async () => {
+        const vladIncId = 1;
+        const janeIncId = 3;
 
-        const vladResponse = body.find(data => data.id === userVlad.id);
-        const janeResponse = body.find(data => data.id === userJane.id);
-        expect(vladResponse).toBeDefined();
-        expect(janeResponse).toBeDefined();
+        const body = await helpers.Org.requestToSearchCommunity('inc');
+        expect(body.length).toBe(2);
 
-        const expectedFields = [
-          'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename',
-        ];
-
-        expectedFields.forEach(field => {
-          expect(vladResponse.hasOwnProperty(field)).toBeTruthy();
-          expect(janeResponse.hasOwnProperty(field)).toBeTruthy();
-        });
-
-        expect(vladResponse.hasOwnProperty('phone_number')).toBeFalsy();
-        expect(janeResponse.hasOwnProperty('about')).toBeFalsy();
-
-        // TODO
-      });
-
-      it('should search community as case insensitive', async () => {
-        // TODO
-      });
-
-      it('Find organization only even if user parameters match', async () => {
-        // TODO
+        expect(body.some(data => data.id === vladIncId)).toBeTruthy();
+        expect(body.some(data => data.id === janeIncId)).toBeTruthy();
       });
 
       it('Find both users and organizations as partnership', async () => {
-        // TODO
+        const vladIncId = 1;
+
+        const body = await helpers.Org.requestToSearchPartnership('vlad');
+
+        expect(body.length).toBe(4);
+        const vladIncFromResponse = body.find(data => data.id === vladIncId);
+        const userVladFromResponse = body.find(data => data.id === userVlad.id && data.account_name === userVlad.account_name);
+
+        expect(vladIncFromResponse).toBeDefined();
+        expect(userVladFromResponse).toBeDefined();
+
+        expect(vladIncFromResponse.entity_name).toBe(OrgModelProvider.getEntityName());
+        expect(userVladFromResponse.entity_name).toBe(UsersModelProvider.getEntityName());
       });
     });
 
     describe('Negative scenarios', () => {
-      it('No community if search query is wrong', async () => {
+      it('No community if search query match nothing', async () => {
         // TODO
       });
 

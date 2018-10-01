@@ -79,6 +79,17 @@ module.exports = (db, Sequelize) => {
     ];
   };
 
+  /**
+   *
+   * @return {string[]}
+   */
+  Model.getFieldsForSearch = function() {
+    return [
+      'title',
+      'nickname'
+    ];
+  };
+
   Model.getHtmlFields = function () {
     return [];
   };

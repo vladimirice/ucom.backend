@@ -17,6 +17,7 @@ const registrationRouter = require('./routes/auth/registration');
 const organizationsRouter = require('./routes/organizations/organizations-router');
 const blockchainRouter = require('./routes/blockchain/blockchain-router');
 const communityRouter = require('./routes/community-router');
+const partnershipRouter = require('./routes/partnership-router');
 
 const errorMiddleware = require('./lib/api/error-middleware');
 const diContainerMiddleware = require('./lib/api/di-container-middleware');
@@ -67,6 +68,7 @@ app.use('/api/v1/auth/registration', registrationRouter);
 app.use('/api/v1/organizations', organizationsRouter);
 app.use('/api/v1/blockchain', blockchainRouter);
 app.use('/api/v1/community', communityRouter);
+app.use('/api/v1/partnership', partnershipRouter);
 require('./lib/auth/passport');
 
 // catch 404 and forward to error handler

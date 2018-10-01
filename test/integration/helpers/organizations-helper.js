@@ -3,6 +3,7 @@ const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 const FileToUploadHelper = require('./file-to-upload-helper');
+const _ = require('lodash');
 
 const { orgImageStoragePath } = require('../../../lib/organizations/middleware/organization-create-edit-middleware');
 
@@ -27,6 +28,23 @@ class OrganizationsHelper {
     ;
 
     ResponseHelper.expectStatusOk(res);
+    expect(_.isArray(res.body)).toBeTruthy();
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {string} query
+   * @return {Promise<Object>}
+   */
+  static async requestToSearchPartnership(query) {
+    const res = await request(server)
+      .get(RequestHelper.getPartnershipSearchUrl(query))
+    ;
+    ResponseHelper.expectStatusOk(res);
+
+    expect(_.isArray(res.body)).toBeTruthy();
 
     return res.body;
   }
