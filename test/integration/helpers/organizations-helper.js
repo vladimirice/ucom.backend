@@ -15,6 +15,22 @@ const OrgModelProvider = require('../../../lib/organizations/service/organizatio
 require('jest-expect-message');
 class OrganizationsHelper {
 
+
+  /**
+   *
+   * @param {string} query
+   * @return {Promise<Object>}
+   */
+  static async requestToSearchCommunity(query) {
+    const res = await request(server)
+      .get(RequestHelper.getCommunitySearchUrl(query))
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
   /**
    * @param {number} organizationId
    * @return {Promise<Object>}

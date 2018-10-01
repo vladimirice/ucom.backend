@@ -10,10 +10,30 @@ const postsUrl          = `${apiV1Prefix}/posts`;
 const usersUrl          = '/api/v1/users';
 const myselfUrl          = '/api/v1/myself';
 
+const communityUrl = `${apiV1Prefix}/community`;
+const partnershipUrl = `${apiV1Prefix}/partnership`;
+
 const blockchainRouterPrefix = '/blockchain';
 
 class RequestHelper {
 
+  /**
+   *
+   * @param {string} query
+   * @returns {string}
+   */
+  static getCommunitySearchUrl(query) {
+    return `${communityUrl}/search?q=${query}`
+  }
+
+  /**
+   *
+   * @param {string} query
+   * @returns {string}
+   */
+  static getPartnershipSearchUrl(query) {
+    return `${partnershipUrl}/search?q=${query}`
+  }
 
   /**
    *

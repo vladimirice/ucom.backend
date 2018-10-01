@@ -16,6 +16,8 @@ const postsRouter = require('./routes/posts/posts-router');
 const registrationRouter = require('./routes/auth/registration');
 const organizationsRouter = require('./routes/organizations/organizations-router');
 const blockchainRouter = require('./routes/blockchain/blockchain-router');
+const communityRouter = require('./routes/community-router');
+
 const errorMiddleware = require('./lib/api/error-middleware');
 const diContainerMiddleware = require('./lib/api/di-container-middleware');
 const EosApi = require('./lib/eos/eosApi');
@@ -64,6 +66,7 @@ app.use('/api/v1/posts', postsRouter);
 app.use('/api/v1/auth/registration', registrationRouter);
 app.use('/api/v1/organizations', organizationsRouter);
 app.use('/api/v1/blockchain', blockchainRouter);
+app.use('/api/v1/community', communityRouter);
 require('./lib/auth/passport');
 
 // catch 404 and forward to error handler
