@@ -424,7 +424,8 @@ describe('Organizations. Create-update requests', () => {
 
         // noinspection JSUnusedAssignment
         sourceToModify.source_url = sourceUrlToChange;
-        // sourceToModify.entity_id = 2; // should not be updated // TODO
+        // noinspection JSUnusedAssignment
+        sourceToModify.entity_id = 2; // should not be updated // TODO
 
         // noinspection JSUnusedAssignment
         sourcesForRequest.push(sourceToModify);
@@ -469,14 +470,21 @@ describe('Organizations. Create-update requests', () => {
         helpers.Res.expectValuesAreExpected({
           'source_url':   sourceUrlToChange, // should be changed
           'is_official':  sourceToModify.is_official, // should not be changed because no request to change
-          'entity_id':    "" + orgId, // should not be changed because of restrictions
+          'entity_id':    "" + orgId, // should not be changed because of restrictions. TODO - move to separate
         }, modifiedSource);
 
 
-        //
         // expect that value is unchanged
         // expect that new source is added
       }, 100000);
+
+      it('If ID of different entity is provided - new one will be created and id will be ignored', async () => {
+        // TODO
+      });
+
+      it('should not be possible to update sensitive social networks data by request', async () => {
+        // TODO
+      });
 
       it('should be possible to update organization with users team updating', async () => {
         const org_id = 1;
