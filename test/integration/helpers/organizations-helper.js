@@ -10,6 +10,7 @@ const OrganizationsRepositories = require('../../../lib/organizations/repository
 const UserActivityService = require('../../../lib/users/user-activity-service');
 const OrganizationService = require('../../../lib/organizations/service/organization-service');
 const EntitySourcesRepository = require('../../../lib/entities/repository').Sources;
+const OrgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 
 require('jest-expect-message');
 class OrganizationsHelper {
@@ -19,20 +20,29 @@ class OrganizationsHelper {
    * @return {Promise<Object>}
    */
   static async createSocialNetworksDirectly(organizationId) {
+    const entityName = OrgModelProvider.getEntityName();
+
     const entities = [
       {
         source_url: 'https://myurl.com',
         source_type_id: 1, // from Dict - social networks
         source_group_id: 1, // TODO from dict
         entity_id: organizationId,
-        entity_name: 'org',
+        entity_name: entityName,
       },
       {
         source_url: 'http://mysourceurl2.com',
         source_type_id: 2,
         source_group_id: 1, // TODO from dict
         entity_id: organizationId,
-        entity_name: 'org',
+        entity_name: entityName,
+      },
+      {
+        source_url: 'http://mysourceurl3.com',
+        source_type_id: 3,
+        source_group_id: 1, // TODO from dict
+        entity_id: organizationId,
+        entity_name: entityName,
       }
     ];
 
@@ -280,6 +290,48 @@ class OrganizationsHelper {
 
     socialNetworks.forEach((source, i) => {
       for (const field in source) {
+        // noinspection JSUnfilteredForInLoop
+        const fieldName = `social_networks[${i}][${field}]`;
+        // noinspection JSUnfilteredForInLoop
+        req.field(fieldName, source[field])
+      }
+    });
+
+    const res = await req;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {number} orgId
+   * @param {Object} user
+   * @param {Object} fields
+   * @param {Object[]} socialNetworks
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   */
+  static async requestToUpdateExisting(orgId, user, fields, socialNetworks = [], expectedStatus = 200) {
+    const req = request(server)
+      .patch(RequestHelper.getOneOrganizationUrl(orgId))
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    for (const field in fields) {
+      req.field(field, fields[field]);
+    }
+
+    socialNetworks.forEach((source, i) => {
+      for (const field in source) {
+        if (source[field] === null) {
+          continue;
+        }
+
+        if (field === 'created_at' || field === 'updated_at') {
+          continue;
+        }
+
         // noinspection JSUnfilteredForInLoop
         const fieldName = `social_networks[${i}][${field}]`;
         // noinspection JSUnfilteredForInLoop

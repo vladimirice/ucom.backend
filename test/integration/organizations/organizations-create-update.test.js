@@ -1,11 +1,13 @@
 const helpers = require('../helpers');
 const _ = require('lodash');
+const faker = require('faker');
+
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
 const EntitySourceRepository = require('../../../lib/entities/repository').Sources;
+const OrgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 
 const request = require('supertest');
 const server = require('../../../app');
-const models = require('../../../models');
 
 let userVlad;
 let userJane;
@@ -392,9 +394,89 @@ describe('Organizations. Create-update requests', () => {
   describe('Update organization', () => {
     describe('Positive scenarios', () => {
       it('should be possible to update social networks of organization', async () => {
-        // TODO
-        // use bulk create right inside test
-      });
+        const user = userVlad;
+
+        const orgId = await OrganizationsRepositories.Main.findFirstIdByAuthorId(user.id);
+        await helpers.Org.createSocialNetworksDirectly(orgId);
+
+        const sources = await EntitySourceRepository.findAllByEntity(orgId, OrgModelProvider.getEntityName());
+
+        // Lets delete one
+        // modify one
+        // keep one unchanged
+        // and add new one
+
+        let sourcesForRequest = [];
+
+        let sourceToDelete;
+        let sourceToModify;
+        sources.forEach(source => {
+          if (!sourceToDelete) {
+            sourceToDelete = source;
+          } else if (!sourceToModify) {
+            sourceToModify = source;
+          } else {
+            sourcesForRequest.push(source);
+          }
+        });
+
+        const sourceUrlToChange = faker.internet.url();
+
+        // noinspection JSUnusedAssignment
+        sourceToModify.source_url = sourceUrlToChange;
+        // sourceToModify.entity_id = 2; // should not be updated // TODO
+
+        // noinspection JSUnusedAssignment
+        sourcesForRequest.push(sourceToModify);
+
+        const newSource = {
+          source_url:     faker.internet.url(),
+          source_type_id: 4, // from Dict - social networks
+          entity_id:      orgId,
+          entity_name:    OrgModelProvider.getEntityName(),
+        };
+
+        sourcesForRequest.push(newSource);
+
+        const fieldsToUpdate = {
+          'title':      'Fake title',
+          'nickname':   'Fake_nickname',
+          'powered_by': 'YOC',
+        };
+
+        await helpers.Org.requestToUpdateExisting(orgId, user, fieldsToUpdate, sourcesForRequest);
+
+        const orgAfter = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+
+        // Check that regular fields are updated
+        helpers.Res.expectValuesAreExpected(fieldsToUpdate, orgAfter);
+
+        const socialNetworksAfter = orgAfter['social_networks'];
+
+        expect(socialNetworksAfter.length).toBe(sources.length);
+
+        expect(socialNetworksAfter.some(source => source.id === sourceToDelete.id)).toBeFalsy();
+
+        const modifiedSource = socialNetworksAfter.find(source => source.id === sourceToModify.id);
+        expect(modifiedSource).toBeDefined();
+
+        // sourceToModify.source_url = faker.internet.url();
+        // sourceToModify.is_official = true;
+        // sourceToModify.entity_id = 2; // should not be updated
+
+        // expect that value is changed
+        // noinspection JSUnusedAssignment
+        helpers.Res.expectValuesAreExpected({
+          'source_url':   sourceUrlToChange, // should be changed
+          'is_official':  sourceToModify.is_official, // should not be changed because no request to change
+          'entity_id':    "" + orgId, // should not be changed because of restrictions
+        }, modifiedSource);
+
+
+        //
+        // expect that value is unchanged
+        // expect that new source is added
+      }, 100000);
 
       it('should be possible to update organization with users team updating', async () => {
         const org_id = 1;
@@ -688,6 +770,10 @@ describe('Organizations. Create-update requests', () => {
 
         helpers.ResponseHelper.expectStatusUnauthorized(res);
       });
+
+      it('should throw correct error messages related to invalid fields', async () => {
+        // TODO
+      })
     });
   });
 });
