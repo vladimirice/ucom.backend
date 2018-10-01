@@ -85,6 +85,8 @@ describe('Organizations. Get requests', () => {
     it('Get one organization by ID as guest', async () => {
       const model_id = 1;
 
+      await helpers.Org.createSocialNetworksDirectly(model_id);
+
       const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(model_id);
 
       expect(model).toBeDefined();
@@ -96,6 +98,7 @@ describe('Organizations. Get requests', () => {
       expect(model.users_team.length).toBeGreaterThan(0);
 
       expect(model.avatar_filename).toMatch('organizations/');
+      expect(model.social_networks).toBeDefined();
     });
 
     it('should not contain myself data if requesting as guest', async () => {

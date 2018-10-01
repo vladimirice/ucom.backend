@@ -9,9 +9,35 @@ const { orgImageStoragePath } = require('../../../lib/organizations/middleware/o
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
 const UserActivityService = require('../../../lib/users/user-activity-service');
 const OrganizationService = require('../../../lib/organizations/service/organization-service');
+const EntitySourcesRepository = require('../../../lib/entities/repository').Sources;
 
 require('jest-expect-message');
 class OrganizationsHelper {
+
+  /**
+   * @param {number} organizationId
+   * @return {Promise<Object>}
+   */
+  static async createSocialNetworksDirectly(organizationId) {
+    const entities = [
+      {
+        source_url: 'https://myurl.com',
+        source_type_id: 1, // from Dict - social networks
+        source_group_id: 1, // TODO from dict
+        entity_id: organizationId,
+        entity_name: 'org',
+      },
+      {
+        source_url: 'http://mysourceurl2.com',
+        source_type_id: 2,
+        source_group_id: 1, // TODO from dict
+        entity_id: organizationId,
+        entity_name: 'org',
+      }
+    ];
+
+    return await EntitySourcesRepository.bulkCreate(entities);
+  }
 
   /**
    *
@@ -255,7 +281,7 @@ class OrganizationsHelper {
     socialNetworks.forEach((source, i) => {
       for (const field in source) {
         // noinspection JSUnfilteredForInLoop
-        const fieldName = `entity_sources[${i}][${field}]`;
+        const fieldName = `social_networks[${i}][${field}]`;
         // noinspection JSUnfilteredForInLoop
         req.field(fieldName, source[field])
       }
