@@ -252,13 +252,6 @@ describe('Organizations. Entity source related creation-updating', () => {
         text_data:          '',
       }, partnershipSourceUserInternalActual);
 
-      // and should provide all this data when GET one organization
-      // TODO - move to separate test
-
-      const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(body.id);
-
-      const a = 0;
-
     });
 
     it('should create sources separately', async () => {
