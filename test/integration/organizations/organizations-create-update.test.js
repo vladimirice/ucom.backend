@@ -32,6 +32,8 @@ describe('Organizations. Create-update requests', () => {
     describe('Positive scenarios', () => {
       it ('should be possible to create one with social networks', async () => {
 
+        // TODO move to entity sources test suite
+
         const user = userVlad;
 
         const fields = {
@@ -54,7 +56,11 @@ describe('Organizations. Create-update requests', () => {
           }
         ];
 
-        const body = await helpers.Org.requestToCreateNew(user, fields, socialNetworks);
+        const sourcesToInsert = {
+          'social_networks': socialNetworks,
+        };
+
+        const body = await helpers.Org.requestToCreateNew(user, fields, sourcesToInsert);
 
         const sources = await EntitySourceRepository.findAllByEntity(body.id, 'org');
 

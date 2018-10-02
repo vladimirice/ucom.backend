@@ -24,6 +24,9 @@ router.get('/:organization_id', async (req, res) => {
 
 /* Create new organization */
 router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
+
+  const files = req.files;
+  
   const model = await getOrganizationService(req).processNewOrganizationCreation(req);
 
   return res.status(201).send({

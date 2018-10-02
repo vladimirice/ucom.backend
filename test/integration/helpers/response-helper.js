@@ -94,6 +94,7 @@ class ResponseHelper {
    * @param {Object} actual
    */
   static expectValuesAreExpected(expected, actual) {
+    expect(actual).toBeDefined();
     for (const field in expected) {
       // noinspection JSUnfilteredForInLoop
       expect(actual.hasOwnProperty(field), `There is no property in actual: ${field}`).toBeTruthy();

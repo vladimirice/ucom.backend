@@ -4,6 +4,7 @@ const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 const FileToUploadHelper = require('./file-to-upload-helper');
 const _ = require('lodash');
+const faker = require('faker');
 
 const { orgImageStoragePath } = require('../../../lib/organizations/middleware/organization-create-edit-middleware');
 
@@ -306,30 +307,56 @@ class OrganizationsHelper {
 
   /**
    *
+   * @return {{title: *, nickname: *}}
+   * @private
+   */
+  static _getMinimumFieldsSet() {
+    return {
+      'title':    faker.name.firstName(),
+      'nickname': faker.lorem.word(),
+    };
+  }
+
+  // noinspection FunctionWithMultipleLoopsJS
+  /**
+   *
    * @param {Object} user
-   * @param {Object} fields
-   * @param {Object[]} socialNetworks
+   * @param {Object} fields - regular organization fields
+   * @param {Object} sources - organization sources fields
    * @param {number} expectedStatus
    * @return {Promise<Object>}
    */
-  static async requestToCreateNew(user, fields, socialNetworks = [], expectedStatus = 201) {
+  static async requestToCreateNew(user, fields = {}, sources = {}, expectedStatus = 201) {
     const req = request(server)
       .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
+    if (_.isEmpty(fields)) {
+      // noinspection AssignmentToFunctionParameterJS
+      fields = this._getMinimumFieldsSet();
+    }
+
     for (const field in fields) {
       req.field(field, fields[field]);
     }
 
-    socialNetworks.forEach((source, i) => {
-      for (const field in source) {
-        // noinspection JSUnfilteredForInLoop
-        const fieldName = `social_networks[${i}][${field}]`;
-        // noinspection JSUnfilteredForInLoop
-        req.field(fieldName, source[field])
-      }
-    });
+    for (const sourceSet in sources) {
+      sources[sourceSet].forEach((source, i) => {
+        for (const field in source) {
+          // noinspection JSUnfilteredForInLoop
+          const fieldName = `${sourceSet}[${i}][${field}]`;
+
+          if (fieldName !== 'avatar_filename') {
+            // noinspection JSUnfilteredForInLoop
+            req.field(fieldName, source[field])
+          } else {
+            // noinspection JSUnfilteredForInLoop
+            req.attach(fieldName, source[field])
+          }
+        }
+      });
+    }
 
     const res = await req;
     ResponseHelper.expectStatusToBe(res, expectedStatus);
