@@ -138,6 +138,8 @@ class OrganizationsHelper {
    * @param {string[]|null} givenExpected - model with included user
    */
   static checkOneOrganizationPreviewFields(model, givenExpected = null) {
+    expect(model).toBeDefined();
+    expect(model).not.toBeNull();
     const expected = givenExpected ? givenExpected : OrganizationsRepositories.Main.getFieldsForPreview();
 
     ResponseHelper.expectAllFieldsExistence(model, expected);

@@ -69,6 +69,19 @@ describe('Organizations. Get requests', () => {
     });
   });
 
+  describe('Posts with organizations data', () => {
+    describe('Single post organization data', () => {
+      it('should contain organization data', async () => {
+        const post_id = 1;
+
+        const post = await helpers.Post.requestToGetOnePostAsGuest(post_id);
+        expect(post.organization_id).toBe(1);
+
+        helpers.Org.checkOneOrganizationPreviewFields(post.organization);
+      });
+    });
+  });
+
   describe('Organization lists', () => {
     it('Get organization lists without query string', async () => {
       const totalCount = await OrganizationsRepositories.Main.countAllOrganizations();
