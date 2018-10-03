@@ -1,10 +1,15 @@
 const express = require('express');
-const router = express.Router();
-const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
-const { cpUpload } = require('../../lib/organizations/middleware/organization-create-edit-middleware');
-const OrgIdParamMiddleware = require('../../lib/organizations/middleware/organization-id-param-middleware');
-
+const status  = require('statuses');
 require('express-async-errors');
+
+const router  = express.Router();
+const upload  = multer();
+
+const authTokenMiddleWare   = require('../../lib/auth/auth-token-middleware');
+const { cpUpload }          = require('../../lib/organizations/middleware/organization-create-edit-middleware');
+const OrgIdParamMiddleware  = require('../../lib/organizations/middleware/organization-id-param-middleware');
+const UserActivityService   = require('../../lib/users/user-activity-service');
+const winston               = require('../../config/winston');
 
 /* Get all organizations */
 router.get('/', async (req, res) => {
@@ -46,6 +51,34 @@ router.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, r
 
   return res.status(200).send({
     status: 'ok',
+  });
+});
+
+/* One user follows organization */
+router.post('/:organization_id/follow', [authTokenMiddleWare, upload.array() ], async function(req, res) {
+  const userFrom    = req.user;
+  const entityIdTo  = req.organization_id;
+
+  winston.info(`Action - user follows organization. Request body is: ${JSON.stringify(req.body)}`);
+
+  await UserActivityService.userFollowsOrganization(userFrom, entityIdTo, req.body);
+
+  res.status(status('201')).send({
+    'success': true,
+  });
+});
+
+/* One user unfollows organization */
+router.post('/:organization_id/unfollow', [authTokenMiddleWare, upload.array()], async function(req, res) {
+  const userFrom    = req.user;
+  const entityIdTo  = req.organization_id;
+
+  winston.info(`Action - user UNfollows organization. Request body is: ${JSON.stringify(req.body)}`);
+
+  await UserActivityService.userUnfollowsOrganization(userFrom, entityIdTo);
+
+  res.status(status('201')).send({
+    'success': true,
   });
 });
 
