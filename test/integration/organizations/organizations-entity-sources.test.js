@@ -94,7 +94,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       // Internal link example
       const communitySourceOrg = {
-        id:           "1",
+        entity_id:           "1",
         entity_name:  OrgModelProvider.getEntityName(), // const
         source_type:  'internal',
       };
@@ -113,14 +113,14 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       // Internal link example
       const partnershipSourceOrg = {
-        id:           "2",
+        entity_id:           "2",
         entity_name:  OrgModelProvider.getEntityName(), // fetch this type from API response
 
         source_type:  'internal',
       };
 
       const partnershipSourceUsers = {
-        id:           "1",
+        entity_id:           "1",
         entity_name:  UsersModelProvider.getEntityName(), // fetch this type from API response
         source_type:  'internal',
       };
@@ -156,7 +156,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       const communitySourceOrgActual = sources.find(data => {
         return data.source_group_id === 2
-          && +data.source_entity_id === +communitySourceOrg.id
+          && +data.source_entity_id === +communitySourceOrg.entity_id
           && data.source_entity_name === communitySourceOrg.entity_name
       });
 
@@ -164,7 +164,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         entity_id:          "" + body.id,
         entity_name:        OrgModelProvider.getEntityName(),
 
-        source_entity_id:   communitySourceOrg.id,
+        source_entity_id:   communitySourceOrg.entity_id,
         source_entity_name: communitySourceOrg.entity_name,
 
         source_url:         '',
@@ -202,7 +202,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       const partnershipSourceInternalActual = sources.find(data => {
         return data.source_group_id === 3
-          && +data.source_entity_id === +partnershipSourceOrg.id
+          && +data.source_entity_id === +partnershipSourceOrg.entity_id
           && data.source_entity_name === partnershipSourceOrg.entity_name
       });
 
@@ -210,7 +210,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         entity_id:          "" + body.id,
         entity_name:        OrgModelProvider.getEntityName(),
 
-        source_entity_id:   partnershipSourceOrg.id,
+        source_entity_id:   partnershipSourceOrg.entity_id,
         source_entity_name: partnershipSourceOrg.entity_name,
 
         source_url:         '',
@@ -245,7 +245,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       const partnershipSourceUserInternalActual = sources.find(data => {
         return data.source_group_id === 3
-          && +data.source_entity_id === +partnershipSourceUsers.id
+          && +data.source_entity_id === +partnershipSourceUsers.entity_id
           && data.source_entity_name === partnershipSourceUsers.entity_name
       });
 
@@ -253,7 +253,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         entity_id:          "" + body.id,
         entity_name:        OrgModelProvider.getEntityName(),
 
-        source_entity_id:   partnershipSourceUsers.id,
+        source_entity_id:   partnershipSourceUsers.entity_id,
         source_entity_name: partnershipSourceUsers.entity_name,
 
         source_url:         '',

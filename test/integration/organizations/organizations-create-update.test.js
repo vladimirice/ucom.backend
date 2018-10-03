@@ -73,6 +73,7 @@ describe('Organizations. Create-update requests', () => {
           expect(actual.source_group_id).toBe(1);
 
           expect(actual.text_data).toBe('');
+          // noinspection JSCheckFunctionSignatures
           expect(actual.is_official).toBe(false);
           expect(actual.source_entity_id).toBeNull();
           expect(actual.source_entity_name).toBeNull();
@@ -407,11 +408,6 @@ describe('Organizations. Create-update requests', () => {
 
         const sources = await EntitySourceRepository.findAllByEntity(orgId, OrgModelProvider.getEntityName());
 
-        // Lets delete one
-        // modify one
-        // keep one unchanged
-        // and add new one
-
         let sourcesForRequest = [];
 
         let sourceToDelete;
@@ -431,7 +427,7 @@ describe('Organizations. Create-update requests', () => {
         // noinspection JSUnusedAssignment
         sourceToModify.source_url = sourceUrlToChange;
         // noinspection JSUnusedAssignment
-        sourceToModify.entity_id = 2; // should not be updated // TODO
+        sourceToModify.entity_id = 2; // should not be updated
 
         // noinspection JSUnusedAssignment
         sourcesForRequest.push(sourceToModify);
@@ -451,7 +447,7 @@ describe('Organizations. Create-update requests', () => {
           'powered_by': 'YOC',
         };
 
-        await helpers.Org.requestToUpdateExisting(orgId, user, fieldsToUpdate, sourcesForRequest);
+        await helpers.Org.requestToUpdateExisting(orgId, user, fieldsToUpdate, [], sourcesForRequest);
 
         const orgAfter = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
 
@@ -478,11 +474,7 @@ describe('Organizations. Create-update requests', () => {
           'is_official':  sourceToModify.is_official, // should not be changed because no request to change
           'entity_id':    "" + orgId, // should not be changed because of restrictions. TODO - move to separate
         }, modifiedSource);
-
-
-        // expect that value is unchanged
-        // expect that new source is added
-      }, 100000);
+      });
 
       it('If ID of different entity is provided - new one will be created and id will be ignored', async () => {
         // TODO
