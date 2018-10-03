@@ -31,7 +31,6 @@ router.get('/search', async function(req, res) {
 
     // TODO - remove from search result
     delete model.account_name;
-    delete model.current_rate;
   });
 
   res.send(_.concat(orgs, users));

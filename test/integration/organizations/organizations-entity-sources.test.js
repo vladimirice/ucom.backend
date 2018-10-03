@@ -39,6 +39,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         const expectedFields = [
           'entity_id',
           'entity_name',
+          'current_rate',
 
           'avatar_filename',
           'nickname',
@@ -66,6 +67,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         const expectedFields = [
           'entity_id',
           'entity_name',
+          'current_rate',
 
           'avatar_filename',
           'nickname',
