@@ -28,6 +28,24 @@ class RequestHelper {
 
   /**
    *
+   * @param {number} org_id
+   * @return {string}
+   */
+  static getOrgFollowUrl(org_id) {
+    return `${this.getOrganizationsUrl()}/${org_id}/follow`;
+  }
+
+  /**
+   *
+   * @param {number} org_id
+   * @return {string}
+   */
+  static getOrgUnfollowUrl(org_id) {
+    return `${this.getOrganizationsUrl()}/${org_id}/unfollow`;
+  }
+
+  /**
+   *
    * @param {string} query
    * @returns {string}
    */

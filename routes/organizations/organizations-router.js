@@ -1,5 +1,6 @@
 const express = require('express');
 const status  = require('statuses');
+const multer  = require('multer');
 require('express-async-errors');
 
 const router  = express.Router();
@@ -9,6 +10,7 @@ const authTokenMiddleWare   = require('../../lib/auth/auth-token-middleware');
 const { cpUpload }          = require('../../lib/organizations/middleware/organization-create-edit-middleware');
 const OrgIdParamMiddleware  = require('../../lib/organizations/middleware/organization-id-param-middleware');
 const UserActivityService   = require('../../lib/users/user-activity-service');
+const ActivityUserToOrg    = require('../../lib/users/activity').UserToOrg;
 const winston               = require('../../config/winston');
 
 /* Get all organizations */
@@ -61,7 +63,7 @@ router.post('/:organization_id/follow', [authTokenMiddleWare, upload.array() ], 
 
   winston.info(`Action - user follows organization. Request body is: ${JSON.stringify(req.body)}`);
 
-  await UserActivityService.userFollowsOrganization(userFrom, entityIdTo, req.body);
+  await ActivityUserToOrg.userFollowsOrganization(userFrom, entityIdTo, req.body);
 
   res.status(status('201')).send({
     'success': true,
@@ -75,7 +77,7 @@ router.post('/:organization_id/unfollow', [authTokenMiddleWare, upload.array()],
 
   winston.info(`Action - user UNfollows organization. Request body is: ${JSON.stringify(req.body)}`);
 
-  await UserActivityService.userUnfollowsOrganization(userFrom, entityIdTo);
+  await ActivityUserToOrg.userUnfollowsOrganization(userFrom, entityIdTo, req.body);
 
   res.status(status('201')).send({
     'success': true,

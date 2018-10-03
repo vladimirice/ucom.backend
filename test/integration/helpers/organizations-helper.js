@@ -18,6 +18,54 @@ const EntityModelProvider = require('../../../lib/entities/service/entity-model-
 require('jest-expect-message');
 class OrganizationsHelper {
 
+  /**
+   *
+   * @param {number} org_id
+   * @param {Object} user
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   */
+  static async requestToFollowOrganization(org_id, user, expectedStatus = 201) {
+    const res = await request(server)
+      .post(RequestHelper.getOrgFollowUrl(org_id))
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {number} org_id
+   * @param {Object} user
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   */
+  static async requestToUnfollowOrganization(org_id, user, expectedStatus = 201) {
+    const res = await request(server)
+      .post(RequestHelper.getOrgUnfollowUrl(org_id))
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
+  static async requestToCreateOrgFollowHistory(whoActs, targetOrgId) {
+    await this.requestToFollowOrganization(targetOrgId, whoActs);
+    await this.requestToUnfollowOrganization(targetOrgId, whoActs);
+    await this.requestToFollowOrganization(targetOrgId, whoActs);
+  }
+
+  static async requestToCreateOrgUnfollowHistory(whoActs, targetOrgId) {
+    await this.requestToFollowOrganization(targetOrgId, whoActs);
+    await this.requestToUnfollowOrganization(targetOrgId, whoActs);
+    await this.requestToFollowOrganization(targetOrgId, whoActs);
+    await this.requestToUnfollowOrganization(targetOrgId, whoActs)
+  }
 
   /**
    *
@@ -485,11 +533,11 @@ class OrganizationsHelper {
   /**
    *
    * @param {Object} user - myself
-   * @param {number} model_id
+   * @param {number} orgId
    * @return {Promise<Object>}
    */
-  static async requestToGetOneOrganizationAsMyself(user, model_id) {
-    const url = RequestHelper.getOneOrganizationUrl(model_id);
+  static async requestToGetOneOrganizationAsMyself(user, orgId) {
+    const url = RequestHelper.getOneOrganizationUrl(orgId);
 
     const res = await request(server)
       .get(url)
