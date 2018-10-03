@@ -41,6 +41,11 @@ module.exports = (db, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
     },
+    organization_id: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      required: false
+    }
   }, {
     underscored: true,
     freezeTableName: true,
@@ -48,6 +53,8 @@ module.exports = (db, Sequelize) => {
   });
 
   Model.associate = function(models) {
+    models[TABLE_NAME].belongsTo(models['organizations'], {foreignKey: 'organization_id'});
+
     models[TABLE_NAME].belongsTo(models.Users, {foreignKey: 'user_id'});
     models[TABLE_NAME].belongsTo(models['posts'], {foreignKey: 'commentable_id'});
     models[TABLE_NAME].hasMany(models['activity_user_comment'], {
@@ -74,7 +81,9 @@ module.exports = (db, Sequelize) => {
       'depth',
       'created_at',
       'updated_at',
-      'User'
+      'User',
+      'organization',
+      'organization_id'
     ];
   };
 

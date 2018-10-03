@@ -31,6 +31,7 @@ module.exports = [
     user_id: 2,
     path: [2,3],
     depth: 1,
+    organization_id: 1
   },
   {
     // id = 4
@@ -53,6 +54,7 @@ module.exports = [
     user_id: 2,
     path: [2,3,4,5],
     depth: 3,
+    organization_id: 1,
   },
   {
     // id = 6

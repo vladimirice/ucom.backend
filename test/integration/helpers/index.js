@@ -12,9 +12,14 @@ module.exports = {
   UserHelper:     require('./users-helper'), // @deprecated
   Users:           require('./users-helper'),
   ActivityHelper: require('./activity-helper'),
-  SeedsHelper:    require('./seeds-helper'),
+
+  SeedsHelper:    require('./seeds-helper'), // @deprecated name
+  Seeds:          require('./seeds-helper'),
+
   Organizations:  require('./organizations-helper'), // @deprecated name
   Org:            require('./organizations-helper'),
   FileToUpload:  require('./file-to-upload-helper'),
   EosTransaction:  require('./eos-transaction-helpers'),
+
+  Comments:  require('./comments-helper'),
 };

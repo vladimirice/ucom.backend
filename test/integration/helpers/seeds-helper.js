@@ -56,6 +56,10 @@ const majorTables = [
 
 class SeedsHelper {
 
+  static async bulkCreateComments() {
+    await this._bulkCreate('comments', commentsSeeds);
+  }
+
   static async beforeAllRoutine() {
     await this.destroyTables();
 

@@ -22,89 +22,88 @@ describe('Comments', () => {
       UserHelper.getUserJane()
     ]);
   });
-
   beforeEach(async () => {
     await SeedsHelper.initSeeds();
   });
-
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
-  describe('should show comment_count stats for list of posts', async () => {
-    it('should show comment_count for list of posts', async function () {
-      const posts = await PostHelper.requestToGetPostsAsGuest();
+  describe('Comments stats', () => {
+    describe('should show comment_count stats for list of posts', async () => {
+      it('should show comment_count for list of posts', async function () {
+        const posts = await PostHelper.requestToGetPostsAsGuest();
 
-      posts.forEach(post => {
-        expect(post).toHaveProperty('post_stats');
-        expect(post['post_stats']).toHaveProperty('comments_count', 0);
-      });
-    });
-
-    it('should show correct comment_count for post which has comments', async () => {
-      const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
-      await CommentsHelper.requestToCreateComment(newPostId, userVlad);
-
-      const posts = await PostHelper.requestToGetPostsAsGuest();
-
-      const newPostData = posts.find(data => data.id === newPostId);
-
-      expect(newPostData['post_stats']['comments_count']).toBe(1);
-    });
-  });
-
-  describe('should update post comment stats', async () => {
-
-    describe('Media post related tests', function () {
-      it('should create post with comment_count equal to zero', async () => {
-        const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
-
-        const postStats = await PostService.findPostStatsById(newPostId);
-        expect(postStats.comments_count).toBe(0);
+        posts.forEach(post => {
+          expect(post).toHaveProperty('post_stats');
+          expect(post['post_stats']).toHaveProperty('comments_count', 0);
+        });
       });
 
-      it('should increase comment amount when new comment is created for media post', async () => {
+      it('should show correct comment_count for post which has comments', async () => {
         const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
         await CommentsHelper.requestToCreateComment(newPostId, userVlad);
 
-        const postStats = await PostService.findPostStatsById(newPostId);
-        expect(postStats.comments_count).toBe(1);
-      });
+        const posts = await PostHelper.requestToGetPostsAsGuest();
 
-      it('should increase comment count for comment on comment action for media post', async () => {
-        const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
-        const newRootComment = await CommentsHelper.requestToCreateComment(newPostId, userVlad);
-        await CommentsHelper.requestToCreateCommentOnComment(newPostId, newRootComment.id, userVlad);
+        const newPostData = posts.find(data => data.id === newPostId);
 
-        const postStats = await PostService.findPostStatsById(newPostId);
-
-        expect(postStats.comments_count).toBe(2);
+        expect(newPostData['post_stats']['comments_count']).toBe(1);
       });
     });
+    describe('should update post comment stats', async () => {
 
-    describe('Post-offer related actions', function () {
-      it('should create new with comment_count equal to zero', async () => {
-        const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
-        const postStats = await PostService.findPostStatsById(newPostId);
-        expect(postStats.comments_count).toBe(0);
+      describe('Media post related tests', function () {
+        it('should create post with comment_count equal to zero', async () => {
+          const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
+
+          const postStats = await PostService.findPostStatsById(newPostId);
+          expect(postStats.comments_count).toBe(0);
+        });
+
+        it('should increase comment amount when new comment is created for media post', async () => {
+          const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
+          await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+
+          const postStats = await PostService.findPostStatsById(newPostId);
+          expect(postStats.comments_count).toBe(1);
+        });
+
+        it('should increase comment count for comment on comment action for media post', async () => {
+          const newPostId = await PostHelper.requestToCreateMediaPost(userVlad);
+          const newRootComment = await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+          await CommentsHelper.requestToCreateCommentOnComment(newPostId, newRootComment.id, userVlad);
+
+          const postStats = await PostService.findPostStatsById(newPostId);
+
+          expect(postStats.comments_count).toBe(2);
+        });
       });
 
-      it('should increase comment amount when new comment is created', async () => {
-        const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
-        await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+      describe('Post-offer related actions', function () {
+        it('should create new with comment_count equal to zero', async () => {
+          const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
+          const postStats = await PostService.findPostStatsById(newPostId);
+          expect(postStats.comments_count).toBe(0);
+        });
 
-        const postStats = await PostService.findPostStatsById(newPostId);
-        expect(postStats.comments_count).toBe(1);
-      });
+        it('should increase comment amount when new comment is created', async () => {
+          const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
+          await CommentsHelper.requestToCreateComment(newPostId, userVlad);
 
-      it('should increase comment count for comment on comment action for media post', async () => {
-        const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
-        const newRootComment = await CommentsHelper.requestToCreateComment(newPostId, userVlad);
-        await CommentsHelper.requestToCreateCommentOnComment(newPostId, newRootComment.id, userVlad);
+          const postStats = await PostService.findPostStatsById(newPostId);
+          expect(postStats.comments_count).toBe(1);
+        });
 
-        const postStats = await PostService.findPostStatsById(newPostId);
+        it('should increase comment count for comment on comment action for media post', async () => {
+          const newPostId = await PostHelper.requestToCreatePostOffer(userVlad);
+          const newRootComment = await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+          await CommentsHelper.requestToCreateCommentOnComment(newPostId, newRootComment.id, userVlad);
 
-        expect(postStats.comments_count).toBe(2);
+          const postStats = await PostService.findPostStatsById(newPostId);
+
+          expect(postStats.comments_count).toBe(2);
+        });
       });
     });
   });
