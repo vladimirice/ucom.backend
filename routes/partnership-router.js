@@ -14,15 +14,20 @@ router.get('/search', async function(req, res) {
 
   orgs.forEach(model => {
     model.entity_name = OrgModelProvider.getEntityName();
+    model.entity_id   = model.id;
+
+    delete model.id;
   });
 
   users.forEach(model => {
     model.entity_name = UsersModelProvider.getEntityName();
+    model.entity_id = model.id;
 
     model.title = `${model.first_name} ${model.last_name}`;
 
     delete model.first_name;
     delete model.last_name;
+    delete model.id;
 
     // TODO - remove from search result
     delete model.account_name;

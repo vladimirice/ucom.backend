@@ -33,11 +33,11 @@ describe('Organizations. Entity source related creation-updating', () => {
 
         const body = await helpers.Org.requestToSearchCommunity('inc');
         expect(body.length).toBe(2);
-        expect(body.some(data => data.id === vladIncId && data.entity_name === OrgModelProvider.getEntityName())).toBeTruthy();
-        expect(body.some(data => data.id === janeIncId && data.entity_name === OrgModelProvider.getEntityName())).toBeTruthy();
+        expect(body.some(data => data.entity_id === vladIncId && data.entity_name === OrgModelProvider.getEntityName())).toBeTruthy();
+        expect(body.some(data => data.entity_id === janeIncId && data.entity_name === OrgModelProvider.getEntityName())).toBeTruthy();
 
         const expectedFields = [
-          'id',
+          'entity_id',
           'entity_name',
 
           'avatar_filename',
@@ -54,8 +54,8 @@ describe('Organizations. Entity source related creation-updating', () => {
         const body = await helpers.Org.requestToSearchPartnership('vlad');
 
         expect(body.length).toBe(4);
-        const vladIncFromResponse = body.find(data => data.id === vladIncId);
-        const userVladFromResponse = body.find(data => data.id === userVlad.id && data.title === `${userVlad.first_name} ${userVlad.last_name}`);
+        const vladIncFromResponse = body.find(data => data.entity_id === vladIncId);
+        const userVladFromResponse = body.find(data => data.entity_id === userVlad.id && data.title === `${userVlad.first_name} ${userVlad.last_name}`);
 
         expect(vladIncFromResponse).toBeDefined();
         expect(userVladFromResponse).toBeDefined();
@@ -64,7 +64,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         expect(userVladFromResponse.entity_name).toBe(UsersModelProvider.getEntityName());
 
         const expectedFields = [
-          'id',
+          'entity_id',
           'entity_name',
 
           'avatar_filename',

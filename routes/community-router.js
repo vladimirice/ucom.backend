@@ -11,6 +11,9 @@ router.get('/search', async function(req, res) {
 
   models.forEach(model => {
     model.entity_name = OrgModelProvider.getEntityName();
+    model.entity_id = model.id;
+
+    delete model.id;
   });
 
   res.send(models);
