@@ -142,6 +142,11 @@ class OrganizationsHelper {
     expect(model).not.toBeNull();
     const expected = givenExpected ? givenExpected : OrganizationsRepositories.Main.getFieldsForPreview();
 
+    if (model.avatar_filename) {
+      expect(model.avatar_filename, 'It seems that org post processing is not called').toMatch('organizations/');
+      expect(model.avatar_filename, 'It seems that org post processing is called more than once').not.toMatch('/organizations/');
+    }
+
     ResponseHelper.expectAllFieldsExistence(model, expected);
   }
 
