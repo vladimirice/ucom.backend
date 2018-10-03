@@ -60,14 +60,10 @@ class CommentsHelper {
    * @returns {Promise<Object>}
    */
   static async requestToCreateComment(postId, user) {
-    const fieldsToSet = {
-      'description': 'comment description',
-    };
-
     const res = await request(server)
       .post(RequestHelper.getCommentsUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
-      .send(fieldsToSet)
+      .field('description', 'comment description')
     ;
 
     ResponseHelper.expectStatusCreated(res);
@@ -83,14 +79,10 @@ class CommentsHelper {
    * @returns {Promise<Object>}
    */
   static async requestToCreateCommentOnComment(postId, parentCommentId, user) {
-    const fieldsToSet = {
-      'description': 'comment description',
-    };
-
     const res = await request(server)
       .post(RequestHelper.getCommentOnCommentUrl(postId, parentCommentId))
       .set('Authorization', `Bearer ${user.token}`)
-      .send(fieldsToSet)
+      .field('description', 'comment description')
     ;
 
     ResponseHelper.expectStatusCreated(res);

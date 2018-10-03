@@ -1,9 +1,11 @@
 const express = require('express');
+const multer  = require('multer');
+
 const router = express.Router();
 const authTokenMiddleWare = reqlib('/lib/auth/auth-token-middleware');
 const {AppError, BadRequestError} = require('../../lib/api/errors');
 const CommentsRepository = require('../../lib/comments/comments-repository');
-
+const upload = multer();
 
 /* Upvote post comment */
 router.post('/:post_id/comments/:comment_id/upvote', [authTokenMiddleWare], async (req, res) => {
@@ -20,7 +22,7 @@ router.post('/:post_id/comments/:comment_id/downvote', [authTokenMiddleWare], as
 });
 
 /* create comment on comment */
-router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare], async (req, res) => {
+router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare, upload.array() ], async (req, res) => {
   const commentService = getCommentsService(req);
 
   const newComment = await commentService.createNewCommentOnComment(
@@ -35,7 +37,7 @@ router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare], as
 });
 
 /* Create comment directly to post*/
-router.post('/:post_id/comments', [authTokenMiddleWare], async (req, res) => {
+router.post('/:post_id/comments', [authTokenMiddleWare, upload.array()], async (req, res) => {
   const commentService = getCommentsService(req);
 
   const newComment = await commentService.createNewComment(req['body'], req['post_id']);
