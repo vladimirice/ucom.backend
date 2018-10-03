@@ -10,12 +10,10 @@ let userPetr;
 let userRokky;
 
 describe('Organizations. Get requests', () => {
-  beforeAll(async () => {
+  beforeAll(async ()  => {
     [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
   });
-
-  afterAll(async () => { await helpers.SeedsHelper.sequelizeAfterAll(); });
-
+  afterAll(async ()   => { await helpers.SeedsHelper.sequelizeAfterAll(); });
   beforeEach(async () => {
     await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
   });
@@ -85,6 +83,28 @@ describe('Organizations. Get requests', () => {
   });
 
   describe('One organization', () => {
+    it('Get one organization by ID as guest', async () => {
+      const model_id = 1;
+
+      await helpers.Org.createSocialNetworksDirectly(model_id);
+
+      const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(model_id);
+
+      expect(model).toBeDefined();
+      expect(model.id).toBe(model_id);
+
+      helpers.UserHelper.checkIncludedUserPreview(model);
+
+      expect(model.users_team).toBeDefined();
+      expect(model.users_team.length).toBeGreaterThan(0);
+
+      expect(model.avatar_filename).toMatch('organizations/');
+      expect(model.social_networks).toBeDefined();
+
+      expect(model.current_rate).toBeDefined();
+      expect(model.current_rate).not.toBeNull();
+    });
+
     it('should return communities and partnerships', async () => {
       const org_id = 1;
 
@@ -117,25 +137,6 @@ describe('Organizations. Get requests', () => {
 
 
       // TODO check response structure based on field external internal
-    });
-
-    it('Get one organization by ID as guest', async () => {
-      const model_id = 1;
-
-      await helpers.Org.createSocialNetworksDirectly(model_id);
-
-      const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(model_id);
-
-      expect(model).toBeDefined();
-      expect(model.id).toBe(model_id);
-
-      helpers.UserHelper.checkIncludedUserPreview(model);
-
-      expect(model.users_team).toBeDefined();
-      expect(model.users_team.length).toBeGreaterThan(0);
-
-      expect(model.avatar_filename).toMatch('organizations/');
-      expect(model.social_networks).toBeDefined();
     });
 
     it('should not contain myself data if requesting as guest', async () => {

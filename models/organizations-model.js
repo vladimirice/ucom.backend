@@ -42,6 +42,9 @@ module.exports = (db, Sequelize) => {
     blockchain_id: {
       type: Sequelize.STRING,
     },
+    current_rate: {
+      type: Sequelize.DECIMAL(10, 10)
+    },
     created_at: {
       type: Sequelize.DATE,
     },
@@ -75,7 +78,8 @@ module.exports = (db, Sequelize) => {
       'id',
       'title',
       'avatar_filename',
-      'nickname'
+      'nickname',
+      'current_rate'
     ];
   };
 
