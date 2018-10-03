@@ -29,6 +29,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     text_data: {
       type: DataTypes.TEXT
+    },
+    avatar_filename: {
+      type: DataTypes.STRING,
+      required: false,
+      allowNull: true,
     }
   }, {
     underscored: true,

@@ -2,6 +2,7 @@ const helpers = require('../helpers');
 const OrgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 const UsersModelProvider = require('../../../lib/users/users-model-provider');
 const EntitySourceRepository = require('../../../lib/entities/repository').Sources;
+const OrganizationsRepository = require('../../../lib/organizations/repository').Main;
 
 let userVlad;
 let userJane;
@@ -178,6 +179,12 @@ describe('Organizations. Entity source related creation-updating', () => {
           && data.source_url === communitySourceExternal.source_url
       });
 
+      expect(communitySourceExternalActual.avatar_filename).toBeDefined();
+      expect(communitySourceExternalActual.avatar_filename).not.toBeNull();
+      await helpers.Org.isAvatarImageUploaded(communitySourceExternalActual.avatar_filename);
+
+      // TODO check if uploaded
+
       helpers.Res.expectValuesAreExpected({
         entity_id:          "" + body.id,
         entity_name:        OrgModelProvider.getEntityName(),
@@ -232,6 +239,10 @@ describe('Organizations. Entity source related creation-updating', () => {
         text_data:          JSON.stringify({'title': partnershipSourceExternal.title, 'description': partnershipSourceExternal.description}),
       }, partnershipSourceExternalActual);
 
+      expect(partnershipSourceExternalActual.avatar_filename).toBeDefined();
+      expect(partnershipSourceExternalActual.avatar_filename).not.toBeNull();
+      await helpers.Org.isAvatarImageUploaded(partnershipSourceExternalActual.avatar_filename);
+
       const partnershipSourceUserInternalActual = sources.find(data => {
         return data.source_group_id === 3
           && +data.source_entity_id === +partnershipSourceUsers.id
@@ -259,16 +270,40 @@ describe('Organizations. Entity source related creation-updating', () => {
     });
 
     it('should add more and delete some organization communities and partnerships', async () => {
-      // TODO
-    });
+      const user = userVlad;
+      const orgId = await OrganizationsRepository.findFirstIdByAuthorId(user.id);
+      await helpers.Org.createSampleSourcesForOrganization(orgId);
 
-    it('should add different sources to get one organization response', async () => {
-      // TODO
+      const sources = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+
+      const partnershipSourcesSet = helpers.Org.prepareSourceForUpdating(orgId, sources.partnership_sources);
+      const communitySourcesSet = helpers.Org.prepareSourceForUpdating(orgId, sources.community_sources);
+
+      const sourceForRequest = {
+        'community_sources':    communitySourcesSet.for_request,
+        'partnership_sources': partnershipSourcesSet.for_request,
+      };
+
+      // TODO - it is required to provide these fields on update. Fix it later
+      const fieldsToUpdate = {
+        title: 'newTitle',
+        nickname: 'new_nick_nick_name',
+      };
+
+      await helpers.Org.requestToUpdateExisting(orgId, user, fieldsToUpdate, sourceForRequest);
+      const orgAfter = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+
+      await helpers.Org.checkSourcesAfterUpdating(orgAfter.partnership_sources, partnershipSourcesSet);
+      await helpers.Org.checkSourcesAfterUpdating(orgAfter.community_sources, communitySourcesSet);
     });
   });
 
   describe('Negative scenarios', () => {
     it('should not be possible to update community and partnership by ID which is not belong to current organization', async () => {
+      // TODO
+    });
+
+    it('should not be possible to save malformed pair entity_id + entity_name', async () => {
       // TODO
     });
   });

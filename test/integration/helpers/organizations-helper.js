@@ -13,6 +13,7 @@ const UserActivityService = require('../../../lib/users/user-activity-service');
 const OrganizationService = require('../../../lib/organizations/service/organization-service');
 const EntitySourcesRepository = require('../../../lib/entities/repository').Sources;
 const OrgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+const EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
 
 require('jest-expect-message');
 class OrganizationsHelper {
@@ -162,6 +163,271 @@ class OrganizationsHelper {
     ResponseHelper.expectStatusOk(res);
 
     return res.body.data;
+  }
+
+  static async checkSourcesAfterUpdating(sourceAfter, sourceSet) {
+    expect(sourceAfter.some(data => data.id === sourceSet.internal.to_delete.id)).toBeFalsy();
+    expect(sourceAfter.some(data => data.id === sourceSet.external.to_delete.id)).toBeFalsy();
+
+    sourceSet.internal.to_check.forEach(source => {
+      const existed = sourceAfter.find(data => data.id === source.id);
+      expect(existed).toBeDefined();
+
+      expect(existed).toEqual(source);
+    });
+
+    sourceSet.external.to_check.forEach(source => {
+      const existed = sourceAfter.find(data => data.id === source.id);
+      expect(existed).toBeDefined();
+
+      expect(existed).toEqual(source);
+    });
+
+    // adding
+    const expectedAdded = sourceSet.internal.to_add;
+    const actualAdded = sourceAfter.find(data => +data.entity_id === +expectedAdded.entity_id);
+    expect(actualAdded).toBeDefined();
+    expect(actualAdded).toMatchObject(expectedAdded);
+
+    const expectedAddedExternal = sourceSet.external.to_add;
+    const actualAddedExternal = sourceAfter.find(data => data.source_url === expectedAddedExternal.source_url && data.source_type === 'external');
+    expect(actualAddedExternal).toBeDefined();
+
+    await FileToUploadHelper.isFileUploaded(actualAddedExternal.avatar_filename);
+    delete expectedAddedExternal.avatar_filename;
+
+    expect(actualAddedExternal).toMatchObject(expectedAddedExternal);
+  }
+
+  static prepareSourceForUpdating(orgId, sources) {
+    let internalSources = [];
+    let externalSources = [];
+
+    sources.forEach(source => {
+      if (source.source_type === 'internal') {
+        internalSources.push(source)
+      } else {
+        externalSources.push(source);
+      }
+    });
+
+    let internalSourceToDelete = internalSources[0];
+    let internalSourceToAdd = {
+      entity_id:    "3", // entity to link on
+      entity_name:  OrgModelProvider.getEntityName(), // entity to link on
+
+      source_type:  'internal',
+    };
+
+    const internalSourcesForRequest = [
+      internalSources[1],
+      internalSources[2],
+      internalSourceToAdd,
+    ];
+
+    let externalSourceToDelete = externalSources[0];
+    let externalSourceToAdd = {
+      source_url:       'https://coolpartnershipnewnew.com',
+
+      title:            'External super community',
+      description:      'This is a cool description about cool external community',
+
+      source_type:      'external',
+      avatar_filename:  FileToUploadHelper.getSampleFilePathToUpload(),
+    };
+
+    // External source should be changed
+    externalSources[1].source_url = 'http://example_to_changed.com';
+    // TODO - change avatar filename also
+
+    const externalSourcesForRequest = [
+      externalSources[1],
+      externalSources[2],
+      externalSourceToAdd,
+    ];
+
+    return {
+      for_request: _.concat(internalSourcesForRequest, externalSourcesForRequest),
+
+      internal: {
+        'to_add':     internalSourceToAdd,
+        'to_delete':  internalSourceToDelete,
+        'to_check': [
+          internalSources[1],
+          internalSources[2],
+        ],
+      },
+
+      external: {
+        'to_add':     externalSourceToAdd,
+        'to_delete':  externalSourceToDelete,
+        'to_check': [
+          externalSources[1],
+          externalSources[2],
+        ],
+      }
+    };
+  }
+
+  /**
+   *
+   * @param {number} org_id
+   * @return {Promise<void>}
+   */
+  static async createSampleSourcesForOrganization(org_id) {
+    const sourceGroupIdCommunity = 2;
+
+    const addToEverySource = {
+      entity_id:    org_id,
+      entity_name:  OrgModelProvider.getEntityName(),
+
+      source_type_id: null,
+      is_official: false
+    };
+
+    const toInsert = [
+      // community-internal
+      {
+        source_entity_id: 1,
+        source_entity_name: OrgModelProvider.getEntityName(),
+
+        source_url: '',
+        text_data: '',
+        source_group_id: sourceGroupIdCommunity,
+        ...addToEverySource
+      },
+      {
+        source_entity_id: 2,
+        source_entity_name: OrgModelProvider.getEntityName(),
+
+        source_url: '',
+        text_data: '',
+        source_group_id: sourceGroupIdCommunity,
+        ...addToEverySource
+      },
+      {
+        source_entity_id: 3,
+        source_entity_name: OrgModelProvider.getEntityName(),
+
+        source_url: '',
+        text_data: '',
+        source_group_id: sourceGroupIdCommunity,
+        ...addToEverySource
+      },
+
+      // community-external
+      {
+        source_url: 'https://coolcommunity_external_1.com',
+        text_data: '{"title":"External super community 1","description":"This is a cool description about cool external community 1"}',
+
+        source_entity_id: null,
+        source_entity_name: null,
+        source_group_id: sourceGroupIdCommunity,
+        avatar_filename: 'sample_community_external_1.png',
+        ...addToEverySource
+      },
+      {
+        source_url: 'https://coolcommunity_external_2.com',
+        text_data: '{"title":"External super community 2","description":"This is a cool description about cool external community 2"}',
+
+        source_entity_id: null,
+        source_entity_name: null,
+        source_group_id: sourceGroupIdCommunity,
+        avatar_filename: 'sample_community_external_2.png',
+        ...addToEverySource
+      },
+      {
+        source_url: 'https://coolcommunity_external_3.com',
+        text_data: '{"title":"External super community 3","description":"This is a cool description about cool external community 3"}',
+
+        source_entity_id: null,
+        source_entity_name: null,
+        source_group_id: sourceGroupIdCommunity,
+        avatar_filename: 'sample_community_external_3.png',
+        ...addToEverySource
+      },
+
+      ///////// Partnership-internal
+      {
+        source_url: '',
+        is_official: false,
+        source_type_id: null,
+        source_group_id: 3,
+        entity_id: org_id,
+        entity_name: 'org       ',
+
+        source_entity_id: 2,
+        source_entity_name: 'org       ',
+        text_data: '',
+      },
+      {
+        source_url: '',
+        is_official: false,
+        source_type_id: null,
+        source_group_id: 3,
+        entity_id: org_id,
+        entity_name: 'org       ',
+
+        source_entity_id: 3,
+        source_entity_name: 'org       ',
+        text_data: '',
+      },
+      {
+        source_url: '',
+        is_official: false,
+        source_type_id: null,
+        source_group_id: 3,
+        entity_id: org_id,
+        entity_name: 'org       ',
+
+        source_entity_id: 1,
+        source_entity_name: 'users     ',
+        text_data: '',
+      },
+
+      ///////// Partnership-external
+      {
+        source_url: 'https://coolpartnership.com',
+        is_official: false,
+        source_type_id: null,
+        source_group_id: 3,
+        entity_id: org_id,
+        entity_name: 'org       ',
+
+        avatar_filename: 'sample_partnership_external_1.png',
+        source_entity_id: null,
+        source_entity_name: null,
+        text_data: '{"title":"External super partnership","description":"This is a cool description about cool external partnership"}',
+      },
+      {
+        source_url: 'https://coolpartnership12345.com',
+        is_official: false,
+        source_type_id: null,
+        source_group_id: 3,
+        entity_id: org_id,
+        entity_name: 'org       ',
+
+        source_entity_id: null,
+        source_entity_name: null,
+        avatar_filename: 'sample_partnership_external_2.png',
+        text_data: '{"title":"External super partnership12345","description":"This is a cool description about cool external partnership"}',
+      },
+      {
+        source_url: 'https://coolpartnership12345789.com',
+        is_official: false,
+        source_type_id: null,
+        source_group_id: 3,
+        entity_id: org_id,
+        entity_name: 'org       ',
+
+        source_entity_id: null,
+        source_entity_name: null,
+        avatar_filename: 'sample_partnership_external_3.png',
+        text_data: '{"title":"External super partnership12345789","description":"This is a cool description about cool external partnership"}',
+      },
+    ];
+
+    await EntityModelProvider.getSourcesModel().bulkCreate(toInsert);
   }
 
   /**
@@ -341,16 +607,20 @@ class OrganizationsHelper {
       req.field(field, fields[field]);
     }
 
+    // TODO - for test
+    req.attach('avatar_filename', FileToUploadHelper.getSampleFilePathToUpload());
+
     for (const sourceSet in sources) {
       sources[sourceSet].forEach((source, i) => {
         for (const field in source) {
           // noinspection JSUnfilteredForInLoop
           const fieldName = `${sourceSet}[${i}][${field}]`;
 
-          if (fieldName !== 'avatar_filename') {
+          if (field !== 'avatar_filename') {
             // noinspection JSUnfilteredForInLoop
             req.field(fieldName, source[field])
           } else {
+            const a = 0;
             // noinspection JSUnfilteredForInLoop
             req.attach(fieldName, source[field])
           }
@@ -364,6 +634,28 @@ class OrganizationsHelper {
     return res.body;
   }
 
+  static _addSourcesToReq(req, sources) {
+    for (const sourceSet in sources) {
+      sources[sourceSet].forEach((source, i) => {
+        for (const field in source) {
+          // noinspection JSUnfilteredForInLoop
+          const fieldName = `${sourceSet}[${i}][${field}]`;
+
+          if (field !== 'avatar_filename') {
+            // noinspection JSUnfilteredForInLoop
+            req.field(fieldName, source[field])
+          } else {
+            if (source[field] === FileToUploadHelper.getSampleFilePathToUpload()) {
+              // noinspection JSUnfilteredForInLoop
+              req.attach(fieldName, source[field])
+            } else if(source[field]) {
+              req.field(fieldName, source[field])
+            }
+          }
+        }
+      });
+    }  }
+
   /**
    *
    * @param {number} orgId
@@ -373,7 +665,7 @@ class OrganizationsHelper {
    * @param {number} expectedStatus
    * @return {Promise<Object>}
    */
-  static async requestToUpdateExisting(orgId, user, fields, socialNetworks = [], expectedStatus = 200) {
+  static async requestToUpdateExisting(orgId, user, fields, sources = [], socialNetworks = [], expectedStatus = 200) {
     const req = request(server)
       .patch(RequestHelper.getOneOrganizationUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
@@ -381,6 +673,11 @@ class OrganizationsHelper {
 
     for (const field in fields) {
       req.field(field, fields[field]);
+    }
+
+    // TODO - refactor socialNetworks part and merge
+    if (sources) {
+      this._addSourcesToReq(req, sources);
     }
 
     socialNetworks.forEach((source, i) => {

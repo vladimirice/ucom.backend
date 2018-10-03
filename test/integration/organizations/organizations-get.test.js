@@ -86,88 +86,38 @@ describe('Organizations. Get requests', () => {
 
   describe('One organization', () => {
     it('should return communities and partnerships', async () => {
-
       const org_id = 1;
 
-      const toInsert = [
-        {
-          source_url: '',
-          is_official: false,
-          source_type_id: null,
-          source_group_id: 2,
-          entity_id: org_id,
-          entity_name: 'org       ',
-
-          source_entity_id: 1,
-          source_entity_name: 'org       ',
-          text_data: ""
-        },
-        {
-          source_url: 'https://coolcommunity.com',
-          is_official: false,
-          source_type_id: null,
-          source_group_id: 2,
-          entity_id: org_id,
-          entity_name: 'org       ',
-
-          source_entity_id: null,
-          source_entity_name: null,
-          text_data: '{"title":"External super community","description":"This is a cool description about cool external community"}',
-        },
-        {
-          source_url: '',
-          is_official: false,
-          source_type_id: null,
-          source_group_id: 3,
-          entity_id: org_id,
-          entity_name: 'org       ',
-
-          source_entity_id: 2,
-          source_entity_name: 'org       ',
-          text_data: '',
-        },
-        {
-          source_url: 'https://coolpartnership.com',
-          is_official: false,
-          source_type_id: null,
-          source_group_id: 3,
-          entity_id: org_id,
-          entity_name: 'org       ',
-
-          source_entity_id: null,
-          source_entity_name: null,
-          text_data: '{"title":"External super partnership","description":"This is a cool description about cool external partnership"}',
-        },
-        {
-          source_url: '',
-          is_official: false,
-          source_type_id: null,
-          source_group_id: 3,
-          entity_id: org_id,
-          entity_name: 'org       ',
-
-          source_entity_id: 1,
-          source_entity_name: 'users     ',
-          text_data: '',
-        },
-    ];
-
-      await models.entity_sources.bulkCreate(toInsert);
+      await helpers.Org.createSampleSourcesForOrganization(org_id);
 
       const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(org_id);
 
-      expect(_.isArray(model.community_sources)).toBeTruthy();
-      expect(model.community_sources.length).toBe(2);
+      const communitySources = model.community_sources;
+
+      expect(_.isArray(communitySources)).toBeTruthy();
+      expect(communitySources.length).toBe(6);
+
+      communitySources.forEach(source => {
+        expect(source.source_type).toBeDefined();
+        if (source.source_type === 'external') {
+          expect(source.avatar_filename).toBeDefined();
+
+          if (source.avatar_filename !== null) {
+            expect(source.avatar_filename).toMatch('organizations/');
+          }
+        }
+      });
 
       expect(_.isArray(model.partnership_sources)).toBeTruthy();
-      expect(model.partnership_sources.length).toBe(3);
+      expect(model.partnership_sources.length).toBe(6);
 
       expect(_.isArray(model.social_networks)).toBeTruthy();
       expect(model.social_networks.length).toBe(0);
 
+
+
       // TODO check response structure based on field external internal
     });
-
 
     it('Get one organization by ID as guest', async () => {
       const model_id = 1;
