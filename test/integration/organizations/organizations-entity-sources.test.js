@@ -44,6 +44,7 @@ describe('Organizations. Entity source related creation-updating', () => {
           'avatar_filename',
           'nickname',
           'title',
+          'user_id'
         ];
 
         helpers.Res.expectAllFieldsExistenceForArray(body, expectedFields);
@@ -73,6 +74,10 @@ describe('Organizations. Entity source related creation-updating', () => {
           'nickname',
           'title',
         ];
+
+        body.forEach(model => {
+          delete model.user_id;
+        });
 
         helpers.Res.expectAllFieldsExistenceForArray(body, expectedFields);
       });
