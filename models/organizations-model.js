@@ -79,7 +79,8 @@ module.exports = (db, Sequelize) => {
       'title',
       'avatar_filename',
       'nickname',
-      'current_rate'
+      'current_rate',
+      'user_id'
     ];
   };
 

@@ -272,15 +272,21 @@ class PostsHelper {
    *
    * @param {number} post_id
    * @param {Object} user
+   * @param {number} expectedStatus
    * @returns {Promise<Object>}
    */
-  static async requestToGetOnePostAsMyself(post_id, user) {
+  static async requestToGetOnePostAsMyself(post_id, user, expectedStatus = 200) {
     const res = await request(server)
       .get(RequestHelper.getOnePostUrl(post_id))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    if (expectedStatus === 200) {
+      expect(res.body).toBeDefined();
+      expect(res.body).not.toBeNull();
+    }
 
     return res.body;
   }

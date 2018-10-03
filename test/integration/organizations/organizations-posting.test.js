@@ -121,4 +121,45 @@ describe('Organizations. Get requests', () => {
     });
   });
 
+  describe('User get one post created on behalf of his organization', () => {
+    it('should contain myself member data if is got by org author', async () => {
+      const userAuthor = userVlad;
+      const post_id = 1;
+
+      const post = await helpers.Post.requestToGetOnePostAsMyself(post_id, userAuthor);
+
+      const myselfData = post.myselfData;
+      expect(myselfData).toBeDefined();
+
+      expect(myselfData.organization_member).toBeDefined();
+      expect(myselfData.organization_member).toBeTruthy();
+    });
+
+    it('should contain myself member data if is got by org member', async () => {
+      const userAuthor = userJane;
+      const post_id = 1;
+
+      const post = await helpers.Post.requestToGetOnePostAsMyself(post_id, userAuthor);
+
+      const myselfData = post.myselfData;
+      expect(myselfData).toBeDefined();
+
+      expect(myselfData.organization_member).toBeDefined();
+      expect(myselfData.organization_member).toBeTruthy();
+    });
+
+    it('should contain myself member false if not belong to org', async () => {
+      const user = userRokky;
+      const post_id = 1;
+
+      const post = await helpers.Post.requestToGetOnePostAsMyself(post_id, user);
+
+      const myselfData = post.myselfData;
+      expect(myselfData).toBeDefined();
+
+      expect(myselfData.organization_member).toBeDefined();
+      expect(myselfData.organization_member).toBeFalsy();
+    });
+  });
+
 });
