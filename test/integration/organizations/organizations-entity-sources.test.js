@@ -296,6 +296,11 @@ describe('Organizations. Entity source related creation-updating', () => {
       await helpers.Org.checkSourcesAfterUpdating(orgAfter.partnership_sources, partnershipSourcesSet);
       await helpers.Org.checkSourcesAfterUpdating(orgAfter.community_sources, communitySourcesSet);
     });
+
+
+    it('should update existing external source avatar filename', async () => {
+      // TODO
+    })
   });
 
   describe('Negative scenarios', () => {
