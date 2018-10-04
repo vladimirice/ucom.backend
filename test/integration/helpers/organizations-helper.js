@@ -15,6 +15,7 @@ const EntitySourcesRepository = require('../../../lib/entities/repository').Sour
 const OrgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 const EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
 const UserToOrgActivity = require('../../../lib/users/activity/user-to-organization-activity');
+const CommentsService = require('../../../lib/comments/comments-service');
 
 require('jest-expect-message');
 class OrganizationsHelper {
@@ -155,6 +156,11 @@ class OrganizationsHelper {
       console.log('SEND TO RABBIT MOCK IS CALLED');
     };
 
+    // noinspection JSUnusedLocalSymbols
+    UserActivityService.sendPayloadToRabbit = function (activity, scope) {
+      console.log('SEND TO RABBIT MOCK IS CALLED');
+    };
+
     OrganizationService._addSignedTransactionsForOrganizationCreation = async function (req) {
       console.log('MOCK add signed transaction is called');
 
@@ -166,10 +172,15 @@ class OrganizationsHelper {
     UserToOrgActivity._addSignedTransactionsForOrganizationFollowing = async function (body, currentUser, activityTypeId) {
       console.log('MOCK add signed transaction is called');
       body.signed_transaction = 'sample_signed_transaction';
-    }
+    };
+
+    // noinspection JSUnusedLocalSymbols
+    CommentsService._createSignedTransactionOrgCreatesComment = async function (currentUser, orgBlockchainId, newComment, parentCommentBlockchainId) {
+      console.log('MOCK add signed transaction is called');
+
+      return 'sample_signed_transaction_for_org_creates_comment';
+    };
   }
-
-
   /**
    *
    * @param {string} filename
