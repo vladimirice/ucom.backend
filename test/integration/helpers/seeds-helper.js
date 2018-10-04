@@ -187,6 +187,7 @@ class SeedsHelper {
 
   static async resetOrganizationRelatedSeeds() {
     const tables = [
+      'comments',
       UsersRepositories.Activity.getModelName(),
       UsersRepositories.UsersTeam.getModelName(),
       'post_stats',
