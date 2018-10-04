@@ -3,16 +3,17 @@ const delay = require('delay');
 
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 const UsersRepositories = require('../../../lib/users/repository');
-const UsersActivityRepository = UsersRepositories.Activity;
 
 const { ContentTypeDictionary } = require('uos-app-transaction');
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
+const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+
 
 let userVlad;
 let userJane;
 let userPetr;
 let userRokky;
-///
+
 describe('Organizations. Blockchain transactions', () => {
   beforeAll(async () => {
     [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
@@ -32,7 +33,7 @@ describe('Organizations. Blockchain transactions', () => {
 
       while(!activity) {
         activity = await UsersRepositories.Activity.findLastWithBlockchainIsSentStatus(userVlad.id);
-        await delay(500);
+        await delay(100);
       }
 
       // noinspection JSUnresolvedFunction
@@ -54,6 +55,27 @@ describe('Organizations. Blockchain transactions', () => {
 
       helpers.ResponseHelper.expectValuesAreExpected(expected, activity);
     }, 20000);
+  });
+
+
+  describe('Organization following related transactions', () => {
+    it('should create and process valid organization following transaction. Unfollow should be the same', async () => {
+        const orgId = 1;
+        const user = userPetr;
+
+        await RabbitMqService.purgeBlockchainQueue();
+        await helpers.Org.requestToFollowOrganization(orgId, user);
+
+        let activity = null;
+
+        while(!activity) {
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(user.id);
+          await delay(100);
+        }
+
+        expect(activity.blockchain_response.length).toBeGreaterThan(0);
+        expect(activity.signed_transaction.length).toBeGreaterThan(0);
+      }, 30000);
   });
 
   describe('Organization posting related transactions', () => {

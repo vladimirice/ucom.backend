@@ -6,7 +6,9 @@ let userJane;
 let userPetr;
 let userRokky;
 
-describe('User follows-unfollows organizations', () => {
+helpers.Org.mockBlockchainPart();
+
+describe('User follows-unfollows organizations. Without transaction checking.', () => {
   beforeAll(async ()  => {
     [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
   });

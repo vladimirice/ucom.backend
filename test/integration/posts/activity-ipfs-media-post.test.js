@@ -38,7 +38,7 @@ describe('IPFS consumer', () => {
 
     while(!ipfsMeta) {
       ipfsMeta = await IpfsMetaRepository.findAllPostMetaByPostId(newPostId);
-      await delay(500);
+      await delay(100);
     }
 
     expect(ipfsMeta).not.toBeNull();

@@ -9,6 +9,8 @@ let userJane;
 let userPetr;
 let userRokky;
 
+helpers.Org.mockBlockchainPart();
+
 describe('Organizations. Get requests', () => {
   beforeAll(async ()  => {
     [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();

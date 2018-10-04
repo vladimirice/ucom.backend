@@ -14,20 +14,21 @@ const OrganizationService = require('../../../lib/organizations/service/organiza
 const EntitySourcesRepository = require('../../../lib/entities/repository').Sources;
 const OrgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 const EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
+const UserToOrgActivity = require('../../../lib/users/activity/user-to-organization-activity');
 
 require('jest-expect-message');
 class OrganizationsHelper {
 
   /**
    *
-   * @param {number} org_id
+   * @param {number} orgId
    * @param {Object} user
    * @param {number} expectedStatus
    * @return {Promise<Object>}
    */
-  static async requestToFollowOrganization(org_id, user, expectedStatus = 201) {
+  static async requestToFollowOrganization(orgId, user, expectedStatus = 201) {
     const res = await request(server)
-      .post(RequestHelper.getOrgFollowUrl(org_id))
+      .post(RequestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
@@ -160,7 +161,14 @@ class OrganizationsHelper {
       req.blockchain_id = 'sample_blockchain_id';
       req.signed_transaction = 'sample_signed_transaction';
     };
+
+    // noinspection JSUnusedLocalSymbols
+    UserToOrgActivity._addSignedTransactionsForOrganizationFollowing = async function (body, currentUser, activityTypeId) {
+      console.log('MOCK add signed transaction is called');
+      body.signed_transaction = 'sample_signed_transaction';
+    }
   }
+
 
   /**
    *
@@ -691,6 +699,7 @@ class OrganizationsHelper {
 
   static _addSourcesToReq(req, sources) {
     for (const sourceSet in sources) {
+      // noinspection JSUnfilteredForInLoop
       sources[sourceSet].forEach((source, i) => {
         for (const field in source) {
           // noinspection JSUnfilteredForInLoop
@@ -704,6 +713,7 @@ class OrganizationsHelper {
               // noinspection JSUnfilteredForInLoop
               req.attach(fieldName, source[field])
             } else if(source[field]) {
+              // noinspection JSUnfilteredForInLoop
               req.field(fieldName, source[field])
             }
           }

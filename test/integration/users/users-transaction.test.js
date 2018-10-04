@@ -35,7 +35,7 @@ describe('Blockchain transactions', () => {
 
       while(!activity) {
         activity = await UsersRepository.ActivityUserUser.findLastWithBlockchainIsSentStatus(userVlad.id);
-        await delay(500);
+        await delay(100);
       }
 
       expect(activity.blockchain_response.length).toBeGreaterThan(0);
