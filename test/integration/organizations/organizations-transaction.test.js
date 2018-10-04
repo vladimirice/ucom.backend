@@ -57,6 +57,19 @@ describe('Organizations. Blockchain transactions', () => {
     }, 20000);
   });
 
+  describe('Organization commenting related transaction', () => {
+    it('should create and process valid direct comment creation transaction', async () => {
+      const post_id = 1; // post_id = 1 is belong to organization of author vlad
+      const org_id  = 1;
+
+      const body = await helpers.Comments.requestToCreateComment(post_id, userVlad);
+    });
+
+    it('should create and process valid comment on comment creation transaction', async () => {
+      // TODO
+    });
+  });
+
 
   describe('Organization following related transactions', () => {
     it('should create and process valid organization following transaction. Unfollow should be the same', async () => {
