@@ -63,7 +63,7 @@ router.post('/:user_id/unfollow', [authTokenMiddleWare], async function(req, res
 
   winston.info(`Action - user UNfollows other user. Request body is: ${JSON.stringify(req.body)}`);
 
-  await UserActivityService.userUnfollowsUser(userFrom, userIdTo);
+  await UserActivityService.userUnfollowsUser(userFrom, userIdTo, req.body);
 
   res.status(status('201')).send({
     status: 'ok'
