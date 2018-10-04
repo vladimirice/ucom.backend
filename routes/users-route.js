@@ -57,13 +57,13 @@ router.post('/:user_id/follow', [authTokenMiddleWare, upload.array() ], async fu
 });
 
 /* One user unfollows other user */
-router.post('/:user_id/unfollow', [authTokenMiddleWare], async function(req, res) {
+router.post('/:user_id/unfollow', [authTokenMiddleWare, upload.array()], async function(req, res) {
   const userFrom = req.user;
   const userIdTo = req.user_id;
 
   winston.info(`Action - user UNfollows other user. Request body is: ${JSON.stringify(req.body)}`);
 
-  await UserActivityService.userUnfollowsUser(userFrom, userIdTo);
+  await UserActivityService.userUnfollowsUser(userFrom, userIdTo, req.body);
 
   res.status(status('201')).send({
     status: 'ok'
