@@ -487,11 +487,11 @@ class OrganizationsHelper {
 
   /**
    *
-   * @param {number} model_id
+   * @param {number} orgId
    * @return {Promise<Object>}
    */
-  static async requestToGetOneOrganizationAsGuest(model_id) {
-    const url = RequestHelper.getOneOrganizationUrl(model_id);
+  static async requestToGetOneOrganizationAsGuest(orgId) {
+    const url = RequestHelper.getOneOrganizationUrl(orgId);
 
     const res = await request(server)
       .get(url)
@@ -716,6 +716,7 @@ class OrganizationsHelper {
    * @param {number} orgId
    * @param {Object} user
    * @param {Object} fields
+   * @param {Object[]} sources
    * @param {Object[]} socialNetworks
    * @param {number} expectedStatus
    * @return {Promise<Object>}

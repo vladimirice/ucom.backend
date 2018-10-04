@@ -1,9 +1,5 @@
 const helpers = require('../helpers');
-const OrganizationsRepositories = require('../../../lib/organizations/repository');
 const UserActivityRepository = require('../../../lib/users/repository').Activity;
-
-const models = require('../../../models');
-const _ = require('lodash');
 
 let userVlad;
 let userJane;
@@ -47,6 +43,86 @@ describe('User follows-unfollows organizations', () => {
 
       expect(org.myselfData).toBeDefined();
       expect(org.myselfData.follow).toBeFalsy();
+    });
+  });
+
+  describe('Single organization. List of followers', () => {
+    describe('Positive scenarios', () => {
+      it('should return list of org followers if fetching as guest', async () => {
+        const orgId = 1;
+
+        const followedByExpected = [
+          userJane,
+          userVlad
+        ];
+
+        for (let i = 0; i < followedByExpected.length; i++) {
+          await helpers.Org.requestToCreateOrgFollowHistory(followedByExpected[i], orgId);
+        }
+
+        const org = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+
+        const followedBy = org.followed_by;
+        expect(followedBy).toBeTruthy();
+        expect(followedBy.length).toBe(followedByExpected.length);
+
+        followedByExpected.forEach(expected => {
+          const actual = followedBy.find(data => data.id === expected.id);
+          helpers.Users.checkUserPreview(actual);
+        });
+      });
+
+      it('should return list of org followers if fetching as myself', async () => {
+        const orgId = 1;
+
+        const followedByExpected = [
+          userJane,
+          userVlad
+        ];
+
+        for (let i = 0; i < followedByExpected.length; i++) {
+          await helpers.Org.requestToCreateOrgFollowHistory(followedByExpected[i], orgId);
+        }
+
+        const org = await helpers.Org.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+
+        const followedBy = org.followed_by;
+        expect(followedBy).toBeTruthy();
+        expect(followedBy.length).toBe(followedByExpected.length);
+
+        followedByExpected.forEach(expected => {
+          const actual = followedBy.find(data => data.id === expected.id);
+          helpers.Users.checkUserPreview(actual);
+        });
+      });
+    });
+
+    describe('Negative scenarios', () => {
+      it('should return list of empty followers if fetching as guest', async () => {
+        const orgId = 1;
+        const otherOrgId = 2;
+
+        await helpers.Org.requestToCreateOrgFollowHistory(userVlad, otherOrgId); // to disturb data
+
+        const org = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+
+        const followedBy = org.followed_by;
+        expect(followedBy).toBeTruthy();
+        expect(followedBy.length).toBe(0);
+      });
+
+      it('should return list of empty followers if fetching as myself', async () => {
+        const orgId = 1;
+        const otherOrgId = 2;
+
+        await helpers.Org.requestToCreateOrgFollowHistory(userVlad, otherOrgId); // to disturb data
+
+        const org = await helpers.Org.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+
+        const followedBy = org.followed_by;
+        expect(followedBy).toBeTruthy();
+        expect(followedBy.length).toBe(0);
+      });
     });
   });
 

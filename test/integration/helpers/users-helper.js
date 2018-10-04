@@ -36,6 +36,13 @@ class UsersHelper {
     ResponseHelper.expectAllFieldsExistence(model.User, expected);
   }
 
+  static checkUserPreview(user) {
+    expect(user).toBeTruthy();
+
+    const expected = UsersRepository.getModel().getFieldsForPreview().sort();
+    ResponseHelper.expectAllFieldsExistence(user, expected);
+  }
+
   /**
    *
    * @param {Object} user
