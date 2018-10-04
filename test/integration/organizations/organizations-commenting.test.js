@@ -49,6 +49,9 @@ describe('Organization members creates comments', () => {
 
       post.comments.forEach(comment => {
         if (comment.organization_id) {
+
+          delete comment.organization.followed_by; // TODO
+
           helpers.Org.checkOneOrganizationPreviewFields(comment.organization);
           // TODO - move to check preview fields - this is post-processing indicator
           expect(comment.organization.avatar_filename).toMatch('organizations/');
