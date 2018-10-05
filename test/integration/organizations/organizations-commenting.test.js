@@ -25,6 +25,7 @@ let userRokky;
 
 
 helpers.Org.mockBlockchainPart();
+helpers.EosTransaction.mockCommentTransactionSigning();
 
 describe('Organization members creates comments', () => {
   beforeAll(async () => {

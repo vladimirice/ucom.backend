@@ -49,7 +49,7 @@ class EosTransactionHelper {
     }
   }
 
-  static mockSendingToBlockchain() {
+  static mockSendingToQueue() {
     // noinspection JSUnusedLocalSymbols
     ActivityProducer.publish = async function (message, bindingKey) {
       return true;
@@ -125,16 +125,12 @@ class EosTransactionHelper {
       "processed": {
         "receipt": {
           "status": "executed",
-          "net_usage_words": 16
         },
-        "net_usage": 128,
         "scheduled": false,
         "action_traces": [
           {
             "receipt": {
               "receiver": "tst.activity",
-              // "code_sequence": 1,
-              // "abi_sequence": 1
             },
             "act": {
               "account": "tst.activity",

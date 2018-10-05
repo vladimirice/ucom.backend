@@ -18,8 +18,7 @@ let userVlad, userJane, userPetr;
 
 helpers.EosTransaction.mockCommentTransactionSigning();
 helpers.EosTransaction.mockPostTransactionSigning();
-helpers.EosTransaction.mockSendingToBlockchain();
-
+helpers.EosTransaction.mockSendingToQueue();
 
 describe('Comments', () => {
   beforeAll(async () => {
