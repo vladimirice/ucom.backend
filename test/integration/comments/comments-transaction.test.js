@@ -155,7 +155,7 @@ describe('Comment related blockchain transactions.', () => {
 
       expect(activity.signed_transaction.length).toBeGreaterThan(0);
       expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedBlockchainResponse);
-    });
+    }, 20000);
 
     it('Comment on comment without org ID. Should create and process valid transaction.', async () => {
       await RabbitMqService.purgeBlockchainQueue();
@@ -198,6 +198,6 @@ describe('Comment related blockchain transactions.', () => {
 
       expect(activity.signed_transaction.length).toBeGreaterThan(0);
       expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedBlockchainResponse);
-    });
+    }, 10000);
   });
 });
