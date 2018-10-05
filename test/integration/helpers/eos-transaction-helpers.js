@@ -22,10 +22,18 @@ class EosTransactionHelper {
 
   static mockCommentTransactionSigning() {
     // noinspection JSUnusedLocalSymbols
-    CommentsService._createSignedTransactionOrgCreatesComment = async function (currentUser, orgBlockchainId, newComment, parentCommentBlockchainId) {
-      console.log('MOCK add signed transaction is called');
+    CommentsService._addTransactionDataToBody = async function (
+      body,
+      currentUser,
+      parentModelBlockchainId,
+      isCommentOnComment,
+      organizationBlockchainId = null
+    ) {
 
-      return 'sample_signed_transaction_for_comment_creation';
+      body.blockchain_id  = 'new_comment_sample_blockchain_id';
+      body.sign           = 'example_sign';
+
+      body.signed_transaction = 'sample_signed_transaction_for_comment_creation';
     };
   }
 

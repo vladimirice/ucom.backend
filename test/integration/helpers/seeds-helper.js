@@ -60,6 +60,51 @@ class SeedsHelper {
     await this._bulkCreate('comments', commentsSeeds);
   }
 
+  /**
+   *
+   * @param {Object} user
+   * @return {Promise<Object>}
+   */
+  static async createMediaPostWithoutOrg(user) {
+    const data = {
+      post_type_id: 1,
+      title: 'EOS core library update',
+      description: 'We are happy to announce a new major version of our EOS core library. A several cool features are successfully implemented',
+      main_image_filename: 'sample_filename_1.jpg',
+      user_id: user.id,
+      leading_text: 'Special update for our EOS people',
+      created_at: new Date(),
+      updated_at: new Date(),
+      blockchain_id: 'sample_post_blockchain_id',
+    };
+
+    const model = await models['posts'].create(data);
+
+    return model.toJSON();
+  }
+
+  /**
+   *
+   * @param {Object} user
+   * @param {number} postId
+   * @return {Promise<Object>}
+   */
+  static async createCommentOnPostWithoutOrg(user, postId) {
+    const data = {
+      description:    'sample post without org description',
+      commentable_id: postId,
+      blockchain_id:  'sample_comment_on_post_blockchain_id',
+      parent_id:      null,
+      user_id:        user.id,
+      path:           [1], // Will be malformed if you create several comments
+      depth: 0,
+    };
+
+    const model = await models['comments'].create(data);
+
+    return model.toJSON();
+  }
+
   static async beforeAllRoutine() {
     await this.destroyTables();
 

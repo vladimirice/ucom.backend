@@ -40,7 +40,7 @@ router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare, upl
 router.post('/:post_id/comments', [authTokenMiddleWare, upload.array()], async (req, res) => {
   const commentService = getCommentsService(req);
 
-  const newComment = await commentService.createNewComment(req['body'], req['post_id']);
+  const newComment = await commentService.createNewCommentOnPost(req['body'], req['post_id']);
 
   // TODO #opt need optimization
   const forResponse = await commentService.findOneForApiResponse(newComment.id);
