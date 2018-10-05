@@ -2,6 +2,8 @@ const request = require('supertest');
 const server = require('../../../app');
 const reqlib = require('app-root-path').require;
 
+const helpers = require('../helpers');
+
 const UserHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const ResponseHelper = require('../helpers/response-helper');
@@ -12,6 +14,12 @@ const ActivityUserCommentRepository = require('../../../lib/activity/activity-us
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 
 let userVlad, userJane, userPetr;
+
+
+helpers.EosTransaction.mockCommentTransactionSigning();
+helpers.EosTransaction.mockPostTransactionSigning();
+helpers.EosTransaction.mockSendingToBlockchain();
+
 
 describe('Comments', () => {
   beforeAll(async () => {
@@ -232,7 +240,7 @@ describe('Comments', () => {
         ;
 
         ResponseHelper.expectStatusBadRequest(res);
-      })
+      }, 10000)
     });
   });
 });

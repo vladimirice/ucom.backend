@@ -1,4 +1,7 @@
 const UserActivityService = require('../../../lib/users/user-activity-service');
+const CommentsService = require('../../../lib/comments/comments-service');
+const UsersActivityService = require('../../../lib/users/user-activity-service');
+const ActivityProducer = require('../../../lib/jobs/activity-producer');
 
 class EosTransactionHelper {
   static mockUsersActivityBackendSigner() {
@@ -15,6 +18,34 @@ class EosTransactionHelper {
     UserActivityService._sendPayloadToRabbit = function (activity, scope) {
       // console.log('SEND TO RABBIT MOCK IS CALLED');
     };
+  }
+
+  static mockCommentTransactionSigning() {
+    // noinspection JSUnusedLocalSymbols
+    CommentsService._createSignedTransactionOrgCreatesComment = async function (currentUser, orgBlockchainId, newComment, parentCommentBlockchainId) {
+      console.log('MOCK add signed transaction is called');
+
+      return 'sample_signed_transaction_for_comment_creation';
+    };
+  }
+
+  static mockPostTransactionSigning() {
+    // noinspection JSUnusedLocalSymbols
+    UsersActivityService.createAndSignOrganizationCreatesPostTransaction = async function (
+      userFrom,
+      organizationBlockchainId,
+      postBlockchainId,
+      postTypeId
+    ) {
+      return 'sample_signed_transaction_for_post_creation';
+    }
+  }
+
+  static mockSendingToBlockchain() {
+    // noinspection JSUnusedLocalSymbols
+    ActivityProducer.publish = async function (message, bindingKey) {
+      return true;
+    }
   }
 
   /**

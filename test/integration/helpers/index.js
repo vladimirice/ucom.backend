@@ -7,7 +7,8 @@ module.exports = {
   Res: require('./response-helper'),
 
   PostHelper:     require('./posts-helper'), // @deprecated name
-  Post:     require('./posts-helper'),
+  Post:       require('./posts-helper'), // @deprecated name
+  Posts:     require('./posts-helper'),
 
   UserHelper:     require('./users-helper'), // @deprecated
   Users:           require('./users-helper'),
