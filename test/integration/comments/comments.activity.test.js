@@ -170,7 +170,7 @@ describe('Comments', () => {
           ;
 
           ResponseHelper.expectStatusBadRequest(res);
-      })
+      }, 10000)
     });
   });
 
@@ -201,7 +201,7 @@ describe('Comments', () => {
         expect(votesAfter).toBe(votesBefore - 1);
 
         expect(userActivity.blockchain_status).toBe(10);
-      });
+      }, 10000);
     });
     describe('Negative scenarios', () => {
       it('should not be possible to downvote without auth token', async () => {
