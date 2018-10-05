@@ -2,6 +2,7 @@ const UserActivityService = require('../../../lib/users/user-activity-service');
 const CommentsService = require('../../../lib/comments/comments-service');
 const UsersActivityService = require('../../../lib/users/user-activity-service');
 const ActivityProducer = require('../../../lib/jobs/activity-producer');
+const PostsService = require('../../../lib/posts/post-service');
 
 class EosTransactionHelper {
   static mockUsersActivityBackendSigner() {
@@ -38,15 +39,20 @@ class EosTransactionHelper {
   }
 
   static mockPostTransactionSigning() {
-    // noinspection JSUnusedLocalSymbols
-    UsersActivityService.createAndSignOrganizationCreatesPostTransaction = async function (
-      userFrom,
-      organizationBlockchainId,
-      postBlockchainId,
-      postTypeId
+    PostsService._addSignedTransactionDetailsToBody = async function(
+      body,
+      user,
+      postTypeId,
+      organizationBlockchainId = null
     ) {
-      return 'sample_signed_transaction_for_post_creation';
-    }
+      if (organizationBlockchainId) {
+        body.blockchain_id = 'sample_new_org_post_blockchain_id';
+        body.signed_transaction = 'sample_new_org_post_transaction';
+      } else {
+        body.blockchain_id = 'sample_user_himself_new_post_blockchain_id';
+        body.signed_transaction = 'sample_user_himself_new_post_transaction';
+      }
+    };
   }
 
   static mockSendingToQueue() {

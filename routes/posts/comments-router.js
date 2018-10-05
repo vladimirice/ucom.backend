@@ -1,28 +1,27 @@
 const express = require('express');
-const multer  = require('multer');
 
 const router = express.Router();
 const authTokenMiddleWare = reqlib('/lib/auth/auth-token-middleware');
 const {AppError, BadRequestError} = require('../../lib/api/errors');
 const CommentsRepository = require('../../lib/comments/comments-repository');
-const upload = multer();
+const { cpUploadArray } = require('../../lib/organizations/middleware/organization-create-edit-middleware');
 
 /* Upvote post comment */
-router.post('/:post_id/comments/:comment_id/upvote', [authTokenMiddleWare], async (req, res) => {
-  const response = await getCommentsService(req).upvoteComment(req['user'], req['comment_id']);
+router.post('/:post_id/comments/:comment_id/upvote', [ authTokenMiddleWare, cpUploadArray ], async (req, res) => {
+  const response = await getCommentsService(req).upvoteComment(req.user, req.comment_id);
 
-  res.status(201).send(response)
+  res.status(201).send(response);
 });
 
 /* Upvote post comment */
-router.post('/:post_id/comments/:comment_id/downvote', [authTokenMiddleWare], async (req, res) => {
-  const response = await getCommentsService(req).downvoteComment(req['user'], req['comment_id']);
+router.post('/:post_id/comments/:comment_id/downvote', [ authTokenMiddleWare, cpUploadArray ], async (req, res) => {
+  const response = await getCommentsService(req).downvoteComment(req.user, req.comment_id);
 
-  res.status(201).send(response)
+  res.status(201).send(response);
 });
 
 /* create comment on comment */
-router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare, upload.array() ], async (req, res) => {
+router.post('/:post_id/comments/:comment_id/comments', [ authTokenMiddleWare, cpUploadArray ], async (req, res) => {
   const commentService = getCommentsService(req);
 
   const newComment = await commentService.createNewCommentOnComment(
@@ -31,13 +30,14 @@ router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare, upl
     req['comment_id']
   );
 
+  // TODO #opt need optimization
   const forResponse = await commentService.findOneForApiResponse(newComment.id);
 
   res.status(201).send(forResponse)
 });
 
-/* Create comment directly to post*/
-router.post('/:post_id/comments', [authTokenMiddleWare, upload.array()], async (req, res) => {
+/* Create comment directly to post */
+router.post('/:post_id/comments', [ authTokenMiddleWare, cpUploadArray ], async (req, res) => {
   const commentService = getCommentsService(req);
 
   const newComment = await commentService.createNewCommentOnPost(req['body'], req['post_id']);

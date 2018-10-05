@@ -1,9 +1,11 @@
+const config = require('config');
+
 const router = require('./comments-router');
 const {AppError, BadRequestError} = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../../lib/posts/post-edit-middleware');
 const { descriptionParser } = require('../../lib/posts/post-description-image-middleware');
-const config = require('config');
+
 const PostService = require('../../lib/posts/post-service');
 const ActivityService = require('../../lib/activity/activity-service');
 const PostRepository = require('../../lib/posts/posts-repository');
@@ -63,16 +65,13 @@ router.post('/image', [descriptionParser], async (req, res) => {
 });
 
 /* Create new post */
-router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  const newPost = await PostService.createNew(req);
+router.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
+  const newPost = await getPostService(req).processNewPostCreation(req);
 
-  res.send({
-    'id': newPost.id
-  });
+  res.send({ 'id': newPost.id });
 });
 
 /* Update Post */
-// noinspection JSUnresolvedFunction
 router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const user_id = req['user'].id;
   const post_id = req['post_id'];

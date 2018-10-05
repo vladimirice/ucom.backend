@@ -1,15 +1,12 @@
 const express = require('express');
 const status  = require('statuses');
-const multer  = require('multer');
 require('express-async-errors');
 
 const router  = express.Router();
-const upload  = multer();
 
 const authTokenMiddleWare   = require('../../lib/auth/auth-token-middleware');
-const { cpUpload }          = require('../../lib/organizations/middleware/organization-create-edit-middleware');
+const { cpUpload, cpUploadArray }          = require('../../lib/organizations/middleware/organization-create-edit-middleware');
 const OrgIdParamMiddleware  = require('../../lib/organizations/middleware/organization-id-param-middleware');
-const UserActivityService   = require('../../lib/users/user-activity-service');
 const ActivityUserToOrg    = require('../../lib/users/activity').UserToOrg;
 const winston               = require('../../config/winston');
 
@@ -30,11 +27,11 @@ router.get('/:organization_id', async (req, res) => {
 });
 
 /* Create new organization */
-router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
+router.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
   const model = await getOrganizationService(req).processNewOrganizationCreation(req);
 
   return res.status(201).send({
-      'id': model.id,
+    'id': model.id,
   });
 });
 
@@ -57,7 +54,7 @@ router.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, r
 });
 
 /* One user follows organization */
-router.post('/:organization_id/follow', [authTokenMiddleWare, upload.array() ], async function(req, res) {
+router.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray ], async function(req, res) {
   const userFrom    = req.user;
   const entityIdTo  = req.organization_id;
 
@@ -71,7 +68,7 @@ router.post('/:organization_id/follow', [authTokenMiddleWare, upload.array() ], 
 });
 
 /* One user unfollows organization */
-router.post('/:organization_id/unfollow', [authTokenMiddleWare, upload.array()], async function(req, res) {
+router.post('/:organization_id/unfollow', [ authTokenMiddleWare, cpUploadArray ], async function(req, res) {
   const userFrom    = req.user;
   const entityIdTo  = req.organization_id;
 

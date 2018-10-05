@@ -1,30 +1,14 @@
 const helpers = require('../helpers');
 const PostsRepository = require('../../../lib/posts/repository');
 
-const UsersActivityService = require('../../../lib/users/user-activity-service');
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 
 
-// noinspection JSUnusedLocalSymbols
-UsersActivityService.createAndSignOrganizationCreatesPostTransaction = async function(
-  userFrom,
-  organizationBlockchainId,
-  postBlockchainId,
-  postTypeId
-) {
-  console.log('MOCK org create post sign is called');
-  return 'sample_signed_transaction';
-};
-
-
-let userVlad;
-let userJane;
-let userPetr;
-let userRokky;
-
-
+helpers.EosTransaction.mockPostTransactionSigning();
 helpers.Org.mockBlockchainPart();
+
+let userVlad, userJane, userPetr, userRokky;
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
