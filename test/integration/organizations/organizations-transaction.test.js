@@ -76,29 +76,4 @@ describe('Organizations. Blockchain transactions', () => {
         expect(activity.signed_transaction.length).toBeGreaterThan(0);
       }, 30000);
   });
-
-  describe('Organization posting related transactions', () => {
-    describe('Positive scenarios', () => {
-      it('should create and process new organization media post transaction', async () => {
-        await RabbitMqService.purgeBlockchainQueue();
-
-        const user = userVlad;
-        const org_id = 1;
-        let activity = null;
-
-        await helpers.Post.requestToCreateMediaPostOfOrganization(user, org_id);
-        while(!activity) {
-          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
-          await delay(100);
-        }
-
-        expect(JSON.parse(activity.signed_transaction)).toMatchObject(helpers.EosTransaction.getPartOfSignedOrgCreatesMediaPostTransaction());
-        expect(JSON.parse(activity.blockchain_response)).toMatchObject(helpers.EosTransaction.getPartOfBlockchainResponseOnOrgCreatesMediaPost());
-      }, 20000);
-    });
-
-    // it('should create and process new organization post offer transaction', async () => {
-    //   // TODO
-    // });
-  });
 });

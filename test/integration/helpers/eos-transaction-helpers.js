@@ -3,8 +3,16 @@ const CommentsService = require('../../../lib/comments/comments-service');
 const UsersActivityService = require('../../../lib/users/user-activity-service');
 const ActivityProducer = require('../../../lib/jobs/activity-producer');
 const PostsService = require('../../../lib/posts/post-service');
+const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
 class EosTransactionHelper {
+  static async purgeQueues() {
+    await Promise.all([
+      RabbitMqService.purgeBlockchainQueue(),
+      RabbitMqService.purgeIpfsQueue()
+    ]);
+  }
+
   static mockUsersActivityBackendSigner() {
     // noinspection JSUnusedLocalSymbols
     UserActivityService._getSignedFollowTransaction = async function(userFrom, userToAccountName, activityTypeId) {
@@ -35,23 +43,6 @@ class EosTransactionHelper {
       body.sign           = 'example_sign';
 
       body.signed_transaction = 'sample_signed_transaction_for_comment_creation';
-    };
-  }
-
-  static mockPostTransactionSigning() {
-    PostsService._addSignedTransactionDetailsToBody = async function(
-      body,
-      user,
-      postTypeId,
-      organizationBlockchainId = null
-    ) {
-      if (organizationBlockchainId) {
-        body.blockchain_id = 'sample_new_org_post_blockchain_id';
-        body.signed_transaction = 'sample_new_org_post_transaction';
-      } else {
-        body.blockchain_id = 'sample_user_himself_new_post_blockchain_id';
-        body.signed_transaction = 'sample_user_himself_new_post_transaction';
-      }
     };
   }
 
@@ -122,6 +113,34 @@ class EosTransactionHelper {
     };
 
   }
+  static getPartOfSignedUserHimselfCreatesMediaPostTransaction() {
+    return {
+      "broadcast": false,
+      "transaction": {
+        "compression": "none",
+        "transaction": {
+          "max_net_usage_words": 0,
+          "max_cpu_usage_ms": 0,
+          "delay_sec": 0,
+          "context_free_actions": [],
+          "actions": [
+            {
+              "account": "tst.activity",
+              "name": "makecontent",
+              "authorization": [
+                {
+                  "actor": "vlad",
+                  "permission": "active"
+                }
+              ],
+            }
+          ],
+          "transaction_extensions": []
+        },
+      }
+    };
+
+  }
   /**
    *
    * @return {Object}
@@ -168,16 +187,12 @@ class EosTransactionHelper {
       "processed": {
         "receipt": {
           "status": "executed",
-          "net_usage_words": 19
         },
-        "net_usage": 152,
         "scheduled": false,
         "action_traces": [
           {
             "receipt": {
               "receiver": "tst.activity",
-              // "code_sequence": 1,
-              // "abi_sequence": 1
             },
             "act": {
               "account": "tst.activity",
@@ -191,6 +206,42 @@ class EosTransactionHelper {
               "data": {
                 "acc": "vlad",
                 "content_type_id": 1,
+                "parent_content_id": "",
+              },
+            },
+            "cpu_usage": 0,
+            "total_cpu_usage": 0,
+            "inline_traces": []
+          }
+        ],
+        "except": null
+      }
+    };
+  }
+  static getPartOfBlockchainResponseOnUserCreatesMediaPost(postTypeId) {
+    return {
+      "processed": {
+        "receipt": {
+          "status": "executed",
+        },
+        "scheduled": false,
+        "action_traces": [
+          {
+            "receipt": {
+              "receiver": "tst.activity",
+            },
+            "act": {
+              "account": "tst.activity",
+              "name": "makecontent",
+              "authorization": [
+                {
+                  "actor": "vlad",
+                  "permission": "active"
+                }
+              ],
+              "data": {
+                "acc": "vlad",
+                "content_type_id": postTypeId,
                 "parent_content_id": "",
               },
             },

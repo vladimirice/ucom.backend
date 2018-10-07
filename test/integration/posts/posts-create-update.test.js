@@ -10,20 +10,26 @@ const PostHelper = require('../helpers/posts-helper');
 const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const FileToUploadHelper = require('../helpers/file-to-upload-helper');
-const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
 const PostsRepository = require('../../../lib/posts/posts-repository');
 const PostStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
+const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
+const ContentTypeDictionary = require('uos-app-transaction').ContentTypeDictionary;
+const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
 const PostsService = require('./../../../lib/posts/post-service');
 
 const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
-const postOfferUrl = '/api/v1/posts';
-const rootUrl = RequestHelper.getPostsUrl();
-const postsUrl = '/api/v1/posts';
+const postOfferUrl  = helpers.Req.getPostsUrl();
+const rootUrl       = RequestHelper.getPostsUrl();
+const postsUrl      = helpers.Req.getPostsUrl();
 
 let userVlad, userJane;
+
+helpers.Mock.mockPostTransactionSigning();
+helpers.Mock.mockBlockchainPart();
 
 describe('Posts API', () => {
   beforeAll(async () => {
@@ -103,7 +109,6 @@ describe('Posts API', () => {
       expect(updatedPost.description).toBe(fieldsToChange['description']);
     });
 
-
     it('should sanitize post text fields', async () => {
       const post_id = 1;
 
@@ -161,13 +166,13 @@ describe('Posts API', () => {
   describe('Media post', function () {
 
     it('Create new Media Post by form data', async () => {
-      const userVlad = await UserHelper.getUserVlad();
+      const userVlad = await helpers.Users.getUserVlad();
 
       const newPostFields = {
         'title': 'Extremely new post',
         'description': 'Our super post description',
         'leading_text': 'extremely leading text',
-        'post_type_id': PostTypeDictionary.getTypeMediaPost(),
+        'post_type_id': ContentTypeDictionary.getTypeMediaPost(),
         'user_id': userVlad.id,
         'current_rate': 0.0000000000,
         'current_vote': 0,
@@ -183,7 +188,7 @@ describe('Posts API', () => {
         .attach('main_image_filename', avatarPath)
       ;
 
-      ResponseHelper.expectStatusOk(res);
+      helpers.Res.expectStatusOk(res);
 
       const posts = await PostsRepository.findAllByAuthor(userVlad.id);
       const newPost = posts.find(data => data.title === newPostFields['title']);
@@ -193,48 +198,12 @@ describe('Posts API', () => {
 
       expect(body.id).toBe(newPost.id);
 
-      await FileToUploadHelper.isFileUploaded(newPost.main_image_filename);
+      await helpers.FileToUpload.isFileUploaded(newPost.main_image_filename);
 
       const postStatsModel = await PostStatsRepository.findOneByPostId(newPost.id, true);
       expect(postStatsModel).toBeDefined();
 
       expect(postStatsModel.comments_count).toBe(0);
-    });
-
-    it('Update post by its author', async () => {
-      const userVlad = await UserHelper.getUserVlad();
-
-      let firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
-      await PostHelper.makeFieldNull(firstPostBefore.id, 'main_image_filename');
-      firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
-
-      expect(firstPostBefore['main_image_filename']).toBeNull();
-
-      const fieldsToChange = {
-        'title': 'This is title to change',
-        'description': 'Also necessary to change description',
-        'leading_text': 'And leading text',
-      };
-
-      const res = await request(server)
-        .patch(`${postsUrl}/${firstPostBefore['id']}`)
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('title',         fieldsToChange['title'])
-        .field('description',   fieldsToChange['description'])
-        .field('leading_text',  fieldsToChange['leading_text'])
-        .attach('main_image_filename', avatarPath)
-      ;
-
-      ResponseHelper.expectStatusOk(res);
-
-      const postAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore['id'], userVlad.id);
-
-      PostHelper.validatePatchResponse(res, postAfter);
-
-      ResponseHelper.expectValuesAreExpected(fieldsToChange, postAfter);
-
-      expect(postAfter.main_image_filename).toBeDefined();
-      await FileToUploadHelper.isFileUploaded(postAfter.main_image_filename);
     });
 
     it('Create new post-offer without board', async () => {
@@ -243,7 +212,7 @@ describe('Posts API', () => {
         'description': 'Our super post description',
         'leading_text': 'extremely leading text',
         'user_id': userVlad.id,
-        'post_type_id': PostTypeDictionary.getTypeOffer(),
+        'post_type_id': ContentTypeDictionary.getTypeOffer(),
         'current_rate': '0.0000000000',
         'current_vote': 0,
       };
@@ -264,19 +233,19 @@ describe('Posts API', () => {
         .attach('main_image_filename', avatarPath)
       ;
 
-      ResponseHelper.expectStatusOk(res);
+      helpers.Res.expectStatusOk(res);
 
       const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
       expect(lastPost).toBeDefined();
       expect(lastPost['post_offer']).not.toBeNull();
 
       expect(res.body.id).toBe(lastPost.id);
-      PostHelper.validateDbEntity(newPostFields, lastPost);
+      helpers.Posts.validateDbEntity(newPostFields, lastPost);
 
       newPostOfferFields['post_id'] = res.body.id;
-      PostHelper.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
+      helpers.Posts.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
 
-      await FileToUploadHelper.isFileUploaded(lastPost.main_image_filename);
+      await helpers.FileToUpload.isFileUploaded(lastPost.main_image_filename);
 
       const postUsersTeam = lastPost['post_users_team'];
       expect(postUsersTeam).toBeDefined();
@@ -298,7 +267,7 @@ describe('Posts API', () => {
         .field('post_users_team[]', '') // this is to catch and fix bug by TDD
       ;
 
-      ResponseHelper.expectStatusOk(patchRes);
+      helpers.Res.expectStatusOk(patchRes);
 
       const firstPostAfter = await PostOfferRepository.findOneById(lastPost.id, true);
       expect(firstPostAfter['post_offer']['action_button_title']).toBe(fieldsPostOfferToChange['action_button_title']);
@@ -310,7 +279,7 @@ describe('Posts API', () => {
         'description': 'Our super post description',
         'leading_text': 'extremely leading text',
         'user_id': userVlad.id,
-        'post_type_id': PostTypeDictionary.getTypeOffer(),
+        'post_type_id': ContentTypeDictionary.getTypeOffer(),
         'current_rate': '0.0000000000',
         'current_vote': 0,
       };
@@ -345,19 +314,19 @@ describe('Posts API', () => {
         .attach('main_image_filename', avatarPath)
       ;
 
-      ResponseHelper.expectStatusOk(res);
+      helpers.Res.expectStatusOk(res);
 
       const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
       expect(lastPost).toBeDefined();
       expect(lastPost['post_offer']).not.toBeNull();
 
       expect(res.body.id).toBe(lastPost.id);
-      PostHelper.validateDbEntity(newPostFields, lastPost);
+      helpers.Posts.validateDbEntity(newPostFields, lastPost);
 
       newPostOfferFields['post_id'] = res.body.id;
-      PostHelper.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
+      helpers.Posts.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
 
-      await FileToUploadHelper.isFileUploaded(lastPost.main_image_filename);
+      await helpers.FileToUpload.isFileUploaded(lastPost.main_image_filename);
 
       const postUsersTeam = lastPost['post_users_team'];
       expect(postUsersTeam).toBeDefined();
@@ -369,6 +338,42 @@ describe('Posts API', () => {
     });
 
     describe('Update posts', async () => {
+      it('Update post by its author', async () => {
+        const userVlad = await helpers.Users.getUserVlad();
+
+        let firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
+        await helpers.Posts.makeFieldNull(firstPostBefore.id, 'main_image_filename');
+        firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
+
+        expect(firstPostBefore['main_image_filename']).toBeNull();
+
+        const fieldsToChange = {
+          'title': 'This is title to change',
+          'description': 'Also necessary to change description',
+          'leading_text': 'And leading text',
+        };
+
+        const res = await request(server)
+          .patch(`${postsUrl}/${firstPostBefore['id']}`)
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title',         fieldsToChange['title'])
+          .field('description',   fieldsToChange['description'])
+          .field('leading_text',  fieldsToChange['leading_text'])
+          .attach('main_image_filename', avatarPath)
+        ;
+
+        helpers.Res.expectStatusOk(res);
+
+        const postAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore['id'], userVlad.id);
+
+        helpers.Posts.validatePatchResponse(res, postAfter);
+
+        helpers.Res.expectValuesAreExpected(fieldsToChange, postAfter);
+
+        expect(postAfter.main_image_filename).toBeDefined();
+        await helpers.FileToUpload.isFileUploaded(postAfter.main_image_filename);
+      });
+
       it('Update post-offer by its author', async () => {
         const userVlad = await UserHelper.getUserVlad();
         const firstPostBefore = await PostsService.findLastPostOfferByAuthor(userVlad.id);
@@ -442,4 +447,43 @@ describe('Posts API', () => {
       });
     });
   });
+
+  describe('User himself posts related activity', () => {
+    it('Media post. Should create valid activity record', async () => {
+      const user = userVlad;
+
+      const newPostId      = await helpers.Post.requestToCreateMediaPost(user);
+      const activity  = await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newPostId);
+      expect(activity).not.toBeNull();
+
+      const expectedValues = {
+        activity_type_id:   ContentTypeDictionary.getTypeMediaPost(), // media post creation
+        activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
+        entity_id_to:       "" + newPostId,
+        entity_name:        PostsModelProvider.getEntityName(),
+        user_id_from:       user.id
+      };
+
+      helpers.Res.expectValuesAreExpected(expectedValues, activity);
+    });
+
+    it('Post-offer. Should create valid activity record', async () => {
+      const user = userVlad;
+
+      const newPostId = await helpers.Post.requestToCreatePostOffer(user);
+      const activity  = await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newPostId);
+      expect(activity).not.toBeNull();
+
+      const expectedValues = {
+        activity_type_id:   ContentTypeDictionary.getTypeOffer(), // media post creation
+        activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
+        entity_id_to:       "" + newPostId,
+        entity_name:        PostsModelProvider.getEntityName(),
+        user_id_from:       user.id
+      };
+
+      helpers.Res.expectValuesAreExpected(expectedValues, activity);
+    });
+  });
+
 });

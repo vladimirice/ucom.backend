@@ -23,4 +23,6 @@ module.exports = {
   EosTransaction:  require('./eos-transaction-helpers'),
 
   Comments:  require('./comments-helper'),
+
+  Mock:  require('./mock-helper'),
 };
