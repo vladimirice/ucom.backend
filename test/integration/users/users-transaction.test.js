@@ -41,5 +41,9 @@ describe('Blockchain transactions', () => {
       expect(activity.blockchain_response.length).toBeGreaterThan(0);
       expect(activity.signed_transaction.length).toBeGreaterThan(0);
     }, 10000);
+
+    it('should get and process signed transaction from frontend', async () => {
+      // TODO
+    });
   });
 });

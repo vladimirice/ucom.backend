@@ -17,13 +17,6 @@ class MockHelper {
     }
   }
 
-  static mockUserActivitySendToRabbit() {
-    // noinspection JSUnusedLocalSymbols
-    UserActivityService._sendPayloadToRabbit = function (activity, scope) {
-      // console.log('SEND TO RABBIT MOCK IS CALLED');
-    };
-  }
-
   static mockCommentTransactionSigning() {
     // noinspection JSUnusedLocalSymbols
     CommentsService._addTransactionDataToBody = async function (
