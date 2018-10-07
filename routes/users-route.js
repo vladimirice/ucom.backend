@@ -11,6 +11,15 @@ const winston = require('../config/winston');
 const multer = require('multer');
 const upload = multer();
 
+/* Find users by name fields - shortcut */
+router.get('/search', async (req, res) => {
+  const query = req.query.q;
+
+  const users = await UserService.findByNameFields(query);
+
+  res.send(users);
+});
+
 /* GET all users */
 router.get('/', async function(req, res) {
   const users = await getUserService(req).findAllAndProcessForList();
@@ -23,15 +32,6 @@ router.get('/:user_id', async function(req, res) {
   const user = await getUserService(req).getUserByIdAndProcess(req.user_id);
 
   res.send(user);
-});
-
-/* Find users by name fields - shortcut */
-router.get('/search', async (req, res) => {
-  const query = req.query.q;
-
-  const users = await UserService.findByNameFields(query);
-
-  res.send(users);
 });
 
 /* GET all user posts */

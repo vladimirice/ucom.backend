@@ -34,7 +34,7 @@ describe('Blockchain transactions', () => {
       let activity = null;
 
       while(!activity) {
-        activity = await UsersRepository.ActivityUserUser.findLastWithBlockchainIsSentStatus(userVlad.id);
+        activity = await UsersRepository.Activity.findLastWithBlockchainIsSentStatus(userVlad.id);
         await delay(100);
       }
 
