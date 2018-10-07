@@ -61,16 +61,16 @@ class MockHelper {
   static mockBlockchainPart() {
     // noinspection JSUnusedLocalSymbols
     UserActivityService._sendPayloadToRabbit = function (activity, scope) {
-      console.log('SEND TO RABBIT MOCK IS CALLED');
+      // console.log('SEND TO RABBIT MOCK IS CALLED');
     };
 
     // noinspection JSUnusedLocalSymbols
     UserActivityService.sendPayloadToRabbit = function (activity, scope) {
-      console.log('SEND TO RABBIT MOCK IS CALLED');
+      // console.log('SEND TO RABBIT MOCK IS CALLED');
     };
 
     OrganizationService._addSignedTransactionsForOrganizationCreation = async function (req) {
-      console.log('MOCK add signed transaction is called');
+      // console.log('MOCK add signed transaction is called');
 
       req.blockchain_id = 'sample_blockchain_id';
       req.signed_transaction = 'sample_signed_transaction';
@@ -80,13 +80,6 @@ class MockHelper {
     UsersToOrgActivity._addSignedTransactionsForOrganizationFollowing = async function (body, currentUser, activityTypeId) {
       console.log('MOCK add signed transaction is called');
       body.signed_transaction = 'sample_signed_transaction';
-    };
-
-    // noinspection JSUnusedLocalSymbols
-    CommentsService._createSignedTransactionOrgCreatesComment = async function (currentUser, orgBlockchainId, newComment, parentCommentBlockchainId) {
-      console.log('MOCK add signed transaction is called');
-
-      return 'sample_signed_transaction_for_org_creates_comment';
     };
   }
 }
