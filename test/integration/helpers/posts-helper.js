@@ -74,7 +74,7 @@ class PostsHelper {
       .field('organization_id', org_id)
     ;
 
-    expect(res.status).toBe(expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }

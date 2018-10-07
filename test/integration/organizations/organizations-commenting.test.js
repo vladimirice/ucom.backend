@@ -1,13 +1,8 @@
 const helpers = require('../helpers');
-const PostsRepository = require('../../../lib/posts/repository');
-
-const UsersActivityService = require('../../../lib/users/user-activity-service');
-const UsersActivityRepository = require('../../../lib/users/repository').Activity;
-const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 
 helpers.Mock.mockPostTransactionSigning();
 helpers.Mock.mockBlockchainPart();
-helpers.EosTransaction.mockCommentTransactionSigning();
+helpers.Mock.mockCommentTransactionSigning();
 
 let userVlad;
 let userJane;

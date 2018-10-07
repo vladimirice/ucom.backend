@@ -78,7 +78,7 @@ describe('Organizations. Get requests', () => {
       it('should not be possible to create post by organization which does not exist', async () => {
         const org_id = 100500;
 
-        await helpers.Post.requestToCreateMediaPostOfOrganization(userVlad, org_id, 404);
+        await helpers.Post.requestToCreateMediaPostOfOrganization(userVlad, org_id, 400);
       });
 
       it('should set organization_id = null for regular post creation', async () => {
