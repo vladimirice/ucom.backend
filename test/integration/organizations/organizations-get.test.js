@@ -9,7 +9,7 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Org.mockBlockchainPart();
+helpers.Mock.mockBlockchainPart();
 
 describe('Organizations. Get requests', () => {
   beforeAll(async ()  => {

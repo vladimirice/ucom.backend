@@ -16,9 +16,9 @@ const ActivityDictionary = require('../../../lib/activity/activity-types-diction
 let userVlad, userJane, userPetr;
 
 
-helpers.EosTransaction.mockCommentTransactionSigning();
-helpers.EosTransaction.mockPostTransactionSigning();
-helpers.EosTransaction.mockSendingToQueue();
+helpers.Mock.mockCommentTransactionSigning();
+helpers.Mock.mockPostTransactionSigning();
+helpers.Mock.mockSendingToQueue();
 
 describe('Comments', () => {
   beforeAll(async () => {

@@ -5,6 +5,7 @@ const UsersActivityRepository = require('../../../lib/users/repository').Activit
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
+
 helpers.Mock.mockPostTransactionSigning();
 helpers.Mock.mockBlockchainPart();
 

@@ -5,17 +5,14 @@ const UsersActivityService = require('../../../lib/users/user-activity-service')
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 
-helpers.EosTransaction.mockPostTransactionSigning();
-
+helpers.Mock.mockPostTransactionSigning();
+helpers.Mock.mockBlockchainPart();
+helpers.EosTransaction.mockCommentTransactionSigning();
 
 let userVlad;
 let userJane;
 let userPetr;
 let userRokky;
-
-
-helpers.Org.mockBlockchainPart();
-helpers.EosTransaction.mockCommentTransactionSigning();
 
 describe('Organization members creates comments', () => {
   beforeAll(async () => {

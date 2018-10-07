@@ -15,7 +15,7 @@ let userPetr;
 let userRokky;
 
 
-helpers.Org.mockBlockchainPart();
+helpers.Mock.mockBlockchainPart();
 
 describe('Organizations. Create-update requests', () => {
   beforeAll(async () => {

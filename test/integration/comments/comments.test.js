@@ -10,10 +10,9 @@ const PostService = reqlib('/lib/posts/post-service');
 
 let userVlad, userJane;
 
-helpers.EosTransaction.mockPostTransactionSigning();
-helpers.EosTransaction.mockCommentTransactionSigning();
-
-helpers.EosTransaction.mockSendingToQueue();
+helpers.Mock.mockPostTransactionSigning();
+helpers.Mock.mockCommentTransactionSigning();
+helpers.Mock.mockSendingToQueue();
 
 describe('Comments', () => {
   beforeAll(async () => {

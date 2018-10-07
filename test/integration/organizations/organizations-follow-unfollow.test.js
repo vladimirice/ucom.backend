@@ -6,7 +6,7 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Org.mockBlockchainPart();
+helpers.Mock.mockBlockchainPart();
 
 describe('User follows-unfollows organizations. Without transaction checking.', () => {
   beforeAll(async ()  => {

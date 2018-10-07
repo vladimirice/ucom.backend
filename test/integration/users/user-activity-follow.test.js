@@ -18,8 +18,8 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.EosTransaction.mockUsersActivityBackendSigner();
-helpers.EosTransaction.mockUserActivitySendToRabbit();
+helpers.Mock.mockUsersActivityBackendSigner();
+helpers.Mock.mockUserActivitySendToRabbit();
 
 describe('User to user activity', () => {
   beforeAll(async () => { await helpers.SeedsHelper.destroyTables(); });

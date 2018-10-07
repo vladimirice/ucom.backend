@@ -1,7 +1,6 @@
 const UserActivityService = require('../../../lib/users/user-activity-service');
 const CommentsService = require('../../../lib/comments/comments-service');
 const UsersActivityService = require('../../../lib/users/user-activity-service');
-const ActivityProducer = require('../../../lib/jobs/activity-producer');
 const PostsService = require('../../../lib/posts/post-service');
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
@@ -13,45 +12,7 @@ class EosTransactionHelper {
     ]);
   }
 
-  static mockUsersActivityBackendSigner() {
-    // noinspection JSUnusedLocalSymbols
-    UserActivityService._getSignedFollowTransaction = async function(userFrom, userToAccountName, activityTypeId) {
-      // console.log('MOCK UserActivityService._getSignedFollowTransaction is called');
 
-      return 'sample_signed_transaction';
-    }
-  }
-
-  static mockUserActivitySendToRabbit() {
-    // noinspection JSUnusedLocalSymbols
-    UserActivityService._sendPayloadToRabbit = function (activity, scope) {
-      // console.log('SEND TO RABBIT MOCK IS CALLED');
-    };
-  }
-
-  static mockCommentTransactionSigning() {
-    // noinspection JSUnusedLocalSymbols
-    CommentsService._addTransactionDataToBody = async function (
-      body,
-      currentUser,
-      parentModelBlockchainId,
-      isCommentOnComment,
-      organizationBlockchainId = null
-    ) {
-
-      body.blockchain_id  = 'new_comment_sample_blockchain_id';
-      body.sign           = 'example_sign';
-
-      body.signed_transaction = 'sample_signed_transaction_for_comment_creation';
-    };
-  }
-
-  static mockSendingToQueue() {
-    // noinspection JSUnusedLocalSymbols
-    ActivityProducer.publish = async function (message, bindingKey) {
-      return true;
-    }
-  }
 
   /**
    *
