@@ -188,7 +188,7 @@ describe('Posts API', () => {
 
       helpers.Res.expectStatusOk(res);
 
-      const posts = await PostsRepository.findAllByAuthor(userVlad.id);
+      const posts = await PostsRepository.findAllByAuthor(userVlad.id, true);
       const newPost = posts.find(data => data.title === newPostFields['title']);
       expect(newPost).toBeDefined();
 
@@ -421,13 +421,10 @@ describe('Posts API', () => {
 
     describe('Negative scenarios', async () => {
       it('Not possible to update post by user who is not its author', async () => {
-
-        const janePosts = await PostsRepository.findAllByAuthor(userJane.id);
-
-        const firstPost = janePosts[0];
+        const postId = await PostsRepository.findLastMediaPostIdByAuthor(userJane.id);
 
         const res = await request(server)
-          .patch(`${postsUrl}/${firstPost.id}`)
+          .patch(helpers.Req.getOnePostUrl(postId))
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title', 'Vlad title for Jane post')
         ;
