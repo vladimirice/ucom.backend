@@ -152,6 +152,11 @@ describe('Comments', () => {
       // }
     });
 
+
+    it('should check and catch activity_group_id content is created by org if it is created by user himself', async () => {
+      // TODO
+    });
+
     it('Create new comment for the post directly', async () => {
       const post_id = 1;
 
@@ -162,7 +167,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentsUrl(post_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send(fieldsToSet)
+        .field('description', fieldsToSet['description'])
       ;
 
       helpers.Res.expectStatusCreated(res);
@@ -209,7 +214,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentOnCommentUrl(post_id, parent_comment_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send(fieldsToSet)
+        .field('description', fieldsToSet['description'])
       ;
 
       helpers.Res.expectStatusCreated(res);
@@ -255,7 +260,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentOnCommentUrl(post_id, parent_comment_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send(fieldsToSet)
+        .field('description', fieldsToSet['description'])
       ;
 
       helpers.Res.expectStatusCreated(res);
@@ -297,9 +302,7 @@ describe('Comments', () => {
 
       const res = await request(server)
         .post(helpers.Req.getCommentsUrl(post_id))
-        .send({
-          'description': 'comment description',
-        })
+        .field('description', 'comment description')
       ;
 
       helpers.Res.expectStatusUnauthorized(res);
@@ -312,9 +315,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentsUrl(post_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send({
-          'description': 'comment description',
-        })
+        .field('description', 'comment description')
       ;
 
       helpers.Res.expectStatusBadRequest(res);
@@ -327,9 +328,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentsUrl(post_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send({
-          'description': 'comment description',
-        })
+        .field('description', 'comment description')
       ;
 
       helpers.Res.expectStatusNotFound(res);
@@ -343,9 +342,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentOnCommentUrl(post_id, comment_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send({
-          'description': 'comment description',
-        })
+        .field('description', 'comment description')
       ;
 
       helpers.Res.expectStatusNotFound(res);
@@ -359,9 +356,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentOnCommentUrl(post_id, comment_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send({
-          'description': 'comment description',
-        })
+        .field('description', 'comment description')
       ;
 
       helpers.Res.expectStatusBadRequest(res);
@@ -375,9 +370,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentOnCommentUrl(post_id, comment_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send({
-          'description': 'comment description',
-        })
+        .field('description', 'comment description')
       ;
 
       helpers.Res.expectStatusNotFound(res);
@@ -391,9 +384,7 @@ describe('Comments', () => {
       const res = await request(server)
         .post(helpers.Req.getCommentOnCommentUrl(post_id, comment_id))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .send({
-          'description': 'comment description',
-        })
+        .field('description', 'comment description')
       ;
 
       helpers.Res.expectStatusBadRequest(res);
@@ -406,9 +397,7 @@ describe('Comments', () => {
       // noinspection JSCheckFunctionSignatures
       const res = await request(server)
         .post(helpers.Req.getCommentOnCommentUrl(post_id, comment_id))
-        .send({
-          'description': 'comment description',
-        })
+        .field('description', 'comment description')
       ;
 
       helpers.Res.expectStatusUnauthorized(res);

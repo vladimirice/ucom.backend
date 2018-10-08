@@ -98,7 +98,13 @@ class PostsHelper {
     const res = await request(server)
       .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .send(newPostFields)
+      .field('title',         newPostFields['title'])
+      .field('description',   newPostFields['description'])
+      .field('leading_text',  newPostFields['leading_text'])
+      .field('post_type_id',  newPostFields['post_type_id'])
+      .field('user_id',       newPostFields['user_id'])
+      .field('current_rate',  newPostFields['current_rate'])
+      .field('current_vote',  newPostFields['current_vote'])
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -126,7 +132,14 @@ class PostsHelper {
     const res = await request(server)
       .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .send(newPostFields)
+      .field('title',               newPostFields['title'])
+      .field('description',         newPostFields['description'])
+      .field('leading_text',        newPostFields['leading_text'])
+      .field('user_id',             newPostFields['user_id'])
+      .field('post_type_id',        newPostFields['post_type_id'])
+      .field('current_rate',        newPostFields['current_rate'])
+      .field('current_vote',        newPostFields['current_vote'])
+      .field('action_button_title', newPostFields['action_button_title'])
     ;
 
     ResponseHelper.expectStatusOk(res);

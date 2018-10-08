@@ -3,9 +3,10 @@ const models = require('../../../models');
 const server = require('../../../app');
 const expect = require('expect');
 
+const helpers = require('../helpers');
+
 const UsersHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
-const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 const UsersRepository = require('./../../../lib/users/users-repository');
@@ -44,7 +45,7 @@ describe('Myself API', () => {
     const res = await request(server)
       .patch(myselfUrl)
       .set('Authorization', `Bearer ${userVlad.token}`)
-      .attach(fileUploadField, FileToUploadHelper.getFilePath())
+      .attach(fileUploadField, helpers.FileToUpload.getSampleFilePathToUpload())
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -63,7 +64,7 @@ describe('Myself API', () => {
     const res = await request(server)
       .patch(myselfUrl)
       .set('Authorization', `Bearer ${userVlad.token}`)
-      .attach(fileUploadField, FileToUploadHelper.getFilePath())
+      .attach(fileUploadField, helpers.FileToUpload.getSampleFilePathToUpload())
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -108,6 +109,7 @@ describe('Myself API', () => {
       ]
     };
 
+    // TODO provide .field instead of .send as in frontend
     const res = await request(server)
       .patch(myselfUrl)
       .set('Authorization', `Bearer ${userVlad.token}`)
@@ -179,7 +181,21 @@ describe('Myself API', () => {
       ],
     };
 
-    const body = await RequestHelper.sendPatch(myselfUrl, userVlad.token, fieldsToChange);
+    const res = await request(server)
+      .patch(myselfUrl)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+
+      .field('users_sources[0][id]',              fieldsToChange.users_sources[0].id)
+      .field('users_sources[0][source_url]',      fieldsToChange.users_sources[0].source_url)
+      .field('users_sources[0][source_type_id]',  fieldsToChange.users_sources[0].source_type_id)
+
+      .field('users_sources[1][source_url]',      fieldsToChange.users_sources[1].source_url)
+      .field('users_sources[1][source_type_id]',  fieldsToChange.users_sources[1].source_type_id)
+    ;
+
+    expect(res.status).toBe(200);
+
+    const body = res.body;
     const updatedUser = await UsersRepository.getUserById(userVlad.id);
 
     UsersHelper.validateUserJson(body, userVlad, updatedUser);
