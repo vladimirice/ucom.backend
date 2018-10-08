@@ -178,12 +178,21 @@ class OrganizationsHelper {
     expect(model).not.toBeNull();
     const expected = givenExpected ? givenExpected : OrganizationsRepositories.Main.getFieldsForPreview();
 
+    this.checkIsPostProcessedSmell(model);
+
     if (model.avatar_filename) {
-      expect(model.avatar_filename, 'It seems that org post processing is not called').toMatch('organizations/');
-      expect(model.avatar_filename, 'It seems that org post processing is called more than once').not.toMatch('/organizations/');
+      expect(model.avatar_filename, 'It seems that org post-processing is not called').toMatch('organizations/');
+      expect(model.avatar_filename, 'It seems that org post-processing is called more than once').not.toMatch('/organizations/');
     }
 
     ResponseHelper.expectAllFieldsExistence(model, expected);
+  }
+
+  static checkIsPostProcessedSmell(model) {
+    if (model.avatar_filename) {
+      expect(model.avatar_filename, 'It seems that org post-processing is not called').toMatch('organizations/');
+      expect(model.avatar_filename, 'It seems that org post-processing is called more than once').not.toMatch('/organizations/');
+    }
   }
 
   /**
@@ -706,12 +715,12 @@ class OrganizationsHelper {
    * @param {number} orgId
    * @param {Object} user
    * @param {Object} fields
-   * @param {Object[]} sources
+   * @param {Object} sources
    * @param {Object[]} socialNetworks
    * @param {number} expectedStatus
    * @return {Promise<Object>}
    */
-  static async requestToUpdateExisting(orgId, user, fields, sources = [], socialNetworks = [], expectedStatus = 200) {
+  static async requestToUpdateExisting(orgId, user, fields, sources = null, socialNetworks = [], expectedStatus = 200) {
     const req = request(server)
       .patch(RequestHelper.getOneOrganizationUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)

@@ -7,6 +7,8 @@ const UsersRepository     = require('../lib/users/repository').Main;
 const OrgModelProvider    = require('../lib/organizations/service/organizations-model-provider');
 const UsersModelProvider  = require('../lib/users/users-model-provider');
 
+const OrgPostProcessor  = require('../lib/organizations/service/organization-post-processor');
+
 router.get('/search', async function(req, res) {
   const query = req.query.q;
   const orgs = await OrgRepository.findByNameFields(query);
@@ -16,11 +18,15 @@ router.get('/search', async function(req, res) {
     model.entity_name = OrgModelProvider.getEntityName();
     model.entity_id   = model.id;
 
+    OrgPostProcessor.processOneOrg(model);
+
     delete model.id;
+    delete model.followed_by;
   });
 
   users.forEach(model => {
     model.entity_name = UsersModelProvider.getEntityName();
+
     model.entity_id = model.id;
 
     model.title = `${model.first_name} ${model.last_name}`;

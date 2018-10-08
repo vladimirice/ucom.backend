@@ -48,6 +48,10 @@ describe('Organizations. Entity source related creation-updating', () => {
         ];
 
         helpers.Res.expectAllFieldsExistenceForArray(body, expectedFields);
+
+        body.forEach(model => {
+          helpers.Org.checkIsPostProcessedSmell(model);
+        });
       });
 
       it('Find both users and organizations as partnership', async () => {
@@ -64,6 +68,8 @@ describe('Organizations. Entity source related creation-updating', () => {
 
         expect(vladIncFromResponse.entity_name).toBe(OrgModelProvider.getEntityName());
         expect(userVladFromResponse.entity_name).toBe(UsersModelProvider.getEntityName());
+
+        helpers.Org.checkIsPostProcessedSmell(vladIncFromResponse);
 
         const expectedFields = [
           'entity_id',
