@@ -276,6 +276,18 @@ describe('Organizations. Entity source related creation-updating', () => {
         text_data:          '',
       }, partnershipSourceUserInternalActual);
 
+
+      const org = await helpers.Org.requestToGetOneOrganizationAsGuest(body.id);
+
+      org.partnership_sources.forEach(model => {
+        if (model.entity_name === OrgModelProvider.getEntityName()) {
+          helpers.Org.checkIsPostProcessedSmell(model);
+        }
+      });
+
+      org.community_sources.forEach(model => {
+        helpers.Org.checkIsPostProcessedSmell(model);
+      });
     });
 
     it('should create sources separately', async () => {
