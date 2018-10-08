@@ -3,24 +3,25 @@ const server = require('../../../app');
 const expect = require('expect');
 
 const helpers = require('../helpers');
+const UsersHelper     = helpers.Users;
+const SeedsHelper     = helpers.Seeds;
+const PostHelper      = helpers.Posts;
+const RequestHelper   = helpers.Req;
+const ResponseHelper  = helpers.Res;
 
-const UsersHelper = require('../helpers/users-helper');
-const SeedsHelper = require('../helpers/seeds-helper');
-const PostHelper = require('../helpers/posts-helper');
-const RequestHelper = require('../helpers/request-helper');
-const ResponseHelper = require('../helpers/response-helper');
-const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
+const { ContentTypeDictionary } = require('uos-app-transaction');
 
 const PostsService = require('./../../../lib/posts/post-service');
 const PostsRepository = require('./../../../lib/posts/posts-repository');
 const PostOfferRepository = require('./../../../lib/posts/repository').PostOffer;
 
-const postsUrl = '/api/v1/posts';
+const postsUrl = helpers.Req.getPostsUrl();
 
 require('jest-expect-message');
 
-let userVlad;
-let userJane;
+let userVlad, userJane;
+
+helpers.Mock.mockAllBlockchainPart();
 
 describe('Posts API', () => {
   beforeAll(async () => {
@@ -34,6 +35,48 @@ describe('Posts API', () => {
 
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
+  });
+
+  describe('Myself data related to post properties', function () {
+    describe('Posts lists', () => {
+      it('should contain myself_vote upvote or downvote in all posts list', async () => {
+        const myself = userVlad;
+
+        const targetUserId = userJane.id;
+        const janePostIdToUpvote = await PostsRepository.findFirstMediaPostIdUserId(targetUserId);
+        const janePostIdToDownvote = await PostsRepository.findLastMediaPostIdUserId(targetUserId);
+
+        await helpers.Posts.requestToUpvotePost(myself, janePostIdToUpvote);
+        await helpers.Posts.requestToDownvotePost(myself, janePostIdToDownvote);
+
+        const posts = await helpers.Posts.requestToGetManyPostsAsMyself(myself);
+
+        const actualPostToUpvote = posts.find(data => data.id === janePostIdToUpvote);
+        const actualPostToDownvote = posts.find(data => data.id === janePostIdToDownvote);
+
+        expect(actualPostToUpvote.myselfData.myselfVote).toBe('upvote');
+        expect(actualPostToDownvote.myselfData.myselfVote).toBe('downvote');
+      });
+
+      it('should contain myself_vote upvote or downvote in user posts list', async () => {
+        const myself = userVlad;
+        const targetUserId = userJane.id;
+
+        const janePostIdToUpvote    = await PostsRepository.findFirstMediaPostIdUserId(targetUserId);
+        const janePostIdToDownvote  = await PostsRepository.findLastMediaPostIdUserId(targetUserId);
+
+        await helpers.Posts.requestToUpvotePost(myself, janePostIdToUpvote);
+        await helpers.Posts.requestToDownvotePost(myself, janePostIdToDownvote);
+
+        const posts = await helpers.Posts.requestToGetManyUserPostsAsMyself(myself, targetUserId);
+
+        const actualPostToUpvote    = posts.find(data => data.id === janePostIdToUpvote);
+        const actualPostToDownvote  = posts.find(data => data.id === janePostIdToDownvote);
+
+        expect(actualPostToUpvote.myselfData.myselfVote).toBe('upvote');
+        expect(actualPostToDownvote.myselfData.myselfVote).toBe('downvote');
+      });
+    });
   });
 
   it('List of post does not contain myself statuses', async () => {
@@ -58,7 +101,7 @@ describe('Posts API', () => {
     describe('Test filtering', () => {
       it('GET only media posts', async () => {
         let url = RequestHelper.getPostsUrl();
-        url += `?post_type_id=${PostTypeDictionary.getTypeMediaPost()}`;
+        url += `?post_type_id=${ContentTypeDictionary.getTypeMediaPost()}`;
 
         const res = await request(server)
           .get(url)
@@ -74,7 +117,7 @@ describe('Posts API', () => {
 
       it('GET only post-offers', async () => {
         let url = RequestHelper.getPostsUrl();
-        url += `?post_type_id=${PostTypeDictionary.getTypeOffer()}`;
+        url += `?post_type_id=${ContentTypeDictionary.getTypeOffer()}`;
 
         const res = await request(server)
           .get(url)
@@ -243,7 +286,7 @@ describe('Posts API', () => {
         });
         await Promise.all(setComments);
 
-        const posts = await PostHelper.requestToGetPostsAsGuest('sort_by=-comments_count');
+        const posts = await PostHelper.requestToGetManyPostsAsGuest('sort_by=-comments_count');
 
         postToComments.forEach((data, index) => {
           expect(posts[index].id).toBe(data.post_id);
@@ -281,7 +324,7 @@ describe('Posts API', () => {
         });
         await Promise.all(setComments);
 
-        const posts = await PostHelper.requestToGetPostsAsGuest('sort_by=comments_count');
+        const posts = await PostHelper.requestToGetManyPostsAsGuest('sort_by=comments_count');
 
         postToComments.forEach((data, index) => {
           expect(posts[index].id).toBe(data.post_id);

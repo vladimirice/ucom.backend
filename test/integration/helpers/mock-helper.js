@@ -5,8 +5,16 @@ const UsersToOrgActivity = require('../../../lib/users/activity/user-to-organiza
 const PostsService = require('../../../lib/posts/post-service');
 const ActivityProducer = require('../../../lib/jobs/activity-producer');
 
-
 class MockHelper {
+
+  static mockAllBlockchainPart() {
+    this.mockPostTransactionSigning();
+    this.mockBlockchainPart();
+
+    this.mockUsersActivityBackendSigner();
+    this.mockCommentTransactionSigning();
+    this.mockSendingToQueue();
+  }
 
   static mockUsersActivityBackendSigner() {
     // noinspection JSUnusedLocalSymbols

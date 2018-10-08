@@ -14,7 +14,6 @@ require('jest-expect-message');
 
 class PostsHelper {
 
-
   /**
    *
    * @param {Object} user
@@ -228,11 +227,21 @@ class PostsHelper {
   }
 
   /**
-   *
+   * @deprecated
+   * @see requestToGetManyPostsAsGuest - renaming
    * @param {string | null } queryString
    * @returns {Promise<Object[]>}
    */
   static async requestToGetPostsAsGuest(queryString = null) {
+    return await this.requestToGetManyPostsAsGuest(queryString);
+  }
+
+  /**
+   *
+   * @param {string | null } queryString
+   * @returns {Promise<Object[]>}
+   */
+  static async requestToGetManyPostsAsGuest(queryString = null) {
 
     let url = RequestHelper.getPostsUrl();
 
@@ -242,6 +251,48 @@ class PostsHelper {
 
     const res = await request(server)
       .get(url)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body.data;
+  }
+
+  /**
+   *
+   * @param {Object} myself
+   * @param {number} userId
+   */
+  static async requestToGetManyUserPostsAsMyself(myself, userId) {
+    let url = RequestHelper.getUserPostsUrl(userId);
+
+    const res = await request(server)
+      .get(url)
+      .set('Authorization', `Bearer ${myself.token}`)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} myself
+   * @param {string | null } queryString
+   * @returns {Promise<Object[]>}
+   */
+  static async requestToGetManyPostsAsMyself(myself, queryString = null) {
+
+    let url = RequestHelper.getPostsUrl();
+
+    if (queryString) {
+      url+= '?' + queryString;
+    }
+
+    const res = await request(server)
+      .get(url)
+      .set('Authorization', `Bearer ${myself.token}`)
     ;
 
     ResponseHelper.expectStatusOk(res);
