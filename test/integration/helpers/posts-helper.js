@@ -122,7 +122,7 @@ class PostsHelper {
       'title': 'Extremely new post',
       'description': 'Our super post description',
       'leading_text': 'extremely leading text',
-      'user_id': user,
+      'user_id': user.id,
       'post_type_id': PostTypeDictionary.getTypeOffer(),
       'current_rate': '0.0000000000',
       'current_vote': 0,
