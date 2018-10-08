@@ -105,23 +105,6 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
 
-    models[TABLE_NAME].hasMany(models.activity_user_user, {
-      foreignKey: 'user_id_from',
-      sourceKey: 'id',
-      as: {
-        singular: "I_follow",
-        plural: "I_follow"
-      }
-    });
-    models[TABLE_NAME].hasMany(models.activity_user_user, {
-      foreignKey: 'user_id_to',
-      sourceKey: 'id',
-      as: {
-        singular: "followed_by",
-        plural: "followed_by"
-      }
-    });
-
     Users.getSensitiveData = function() {
       return [
         'private_key',

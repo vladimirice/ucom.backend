@@ -6,10 +6,8 @@ const helpers = require('../helpers');
 
 const UserHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
-const PostHelper = require('../helpers/posts-helper');
 const RequestHelper = require('../helpers/request-helper');
 const ResponseHelper = require('../helpers/response-helper');
-const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
 const PostsRepository = require('../../../lib/posts/posts-repository');
 const PostStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
