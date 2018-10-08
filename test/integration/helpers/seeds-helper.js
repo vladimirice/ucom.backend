@@ -41,7 +41,7 @@ const minorTables = [
 
   'post_stats',
 
-  'activity_user_user',
+  // 'activity_user_user',
   'activity_user_post',
   'activity_user_comment'
 ];
