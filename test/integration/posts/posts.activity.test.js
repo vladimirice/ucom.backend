@@ -9,6 +9,7 @@ const ResponseHelper = require('../helpers/response-helper');
 const ActivityUserPostRepository = require('../../../lib/activity/activity-user-post-repository');
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 const PostRepository = require('../../../lib/posts/posts-repository');
+const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
 
 let userVlad, userJane, userPetr;
 
@@ -23,6 +24,146 @@ describe('User to post activity', () => {
       UserHelper.getUserJane(),
       UserHelper.getUserPetr()
     ]);
+  });
+
+  describe('User to post JOIN activity', () => {
+    describe('Positive scenarios', () => {
+      it('Jane joins Vlad post', async () => {
+        const vladPost = await PostOfferRepository.findLastByAuthor(userVlad.id);
+
+        const res = await request(server)
+          .post(helpers.Req.getJoinUrl(vladPost.id))
+          .set('Authorization', `Bearer ${userJane.token}`)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        expect(res.body['post_id']).toBe(vladPost.id);
+
+        const activity = await ActivityUserPostRepository.getUserPostJoin(userJane.id, vladPost.id);
+
+        expect(activity).toBeDefined();
+
+        expect(activity.user_id_from).toBe(userJane.id);
+        expect(activity.post_id_to).toBe(vladPost.id);
+        expect(activity.activity_type_id).toBe(ActivityDictionary.getJoinId());
+      });
+
+      // it('There is a myselfData join for joined post', async () => {
+      //   // TODO
+      // });
+
+    });
+
+    describe('Negative scenarios', () => {
+      // it('Not possible to join media post', async () => {
+      //   // TODO
+      // });
+
+      // it('Not possible to upvote twice', async () => {
+      //   const posts = await PostService.findAllByAuthor(userVlad.id);
+      //   const postId = posts[0]['id'];
+      //
+      //   const res = await request(server)
+      //     .post(`/api/v1/posts/${postId}/upvote`)
+      //     .set('Authorization', `Bearer ${userJane.token}`)
+      //   ;
+      //
+      //   ResponseHelper.expectStatusOk(res);
+      //
+      //   const responseTwo = await request(server)
+      //     .post(`/api/v1/posts/${postId}/upvote`)
+      //     .set('Authorization', `Bearer ${userJane.token}`)
+      //   ;
+      //
+      //   ResponseHelper.expectStatusBadRequest(responseTwo);
+      // });
+
+      // it('Not possible to join to myself post', async () => {
+      //   const posts = await PostService.findAllByAuthor(userVlad.id);
+      //   const postId = posts[0]['id'];
+      //
+      //   const res = await request(server)
+      //     .post(`/api/v1/posts/${postId}/upvote`)
+      //     .set('Authorization', `Bearer ${userVlad.token}`)
+      //   ;
+      //
+      //   ResponseHelper.expectStatusBadRequest(res);
+      // });
+
+
+      // it('Should return 400 if postID is not a valid integer', async () => {
+      //   const postId = 'invalidPostId';
+      //   const userJane = await UserHelper.getUserJane();
+      //
+      //   const res = await request(server)
+      //     .post(`/api/v1/posts/${postId}/upvote`)
+      //     .set('Authorization', `Bearer ${userJane.token}`)
+      //   ;
+      //
+      //   ResponseHelper.expectStatusBadRequest(res);
+      // });
+
+      // it('Should return 404 if on post with provided ID', async () => {
+      //   const postId = '100500';
+      //   const userJane = await UserHelper.getUserJane();
+      //
+      //   const res = await request(server)
+      //     .post(`/api/v1/posts/${postId}/upvote`)
+      //     .set('Authorization', `Bearer ${userJane.token}`)
+      //   ;
+      //
+      //   ResponseHelper.expectStatusNotFound(res);
+      // });
+
+      // it('Not possible to follow without auth token', async () => {
+      //   const res = await request(server)
+      //     .post('/api/v1/posts/1/upvote')
+      //   ;
+      //
+      //   ResponseHelper.expectStatusUnauthorized(res);
+      // });
+    })
+  });
+
+  it('List of posts contain different myself data related to users activity', async () => {
+
+    // TODO - add more disturbance
+    const targetUserId = userJane.id;
+
+    const postIdToUpvote    = await PostRepository.findFirstMediaPostIdUserId(targetUserId);
+    const postIdToDownvote  = await PostRepository.findLastMediaPostIdUserId(targetUserId);
+
+    const janePostOfferId = await helpers.Post.requestToCreatePostOffer(userJane);
+
+    await request(server)
+      .post(helpers.Req.getJoinUrl(janePostOfferId))
+      .set('Authorization', `Bearer ${userVlad.token}`)
+    ;
+
+    await helpers.Posts.requestToUpvotePost(userVlad, postIdToUpvote);
+    await helpers.Posts.requestToDownvotePost(userVlad, postIdToDownvote);
+    await helpers.Posts.requestToUpvotePost(userPetr, postIdToUpvote); // disturbance
+
+    const res = await request(server)
+      .get(helpers.Req.getPostsUrl())
+      .set('Authorization', `Bearer ${userVlad.token}`)
+    ;
+
+    const posts = res.body.data;
+
+    const upvotedPost = posts.find(post => post.id === postIdToUpvote);
+    expect(upvotedPost.myselfData).toBeDefined();
+    expect(upvotedPost.myselfData.myselfVote).toBeDefined();
+    expect(upvotedPost.myselfData.myselfVote).toBe('upvote');
+
+    const downvotedPost = posts.find(post => post.id === postIdToDownvote);
+    expect(downvotedPost.myselfData.myselfVote).toBe('downvote');
+
+
+    const joinedPost = posts.find(post => post.id === janePostOfferId);
+
+    expect(joinedPost.myselfData.join).toBeTruthy();
   });
 
   describe('Upvote-related tests', () => {
@@ -66,7 +207,7 @@ describe('User to post activity', () => {
         ResponseHelper.expectStatusBadRequest(responseTwo);
       });
       it('Not possible to vote by myself post', async () => {
-        const posts = await PostRepository.findAllByAuthor(userVlad.id);
+        const posts = await PostRepository.findAllByAuthor(userVlad.id, true);
         const postId = posts[0]['id'];
 
         const res = await request(server)

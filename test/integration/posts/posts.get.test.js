@@ -348,7 +348,7 @@ describe('Posts API', () => {
 
       let postFields = PostsRepository.getModel().getFieldsForPreview();
 
-      postFields.push('activity_user_posts');
+      // postFields.push('activity_user_posts');
       postFields.push('post_stats');
       postFields.push('post_users_team');
       postFields.push('User');
