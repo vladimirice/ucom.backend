@@ -37,7 +37,7 @@ router.post('/:post_id/comments/:comment_id/comments', [ authTokenMiddleWare, cp
   );
 
   // TODO #opt need optimization
-  const forResponse = await commentService.findOneForApiResponse(newComment.id);
+  const forResponse = await commentService.findAndProcessOneComment(newComment.id);
 
   res.status(201).send(forResponse)
 });
@@ -49,7 +49,7 @@ router.post('/:post_id/comments', [ authTokenMiddleWare, cpUploadArray ], async 
   const newComment = await commentService.createNewCommentOnPost(req['body'], req['post_id']);
 
   // TODO #opt need optimization
-  const forResponse = await commentService.findOneForApiResponse(newComment.id);
+  const forResponse = await commentService.findAndProcessOneComment(newComment.id);
 
   res.status(201).send(forResponse)
 });

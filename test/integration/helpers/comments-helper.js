@@ -43,6 +43,32 @@ class CommentsHelper {
 
     return res.body;
   }
+  /**
+   *
+   * @param {number} postId
+   * @param {boolean} dataOnly
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   */
+  static async requestToGetManyCommentsAsGuest(postId, dataOnly = true, expectedStatus = 200) {
+    const res = await request(server)
+      .get(`/api/v1/posts/${postId}/comments`)
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    if (expectedStatus === 200) {
+      expect(Array.isArray(res.body.data)).toBeTruthy();
+    }
+
+    res.body.data = _.filter(res.body.data);
+
+    if (dataOnly) {
+      return res.body.data;
+    }
+
+    return res.body;
+  }
 
   /**
    *
@@ -130,14 +156,23 @@ class CommentsHelper {
   /**
    *
    * @param {Object} model - model with included user
-   * @param {string[]} extraFields
    */
-  static checkOneCommentPreviewFields(model, extraFields = []) {
+  static checkOneCommentPreviewFields(model) {
     expect(model).toBeDefined();
     expect(model).not.toBeNull();
+
+    expect(Array.isArray(model.path), 'Probably you did not post-process comment').toBeTruthy();
+
     const expected = CommentsRepository.getModel().getFieldsForPreview();
 
-    ResponseHelper.expectAllFieldsExistence(model, _.concat(expected, extraFields));
+    const fieldsFromRelations = [
+      'User',
+      'activity_user_comment',
+      'organization',
+      'myselfData'
+    ];
+
+    ResponseHelper.expectAllFieldsExistence(model, _.concat(expected, fieldsFromRelations));
   }
 
 }

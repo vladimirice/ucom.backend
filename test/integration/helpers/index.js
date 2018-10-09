@@ -25,4 +25,6 @@ module.exports = {
   Comments:  require('./comments-helper'),
 
   Mock:  require('./mock-helper'),
+
+  Common: require('./common-helper')
 };

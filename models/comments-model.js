@@ -82,7 +82,8 @@ module.exports = (db, Sequelize) => {
       'created_at',
       'updated_at',
       'organization_id',
-      'user_id'
+      'user_id',
+      'commentable_id'
     ];
   };
 
@@ -100,41 +101,6 @@ module.exports = (db, Sequelize) => {
       'organization',
       'organization_id'
     ];
-  };
-
-  /**
-   *
-   * @param {number} maxDepth
-   * @returns {number}
-   */
-  Model.prototype.getPathAsNumber = function(maxDepth) {
-    let expectedPathAsArray = JSON.parse(this.path);
-
-    const zerosToAdd = (maxDepth + 1) - expectedPathAsArray.length;
-
-    for (let i = 0; i < zerosToAdd; i++) {
-      expectedPathAsArray.push(0);
-    }
-
-    return +expectedPathAsArray.join('');
-  };
-
-  /**
-   *
-   * @param {number} maxDepth
-   * @returns {Object}
-   */
-  Model.prototype.toApiResponseJson = function(maxDepth) {
-    let result = {};
-    Model.apiResponseFields().forEach(attribute => {
-      result[attribute] = this[attribute];
-    });
-
-    result['User'] = result['User'].toJSON();
-
-    result['path'] = JSON.parse(result['path']);
-
-    return result;
   };
 
   return Model;
