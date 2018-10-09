@@ -1,11 +1,11 @@
 const request = require('supertest');
+const _ = require('lodash');
 const server = require('../../../app');
 const reqlib = require('app-root-path').require;
 
 const helpers = require('../helpers');
 
 const CommentsRepository = reqlib('/lib/comments/comments-repository');
-const UserRepository = reqlib('/lib/users/users-repository');
 const PostService = reqlib('/lib/posts/post-service');
 
 let userVlad, userJane;
@@ -32,7 +32,7 @@ describe('Comments', () => {
   describe('Comments stats', () => {
     describe('should show comment_count stats for list of posts', async () => {
       it('should show comment_count for list of posts', async function () {
-        const posts = await helpers.Posts.requestToGetPostsAsGuest();
+        const posts = await helpers.Posts.requestToGetManyPostsAsGuest();
 
         posts.forEach(post => {
           expect(post).toHaveProperty('post_stats');
@@ -108,192 +108,203 @@ describe('Comments', () => {
     });
   });
 
-  describe('Positive scenarios', async () => {
-    it('Get posts with comments', async () => {
+  describe('Comments only API - without parent post', () => {
+    describe('Positive scenarios', () => {
+      it('should provide comment list by provided post ID', async () => {
+        const postId = 1;
 
-      const post_id = 1;
+        const comments = await helpers.Comments.requestToGetManyCommentsAsMyself(userVlad, postId);
+        expect(_.isEmpty(comments)).toBeFalsy();
 
-      const res = await request(server)
-        .get(helpers.Req.getOnePostUrl(post_id))
-      ;
+        const extraFields = [
+          'User',
+          'activity_user_comment',
+          'organization',
+          'myselfData'
+        ];
 
-      helpers.Res.expectStatusOk(res);
-      const body = res.body;
+        comments.forEach(comment => {
+          helpers.Comments.checkOneCommentPreviewFields(comment, extraFields);
 
-      expect(body.comments).toBeDefined();
+          helpers.Users.checkUserPreview(comment.User);
 
-      let expected = UserRepository.getModel().getFieldsForPreview();
+          if (comment.organization) {
+            helpers.Org.checkOneOrganizationPreviewFields(comment.organization);
+          }
+        });
 
-      // expected.push('followed_by');
-
-      helpers.Users.checkIncludedUserPreview(body, expected);
-
-      body.comments.forEach(comment => {
-        expect(Array.isArray(comment.path)).toBeTruthy();
       });
-
-      // let sortedComments = body.comments.map(comment => {
-      //   return {
-      //     id: comment.id,
-      //     path: comment.path
-      //   }
-      // });
-
-      // sortedComments.sort((a, b) => {
-      //   if (a.path < b.path)
-      //     return -1;
-      //   if (a.path > b.path)
-      //     return 1;
-      //   return 0;
-      // });
-
-      // for (let i = 0; i < sortedComments.length; i++) {
-      //   expect(body.comments[i]['id']).toBe(sortedComments[i]['id']);
-      // }
     });
 
-
-    it('should check and catch activity_group_id content is created by org if it is created by user himself', async () => {
+    it('should provide myself activity data', async () => {
       // TODO
     });
+  });
 
-    it('Create new comment for the post directly', async () => {
-      const post_id = 1;
+  describe('Posts with comments', function () {
+    describe('Positive scenarios', async () => {
+      it('One Post. Get with all comments', async () => {
+        const postId = 1;
 
-      const fieldsToSet = {
-        'description': 'comment description',
-      };
+        const post = await helpers.Posts.requestToGetOnePostAsGuest(postId);
 
-      const res = await request(server)
-        .post(helpers.Req.getCommentsUrl(post_id))
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('description', fieldsToSet['description'])
-      ;
+        expect(post.comments).toBeDefined();
 
-      helpers.Res.expectStatusCreated(res);
+        helpers.Users.checkIncludedUserPreview(post);
 
-      // Expect comments amount will be increased
+        post.comments.forEach(comment => {
+          expect(comment.commentable_id).toBe(postId);
+          expect(Array.isArray(comment.path)).toBeTruthy();
+        });
 
-      const body = res.body;
+        // TODO provide more checks
+      });
 
-      expect(Array.isArray(body.path)).toBeTruthy();
+      it('should check and catch activity_group_id content is created by org if it is created by user himself', async () => {
+        // TODO
+      });
 
-      helpers.Comments.checkCommentResponseBody(body);
-      helpers.Users.checkIncludedUserPreview(body);
+      describe('Comment creation', () => {
+        it('Create new comment for the post directly', async () => {
+          const post_id = 1;
 
-      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
-      expect(lastComment).not.toBeNull();
+          const fieldsToSet = {
+            'description': 'comment description',
+          };
 
-      expect(body.path).toEqual([
-        lastComment.id
-      ]);
+          const res = await request(server)
+            .post(helpers.Req.getCommentsUrl(post_id))
+            .set('Authorization', `Bearer ${userVlad.token}`)
+            .field('description', fieldsToSet['description'])
+          ;
 
-      expect(lastComment['blockchain_id']).not.toBeNull();
-      expect(lastComment['parent_id']).toBeNull();
+          helpers.Res.expectStatusCreated(res);
 
-      let expectedFields = fieldsToSet;
-      expectedFields['current_vote'] = 0;
-      expectedFields['commentable_id'] = post_id;
-      expectedFields['user_id'] = userVlad.id;
-      expectedFields['path'] = [
-        lastComment.id
-      ];
-      expectedFields['blockchain_status'] = 0;
+          // Expect comments amount will be increased
 
-      helpers.Res.expectValuesAreExpected(expectedFields, lastComment);
-    }, 10000);
+          const body = res.body;
 
-    it('Create comment on comment - one level depth', async () => {
-      const post_id = 1;
-      const parent_comment_id = 1;
+          expect(Array.isArray(body.path)).toBeTruthy();
 
-      const fieldsToSet = {
-        'description': 'comment on comment description',
-      };
+          helpers.Comments.checkCommentResponseBody(body);
+          helpers.Users.checkIncludedUserPreview(body);
 
-      const res = await request(server)
-        .post(helpers.Req.getCommentOnCommentUrl(post_id, parent_comment_id))
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('description', fieldsToSet['description'])
-      ;
+          const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+          expect(lastComment).not.toBeNull();
 
-      helpers.Res.expectStatusCreated(res);
+          expect(body.path).toEqual([
+            lastComment.id
+          ]);
 
-      const body = res.body;
-      expect(Array.isArray(body.path)).toBeTruthy();
+          expect(lastComment['blockchain_id']).not.toBeNull();
+          expect(lastComment['parent_id']).toBeNull();
 
-      helpers.Comments.checkCommentResponseBody(body);
-      helpers.Users.checkIncludedUserPreview(body);
+          let expectedFields = fieldsToSet;
+          expectedFields['current_vote'] = 0;
+          expectedFields['commentable_id'] = post_id;
+          expectedFields['user_id'] = userVlad.id;
+          expectedFields['path'] = [
+            lastComment.id
+          ];
+          expectedFields['blockchain_status'] = 0;
 
-      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+          helpers.Res.expectValuesAreExpected(expectedFields, lastComment);
+        }, 10000);
 
-      expect(body.path).toEqual([parent_comment_id, lastComment.id]);
+        it('Create comment on comment - one level depth', async () => {
+          const post_id = 1;
+          const parent_comment_id = 1;
 
-      expect(lastComment).not.toBeNull();
-      expect(lastComment['blockchain_id']).not.toBeNull();
+          const fieldsToSet = {
+            'description': 'comment on comment description',
+          };
 
-      let expectedFields = fieldsToSet;
-      expectedFields['current_vote'] = 0;
-      expectedFields['commentable_id'] = post_id;
-      expectedFields['user_id'] = userVlad.id;
-      expectedFields['parent_id'] = parent_comment_id;
+          const res = await request(server)
+            .post(helpers.Req.getCommentOnCommentUrl(post_id, parent_comment_id))
+            .set('Authorization', `Bearer ${userVlad.token}`)
+            .field('description', fieldsToSet['description'])
+          ;
 
-      expectedFields['path'] = [
-        parent_comment_id,
-        lastComment.id
-      ];
-      expectedFields['depth'] = 1;
+          helpers.Res.expectStatusCreated(res);
 
-      expectedFields['blockchain_status'] = 0;
+          const body = res.body;
+          expect(Array.isArray(body.path)).toBeTruthy();
 
-      helpers.Res.expectValuesAreExpected(expectedFields, lastComment);
-    });
+          helpers.Comments.checkCommentResponseBody(body);
+          helpers.Users.checkIncludedUserPreview(body);
 
-    it('Path when added comment has middle depth', async () => {
-      const post_id = 1;
-      const parent_comment_id = 5;
+          const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
 
-      const fieldsToSet = {
-        'description': 'comment on comment description',
-      };
+          expect(body.path).toEqual([parent_comment_id, lastComment.id]);
 
-      const res = await request(server)
-        .post(helpers.Req.getCommentOnCommentUrl(post_id, parent_comment_id))
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('description', fieldsToSet['description'])
-      ;
+          expect(lastComment).not.toBeNull();
+          expect(lastComment['blockchain_id']).not.toBeNull();
 
-      helpers.Res.expectStatusCreated(res);
+          let expectedFields = fieldsToSet;
+          expectedFields['current_vote'] = 0;
+          expectedFields['commentable_id'] = post_id;
+          expectedFields['user_id'] = userVlad.id;
+          expectedFields['parent_id'] = parent_comment_id;
 
-      const body = res.body;
+          expectedFields['path'] = [
+            parent_comment_id,
+            lastComment.id
+          ];
+          expectedFields['depth'] = 1;
 
-      helpers.Comments.checkCommentResponseBody(body);
-      helpers.Users.checkIncludedUserPreview(body);
-      expect(Array.isArray(body.path)).toBeTruthy();
+          expectedFields['blockchain_status'] = 0;
 
-      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+          helpers.Res.expectValuesAreExpected(expectedFields, lastComment);
+        });
 
-      const parentComment = await CommentsRepository.findOneById(parent_comment_id);
+        it('Path when added comment has middle depth', async () => {
+          const post_id = 1;
+          const parent_comment_id = 5;
 
-      let expectedPathJson = parentComment.getPathAsJson();
-      expectedPathJson.push(lastComment.id);
+          const fieldsToSet = {
+            'description': 'comment on comment description',
+          };
 
-      expect(lastComment).not.toBeNull();
-      expect(lastComment['blockchain_id']).not.toBeNull();
+          const res = await request(server)
+            .post(helpers.Req.getCommentOnCommentUrl(post_id, parent_comment_id))
+            .set('Authorization', `Bearer ${userVlad.token}`)
+            .field('description', fieldsToSet['description'])
+          ;
 
-      let expectedFields = fieldsToSet;
-      expectedFields['current_vote'] = 0;
-      expectedFields['commentable_id'] = post_id;
-      expectedFields['user_id'] = userVlad.id;
-      expectedFields['parent_id'] = parent_comment_id;
+          helpers.Res.expectStatusCreated(res);
 
-      expectedFields['path'] = expectedPathJson;
-      expectedFields['depth'] = 4;
+          const body = res.body;
 
-      expectedFields['blockchain_status'] = 0;
+          helpers.Comments.checkCommentResponseBody(body);
+          helpers.Users.checkIncludedUserPreview(body);
+          expect(Array.isArray(body.path)).toBeTruthy();
 
-      helpers.Res.expectValuesAreExpected(expectedFields, lastComment);
-    }, 10000);
+          const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
+
+          const parentComment = await CommentsRepository.findOneById(parent_comment_id);
+
+          let expectedPathJson = parentComment.getPathAsJson();
+          expectedPathJson.push(lastComment.id);
+
+          expect(lastComment).not.toBeNull();
+          expect(lastComment['blockchain_id']).not.toBeNull();
+
+          let expectedFields = fieldsToSet;
+          expectedFields['current_vote'] = 0;
+          expectedFields['commentable_id'] = post_id;
+          expectedFields['user_id'] = userVlad.id;
+          expectedFields['parent_id'] = parent_comment_id;
+
+          expectedFields['path'] = expectedPathJson;
+          expectedFields['depth'] = 4;
+
+          expectedFields['blockchain_status'] = 0;
+
+          helpers.Res.expectValuesAreExpected(expectedFields, lastComment);
+        }, 10000)
+
+      });
+    })
   });
 
   describe('Negative scenarios', () => {

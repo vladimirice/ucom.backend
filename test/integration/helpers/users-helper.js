@@ -39,6 +39,8 @@ class UsersHelper {
   static checkUserPreview(user) {
     expect(user).toBeTruthy();
 
+    // expect(typeof user.current_rate, 'It seems user is not post-processed').not.toBe('string');
+
     const expected = UsersRepository.getModel().getFieldsForPreview().sort();
     ResponseHelper.expectAllFieldsExistence(user, expected);
   }

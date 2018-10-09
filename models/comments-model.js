@@ -71,6 +71,21 @@ module.exports = (db, Sequelize) => {
     return JSON.parse(this.path);
   };
 
+  Model.getFieldsForPreview = function () {
+    return [
+      'id',
+      'description',
+      'current_vote',
+      'path',
+      'parent_id',
+      'depth',
+      'created_at',
+      'updated_at',
+      'organization_id',
+      'user_id'
+    ];
+  };
+
   Model.apiResponseFields = function() {
     return [
       'id',

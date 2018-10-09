@@ -13,6 +13,12 @@ router.post('/:post_id/comments/:comment_id/upvote', [ authTokenMiddleWare, cpUp
   res.status(201).send(response);
 });
 
+router.get('/:post_id/comments', [ authTokenMiddleWare, cpUploadArray ], async (req, res) => {
+  const response = await getCommentsService(req).findAndProcessCommentsByPostId(req.post_id);
+
+  res.send(response);
+});
+
 /* Upvote post comment */
 router.post('/:post_id/comments/:comment_id/downvote', [ authTokenMiddleWare, cpUploadArray ], async (req, res) => {
   const response = await getCommentsService(req).downvoteComment(req.user, req.comment_id);
