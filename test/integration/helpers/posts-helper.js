@@ -9,6 +9,9 @@ const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 
 const PostStatsRepository = reqlib('/lib/posts/stats/post-stats-repository');
 
+const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
+const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+
 
 require('jest-expect-message');
 
@@ -78,6 +81,78 @@ class PostsHelper {
     return res.body;
   }
 
+  /**
+   *
+   * @param {Object} post
+   */
+  static checkDirectPostItself(post) {
+    const toExclude = PostsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
+    ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
+
+    const mustBeNotNull = PostsModelProvider.getModel().getDirectPostNotNullFields();
+    ResponseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
+
+    this._checkWrongPostProcessingSmell(post);
+  }
+
+  static async expectPostDbValues(post, expected) {
+    const entity = await PostRepository.findOnlyPostItselfById(post.id);
+    expect(entity).toBeDefined();
+    expect(entity).not.toBeNull();
+
+    expect(entity).toMatchObject(expected);
+  }
+
+
+  /**
+   *
+   * @param {Object} post
+   * @private
+   */
+  static _checkWrongPostProcessingSmell(post) {
+    expect(typeof post.current_rate, 'Probably post is not post-processed').not.toBe('string');
+  }
+
+  /**
+   *
+   * @param {Object} user
+   * @param {string|null} givenDescription
+   * @return {Promise<void>}
+   */
+  static async requestToCreateDirectPost(user, givenDescription = null) {
+    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
+    const description = givenDescription || 'sample direct post description';
+
+    const res = await request(server)
+      .post(RequestHelper.getUserDirectPostUrl(user))
+      .set('Authorization',   `Bearer ${user.token}`)
+      .field('description',   description)
+      .field('post_type_id',  postTypeId)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {number} postId
+   * @param {Object} user
+   * @param {string|null} givenDescription
+   * @return {Promise<void>}
+   */
+  static async requestToUpdateDirectPost(postId, user, givenDescription) {
+    const res = await request(server)
+      .patch(RequestHelper.getOnePostUrl(postId))
+      .set('Authorization',   `Bearer ${user.token}`)
+      .field('description',   givenDescription)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
   /**
    *
    * @param {Object} user

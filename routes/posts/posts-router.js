@@ -71,7 +71,11 @@ router.post('/image', [descriptionParser], async (req, res) => {
 router.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
   const newPost = await getPostService(req).processNewPostCreation(req);
 
-  res.send({ 'id': newPost.id });
+  const response = PostService.isDirectPost(newPost) ? newPost : {
+    id: newPost.id
+  };
+
+  res.send(response);
 });
 
 /* Update Post */
@@ -88,11 +92,15 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
   const params = req.body;
 
-  const updatedPost = await PostService.updateAuthorPost(post_id, user_id, params);
+  const updatedPost = await getPostService(req).updateAuthorPost(post_id, user_id, params);
 
-  res.send({
-    'post_id': updatedPost.id
-  });
+  if (PostService.isDirectPost(updatedPost)) {
+    res.send(updatedPost);
+  } else {
+    res.send({
+      'post_id': updatedPost.id
+    });
+  }
 });
 
 router.param('post_id', (req, res, next, post_id) => {

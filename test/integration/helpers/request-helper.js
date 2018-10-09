@@ -190,6 +190,15 @@ class RequestHelper {
     return postsUrl;
   }
 
+  /**
+   *
+   * @param {Object} user
+   * @return {string}
+   */
+  static getUserDirectPostUrl(user) {
+    return `api/v1/users/${user.id}/posts`;
+  }
+
   static getUsersUrl() {
     return usersUrl;
   }

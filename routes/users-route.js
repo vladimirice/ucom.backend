@@ -42,6 +42,15 @@ router.get('/:user_id/posts', async function(req, res) {
   res.send(posts);
 });
 
+/* Create post for this user */
+router.post('/:user_id/posts', async function(req, res) {
+
+  const a = 0;
+  const response = await getPostService(req).processNewPostCreationForUser(req);
+
+  res.send(response);
+});
+
 /* One user follows other user */
 router.post('/:user_id/follow', [authTokenMiddleWare, upload.array() ], async function(req, res) {
   const userFrom = req.user;

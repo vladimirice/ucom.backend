@@ -170,6 +170,18 @@ class OrganizationsHelper {
 
   /**
    *
+   * @param {Object} model
+   */
+  static checkOneOrgPreviewFieldsIfExists(model) {
+    if (!model.organization_id) {
+      return;
+    }
+
+    this.checkOneOrganizationPreviewFields(model.organization);
+  }
+
+  /**
+   *
    * @param {Object} model - model with included user
    * @param {string[]|null} givenExpected - model with included user
    */

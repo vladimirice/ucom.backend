@@ -39,6 +39,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: true,
       required: false
+    },
+    entity_id_for: {
+      type: DataTypes.BIGINT,
+    },
+    entity_name_for: {
+      type: DataTypes.STRING,
     }
   }, {
     underscored: true,
@@ -74,6 +80,37 @@ module.exports = (sequelize, DataTypes) => {
     return [
       'title',
       'leading_text'
+    ];
+  };
+
+  /**
+   *
+   * @return {string[]}
+   */
+  Posts.getFieldsToExcludeFromDirectPost = function () {
+    return [
+      'title',
+      'main_image_filename',
+      'leading_text',
+      'blockchain_status'
+    ];
+  };
+
+  /**
+   *
+   * @return {string[]}
+   */
+  Posts.getDirectPostNotNullFields = function () {
+    return [
+      'id',
+      'post_type_id',
+      'description',
+      'current_vote',
+      'current_rate',
+      'created_at',
+      'updated_at',
+      'user_id',
+      'blockchain_id',
     ];
   };
 

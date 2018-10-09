@@ -90,6 +90,31 @@ class ResponseHelper {
 
   /**
    *
+   * @param {Object} actual
+   * @param {string[]} notExpected
+   */
+  static expectFieldsDoesNotExist(actual, notExpected) {
+    const actualFields = Object.keys(actual);
+
+    notExpected.forEach(field => {
+      expect(actualFields[field]).not.toBeDefined();
+    })
+  }
+
+  /**
+   *
+   * @param {Object} actual
+   * @param {string[]} expected
+   */
+  static expectFieldsAreNotNull(actual, expected) {
+    expected.forEach(field => {
+      expect(actual[field], `Field ${field} is not defined. Object is ${JSON.stringify(actual, null, 2)}`).toBeDefined();
+      expect(actual[field], `Field ${field} is null. Object is ${JSON.stringify(actual, null, 2)}`).not.toBeNull();
+    })
+  }
+
+  /**
+   *
    * @param {Object} expected
    * @param {Object} actual
    */

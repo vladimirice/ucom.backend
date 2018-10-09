@@ -9,15 +9,16 @@ const SeedsHelper     = helpers.Seeds;
 const RequestHelper   = helpers.Req;
 const ResponseHelper  = helpers.Res;
 
-const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
-const PostsRepository = require('../../../lib/posts/posts-repository');
-const PostStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
+const PostOfferRepository     = require('../../../lib/posts/repository').PostOffer;
+const PostsRepository         = require('../../../lib/posts/repository').MediaPosts;
+const PostStatsRepository     = require('../../../lib/posts/stats/post-stats-repository');
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
-const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
-const ContentTypeDictionary = require('uos-app-transaction').ContentTypeDictionary;
-const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
-const PostsService = require('./../../../lib/posts/post-service');
+const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
+const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
+const PostsModelProvider      = require('../../../lib/posts/service/posts-model-provider');
+
+const PostsService            = require('./../../../lib/posts/post-service');
 
 const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
 
@@ -27,8 +28,7 @@ const postsUrl      = helpers.Req.getPostsUrl();
 
 let userVlad, userJane;
 
-helpers.Mock.mockPostTransactionSigning();
-helpers.Mock.mockBlockchainPart();
+helpers.Mock.mockAllBlockchainPart();
 
 describe('Posts API', () => {
   beforeAll(async () => {
@@ -163,185 +163,230 @@ describe('Posts API', () => {
   });
 
   describe('Create post', () => {
-    it('Create media post', async () => {
-      const userVlad = await helpers.Users.getUserVlad();
+    describe('Positive', () => {
+      it('Create media post', async () => {
+        const userVlad = await helpers.Users.getUserVlad();
 
-      const newPostFields = {
-        'title': 'Extremely new post',
-        'description': 'Our super post description',
-        'leading_text': 'extremely leading text',
-        'post_type_id': ContentTypeDictionary.getTypeMediaPost(),
-        'user_id': userVlad.id,
-        'current_rate': 0.0000000000,
-        'current_vote': 0,
-      };
-
-      const res = await request(server)
-        .post(postsUrl)
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('title', newPostFields['title'])
-        .field('description', newPostFields['description'])
-        .field('post_type_id', newPostFields['post_type_id'])
-        .field('leading_text', newPostFields['leading_text'])
-        .attach('main_image_filename', avatarPath)
-      ;
-
-      helpers.Res.expectStatusOk(res);
-
-      const posts = await PostsRepository.findAllByAuthor(userVlad.id, true);
-      const newPost = posts.find(data => data.title === newPostFields['title']);
-      expect(newPost).toBeDefined();
-
-      const body = res.body;
-
-      expect(body.id).toBe(newPost.id);
-
-      await helpers.FileToUpload.isFileUploaded(newPost.main_image_filename);
-
-      const postStatsModel = await PostStatsRepository.findOneByPostId(newPost.id, true);
-      expect(postStatsModel).toBeDefined();
-
-      expect(postStatsModel.comments_count).toBe(0);
-    });
-
-    it('Create post-offer without board', async () => {
-      let newPostFields = {
-        'title': 'Extremely new post',
-        'description': 'Our super post description',
-        'leading_text': 'extremely leading text',
-        'user_id': userVlad.id,
-        'post_type_id': ContentTypeDictionary.getTypeOffer(),
-        'current_rate': '0.0000000000',
-        'current_vote': 0,
-      };
-
-      let newPostOfferFields = {
-        'action_button_title': 'TEST_BUTTON_CONTENT',
-      };
-
-      const res = await request(server)
-        .post(postOfferUrl)
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('title', newPostFields['title'])
-        .field('description', newPostFields['description'])
-        .field('leading_text', newPostFields['leading_text'])
-        .field('post_type_id', newPostFields['post_type_id'])
-        .field('action_button_title', newPostOfferFields['action_button_title'])
-        .field('post_users_team[]', '') // this is to catch and fix bug by TDD
-        .attach('main_image_filename', avatarPath)
-      ;
-
-      helpers.Res.expectStatusOk(res);
-
-      const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
-      expect(lastPost).toBeDefined();
-      expect(lastPost['post_offer']).not.toBeNull();
-
-      expect(res.body.id).toBe(lastPost.id);
-      helpers.Posts.validateDbEntity(newPostFields, lastPost);
-
-      newPostOfferFields['post_id'] = res.body.id;
-      helpers.Posts.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
-
-      await helpers.FileToUpload.isFileUploaded(lastPost.main_image_filename);
-
-      const postUsersTeam = lastPost['post_users_team'];
-      expect(postUsersTeam).toBeDefined();
-      expect(postUsersTeam.length).toBe(0);
-
-      const postStats = await PostStatsRepository.findOneByPostId(lastPost.id, true);
-
-      expect(postStats).not.toBeNull();
-
-      // UPDATE only button
-      const fieldsPostOfferToChange = {
-        'action_button_title': 'FOOBAR',
-      };
-
-      const patchRes = await request(server)
-        .patch(`${rootUrl}/${lastPost.id}`)
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('action_button_title',  fieldsPostOfferToChange['action_button_title'])
-        .field('post_users_team[]', '') // this is to catch and fix bug by TDD
-      ;
-
-      helpers.Res.expectStatusOk(patchRes);
-
-      const firstPostAfter = await PostOfferRepository.findOneById(lastPost.id, true);
-      expect(firstPostAfter['post_offer']['action_button_title']).toBe(fieldsPostOfferToChange['action_button_title']);
-    });
-    it('Create post-offer with board', async() => {
-      let newPostFields = {
-        'title': 'Extremely new post',
-        'description': 'Our super post description',
-        'leading_text': 'extremely leading text',
-        'user_id': userVlad.id,
-        'post_type_id': ContentTypeDictionary.getTypeOffer(),
-        'current_rate': '0.0000000000',
-        'current_vote': 0,
-      };
-
-      let newPostOfferFields = {
-        'action_button_title': 'TEST_BUTTON_CONTENT',
-        'action_button_url': 'https://this-is-a-test.example.com',
-        'action_duration_in_days': 500,
-      };
-
-      let newPostUsersTeamFields = [
-        {
+        const newPostFields = {
+          'title': 'Extremely new post',
+          'description': 'Our super post description',
+          'leading_text': 'extremely leading text',
+          'post_type_id': ContentTypeDictionary.getTypeMediaPost(),
           'user_id': userVlad.id,
-        },
-        {
-          'user_id': userJane.id,
-        },
-      ];
+          'current_rate': 0.0000000000,
+          'current_vote': 0,
+        };
 
-      const res = await request(server)
-        .post(postOfferUrl)
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('title', newPostFields['title'])
-        .field('description', newPostFields['description'])
-        .field('leading_text', newPostFields['leading_text'])
-        .field('post_type_id', newPostFields['post_type_id'])
-        .field('action_button_title', newPostOfferFields['action_button_title'])
-        .field('action_button_url', newPostOfferFields['action_button_url'])
-        .field('action_duration_in_days', newPostOfferFields['action_duration_in_days'])
-        .field('post_users_team[0][id]', newPostUsersTeamFields[0]['user_id'])
-        .field('post_users_team[1][id]', newPostUsersTeamFields[1]['user_id'])
-        .attach('main_image_filename', avatarPath)
-      ;
+        const res = await request(server)
+          .post(postsUrl)
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title', newPostFields['title'])
+          .field('description', newPostFields['description'])
+          .field('post_type_id', newPostFields['post_type_id'])
+          .field('leading_text', newPostFields['leading_text'])
+          .attach('main_image_filename', avatarPath)
+        ;
 
-      helpers.Res.expectStatusOk(res);
+        helpers.Res.expectStatusOk(res);
 
-      const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
-      expect(lastPost).toBeDefined();
-      expect(lastPost['post_offer']).not.toBeNull();
+        const posts = await PostsRepository.findAllByAuthor(userVlad.id, true);
+        const newPost = posts.find(data => data.title === newPostFields['title']);
+        expect(newPost).toBeDefined();
 
-      expect(res.body.id).toBe(lastPost.id);
-      helpers.Posts.validateDbEntity(newPostFields, lastPost);
+        const body = res.body;
 
-      newPostOfferFields['post_id'] = res.body.id;
-      helpers.Posts.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
+        expect(body.id).toBe(newPost.id);
 
-      await helpers.FileToUpload.isFileUploaded(lastPost.main_image_filename);
+        await helpers.FileToUpload.isFileUploaded(newPost.main_image_filename);
 
-      const postUsersTeam = lastPost['post_users_team'];
-      expect(postUsersTeam).toBeDefined();
-      newPostUsersTeamFields.forEach(teamMember => {
-        const record = postUsersTeam.find(data => data.user_id === teamMember.user_id);
-        expect(record).toBeDefined();
-        expect(record.post_id).toBe(lastPost.id);
+        const postStatsModel = await PostStatsRepository.findOneByPostId(newPost.id, true);
+        expect(postStatsModel).toBeDefined();
+
+        expect(postStatsModel.comments_count).toBe(0);
+      });
+      it('Create post-offer without board', async () => {
+        let newPostFields = {
+          'title': 'Extremely new post',
+          'description': 'Our super post description',
+          'leading_text': 'extremely leading text',
+          'user_id': userVlad.id,
+          'post_type_id': ContentTypeDictionary.getTypeOffer(),
+          'current_rate': '0.0000000000',
+          'current_vote': 0,
+        };
+
+        let newPostOfferFields = {
+          'action_button_title': 'TEST_BUTTON_CONTENT',
+        };
+
+        const res = await request(server)
+          .post(postOfferUrl)
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title', newPostFields['title'])
+          .field('description', newPostFields['description'])
+          .field('leading_text', newPostFields['leading_text'])
+          .field('post_type_id', newPostFields['post_type_id'])
+          .field('action_button_title', newPostOfferFields['action_button_title'])
+          .field('post_users_team[]', '') // this is to catch and fix bug by TDD
+          .attach('main_image_filename', avatarPath)
+        ;
+
+        helpers.Res.expectStatusOk(res);
+
+        const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+        expect(lastPost).toBeDefined();
+        expect(lastPost['post_offer']).not.toBeNull();
+
+        expect(res.body.id).toBe(lastPost.id);
+        helpers.Posts.validateDbEntity(newPostFields, lastPost);
+
+        newPostOfferFields['post_id'] = res.body.id;
+        helpers.Posts.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
+
+        await helpers.FileToUpload.isFileUploaded(lastPost.main_image_filename);
+
+        const postUsersTeam = lastPost['post_users_team'];
+        expect(postUsersTeam).toBeDefined();
+        expect(postUsersTeam.length).toBe(0);
+
+        const postStats = await PostStatsRepository.findOneByPostId(lastPost.id, true);
+
+        expect(postStats).not.toBeNull();
+
+        // UPDATE only button
+        const fieldsPostOfferToChange = {
+          'action_button_title': 'FOOBAR',
+        };
+
+        const patchRes = await request(server)
+          .patch(`${rootUrl}/${lastPost.id}`)
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('action_button_title',  fieldsPostOfferToChange['action_button_title'])
+          .field('post_users_team[]', '') // this is to catch and fix bug by TDD
+        ;
+
+        helpers.Res.expectStatusOk(patchRes);
+
+        const firstPostAfter = await PostOfferRepository.findOneById(lastPost.id, true);
+        expect(firstPostAfter['post_offer']['action_button_title']).toBe(fieldsPostOfferToChange['action_button_title']);
+      });
+      it('Create post-offer with board', async() => {
+        let newPostFields = {
+          'title': 'Extremely new post',
+          'description': 'Our super post description',
+          'leading_text': 'extremely leading text',
+          'user_id': userVlad.id,
+          'post_type_id': ContentTypeDictionary.getTypeOffer(),
+          'current_rate': '0.0000000000',
+          'current_vote': 0,
+        };
+
+        let newPostOfferFields = {
+          'action_button_title': 'TEST_BUTTON_CONTENT',
+          'action_button_url': 'https://this-is-a-test.example.com',
+          'action_duration_in_days': 500,
+        };
+
+        let newPostUsersTeamFields = [
+          {
+            'user_id': userVlad.id,
+          },
+          {
+            'user_id': userJane.id,
+          },
+        ];
+
+        const res = await request(server)
+          .post(postOfferUrl)
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title', newPostFields['title'])
+          .field('description', newPostFields['description'])
+          .field('leading_text', newPostFields['leading_text'])
+          .field('post_type_id', newPostFields['post_type_id'])
+          .field('action_button_title', newPostOfferFields['action_button_title'])
+          .field('action_button_url', newPostOfferFields['action_button_url'])
+          .field('action_duration_in_days', newPostOfferFields['action_duration_in_days'])
+          .field('post_users_team[0][id]', newPostUsersTeamFields[0]['user_id'])
+          .field('post_users_team[1][id]', newPostUsersTeamFields[1]['user_id'])
+          .attach('main_image_filename', avatarPath)
+        ;
+
+        helpers.Res.expectStatusOk(res);
+
+        const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
+        expect(lastPost).toBeDefined();
+        expect(lastPost['post_offer']).not.toBeNull();
+
+        expect(res.body.id).toBe(lastPost.id);
+        helpers.Posts.validateDbEntity(newPostFields, lastPost);
+
+        newPostOfferFields['post_id'] = res.body.id;
+        helpers.Posts.validateDbEntity(newPostOfferFields, lastPost['post_offer']);
+
+        await helpers.FileToUpload.isFileUploaded(lastPost.main_image_filename);
+
+        const postUsersTeam = lastPost['post_users_team'];
+        expect(postUsersTeam).toBeDefined();
+        newPostUsersTeamFields.forEach(teamMember => {
+          const record = postUsersTeam.find(data => data.user_id === teamMember.user_id);
+          expect(record).toBeDefined();
+          expect(record.post_id).toBe(lastPost.id);
+        });
+      });
+
+      it('Create direct post without organization', async () => {
+        const user = userVlad;
+
+        const newPostFields = {
+          description: 'Our super post description',
+        };
+
+        const post = await helpers.Posts.requestToCreateDirectPost(user, newPostFields.description);
+
+        await helpers.Common.checkDirectPost(post, newPostFields, user);
+      });
+    });
+    describe('Negative', () => {
+
+      it('not possible to create direct post as regular post', async () => {
+        // TODO
+      });
+
+      it('not possible to create media post or post offer as direct post', async () => {
+        // TODO
+      });
+
+      it('not possible to change entity_id_for and entity_name_for by request', async () => {
+        // TODO
+      });
+
+      it('It is not possible to create post without token', async () => {
+
+        const res = await request(server)
+          .post(postsUrl)
+        ;
+
+        ResponseHelper.expectStatusUnauthorized(res);
       });
     });
   });
 
   describe('Update post', () => {
-    // TODO
-  });
+    describe('Positive', () => {
+      it('Update direct post', async () => {
+        const user = userVlad;
 
-  describe('Media post', function () {
-    describe('Update posts', async () => {
-      it('Update post by its author', async () => {
+        const expectedValues = {
+          description: 'changed sample description of direct post'
+        };
+
+        const postBefore = await helpers.Posts.requestToCreateDirectPost(user);
+        const postAfter = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
+
+        await helpers.Common.checkDirectPost(postAfter, expectedValues, userVlad);
+      });
+
+      it('Update Media Post by its author', async () => {
         const userVlad = await helpers.Users.getUserVlad();
 
         let firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
@@ -376,7 +421,6 @@ describe('Posts API', () => {
         expect(postAfter.main_image_filename).toBeDefined();
         await helpers.FileToUpload.isFileUploaded(postAfter.main_image_filename);
       });
-
       it('Update post-offer by its author', async () => {
         const userVlad = await UserHelper.getUserVlad();
         const firstPostBefore = await PostsService.findLastPostOfferByAuthor(userVlad.id);
@@ -424,8 +468,12 @@ describe('Posts API', () => {
       });
     });
 
-    describe('Negative scenarios', async () => {
-      it('Not possible to update post by user who is not its author', async () => {
+    describe('Negative', () => {
+      it('Direct post. Not possible to change entity_id_for and entity_name_for by request', async () => {
+        // TODO
+      });
+
+      it('Media post. Not possible to update post by user who is not its author', async () => {
         const postId = await PostsRepository.findLastMediaPostIdByAuthor(userJane.id);
 
         const res = await request(server)
@@ -435,15 +483,6 @@ describe('Posts API', () => {
         ;
 
         ResponseHelper.expectStatusNotFound(res);
-      });
-
-      it('It is not possible to create post without token', async () => {
-
-        const res = await request(server)
-          .post(postsUrl)
-        ;
-
-        ResponseHelper.expectStatusUnauthorized(res);
       });
     });
   });
