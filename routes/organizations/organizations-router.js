@@ -12,7 +12,7 @@ const winston               = require('../../config/winston');
 
 /* Get all organizations */
 router.get('/', async (req, res) => {
-  const response = await getOrganizationService(req).getAllForPreview();
+  const response = await getOrganizationService(req).getAllForPreview(req.query);
 
   res.send(response);
 });

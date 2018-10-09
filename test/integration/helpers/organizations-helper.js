@@ -196,11 +196,68 @@ class OrganizationsHelper {
   }
 
   /**
-   *
+   * @deprecated - renaming
    * @param {string | null } queryString
    * @returns {Promise<Object[]>}
    */
   static async requestToGetOrganizationsAsGuest(queryString = null) {
+
+    let url = RequestHelper.getOrganizationsUrl();
+
+    if (queryString) {
+      url+= '?' + queryString;
+    }
+
+    const res = await request(server)
+      .get(url)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body.data;
+  }
+
+  /**
+   *
+   * @param {number} page
+   * @param {number} perPage
+   * @param {boolean} dataOnly
+   * @returns {Promise<Object>}
+   */
+  static async requestAllOrgsWithPagination(page, perPage, dataOnly = false) {
+    let url = RequestHelper.getOrganizationsUrl() + '?';
+
+    let params = [];
+
+    if (page) {
+      params.push(`page=${page}`);
+    }
+
+    if (perPage) {
+      params.push(`per_page=${perPage}`);
+    }
+
+    url += params.join('&');
+    const res = await request(server)
+      .get(url)
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    if (dataOnly) {
+      return res.body.data;
+    }
+
+    return res.body;
+  }
+
+
+  /**
+   *
+   * @param {string | null } queryString
+   * @returns {Promise<Object[]>}
+   */
+  static async requestToGetManyOrganizationsAsGuest(queryString = null) {
 
     let url = RequestHelper.getOrganizationsUrl();
 

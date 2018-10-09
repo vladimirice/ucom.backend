@@ -16,7 +16,8 @@ module.exports = [
     'created_at': new Date(2012, 1, 10),
     'update_at': new Date(2014, 5, 8),
     'user_id': 1, // userVlad
-    'blockchain_id': 'sample_blockchain_id_1'
+    'blockchain_id': 'sample_blockchain_id_1',
+    'current_rate': 150,
   },
   {
     // id = 2
@@ -35,7 +36,8 @@ module.exports = [
     'created_at': new Date(2014, 2, 10),
     'update_at': new Date(2015, 8, 12),
     'user_id': 1, // userVlad
-    'blockchain_id': 'sample_blockchain_id_2'
+    'blockchain_id': 'sample_blockchain_id_2',
+    'current_rate': 10
   },
   {
     // id = 3
@@ -54,7 +56,8 @@ module.exports = [
     'created_at': new Date(2015, 1, 10),
     'update_at': new Date(2015, 5, 8),
     'user_id': 2, // userJane
-    'blockchain_id': 'sample_blockchain_id_3'
+    'blockchain_id': 'sample_blockchain_id_3',
+    'current_rate': 200
   },
   {
     // id = 4
@@ -73,7 +76,8 @@ module.exports = [
     'created_at': new Date(2015, 9, 10),
     'update_at': new Date(2015, 11, 12),
     'user_id': 2, // userJane
-    'blockchain_id': 'sample_blockchain_id_4'
+    'blockchain_id': 'sample_blockchain_id_4',
+    'current_rate': 80
   },
   {
     // id = 5
@@ -82,6 +86,7 @@ module.exports = [
     'created_at': new Date(2015, 9, 10),
     'update_at': new Date(2015, 11, 12),
     'user_id': 1, // userVlad
-    'blockchain_id': 'sample_blockchain_id_5'
+    'blockchain_id': 'sample_blockchain_id_5',
+    'current_rate': 230
   },
 ];

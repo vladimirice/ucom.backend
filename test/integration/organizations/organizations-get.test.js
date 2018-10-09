@@ -1,8 +1,8 @@
-const helpers = require('../helpers');
-const OrganizationsRepositories = require('../../../lib/organizations/repository');
-
-const models = require('../../../models');
 const _ = require('lodash');
+
+const helpers                   = require('../helpers');
+const OrganizationsRepositories = require('../../../lib/organizations/repository');
+const OrgRepository             = require('../../../lib/organizations/repository').Main;
 
 let userVlad;
 let userJane;
@@ -89,9 +89,125 @@ describe('Organizations. Get requests', () => {
   });
 
   describe('Organization lists', () => {
+    describe('Test sorting', async () => {
+      it('Sort by current_rate DESC', async () => {
+        const queryString = 'sort_by=-current_rate,-id';
+        const orgs = await helpers.Org.requestToGetManyOrganizationsAsGuest(queryString);
+
+        const minOrgId = await OrgRepository.findMinOrgIdByParameter('current_rate');
+        const maxOrgId = await OrgRepository.findMaxOrgIdByParameter('current_rate');
+
+        expect(orgs[orgs.length - 1].id).toBe(minOrgId);
+        expect(orgs[0].id).toBe(maxOrgId);
+      });
+      it('Sort by current_rate ASC', async () => {
+        const queryString = 'sort_by=current_rate,-id';
+        const orgs = await helpers.Org.requestToGetManyOrganizationsAsGuest(queryString);
+
+        const minPostId = await OrgRepository.findMinOrgIdByParameter('current_rate');
+        const maxOrgId = await OrgRepository.findMaxOrgIdByParameter('current_rate');
+
+        expect(orgs[orgs.length - 1].id).toBe(maxOrgId);
+        expect(orgs[0].id).toBe(minPostId);
+      });
+
+      it('Sort by title ASC', async () => {
+        const queryString = 'sort_by=title,-id';
+        const models = await helpers.Org.requestToGetManyOrganizationsAsGuest(queryString);
+
+        const minId = await OrgRepository.findMinOrgIdByParameter('title');
+        const maxId = await OrgRepository.findMaxOrgIdByParameter('title');
+
+        expect(models[models.length - 1].id).toBe(maxId);
+        expect(models[0].id).toBe(minId);
+      });
+
+      it('Sort by title DESC', async () => {
+        const queryString = 'sort_by=-title,-id';
+        const models = await helpers.Org.requestToGetManyOrganizationsAsGuest(queryString);
+
+        const minId = await OrgRepository.findMinOrgIdByParameter('title');
+        const maxId = await OrgRepository.findMaxOrgIdByParameter('title');
+
+        expect(models[models.length - 1].id).toBe(minId);
+        expect(models[0].id).toBe(maxId);
+      });
+    });
+
+    describe('Test pagination', async () => {
+      it('Every request should contain correct metadata', async () => {
+        const page    = 1;
+        const perPage = 2;
+        const response = await helpers.Org.requestAllOrgsWithPagination(page, perPage);
+
+        const metadata = response.metadata;
+
+        const totalAmount = await OrgRepository.countAllOrganizations();
+
+        expect(metadata).toBeDefined();
+        expect(metadata.has_more).toBeTruthy();
+        expect(metadata.page).toBe(page);
+        expect(metadata.per_page).toBe(perPage);
+        expect(metadata.total_amount).toBe(totalAmount);
+
+        const lastPage = totalAmount - perPage;
+
+        const lastResponse = await helpers.Org.requestAllOrgsWithPagination(lastPage, perPage);
+
+        expect(lastResponse.metadata.has_more).toBeFalsy();
+      });
+
+      it('Get two post pages', async () => {
+        const perPage = 2;
+        let page = 1;
+
+        const posts = await OrgRepository.findAllForPreview({
+          'order': [
+            ['current_rate', 'DESC'],
+            ['id', 'DESC']
+          ]
+        });
+        const firstPage = await helpers.Org.requestAllOrgsWithPagination(page, perPage, true);
+
+        const expectedIdsOfFirstPage = [
+          posts[page - 1].id,
+          posts[page].id,
+        ];
+
+        expect(firstPage.length).toBe(perPage);
+
+        firstPage.forEach((post, i) => {
+          expect(post.id).toBe(expectedIdsOfFirstPage[i])
+        });
+
+        page = 2;
+        const secondPage = await helpers.Org.requestAllOrgsWithPagination(page, perPage, true);
+
+        const expectedIdsOfSecondPage = [
+          posts[page].id,
+          posts[page + 1].id,
+        ];
+
+        expect(secondPage.length).toBe(perPage);
+
+        secondPage.forEach((post, i) => {
+          expect(post.id).toBe(expectedIdsOfSecondPage[i])
+        });
+      });
+
+      it('Page 0 and page 1 behavior must be the same', async () => {
+        const perPage = 2;
+
+        const pageIsZeroResponse = await helpers.Org.requestAllOrgsWithPagination(1, perPage, true);
+        const pageIsOneResponse = await helpers.Org.requestAllOrgsWithPagination(1, perPage, true);
+
+        expect(JSON.stringify(pageIsZeroResponse)).toBe(JSON.stringify(pageIsOneResponse));
+      });
+    });
+
     it('Get organization lists without query string', async () => {
       const totalCount = await OrganizationsRepositories.Main.countAllOrganizations();
-      const organizations = await helpers.Organizations.requestToGetOrganizationsAsGuest();
+      const organizations = await helpers.Organizations.requestToGetManyOrganizationsAsGuest();
 
       expect(organizations).toBeDefined();
       expect(organizations instanceof Array).toBeTruthy();
