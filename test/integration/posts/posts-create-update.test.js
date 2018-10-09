@@ -17,6 +17,7 @@ const UsersActivityRepository = require('../../../lib/users/repository').Activit
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
 const PostsModelProvider      = require('../../../lib/posts/service/posts-model-provider');
+const UsersModelProvider      = require('../../../lib/users/service').ModelProvider;
 
 const PostsService            = require('./../../../lib/posts/post-service');
 
@@ -334,16 +335,31 @@ describe('Posts API', () => {
         });
       });
 
-      it('Create direct post without organization', async () => {
-        const user = userVlad;
+      describe('Direct post', () => {
+        it('For User without organization', async () => {
+          const user = userVlad;
+          const targetUser = userJane;
 
-        const newPostFields = {
-          description: 'Our super post description',
-        };
+          const newPostFields = {
+            description: 'Our super post description',
+          };
 
-        const post = await helpers.Posts.requestToCreateDirectPost(user, newPostFields.description);
+          const expected = {
+            'entity_id_for':    "" + targetUser.id,
+            'entity_name_for':  UsersModelProvider.getEntityName(),
+          };
 
-        await helpers.Common.checkDirectPost(post, newPostFields, user);
+          const post = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser, newPostFields.description);
+
+          await helpers.Common.checkDirectPost(post, {
+            ...expected,
+            ...newPostFields
+          }, user);
+        });
+
+        it('For other organization without making from organization', async () => {
+          // TODO
+        });
       });
     });
     describe('Negative', () => {
@@ -372,18 +388,24 @@ describe('Posts API', () => {
   });
 
   describe('Update post', () => {
+
+
     describe('Positive', () => {
-      it('Update direct post', async () => {
-        const user = userVlad;
 
-        const expectedValues = {
-          description: 'changed sample description of direct post'
-        };
+      describe('Direct post', () => {
+        it('Update direct post for user without organization', async () => {
+          const user        = userVlad;
+          const targetUser  = userJane;
 
-        const postBefore = await helpers.Posts.requestToCreateDirectPost(user);
-        const postAfter = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
+          const expectedValues = {
+            description: 'changed sample description of direct post'
+          };
 
-        await helpers.Common.checkDirectPost(postAfter, expectedValues, userVlad);
+          const postBefore  = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser);
+          const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
+
+          await helpers.Common.checkDirectPost(postAfter, expectedValues, userVlad);
+        });
       });
 
       it('Update Media Post by its author', async () => {

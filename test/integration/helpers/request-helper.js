@@ -7,7 +7,7 @@ const apiV1Prefix = '/api/v1';
 const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
 const registrationRoute = '/api/v1/auth/registration';
 const postsUrl          = `${apiV1Prefix}/posts`;
-const usersUrl          = '/api/v1/users';
+const usersUrl          = `${apiV1Prefix}/users`;
 const myselfUrl          = '/api/v1/myself';
 
 const communityUrl = `${apiV1Prefix}/community`;
@@ -196,7 +196,7 @@ class RequestHelper {
    * @return {string}
    */
   static getUserDirectPostUrl(user) {
-    return `api/v1/users/${user.id}/posts`;
+    return `${usersUrl}/${user.id}/posts`;
   }
 
   static getUsersUrl() {

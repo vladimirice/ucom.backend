@@ -1,15 +1,14 @@
 const express = require('express');
-const router = express.Router();
-const status = require('statuses');
+const router  = express.Router();
+const status  = require('statuses');
 
-const {AppError, BadRequestError} = require('../lib/api/errors');
+const { AppError, BadRequestError } = require('../lib/api/errors');
 const UsersRepository = require('../lib/users/users-repository');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
+const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
 const UserActivityService = require('../lib/users/user-activity-service');
 const UserService = require('../lib/users/users-service');
 const winston = require('../config/winston');
-const multer = require('multer');
-const upload = multer();
 
 /* Find users by name fields - shortcut */
 router.get('/search', async (req, res) => {
@@ -43,16 +42,14 @@ router.get('/:user_id/posts', async function(req, res) {
 });
 
 /* Create post for this user */
-router.post('/:user_id/posts', async function(req, res) {
-
-  const a = 0;
+router.post('/:user_id/posts', [authTokenMiddleWare, bodyParser], async function(req, res) {
   const response = await getPostService(req).processNewPostCreationForUser(req);
 
   res.send(response);
 });
 
 /* One user follows other user */
-router.post('/:user_id/follow', [authTokenMiddleWare, upload.array() ], async function(req, res) {
+router.post('/:user_id/follow', [authTokenMiddleWare, bodyParser ], async function(req, res) {
   const userFrom = req.user;
   const userToId = req.user_id;
 
@@ -66,7 +63,7 @@ router.post('/:user_id/follow', [authTokenMiddleWare, upload.array() ], async fu
 });
 
 /* One user unfollows other user */
-router.post('/:user_id/unfollow', [authTokenMiddleWare, upload.array()], async function(req, res) {
+router.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser ], async function(req, res) {
   const userFrom = req.user;
   const userIdTo = req.user_id;
 
