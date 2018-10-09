@@ -4,10 +4,11 @@ const expect = require('expect');
 
 const helpers = require('../helpers');
 
-const UserHelper = require('../helpers/users-helper');
-const SeedsHelper = require('../helpers/seeds-helper');
-const RequestHelper = require('../helpers/request-helper');
-const ResponseHelper = require('../helpers/response-helper');
+const UserHelper      = helpers.UserHelper;
+const SeedsHelper     = helpers.Seeds;
+const RequestHelper   = helpers.Req;
+const ResponseHelper  = helpers.Res;
+
 const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
 const PostsRepository = require('../../../lib/posts/posts-repository');
 const PostStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
@@ -161,9 +162,8 @@ describe('Posts API', () => {
     });
   });
 
-  describe('Media post', function () {
-
-    it('Create new Media Post by form data', async () => {
+  describe('Create post', () => {
+    it('Create media post', async () => {
       const userVlad = await helpers.Users.getUserVlad();
 
       const newPostFields = {
@@ -204,7 +204,7 @@ describe('Posts API', () => {
       expect(postStatsModel.comments_count).toBe(0);
     });
 
-    it('Create new post-offer without board', async () => {
+    it('Create post-offer without board', async () => {
       let newPostFields = {
         'title': 'Extremely new post',
         'description': 'Our super post description',
@@ -270,8 +270,7 @@ describe('Posts API', () => {
       const firstPostAfter = await PostOfferRepository.findOneById(lastPost.id, true);
       expect(firstPostAfter['post_offer']['action_button_title']).toBe(fieldsPostOfferToChange['action_button_title']);
     });
-
-    it('Create new post-offer with board', async() => {
+    it('Create post-offer with board', async() => {
       let newPostFields = {
         'title': 'Extremely new post',
         'description': 'Our super post description',
@@ -334,7 +333,13 @@ describe('Posts API', () => {
         expect(record.post_id).toBe(lastPost.id);
       });
     });
+  });
 
+  describe('Update post', () => {
+    // TODO
+  });
+
+  describe('Media post', function () {
     describe('Update posts', async () => {
       it('Update post by its author', async () => {
         const userVlad = await helpers.Users.getUserVlad();
