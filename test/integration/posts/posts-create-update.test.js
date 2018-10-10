@@ -488,7 +488,7 @@ describe('Posts API', () => {
 
         helpers.Res.expectStatusOk(res);
 
-        const postAfter = await PostsService.findOneByIdAndAuthor(firstPostBefore['id'], userVlad.id);
+        const postAfter = await PostsRepository.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id, true);
 
         helpers.Posts.validatePatchResponse(res, postAfter);
 
