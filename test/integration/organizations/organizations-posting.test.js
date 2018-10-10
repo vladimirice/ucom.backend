@@ -4,6 +4,7 @@ const PostsRepository = require('../../../lib/posts/repository');
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+const OrgModelProvider = require('../../../lib/organizations/service').ModelProvider;
 
 
 helpers.Mock.mockPostTransactionSigning();
@@ -28,13 +29,18 @@ describe('Organizations. Get requests', () => {
     describe('Positive scenarios', () => {
         it('should be possible to create post on behalf of organization by org author', async () => {
           // It is supposed that media post and post offer blockchain creations have same logic
-          const user = userVlad;
+          const user = userPetr;
           const org_id = 1;
 
           await helpers.Post.requestToCreateMediaPostOfOrganization(user, org_id);
 
           const newPost = await PostsRepository.MediaPosts.findLastMediaPostByAuthor(user.id);
           expect(newPost.organization_id).toBe(org_id);
+
+          await helpers.Posts.expectPostDbValues(newPost, {
+            'entity_id_for':    "" + org_id,
+            'entity_name_for':  OrgModelProvider.getEntityName(),
+          });
         });
 
       it('should create valid activity record', async () => {
@@ -65,6 +71,11 @@ describe('Organizations. Get requests', () => {
         const newPost = await PostsRepository.MediaPosts.findLastMediaPostByAuthor(user.id);
         expect(newPost.organization_id).toBe(org_id);
         expect(newPost.user_id).toBe(userJane.id);
+
+        await helpers.Posts.expectPostDbValues(newPost, {
+          'entity_id_for':    "" + org_id,
+          'entity_name_for':  OrgModelProvider.getEntityName(),
+        });
       });
     });
 

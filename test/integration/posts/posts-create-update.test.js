@@ -16,7 +16,8 @@ const UsersActivityRepository = require('../../../lib/users/repository').Activit
 
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
-const PostsModelProvider      = require('../../../lib/posts/service/posts-model-provider');
+
+const PostsModelProvider      = require('../../../lib/posts/service').ModelProvider;
 const UsersModelProvider      = require('../../../lib/users/service').ModelProvider;
 const OrgModelProvider        = require('../../../lib/organizations/service').ModelProvider;
 
@@ -167,21 +168,21 @@ describe('Posts API', () => {
   describe('Create post', () => {
     describe('Positive', () => {
       it('Create media post', async () => {
-        const userVlad = await helpers.Users.getUserVlad();
+        const myself = userVlad;
 
         const newPostFields = {
           'title': 'Extremely new post',
           'description': 'Our super post description',
           'leading_text': 'extremely leading text',
           'post_type_id': ContentTypeDictionary.getTypeMediaPost(),
-          'user_id': userVlad.id,
+          'user_id': myself.id,
           'current_rate': 0.0000000000,
           'current_vote': 0,
         };
 
         const res = await request(server)
           .post(postsUrl)
-          .set('Authorization', `Bearer ${userVlad.token}`)
+          .set('Authorization', `Bearer ${myself.token}`)
           .field('title', newPostFields['title'])
           .field('description', newPostFields['description'])
           .field('post_type_id', newPostFields['post_type_id'])
@@ -191,7 +192,7 @@ describe('Posts API', () => {
 
         helpers.Res.expectStatusOk(res);
 
-        const posts = await PostsRepository.findAllByAuthor(userVlad.id, true);
+        const posts = await PostsRepository.findAllByAuthor(myself.id, true);
         const newPost = posts.find(data => data.title === newPostFields['title']);
         expect(newPost).toBeDefined();
 
@@ -205,7 +206,13 @@ describe('Posts API', () => {
         expect(postStatsModel).toBeDefined();
 
         expect(postStatsModel.comments_count).toBe(0);
+
+        await helpers.Posts.expectPostDbValues(newPost, {
+          'entity_id_for':    "" + myself.id,
+          'entity_name_for':  UsersModelProvider.getEntityName(),
+        });
       });
+
       it('Create post-offer without board', async () => {
         let newPostFields = {
           'title': 'Extremely new post',
@@ -271,6 +278,12 @@ describe('Posts API', () => {
 
         const firstPostAfter = await PostOfferRepository.findOneById(lastPost.id, true);
         expect(firstPostAfter['post_offer']['action_button_title']).toBe(fieldsPostOfferToChange['action_button_title']);
+
+        await helpers.Posts.expectPostDbValues(lastPost, {
+          'entity_id_for':    "" + userVlad.id,
+          'entity_name_for':  UsersModelProvider.getEntityName(),
+        });
+
       });
       it('Create post-offer with board', async() => {
         let newPostFields = {
@@ -333,6 +346,11 @@ describe('Posts API', () => {
           const record = postUsersTeam.find(data => data.user_id === teamMember.user_id);
           expect(record).toBeDefined();
           expect(record.post_id).toBe(lastPost.id);
+        });
+
+        await helpers.Posts.expectPostDbValues(lastPost, {
+          'entity_id_for':    "" + userVlad.id,
+          'entity_name_for':  UsersModelProvider.getEntityName(),
         });
       });
 

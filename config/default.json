@@ -17,7 +17,8 @@
     "jwt_secret_key": "secret_key"
   },
   "eosConfig": {
-    "httpEndpoint": "http://142.93.100.96:8888"
+    "httpEndpoint": "http://142.93.100.96:8888",
+    "blockchain_is_enabled": true
   },
   "eosAccounts": {
     "creatorAccountName": "12345",

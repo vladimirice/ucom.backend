@@ -112,8 +112,6 @@ describe('Comment related blockchain transactions.', () => {
     }, 20000);
   });
 
-
-
   describe('User himself. Comment creation related transaction', function () {
     it('Comment on post without org ID. Should create and process valid transaction.', async () => {
       await RabbitMqService.purgeBlockchainQueue();
