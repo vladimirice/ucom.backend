@@ -20,6 +20,15 @@ class RequestHelper {
 
   /**
    *
+   * @param {number} targetUserId
+   * @return {string}
+   */
+  static getOneUserWallFeed(targetUserId) {
+    return `${usersUrl}/${targetUserId}/wall-feed`;
+  }
+
+  /**
+   *
    * @param {string} query
    * @returns {string}
    */

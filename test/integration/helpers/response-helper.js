@@ -115,6 +115,17 @@ class ResponseHelper {
 
   /**
    *
+   * @param {Object} actual
+   * @param {string[]} expected
+   */
+  static expectFieldsAreExist(actual, expected) {
+    expected.forEach(field => {
+      expect(actual[field], `Field ${field} is not defined. Object is ${JSON.stringify(actual, null, 2)}`).toBeDefined();
+    })
+  }
+
+  /**
+   *
    * @param {Object} expected
    * @param {Object} actual
    */
@@ -125,6 +136,30 @@ class ResponseHelper {
       expect(actual.hasOwnProperty(field), `There is no property in actual: ${field}`).toBeTruthy();
       // noinspection JSUnfilteredForInLoop
       expect(actual[field], `${field} does not match expected value`).toEqual(expected[field]);
+    }
+  }
+
+  /**
+   *
+   * @param {Object} res
+   * @param {boolean} allowEmpty
+   */
+  static expectValidListResponse(res, allowEmpty = false) {
+    const data      = res.body.data;
+    const metadata  = res.body.metadata;
+
+    expect(data).toBeDefined();
+    expect(data).not.toBeNull();
+    expect(Array.isArray(data)).toBeTruthy();
+
+    expect(metadata).toBeDefined();
+    expect(metadata).not.toBeNull();
+
+    expect(Array.isArray(metadata)).toBeFalsy();
+    expect(typeof metadata).toBe('object');
+
+    if (!allowEmpty) {
+      expect(data.length).toBeGreaterThan(0);
     }
   }
 }

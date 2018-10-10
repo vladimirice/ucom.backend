@@ -1,5 +1,5 @@
 const express = require('express');
-const router  = express.Router();
+const UsersRouter  = express.Router();
 const status  = require('statuses');
 
 const { AppError, BadRequestError } = require('../lib/api/errors');
@@ -11,7 +11,7 @@ const UserService = require('../lib/users/users-service');
 const winston = require('../config/winston');
 
 /* Find users by name fields - shortcut */
-router.get('/search', async (req, res) => {
+UsersRouter.get('/search', async (req, res) => {
   const query = req.query.q;
 
   const users = await UserService.findByNameFields(query);
@@ -20,21 +20,21 @@ router.get('/search', async (req, res) => {
 });
 
 /* GET all users */
-router.get('/', async function(req, res) {
+UsersRouter.get('/', async function(req, res) {
   const users = await getUserService(req).findAllAndProcessForList();
 
   res.send(users);
 });
 
 /* get one user */
-router.get('/:user_id', async function(req, res) {
+UsersRouter.get('/:user_id', async function(req, res) {
   const user = await getUserService(req).getUserByIdAndProcess(req.user_id);
 
   res.send(user);
 });
 
 /* GET all user posts */
-router.get('/:user_id/posts', async function(req, res) {
+UsersRouter.get('/:user_id/posts', async function(req, res) {
   const userId = req.user_id;
   const posts = await getPostService(req).findAllByAuthor(userId);
 
@@ -42,14 +42,25 @@ router.get('/:user_id/posts', async function(req, res) {
 });
 
 /* Create post for this user */
-router.post('/:user_id/posts', [authTokenMiddleWare, bodyParser], async function(req, res) {
+UsersRouter.post('/:user_id/posts', [authTokenMiddleWare, bodyParser], async function(req, res) {
   const response = await getPostService(req).processNewPostCreationForUser(req);
 
   res.send(response);
 });
 
+/* GET wall feed for user */
+UsersRouter.get('/:user_id/wall-feed', [ bodyParser ], async function(req, res) {
+  const userId = req.user_id;
+  const data = await getPostService(req).findAndProcessAllForUserWallFeed(userId);
+
+  res.send({
+    'data': data,
+    'metadata': {}
+  });
+});
+
 /* One user follows other user */
-router.post('/:user_id/follow', [authTokenMiddleWare, bodyParser ], async function(req, res) {
+UsersRouter.post('/:user_id/follow', [authTokenMiddleWare, bodyParser ], async function(req, res) {
   const userFrom = req.user;
   const userToId = req.user_id;
 
@@ -63,7 +74,7 @@ router.post('/:user_id/follow', [authTokenMiddleWare, bodyParser ], async functi
 });
 
 /* One user unfollows other user */
-router.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser ], async function(req, res) {
+UsersRouter.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser ], async function(req, res) {
   const userFrom = req.user;
   const userIdTo = req.user_id;
 
@@ -76,7 +87,7 @@ router.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser ], async func
   });
 });
 
-router.param('user_id', (req, res, next, incoming_id) => {
+UsersRouter.param('user_id', (req, res, next, incoming_id) => {
   const value = parseInt(incoming_id);
 
   if (!value) {
@@ -117,4 +128,4 @@ function getPostService(req) {
   return req.container.get('post-service');
 }
 
-module.exports = router;
+module.exports = UsersRouter;

@@ -114,6 +114,40 @@ module.exports = (sequelize, DataTypes) => {
     ];
   };
 
+  /**
+   *
+   * @return {string[]}
+   */
+  Posts.getMediaOrOfferPostMustExistFields = function () {
+    return [
+      'id',
+      'post_type_id',
+      'title',
+      'leading_text',
+      'description',
+      'main_image_filename',
+      'current_vote',
+      'current_rate',
+      'comments_count',
+
+      'created_at',
+      'updated_at',
+      'user_id',
+      'blockchain_id',
+      'organization_id'
+    ];
+  };
+
+  Posts.getPostOfferMustExistFields = function() {
+    return [
+      'action_button_title',
+      'action_button_url',
+      'action_duration_in_days',
+
+      'post_users_team',
+    ];
+  };
+
   Posts.getMediaPostAttributesForIpfs = function() {
     return [
       'id',
@@ -127,22 +161,6 @@ module.exports = (sequelize, DataTypes) => {
       'created_at',
       'updated_at',
     ];
-  };
-
-  /**
-   * @deprecated
-   * @param {Object} modelAsObject - object not model
-   * @returns {string} json string
-   */
-  Posts.getPayloadForJob = function (modelAsObject) {
-    const fields = Posts.getFieldsForJob();
-
-    const forJson = _.pick(modelAsObject, fields);
-
-    forJson['created_at'] = parseInt(moment(forJson['created_at']).valueOf() / 1000);
-    forJson['updated_at'] = parseInt(moment(forJson['updated_at']).valueOf() / 1000);
-
-    return JSON.stringify(forJson);
   };
 
   Posts.getFieldsForJob = function () {

@@ -40,6 +40,45 @@ class CommonHelper {
 
   /**
    *
+   * @param {Object[]} posts
+   * @param {number} expectedLength
+   * @return {Promise<void>}
+   */
+  static async checkPostsListFromApi(posts, expectedLength = null) {
+    if (expectedLength) {
+      expect(posts.length).toBe(expectedLength);
+    } else {
+      expect(posts.length).toBeGreaterThan(0);
+    }
+
+    posts.forEach(post => {
+      this.checkOnePostFromApi(post);
+    });
+  }
+
+  /**
+   *
+   * @param {Object} post
+   */
+  static checkOnePostFromApi(post) {
+    // Activity:
+    // User (author) data - with following data in order to follow/unfollow control
+    // myself data - upvoting, join, editable, org_member
+    // activity user posts
+
+    // Comments if allowed - not allowed for direct post or for post list - special parameter
+    // check is file uploaded - for creation
+
+    expect(_.isEmpty(post)).toBeFalsy();
+
+    PostsHelper.checkPostItselfCommonFields(post);
+    UsersHelper.checkIncludedUserPreview(post);
+    OrgHelper.checkOneOrgPreviewFieldsIfExists(post);
+  }
+
+  /**
+   *
+   * @deprecated - use checkOnePostFromApi + separate method to check db structure
    * @param {Object} post
    * @param {Object} expectedValues
    * @param {Object} author
@@ -62,20 +101,6 @@ class CommonHelper {
   }
 
   static checkOnePostWithRelations(post) {
-    // must have all post data
-    // User (author) data - with following data in order to follow/unfollow control
-    // Organization data if is from org
-
-    // post_stats - comments count
-    // normalized fields - as example, current_rate
-    // myself data - upvoting, join, editable, org_member
-
-    // Comments if allowed - not allowed for direct post
-
-    // post_users_team
-    // activity user posts
-    // check response signature
-    // check is file uploaded
   }
 }
 

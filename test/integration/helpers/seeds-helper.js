@@ -205,6 +205,12 @@ class SeedsHelper {
     await models.posts.bulkCreate(postsSeeds);
   }
 
+  static async initUsersOnly() {
+    await this.destroyTables();
+
+    await models.Users.bulkCreate(usersSeeds);
+  }
+
   static async seedMainTables() {
     await models.Users.bulkCreate(usersSeeds);
     await models.organizations.bulkCreate(organizationsSeeds);

@@ -12,6 +12,7 @@ const PostStatsRepository = reqlib('/lib/posts/stats/post-stats-repository');
 const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
 const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
+const _ = require('lodash');
 
 require('jest-expect-message');
 
@@ -81,6 +82,46 @@ class PostsHelper {
     return res.body;
   }
 
+  /**
+   *
+   * @param {Object} post
+   */
+  static checkPostItselfCommonFields(post) {
+    this._checkWrongPostProcessingSmell(post);
+
+    expect(post.post_type_id).toBeTruthy();
+
+    switch (post.post_type_id) {
+      case ContentTypeDictionary.getTypeMediaPost():
+        this.checkMediaPostFields(post);
+        break;
+      case ContentTypeDictionary.getTypeOffer():
+        this.checkPostOfferFields(post);
+        break;
+      case ContentTypeDictionary.getTypeDirectPost():
+        this.checkDirectPostItself(post);
+        break;
+      default:
+        throw new Error(`Unsupported post_type_id ${post_type_id}`);
+    }
+  }
+
+  static checkMediaPostFields(post) {
+    const mustExist = PostsModelProvider.getModel().getMediaOrOfferPostMustExistFields();
+    ResponseHelper.expectFieldsAreExist(post, mustExist);
+
+  }
+
+  static checkPostOfferFields(post) {
+    // TODO - check users team normalization
+
+    const mustExist = _.concat(
+      PostsModelProvider.getModel().getMediaOrOfferPostMustExistFields(),
+      PostsModelProvider.getModel().getPostOfferMustExistFields(),
+    );
+
+    ResponseHelper.expectFieldsAreExist(post, mustExist);
+  }
   /**
    *
    * @param {Object} post

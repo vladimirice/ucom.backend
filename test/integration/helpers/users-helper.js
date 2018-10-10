@@ -12,6 +12,32 @@ const server = require('../../../app');
 require('jest-expect-message');
 
 class UsersHelper {
+  /**
+   * See {@link PostsService#findAllForUserWallFeed}
+   *
+   * @param {Object} targetUser
+   * @param {boolean} dataOnly
+   * @param {number} expectedStatus
+   * @param {boolean} allowEmpty
+   * @return {Promise<Object>}
+   */
+  static async requestToGetWallFeedAsGuest(targetUser, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const res = await request(server)
+      .get(RequestHelper.getOneUserWallFeed(targetUser.id))
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    if (expectedStatus === 200) {
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
+    }
+
+    if (dataOnly) {
+      return res.body.data;
+    }
+
+    return res.body;
+  }
 
   /**
    *
@@ -32,6 +58,8 @@ class UsersHelper {
     expect(model.User).toBeDefined();
     expect(model.User instanceof Object).toBeTruthy();
 
+    expect(typeof model.User.current_rate, 'It seems user is not post-processed').not.toBe('string');
+
     const expected = givenExpected ? givenExpected : UsersRepository.getModel().getFieldsForPreview().sort();
     ResponseHelper.expectAllFieldsExistence(model.User, expected);
   }
@@ -40,8 +68,6 @@ class UsersHelper {
     expect(user).toBeTruthy();
 
     // TODO
-    // expect(typeof user.current_rate, 'It seems user is not post-processed').not.toBe('string');
-
     const expected = UsersRepository.getModel().getFieldsForPreview().sort();
     ResponseHelper.expectAllFieldsExistence(user, expected);
   }
