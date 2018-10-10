@@ -41,6 +41,35 @@ class UsersHelper {
   }
 
   /**
+   *
+   * @param {Object} myself
+   * @param {boolean} dataOnly
+   * @param {number} expectedStatus
+   * @param {boolean} allowEmpty
+   * @return {Promise<*>}
+   */
+  static async requestToGetMyselfNewsFeed(myself, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const url = RequestHelper.getMyselfNewsFeedUrl();
+
+    const res = await request(server)
+      .get(url)
+      .set('Authorization', `Bearer ${myself.token}`)
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    if (expectedStatus === 200) {
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
+    }
+
+    if (dataOnly) {
+      return res.body.data;
+    }
+
+    return res.body;
+  }
+
+  /**
    * See {@link PostsService#findAndProcessAllForOrgWallFeed}
    *
    * @param {Object} myself

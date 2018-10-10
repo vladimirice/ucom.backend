@@ -16,6 +16,12 @@ router.get('/', [authTokenMiddleWare], async function(req, res) {
   res.send(user)
 });
 
+router.get('/news-feed', [ authTokenMiddleWare ], async function(req, res) {
+  const response = await getPostService(req).findAndProcessAllForMyselfNewsFeed();
+
+  res.send(response);
+});
+
 /* Update Myself Profile */
 router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
   console.log('Patch request body is: ', JSON.stringify(req.body, null, 2));
@@ -165,6 +171,14 @@ function getDelta(source, updated) {
  */
 function getUserService(req) {
   return req['container'].get('user-service');
+}
+
+/**
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+  return req['container'].get('post-service');
 }
 
 module.exports = router;

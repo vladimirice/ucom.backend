@@ -9,7 +9,7 @@ const registrationRoute = '/api/v1/auth/registration';
 const postsUrl          = `${apiV1Prefix}/posts`;
 const usersUrl          = `${apiV1Prefix}/users`;
 const organizationsUrl  = `${apiV1Prefix}/organizations`;
-const myselfUrl          = '/api/v1/myself';
+const myselfUrl          = `${apiV1Prefix}/myself`;
 
 const communityUrl = `${apiV1Prefix}/community`;
 const partnershipUrl = `${apiV1Prefix}/partnership`;
@@ -25,6 +25,14 @@ class RequestHelper {
    */
   static getOneUserWallFeed(targetUserId) {
     return `${usersUrl}/${targetUserId}/wall-feed`;
+  }
+
+  /**
+   *
+   * @return {string}
+   */
+  static getMyselfNewsFeedUrl() {
+    return `${myselfUrl}/news-feed`;
   }
 
   /**

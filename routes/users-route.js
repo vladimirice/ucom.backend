@@ -51,12 +51,9 @@ UsersRouter.post('/:user_id/posts', [authTokenMiddleWare, bodyParser], async fun
 /* GET wall feed for user */
 UsersRouter.get('/:user_id/wall-feed', [ bodyParser ], async function(req, res) {
   const userId = req.user_id;
-  const data = await getPostService(req).findAndProcessAllForUserWallFeed(userId);
+  const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId);
 
-  res.send({
-    'data': data,
-    'metadata': {}
-  });
+  res.send(response);
 });
 
 /* One user follows other user */
