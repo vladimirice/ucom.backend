@@ -8,6 +8,7 @@ const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
 const registrationRoute = '/api/v1/auth/registration';
 const postsUrl          = `${apiV1Prefix}/posts`;
 const usersUrl          = `${apiV1Prefix}/users`;
+const organizationsUrl  = `${apiV1Prefix}/organizations`;
 const myselfUrl          = '/api/v1/myself';
 
 const communityUrl = `${apiV1Prefix}/community`;
@@ -199,6 +200,15 @@ class RequestHelper {
     return `${usersUrl}/${user.id}/posts`;
   }
 
+  /**
+   *
+   * @param {number} orgId
+   * @return {string}
+   */
+  static getOrgDirectPostUrl(orgId) {
+    return `${organizationsUrl}/${orgId}/posts`;
+  }
+
   static getUsersUrl() {
     return usersUrl;
   }
@@ -233,18 +243,6 @@ class RequestHelper {
    */
   static getCommentOnCommentUrl(post_id, comment_id) {
     return `/api/v1/posts/${post_id}/comments/${comment_id}/comments`;
-  }
-
-  static async sendPatch(url, token, payload) {
-    const res = await request(server)
-      .patch(url)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-    ;
-
-    expect(res.status).toBe(200);
-
-    return res.body;
   }
 }
 

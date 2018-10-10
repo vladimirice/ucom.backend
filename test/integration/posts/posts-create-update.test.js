@@ -18,6 +18,7 @@ const ActivityGroupDictionary = require('../../../lib/activity/activity-group-di
 const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
 const PostsModelProvider      = require('../../../lib/posts/service/posts-model-provider');
 const UsersModelProvider      = require('../../../lib/users/service').ModelProvider;
+const OrgModelProvider        = require('../../../lib/organizations/service').ModelProvider;
 
 const PostsService            = require('./../../../lib/posts/post-service');
 
@@ -335,7 +336,7 @@ describe('Posts API', () => {
         });
       });
 
-      describe('Direct post', () => {
+      describe('Create direct post', () => {
         it('For User without organization', async () => {
           const user = userVlad;
           const targetUser = userJane;
@@ -350,6 +351,27 @@ describe('Posts API', () => {
           };
 
           const post = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser, newPostFields.description);
+
+          await helpers.Common.checkDirectPost(post, {
+            ...expected,
+            ...newPostFields
+          }, user);
+        });
+
+        it('For organization without organization', async () => {
+          const user = userVlad;
+          const targetOrgId = 1;
+
+          const newPostFields = {
+            description: 'Our super post description',
+          };
+
+          const expected = {
+            'entity_id_for':    "" + targetOrgId,
+            'entity_name_for':  OrgModelProvider.getEntityName(),
+          };
+
+          const post = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId, newPostFields.description);
 
           await helpers.Common.checkDirectPost(post, {
             ...expected,
@@ -392,7 +414,7 @@ describe('Posts API', () => {
 
     describe('Positive', () => {
 
-      describe('Direct post', () => {
+      describe('Update direct post', () => {
         it('Update direct post for user without organization', async () => {
           const user        = userVlad;
           const targetUser  = userJane;
@@ -402,6 +424,20 @@ describe('Posts API', () => {
           };
 
           const postBefore  = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser);
+          const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
+
+          await helpers.Common.checkDirectPost(postAfter, expectedValues, userVlad);
+        });
+
+        it('Update direct post for organization without organization', async () => {
+          const user          = userVlad;
+          const targetOrgId   = 1;
+
+          const expectedValues = {
+            description: 'changed sample description of direct post'
+          };
+
+          const postBefore  = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId);
           const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
 
           await helpers.Common.checkDirectPost(postAfter, expectedValues, userVlad);

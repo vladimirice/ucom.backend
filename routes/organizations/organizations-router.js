@@ -26,6 +26,13 @@ router.get('/:organization_id', async (req, res) => {
   res.send(model);
 });
 
+/* Create post for this user */
+router.post('/:organization_id/posts', [authTokenMiddleWare, cpUploadArray], async function(req, res) {
+  const response = await getPostService(req).processNewPostCreationForOrg(req);
+
+  res.send(response);
+});
+
 /* Create new organization */
 router.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
   const model = await getOrganizationService(req).processNewOrganizationCreation(req);
