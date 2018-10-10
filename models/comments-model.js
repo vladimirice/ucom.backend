@@ -83,7 +83,8 @@ module.exports = (db, Sequelize) => {
       'updated_at',
       'organization_id',
       'user_id',
-      'commentable_id'
+      'commentable_id',
+      'blockchain_id'
     ];
   };
 

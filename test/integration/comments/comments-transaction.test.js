@@ -23,7 +23,7 @@ describe('Comment related blockchain transactions.', () => {
   });
 
   describe('Organization comments.', () => {
-    it('should create and process valid direct comment creation transaction', async () => {
+    it('Org. Should create and process valid direct comment creation transaction', async () => {
 
       await RabbitMqService.purgeBlockchainQueue();
       const user = userVlad;
@@ -66,7 +66,7 @@ describe('Comment related blockchain transactions.', () => {
       expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedBlockchainResponse);
     }, 20000);
 
-    it('should create and process valid comment on comment creation transaction', async () => {
+    it('Org. should create and process valid comment on comment creation transaction', async () => {
       await RabbitMqService.purgeBlockchainQueue();
       const user = userVlad;
       const post_id = 1; // post_id = 1 is belong to organization of author vlad
