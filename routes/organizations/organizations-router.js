@@ -2,7 +2,7 @@ const express = require('express');
 const status  = require('statuses');
 require('express-async-errors');
 
-const router  = express.Router();
+const OrgRouter  = express.Router();
 
 const authTokenMiddleWare   = require('../../lib/auth/auth-token-middleware');
 const { cpUpload, cpUploadArray }          = require('../../lib/organizations/middleware/organization-create-edit-middleware');
@@ -11,14 +11,14 @@ const ActivityUserToOrg    = require('../../lib/users/activity').UserToOrg;
 const winston               = require('../../config/winston');
 
 /* Get all organizations */
-router.get('/', async (req, res) => {
+OrgRouter.get('/', async (req, res) => {
   const response = await getOrganizationService(req).getAllForPreview(req.query);
 
   res.send(response);
 });
 
 /* Get one organization by ID */
-router.get('/:organization_id', async (req, res) => {
+OrgRouter.get('/:organization_id', async (req, res) => {
   const targetId = req.organization_id;
 
   const model = await getOrganizationService(req).findOneByIdAndProcess(targetId);
@@ -26,15 +26,23 @@ router.get('/:organization_id', async (req, res) => {
   res.send(model);
 });
 
+/* GET wall feed for user */
+OrgRouter.get('/:organization_id/wall-feed', [ cpUploadArray ], async function(req, res) {
+  const entityId = req.organization_id;
+  const response = await getPostService(req).findAndProcessAllForOrgWallFeed(entityId);
+
+  res.send(response);
+});
+
 /* Create post for this user */
-router.post('/:organization_id/posts', [authTokenMiddleWare, cpUploadArray], async function(req, res) {
+OrgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpUploadArray], async function(req, res) {
   const response = await getPostService(req).processNewPostCreationForOrg(req);
 
   res.send(response);
 });
 
 /* Create new organization */
-router.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
+OrgRouter.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
   const model = await getOrganizationService(req).processNewOrganizationCreation(req);
 
   return res.status(201).send({
@@ -44,7 +52,7 @@ router.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
 
 
 /* GET one organization posts */
-router.get('/:organization_id/posts', async function(req, res) {
+OrgRouter.get('/:organization_id/posts', async function(req, res) {
   const orgId = req.organization_id;
   const response = await getPostService(req).findAllByOrganization(orgId);
 
@@ -52,7 +60,7 @@ router.get('/:organization_id/posts', async function(req, res) {
 });
 
 /* Update organization */
-router.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
+OrgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   await getOrganizationService(req).updateOrganization(req);
 
   return res.status(200).send({
@@ -61,7 +69,7 @@ router.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, r
 });
 
 /* One user follows organization */
-router.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray ], async function(req, res) {
+OrgRouter.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray ], async function(req, res) {
   const userFrom    = req.user;
   const entityIdTo  = req.organization_id;
 
@@ -75,7 +83,7 @@ router.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray ], a
 });
 
 /* One user unfollows organization */
-router.post('/:organization_id/unfollow', [ authTokenMiddleWare, cpUploadArray ], async function(req, res) {
+OrgRouter.post('/:organization_id/unfollow', [ authTokenMiddleWare, cpUploadArray ], async function(req, res) {
   const userFrom    = req.user;
   const entityIdTo  = req.organization_id;
 
@@ -88,7 +96,7 @@ router.post('/:organization_id/unfollow', [ authTokenMiddleWare, cpUploadArray ]
   });
 });
 
-router.param('organization_id', OrgIdParamMiddleware);
+OrgRouter.param('organization_id', OrgIdParamMiddleware);
 
 /**
  * @param {Object} req
@@ -106,4 +114,4 @@ function getPostService(req) {
   return req['container'].get('post-service');
 }
 
-module.exports = router;
+module.exports = OrgRouter;

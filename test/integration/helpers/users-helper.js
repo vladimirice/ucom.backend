@@ -12,8 +12,9 @@ const server = require('../../../app');
 require('jest-expect-message');
 
 class UsersHelper {
+
   /**
-   * See {@link PostsService#findAllForUserWallFeed}
+   * See {@link PostsService#findAndProcessAllForUserWallFeed}
    *
    * @param {Object} targetUser
    * @param {boolean} dataOnly
@@ -24,6 +25,35 @@ class UsersHelper {
   static async requestToGetWallFeedAsGuest(targetUser, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const res = await request(server)
       .get(RequestHelper.getOneUserWallFeed(targetUser.id))
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    if (expectedStatus === 200) {
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
+    }
+
+    if (dataOnly) {
+      return res.body.data;
+    }
+
+    return res.body;
+  }
+
+  /**
+   * See {@link PostsService#findAndProcessAllForOrgWallFeed}
+   *
+   * @param {Object} myself
+   * @param {Object} targetUser
+   * @param {boolean} dataOnly
+   * @param {number} expectedStatus
+   * @param {boolean} allowEmpty
+   * @return {Promise<Object>}
+   */
+  static async requestToGetWallFeedAsMyself(myself, targetUser, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const res = await request(server)
+      .get(RequestHelper.getOneUserWallFeed(targetUser.id))
+      .set('Authorization', `Bearer ${myself.token}`)
     ;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);

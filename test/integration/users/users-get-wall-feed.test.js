@@ -1,11 +1,4 @@
 const helpers = require('../helpers');
-const PostsRepository = require('../../../lib/posts/repository');
-
-const UsersActivityRepository = require('../../../lib/users/repository').Activity;
-const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
-const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
-const OrgModelProvider = require('../../../lib/organizations/service').ModelProvider;
-
 
 helpers.Mock.mockAllBlockchainPart();
 
@@ -26,7 +19,7 @@ describe('Organizations. Get requests', () => {
 
   describe('Users wall feed', () => {
     describe('Positive', () => {
-      it('should get all user-related posts', async () => {
+      it('should get all user-related posts as Guest', async () => {
         const targetUser = userVlad;
         const directPostAuthor = userJane;
 
@@ -41,7 +34,43 @@ describe('Organizations. Get requests', () => {
 
         const posts = await helpers.Users.requestToGetWallFeedAsGuest(targetUser);
 
-        await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length);
+        const options = {
+          'myselfData': false,
+        };
+
+        await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
+      });
+
+      it('should get all user-related posts as Myself but not user itself', async () => {
+        const targetUser = userVlad;
+        const directPostAuthor = userJane;
+
+        const promisesToCreatePosts = [
+          helpers.Posts.requestToCreateMediaPost(targetUser), // User himself creates posts
+          helpers.Posts.requestToCreatePostOffer(targetUser),
+
+          helpers.Posts.requestToCreateDirectPostForUser(directPostAuthor, targetUser), // somebody creates post in users wall
+        ];
+
+        const [newMediaPostId, newPostOfferId] = await Promise.all(promisesToCreatePosts);
+
+        await helpers.Posts.requestToUpvotePost(userJane, newMediaPostId);
+        await helpers.Posts.requestToDownvotePost(userJane, newPostOfferId);
+
+        // userJane upvotes userVlad posts
+        const posts = await helpers.Users.requestToGetWallFeedAsMyself(userJane, targetUser);
+
+        const options = {
+          'myselfData': true,
+        };
+
+        await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
+      });
+    });
+
+    describe('Negative', () => {
+      it('Should not show posts not related to user', async () => {
+        // TODO
       });
     });
   });

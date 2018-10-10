@@ -29,6 +29,15 @@ class RequestHelper {
 
   /**
    *
+   * @param {number} targetOrgId
+   * @return {string}
+   */
+  static getOneOrgWallFeed(targetOrgId) {
+    return `${organizationsUrl}/${targetOrgId}/wall-feed`;
+  }
+
+  /**
+   *
    * @param {string} query
    * @returns {string}
    */

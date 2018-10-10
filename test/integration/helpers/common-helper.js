@@ -2,14 +2,10 @@ const UsersHelper       = require('./users-helper');
 const OrgHelper         = require('./organizations-helper');
 const CommentsHelper    = require('./comments-helper');
 const PostsHelper    = require('./posts-helper');
-const ResponseHelper    = require('./response-helper');
 
 const _ = require('lodash');
 
-
-const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
-
-const { TransactionFactory, ContentTypeDictionary, InteractionTypeDictionary } = require('uos-app-transaction');
+const { ContentTypeDictionary } = require('uos-app-transaction');
 
 
 require('jest-expect-message');
@@ -42,9 +38,10 @@ class CommonHelper {
    *
    * @param {Object[]} posts
    * @param {number} expectedLength
+   * @param {Object} options
    * @return {Promise<void>}
    */
-  static async checkPostsListFromApi(posts, expectedLength = null) {
+  static async checkPostsListFromApi(posts, expectedLength = null, options = {}) {
     if (expectedLength) {
       expect(posts.length).toBe(expectedLength);
     } else {
@@ -52,15 +49,16 @@ class CommonHelper {
     }
 
     posts.forEach(post => {
-      this.checkOnePostFromApi(post);
+      this.checkOnePostFromApi(post, options);
     });
   }
 
   /**
    *
    * @param {Object} post
+   * @param {Object} options
    */
-  static checkOnePostFromApi(post) {
+  static checkOnePostFromApi(post, options) {
     // Activity:
     // User (author) data - with following data in order to follow/unfollow control
     // myself data - upvoting, join, editable, org_member
@@ -74,6 +72,16 @@ class CommonHelper {
     PostsHelper.checkPostItselfCommonFields(post);
     UsersHelper.checkIncludedUserPreview(post);
     OrgHelper.checkOneOrgPreviewFieldsIfExists(post);
+
+    if (options.myselfData) {
+      expect(post.myselfData).toBeDefined();
+
+      expect(post.myselfData.myselfVote).toBeDefined();
+      expect(post.myselfData.join).toBeDefined();
+      expect(post.myselfData.organization_member).toBeDefined();
+    } else {
+      expect(post.myselfData).not.toBeDefined();
+    }
   }
 
   /**
@@ -98,9 +106,6 @@ class CommonHelper {
     // myself data - upvoting, editable, org member // TODO
 
     // check that related models are created
-  }
-
-  static checkOnePostWithRelations(post) {
   }
 }
 

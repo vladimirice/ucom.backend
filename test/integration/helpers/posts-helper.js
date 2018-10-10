@@ -5,7 +5,6 @@ const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 const PostRepository = require('../../../lib/posts/posts-repository');
-const PostTypeDictionary = require('../../../lib/posts/post-type-dictionary');
 
 const PostStatsRepository = reqlib('/lib/posts/stats/post-stats-repository');
 
@@ -228,7 +227,7 @@ class PostsHelper {
       'title': 'Extremely new post',
       'description': 'Our super post description',
       'leading_text': 'extremely leading text',
-      'post_type_id': PostTypeDictionary.getTypeMediaPost(),
+      'post_type_id': ContentTypeDictionary.getTypeMediaPost(),
       'user_id': user.id,
       'current_rate': 0.0000000000,
       'current_vote': 0,
@@ -262,7 +261,7 @@ class PostsHelper {
       'description': 'Our super post description',
       'leading_text': 'extremely leading text',
       'user_id': user.id,
-      'post_type_id': PostTypeDictionary.getTypeOffer(),
+      'post_type_id': ContentTypeDictionary.getTypeOffer(),
       'current_rate': '0.0000000000',
       'current_vote': 0,
       'action_button_title': 'TEST_BUTTON_CONTENT',
@@ -285,25 +284,42 @@ class PostsHelper {
 
     return +res.body.id;
   }
-
-  static async requestSampleMediaPostChange(user, post_id) {
-    const fieldsToChange = {
-      'title': 'This is title to change',
-      'description': 'Also necessary to change description',
-      'leading_text': 'And leading text',
+  /**
+   *
+   * @param {Object} user
+   * @param {number} orgId
+   * @returns {Promise<number>}
+   */
+  static async requestToCreatePostOfferOfOrganization(user, orgId) {
+    let newPostFields = {
+      'title': 'Extremely new post',
+      'description': 'Our super post description',
+      'leading_text': 'extremely leading text',
+      'user_id': user.id,
+      'post_type_id': ContentTypeDictionary.getTypeOffer(),
+      'current_rate': '0.0000000000',
+      'current_vote': 0,
+      'action_button_title': 'TEST_BUTTON_CONTENT',
+      'organization_id': orgId,
     };
 
     const res = await request(server)
-      .patch(RequestHelper.getOnePostUrl(post_id))
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title',         fieldsToChange['title'])
-      .field('description',   fieldsToChange['description'])
-      .field('leading_text',  fieldsToChange['leading_text'])
+      .field('title',               newPostFields['title'])
+      .field('description',         newPostFields['description'])
+      .field('leading_text',        newPostFields['leading_text'])
+      .field('user_id',             newPostFields['user_id'])
+      .field('post_type_id',        newPostFields['post_type_id'])
+      .field('current_rate',        newPostFields['current_rate'])
+      .field('current_vote',        newPostFields['current_vote'])
+      .field('action_button_title', newPostFields['action_button_title'])
+      .field('organization_id',     newPostFields['organization_id'])
     ;
 
     ResponseHelper.expectStatusOk(res);
 
-    return res.body.post_id;
+    return +res.body.id;
   }
 
   /**
@@ -364,16 +380,6 @@ class PostsHelper {
       }
     })
 
-  }
-
-  /**
-   * @deprecated
-   * @see requestToGetManyPostsAsGuest - renaming
-   * @param {string | null } queryString
-   * @returns {Promise<Object[]>}
-   */
-  static async requestToGetPostsAsGuest(queryString = null) {
-    return await this.requestToGetManyPostsAsGuest(queryString);
   }
 
   /**

@@ -12,7 +12,9 @@ module.exports = {
 
   UserHelper:     require('./users-helper'), // @deprecated
   Users:           require('./users-helper'),
-  ActivityHelper: require('./activity-helper'),
+  ActivityHelper: require('./activity-helper'), // @deprecated
+
+  Activity:       require('./activity-helper'),
 
   SeedsHelper:    require('./seeds-helper'), // @deprecated name
   Seeds:          require('./seeds-helper'),
