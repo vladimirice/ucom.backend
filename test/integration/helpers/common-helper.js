@@ -46,6 +46,17 @@ class CommonHelper {
 
   /**
    *
+   * @return {{myselfData: boolean, postProcessing: string}}
+   */
+  static getOptionsForFullAndGuest() {
+    return {
+      myselfData:     false,
+      postProcessing: 'full'
+    }
+  }
+
+  /**
+   *
    * @param {Object} comment
    * @param {Object} options
    */

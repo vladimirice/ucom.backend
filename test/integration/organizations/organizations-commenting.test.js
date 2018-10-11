@@ -22,27 +22,6 @@ describe('Organization members creates comments', () => {
     await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
   });
 
-  describe('Get comments made by organization', () => {
-    it('should add organization preview info if comment is made by organization member', async () => {
-      const post_id = 1;
-
-      await helpers.Seeds.bulkCreateComments();
-      const post = await helpers.Post.requestToGetOnePostAsGuest(post_id);
-      expect(post.comments.length).toBe(8);
-
-      post.comments.forEach(comment => {
-        if (comment.organization_id) {
-
-          delete comment.organization.followed_by; // TODO
-
-          helpers.Org.checkOneOrganizationPreviewFields(comment.organization);
-          // TODO - move to check preview fields - this is post-processing indicator
-          expect(comment.organization.avatar_filename).toMatch('organizations/');
-        }
-      });
-    });
-  });
-
   describe('Direct comment creation', () => {
     describe('Positive scenarios', () => {
       it('should fill direct comment organization_id if is created by organization author', async () => {
