@@ -102,16 +102,6 @@ class UsersHelper {
 
   /**
    *
-   * @param {Object[]}models
-   */
-  static checkIncludedUserPreviewForArray(models) {
-    models.forEach(model => {
-      this.checkIncludedUserPreview(model);
-    })
-  }
-
-  /**
-   *
    * @param {Object} model - model with included user
    * @param {string[]|null} givenExpected - model with included user
    */

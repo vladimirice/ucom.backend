@@ -164,7 +164,7 @@ describe('User to post activity', () => {
     const joinedPost = posts.find(post => post.id === janePostOfferId);
 
     expect(joinedPost.myselfData.join).toBeTruthy();
-  });
+  }, 10000);
 
   describe('Upvote-related tests', () => {
     describe('Positive scenarios', () => {
@@ -207,7 +207,7 @@ describe('User to post activity', () => {
         ResponseHelper.expectStatusBadRequest(responseTwo);
       });
       it('Not possible to vote by myself post', async () => {
-        const posts = await PostRepository.findAllByAuthor(userVlad.id, true);
+        const posts = await PostRepository.findAllByAuthor(userVlad.id);
         const postId = posts[0]['id'];
 
         const res = await request(server)

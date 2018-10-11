@@ -1,4 +1,5 @@
 const helpers = require('../helpers');
+const gen = require('../../generators');
 
 helpers.Mock.mockAllBlockchainPart();
 
@@ -20,33 +21,52 @@ describe('Organizations. Get requests', () => {
   describe('Organizations wall feed', () => {
     describe('Positive', () => {
       it('should get all org-related posts as Guest', async () => {
-        const targetUser        = userVlad;
-        const directPostAuthor  = userJane;
-
         await helpers.Seeds.seedOrganizations();
         const orgId = 1;
+        const otherOrgId = 4;
 
-        const promisesToCreatePosts = [
-          helpers.Posts.requestToCreateMediaPostOfOrganization(targetUser, orgId), // User himself creates posts
-          helpers.Posts.requestToCreatePostOfferOfOrganization(targetUser, orgId),
+        // disturbance
+        const otherPosts = await gen.Posts.generateOrgPostsForWall(otherOrgId, userJane, userVlad);
+        const generatedPosts = await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane);
 
-          helpers.Posts.requestToCreateDirectPostForOrganization(directPostAuthor, orgId), // somebody creates post in users wall
-        ];
-
-        await Promise.all(promisesToCreatePosts);
-
-        // Org creates one media post, one post offer and jane creates direct org comment
         const posts = await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId);
 
-        // TODO check posts contain concrete entities
+        const postsIdsValues = Object.values(generatedPosts);
 
-        await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, helpers.Common.getOptionsForListAndGuest());
+        postsIdsValues.forEach(id => {
+          expect(posts.some(post => post.id === id)).toBeTruthy();
+        });
+
+        Object.values(otherPosts).forEach(id => {
+          expect(posts.some(post => post.id === id)).toBeFalsy();
+        });
+
+        await helpers.Common.checkPostsListFromApi(posts, Object.keys(generatedPosts).length, helpers.Common.getOptionsForListAndGuest());
       });
 
       it('should get all org-related posts as Myself', async () => {
-        // TODO check myself data
-      });
+        await helpers.Seeds.seedOrganizations();
+        const orgId = 1;
+        const otherOrgId = 4;
 
+        // disturbance
+        const otherPosts = await gen.Posts.generateOrgPostsForWall(otherOrgId, userJane, userVlad);
+        const generatedPosts = await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane);
+
+        const posts = await helpers.Org.requestToGetOrgWallFeedAsMyself(userVlad, orgId);
+
+        const postsIdsValues = Object.values(generatedPosts);
+
+        postsIdsValues.forEach(id => {
+          expect(posts.some(post => post.id === id)).toBeTruthy();
+        });
+
+        Object.values(otherPosts).forEach(id => {
+          expect(posts.some(post => post.id === id)).toBeFalsy();
+        });
+
+        await helpers.Common.checkPostsListFromApi(posts, Object.keys(generatedPosts).length, helpers.Common.getOptionsForListAndMyself());
+      });
     });
   });
 });

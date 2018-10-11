@@ -2,6 +2,9 @@ const helpers = require('../helpers');
 
 helpers.Mock.mockAllBlockchainPart();
 
+const request = require('supertest');
+const server = require('../../../app');
+
 
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 
@@ -124,15 +127,17 @@ describe('Myself. Get requests', () => {
         expect(posts.some(post => post.id === janePostOfferOrg)).toBeTruthy();
         expect(posts.some(post => post.id === janeDirectPostOrg.id)).toBeTruthy();
       });
-
-      it('should see myself wall-feed inside myself news-feed', async () => {
-        // TODO
-      });
     });
 
     describe('Negative', () => {
       it('should not be possible to get news-feed without auth token', async () => {
-        // TODO
+        const url = helpers.Req.getMyselfNewsFeedUrl();
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        helpers.Res.expectStatusUnauthorized(res);
       });
     });
   });

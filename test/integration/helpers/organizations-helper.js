@@ -9,13 +9,9 @@ const faker = require('faker');
 const { orgImageStoragePath } = require('../../../lib/organizations/middleware/organization-create-edit-middleware');
 
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
-const UserActivityService = require('../../../lib/users/user-activity-service');
-const OrganizationService = require('../../../lib/organizations/service/organization-service');
 const EntitySourcesRepository = require('../../../lib/entities/repository').Sources;
-const OrgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
-const EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
-const UserToOrgActivity = require('../../../lib/users/activity/user-to-organization-activity');
-const CommentsService = require('../../../lib/comments/comments-service');
+const OrgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
+const EntityModelProvider = require('../../../lib/entities/service').ModelProvider;
 
 require('jest-expect-message');
 class OrganizationsHelper {
@@ -32,6 +28,34 @@ class OrganizationsHelper {
   static async requestToGetOrgWallFeedAsGuest(targetOrgId, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const res = await request(server)
       .get(RequestHelper.getOneOrgWallFeed(targetOrgId))
+    ;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    if (expectedStatus === 200) {
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
+    }
+
+    if (dataOnly) {
+      return res.body.data;
+    }
+
+    return res.body;
+  }
+
+  /**
+   * See {@link PostsService#findAndProcessAllForUserWallFeed}
+   *
+   * @param {Object} myself
+   * @param {number} targetOrgId
+   * @param {boolean} dataOnly
+   * @param {number} expectedStatus
+   * @param {boolean} allowEmpty
+   * @return {Promise<Object>}
+   */
+  static async requestToGetOrgWallFeedAsMyself(myself, targetOrgId, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const res = await request(server)
+      .get(RequestHelper.getOneOrgWallFeed(targetOrgId))
+      .set('Authorization', `Bearer ${myself.token}`)
     ;
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 

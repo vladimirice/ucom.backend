@@ -57,16 +57,13 @@ describe('Organization members creates comments', () => {
         expect(body.organization).toBeNull();
       });
 
-      it('should not fill organization_id if comment author is not a org member but post is belong to org', async () => {
-        // TODO
+      it.skip('should not fill organization_id if comment author is not a org member but post is belong to org', async () => {
       });
 
-      it('should not fill organization_id if post is not belong to any organization', async () => {
-        // TODO
+      it.skip('should not fill organization_id if post is not belong to any organization', async () => {
       });
 
-      it('should not include organization info if does not belong to organization', async () => {
-        // TODO
+      it.skip('should not include organization info if does not belong to organization', async () => {
       });
     });
   });
@@ -112,15 +109,13 @@ describe('Organization members creates comments', () => {
         expect(body.organization).toBeNull();
       });
 
-      it('should not fill organization_id if comment author is not a org member but post is belong to org', async () => {
-        // TODO
+      it.skip('should not fill organization_id if comment author is not a org member but post is belong to org', async () => {
       });
 
-      it('should not fill organization_id if post is not belong to any organization', async () => {
-        // TODO
+      it.skip('should not fill organization_id if post is not belong to any organization', async () => {
       });
 
-      it('should not include organization info if does not belong to organization', async () => {
+      it.skip('should not include organization info if does not belong to organization', async () => {
         // TODO
       });
     });

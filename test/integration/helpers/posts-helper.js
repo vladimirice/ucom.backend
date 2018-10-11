@@ -52,6 +52,8 @@ class PostsHelper {
   }
 
   /**
+   * @deprecated
+   * @see PostsGenerator
    *
    * @param {Object} user
    * @param {number} org_id
@@ -206,7 +208,8 @@ class PostsHelper {
   }
 
   /**
-   *
+   * @deprecated
+   * @see PostsGenerator
    * @param {Object} user
    * @param {number} targetOrgId
    * @param {string|null} givenDescription
@@ -314,6 +317,8 @@ class PostsHelper {
     return +res.body.id;
   }
   /**
+   * @deprecated
+   * @see PostsGenerator
    *
    * @param {Object} user
    * @param {number} orgId

@@ -26,7 +26,7 @@ class CommonHelper {
    *
    * @return {{myselfData: boolean, postProcessing: string}}
    */
-  static getOptionsForListWithMyself() {
+  static getOptionsForListAndMyself() {
     return {
       myselfData:     true,
       postProcessing: 'list'
