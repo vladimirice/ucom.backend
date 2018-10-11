@@ -14,19 +14,43 @@ class CommonHelper {
   /**
    *
    * @param {Object[]} comments
+   * @param {Object} options
    */
-  static checkManyCommentsPreviewWithRelations(comments) {
+  static checkManyCommentsPreviewWithRelations(comments, options = {}) {
     comments.forEach(comment => {
-      this.checkOneCommentPreviewWithRelations(comment);
+      this.checkOneCommentPreviewWithRelations(comment, options);
     });
   }
 
   /**
    *
-   * @param {Object} comment
+   * @return {{myselfData: boolean, postProcessing: string}}
    */
-  static checkOneCommentPreviewWithRelations(comment) {
-    CommentsHelper.checkOneCommentPreviewFields(comment);
+  static getOptionsForListWithMyself() {
+    return {
+      myselfData:     true,
+      postProcessing: 'list'
+    }
+  }
+
+  /**
+   *
+   * @return {{myselfData: boolean, postProcessing: string}}
+   */
+  static getOptionsForListAndGuest() {
+    return {
+      myselfData:     false,
+      postProcessing: 'list'
+    }
+  }
+
+  /**
+   *
+   * @param {Object} comment
+   * @param {Object} options
+   */
+  static checkOneCommentPreviewWithRelations(comment, options) {
+    CommentsHelper.checkOneCommentPreviewFields(comment, options);
     UsersHelper.checkUserPreview(comment.User);
 
     if (comment.organization_id) {
@@ -39,9 +63,8 @@ class CommonHelper {
    * @param {Object[]} posts
    * @param {number} expectedLength
    * @param {Object} options
-   * @return {Promise<void>}
    */
-  static async checkPostsListFromApi(posts, expectedLength = null, options = {}) {
+  static checkPostsListFromApi(posts, expectedLength = null, options = {}) {
     if (expectedLength) {
       expect(posts.length).toBe(expectedLength);
     } else {
@@ -49,7 +72,7 @@ class CommonHelper {
     }
 
     posts.forEach(post => {
-      this.checkOnePostFromApi(post, options);
+      this.checkOneListPostFromApi(post, options);
     });
   }
 
@@ -58,44 +81,50 @@ class CommonHelper {
    * @param {Object} post
    * @param {Object} options
    */
-  static checkOnePostFromApi(post, options) {
+  static checkOneListPostFromApi(post, options) {
     // Activity:
     // User (author) data - with following data in order to follow/unfollow control
     // myself data - upvoting, join, editable, org_member
     // activity user posts
-
-    // Comments if allowed - not allowed for direct post or for post list - special parameter
     // check is file uploaded - for creation
 
     expect(_.isEmpty(post)).toBeFalsy();
 
-    PostsHelper.checkPostItselfCommonFields(post);
+    PostsHelper.checkPostItselfCommonFields(post, options);
     UsersHelper.checkIncludedUserPreview(post);
     OrgHelper.checkOneOrgPreviewFieldsIfExists(post);
 
-    if (options.myselfData) {
-      expect(post.myselfData).toBeDefined();
+    this._checkMyselfData(post, options);
+  }
 
-      expect(post.myselfData.myselfVote).toBeDefined();
-      expect(post.myselfData.join).toBeDefined();
-      expect(post.myselfData.organization_member).toBeDefined();
-    } else {
-      expect(post.myselfData).not.toBeDefined();
+  /**
+   *
+   * @param {Object} post
+   * @param {Object} options
+   */
+  static checkOnePostForPage(post, options) {
+    expect(_.isEmpty(post)).toBeFalsy();
+
+    PostsHelper.checkPostItselfCommonFields(post, options);
+    UsersHelper.checkIncludedUserForEntityPage(post, options);
+    OrgHelper.checkOneOrgPreviewFieldsIfExists(post);
+
+    this._checkMyselfData(post, options);
+
+    if (options.postProcessing === 'full') {
+      expect(post.comments).toBeDefined();
+
+      this.checkManyCommentsPreviewWithRelations(post.comments, options);
     }
   }
 
   /**
    *
-   * @deprecated - use checkOnePostFromApi + separate method to check db structure
    * @param {Object} post
    * @param {Object} expectedValues
    * @param {Object} author
    */
-  static async checkDirectPost(post, expectedValues = {}, author) {
-    PostsHelper.checkDirectPostItself(post);
-    UsersHelper.checkIncludedUserPreview(post);
-    OrgHelper.checkOneOrgPreviewFieldsIfExists(post);
-
+  static async checkDirectPostInDb(post, expectedValues = {}, author) {
     await PostsHelper.expectPostDbValues(post, {
       post_type_id: ContentTypeDictionary.getTypeDirectPost(),
       user_id: author.id,
@@ -106,6 +135,18 @@ class CommonHelper {
     // myself data - upvoting, editable, org member // TODO
 
     // check that related models are created
+  }
+
+  static _checkMyselfData(post, options) {
+    if (options.myselfData) {
+      expect(post.myselfData).toBeDefined();
+
+      expect(post.myselfData.myselfVote).toBeDefined();
+      expect(post.myselfData.join).toBeDefined();
+      expect(post.myselfData.organization_member).toBeDefined();
+    } else {
+      expect(post.myselfData).not.toBeDefined();
+    }
   }
 }
 

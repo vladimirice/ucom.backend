@@ -8,6 +8,7 @@ const EosImportance = require('../../../lib/eos/eos-importance');
 const request = require('supertest');
 const server = require('../../../app');
 
+const _ = require('lodash');
 
 require('jest-expect-message');
 
@@ -121,6 +122,29 @@ class UsersHelper {
     expect(typeof model.User.current_rate, 'It seems user is not post-processed').not.toBe('string');
 
     const expected = givenExpected ? givenExpected : UsersRepository.getModel().getFieldsForPreview().sort();
+    ResponseHelper.expectAllFieldsExistence(model.User, expected);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   */
+  static checkIncludedUserForEntityPage(model, options) {
+    expect(model.User).toBeDefined();
+    expect(model.User instanceof Object).toBeTruthy();
+
+    expect(typeof model.User.current_rate, 'It seems user is not post-processed').not.toBe('string');
+    let expected = UsersRepository.getModel().getFieldsForPreview().sort();
+
+    if (options.myselfData) {
+      expected = _.concat(expected, [
+        'I_follow', // TODO not required for entity page if not user himself
+        'followed_by', // TODO not required for entity page if not user himself
+        'myselfData'
+      ]);
+    }
+
     ResponseHelper.expectAllFieldsExistence(model.User, expected);
   }
 

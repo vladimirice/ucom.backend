@@ -24,7 +24,7 @@ router.get('/:post_id', async (req, res) => {
   const PostService = getPostService(req);
   const postId      = req.post_id;
 
-  const post = await PostService.findOneByIdAndProcess(postId);
+  const post = await PostService.findOnePostByIdAndProcess(postId);
 
   res.send(post);
 });

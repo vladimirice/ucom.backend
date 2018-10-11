@@ -35,8 +35,9 @@ UsersRouter.get('/:user_id', async function(req, res) {
 
 /* GET all user posts */
 UsersRouter.get('/:user_id/posts', async function(req, res) {
+
   const userId = req.user_id;
-  const posts = await getPostService(req).findAllByAuthor(userId);
+  const posts = await getPostService(req).findAndProcessAllForUserWallFeed(userId);
 
   res.send(posts);
 });

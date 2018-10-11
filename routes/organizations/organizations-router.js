@@ -21,7 +21,7 @@ OrgRouter.get('/', async (req, res) => {
 OrgRouter.get('/:organization_id', async (req, res) => {
   const targetId = req.organization_id;
 
-  const model = await getOrganizationService(req).findOneByIdAndProcess(targetId);
+  const model = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
 
   res.send(model);
 });
@@ -54,7 +54,7 @@ OrgRouter.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
 /* GET one organization posts */
 OrgRouter.get('/:organization_id/posts', async function(req, res) {
   const orgId = req.organization_id;
-  const response = await getPostService(req).findAllByOrganization(orgId);
+  const response = await getPostService(req).findAndProcessAllForOrgWallFeed(orgId);
 
   res.send(response);
 });

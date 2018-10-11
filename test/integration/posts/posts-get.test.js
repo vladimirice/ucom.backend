@@ -59,16 +59,13 @@ describe('Posts API', () => {
       });
 
       it('should contain myself_vote upvote or downvote in user posts list', async () => {
-        const myself = userVlad;
-        const targetUserId = userJane.id;
+        const janePostIdToUpvote    = await PostsRepository.findFirstMediaPostIdUserId(userJane.id);
+        const janePostIdToDownvote  = await PostsRepository.findLastMediaPostIdUserId(userJane.id);
 
-        const janePostIdToUpvote    = await PostsRepository.findFirstMediaPostIdUserId(targetUserId);
-        const janePostIdToDownvote  = await PostsRepository.findLastMediaPostIdUserId(targetUserId);
+        await helpers.Posts.requestToUpvotePost(userVlad, janePostIdToUpvote);
+        await helpers.Posts.requestToDownvotePost(userVlad, janePostIdToDownvote);
 
-        await helpers.Posts.requestToUpvotePost(myself, janePostIdToUpvote);
-        await helpers.Posts.requestToDownvotePost(myself, janePostIdToDownvote);
-
-        const posts = await helpers.Posts.requestToGetManyUserPostsAsMyself(myself, targetUserId);
+        const posts = await helpers.Posts.requestToGetManyPostsAsMyself(userVlad);
 
         const actualPostToUpvote    = posts.find(data => data.id === janePostIdToUpvote);
         const actualPostToDownvote  = posts.find(data => data.id === janePostIdToDownvote);
@@ -96,6 +93,37 @@ describe('Posts API', () => {
     });
   });
 
+  describe('Get One post', () => {
+    describe('Positive', () => {
+      it('Get one post. Guest', async () => {
+        // TODO check different post types
+        const postId = 1; // media post
+
+        const post = await helpers.Posts.requestToGetOnePostAsGuest(postId);
+
+        const options = {
+          'myselfData'    : false,
+          'postProcessing': 'full',
+        };
+
+        helpers.Common.checkOnePostForPage(post, options);
+      });
+
+      it('Get one post. Myself', async () => {
+        // TODO check different post types
+        const postId = 1; // media post
+
+        const post = await helpers.Posts.requestToGetOnePostAsMyself(postId, userVlad);
+
+        const options = {
+          'myselfData'    : true,
+          'postProcessing': 'full',
+        };
+
+        helpers.Common.checkOnePostForPage(post, options);
+      });
+    });
+  });
 
   describe('GET posts', () => {
     describe('Test filtering', () => {
@@ -160,7 +188,7 @@ describe('Posts API', () => {
         const perPage = 2;
         let page = 1;
 
-        const posts = await PostsRepository.findAllPosts(true, {
+        const posts = await PostsRepository.findAllPosts({
           'order': [
             ['current_rate', 'DESC'],
             ['id', 'DESC']
@@ -332,43 +360,28 @@ describe('Posts API', () => {
       });
     });
 
-    it('Get all posts', async () => {
+    it('All posts. Guest. No filters', async () => {
+      const posts = await helpers.Posts.requestToGetManyPostsAsGuest();
+      const postsFromDb = await PostsRepository.findAllPosts();
 
-      const res = await request(server)
-        .get(RequestHelper.getPostsUrl())
-      ;
+      const options = {
+        'myselfData':     false,
+        'postProcessing': 'list',
+      };
 
-      ResponseHelper.expectStatusOk(res);
-      const body = res.body.data;
-
-      const posts = await PostsRepository.findAllPosts();
-      expect(body.length).toBe(posts.length);
-
-      expect(body[0].hasOwnProperty('User')).toBeTruthy();
-
-      let postFields = PostsRepository.getModel().getFieldsForPreview();
-
-      // postFields.push('activity_user_posts');
-      postFields.push('post_stats');
-      postFields.push('post_users_team');
-      postFields.push('User');
-
-      UsersHelper.checkIncludedUserPreviewForArray(body);
-
-      ResponseHelper.expectAllFieldsExistenceForArray(body, postFields);
+      helpers.Common.checkPostsListFromApi(posts, postsFromDb.length, options);
     });
 
-    it('Get one post', async () => {
-      const post = await PostsRepository.findLast(true);
+    it('All posts. Myself. No filters', async () => {
+      const posts = await helpers.Posts.requestToGetManyPostsAsMyself(userVlad);
+      const postsFromDb = await PostsRepository.findAllPosts();
 
-      const res = await request(server)
-        .get(`${postsUrl}/${post.id}`)
-      ;
+      const options = {
+        'myselfData':     true,
+        'postProcessing': 'list',
+      };
 
-      ResponseHelper.expectStatusOk(res);
-      // PostHelper.validateResponseJson(res.body, post);
-
-      expect(res.body['myselfData']).not.toBeDefined();
+      helpers.Common.checkPostsListFromApi(posts, postsFromDb.length, options);
     });
 
     it('Must be 404 response if post id is not correct', async () => {

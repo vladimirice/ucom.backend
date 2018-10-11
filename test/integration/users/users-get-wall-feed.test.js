@@ -36,6 +36,7 @@ describe('Organizations. Get requests', () => {
 
         const options = {
           'myselfData': false,
+          postProcessing: 'list',
         };
 
         await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
@@ -62,6 +63,7 @@ describe('Organizations. Get requests', () => {
 
         const options = {
           'myselfData': true,
+          postProcessing: 'list',
         };
 
         await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);

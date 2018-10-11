@@ -4,6 +4,7 @@ const expect = require('expect');
 
 const helpers = require('../helpers');
 
+
 const UserHelper      = helpers.UserHelper;
 const SeedsHelper     = helpers.Seeds;
 const RequestHelper   = helpers.Req;
@@ -76,7 +77,7 @@ describe('Posts API', () => {
 
       const updatedPostId = res.body.post_id;
 
-      const updatedPost = await PostsRepository.findOneById(updatedPostId);
+      const updatedPost = await PostsRepository.findOnlyPostItselfById(updatedPostId);
 
       expect(updatedPost.description).toBe(fieldsToChange['description']);
     });
@@ -106,7 +107,7 @@ describe('Posts API', () => {
 
       const updatedPostId = res.body.post_id;
 
-      const updatedPost = await PostsRepository.findOneById(updatedPostId);
+      const updatedPost = await PostsRepository.findOnlyPostItselfById(updatedPostId);
 
       expect(updatedPost.description).toBe(fieldsToChange['description']);
     });
@@ -132,7 +133,7 @@ describe('Posts API', () => {
 
       const updatedPostId = res.body.post_id;
 
-      const updatedPost = await PostsRepository.findOneById(updatedPostId);
+      const updatedPost = await PostsRepository.findOnlyPostItselfById(updatedPostId);
 
       expect(updatedPost.title).toBe('Html content Simple text');
       expect(updatedPost.leading_text).toBe('Html content Simple text');
@@ -192,7 +193,7 @@ describe('Posts API', () => {
 
         helpers.Res.expectStatusOk(res);
 
-        const posts = await PostsRepository.findAllByAuthor(myself.id, true);
+        const posts = await PostsRepository.findAllByAuthor(myself.id);
         const newPost = posts.find(data => data.title === newPostFields['title']);
         expect(newPost).toBeDefined();
 
@@ -370,7 +371,14 @@ describe('Posts API', () => {
 
           const post = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser, newPostFields.description);
 
-          await helpers.Common.checkDirectPost(post, {
+          const options = {
+            myselfData: true,
+            postProcessing: 'full'
+          };
+
+          await helpers.Common.checkOnePostForPage(post, options);
+
+          await helpers.Common.checkDirectPostInDb(post, {
             ...expected,
             ...newPostFields
           }, user);
@@ -391,7 +399,13 @@ describe('Posts API', () => {
 
           const post = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId, newPostFields.description);
 
-          await helpers.Common.checkDirectPost(post, {
+          const options = {
+            myselfData: true,
+            postProcessing: 'full'
+          };
+
+          await helpers.Common.checkOnePostForPage(post, options);
+          await helpers.Common.checkDirectPostInDb(post, {
             ...expected,
             ...newPostFields
           }, user);
@@ -444,7 +458,13 @@ describe('Posts API', () => {
           const postBefore  = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser);
           const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
 
-          await helpers.Common.checkDirectPost(postAfter, expectedValues, userVlad);
+          const options = {
+            myselfData: true,
+            postProcessing: 'full'
+          };
+
+          await helpers.Common.checkOnePostForPage(postAfter, options);
+          await helpers.Common.checkDirectPostInDb(postAfter, expectedValues, userVlad);
         });
 
         it('Update direct post for organization without organization', async () => {
@@ -458,7 +478,13 @@ describe('Posts API', () => {
           const postBefore  = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId);
           const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
 
-          await helpers.Common.checkDirectPost(postAfter, expectedValues, userVlad);
+          const options = {
+            myselfData: true,
+            postProcessing: 'full'
+          };
+
+          await helpers.Common.checkOnePostForPage(postAfter, options);
+          await helpers.Common.checkDirectPostInDb(postAfter, expectedValues, userVlad);
         });
       });
 

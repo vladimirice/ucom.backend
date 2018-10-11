@@ -40,7 +40,7 @@ describe('Organizations. Get requests', () => {
 
         // TODO check posts contain concrete entities
 
-        await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length);
+        await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, helpers.Common.getOptionsForListAndGuest());
       });
 
       it('should get all org-related posts as Myself', async () => {

@@ -156,8 +156,9 @@ class CommentsHelper {
   /**
    *
    * @param {Object} model - model with included user
+   * @param {Object} options
    */
-  static checkOneCommentPreviewFields(model) {
+  static checkOneCommentPreviewFields(model, options) {
     expect(model).toBeDefined();
     expect(model).not.toBeNull();
 
@@ -165,16 +166,18 @@ class CommentsHelper {
 
     const expected = CommentsRepository.getModel().getFieldsForPreview();
 
-    const fieldsFromRelations = [
+    let fieldsFromRelations = [
       'User',
       'activity_user_comment',
       'organization',
-      'myselfData'
     ];
+
+    if (options && options.myselfData) {
+      fieldsFromRelations.push('myselfData');
+    }
 
     ResponseHelper.expectAllFieldsExistence(model, _.concat(expected, fieldsFromRelations));
   }
-
 }
 
 module.exports = CommentsHelper;

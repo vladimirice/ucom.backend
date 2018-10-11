@@ -84,18 +84,19 @@ class PostsHelper {
   /**
    *
    * @param {Object} post
+   * @param {Object} options
    */
-  static checkPostItselfCommonFields(post) {
+  static checkPostItselfCommonFields(post, options) {
     this._checkWrongPostProcessingSmell(post);
 
     expect(post.post_type_id).toBeTruthy();
 
     switch (post.post_type_id) {
       case ContentTypeDictionary.getTypeMediaPost():
-        this.checkMediaPostFields(post);
+        this.checkMediaPostFields(post, options);
         break;
       case ContentTypeDictionary.getTypeOffer():
-        this.checkPostOfferFields(post);
+        this.checkPostOfferFields(post, options);
         break;
       case ContentTypeDictionary.getTypeDirectPost():
         this.checkDirectPostItself(post);
@@ -105,22 +106,50 @@ class PostsHelper {
     }
   }
 
-  static checkMediaPostFields(post) {
-    const mustExist = PostsModelProvider.getModel().getMediaOrOfferPostMustExistFields();
-    ResponseHelper.expectFieldsAreExist(post, mustExist);
+  /**
+   *
+   * @param {Object} post
+   * @param {Object} options
+   */
+  static checkMediaPostFields(post, options) {
+    let mustExist;
+    switch (options.postProcessing) {
+      case 'list':
+        mustExist = PostsModelProvider.getModel().getMediaOrOfferPostMustExistFields();
+        break;
+      case 'full':
+        mustExist = PostsModelProvider.getModel().getMediaPostFullFields();
+        break;
+      default:
+        throw new Error(`Unsupported postProcessing option (or it is not set): ${options.postProcessing}`);
+    }
 
+    ResponseHelper.expectFieldsAreExist(post, mustExist);
   }
 
-  static checkPostOfferFields(post) {
-    // TODO - check users team normalization
+  /**
+   *
+   * @param {Object} post
+   * @param {Object} options
+   */
+  static checkPostOfferFields(post, options) {
+    // TODO - check users team normalization if one page options
 
-    const mustExist = _.concat(
-      PostsModelProvider.getModel().getMediaOrOfferPostMustExistFields(),
-      PostsModelProvider.getModel().getPostOfferMustExistFields(),
-    );
+    let mustExist;
+    switch (options.postProcessing) {
+      case 'list':
+        mustExist = PostsModelProvider.getModel().getFieldsForPreview();
+        break;
+      case 'full':
+        mustExist = PostsModelProvider.getModel().getMediaPostFullFields();
+        break;
+      default:
+        throw new Error(`Unsupported postProcessing option (or it is not set): ${options.postProcessing}`);
+    }
 
     ResponseHelper.expectFieldsAreExist(post, mustExist);
   }
+
   /**
    *
    * @param {Object} post

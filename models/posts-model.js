@@ -52,6 +52,39 @@ module.exports = (sequelize, DataTypes) => {
     tableName: TABLE_NAME,
   });
 
+  Posts.getMediaPostFullFields = function () {
+    return [
+      'id',
+      'post_type_id',
+      'title',
+      'description',
+      'main_image_filename',
+      'current_vote',
+      'current_rate',
+      'created_at',
+      'updated_at',
+      'user_id',
+      'leading_text',
+      'blockchain_id',
+      'organization_id',
+
+      'comments_count'
+    ];
+  };
+
+  Posts.getPostOfferFullFields = function () {
+    return _.concat(
+      Posts.getMediaPostFullFields(),
+      [
+        'action_button_title',
+        'action_button_url',
+        'action_duration_in_days',
+
+        'post_users_team',
+      ]
+    );
+  };
+
   /**
    *
    * @returns {string[]}
@@ -60,13 +93,17 @@ module.exports = (sequelize, DataTypes) => {
     return [
       'id',
       'title',
-      'description',
+      // 'description',
       'leading_text',
       'current_vote',
       'current_rate',
       'main_image_filename',
       'user_id',
-      'post_type_id'
+      'post_type_id',
+      'blockchain_id',
+      'organization_id',
+      'created_at',
+      'updated_at'
     ];
   };
 
@@ -104,38 +141,27 @@ module.exports = (sequelize, DataTypes) => {
     return [
       'id',
       'post_type_id',
-      'description',
+      // 'description',
       'current_vote',
       'current_rate',
       'created_at',
       'updated_at',
       'user_id',
       'blockchain_id',
+      'comments_count'
     ];
   };
 
   /**
-   *
+   * @deprecated
+   * rearrange this structure
    * @return {string[]}
    */
   Posts.getMediaOrOfferPostMustExistFields = function () {
-    return [
-      'id',
-      'post_type_id',
-      'title',
-      'leading_text',
-      'description',
-      'main_image_filename',
-      'current_vote',
-      'current_rate',
+    return _.concat(
+      Posts.getFieldsForPreview(),
       'comments_count',
-
-      'created_at',
-      'updated_at',
-      'user_id',
-      'blockchain_id',
-      'organization_id'
-    ];
+    );
   };
 
   Posts.getPostOfferMustExistFields = function() {

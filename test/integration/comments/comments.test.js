@@ -31,25 +31,15 @@ describe('Comments', () => {
 
   describe('Comments stats', () => {
     describe('should show comment_count stats for list of posts', async () => {
-      it('should show comment_count for list of posts', async function () {
-        const posts = await helpers.Posts.requestToGetManyPostsAsGuest();
-
-        posts.forEach(post => {
-          expect(post).toHaveProperty('post_stats');
-          expect(post['post_stats']).toHaveProperty('comments_count', 0);
-        });
-      });
-
       it('should show correct comment_count for post which has comments', async () => {
         const newPostId = await helpers.Posts.requestToCreateMediaPost(userVlad);
 
         await helpers.Comments.requestToCreateComment(newPostId, userVlad);
-        // const posts = await PostHelper.requestToGetPostsAsGuest();
-        //
-        // const newPostData = posts.find(data => data.id === newPostId);
-        //
-        // expect(newPostData['post_stats']['comments_count']).toBe(1);
-      }, 30000);
+        const posts = await helpers.Posts.requestToGetManyPostsAsGuest();
+        const newPostData = posts.find(data => data.id === newPostId);
+
+        expect(newPostData.comments_count).toBe(1);
+      });
     });
     describe('should update post comment stats', async () => {
 
@@ -121,7 +111,11 @@ describe('Comments', () => {
         const comments = await helpers.Comments.requestToGetManyCommentsAsMyself(userVlad, postId);
         expect(_.isEmpty(comments)).toBeFalsy();
 
-        helpers.Common.checkManyCommentsPreviewWithRelations(comments);
+        const options = {
+          myselfData: true
+        };
+
+        helpers.Common.checkManyCommentsPreviewWithRelations(comments, options);
       });
     });
 
@@ -148,7 +142,11 @@ describe('Comments', () => {
 
       const body = res.body;
 
-      helpers.Common.checkOneCommentPreviewWithRelations(body);
+      const options = {
+        myselfData: true
+      };
+
+      helpers.Common.checkOneCommentPreviewWithRelations(body, options);
 
       // TODO It should be observed and deleted because of checkOneCommentPreviewWithRelations
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
@@ -192,7 +190,11 @@ describe('Comments', () => {
       const body = res.body;
       expect(Array.isArray(body.path)).toBeTruthy();
 
-      helpers.Common.checkOneCommentPreviewWithRelations(body);
+      const options = {
+        myselfData: true
+      };
+
+      helpers.Common.checkOneCommentPreviewWithRelations(body, options);
 
       helpers.Comments.checkCommentResponseBody(body);
       helpers.Users.checkIncludedUserPreview(body);

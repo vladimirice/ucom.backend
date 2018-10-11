@@ -20,24 +20,6 @@ describe('Organizations. Get requests', () => {
     await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
   });
 
-  describe('Organization feed', () => {
-    it('should get organizations posts for the feed', async () => {
-      const org_id = 1;
-      const postsResponse = await helpers.Org.requestToGetOrgPosts(org_id);
-
-      const posts = postsResponse.data;
-
-      expect(posts.length).toBe(2);
-
-      posts.forEach(post => {
-        expect(post.User).toBeDefined();
-        expect(post.organization).toBeDefined();
-
-        expect(post.organization.avatar_filename).toMatch('organizations/');
-      });
-    });
-  });
-
   describe('Users with organizations data', () => {
     it('should contain organizations list for GET one user by ID', async () => {
       const user_id = userJane.id;
