@@ -41,12 +41,13 @@ class UsersHelper {
   }
 
   /**
-   *
    * @param {Object} myself
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
    * @return {Promise<*>}
+   *
+   * @link PostService#findAndProcessAllForMyselfNewsFeed
    */
   static async requestToGetMyselfNewsFeed(myself, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const url = RequestHelper.getMyselfNewsFeedUrl();

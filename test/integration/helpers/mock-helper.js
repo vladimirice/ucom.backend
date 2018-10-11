@@ -86,7 +86,7 @@ class MockHelper {
 
     // noinspection JSUnusedLocalSymbols
     UsersToOrgActivity._addSignedTransactionsForOrganizationFollowing = async function (body, currentUser, activityTypeId) {
-      console.log('MOCK add signed transaction is called');
+      // console.log('MOCK add signed transaction is called');
       body.signed_transaction = 'sample_signed_transaction';
     };
   }

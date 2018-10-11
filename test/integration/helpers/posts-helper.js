@@ -179,16 +179,16 @@ class PostsHelper {
   /**
    *
    * @param {Object} user
-   * @param {number} targetOrdId
+   * @param {number} targetOrgId
    * @param {string|null} givenDescription
    * @return {Promise<void>}
    */
-  static async requestToCreateDirectPostForOrganization(user, targetOrdId, givenDescription = null) {
+  static async requestToCreateDirectPostForOrganization(user, targetOrgId, givenDescription = null) {
     const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const res = await request(server)
-      .post(RequestHelper.getOrgDirectPostUrl(targetOrdId))
+      .post(RequestHelper.getOrgDirectPostUrl(targetOrgId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
