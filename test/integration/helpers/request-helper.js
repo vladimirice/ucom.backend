@@ -41,8 +41,29 @@ class RequestHelper {
    * @return {string}
    */
   static getOneOrgWallFeed(targetOrgId) {
-    return `${organizationsUrl}/${targetOrgId}/wall-feed`;
+    return `${organizationsUrl}/${targetOrgId}/wall-feed/`;
   }
+
+  /**
+   *
+   * @param {number} page
+   * @param {number} perPage
+   * @returns {Promise<Object>}
+   */
+  static getPaginationQueryString(page, perPage) {
+    let params = [];
+
+    if (page) {
+      params.push(`page=${page}`);
+    }
+
+    if (perPage) {
+      params.push(`per_page=${perPage}`);
+    }
+
+    return '?' + params.join('&');
+  }
+
 
   /**
    *

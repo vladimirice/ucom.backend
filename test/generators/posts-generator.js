@@ -12,25 +12,21 @@ class PostsGenerator {
    * @param {number} orgId
    * @param {Object} orgAuthor
    * @param {Object} directPostAuthor
+   * @param {number} mul
    * @return {Promise<void>}
    */
-  static async generateOrgPostsForWall(orgId, orgAuthor, directPostAuthor) {
-    const promisesToCreatePosts = [
-      // User himself creates posts of organization
-      this.createMediaPostOfOrganization(orgAuthor, orgId),
-      this.createPostOfferOfOrganization(orgAuthor, orgId),
+  static async generateOrgPostsForWall(orgId, orgAuthor, directPostAuthor, mul = 1) {
+    const promises = [];
 
-      // Somebody creates direct post on organization wall
-      this.createDirectPostForOrganization(directPostAuthor, orgId),
-    ];
-
-    const [ mediaPostId, postOfferId, directPostId ] = await Promise.all(promisesToCreatePosts);
-
-    return {
-      mediaPostId,
-      postOfferId,
-      directPostId
+    for (let i = 0; i < mul; i++) {
+      promises.push(this.createMediaPostOfOrganization(orgAuthor, orgId)); // User himself creates posts of organization
+      promises.push(this.createPostOfferOfOrganization(orgAuthor, orgId)); // User himself creates posts of organization
+      promises.push(this.createDirectPostForOrganization(orgAuthor, orgId)); // Somebody creates direct post on organization wall
     }
+
+    const postsIds = await Promise.all(promises);
+
+    return postsIds.sort();
   }
 
   /**

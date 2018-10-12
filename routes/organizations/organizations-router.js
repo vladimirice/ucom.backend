@@ -28,8 +28,7 @@ OrgRouter.get('/:organization_id', async (req, res) => {
 
 /* GET wall feed for user */
 OrgRouter.get('/:organization_id/wall-feed', [ cpUploadArray ], async function(req, res) {
-  const entityId = req.organization_id;
-  const response = await getPostService(req).findAndProcessAllForOrgWallFeed(entityId);
+  const response = await getPostService(req).findAndProcessAllForOrgWallFeed(req.organization_id, req.query);
 
   res.send(response);
 });
@@ -53,8 +52,9 @@ OrgRouter.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
 
 /* GET one organization posts */
 OrgRouter.get('/:organization_id/posts', async function(req, res) {
+
   const orgId = req.organization_id;
-  const response = await getPostService(req).findAndProcessAllForOrgWallFeed(orgId);
+  const response = await getPostService(req).findAndProcessAllForOrgWallFeed(orgId, req.query);
 
   res.send(response);
 });

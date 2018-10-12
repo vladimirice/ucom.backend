@@ -54,7 +54,6 @@ describe('Organizations. Get requests', () => {
       expect(model.organizations.length).toBe(0);
     });
   });
-
   describe('Posts with organizations data', () => {
     describe('Single post organization data', () => {
       it('should contain organization data', async () => {
@@ -115,7 +114,6 @@ describe('Organizations. Get requests', () => {
         expect(models[0].id).toBe(maxId);
       });
     });
-
     describe('Test pagination', async () => {
       it('Every request should contain correct metadata', async () => {
         const page    = 1;

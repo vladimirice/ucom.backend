@@ -17,17 +17,20 @@ require('jest-expect-message');
 class OrganizationsHelper {
 
   /**
-   * See {@link PostsService#findAndProcessAllForUserWallFeed}
-   *
    * @param {number} targetOrgId
+   * @param {string} query
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
+   *
+   * See {@link PostsService#findAndProcessAllForOrgWallFeed}
    */
-  static async requestToGetOrgWallFeedAsGuest(targetOrgId, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+  static async requestToGetOrgWallFeedAsGuest(targetOrgId, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const url = RequestHelper.getOneOrgWallFeed(targetOrgId) + query;
+
     const res = await request(server)
-      .get(RequestHelper.getOneOrgWallFeed(targetOrgId))
+      .get(url)
     ;
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
@@ -287,7 +290,7 @@ class OrganizationsHelper {
   }
 
   /**
-   *
+   * @deprecated - not required
    * @param {number} page
    * @param {number} perPage
    * @param {boolean} dataOnly
