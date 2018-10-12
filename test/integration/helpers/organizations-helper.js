@@ -45,19 +45,23 @@ class OrganizationsHelper {
     return res.body;
   }
 
+  // noinspection OverlyComplexFunctionJS
   /**
    * See {@link PostsService#findAndProcessAllForUserWallFeed}
    *
    * @param {Object} myself
    * @param {number} targetOrgId
+   * @param {string} query
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    */
-  static async requestToGetOrgWallFeedAsMyself(myself, targetOrgId, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+  static async requestToGetOrgWallFeedAsMyself(myself, targetOrgId, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const url = RequestHelper.getOneOrgWallFeed(targetOrgId) + query;
+
     const res = await request(server)
-      .get(RequestHelper.getOneOrgWallFeed(targetOrgId))
+      .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
     ResponseHelper.expectStatusToBe(res, expectedStatus);
@@ -752,12 +756,14 @@ class OrganizationsHelper {
     return res.body;
   }
 
+
   /**
    *
    * @return {{title: *, nickname: *}}
    * @private
    */
   static _getMinimumFieldsSet() {
+    // noinspection JSCheckFunctionSignatures
     return {
       'title':    faker.name.firstName(),
       'nickname': faker.lorem.word(),
@@ -801,7 +807,6 @@ class OrganizationsHelper {
             // noinspection JSUnfilteredForInLoop
             req.field(fieldName, source[field])
           } else {
-            const a = 0;
             // noinspection JSUnfilteredForInLoop
             req.attach(fieldName, source[field])
           }
@@ -839,6 +844,7 @@ class OrganizationsHelper {
       });
     }  }
 
+  // noinspection OverlyComplexFunctionJS
   /**
    *
    * @param {number} orgId

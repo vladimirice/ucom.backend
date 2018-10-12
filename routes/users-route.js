@@ -52,7 +52,9 @@ UsersRouter.post('/:user_id/posts', [authTokenMiddleWare, bodyParser], async fun
 /* GET wall feed for user */
 UsersRouter.get('/:user_id/wall-feed', [ bodyParser ], async function(req, res) {
   const userId = req.user_id;
-  const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId);
+  const query = req.query;
+
+  const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId, query);
 
   res.send(response);
 });

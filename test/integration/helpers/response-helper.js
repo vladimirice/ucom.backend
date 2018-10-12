@@ -162,6 +162,16 @@ class ResponseHelper {
       expect(data.length).toBeGreaterThan(0);
     }
   }
+
+  static checkMetadata(response, page, perPage, totalAmount, hasMore) {
+    const metadata = response.metadata;
+
+    expect(metadata).toBeDefined();
+    expect(metadata.has_more).toBe(hasMore);
+    expect(metadata.page).toBe(page);
+    expect(metadata.per_page).toBe(perPage);
+    expect(metadata.total_amount).toBe(totalAmount);
+  }
 }
 
 module.exports = ResponseHelper;

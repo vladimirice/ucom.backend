@@ -17,15 +17,18 @@ class UsersHelper {
   /**
    * See {@link PostsService#findAndProcessAllForUserWallFeed}
    *
-   * @param {Object} targetUser
+   * @param {Object} wallOwner
+   * @param {string} query
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    */
-  static async requestToGetWallFeedAsGuest(targetUser, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+  static async requestToGetWallFeedAsGuest(wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
+
     const res = await request(server)
-      .get(RequestHelper.getOneUserWallFeed(targetUser.id))
+      .get(url)
     ;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
@@ -40,6 +43,7 @@ class UsersHelper {
 
     return res.body;
   }
+
 
   /**
    * @param {Object} myself
@@ -71,19 +75,23 @@ class UsersHelper {
     return res.body;
   }
 
+  // noinspection OverlyComplexFunctionJS
   /**
    * See {@link PostsService#findAndProcessAllForOrgWallFeed}
    *
    * @param {Object} myself
-   * @param {Object} targetUser
+   * @param {Object} wallOwner
+   * @param {string} query
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    */
-  static async requestToGetWallFeedAsMyself(myself, targetUser, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+  static async requestToGetWallFeedAsMyself(myself, wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
+
     const res = await request(server)
-      .get(RequestHelper.getOneUserWallFeed(targetUser.id))
+      .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 

@@ -1,4 +1,7 @@
 const helpers = require('../helpers');
+const gen = require('../../generators');
+
+const UsersFeedRepository = require('../../../lib/common/repository').UsersFeed;
 
 helpers.Mock.mockAllBlockchainPart();
 
@@ -19,6 +22,88 @@ describe('Organizations. Get requests', () => {
 
   describe('Users wall feed', () => {
     describe('Positive', () => {
+      describe('Test pagination', async () => {
+
+        it('Myself. smoke test', async () => {
+          const wallOwner = userVlad;
+          await gen.Posts.generateUsersPostsForUserWall(wallOwner, userJane, 3);
+
+          const page    = 1;
+          const perPage = 2;
+
+          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+          const response = await helpers.Users.requestToGetWallFeedAsMyself(userJane, wallOwner, queryString, false);
+          const totalAmount = await UsersFeedRepository.countAllForUserWallFeed(wallOwner.id);
+
+          helpers.Res.checkMetadata(response, page, perPage, totalAmount, true)
+        });
+
+        it('Metadata', async () => {
+
+          const wallOwner = userVlad;
+          await gen.Posts.generateUsersPostsForUserWall(wallOwner, userJane, 3);
+
+          const page    = 1;
+          const perPage = 2;
+
+          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+
+          const response = await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryString, false);
+          const totalAmount = await UsersFeedRepository.countAllForUserWallFeed(wallOwner.id);
+
+          helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
+
+          const lastPage = helpers.Req.getLastPage(totalAmount, perPage);
+
+          const queryStringLast = helpers.Req.getPaginationQueryString(
+            lastPage,
+            perPage
+          );
+
+          const lastResponse = await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryStringLast, false);
+
+          helpers.Res.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
+        });
+
+        it('Get two post pages', async () => {
+          const wallOwner = userVlad;
+          await gen.Posts.generateUsersPostsForUserWall(wallOwner, userJane, 3);
+
+          const perPage = 2;
+          let page = 1;
+
+          const posts = await UsersFeedRepository.findAllForUserWallFeed(wallOwner.id);
+          const expectedIdsOfFirstPage = [
+            posts[page - 1].id,
+            posts[page].id,
+          ];
+
+          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+          const firstPage = await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryString);
+
+          expect(firstPage.length).toBe(perPage);
+
+          firstPage.forEach((post, i) => {
+            expect(post.id).toBe(expectedIdsOfFirstPage[i])
+          });
+
+          page = 2;
+          const queryStringSecondPage = helpers.Req.getPaginationQueryString(page, perPage);
+          const secondPage = await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryStringSecondPage);
+
+          const expectedIdsOfSecondPage = [
+            posts[page].id,
+            posts[page + 1].id,
+          ];
+
+          expect(secondPage.length).toBe(perPage);
+
+          secondPage.forEach((post, i) => {
+            expect(post.id).toBe(expectedIdsOfSecondPage[i])
+          });
+        });
+      });
+
       it('should get all user-related posts as Guest', async () => {
         const targetUser = userVlad;
         const directPostAuthor = userJane;

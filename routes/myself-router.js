@@ -17,7 +17,9 @@ router.get('/', [authTokenMiddleWare], async function(req, res) {
 });
 
 router.get('/news-feed', [ authTokenMiddleWare ], async function(req, res) {
-  const response = await getPostService(req).findAndProcessAllForMyselfNewsFeed();
+  const query = req.query;
+
+  const response = await getPostService(req).findAndProcessAllForMyselfNewsFeed(query);
 
   res.send(response);
 });

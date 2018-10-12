@@ -185,7 +185,8 @@ class PostsHelper {
   }
 
   /**
-   *
+   * @deprecated
+   * @see PostsGenerator
    * @param {Object} user
    * @param {Object} targetUser
    * @param {string|null} givenDescription
@@ -250,7 +251,8 @@ class PostsHelper {
     return res.body;
   }
   /**
-   *
+   * @deprecated
+   * @see PostsGenerator
    * @param {Object} user
    * @returns {Promise<number>}
    */
@@ -283,7 +285,8 @@ class PostsHelper {
   }
 
   /**
-   *
+   * @deprecated
+   * @see PostsGenerator
    * @param {Object} user
    * @returns {Promise<number>}
    */

@@ -46,6 +46,16 @@ class RequestHelper {
 
   /**
    *
+   * @param {number} totalAmount
+   * @param {number} perPage
+   * @return {number}
+   */
+  static getLastPage(totalAmount, perPage) {
+    return +Math.floor(totalAmount/perPage);
+  }
+
+  /**
+   *
    * @param {number} page
    * @param {number} perPage
    * @returns {Promise<Object>}

@@ -1,4 +1,5 @@
 const helpers = require('../helpers');
+const gen = require('../../generators');
 
 helpers.Mock.mockAllBlockchainPart();
 
@@ -25,6 +26,12 @@ describe('Myself. Get requests', () => {
 
   describe('Get myself news feed', () => {
     describe('Positive', () => {
+      describe('Test pagination', () => {
+        it.skip('Test pagination', async () => {
+          // TODO
+        });
+      });
+
       it('should get correct users_ids and org_ids I follow', async () => {
         // This is unit test
 
@@ -57,7 +64,7 @@ describe('Myself. Get requests', () => {
         // Myself posts
         const promisesToCreatePosts = [
           // Vlad wall
-          helpers.Posts.requestToCreateMediaPost(userVlad), // User himself creates posts
+          gen.Posts.createMediaPostByUserHimself(userVlad), // User himself creates posts
           helpers.Posts.requestToCreatePostOffer(userVlad),
           helpers.Posts.requestToCreateDirectPostForUser(userJane, userVlad), // somebody creates post in users wall
 
