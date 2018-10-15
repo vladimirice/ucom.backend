@@ -63,8 +63,8 @@ router.post('/', [ upload.array() ], async function (req, res, next) {
 
     try {
       if (process.env.NODE_ENV === 'production') {
-        await EosAuth.createAccount(newUser.account_name, newUser.owner_public_key, newUser.public_key);
-        // await EosAuth.transactionToCreateNewAccount(newUser.account_name, newUser.owner_public_key, newUser.public_key);
+        // await EosAuth.createAccount(newUser.account_name, newUser.owner_public_key, newUser.public_key);
+        await EosAuth.transactionToCreateNewAccount(newUser.account_name, newUser.owner_public_key, newUser.public_key);
 
         await UserService.setBlockchainRegistrationIsSent(newUser);
 
