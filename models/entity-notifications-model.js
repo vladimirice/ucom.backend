@@ -48,5 +48,30 @@ module.exports = (sequelize, DataTypes) => {
     tableName: TABLE_NAME,
   });
 
+  /**
+   *
+   * @return {Array}
+   */
+  Model.getRequiredFields = function () {
+    return [
+      'id',
+      'domain_id',
+      'event_id',
+      'title',
+      'description',
+      'finished',
+      'seen',
+      'confirmed',
+      'severity',
+      'notification_type_id',
+      'recipient_entity_id',
+      'recipient_entity_name',
+      'entity_id',
+      'entity_name',
+      'created_at',
+      'updated_at'
+    ];
+  };
+
   return Model;
 };

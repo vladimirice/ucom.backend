@@ -20,6 +20,14 @@ class RequestHelper {
 
   /**
    *
+   * @param {number} id
+   * @return {string}
+   */
+  static getConfirmNotificationUrl(id) {
+    return `${this.getMyselfNotificationsList()}/${id}/confirm`;
+  }
+  /**
+   *
    * @param {number} targetUserId
    * @return {string}
    */

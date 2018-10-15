@@ -28,9 +28,31 @@ router.get('/notifications', [ authTokenMiddleWare ], async (req, res) => {
   const query = req.query;
   const service = getEntityNotificationsService(req);
 
-  const response = service.getAllNotifications(query);
+  const response = await service.getAllNotifications(query);
 
   res.send(response);
+});
+
+router.post('/notifications/:notification_id/confirm', [ authTokenMiddleWare ], async (req, res) => {
+  const notificationId = +req.params.notification_id;
+  const service = getEntityNotificationsService(req);
+
+  const response = await service.confirmPromptNotification(notificationId);
+
+  res.send({
+    success: true
+  });
+});
+
+router.post('/notifications/:notification_id/decline', [ authTokenMiddleWare ],  async (req, res) => {
+  const notificationId = +req.notification_id;
+  const service = getEntityNotificationsService(req);
+});
+
+/* Only for tests */
+router.post('/notifications/:notification_id/pending', [ authTokenMiddleWare ], async (req, res) => {
+  const notificationId = +req.notification_id;
+  const service = getEntityNotificationsService(req);
 });
 
 

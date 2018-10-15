@@ -31,9 +31,29 @@ describe('Get notifications', () => {
 
         await entityGen.Notifications.createPendingPrompt(userVlad, orgId);
 
+
+        const res = await helpers.Notifications.requestToConfirmPrompt(userVlad, 1);
+
+        return;
+
         const models = await helpers.Notifications.requestToGetNotificationsList(myself);
 
+        const options = helpers.Common.getOptionsForListAndMyself();
+
+        helpers.Common.checkNotificationsList(models, 1, options);
+
+
+
+        // At first just check existance
+
         // TODO provide notifications checker helper
-      });
+
+        // Notification validation structure
+        /*
+          * ORDER BY finished ASC, created_at DESC
+          * pagination
+          * structure itself
+         */
+      }, 50000);
   });
 });

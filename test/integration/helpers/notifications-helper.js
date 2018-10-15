@@ -3,7 +3,29 @@ const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 
+const EntityModelProvider = require('../../../lib/entities/service').ModelProvider;
+
 class NotificationsHelper {
+
+  /**
+   *
+   * @param {Object} myself
+   * @param {number} id
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   */
+  static async requestToConfirmPrompt(myself, id, expectedStatus = 200) {
+    const url = RequestHelper.getConfirmNotificationUrl(id);
+
+    const res = await request(server)
+      .post(url)
+      .set('Authorization', `Bearer ${myself.token}`)
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
 
   /**
    *
@@ -11,6 +33,8 @@ class NotificationsHelper {
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @return {Promise<*>}
+   *
+   * @link EntityNotificationsService#getAllNotifications
    */
   static async requestToGetNotificationsList(myself, dataOnly = true, expectedStatus = 200) {
     const url = RequestHelper.getMyselfNotificationsList();
@@ -27,6 +51,25 @@ class NotificationsHelper {
     }
 
     return res;
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   */
+  static checkNotificationPrompt(model, options) {
+    const mustExist = EntityModelProvider.getNotificationsModel().getRequiredFields();
+    ResponseHelper.expectFieldsAreExist(model, mustExist);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   */
+  static checkNotificationItselfCommonFields(model, options) {
+    this.checkNotificationPrompt(model, options);
   }
 }
 

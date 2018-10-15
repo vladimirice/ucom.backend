@@ -422,9 +422,10 @@ class PostsHelper {
   /**
    *
    * @param {string | null } queryString
+   * @param {boolean} dataOnly
    * @returns {Promise<Object[]>}
    */
-  static async requestToGetManyPostsAsGuest(queryString = null) {
+  static async requestToGetManyPostsAsGuest(queryString = null, dataOnly = true) {
 
     let url = RequestHelper.getPostsUrl();
 
@@ -438,7 +439,11 @@ class PostsHelper {
 
     ResponseHelper.expectStatusOk(res);
 
-    return res.body.data;
+    if (dataOnly) {
+      return res.body.data;
+    }
+
+    return res.body;
   }
 
   /**

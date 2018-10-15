@@ -17,6 +17,8 @@ const PostOfferRepository = require('./../../../lib/posts/repository').PostOffer
 
 const postsUrl = helpers.Req.getPostsUrl();
 
+const PostsGen = require('../../generators').Posts;
+
 require('jest-expect-message');
 
 let userVlad, userJane;
@@ -160,6 +162,19 @@ describe('Posts API', () => {
       });
     });
     describe('Test pagination', async () => {
+      it('Fix bug about has more', async () => {
+        const postsOwner = userVlad;
+        const directPostAuthor = userJane;
+
+        await PostsGen.generateUsersPostsForUserWall(postsOwner, directPostAuthor, 50);
+
+        const queryString = 'page=2&post_type_id=1&sort_by=-current_rate&per_page=20';
+
+        const response = await helpers.Posts.requestToGetManyPostsAsGuest(queryString, false);
+
+        helpers.Res.checkMetadata(response, 2, 20, 54, true);
+
+      }, 10000);
 
       it('Every request should contain correct metadata', async () => {
         const perPage = 2;
