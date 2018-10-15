@@ -24,6 +24,16 @@ router.get('/news-feed', [ authTokenMiddleWare ], async function(req, res) {
   res.send(response);
 });
 
+router.get('/notifications', [ authTokenMiddleWare ], async (req, res) => {
+  const query = req.query;
+  const service = getEntityNotificationsService(req);
+
+  const response = service.getAllNotifications(query);
+
+  res.send(response);
+});
+
+
 /* Update Myself Profile */
 router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
   console.log('Patch request body is: ', JSON.stringify(req.body, null, 2));
@@ -181,6 +191,14 @@ function getUserService(req) {
  */
 function getPostService(req) {
   return req['container'].get('post-service');
+}
+
+/**
+ * @param {Object} req
+ * @returns {EntityNotificationsService}
+ */
+function getEntityNotificationsService(req) {
+  return req.container.get('entity-notifications-service');
 }
 
 module.exports = router;

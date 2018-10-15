@@ -5,7 +5,7 @@ module.exports = {
     const sql = `
       CREATE TABLE ${TABLE_NAME}
       (
-        BIGINT                SERIAL NOT NULL
+        id                    SERIAL NOT NULL
                               CONSTRAINT ${TABLE_NAME}_pkey PRIMARY KEY,
         domain_id             SMALLINT NOT NULL,
         event_id              SMALLINT NOT NULL,

@@ -31,6 +31,14 @@ class RequestHelper {
    *
    * @return {string}
    */
+  static getMyselfNotificationsList() {
+    return `${myselfUrl}/notifications`
+  }
+
+  /**
+   *
+   * @return {string}
+   */
   static getMyselfNewsFeedUrl() {
     return `${myselfUrl}/news-feed`;
   }
