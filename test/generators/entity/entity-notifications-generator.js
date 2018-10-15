@@ -7,7 +7,9 @@ const request = require('supertest');
 const server = require('../../../app');
 
 class EntityNotificationsGenerator {
+  static createPendingPrompt() {
 
+  }
 }
 
 module.exports = EntityNotificationsGenerator;
