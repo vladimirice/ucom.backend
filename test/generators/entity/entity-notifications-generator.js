@@ -14,15 +14,12 @@ class EntityNotificationsGenerator {
 
   /**
    *
-   * @param {Object} recipient
+   * @param {number} recipientId
    * @param {number} orgIdToBoard
    * @return {Promise<Object>}
    */
-  static async createPendingPrompt(recipient, orgIdToBoard) {
-    const title = faker.lorem.sentence();
-    const description = faker.lorem.sentences();
-
-    return await EntityNotificationsRepository.createNewSamplePendingPrompt(recipient.id, orgIdToBoard, title, description);
+  static async createPendingPrompt(recipientId, orgIdToBoard) {
+    return await EntityNotificationsRepository.createUsersTeamInvitationPrompt(recipientId, orgIdToBoard);
   }
 }
 

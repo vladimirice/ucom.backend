@@ -4,6 +4,8 @@ const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 
 const EntityModelProvider = require('../../../lib/entities/service').ModelProvider;
+const UsersModelProvider = require('../../../lib/users/service').ModelProvider;
+const OrgModelProvider = require('../../../lib/organizations/service').ModelProvider;
 
 class NotificationsHelper {
 
@@ -116,6 +118,34 @@ class NotificationsHelper {
    */
   static checkNotificationItselfCommonFields(model, options) {
     this.checkNotificationPrompt(model, options);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {number} recipientId
+   * @param {number} orgId
+   * @param {boolean} isNew
+   */
+  static checkUsersTeamInvitationPromptFromDb(model, recipientId, orgId, isNew = true) {
+    const fieldsToCheck = {
+      domain_id: 10,
+      event_id: 10,
+      notification_type_id: 10,
+      recipient_entity_name: UsersModelProvider.getEntityName(),
+      entity_name: OrgModelProvider.getEntityName(),
+      recipient_entity_id: "" + recipientId,
+      entity_id: "" + orgId,
+    };
+
+    if (isNew) {
+      fieldsToCheck.finished   = false;
+      fieldsToCheck.seen       = false;
+      fieldsToCheck.confirmed  = 0;
+      fieldsToCheck.confirmed  = 0;
+    }
+
+    expect(model).toMatchObject(fieldsToCheck);
   }
 }
 
