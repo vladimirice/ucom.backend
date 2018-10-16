@@ -14,8 +14,8 @@ const UsersHelper = require('../helpers/users-helper');
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
 const UsersRepositories = require('../../../lib/users/repository');
 const PostRepositories = require('../../../lib/posts/repository');
-const UsersModelProvider = require('../../../lib/users/users-model-provider');
-const EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
+const UsersModelProvider =  require('../../../lib/users/service').ModelProvider;
+const EntityModelProvider = require('../../../lib/entities/service').ModelProvider;
 
 const seedsDir = '../../../seeders';
 
@@ -30,6 +30,8 @@ const tableToSeeds = {
 const minorTables = [
   UsersRepositories.Activity.getModelName(),
   UsersRepositories.UsersTeam.getModelName(),
+
+  EntityModelProvider.getNotificationsTableName(),
   'post_ipfs_meta',
 
   'users_education',

@@ -1,7 +1,8 @@
-const UsersHelper       = require('./users-helper');
-const OrgHelper         = require('./organizations-helper');
-const CommentsHelper    = require('./comments-helper');
-const PostsHelper    = require('./posts-helper');
+const UsersHelper         = require('./users-helper');
+const OrgHelper           = require('./organizations-helper');
+const CommentsHelper      = require('./comments-helper');
+const PostsHelper         = require('./posts-helper');
+const NotificationsHelper = require('./notifications-helper');
 
 const _ = require('lodash');
 
@@ -67,6 +68,34 @@ class CommonHelper {
     if (comment.organization_id) {
       OrgHelper.checkOneOrganizationPreviewFields(comment.organization);
     }
+  }
+
+  /**
+   *
+   * @param {Object[]} models
+   * @param {number} expectedLength
+   * @param {Object} options
+   */
+  static checkNotificationsList(models, expectedLength, options) {
+    expect(models).toBeDefined();
+    expect(models.length).toBe(expectedLength);
+
+    models.forEach(post => {
+      this.checkOneNotificationsFromList(post, options);
+    });
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   */
+  static checkOneNotificationsFromList(model, options) {
+    expect(_.isEmpty(model)).toBeFalsy();
+    NotificationsHelper.checkNotificationItselfCommonFields(model, options);
+    // UsersHelper.checkIncludedUserPreview(model);
+    // OrgHelper.checkOneOrgPreviewFieldsIfExists(model);
+    // this._checkMyselfData(post, options);
   }
 
   /**

@@ -28,5 +28,7 @@ module.exports = {
 
   Mock:  require('./mock-helper'),
 
-  Common: require('./common-helper')
+  Common: require('./common-helper'),
+
+  Notifications: require('./notifications-helper'),
 };
