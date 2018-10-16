@@ -13,9 +13,55 @@ class NotificationsHelper {
    * @param {number} id
    * @param {number} expectedStatus
    * @return {Promise<Object>}
+   *
+   * @link EntityNotificationsService#confirmPromptNotification
    */
   static async requestToConfirmPrompt(myself, id, expectedStatus = 200) {
     const url = RequestHelper.getConfirmNotificationUrl(id);
+
+    const res = await request(server)
+      .post(url)
+      .set('Authorization', `Bearer ${myself.token}`)
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} myself
+   * @param {number} id
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   *
+   * @link EntityNotificationsService#declinePromptNotification
+   */
+  static async requestToDeclinePrompt(myself, id, expectedStatus = 200) {
+    const url = RequestHelper.getDeclineNotificationUrl(id);
+
+    const res = await request(server)
+      .post(url)
+      .set('Authorization', `Bearer ${myself.token}`)
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} myself
+   * @param {number} id
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   *
+   * @link EntityNotificationsService#pendingPromptNotification
+   */
+  static async requestToPendingPrompt(myself, id, expectedStatus = 200) {
+    const url = RequestHelper.getPendingNotificationUrl(id);
 
     const res = await request(server)
       .post(url)

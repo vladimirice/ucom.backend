@@ -26,6 +26,24 @@ class RequestHelper {
   static getConfirmNotificationUrl(id) {
     return `${this.getMyselfNotificationsList()}/${id}/confirm`;
   }
+
+  /**
+   *
+   * @param {number} id
+   * @return {string}
+   */
+  static getDeclineNotificationUrl(id) {
+    return `${this.getMyselfNotificationsList()}/${id}/decline`;
+  }
+
+  /**
+   *
+   * @param {number} id
+   * @return {string}
+   */
+  static getPendingNotificationUrl(id) {
+    return `${this.getMyselfNotificationsList()}/${id}/pending`;
+  }
   /**
    *
    * @param {number} targetUserId

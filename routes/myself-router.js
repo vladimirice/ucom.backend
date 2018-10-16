@@ -44,6 +44,28 @@ router.post('/notifications/:notification_id/confirm', [ authTokenMiddleWare ], 
   });
 });
 
+router.post('/notifications/:notification_id/decline', [ authTokenMiddleWare ], async (req, res) => {
+  const notificationId = +req.params.notification_id;
+  const service = getEntityNotificationsService(req);
+
+  const response = await service.declinePromptNotification(notificationId);
+
+  res.send({
+    success: true
+  });
+});
+
+router.post('/notifications/:notification_id/pending', [ authTokenMiddleWare ], async (req, res) => {
+  const notificationId = +req.params.notification_id;
+  const service = getEntityNotificationsService(req);
+
+  const response = await service.pendingPromptNotification(notificationId);
+
+  res.send({
+    success: true
+  });
+});
+
 router.post('/notifications/:notification_id/decline', [ authTokenMiddleWare ],  async (req, res) => {
   const notificationId = +req.notification_id;
   const service = getEntityNotificationsService(req);

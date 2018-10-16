@@ -31,10 +31,9 @@ describe('Get notifications', () => {
 
         await entityGen.Notifications.createPendingPrompt(userVlad, orgId);
 
-
-        const res = await helpers.Notifications.requestToConfirmPrompt(userVlad, 1);
-
-        return;
+        // const res = await helpers.Notifications.requestToConfirmPrompt(userVlad, 1);
+        // const res = await helpers.Notifications.requestToDeclinePrompt(userVlad, 1);
+        // await helpers.Notifications.requestToPendingPrompt(userVlad, 1);
 
         const models = await helpers.Notifications.requestToGetNotificationsList(myself);
 

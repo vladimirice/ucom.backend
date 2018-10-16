@@ -5,7 +5,6 @@ const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictio
 
 const faker = require('faker');
 
-
 const EntityNotificationsRepository = require('../../../lib/entities/repository').Notifications;
 
 const request = require('supertest');

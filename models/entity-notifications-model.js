@@ -57,8 +57,6 @@ module.exports = (sequelize, DataTypes) => {
       'id',
       'domain_id',
       'event_id',
-      'title',
-      'description',
       'finished',
       'seen',
       'confirmed',
