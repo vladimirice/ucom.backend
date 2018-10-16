@@ -18,13 +18,13 @@ describe('Notifications create-update', () => {
     await helpers.SeedsHelper.sequelizeAfterAll();
   });
   beforeEach(async () => {
-    await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
+    await helpers.SeedsHelper.initUsersOnly();
   });
 
   describe('Organizations. Users team. Team invitation', () => {
     describe('Positive', () => {
-      it('create valid prompt notification', async () => {
-        const author = userRokky;
+      it('Create valid prompt notification when org is created.', async () => {
+        const author = userVlad;
 
         const teamMembers = [
           userJane,
@@ -56,9 +56,47 @@ describe('Notifications create-update', () => {
         helpers.Notifications.checkUsersTeamInvitationPromptFromDb(petrNotifications[0], userPetr.id, newOrgId, true);
       });
 
-      it.skip('should receive notification if board is updated - new members are added', async () => {
-        // TODO
-      })
+      it('should receive notification if board is updated - new members are added', async () => {
+        // create notification if user is added to the board after updating
+
+        const author = userVlad;
+        const teamMembers = [
+          userJane,
+          userPetr
+        ];
+
+        const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
+
+        const newTeamMembers = _.concat(teamMembers, userRokky);
+
+        await orgGen.updateOrgUsersTeam(newOrgId, author, newTeamMembers);
+
+        const rokkyNotifications = await helpers.Notifications.requestToGetNotificationsList(userRokky);
+
+        expect(rokkyNotifications.length).toBe(1);
+
+        helpers.Notifications.checkUsersTeamInvitationPromptFromDb(rokkyNotifications[0], userRokky.id, newOrgId, true);
+      });
+
+      it('should provide users team status of organization', async () => {
+        const author = userVlad;
+        const teamMembers = [
+          userJane,
+          userPetr,
+          userRokky
+        ];
+
+        const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
+
+        const org = await helpers.Org.requestToGetOneOrganizationAsGuest(newOrgId);
+
+        const usersTeam = org.users_team;
+
+        usersTeam.forEach(member => {
+          expect(member.status).toBeDefined();
+          expect(member.status).toBe(0);
+        });
+      });
     });
   });
 });
