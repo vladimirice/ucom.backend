@@ -39,9 +39,7 @@ router.post('/notifications/:notification_id/confirm', [ authTokenMiddleWare ], 
 
   const response = await service.confirmPromptNotification(notificationId);
 
-  res.send({
-    success: true
-  });
+  res.send(response);
 });
 
 router.post('/notifications/:notification_id/decline', [ authTokenMiddleWare ], async (req, res) => {
@@ -50,9 +48,7 @@ router.post('/notifications/:notification_id/decline', [ authTokenMiddleWare ], 
 
   const response = await service.declinePromptNotification(notificationId);
 
-  res.send({
-    success: true
-  });
+  res.send(response);
 });
 
 router.post('/notifications/:notification_id/pending', [ authTokenMiddleWare ], async (req, res) => {

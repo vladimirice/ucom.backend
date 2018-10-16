@@ -94,7 +94,12 @@ class CommonHelper {
     expect(_.isEmpty(model)).toBeFalsy();
     NotificationsHelper.checkNotificationItselfCommonFields(model, options);
     // UsersHelper.checkIncludedUserPreview(model);
-    // OrgHelper.checkOneOrgPreviewFieldsIfExists(model);
+
+    expect(model.data).toBeDefined();
+    expect(model.data).not.toBeNull();
+
+    // TODO - for board invitation prompt only
+    OrgHelper.checkOneOrganizationPreviewFields(model.data.organization);
     // this._checkMyselfData(post, options);
   }
 

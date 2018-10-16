@@ -1,10 +1,6 @@
-const _ = require('lodash');
-
 const entityGen = require('../../generators').Entity;
 
 const helpers                   = require('../helpers');
-const OrganizationsRepositories = require('../../../lib/organizations/repository');
-const OrgRepository             = require('../../../lib/organizations/repository').Main;
 
 let userVlad;
 let userJane;
@@ -38,21 +34,7 @@ describe('Get notifications', () => {
         const models = await helpers.Notifications.requestToGetNotificationsList(myself);
 
         const options = helpers.Common.getOptionsForListAndMyself();
-
         helpers.Common.checkNotificationsList(models, 1, options);
-
-
-
-        // At first just check existance
-
-        // TODO provide notifications checker helper
-
-        // Notification validation structure
-        /*
-          * ORDER BY finished ASC, created_at DESC
-          * pagination
-          * structure itself
-         */
-      }, 50000);
+      });
   });
 });

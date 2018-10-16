@@ -1,6 +1,8 @@
 const _ = require('lodash');
 const orgGen = require('../../generators').Org;
 
+const UsersTeamStatusDictionary = require('../../../lib/users/dictionary').UsersTeamStatus;
+
 const helpers = require('../helpers');
 
 let userVlad;
@@ -78,6 +80,74 @@ describe('Notifications create-update', () => {
         helpers.Notifications.checkUsersTeamInvitationPromptFromDb(rokkyNotifications[0], userRokky.id, newOrgId, true);
       });
 
+      it('should properly CONFIRM users team invitation prompt', async () => {
+        const author = userVlad;
+
+        const teamMembers = [
+          userJane,
+          userPetr
+        ];
+
+        const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
+        const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
+        const confirmed = await helpers.Notifications.requestToConfirmPrompt(userJane, janeNotifications[0].id);
+
+        helpers.Common.checkOneNotificationsFromList(confirmed, {});
+
+        helpers.Notifications.checkUsersTeamInvitationPromptFromDb(
+          confirmed,
+          userJane.id,
+          newOrgId,
+          false,
+          'confirmed'
+        );
+
+        // get organizations board and see that status is confirmed
+
+        const org = await helpers.Org.requestToGetOneOrganizationAsGuest(newOrgId);
+
+        const usersTeam = org.users_team;
+
+        const userJaneMember = usersTeam.find(data => data.id === userJane.id);
+        expect(userJaneMember.users_team_status).toBe(UsersTeamStatusDictionary.getStatusConfirmed());
+      });
+
+      it('should properly DECLINE users team invitation prompt', async () => {
+        const author = userVlad;
+
+        const teamMembers = [
+          userJane,
+          userPetr
+        ];
+
+        const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
+        const petrNotifications = await helpers.Notifications.requestToGetNotificationsList(userPetr);
+        const declined = await helpers.Notifications.requestToDeclinePrompt(userPetr, petrNotifications[0].id);
+
+        helpers.Common.checkOneNotificationsFromList(declined, {});
+
+        helpers.Notifications.checkUsersTeamInvitationPromptFromDb(
+          declined,
+          userPetr.id,
+          newOrgId,
+          false,
+          'declined'
+        );
+
+        // get organizations board and see that status is confirmed
+
+        const org = await helpers.Org.requestToGetOneOrganizationAsGuest(newOrgId);
+
+        const usersTeam = org.users_team;
+
+        const userPetrMember = usersTeam.find(data => data.id === userPetr.id);
+        expect(userPetrMember.users_team_status).toBe(UsersTeamStatusDictionary.getStatusDeclined());
+      });
+
+      it.skip('should delete pending notifications if user is deleted from the board', async () => {
+        // TODO
+      });
+
       it('should provide users team status of organization', async () => {
         const author = userVlad;
         const teamMembers = [
@@ -93,9 +163,15 @@ describe('Notifications create-update', () => {
         const usersTeam = org.users_team;
 
         usersTeam.forEach(member => {
-          expect(member.status).toBeDefined();
-          expect(member.status).toBe(0);
+          expect(member.users_team_status).toBeDefined();
+          expect(member.users_team_status).toBe(UsersTeamStatusDictionary.getStatusPending());
         });
+      });
+    });
+
+    describe('Negative', () => {
+      it.skip('not possible to interact with notification does not belong to you', async () => {
+        // TODO
       });
     });
   });

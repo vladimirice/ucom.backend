@@ -258,7 +258,7 @@ class OrganizationsHelper {
     // TODO - check preview contains only expected fields
     // Problem with followed_by field of organization
     expected.forEach(field => {
-      expect(model.hasOwnProperty(field));
+      expect(model.hasOwnProperty(field), `There is no field: ${field}`).toBeTruthy();
     });
 
     // ResponseHelper.expectAllFieldsExistence(model, expected);

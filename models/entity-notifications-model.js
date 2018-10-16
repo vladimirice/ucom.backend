@@ -71,5 +71,10 @@ module.exports = (sequelize, DataTypes) => {
     ];
   };
 
+  Model.associate = function(models) {
+    // TODO - this is temp solution because entity ID might be not only organization
+    models[TABLE_NAME].belongsTo(models['organizations'], {foreignKey: 'entity_id'});
+  };
+
   return Model;
 };
