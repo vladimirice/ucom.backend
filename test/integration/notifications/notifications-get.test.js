@@ -29,7 +29,7 @@ describe('Get notifications', () => {
         const orgId = 1;
         const myself = userVlad;
 
-        await entityGen.Notifications.createPendingPrompt(userVlad, orgId);
+        await entityGen.Notifications.createPendingPrompt(userVlad.id, orgId);
 
         // const res = await helpers.Notifications.requestToConfirmPrompt(userVlad, 1);
         // const res = await helpers.Notifications.requestToDeclinePrompt(userVlad, 1);
