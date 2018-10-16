@@ -44,7 +44,7 @@ describe('Organizations. Get requests', () => {
           await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane, 3);
 
           const page    = 1;
-          const perPage = 2;
+          let perPage = 2;
 
           const queryString = helpers.Req.getPaginationQueryString(page, perPage);
           const response = await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId, queryString, false);
@@ -53,7 +53,8 @@ describe('Organizations. Get requests', () => {
 
           helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
 
-          const lastPage = helpers.Req.getLastPage(totalAmount, perPage);
+          perPage = 3;
+          let lastPage = helpers.Req.getLastPage(totalAmount, perPage);
 
           const queryStringLast = helpers.Req.getPaginationQueryString(
             lastPage,
