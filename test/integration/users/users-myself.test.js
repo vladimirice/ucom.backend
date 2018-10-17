@@ -11,6 +11,8 @@ const ResponseHelper = require('../helpers/response-helper');
 const FileToUploadHelper = require('../helpers/file-to-upload-helper');
 const UsersRepository = require('./../../../lib/users/users-repository');
 
+
+
 const myselfUrl = '/api/v1/myself';
 
 describe('Myself API', () => {
@@ -21,6 +23,17 @@ describe('Myself API', () => {
 
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
+  });
+
+  it('should be field unread_messages_count', async () => {
+    const userVlad = await UsersHelper.getUserVlad();
+
+    const res = await request(server)
+      .get(myselfUrl)
+      .set('Authorization', `Bearer ${userVlad.token}`)
+    ;
+
+    expect(res.body.unread_messages_count).toBeDefined();
   });
 
   it('Get logged user data', async function ()  {

@@ -1,18 +1,87 @@
 const io = require('socket.io-client');
 
 const socketURL = 'http://localhost:3000';
+// const socketURL = 'https://backend.u.community:443';
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiYWNjb3VudF9uYW1lIjoiYWRtaW5fYWNjb3VudF9uYW1lIiwiaWF0IjoxNTM0NDI0OTY4fQ.OBZCv4izTR0K6Mi6Fcjn3WT4N5MieKH5VpesY2WNfeM';
 
-const options ={
+const options = {
   transports: ['websocket'],
-  'force new connection': true
+  query: {token: token}
 };
 
 // var chatUser1 = {'name':'Tom'};
 // var chatUser2 = {'name':'Sally'};
 // var chatUser3 = {'name':'Dana'};
 
-it.skip('Should broadcast new user to all users', async function(done) {
+describe('Suite of unit tests', function() {
+
+  var socket;
+
+  beforeEach(function(done) {
+    // Setup
+    socket = io.connect(socketURL, {
+      'reconnection delay' : 0
+      , 'reopen delay' : 0
+      , 'force new connection' : true,
+      transports: ['websocket'],
+      query: {token: token}
+    });
+    socket.on('connect', function() {
+      console.log('worked...');
+      done();
+    });
+    socket.on('disconnect', function() {
+      console.log('disconnected...');
+    });
+    socket.on('notification', function(msg) {
+      console.log('Message from socket: ', msg);
+    });
+  });
+
+  afterEach(function(done) {
+    // Cleanup
+    if(socket.connected) {
+      console.log('disconnecting...');
+      socket.disconnect();
+    } else {
+      // There will not be a connection unless you have done() in beforeEach, socket.on('connect'...)
+      console.log('no connection to break...');
+    }
+    done();
+  });
+
+  describe('First (hopefully useful) test', function() {
+
+    it('Doing some things with indexOf()', function(done) {
+      done();
+    });
+
+    it('Doing something else with indexOf()', function(done) {
+      done();
+    });
+
+  });
+
+});
+
+it('Should broadcast new user to all users', async function() {
+
+  // Place real token here, without Bearer
+
+  // const socket = io('https://backend.u.community:443', {
+  //   transports: [
+  //     'websocket'
+  //   ],
+  //   query: {token: token}
+  // });
+
   const client1 = await io.connect(socketURL, options);
+
+  client1.on('connect', function(msg) {
+
+    console.warn('connected');
+    console.warn(JSON.stringify(msg, null, 2));
+  });
 
   // client1.on('connect', function(data) {
     // client1.emit('connection name', chatUser1);

@@ -25,16 +25,6 @@ router.get('/news-feed', [ authTokenMiddleWare ], async function(req, res) {
   res.send(response);
 });
 
-// router.post('/emit-notification', [ authTokenMiddleWare ], async function(req, res) {
-//   SocketIoServer.emitToUser(2, 'notification', {
-//     'unread_messages': 100500,
-//   });
-//
-//   res.send({
-//     'success': true,
-//   });
-// });
-
 router.get('/notifications', [ authTokenMiddleWare ], async (req, res) => {
   const query = req.query;
   const service = getEntityNotificationsService(req);
