@@ -12,7 +12,7 @@
     "httpEndpoint": "https://api.uos.u.community:7888"
   },
   "auth": {
-    "jwt_secret_key": "secret_key_test"
+    "jwt_secret_key": "secret_key"
   },
   "ipfs": {
     "host": "85.10.211.115",

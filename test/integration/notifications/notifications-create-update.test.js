@@ -25,6 +25,22 @@ describe('Notifications create-update', () => {
 
   describe('Organizations. Users team. Team invitation', () => {
     describe('Positive', () => {
+
+      // it('sample', async () => {
+      //   const author = userJane;
+      //
+      //   const teamMembers = [
+      //     userVlad,
+      //     userPetr
+      //   ];
+      //
+      //   const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
+      //
+      //   const newTeamMembers = _.concat(teamMembers, userRokky);
+      //
+      //   await orgGen.updateOrgUsersTeam(newOrgId, author, newTeamMembers);
+      // });
+
       it('Create valid prompt notification when org is created.', async () => {
         const author = userVlad;
 
