@@ -116,7 +116,9 @@ describe('Myself. Get requests', () => {
           janeMediaPostOrg, janePostOfferOrg, janeDirectPostOrg
         ] = await Promise.all(promisesToCreatePosts);
 
-        const posts = await helpers.Users.requestToGetMyselfNewsFeed(userVlad);
+        const queryString = helpers.Req.getPaginationQueryString(1, 20);
+
+        const posts = await helpers.Users.requestToGetMyselfNewsFeed(userVlad, queryString);
 
         expect(posts.some(post => post.id === vladMediaPost)).toBeTruthy();
         expect(posts.some(post => post.id === vladPostOffer)).toBeTruthy();

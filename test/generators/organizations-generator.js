@@ -11,6 +11,19 @@ class OrganizationsGenerator {
    *
    * @param {Object} author
    * @param {Object[]} teamMembers
+   * @param {number} mul
+   * @return {Promise<void>}
+   */
+  static async createManyOrgWithSameTeam(author, teamMembers, mul = 1) {
+    for (let i = 0; i < mul; i++) {
+      await this.createOrgWithTeam(author, teamMembers);
+    }
+  }
+
+  /**
+   *
+   * @param {Object} author
+   * @param {Object[]} teamMembers
    * @return {Promise<Object>}
    */
   static async createOrgWithTeam(author, teamMembers = []) {

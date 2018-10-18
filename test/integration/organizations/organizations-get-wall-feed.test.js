@@ -73,7 +73,9 @@ describe('Organizations. Get requests', () => {
           let page = 1;
 
           const queryString = helpers.Req.getPaginationQueryString(page, perPage);
-          const posts     = await UsersFeedRepository.findAllForOrgWallFeed(orgId, queryString);
+          const posts     = await UsersFeedRepository.findAllForOrgWallFeed(orgId, {
+            limit: 20
+          });
           const firstPage = await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId, queryString);
 
           const expectedIdsOfFirstPage = [

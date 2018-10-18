@@ -47,6 +47,7 @@ class UsersHelper {
 
   /**
    * @param {Object} myself
+   * @param {string} queryString
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
@@ -54,8 +55,8 @@ class UsersHelper {
    *
    * @link PostService#findAndProcessAllForMyselfNewsFeed
    */
-  static async requestToGetMyselfNewsFeed(myself, dataOnly = true, expectedStatus = 200, allowEmpty = false) {
-    const url = RequestHelper.getMyselfNewsFeedUrl();
+  static async requestToGetMyselfNewsFeed(myself, queryString = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
+    const url = RequestHelper.getMyselfNewsFeedUrl() + `/${queryString}`;
 
     const res = await request(server)
       .get(url)

@@ -141,7 +141,7 @@ describe('Organizations. Get requests', () => {
         const perPage = 2;
         let page = 1;
 
-        const posts = await OrgRepository.findAllForPreview({
+        const posts = await OrgRepository.findAllOrgForList({
           'order': [
             ['current_rate', 'DESC'],
             ['id', 'DESC']

@@ -80,14 +80,16 @@ class NotificationsHelper {
   /**
    *
    * @param {Object} myself
+   * @param {string} queryString
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @return {Promise<*>}
    *
    * @link EntityNotificationsService#getAllNotifications
    */
-  static async requestToGetNotificationsList(myself, dataOnly = true, expectedStatus = 200) {
-    const url = RequestHelper.getMyselfNotificationsList();
+  static async requestToGetNotificationsList(myself, queryString = '', dataOnly = true, expectedStatus = 200) {
+
+    const url = RequestHelper.getMyselfNotificationsList() + `/${queryString}`;
 
     const res = await request(server)
       .get(url)
@@ -100,7 +102,7 @@ class NotificationsHelper {
       return res.body.data;
     }
 
-    return res;
+    return res.body;
   }
 
   /**
