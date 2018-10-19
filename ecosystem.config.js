@@ -59,6 +59,44 @@ module.exports = {
       env_test : {
         NODE_ENV: 'test',
       },
-    }
+    },
+
+    // *********** staging applications ***********
+    {
+      name      : 'uos_backend_staging',
+      script    : 'bin/www',
+      watch: false,
+      instance_var: 'INSTANCE_ID',
+      env: {
+        "PORT": 3001,
+        "NODE_ENV": "staging"
+      },
+      env_production : {
+        NODE_ENV: 'staging',
+      },
+    },
+    {
+      name: 'uos_backend_staging_importance_worker',
+      script: 'bin/worker-update-importance.js',
+      watch: false,
+      cron_restart: "* * * * *",
+      env: {
+        "NODE_ENV": "staging"
+      },
+      env_production : {
+        NODE_ENV: 'staging',
+      },
+    },
+    {
+      name: 'uos_backend_staging_blockchain_consumer',
+      script: 'bin/blockchain-consumer.js',
+      watch: true,
+      env: {
+        "NODE_ENV": "staging"
+      },
+      env_production : {
+        NODE_ENV: 'staging',
+      },
+    },
   ],
 };
