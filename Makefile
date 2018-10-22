@@ -28,9 +28,13 @@ docker-set-hosts-mac:
 d-db:
 	docker-compose exec --user=root db /bin/bash
 
-deploy d:
+deploy-prod d-p:
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy.sh
+
+deploy-staging d-s:
+	git push
+	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy_staging.sh
 
 prod-logs:
 	ssh dev@5.9.119.5 'bash -s' < ./pm2_production_logs.sh
