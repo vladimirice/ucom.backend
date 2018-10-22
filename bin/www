@@ -30,6 +30,12 @@ const io = require('socket.io').listen(server);
 SocketIoServer.initServer(io);
 
 
+server.on('connection', () => {
+  console.warn('Env is: ', process.env.NODE_ENV);
+  console.warn('Port is: ', port)
+});
+
+
 // io.on('connection', function(socket){
 //   console.log('a user connected');
 //   socket.on('disconnect', function(){
