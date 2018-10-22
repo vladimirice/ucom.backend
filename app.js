@@ -79,6 +79,6 @@ app.use(function(req, res, next) {
 app.use(errorMiddleware);
 
 console.warn('Env is: ', process.env.NODE_ENV);
-console.warn('Port is: ', port);
+console.warn('Port is: ', process.env.PORT);
 
 module.exports = app;
