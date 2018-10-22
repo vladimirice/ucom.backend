@@ -2,7 +2,7 @@ module.exports = {
   apps : [
     // *********** production applications *********** //
     {
-      name:           'uos_backend',
+      name:           'production_uos_backend',
       instance_var:   'INSTANCE_ID',
       script:         'bin/www',
       watch:          false,
