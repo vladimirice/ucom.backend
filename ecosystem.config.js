@@ -26,7 +26,7 @@ module.exports = {
       autorestart:    false,
       env: {
         NODE_ENV:     'test',
-        watch:          false,
+        watch:          true,
         autorestart:    true,
       },
       env_production: {

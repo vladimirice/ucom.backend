@@ -10,17 +10,6 @@ const EntityNotificationsRepository = require('../../../lib/entities/repository'
 const request = require('supertest');
 const server = require('../../../app');
 
-class EntityNotificationsGenerator {
-
-  /**
-   *
-   * @param {number} recipientId
-   * @param {number} orgIdToBoard
-   * @return {Promise<Object>}
-   */
-  static async createPendingPrompt(recipientId, orgIdToBoard) {
-    return await EntityNotificationsRepository.createUsersTeamInvitationPrompt(recipientId, orgIdToBoard);
-  }
-}
+class EntityNotificationsGenerator {}
 
 module.exports = EntityNotificationsGenerator;

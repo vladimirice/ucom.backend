@@ -3,6 +3,7 @@ const OrgHelper           = require('./organizations-helper');
 const CommentsHelper      = require('./comments-helper');
 const PostsHelper         = require('./posts-helper');
 const NotificationsHelper = require('./notifications-helper');
+const EventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
 
 const _ = require('lodash');
 
@@ -98,9 +99,28 @@ class CommonHelper {
     expect(model.data).toBeDefined();
     expect(model.data).not.toBeNull();
 
+    expect(model.target_entity).toBeDefined();
+    expect(model.target_entity).not.toBeNull();
+
+    switch (model.event_id) {
+      case EventIdDictionary.getOrgUsersTeamInvitation():
+        this._checkOrgUsersTeamInvitationNotification(model);
+        break;
+      default:
+        throw new Error(`Dunno how to check model with eventID ${model.event_id}`);
+    }
+
     // TODO - for board invitation prompt only
     OrgHelper.checkOneOrganizationPreviewFields(model.data.organization);
     // this._checkMyselfData(post, options);
+  }
+
+
+  static _checkOrgUsersTeamInvitationNotification(model) {
+    OrgHelper.checkOneOrganizationPreviewFields(model.data.organization);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
+
+    // Target entity must be User = recipient
   }
 
   /**

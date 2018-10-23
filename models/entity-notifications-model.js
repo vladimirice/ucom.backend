@@ -64,25 +64,26 @@ module.exports = (sequelize, DataTypes) => {
   Model.getRequiredFields = function () {
     return [
       'id',
-      'domain_id',
       'event_id',
       'finished',
-      'seen',
       'confirmed',
-      'severity',
-      'notification_type_id',
       'recipient_entity_id',
       'recipient_entity_name',
+      'created_at',
+      // 'domain_id',
+      // 'seen',
+      // 'severity',
+      // 'notification_type_id',
       'entity_id',
       'entity_name',
-      'created_at',
-      'updated_at'
+      // 'updated_at'
     ];
   };
 
   Model.associate = function(models) {
     // TODO - this is temp solution because entity ID might be not only organization
     models[TABLE_NAME].belongsTo(models['organizations'], {foreignKey: 'entity_id'});
+    models[TABLE_NAME].belongsTo(models.Users, {foreignKey: 'target_entity_id'});
   };
 
   return Model;

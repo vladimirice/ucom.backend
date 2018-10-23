@@ -30,22 +30,6 @@ describe('Notifications create-update', () => {
 
   describe('Organizations. Users team. Team invitation', () => {
     describe('Positive', () => {
-
-      // it('sample', async () => {
-      //   const author = userJane;
-      //
-      //   const teamMembers = [
-      //     userVlad,
-      //     userPetr
-      //   ];
-      //
-      //   const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
-      //
-      //   const newTeamMembers = _.concat(teamMembers, userRokky);
-      //
-      //   await orgGen.updateOrgUsersTeam(newOrgId, author, newTeamMembers);
-      // });
-
       it('Create valid prompt notification when org is created.', async () => {
 
         await RabbitMqService.purgeNotificationsQueue();
@@ -57,7 +41,6 @@ describe('Notifications create-update', () => {
         ];
 
         const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
-
         await delay(500);
 
         // assert that all related notifications are created
@@ -102,6 +85,8 @@ describe('Notifications create-update', () => {
 
         await orgGen.updateOrgUsersTeam(newOrgId, author, newTeamMembers);
 
+        delay(500);
+
         const rokkyNotifications = await helpers.Notifications.requestToGetNotificationsList(userRokky);
 
         expect(rokkyNotifications.length).toBe(1);
@@ -118,6 +103,9 @@ describe('Notifications create-update', () => {
         ];
 
         const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
+
+        delay(100); // wait a bit until consumer process the request and creates db record
+
         const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
         const confirmed = await helpers.Notifications.requestToConfirmPrompt(userJane, janeNotifications[0].id);
 
@@ -139,7 +127,7 @@ describe('Notifications create-update', () => {
 
         const userJaneMember = usersTeam.find(data => data.id === userJane.id);
         expect(userJaneMember.users_team_status).toBe(UsersTeamStatusDictionary.getStatusConfirmed());
-      });
+      }, 10000);
 
       it('should properly DECLINE users team invitation prompt', async () => {
         const author = userVlad;

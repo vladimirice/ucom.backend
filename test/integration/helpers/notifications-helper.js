@@ -5,7 +5,6 @@ const ResponseHelper = require('./response-helper');
 
 const EntityModelProvider = require('../../../lib/entities/service').ModelProvider;
 const UsersModelProvider = require('../../../lib/users/service').ModelProvider;
-const OrgModelProvider = require('../../../lib/organizations/service').ModelProvider;
 
 const NotificationsStatusDictionary = require('../../../lib/entities/dictionary').NotificationsStatus;
 
@@ -134,26 +133,21 @@ class NotificationsHelper {
    */
   static checkUsersTeamInvitationPromptFromDb(model, recipientId, orgId, isNew = true, status = null) {
     const fieldsToCheck = {
-      domain_id: 10,
       event_id: 10,
-      notification_type_id: 10,
       recipient_entity_name: UsersModelProvider.getEntityName(),
-      entity_name: OrgModelProvider.getEntityName(),
       recipient_entity_id: "" + recipientId,
-      entity_id: "" + orgId,
+      // entity_name: OrgModelProvider.getEntityName(),
+      // entity_id: "" + orgId,
     };
 
     if (isNew) {
       fieldsToCheck.finished   = false;
-      fieldsToCheck.seen       = false;
       fieldsToCheck.confirmed  = 0;
     } else if (status === 'confirmed') {
       fieldsToCheck.finished   = true;
-      fieldsToCheck.seen       = true;
       fieldsToCheck.confirmed  = NotificationsStatusDictionary.getStatusConfirmed();
     } else if (status === 'declined') {
       fieldsToCheck.finished   = true;
-      fieldsToCheck.seen       = true;
       fieldsToCheck.confirmed  = NotificationsStatusDictionary.getStatusDeclined();
     }
 
