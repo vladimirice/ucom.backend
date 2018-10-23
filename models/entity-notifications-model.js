@@ -41,6 +41,15 @@ module.exports = (sequelize, DataTypes) => {
     },
     entity_name: {
       type: DataTypes.CHAR(10)
+    },
+    target_entity_name: {
+      type: DataTypes.CHAR(10)
+    },
+    target_entity_id: {
+      type: DataTypes.BIGINT
+    },
+    users_activity_id: {
+      type: DataTypes.INTEGER
     }
   }, {
     underscored: true,

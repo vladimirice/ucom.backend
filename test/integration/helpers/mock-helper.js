@@ -7,13 +7,29 @@ const ActivityProducer = require('../../../lib/jobs/activity-producer');
 
 class MockHelper {
 
-  static mockAllBlockchainPart() {
-    this.mockPostTransactionSigning();
-    this.mockBlockchainPart();
+  static mockAllTransactionSigning() {
 
+    this.mockPostTransactionSigning();
     this.mockUsersActivityBackendSigner();
     this.mockCommentTransactionSigning();
+  }
+
+  static mockAllBlockchainJobProducers() {
+    // TODO - only organization now. In process
+    this.mockOrganizationCreationBlockchainProducer();
+  }
+
+  static mockAllBlockchainPart() {
+
+    this.mockAllTransactionSigning();
+
+    this.mockBlockchainPart();
     this.mockSendingToQueue();
+  }
+
+  static mockOrganizationCreationBlockchainProducer() {
+    // noinspection JSUnusedLocalSymbols
+    OrganizationService._sendOrgCreationActivityToRabbit = async function(newUserActivity) {}
   }
 
   static mockUsersActivityBackendSigner() {

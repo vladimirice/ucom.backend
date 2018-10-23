@@ -31,6 +31,12 @@ module.exports = (db, Sequelize) => {
     blockchain_status: {
       type: Sequelize.INTEGER
     },
+    entity_id_on: {
+      type: Sequelize.BIGINT
+    },
+    entity_name_on: {
+      type: Sequelize.CHAR(10)
+    },
   }, {
     underscored: true,
     freezeTableName: true,

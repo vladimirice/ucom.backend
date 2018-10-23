@@ -1,7 +1,11 @@
 const _ = require('lodash');
 const orgGen = require('../../generators').Org;
 
+const delay = require('delay');
+
 const UsersTeamStatusDictionary = require('../../../lib/users/dictionary').UsersTeamStatus;
+
+const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
 const helpers = require('../helpers');
 
@@ -10,7 +14,8 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Mock.mockAllBlockchainPart();
+helpers.Mock.mockAllTransactionSigning();
+helpers.Mock.mockAllBlockchainJobProducers();
 
 describe('Notifications create-update', () => {
   beforeAll(async () => {
@@ -42,6 +47,8 @@ describe('Notifications create-update', () => {
       // });
 
       it('Create valid prompt notification when org is created.', async () => {
+
+        await RabbitMqService.purgeNotificationsQueue();
         const author = userVlad;
 
         const teamMembers = [
@@ -50,6 +57,8 @@ describe('Notifications create-update', () => {
         ];
 
         const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
+
+        await delay(500);
 
         // assert that all related notifications are created
 
@@ -72,6 +81,10 @@ describe('Notifications create-update', () => {
         expect(petrNotifications.length).toBe(1);
 
         helpers.Notifications.checkUsersTeamInvitationPromptFromDb(petrNotifications[0], userPetr.id, newOrgId, true);
+      }, 10000);
+
+      it.skip('should create valid users activity record related to board invitation', async () => {
+        // TODO
       });
 
       it('should receive notification if board is updated - new members are added', async () => {
@@ -94,7 +107,7 @@ describe('Notifications create-update', () => {
         expect(rokkyNotifications.length).toBe(1);
 
         helpers.Notifications.checkUsersTeamInvitationPromptFromDb(rokkyNotifications[0], userRokky.id, newOrgId, true);
-      });
+      }, 10000);
 
       it('should properly CONFIRM users team invitation prompt', async () => {
         const author = userVlad;
