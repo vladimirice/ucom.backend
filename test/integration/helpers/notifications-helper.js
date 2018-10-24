@@ -8,6 +8,8 @@ const UsersModelProvider = require('../../../lib/users/service').ModelProvider;
 
 const NotificationsStatusDictionary = require('../../../lib/entities/dictionary').NotificationsStatus;
 
+const NotificationsRepo = require('../../../lib/entities/repository').Notifications;
+
 class NotificationsHelper {
 
   /**
@@ -21,6 +23,28 @@ class NotificationsHelper {
    */
   static async requestToConfirmPrompt(myself, id, expectedStatus = 200) {
     const url = RequestHelper.getConfirmNotificationUrl(id);
+
+    const res = await request(server)
+      .post(url)
+      .set('Authorization', `Bearer ${myself.token}`)
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} myself
+   * @param {number} id
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   *
+   * @link EntityNotificationsService#markNotificationAsSeen
+   */
+  static async requestToMarkNotificationSeen(myself, id, expectedStatus = 200) {
+    const url = RequestHelper.getMarkAsSeenNotificationUrl(id);
 
     const res = await request(server)
       .post(url)
@@ -121,6 +145,32 @@ class NotificationsHelper {
    */
   static checkNotificationItselfCommonFields(model, options) {
     this.checkNotificationPrompt(model, options);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   */
+  static async checkAlertNotificationIsSeen(model) {
+    const fromDb = await NotificationsRepo.findNotificationItselfById(model.id);
+
+    expect(fromDb.seen).toBeTruthy();
+    expect(fromDb.finished).toBeTruthy();
+
+    expect(model.finished).toBeTruthy();
+  }
+
+  /**
+   *
+   * @param {Object} model
+   */
+  static async checkPromptNotificationIsSeenButNotFinished(model) {
+    const fromDb = await NotificationsRepo.findNotificationItselfById(model.id);
+
+    expect(fromDb.seen).toBeTruthy();
+    expect(fromDb.finished).toBeFalsy();
+
+    expect(model.finish).toBeFalsy();
   }
 
   /**

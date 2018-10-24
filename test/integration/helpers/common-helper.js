@@ -117,6 +117,8 @@ class CommonHelper {
 
   static _checkOrgUsersTeamInvitationNotification(model) {
     OrgHelper.checkOneOrganizationPreviewFields(model.data.organization);
+
+    UsersHelper.checkIncludedUserPreview(model.data);
     UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 

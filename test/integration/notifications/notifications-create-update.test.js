@@ -192,4 +192,36 @@ describe('Notifications create-update', () => {
       });
     });
   });
+
+  describe('Seen API', () => {
+
+    it('mark prompt notification as seen. Should NOT be finished', async () => {
+      const author = userVlad;
+      const teamMembers = [userJane, userPetr];
+
+      await orgGen.createOrgWithTeam(author, teamMembers);
+
+      delay(100); // wait a bit until consumer process the request and creates db record
+      const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
+
+      const seen = await helpers.Notifications.requestToMarkNotificationSeen(userJane, janeNotifications[0].id);
+
+      helpers.Common.checkOneNotificationsFromList(seen, {});
+
+      await helpers.Notifications.checkPromptNotificationIsSeenButNotFinished(seen);
+    });
+
+    it('mark alert notification as seen. Should be finished', async () => {
+      await helpers.Activity.requestToCreateFollow(userVlad, userJane);
+      delay(200);
+
+      const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
+
+      const seen = await helpers.Notifications.requestToMarkNotificationSeen(userJane, janeNotifications[0].id);
+
+      helpers.Common.checkOneNotificationsFromList(seen, {});
+
+      await helpers.Notifications.checkAlertNotificationIsSeen(seen);
+    });
+  });
 });

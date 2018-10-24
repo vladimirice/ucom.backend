@@ -32,6 +32,15 @@ class RequestHelper {
    * @param {number} id
    * @return {string}
    */
+  static getMarkAsSeenNotificationUrl(id) {
+    return `${this.getMyselfNotificationsList()}/${id}/seen`;
+  }
+
+  /**
+   *
+   * @param {number} id
+   * @return {string}
+   */
   static getDeclineNotificationUrl(id) {
     return `${this.getMyselfNotificationsList()}/${id}/decline`;
   }

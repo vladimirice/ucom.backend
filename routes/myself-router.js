@@ -55,7 +55,7 @@ router.post('/notifications/:notification_id/seen', [ authTokenMiddleWare ], asy
   const notificationId = +req.params.notification_id;
   const service = getEntityNotificationsService(req);
 
-  const response = await service.declinePromptNotification(notificationId);
+  const response = await service.markNotificationAsSeen(notificationId);
 
   res.send(response);
 });

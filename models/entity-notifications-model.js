@@ -50,6 +50,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     users_activity_id: {
       type: DataTypes.INTEGER
+    },
+    user_id_from: {
+      type: DataTypes.INTEGER
     }
   }, {
     underscored: true,
