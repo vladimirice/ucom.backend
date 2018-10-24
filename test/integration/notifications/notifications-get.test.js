@@ -7,7 +7,8 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Mock.mockAllBlockchainPart();
+helpers.Mock.mockAllTransactionSigning();
+helpers.Mock.mockAllBlockchainJobProducers();
 
 describe('Get notifications', () => {
   beforeAll(async () => {

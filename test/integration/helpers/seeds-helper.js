@@ -28,10 +28,10 @@ const tableToSeeds = {
 
 // Truncated async
 const minorTables = [
+  EntityModelProvider.getNotificationsTableName(),
   UsersRepositories.Activity.getModelName(),
   UsersRepositories.UsersTeam.getModelName(),
 
-  EntityModelProvider.getNotificationsTableName(),
   'post_ipfs_meta',
 
   'users_education',

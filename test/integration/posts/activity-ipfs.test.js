@@ -33,7 +33,7 @@ describe('IPFS consumer', () => {
   });
 
   describe('IPFS routine', () => {
-    it('should produce, consume and save ipfs meta for Media Post', async () => {
+    it.skip('should produce, consume and save ipfs meta for Media Post', async () => {
       await RabbitMqService.purgeIpfsQueue();
 
       const newPostId = await helpers.PostHelper.requestToCreateMediaPost(userVlad);
@@ -154,7 +154,7 @@ describe('IPFS consumer', () => {
     // });
   });
 
-  it('should produce, consume and save ipfs meta for Post-Offer', async () => {
+  it.skip('should produce, consume and save ipfs meta for Post-Offer', async () => {
     await RabbitMqService.purgeIpfsQueue();
 
     const newPostId = await helpers.PostHelper.requestToCreatePostOffer(userVlad);
