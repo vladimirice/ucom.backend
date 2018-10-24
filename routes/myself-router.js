@@ -7,7 +7,6 @@ const UserService = require('../lib/users/users-service');
 const models = require('../models');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/users/avatar-upload-middleware');
-const SocketIoServer  = require('../lib/websockets/socket-io-server');
 
 /* Get myself data (Information for profile) */
 router.get('/', [authTokenMiddleWare], async function(req, res) {
@@ -52,28 +51,14 @@ router.post('/notifications/:notification_id/decline', [ authTokenMiddleWare ], 
   res.send(response);
 });
 
-router.post('/notifications/:notification_id/pending', [ authTokenMiddleWare ], async (req, res) => {
+router.post('/notifications/:notification_id/seen', [ authTokenMiddleWare ], async (req, res) => {
   const notificationId = +req.params.notification_id;
   const service = getEntityNotificationsService(req);
 
-  const response = await service.pendingPromptNotification(notificationId);
+  const response = await service.declinePromptNotification(notificationId);
 
-  res.send({
-    success: true
-  });
+  res.send(response);
 });
-
-router.post('/notifications/:notification_id/decline', [ authTokenMiddleWare ],  async (req, res) => {
-  const notificationId = +req.notification_id;
-  const service = getEntityNotificationsService(req);
-});
-
-/* Only for tests */
-router.post('/notifications/:notification_id/pending', [ authTokenMiddleWare ], async (req, res) => {
-  const notificationId = +req.notification_id;
-  const service = getEntityNotificationsService(req);
-});
-
 
 /* Update Myself Profile */
 router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
@@ -90,14 +75,15 @@ router.patch('/', [authTokenMiddleWare, cpUpload], async function(req, res) {
   const files = req['files'];
 
   // TODO #refactor
+  // noinspection OverlyComplexBooleanExpressionJS
   if (files && files['avatar_filename'] && files['avatar_filename'][0] && files['avatar_filename'][0].filename) {
     parameters['avatar_filename'] = files['avatar_filename'][0].filename;
   }
 
+  // noinspection OverlyComplexBooleanExpressionJS
   if (files && files['achievements_filename'] && files['achievements_filename'][0] && files['achievements_filename'][0].filename) {
     parameters['achievements_filename'] = files['achievements_filename'][0].filename;
   }
-
 
   const usersEducation  = _.filter(req.body['users_education']);
   const usersJobs       = _.filter(req.body['users_jobs']);
