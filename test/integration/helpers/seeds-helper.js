@@ -29,7 +29,6 @@ const tableToSeeds = {
 // Truncated async
 const minorTables = [
   EntityModelProvider.getNotificationsTableName(),
-  UsersRepositories.Activity.getModelName(),
   UsersRepositories.UsersTeam.getModelName(),
 
   'post_ipfs_meta',
@@ -50,6 +49,7 @@ const minorTables = [
 
 // Truncated in order
 const majorTables = [
+  UsersRepositories.Activity.getModelName(),
   'comments',
   'posts',
   'organizations',

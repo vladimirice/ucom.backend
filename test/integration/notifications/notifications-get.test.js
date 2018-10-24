@@ -2,6 +2,8 @@ const helpers = require('../helpers');
 const gen     = require('../../generators');
 const NotificationRepo = require('../../../lib/entities/repository').Notifications;
 
+const delay = require('delay');
+
 let userVlad;
 let userJane;
 let userPetr;
@@ -19,6 +21,24 @@ describe('Get notifications', () => {
   });
   beforeEach(async () => {
     await helpers.SeedsHelper.initUsersOnly();
+  });
+
+  describe('Notifications list', () => {
+    it('get notifications of several types - all of them has required structure', async () => {
+      const teamMembers = [ userJane, userPetr ];
+      await gen.Org.createOrgWithTeam(userVlad, teamMembers);
+
+      await helpers.Activity.requestToCreateFollow(userVlad, userJane);
+
+      await gen.Org.createOrgWithTeam(userRokky, teamMembers);
+
+      await helpers.Activity.requestToCreateFollow(userPetr, userJane);
+      delay(100);
+
+      const models = await helpers.Notifications.requestToGetNotificationsList(userJane);
+
+      helpers.Common.checkNotificationsList(models, 4, {})
+    });
   });
 
   describe('Pagination', async () => {

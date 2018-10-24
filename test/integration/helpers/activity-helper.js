@@ -15,7 +15,6 @@ class ActivityHelper {
     return res.body;
   }
 
-
   /**
    *
    * @param {Object} whoActs

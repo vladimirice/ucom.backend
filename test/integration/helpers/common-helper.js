@@ -106,21 +106,23 @@ class CommonHelper {
       case EventIdDictionary.getOrgUsersTeamInvitation():
         this._checkOrgUsersTeamInvitationNotification(model);
         break;
+      case EventIdDictionary.getUserFollowsYou():
+        this._checkUserFollowsYouNotification(model);
+        break;
       default:
         throw new Error(`Dunno how to check model with eventID ${model.event_id}`);
     }
-
-    // TODO - for board invitation prompt only
-    OrgHelper.checkOneOrganizationPreviewFields(model.data.organization);
-    // this._checkMyselfData(post, options);
   }
 
 
   static _checkOrgUsersTeamInvitationNotification(model) {
     OrgHelper.checkOneOrganizationPreviewFields(model.data.organization);
     UsersHelper.checkIncludedUserPreview(model.target_entity);
+  }
 
-    // Target entity must be User = recipient
+  static _checkUserFollowsYouNotification(model) {
+    UsersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
   /**

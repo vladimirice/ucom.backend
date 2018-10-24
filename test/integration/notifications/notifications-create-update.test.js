@@ -25,14 +25,14 @@ describe('Notifications create-update', () => {
     await helpers.SeedsHelper.sequelizeAfterAll();
   });
   beforeEach(async () => {
+    await helpers.SeedsHelper.truncateTable('entity_notifications');
+    await RabbitMqService.purgeNotificationsQueue();
     await helpers.SeedsHelper.initUsersOnly();
   });
 
   describe('Organizations. Users team. Team invitation', () => {
     describe('Positive', () => {
       it('Create valid prompt notification when org is created.', async () => {
-
-        await RabbitMqService.purgeNotificationsQueue();
         const author = userVlad;
 
         const teamMembers = [
@@ -41,11 +41,7 @@ describe('Notifications create-update', () => {
         ];
 
         const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
-
-        return;
         await delay(500);
-
-
 
         // assert that all related notifications are created
 
