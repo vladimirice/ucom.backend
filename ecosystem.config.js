@@ -94,6 +94,23 @@ module.exports = {
       },
     },
     {
+      name:           'staging_uos_backend_notifications_consumer',
+      instance_var:   'INSTANCE_ID',
+      script:         'bin/notifications-consumer.js',
+      watch:          false,
+      autorestart:    false,
+      env: {
+        NODE_ENV:     'staging',
+        watch:          true,
+        autorestart:    true,
+      },
+      env_production: {
+        NODE_ENV:     'staging',
+        watch:          false,
+        autorestart:    false,
+      },
+    },
+    {
       name: 'staging_uos_backend_importance_worker',
       script: 'bin/worker-update-importance.js',
       watch: false,
