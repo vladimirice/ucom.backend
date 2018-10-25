@@ -37,7 +37,7 @@ describe('Get notifications', () => {
       await helpers.Activity.requestToFollowOrganization(orgId, userRokky);
 
       await helpers.Activity.requestToCreateFollow(userPetr, userJane);
-      delay(100);
+      delay(300);
 
       const models = await helpers.Notifications.requestToGetNotificationsList(userJane);
 

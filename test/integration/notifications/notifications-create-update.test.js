@@ -37,6 +37,7 @@ describe('Notifications create-update', () => {
 
         const orgId = await orgGen.createOrgWithoutTeam(userVlad);
         await helpers.Org.requestToFollowOrganization(orgId, userJane);
+        delay(200);
 
         // Check jane notification about org following and also check its structure
         const models = await helpers.Notifications.requestToGetNotificationsList(userVlad);
@@ -46,8 +47,6 @@ describe('Notifications create-update', () => {
         expect(notification).toBeDefined();
 
         helpers.Common.checkOneNotificationsFromList(notification);
-
-
       }, 50000);
     });
     describe('Negative', () => {
@@ -82,14 +81,6 @@ describe('Notifications create-update', () => {
 
         // assert that all related notifications are created
 
-        const rokkyNotifications = await helpers.Notifications.requestToGetNotificationsList(userRokky);
-        // Rokky is not a team member so no notifications
-        expect(_.isEmpty(rokkyNotifications)).toBeTruthy();
-
-        const vladNotifications = await helpers.Notifications.requestToGetNotificationsList(userVlad);
-        // Vlad himself should not to receive any notifications
-        expect(_.isEmpty(vladNotifications)).toBeTruthy();
-
         const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
         // One notification for Jane - join invitation
         expect (janeNotifications.length).toBe(1);
@@ -101,6 +92,16 @@ describe('Notifications create-update', () => {
         expect(petrNotifications.length).toBe(1);
 
         helpers.Notifications.checkUsersTeamInvitationPromptFromDb(petrNotifications[0], userPetr.id, newOrgId, true);
+
+        const rokkyNotifications = await helpers.Notifications.requestToGetNotificationsList(userRokky);
+        // Rokky is not a team member so no notifications
+        expect(_.isEmpty(rokkyNotifications)).toBeTruthy();
+
+        const vladNotifications = await helpers.Notifications.requestToGetNotificationsList(userVlad);
+        // Vlad himself should not to receive any notifications
+        expect(_.isEmpty(vladNotifications)).toBeTruthy();
+
+
       }, 10000);
 
       it.skip('should create valid users activity record related to board invitation', async () => {
@@ -140,8 +141,7 @@ describe('Notifications create-update', () => {
         ];
 
         const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
-
-        delay(100); // wait a bit until consumer process the request and creates db record
+        delay(300); // wait a bit until consumer process the request and creates db record
 
         const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
         const confirmed = await helpers.Notifications.requestToConfirmPrompt(userJane, janeNotifications[0].id);

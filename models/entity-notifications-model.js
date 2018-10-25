@@ -1,5 +1,7 @@
 const TABLE_NAME = 'entity_notifications';
 
+const _ = require('lodash');
+
 module.exports = (sequelize, DataTypes) => {
   // noinspection UnnecessaryLocalVariableJS
   const Model = sequelize.define(TABLE_NAME, {
@@ -53,6 +55,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     user_id_from: {
       type: DataTypes.INTEGER
+    },
+    json_body: {
+      type: DataTypes.JSONB
     }
   }, {
     underscored: true,
@@ -79,8 +84,12 @@ module.exports = (sequelize, DataTypes) => {
       // 'notification_type_id',
       'entity_id',
       'entity_name',
-      // 'updated_at'
+      // 'updated_at',
     ];
+  };
+
+  Model.getRequiredFieldsToProcess = function () {
+    return _.concat(Model.getRequiredFields(), 'json_body');
   };
 
   Model.associate = function(models) {
