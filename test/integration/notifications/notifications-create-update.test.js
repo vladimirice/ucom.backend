@@ -146,7 +146,11 @@ describe('Notifications create-update', () => {
         const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
         const confirmed = await helpers.Notifications.requestToConfirmPrompt(userJane, janeNotifications[0].id);
 
-        helpers.Common.checkOneNotificationsFromList(confirmed, {});
+        const options = {
+          myselfData: true
+        };
+
+        helpers.Common.checkOneNotificationsFromList(confirmed, options);
 
         helpers.Notifications.checkUsersTeamInvitationPromptFromDb(
           confirmed,
@@ -178,7 +182,11 @@ describe('Notifications create-update', () => {
         const petrNotifications = await helpers.Notifications.requestToGetNotificationsList(userPetr);
         const declined = await helpers.Notifications.requestToDeclinePrompt(userPetr, petrNotifications[0].id);
 
-        helpers.Common.checkOneNotificationsFromList(declined, {});
+        const options = {
+          myselfData: true
+        };
+
+        helpers.Common.checkOneNotificationsFromList(declined, options);
 
         helpers.Notifications.checkUsersTeamInvitationPromptFromDb(
           declined,
@@ -243,7 +251,11 @@ describe('Notifications create-update', () => {
 
       const seen = await helpers.Notifications.requestToMarkNotificationSeen(userJane, janeNotifications[0].id);
 
-      helpers.Common.checkOneNotificationsFromList(seen, {});
+      const options = {
+        myselfData: true
+      };
+
+      helpers.Common.checkOneNotificationsFromList(seen, options);
 
       await helpers.Notifications.checkPromptNotificationIsSeenButNotFinished(seen);
     });
@@ -256,9 +268,18 @@ describe('Notifications create-update', () => {
 
       const seen = await helpers.Notifications.requestToMarkNotificationSeen(userJane, janeNotifications[0].id);
 
-      helpers.Common.checkOneNotificationsFromList(seen, {});
+      const options = {
+        myselfData: true
+      };
+
+      helpers.Common.checkOneNotificationsFromList(seen, options);
 
       await helpers.Notifications.checkAlertNotificationIsSeen(seen);
     });
   });
+
+  it.skip('should properly count unread_messages_count after seen or prompt answer actions', async () => {
+    // TODO
+  });
+
 });

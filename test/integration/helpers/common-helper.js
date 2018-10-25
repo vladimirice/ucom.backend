@@ -77,7 +77,7 @@ class CommonHelper {
    * @param {number} expectedLength
    * @param {Object} options
    */
-  static checkNotificationsList(models, expectedLength, options) {
+  static checkNotificationsList(models, expectedLength, options = {}) {
     expect(models).toBeDefined();
     expect(models.length).toBe(expectedLength);
 
@@ -101,6 +101,11 @@ class CommonHelper {
 
     expect(model.target_entity).toBeDefined();
     expect(model.target_entity).not.toBeNull();
+
+    if (options.myselfData) {
+      expect(model.myselfData).toBeDefined();
+      expect(model.myselfData.unread_messages_count).toBeDefined();
+    }
 
     switch (model.event_id) {
       case EventIdDictionary.getOrgUsersTeamInvitation():

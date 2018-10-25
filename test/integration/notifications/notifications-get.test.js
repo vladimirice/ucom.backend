@@ -57,8 +57,7 @@ describe('Get notifications', () => {
 
       const models = await helpers.Notifications.requestToGetNotificationsList(userVlad);
 
-      const options = helpers.Common.getOptionsForListAndMyself();
-      helpers.Common.checkNotificationsList(models, totalAmount, options);
+      helpers.Common.checkNotificationsList(models, totalAmount);
     });
 
     it('Metadata', async () => {
