@@ -37,11 +37,22 @@ describe('Get notifications', () => {
       await helpers.Activity.requestToFollowOrganization(orgId, userRokky);
 
       await helpers.Activity.requestToCreateFollow(userPetr, userJane);
+
+      const postAuthor = userJane;
+      const commentAuthor = userVlad;
+
+      const postId = await gen.Posts.createMediaPostByUserHimself(postAuthor);
+      await gen.Comments.createCommentForPost(postId, commentAuthor);
+
       delay(300);
 
       const models = await helpers.Notifications.requestToGetNotificationsList(userJane);
 
-      helpers.Common.checkNotificationsList(models, 5, {});
+      const options = {
+        postProcessing: 'notification',
+      };
+
+      helpers.Common.checkNotificationsList(models, 6, options);
     });
   });
 

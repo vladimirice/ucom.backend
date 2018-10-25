@@ -117,6 +117,9 @@ class CommonHelper {
       case EventIdDictionary.getUserFollowsOrg():
         this._checkUserFollowsOrgNotification(model);
         break;
+      case EventIdDictionary.getUserCommentsPost():
+        this._checkUserCommentsPostNotification(model, options);
+        break;
       default:
         throw new Error(`Dunno how to check model with eventID ${model.event_id}`);
     }
@@ -138,6 +141,21 @@ class CommonHelper {
   static _checkUserFollowsOrgNotification(model) {
     UsersHelper.checkIncludedUserPreview(model.data);
     OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   * @private
+   */
+  static _checkUserCommentsPostNotification(model, options) {
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
   }
 
   /**

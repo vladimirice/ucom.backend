@@ -1,5 +1,4 @@
 const TABLE_NAME = 'posts';
-const moment = require('moment');
 
 const _ = require('lodash');
 
@@ -162,6 +161,13 @@ module.exports = (sequelize, DataTypes) => {
       Posts.getFieldsForPreview(),
       'comments_count',
     );
+  };
+
+  /**
+   * @return {string[]}
+   */
+  Posts.getFieldsRequiredForNotification = function () {
+    return Posts.getFieldsForPreview();
   };
 
   Posts.getPostOfferMustExistFields = function() {

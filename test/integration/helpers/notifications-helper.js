@@ -130,6 +130,32 @@ class NotificationsHelper {
 
   /**
    *
+   * @param {Object} myself
+   * @return {Promise<*>}
+   *
+   * @link EntityNotificationsService#getAllNotifications
+   */
+  static async requestToGetOnlyOneNotification(myself) {
+    const url = RequestHelper.getMyselfNotificationsList();
+
+    const req = request(server)
+      .get(url)
+    ;
+
+    RequestHelper.addAuthToken(req, myself);
+
+    const res = await req;
+    ResponseHelper.expectStatusOk(res);
+
+    const data = res.body.data;
+
+    expect(data.length).toBe(1);
+
+    return data[0];
+  }
+
+  /**
+   *
    * @param {Object} model
    * @param {Object} options
    */

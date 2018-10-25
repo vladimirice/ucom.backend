@@ -117,7 +117,8 @@ class CommentsHelper {
   }
 
   /**
-   *
+   * @deprecated
+   * @see CommentsGenerator
    * @param {number} postId
    * @param {Object} user
    * @returns {Promise<Object>}
@@ -158,7 +159,7 @@ class CommentsHelper {
    * @param {Object} model - model with included user
    * @param {Object} options
    */
-  static checkOneCommentPreviewFields(model, options) {
+  static checkOneCommentPreviewFields(model, options = {}) {
     expect(model).toBeDefined();
     expect(model).not.toBeNull();
 
@@ -166,11 +167,19 @@ class CommentsHelper {
 
     const expected = CommentsRepository.getModel().getFieldsForPreview();
 
-    let fieldsFromRelations = [
-      'User',
-      'activity_user_comment',
-      'organization',
-    ];
+    let fieldsFromRelations = [];
+    if (options.postProcessing === 'notification') {
+      fieldsFromRelations = [
+        'User',
+      ];
+    } else {
+      fieldsFromRelations = [
+        'User',
+        'activity_user_comment',
+        'organization',
+      ];
+    }
+
 
     if (options && options.myselfData) {
       fieldsFromRelations.push('myselfData');

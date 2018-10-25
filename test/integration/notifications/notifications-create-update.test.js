@@ -1,11 +1,14 @@
 const _ = require('lodash');
-const orgGen = require('../../generators').Org;
+const gen = require('../../generators');
+const orgGen = gen.Org;
 
 const delay = require('delay');
 
 const UsersTeamStatusDictionary = require('../../../lib/users/dictionary').UsersTeamStatus;
 
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
+
+const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 
 const helpers = require('../helpers');
 
@@ -30,6 +33,30 @@ describe('Notifications create-update', () => {
     await helpers.SeedsHelper.initUsersOnly();
   });
 
+  describe('Comments related notification', () => {
+    describe('Positive', () => {
+      it('User comments your post', async () => {
+        const postAuthor = userVlad;
+        const commentAuthor = userJane;
+
+        const postId = await gen.Posts.createMediaPostByUserHimself(postAuthor);
+        await gen.Comments.createCommentForPost(postId, commentAuthor);
+        delay(200);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        helpers.Common.checkOneNotificationsFromList(notification, options);
+      });
+
+      it.skip('Check exact user comments your post notification content', async () => {
+        // TODO
+      });
+    });
+  });
 
   describe('Organizations. Follow', () => {
     describe('Positive', () => {

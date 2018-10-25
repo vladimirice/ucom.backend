@@ -20,6 +20,16 @@ class RequestHelper {
 
   /**
    *
+   * @param {Object} req
+   * @param {Object} user
+   */
+  static addAuthToken(req, user) {
+    req
+      .set('Authorization', `Bearer ${user.token}`)
+    ;
+  }
+  /**
+   *
    * @param {number} id
    * @return {string}
    */

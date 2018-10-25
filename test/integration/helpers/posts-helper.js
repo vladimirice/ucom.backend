@@ -104,7 +104,7 @@ class PostsHelper {
         this.checkDirectPostItself(post);
         break;
       default:
-        throw new Error(`Unsupported post_type_id ${post_type_id}`);
+        throw new Error(`Unsupported post_type_id ${post.post_type_id}`);
     }
   }
 
@@ -121,6 +121,9 @@ class PostsHelper {
         break;
       case 'full':
         mustExist = PostsModelProvider.getModel().getMediaPostFullFields();
+        break;
+      case 'notification':
+        mustExist = PostsModelProvider.getModel().getFieldsRequiredForNotification();
         break;
       default:
         throw new Error(`Unsupported postProcessing option (or it is not set): ${options.postProcessing}`);
