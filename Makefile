@@ -37,11 +37,11 @@ docker-set-hosts-mac:
 d-db:
 	docker-compose exec --user=root db /bin/bash
 
-deploy-prod d-p:
+deploy-production:
 	git push
-	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy.sh
+	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy_production.sh
 
-deploy-staging d-s:
+deploy:
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy_staging.sh
 
@@ -59,17 +59,6 @@ local-logs:
 
 database-migrations-migrate dmm:
 	node_modules/.bin/sequelize db:migrate
-
-stop-all-c sac:
-	pm2 stop uos_backend_blockchain_consumer
-	pm2 stop uos_backend_ipfs_consumer
-
-restart-blockchain-consumer rbc:
-	pm2 restart ecosystem.config.js --env test --only uos_backend_blockchain_consumer
-
-restart-all-consumers rac:
-	pm2 restart ecosystem.config.js --env test --only uos_backend_blockchain_consumer
-	pm2 restart ecosystem.config.js --env test --only uos_backend_ipfs_consumer
 
 docker-init-test-db ditd:
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_DROP_COMMAND}
