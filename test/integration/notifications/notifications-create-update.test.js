@@ -35,6 +35,27 @@ describe('Notifications create-update', () => {
 
   describe('Comments related notification', () => {
     describe('Positive', () => {
+      it('User creates comment on your comment', async () => {
+        const postAuthor = userVlad;
+        const commentAuthor = userJane;
+
+        const commentOnCommentAuthor = userVlad;
+
+        const postId      = await gen.Posts.createMediaPostByUserHimself(postAuthor);
+        const newComment  = await gen.Comments.createCommentForPost(postId, commentAuthor);
+
+        await gen.Comments.createCommentOnComment(postId, newComment.id, commentOnCommentAuthor);
+        delay(50);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userJane);
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        helpers.Common.checkOneNotificationsFromList(notification, options);
+      });
+
       it('User comments your post', async () => {
         const postAuthor = userVlad;
         const commentAuthor = userJane;

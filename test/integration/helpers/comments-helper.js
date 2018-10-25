@@ -136,6 +136,8 @@ class CommentsHelper {
   }
 
   /**
+   * @deprecated
+   * @see CommentsGenerator#createCommentOnComment
    *
    * @param {number} postId
    * @param {number} parentCommentId

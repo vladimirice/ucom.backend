@@ -120,6 +120,9 @@ class CommonHelper {
       case EventIdDictionary.getUserCommentsPost():
         this._checkUserCommentsPostNotification(model, options);
         break;
+      case EventIdDictionary.getUserCommentsComment():
+        this._checkUserCommentsOtherCommentNotification(model, options);
+        break;
       default:
         throw new Error(`Dunno how to check model with eventID ${model.event_id}`);
     }
@@ -156,6 +159,20 @@ class CommonHelper {
     PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
 
     UsersHelper.checkIncludedUserPreview(model.target_entity.post);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   * @private
+   */
+  static _checkUserCommentsOtherCommentNotification(model, options) {
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
+
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
   }
 
   /**

@@ -42,9 +42,10 @@ describe('Get notifications', () => {
       const commentAuthor = userVlad;
 
       const postId = await gen.Posts.createMediaPostByUserHimself(postAuthor);
-      await gen.Comments.createCommentForPost(postId, commentAuthor);
+      const newComment = await gen.Comments.createCommentForPost(postId, commentAuthor);
 
-      delay(300);
+      await gen.Comments.createCommentOnComment(postId, newComment.id, userRokky);
+      delay(100);
 
       const models = await helpers.Notifications.requestToGetNotificationsList(userJane);
 
