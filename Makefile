@@ -12,6 +12,15 @@ ENV_VALUE_DEV=development
 d-up:
 	docker-compose up -d --build
 
+pmrt:
+	pm2 restart ecosystem-test.config.js
+
+pm2-l-nc:
+	pm2 logs test_uos_backend_notifications_consumer
+
+pm2-l-bc:
+	pm2 logs test_uos_backend_blockchain_consumer
+
 d-up-f:
 	docker-compose up -d --build --force-recreate
 
@@ -67,9 +76,3 @@ docker-init-test-db ditd:
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_CREATE_COMMAND}
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_MIGRATE_COMMAND}
 	NODE_ENV=${ENV_VALUE_TEST} ${DB_SEEDS_COMMAND}
-
-docker-init-dev-db didd:
-	NODE_ENV=${ENV_VALUE_DEV} ${DB_DROP_COMMAND}
-	NODE_ENV=${ENV_VALUE_DEV} ${DB_CREATE_COMMAND}
-	NODE_ENV=${ENV_VALUE_DEV} ${DB_MIGRATE_COMMAND}
-	NODE_ENV=${ENV_VALUE_DEV} ${DB_SEEDS_COMMAND}

@@ -91,7 +91,7 @@ class CommonHelper {
    * @param {Object} model
    * @param {Object} options
    */
-  static checkOneNotificationsFromList(model, options) {
+  static checkOneNotificationsFromList(model, options = {}) {
     expect(_.isEmpty(model)).toBeFalsy();
     NotificationsHelper.checkNotificationItselfCommonFields(model, options);
     // UsersHelper.checkIncludedUserPreview(model);
@@ -109,6 +109,9 @@ class CommonHelper {
       case EventIdDictionary.getUserFollowsYou():
         this._checkUserFollowsYouNotification(model);
         break;
+      case EventIdDictionary.getUserFollowsOrg():
+        this._checkUserFollowsOrgNotification(model);
+        break;
       default:
         throw new Error(`Dunno how to check model with eventID ${model.event_id}`);
     }
@@ -125,6 +128,11 @@ class CommonHelper {
   static _checkUserFollowsYouNotification(model) {
     UsersHelper.checkIncludedUserPreview(model.data);
     UsersHelper.checkIncludedUserPreview(model.target_entity);
+  }
+
+  static _checkUserFollowsOrgNotification(model) {
+    UsersHelper.checkIncludedUserPreview(model.data);
+    OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
   }
 
   /**

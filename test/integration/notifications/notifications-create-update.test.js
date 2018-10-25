@@ -30,6 +30,43 @@ describe('Notifications create-update', () => {
     await helpers.SeedsHelper.initUsersOnly();
   });
 
+
+  describe('Organizations. Follow', () => {
+    describe('Positive', () => {
+      it('should create notification - somebody follows your organization', async () => {
+
+        const orgId = await orgGen.createOrgWithoutTeam(userVlad);
+        await helpers.Org.requestToFollowOrganization(orgId, userJane);
+
+        // Check jane notification about org following and also check its structure
+        const models = await helpers.Notifications.requestToGetNotificationsList(userVlad);
+
+        const notification = models[0];
+
+        expect(notification).toBeDefined();
+
+        helpers.Common.checkOneNotificationsFromList(notification);
+
+
+      }, 50000);
+    });
+    describe('Negative', () => {
+      it.skip('No notification for unfollow', async () => {
+        // TODO
+      });
+    });
+
+  });
+
+
+  describe('Users. Follow', () => {
+    describe('Negative', () => {
+      it.skip('No notification for unfollow', async () => {
+        // TODO
+      });
+    });
+  });
+
   describe('Organizations. Users team. Team invitation', () => {
     describe('Positive', () => {
       it('Create valid prompt notification when org is created.', async () => {

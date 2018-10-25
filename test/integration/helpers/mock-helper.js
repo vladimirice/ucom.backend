@@ -13,6 +13,7 @@ class MockHelper {
     this.mockUsersActivityBackendSigner();
     this.mockCommentTransactionSigning();
     this.mockOrganizationBlockchain();
+    this.mockOrganizationFollowingSigning();
 
   }
 
@@ -93,6 +94,14 @@ class MockHelper {
     };
   }
 
+  static mockOrganizationFollowingSigning() {
+    // noinspection JSUnusedLocalSymbols
+    UsersToOrgActivity._addSignedTransactionsForOrganizationFollowing = async function (body, currentUser, activityTypeId) {
+      // console.log('MOCK add signed transaction is called');
+      body.signed_transaction = 'sample_signed_transaction';
+    };
+  }
+
   static mockBlockchainPart() {
     // noinspection JSUnusedLocalSymbols
     UserActivityService._sendPayloadToRabbit = function (activity, scope) {
@@ -105,12 +114,7 @@ class MockHelper {
     };
 
     this.mockOrganizationBlockchain();
-
-    // noinspection JSUnusedLocalSymbols
-    UsersToOrgActivity._addSignedTransactionsForOrganizationFollowing = async function (body, currentUser, activityTypeId) {
-      // console.log('MOCK add signed transaction is called');
-      body.signed_transaction = 'sample_signed_transaction';
-    };
+    this.mockOrganizationFollowingSigning();
   }
 }
 

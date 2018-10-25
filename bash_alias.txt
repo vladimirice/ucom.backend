@@ -19,3 +19,4 @@ alias pmrcp='pm2 restart ecosystem.config.js --env production --only uos_backend
 
 alias pmbt='pm2 restart ecosystem.config.js --env test --only uos_backend'
 alias pmbt='pm2 restart ecosystem.config.js --env test --only production_uos_backend_blockchain_consumer'
+alias pmrd='pm2 restart ecosystem-dev.config.js'

@@ -32,12 +32,16 @@ describe('Get notifications', () => {
 
       await gen.Org.createOrgWithTeam(userRokky, teamMembers);
 
+      const orgId = await gen.Org.createOrgWithoutTeam(userJane);
+
+      await helpers.Activity.requestToFollowOrganization(orgId, userRokky);
+
       await helpers.Activity.requestToCreateFollow(userPetr, userJane);
       delay(100);
 
       const models = await helpers.Notifications.requestToGetNotificationsList(userJane);
 
-      helpers.Common.checkNotificationsList(models, 4, {})
+      helpers.Common.checkNotificationsList(models, 5, {});
     });
   });
 

@@ -23,6 +23,15 @@ class OrganizationsGenerator {
   /**
    *
    * @param {Object} author
+   * @return {Promise<Object>}
+   */
+  static async createOrgWithoutTeam(author) {
+    return await this.createOrgWithTeam(author);
+  }
+
+  /**
+   *
+   * @param {Object} author
    * @param {Object[]} teamMembers
    * @return {Promise<Object>}
    */
