@@ -21,7 +21,7 @@ class PostsGenerator {
     for (let i = 0; i < mul; i++) {
       promises.push(this.createMediaPostByUserHimself(wallOwner));
       promises.push(this.createPostOfferByUserHimself(wallOwner));
-      promises.push(this.createDirectPostForOwnerWallByUser(directPostAuthor, wallOwner));
+      promises.push(this.createUserDirectPostForOtherUser(directPostAuthor, wallOwner));
 
     }
     const postsIds = await Promise.all(promises);
@@ -215,7 +215,7 @@ class PostsGenerator {
    * @param {string|null} givenDescription
    * @return {Promise<void>}
    */
-  static async createDirectPostForOwnerWallByUser(postAuthor, wallOwner, givenDescription = null) {
+  static async createUserDirectPostForOtherUser(postAuthor, wallOwner, givenDescription = null) {
     const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 

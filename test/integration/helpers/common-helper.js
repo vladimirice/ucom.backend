@@ -129,6 +129,12 @@ class CommonHelper {
       case EventIdDictionary.getUserCommentsOrgComment():
         this._checkUserCommentsOrgCommentNotification(model, options);
         break;
+      case EventIdDictionary.getUserCreatesDirectPostForOtherUser():
+        this._checkUserCreatesDirectPostForOtherUser(model, options);
+        break;
+      case EventIdDictionary.getUserCreatesDirectPostForOrg():
+        this._checkUserCreatesDirectPostForOrg(model, options);
+        break;
       default:
         throw new Error(`Dunno how to check model with eventID ${model.event_id}`);
     }
@@ -161,6 +167,7 @@ class CommonHelper {
   static _checkUserCommentsPostNotification(model, options) {
     CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
     UsersHelper.checkIncludedUserPreview(model.data.comment);
+    PostsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
 
     PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
 
@@ -200,6 +207,21 @@ class CommonHelper {
     OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
   }
 
+  static _checkUserCreatesDirectPostForOtherUser(model, options) {
+    PostsHelper.checkPostItselfCommonFields(model.data.post, options);
+    UsersHelper.checkIncludedUserPreview(model.data.post);
+
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
+  }
+
+  static _checkUserCreatesDirectPostForOrg(model, options) {
+    PostsHelper.checkPostItselfCommonFields(model.data.post, options);
+    UsersHelper.checkIncludedUserPreview(model.data.post);
+
+    OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.organization);
+  }
+
   /**
    *
    * @param {Object} model
@@ -210,8 +232,12 @@ class CommonHelper {
     CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
     UsersHelper.checkIncludedUserPreview(model.data.comment);
 
+    PostsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
+
     CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
     UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
   }
 
   /**

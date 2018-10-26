@@ -7,7 +7,6 @@ const delay = require('delay');
 const UsersTeamStatusDictionary = require('../../../lib/users/dictionary').UsersTeamStatus;
 
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
-
 const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
 const helpers = require('../helpers');
@@ -31,6 +30,56 @@ describe('Notifications create-update', () => {
     await helpers.SeedsHelper.truncateTable('entity_notifications');
     await RabbitMqService.purgeNotificationsQueue();
     await helpers.SeedsHelper.initUsersOnly();
+  });
+
+  describe('Direct post notifications', () => {
+    describe('Positive', () => {
+      it('User creates direct post for other user', async () => {
+          await gen.Posts.createUserDirectPostForOtherUser(userJane, userVlad);
+
+        let notifications = [];
+        while(_.isEmpty(notifications)) {
+          notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(userVlad);
+          delay(100);
+        }
+
+        expect(notifications.length).toBe(1);
+
+        const notification = notifications[0];
+
+        expect(notification.event_id).toBe(EventIdDictionary.getUserCreatesDirectPostForOtherUser());
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        helpers.Common.checkOneNotificationsFromList(notification, options)
+      });
+
+      it('User creates direct post for organization', async () => {
+        const orgId   = await gen.Org.createOrgWithTeam(userVlad);
+
+        await gen.Posts.createDirectPostForOrganization(userJane, orgId);
+
+        let notifications = [];
+        while(_.isEmpty(notifications)) {
+          notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(userVlad);
+          delay(100);
+        }
+
+        expect(notifications.length).toBe(1);
+
+        const notification = notifications[0];
+
+        expect(notification.event_id).toBe(EventIdDictionary.getUserCreatesDirectPostForOrg());
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        helpers.Common.checkOneNotificationsFromList(notification, options)
+      });
+    });
   });
 
   describe('Comments related notification', () => {
@@ -126,9 +175,18 @@ describe('Notifications create-update', () => {
 
         const postId = await gen.Posts.createMediaPostByUserHimself(postAuthor);
         await gen.Comments.createCommentForPost(postId, commentAuthor);
-        delay(200);
 
-        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+        let notifications = [];
+        while(_.isEmpty(notifications)) {
+          notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(userVlad);
+          delay(100);
+        }
+
+        expect(notifications.length).toBe(1);
+
+        const notification = notifications[0];
+
+        expect(notification.event_id).toBe(EventIdDictionary.getUserCommentsPost());
 
         const options = {
           postProcessing: 'notification',

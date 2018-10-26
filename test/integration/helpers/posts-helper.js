@@ -101,7 +101,7 @@ class PostsHelper {
         this.checkPostOfferFields(post, options);
         break;
       case ContentTypeDictionary.getTypeDirectPost():
-        this.checkDirectPostItself(post);
+        this.checkDirectPostItself(post, options);
         break;
       default:
         throw new Error(`Unsupported post_type_id ${post.post_type_id}`);
@@ -158,12 +158,20 @@ class PostsHelper {
   /**
    *
    * @param {Object} post
+   * @param {Object} options
    */
-  static checkDirectPostItself(post) {
+  static checkDirectPostItself(post, options = {}) {
     const toExclude = PostsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
     ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
 
     const mustBeNotNull = PostsModelProvider.getModel().getDirectPostNotNullFields();
+
+    if (options.postProcessing === 'notification') {
+      const commentsCountIndex = mustBeNotNull.indexOf('comments_count');
+
+      delete mustBeNotNull[commentsCountIndex];
+    }
+
     ResponseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
 
     this._checkWrongPostProcessingSmell(post);

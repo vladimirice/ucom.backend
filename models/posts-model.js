@@ -67,6 +67,9 @@ module.exports = (sequelize, DataTypes) => {
       'blockchain_id',
       'organization_id',
 
+      'entity_id_for',
+      'entity_name_for',
+
       'comments_count'
     ];
   };
@@ -102,7 +105,10 @@ module.exports = (sequelize, DataTypes) => {
       'blockchain_id',
       'organization_id',
       'created_at',
-      'updated_at'
+      'updated_at',
+
+      'entity_id_for',
+      'entity_name_for',
     ];
   };
 
@@ -147,7 +153,10 @@ module.exports = (sequelize, DataTypes) => {
       'updated_at',
       'user_id',
       'blockchain_id',
-      'comments_count'
+      'comments_count',
+
+      'entity_id_for',
+      'entity_name_for',
     ];
   };
 
