@@ -8,7 +8,7 @@ const UsersTeamStatusDictionary = require('../../../lib/users/dictionary').Users
 
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
-const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
 const helpers = require('../helpers');
 
@@ -35,6 +35,65 @@ describe('Notifications create-update', () => {
 
   describe('Comments related notification', () => {
     describe('Positive', () => {
+      it.skip('should not create notification if user comments his own post', async () => {
+        // TODO
+      });
+
+      it('User creates comment on organization comment', async () => {
+        const orgAuthor           = userVlad;
+        const commentReplyAuthor  = userJane;
+
+        const orgId = await gen.Org.createOrgWithoutTeam(orgAuthor);
+        const orgPostId = await gen.Posts.createMediaPostOfOrganization(orgAuthor, orgId);
+
+        const comment = await gen.Comments.createCommentForPost(orgPostId, orgAuthor);
+
+        await gen.Comments.createCommentOnComment(orgPostId, comment.id, commentReplyAuthor);
+
+        let notifications = [];
+        while(_.isEmpty(notifications)) {
+          notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(orgAuthor);
+          delay(100);
+        }
+
+        // Should not create notification when user creates comment on his own post. See above
+        expect(notifications.length).toBe(1);
+
+        const notification = notifications[0];
+
+        expect(notification.event_id).toBe(EventIdDictionary.getUserCommentsOrgComment());
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        helpers.Common.checkOneNotificationsFromList(notification, options)
+      });
+
+      it('User creates comment on organization post', async () => {
+        const orgAuthor = userVlad;
+        const commentAuthor = userJane;
+
+        const orgId = await gen.Org.createOrgWithoutTeam(orgAuthor);
+        const orgPostId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+
+        await gen.Comments.createCommentForPost(orgPostId, commentAuthor);
+
+        let notification;
+
+        while(!notification) {
+          delay(100);
+          const notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(orgAuthor);
+          notification = notifications[0];
+        }
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        helpers.Common.checkOneNotificationsFromList(notification, options);
+      }, 10000);
+
       it('User creates comment on your comment', async () => {
         const postAuthor = userVlad;
         const commentAuthor = userJane;
@@ -45,9 +104,14 @@ describe('Notifications create-update', () => {
         const newComment  = await gen.Comments.createCommentForPost(postId, commentAuthor);
 
         await gen.Comments.createCommentOnComment(postId, newComment.id, commentOnCommentAuthor);
-        delay(50);
 
-        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userJane);
+        let notification;
+
+        while(!notification) {
+          const notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(userJane);
+          notification = notifications[0];
+          delay(100);
+        }
 
         const options = {
           postProcessing: 'notification',

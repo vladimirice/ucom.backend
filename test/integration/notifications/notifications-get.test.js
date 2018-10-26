@@ -45,7 +45,7 @@ describe('Get notifications', () => {
       const newComment = await gen.Comments.createCommentForPost(postId, commentAuthor);
 
       await gen.Comments.createCommentOnComment(postId, newComment.id, userRokky);
-      delay(100);
+      delay(300);
 
       const models = await helpers.Notifications.requestToGetNotificationsList(userJane);
 
@@ -53,8 +53,10 @@ describe('Get notifications', () => {
         postProcessing: 'notification',
       };
 
-      helpers.Common.checkNotificationsList(models, 6, options);
-    });
+      // TODO check that all notification types are exist
+
+      helpers.Common.checkNotificationsList(models, 7, options);
+    }, 10000);
   });
 
   describe('Pagination', async () => {

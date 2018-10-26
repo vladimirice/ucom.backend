@@ -44,7 +44,7 @@ UsersRouter.get('/:user_id/posts', async function(req, res) {
 
 /* Create post for this user */
 UsersRouter.post('/:user_id/posts', [authTokenMiddleWare, bodyParser], async function(req, res) {
-  const response = await getPostService(req).processNewPostCreationForUser(req);
+  const response = await getPostService(req).processNewDirectPostCreationForUser(req);
 
   res.send(response);
 });

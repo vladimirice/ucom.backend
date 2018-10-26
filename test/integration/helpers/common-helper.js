@@ -123,6 +123,12 @@ class CommonHelper {
       case EventIdDictionary.getUserCommentsComment():
         this._checkUserCommentsOtherCommentNotification(model, options);
         break;
+      case EventIdDictionary.getUserCommentsOrgPost():
+        this._checkUserCommentsOrgPostNotification(model, options);
+        break;
+      case EventIdDictionary.getUserCommentsOrgComment():
+        this._checkUserCommentsOrgCommentNotification(model, options);
+        break;
       default:
         throw new Error(`Dunno how to check model with eventID ${model.event_id}`);
     }
@@ -159,6 +165,39 @@ class CommonHelper {
     PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
 
     UsersHelper.checkIncludedUserPreview(model.target_entity.post);
+  }
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   * @private
+   */
+  static _checkUserCommentsOrgPostNotification(model, options) {
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
+
+    OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   * @private
+   */
+  static _checkUserCommentsOrgCommentNotification(model, options) {
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
+
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
+      postProcessing: 'notificationWithOrg'
+    });
+
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
+    OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
   }
 
   /**

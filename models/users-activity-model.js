@@ -37,6 +37,9 @@ module.exports = (db, Sequelize) => {
     entity_name_on: {
       type: Sequelize.CHAR(10)
     },
+    event_id: {
+      type: Sequelize.SMALLINT,
+    },
   }, {
     underscored: true,
     freezeTableName: true,

@@ -174,6 +174,11 @@ class CommentsHelper {
       fieldsFromRelations = [
         'User',
       ];
+    } else if (options.postProcessing === 'notificationWithOrg') {
+      fieldsFromRelations = [
+        'User',
+        'organization',
+      ];
     } else {
       fieldsFromRelations = [
         'User',

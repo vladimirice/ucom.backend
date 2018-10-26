@@ -57,7 +57,7 @@ class OrganizationsGenerator {
     const res = await req;
     ResponseHelper.expectStatusCreated(res);
 
-    return res.body.id;
+    return +res.body.id;
   }
 
   /**

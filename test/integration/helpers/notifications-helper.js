@@ -3,6 +3,8 @@ const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 
+const delay = require('delay');
+
 const EntityModelProvider = require('../../../lib/entities/service').ModelProvider;
 const UsersModelProvider = require('../../../lib/users/service').ModelProvider;
 
@@ -152,6 +154,21 @@ class NotificationsHelper {
     expect(data.length).toBe(1);
 
     return data[0];
+  }
+
+  static async requestToGetOnlyOneNotificationBeforeReceive(myself) {
+    const url = RequestHelper.getMyselfNotificationsList();
+
+    const req = request(server)
+      .get(url)
+      .set('Authorization', `Bearer ${myself.token}`)
+    ;
+
+    const res = await req;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body.data;
   }
 
   /**
