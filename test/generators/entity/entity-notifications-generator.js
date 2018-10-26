@@ -10,6 +10,8 @@ const EntityNotificationsRepository = require('../../../lib/entities/repository'
 const request = require('supertest');
 const server = require('../../../app');
 
-class EntityNotificationsGenerator {}
+class EntityNotificationsGenerator {
+
+}
 
 module.exports = EntityNotificationsGenerator;

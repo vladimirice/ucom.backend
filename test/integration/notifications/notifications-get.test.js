@@ -2,6 +2,8 @@ const helpers = require('../helpers');
 const gen     = require('../../generators');
 const NotificationRepo = require('../../../lib/entities/repository').Notifications;
 
+const commonGen = require('../../generators/common-generator');
+
 const delay = require('delay');
 
 let userVlad;
@@ -24,27 +26,9 @@ describe('Get notifications', () => {
   });
 
   describe('Notifications list', () => {
-    it.skip('get notifications of several types - all of them has required structure', async () => {
-      const teamMembers = [ userJane, userPetr ];
-      await gen.Org.createOrgWithTeam(userVlad, teamMembers);
+    it('get notifications of several types - all of them has required structure', async () => {
 
-      await helpers.Activity.requestToCreateFollow(userVlad, userJane);
-
-      await gen.Org.createOrgWithTeam(userRokky, teamMembers);
-
-      const orgId = await gen.Org.createOrgWithoutTeam(userJane);
-
-      await helpers.Activity.requestToFollowOrganization(orgId, userRokky);
-
-      await helpers.Activity.requestToCreateFollow(userPetr, userJane);
-
-      const postAuthor = userJane;
-      const commentAuthor = userVlad;
-
-      const postId = await gen.Posts.createMediaPostByUserHimself(postAuthor);
-      const newComment = await gen.Comments.createCommentForPost(postId, commentAuthor);
-
-      await gen.Comments.createCommentOnComment(postId, newComment.id, userRokky);
+      await commonGen.createAllTypesOfNotifications(userVlad, userJane, userPetr, userRokky);
       delay(300);
 
       const models = await helpers.Notifications.requestToGetNotificationsList(userJane);
@@ -55,7 +39,7 @@ describe('Get notifications', () => {
 
       // TODO check that all notification types are exist
 
-      helpers.Common.checkNotificationsList(models, 7, options);
+      helpers.Common.checkNotificationsList(models, 6, options);
     }, 10000);
   });
 
