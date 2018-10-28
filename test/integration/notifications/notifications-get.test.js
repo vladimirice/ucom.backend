@@ -4,8 +4,6 @@ const NotificationRepo = require('../../../lib/entities/repository').Notificatio
 
 const commonGen = require('../../generators/common-generator');
 
-const delay = require('delay');
-
 let userVlad;
 let userJane;
 let userPetr;
@@ -29,9 +27,11 @@ describe('Get notifications', () => {
     it('get notifications of several types - all of them has required structure', async () => {
 
       await commonGen.createAllTypesOfNotifications(userVlad, userJane, userPetr, userRokky);
-      delay(300);
 
-      const models = await helpers.Notifications.requestToGetNotificationsList(userJane);
+      let models = [];
+      while(models.length < 5) {
+        models = await helpers.Notifications.requestToGetNotificationsList(userJane);
+      }
 
       const options = {
         postProcessing: 'notification',
@@ -39,7 +39,7 @@ describe('Get notifications', () => {
 
       // TODO check that all notification types are exist
 
-      helpers.Common.checkNotificationsList(models, 6, options);
+      helpers.Common.checkNotificationsList(models, 5, options);
     }, 10000);
   });
 

@@ -109,51 +109,67 @@ class CommonHelper {
 
     switch (model.event_id) {
       case EventIdDictionary.getOrgUsersTeamInvitation():
-        this._checkOrgUsersTeamInvitationNotification(model);
+        this.checkOrgUsersTeamInvitationNotification(model);
         break;
       case EventIdDictionary.getUserFollowsYou():
-        this._checkUserFollowsYouNotification(model);
+        this.checkUserFollowsYouNotification(model);
         break;
       case EventIdDictionary.getUserFollowsOrg():
-        this._checkUserFollowsOrgNotification(model);
+        this.checkUserFollowsOrgNotification(model);
         break;
       case EventIdDictionary.getUserCommentsPost():
-        this._checkUserCommentsPostNotification(model, options);
+        this.checkUserCommentsPostNotification(model, options);
         break;
       case EventIdDictionary.getUserCommentsComment():
-        this._checkUserCommentsOtherCommentNotification(model, options);
+        this.checkUserCommentsOtherCommentNotification(model, options);
         break;
       case EventIdDictionary.getUserCommentsOrgPost():
-        this._checkUserCommentsOrgPostNotification(model, options);
+        this.checkUserCommentsOrgPostNotification(model, options);
         break;
       case EventIdDictionary.getUserCommentsOrgComment():
-        this._checkUserCommentsOrgCommentNotification(model, options);
+        this.checkUserCommentsOrgCommentNotification(model, options);
         break;
       case EventIdDictionary.getUserCreatesDirectPostForOtherUser():
-        this._checkUserCreatesDirectPostForOtherUser(model, options);
+        this.checkUserCreatesDirectPostForOtherUser(model, options);
         break;
       case EventIdDictionary.getUserCreatesDirectPostForOrg():
-        this._checkUserCreatesDirectPostForOrg(model, options);
+        this.checkUserCreatesDirectPostForOrg(model, options);
         break;
       default:
         throw new Error(`Dunno how to check model with eventID ${model.event_id}`);
     }
   }
 
+  /**
+   * @param {Object} model
+   */
+  static checkOrgUsersTeamInvitationNotification(model) {
+    expect(model.event_id).toBe(EventIdDictionary.getOrgUsersTeamInvitation());
 
-  static _checkOrgUsersTeamInvitationNotification(model) {
     OrgHelper.checkOneOrganizationPreviewFields(model.data.organization);
 
     UsersHelper.checkIncludedUserPreview(model.data);
     UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
-  static _checkUserFollowsYouNotification(model) {
+  /**
+   *
+   * @param {Object} model
+   */
+  static checkUserFollowsYouNotification(model) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserFollowsYou());
+
     UsersHelper.checkIncludedUserPreview(model.data);
     UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
-  static _checkUserFollowsOrgNotification(model) {
+  /**
+   *
+   * @param {Object} model
+   */
+  static checkUserFollowsOrgNotification(model) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserFollowsOrg());
+
     UsersHelper.checkIncludedUserPreview(model.data);
     OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
   }
@@ -164,7 +180,7 @@ class CommonHelper {
    * @param {Object} options
    * @private
    */
-  static _checkUserCommentsPostNotification(model, options) {
+  static checkUserCommentsPostNotification(model, options) {
     CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
     UsersHelper.checkIncludedUserPreview(model.data.comment);
     PostsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
@@ -179,9 +195,11 @@ class CommonHelper {
    * @param {Object} options
    * @private
    */
-  static _checkUserCommentsOrgPostNotification(model, options) {
+  static checkUserCommentsOrgPostNotification(model, options) {
     CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
     UsersHelper.checkIncludedUserPreview(model.data.comment);
+
+    PostsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
 
     PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
     UsersHelper.checkIncludedUserPreview(model.target_entity.post);
@@ -195,8 +213,13 @@ class CommonHelper {
    * @param {Object} options
    * @private
    */
-  static _checkUserCommentsOrgCommentNotification(model, options) {
-    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+  static checkUserCommentsOrgCommentNotification(model, options) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserCommentsOrgComment());
+
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, {
+      postProcessing: 'notification'
+    });
+
     UsersHelper.checkIncludedUserPreview(model.data.comment);
 
     CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
@@ -207,14 +230,14 @@ class CommonHelper {
     OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
   }
 
-  static _checkUserCreatesDirectPostForOtherUser(model, options) {
+  static checkUserCreatesDirectPostForOtherUser(model, options) {
     PostsHelper.checkPostItselfCommonFields(model.data.post, options);
     UsersHelper.checkIncludedUserPreview(model.data.post);
 
     UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
-  static _checkUserCreatesDirectPostForOrg(model, options) {
+  static checkUserCreatesDirectPostForOrg(model, options) {
     PostsHelper.checkPostItselfCommonFields(model.data.post, options);
     UsersHelper.checkIncludedUserPreview(model.data.post);
 
@@ -228,7 +251,7 @@ class CommonHelper {
    * @param {Object} options
    * @private
    */
-  static _checkUserCommentsOtherCommentNotification(model, options) {
+  static checkUserCommentsOtherCommentNotification(model, options) {
     CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
     UsersHelper.checkIncludedUserPreview(model.data.comment);
 

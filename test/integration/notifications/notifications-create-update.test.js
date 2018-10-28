@@ -82,12 +82,61 @@ describe('Notifications create-update', () => {
     });
   });
 
-  describe('Comments related notification', () => {
-    describe('Positive', () => {
-      it.skip('should not create notification if user comments his own post', async () => {
-        // TODO
-      });
+  describe('User to user comments notifications', () => {
+    it('User comments your post', async () => {
+      const postAuthor = userVlad;
+      const commentAuthor = userJane;
 
+      const postId = await gen.Posts.createMediaPostByUserHimself(postAuthor);
+      await gen.Comments.createCommentForPost(postId, commentAuthor);
+
+      let notifications = [];
+      while(_.isEmpty(notifications)) {
+        notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(userVlad);
+        delay(100);
+      }
+
+      expect(notifications.length).toBe(1);
+
+      const notification = notifications[0];
+
+      expect(notification.event_id).toBe(EventIdDictionary.getUserCommentsPost());
+
+      const options = {
+        postProcessing: 'notification',
+      };
+
+      helpers.Common.checkOneNotificationsFromList(notification, options);
+    });
+    it('User creates comment on your comment', async () => {
+      const postAuthor = userVlad;
+      const commentAuthor = userJane;
+
+      const commentOnCommentAuthor = userVlad;
+
+      const postId      = await gen.Posts.createMediaPostByUserHimself(postAuthor);
+      const newComment  = await gen.Comments.createCommentForPost(postId, commentAuthor);
+
+      await gen.Comments.createCommentOnComment(postId, newComment.id, commentOnCommentAuthor);
+
+      let notification;
+
+      while(!notification) {
+        const notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(userJane);
+        notification = notifications[0];
+        delay(100);
+      }
+
+      const options = {
+        postProcessing: 'notification',
+      };
+
+      helpers.Common.checkOneNotificationsFromList(notification, options);
+    });
+  });
+
+  describe('User to org content comments notifications', () => {
+    describe('Positive', () => {
       it('User creates comment on organization comment', async () => {
         const orgAuthor           = userVlad;
         const commentReplyAuthor  = userJane;
@@ -116,9 +165,8 @@ describe('Notifications create-update', () => {
           postProcessing: 'notification',
         };
 
-        helpers.Common.checkOneNotificationsFromList(notification, options)
+        helpers.Common.checkUserCommentsOrgCommentNotification(notification, options)
       });
-
       it('User creates comment on organization post', async () => {
         const orgAuthor = userVlad;
         const commentAuthor = userJane;
@@ -143,56 +191,8 @@ describe('Notifications create-update', () => {
         helpers.Common.checkOneNotificationsFromList(notification, options);
       }, 10000);
 
-      it('User creates comment on your comment', async () => {
-        const postAuthor = userVlad;
-        const commentAuthor = userJane;
-
-        const commentOnCommentAuthor = userVlad;
-
-        const postId      = await gen.Posts.createMediaPostByUserHimself(postAuthor);
-        const newComment  = await gen.Comments.createCommentForPost(postId, commentAuthor);
-
-        await gen.Comments.createCommentOnComment(postId, newComment.id, commentOnCommentAuthor);
-
-        let notification;
-
-        while(!notification) {
-          const notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(userJane);
-          notification = notifications[0];
-          delay(100);
-        }
-
-        const options = {
-          postProcessing: 'notification',
-        };
-
-        helpers.Common.checkOneNotificationsFromList(notification, options);
-      });
-
-      it('User comments your post', async () => {
-        const postAuthor = userVlad;
-        const commentAuthor = userJane;
-
-        const postId = await gen.Posts.createMediaPostByUserHimself(postAuthor);
-        await gen.Comments.createCommentForPost(postId, commentAuthor);
-
-        let notifications = [];
-        while(_.isEmpty(notifications)) {
-          notifications = await helpers.Notifications.requestToGetOnlyOneNotificationBeforeReceive(userVlad);
-          delay(100);
-        }
-
-        expect(notifications.length).toBe(1);
-
-        const notification = notifications[0];
-
-        expect(notification.event_id).toBe(EventIdDictionary.getUserCommentsPost());
-
-        const options = {
-          postProcessing: 'notification',
-        };
-
-        helpers.Common.checkOneNotificationsFromList(notification, options);
+      it.skip('should not create notification if user comments his own post', async () => {
+        // TODO
       });
 
       it.skip('Check exact user comments your post notification content', async () => {
@@ -204,20 +204,12 @@ describe('Notifications create-update', () => {
   describe('Organizations. Follow', () => {
     describe('Positive', () => {
       it('should create notification - somebody follows your organization', async () => {
-
         const orgId = await orgGen.createOrgWithoutTeam(userVlad);
         await helpers.Org.requestToFollowOrganization(orgId, userJane);
-        delay(200);
 
-        // Check jane notification about org following and also check its structure
-        const models = await helpers.Notifications.requestToGetNotificationsList(userVlad);
-
-        const notification = models[0];
-
-        expect(notification).toBeDefined();
-
-        helpers.Common.checkOneNotificationsFromList(notification);
-      }, 50000);
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+        helpers.Common.checkUserFollowsOrgNotification(notification);
+      });
     });
     describe('Negative', () => {
       it.skip('No notification for unfollow', async () => {
@@ -229,6 +221,15 @@ describe('Notifications create-update', () => {
 
 
   describe('Users. Follow', () => {
+    describe('Positive', () => {
+      it('should create follow notification', async () => {
+        await helpers.Activity.requestToCreateFollow(userJane, userVlad);
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        helpers.Common.checkUserFollowsYouNotification(notification);
+      });
+    });
+
     describe('Negative', () => {
       it.skip('No notification for unfollow', async () => {
         // TODO
@@ -247,21 +248,18 @@ describe('Notifications create-update', () => {
         ];
 
         const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
-        await delay(500);
 
-        // assert that all related notifications are created
+        const janeNotification = await helpers.Notifications.requestToGetOnlyOneNotification(userJane);
 
-        const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
-        // One notification for Jane - join invitation
-        expect (janeNotifications.length).toBe(1);
-
-        helpers.Notifications.checkUsersTeamInvitationPromptFromDb(janeNotifications[0], userJane.id, newOrgId, true);
+        helpers.Notifications.checkUsersTeamInvitationPromptFromDb(janeNotification, userJane.id, newOrgId, true);
+        helpers.Common.checkOrgUsersTeamInvitationNotification(janeNotification);
 
         const petrNotifications = await helpers.Notifications.requestToGetNotificationsList(userPetr);
         // One notification for Petr - join invitation
         expect(petrNotifications.length).toBe(1);
 
         helpers.Notifications.checkUsersTeamInvitationPromptFromDb(petrNotifications[0], userPetr.id, newOrgId, true);
+        helpers.Common.checkOrgUsersTeamInvitationNotification(petrNotifications[0]);
 
         const rokkyNotifications = await helpers.Notifications.requestToGetNotificationsList(userRokky);
         // Rokky is not a team member so no notifications
@@ -311,10 +309,9 @@ describe('Notifications create-update', () => {
         ];
 
         const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
-        delay(300); // wait a bit until consumer process the request and creates db record
 
-        const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
-        const confirmed = await helpers.Notifications.requestToConfirmPrompt(userJane, janeNotifications[0].id);
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userJane);
+        const confirmed = await helpers.Notifications.requestToConfirmPrompt(userJane, notification.id);
 
         const options = {
           myselfData: true
@@ -349,8 +346,9 @@ describe('Notifications create-update', () => {
         ];
 
         const newOrgId = await orgGen.createOrgWithTeam(author, teamMembers);
-        const petrNotifications = await helpers.Notifications.requestToGetNotificationsList(userPetr);
-        const declined = await helpers.Notifications.requestToDeclinePrompt(userPetr, petrNotifications[0].id);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userPetr);
+        const declined = await helpers.Notifications.requestToDeclinePrompt(userPetr, notification.id);
 
         const options = {
           myselfData: true

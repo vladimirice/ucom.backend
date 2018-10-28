@@ -3,6 +3,8 @@ const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 
+const _ = require('lodash');
+
 const delay = require('delay');
 
 const EntityModelProvider = require('../../../lib/entities/service').ModelProvider;
@@ -138,22 +140,15 @@ class NotificationsHelper {
    * @link EntityNotificationsService#getAllNotifications
    */
   static async requestToGetOnlyOneNotification(myself) {
-    const url = RequestHelper.getMyselfNotificationsList();
+    let notifications = [];
+    while(_.isEmpty(notifications)) {
+      notifications = await this.requestToGetOnlyOneNotificationBeforeReceive(myself);
+      delay(100);
+    }
 
-    const req = request(server)
-      .get(url)
-    ;
+    expect(notifications.length).toBe(1);
 
-    RequestHelper.addAuthToken(req, myself);
-
-    const res = await req;
-    ResponseHelper.expectStatusOk(res);
-
-    const data = res.body.data;
-
-    expect(data.length).toBe(1);
-
-    return data[0];
+    return notifications[0];
   }
 
   static async requestToGetOnlyOneNotificationBeforeReceive(myself) {

@@ -22,8 +22,8 @@ class CommonGenerator {
 
     // User Jane = 5 - comments her own post. As is
     const newJaneComment = await commentsGen.createCommentForPost(postId, userJane);
-    //
-    // // User Jane = 6 - User Rokky comments her comment
+
+    // User Jane = 6 - User Rokky comments her comment
     const newCommentOnComment = await commentsGen.createCommentOnComment(postId, newJaneComment.id, userRokky);
   }
 
