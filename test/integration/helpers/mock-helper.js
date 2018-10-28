@@ -5,6 +5,8 @@ const UsersToOrgActivity = require('../../../lib/users/activity/user-to-organiza
 const PostsService = require('../../../lib/posts/post-service');
 const ActivityProducer = require('../../../lib/jobs/activity-producer');
 
+const EosTransactionService = require('../../../lib/eos/eos-transaction-service');
+
 class MockHelper {
 
   static mockAllTransactionSigning() {
@@ -15,6 +17,7 @@ class MockHelper {
     this.mockOrganizationBlockchain();
     this.mockOrganizationFollowingSigning();
 
+    this.mockUserVotesPost();
   }
 
   static mockAllBlockchainJobProducers() {
@@ -91,6 +94,13 @@ class MockHelper {
 
       req.blockchain_id = 'sample_blockchain_id';
       req.signed_transaction = 'sample_signed_transaction';
+    };
+  }
+
+  static mockUserVotesPost() {
+    // noinspection JSUnusedLocalSymbols
+    EosTransactionService.appendSignedUserVotesContent = function (user, body, contentBlockchainId, activityTypeId) {
+      body.signed_transaction = 'sample_signed_for_content_voting';
     };
   }
 

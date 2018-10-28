@@ -1,4 +1,5 @@
 const helpers = require('../helpers');
+const gen     = require('../../generators');
 
 const request = require('supertest');
 const server = require('../../../app');
@@ -7,11 +8,16 @@ const UserHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const ResponseHelper = require('../helpers/response-helper');
 const ActivityUserPostRepository = require('../../../lib/activity/activity-user-post-repository');
-const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
+const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 const PostRepository = require('../../../lib/posts/posts-repository');
 const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
+const { InteractionTypeDictionary } = require('uos-app-transaction');
+
+const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
 let userVlad, userJane, userPetr;
+
+helpers.Mock.mockAllTransactionSigning();
 
 describe('User to post activity', () => {
   beforeEach(async () => { await SeedsHelper.initSeeds(); });
@@ -46,12 +52,12 @@ describe('User to post activity', () => {
 
         expect(activity.user_id_from).toBe(userJane.id);
         expect(activity.post_id_to).toBe(vladPost.id);
-        expect(activity.activity_type_id).toBe(ActivityDictionary.getJoinId());
+        expect(activity.activity_type_id).toBe(InteractionTypeDictionary.getJoinId());
       });
 
-      // it('There is a myselfData join for joined post', async () => {
-      //   // TODO
-      // });
+      it.skip('There is a myselfData join for joined post', async () => {
+        // TODO
+      });
 
     });
 
@@ -168,31 +174,46 @@ describe('User to post activity', () => {
 
   describe('Upvote-related tests', () => {
     describe('Positive scenarios', () => {
+      it('Jane upvotes organization post of Vlad', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+
+        await helpers.PostHelper.requestToUpvotePost(userJane, postId);
+
+        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
+        expect(activity.event_id).toBe(EventIdDictionary.getUserUpvotesPostOfOrg());
+      });
+
       it('Jane upvotes Vlad posts', async () => {
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
 
-        const post = await PostRepository.findLastMediaPostByAuthor(userVlad.id);
-
-        const postVotesBefore = post.current_vote;
-
-        const body = await helpers.PostHelper.requestToUpvotePost(userJane, post.id);
-        expect(body['current_vote']).toBe(postVotesBefore + 1);
+        const body = await helpers.PostHelper.requestToUpvotePost(userJane, postId);
+        expect(body.current_vote).toBe(1);
 
         // noinspection JSCheckFunctionSignatures
         const [ userUpvote, changedPost ]= await Promise.all([
-          ActivityUserPostRepository.getUserPostUpvote(userJane.id, post.id),
-          PostRepository.findOneById(post.id)
+          ActivityUserPostRepository.getUserPostUpvote(userJane.id, postId),
+          PostRepository.findOneById(postId)
         ]);
 
-        expect(changedPost['current_vote']).toBe(postVotesBefore + 1);
+        expect(changedPost.current_vote).toBe(1);
 
         expect(userUpvote).toBeDefined();
 
         expect(userUpvote.user_id_from).toBe(userJane.id);
-        expect(userUpvote.post_id_to).toBe(post.id);
-        expect(userUpvote.activity_type_id).toBe(ActivityDictionary.getUpvoteId());
-        expect(+userUpvote.blockchain_status).toBe(10);
+        expect(userUpvote.post_id_to).toBe(postId);
+        expect(userUpvote.activity_type_id).toBe(InteractionTypeDictionary.getUpvoteId());
+
+        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
+        expect(+activity.entity_id_to).toBe(+postId);
+        expect(activity.event_id).toBe(EventIdDictionary.getUserUpvotesPostOfOtherUser());
+      });
+
+      it.skip('should create valid users_activity record', async () => {
+        // TODO
       });
     });
+
     describe('Negative scenarios', () => {
       it('Not possible to vote twice', async () => {
         const post = await PostRepository.findLastMediaPostByAuthor(userVlad.id);
@@ -252,26 +273,41 @@ describe('User to post activity', () => {
   describe('Downvote-related tests', () => {
     describe('Positive scenarios', () => {
       it('Jane downvotes post', async () => {
-        const whoVotes = userPetr;
+        const whoVotes = userJane;
 
-        const post_id = 1;
-        const postVoteBefore = await PostRepository.getPostCurrentVote(post_id);
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
 
-        const body = await helpers.PostHelper.requestToDownvotePost(whoVotes, post_id);
+        const body = await helpers.PostHelper.requestToDownvotePost(whoVotes, postId);
         expect(body.current_vote).toBeDefined();
-        expect(body.current_vote).toBe(postVoteBefore - 1);
+        expect(body.current_vote).toBe(-1);
 
-        const postVoteAfter = await PostRepository.getPostCurrentVote(post_id);
-        expect(postVoteAfter).toBe(postVoteBefore - 1);
+        const postVoteAfter = await PostRepository.getPostCurrentVote(postId);
+        expect(postVoteAfter).toBe(-1);
 
-        const activity = await ActivityUserPostRepository.getUserPostDownvote(whoVotes.id, post_id);
+        const activity = await ActivityUserPostRepository.getUserPostDownvote(whoVotes.id, postId);
         expect(activity).toBeDefined();
 
         expect(activity.user_id_from).toBe(whoVotes.id);
-        expect(activity.post_id_to).toBe(post_id);
-        expect(activity.activity_type_id).toBe(ActivityDictionary.getDownvoteId());
+        expect(activity.post_id_to).toBe(postId);
+        expect(activity.activity_type_id).toBe(InteractionTypeDictionary.getDownvoteId());
 
-        expect(+activity.blockchain_status).toBe(10);
+        const usersActivity = await UsersActivityRepository.findLastByUserIdAndEntityId(whoVotes.id, postId);
+        expect(+usersActivity.entity_id_to).toBe(+postId);
+        expect(usersActivity.event_id).toBe(EventIdDictionary.getUserDownvotesPostOfOtherUser());
+      });
+
+      it('Jane DOWNVOTE organization post of Vlad', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+
+        await helpers.PostHelper.requestToDownvotePost(userJane, postId);
+
+        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
+        expect(activity.event_id).toBe(EventIdDictionary.getUserDownvotesPostOfOrg());
+      });
+
+      it.skip('should create valid users_activity record', async () => {
+        // TODO
       });
     });
     describe('Negative scenarios', () => {

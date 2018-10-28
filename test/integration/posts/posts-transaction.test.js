@@ -47,6 +47,15 @@ describe('Posts related blockchain transactions.', () => {
     // });
   });
 
+  describe('Posts activity transactions', () => {
+    it.skip('should create and process valid UPVOTE transaction', async () => {
+      // TODO
+    });
+    it.skip('should create and process valid DOWNVOTE transaction', async () => {
+      // TODO
+    });
+  });
+
   describe('User himself creates post.', () => {
     describe('Positive scenarios', () => {
       it('User himself. New media post.', async () => {

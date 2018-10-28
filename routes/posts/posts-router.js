@@ -29,7 +29,7 @@ router.get('/:post_id', async (req, res) => {
   res.send(post);
 });
 
-router.post('/:post_id/join', [authTokenMiddleWare], async (req, res) => {
+router.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const userFrom = req['user'];
   const post_id = req['post_id'];
 
@@ -41,14 +41,14 @@ router.post('/:post_id/join', [authTokenMiddleWare], async (req, res) => {
   });
 });
 
-router.post('/:post_id/upvote', [authTokenMiddleWare], async (req, res) => {
-  const result = await getPostService(req).userUpvotesPost(req['user'], req['post_id']);
+router.post('/:post_id/upvote', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  const result = await getPostService(req).userUpvotesPost(req['post_id'], req.body);
 
   return res.status(201).send(result);
 });
 
-router.post('/:post_id/downvote', [authTokenMiddleWare], async (req, res) => {
-  const result = await getPostService(req).userDownvotesPost(req['user'], req['post_id']);
+router.post('/:post_id/downvote', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  const result = await getPostService(req).userDownvotesPost(req['post_id'], req.body);
 
   return res.status(201).send(result);
 });

@@ -8,7 +8,7 @@ const { cpUploadArray } = require('../../lib/organizations/middleware/organizati
 
 /* Upvote post comment */
 router.post('/:post_id/comments/:comment_id/upvote', [ authTokenMiddleWare, cpUploadArray ], async (req, res) => {
-  const response = await getCommentsService(req).upvoteComment(req.user, req.comment_id);
+  const response = await getCommentsService(req).upvoteComment(req.comment_id, req.body);
 
   res.status(201).send(response);
 });
@@ -21,7 +21,7 @@ router.get('/:post_id/comments', [ authTokenMiddleWare, cpUploadArray ], async (
 
 /* Upvote post comment */
 router.post('/:post_id/comments/:comment_id/downvote', [ authTokenMiddleWare, cpUploadArray ], async (req, res) => {
-  const response = await getCommentsService(req).downvoteComment(req.user, req.comment_id);
+  const response = await getCommentsService(req).downvoteComment(req.comment_id, req.body);
 
   res.status(201).send(response);
 });

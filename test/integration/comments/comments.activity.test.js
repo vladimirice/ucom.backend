@@ -2,6 +2,8 @@ const request = require('supertest');
 const server = require('../../../app');
 const reqlib = require('app-root-path').require;
 
+const gen = require('../../generators');
+
 const helpers = require('../helpers');
 
 const UserHelper = require('../helpers/users-helper');
@@ -13,12 +15,13 @@ const PostHelper = require('../helpers/posts-helper');
 const ActivityUserCommentRepository = require('../../../lib/activity/activity-user-comment-repository');
 const ActivityDictionary = require('../../../lib/activity/activity-types-dictionary');
 
+const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
+
+const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+
 let userVlad, userJane, userPetr;
 
-
-helpers.Mock.mockCommentTransactionSigning();
-helpers.Mock.mockPostTransactionSigning();
-helpers.Mock.mockSendingToQueue();
+helpers.Mock.mockAllTransactionSigning();
 
 describe('Comments', () => {
   beforeAll(async () => {
@@ -106,14 +109,14 @@ describe('Comments', () => {
   describe('User upvotes comment', () => {
     describe('Positive scenarios', () => {
       it('User upvotes comment', async () => {
-        const post_id = 1;
-        const newComment = await CommentsHelper.requestToCreateComment(post_id, userJane);
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const newComment = await gen.Comments.createCommentForPost(postId, userJane);
 
         const comment_id = newComment.id;
 
         const votesBefore = await CommentsRepository.getCommentCurrentVote(comment_id);
 
-        const body = await CommentsHelper.requestToUpvoteComment(post_id, comment_id, userVlad);
+        const body = await CommentsHelper.requestToUpvoteComment(postId, comment_id, userVlad);
         expect(body.current_vote).toBeDefined();
         expect(body.current_vote).toBe(votesBefore + 1);
 
@@ -129,8 +132,22 @@ describe('Comments', () => {
 
         expect(votesAfter).toBe(votesBefore + 1);
 
-        expect(userActivity.blockchain_status).toBe(10);
+        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newComment.id);
+        expect(activity.event_id).toBe(EventIdDictionary.getUserUpvotesCommentOfOtherUser());
       });
+
+      it('User upvotes comment of organization', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+
+        await CommentsHelper.requestToUpvoteComment(postId, comment.id, userJane);
+
+        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, comment.id);
+        expect(activity.event_id).toBe(EventIdDictionary.getUserUpvotesCommentOfOrg());
+      });
+
     });
     describe('Negative scenarios', () => {
       it('should not be possible to upvote without auth token', async () => {
@@ -175,15 +192,15 @@ describe('Comments', () => {
 
   describe('User downvotes comment', () => {
     describe('Positive scenarios', () => {
-      it('User downvotes comment', async () => {
-        const post_id = 1;
-        const newComment = await CommentsHelper.requestToCreateComment(post_id, userJane);
+      it('User DOWNVOTES comment', async () => {
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const newComment = await gen.Comments.createCommentForPost(postId, userJane);
 
         const comment_id = newComment.id;
 
         const votesBefore = await CommentsRepository.getCommentCurrentVote(comment_id);
 
-        const body = await CommentsHelper.requestToDownvoteComment(post_id, comment_id, userVlad);
+        const body = await CommentsHelper.requestToDownvoteComment(postId, comment_id, userVlad);
         expect(body.current_vote).toBeDefined();
         expect(body.current_vote).toBe(votesBefore - 1);
 
@@ -199,8 +216,22 @@ describe('Comments', () => {
 
         expect(votesAfter).toBe(votesBefore - 1);
 
-        expect(userActivity.blockchain_status).toBe(10);
+        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newComment.id);
+        expect(activity.event_id).toBe(EventIdDictionary.getUserDownvotesCommentOfOtherUser());
+
       }, 10000);
+
+      it('User DOWNVOTES comment of ORG', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+
+        await CommentsHelper.requestToDownvoteComment(postId, comment.id, userJane);
+
+        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, comment.id);
+        expect(activity.event_id).toBe(EventIdDictionary.getUserDownvotesCommentOfOrg());
+      });
     });
     describe('Negative scenarios', () => {
       it('should not be possible to downvote without auth token', async () => {
