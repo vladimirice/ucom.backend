@@ -6,7 +6,7 @@ const {AppError} = require('../../lib/api/errors');
 const AuthValidator = require('../../lib/auth/validators');
 const AuthService = require('../../lib/auth/authService');
 const models = require('../../models');
-const EosAuth = require('../../lib/eos/eos-auth');
+const EosApi = require('../../lib/eos/eosApi');
 const UserService = require('../../lib/users/users-service');
 const multer = require('multer');
 const upload = multer();
@@ -50,20 +50,20 @@ router.post('/', [ upload.array() ], async function (req, res, next) {
 
     // TODO #refactor - move to Repository behind the service
      const newUser = await models['Users'].create({
-        account_name: payload.account_name,
-        nickname: payload.account_name,
-        created_at: new Date(),
-        updated_at: new Date(),
-        public_key: payload.public_key,
-        private_key: EosAuth.getActivePrivateKeyByBrainkey(payload.brainkey),
-        owner_public_key: EosAuth.getOwnerPublicKeyByBrainKey(payload.brainkey)
+        account_name:     payload.account_name,
+        nickname:         payload.account_name,
+        created_at:       new Date(),
+        updated_at:       new Date(),
+        public_key:       payload.public_key,
+        private_key:      EosApi.getActivePrivateKeyByBrainkey(payload.brainkey),
+        owner_public_key: EosApi.getOwnerPublicKeyByBrainKey(payload.brainkey)
       });
 
     const token = AuthService.getNewJwtToken(newUser);
 
     try {
       if (process.env.NODE_ENV === 'production') {
-        await EosAuth.transactionToCreateNewAccount(newUser.account_name, newUser.owner_public_key, newUser.public_key);
+        await EosApi.transactionToCreateNewAccount(newUser.account_name, newUser.owner_public_key, newUser.public_key);
 
         await UserService.setBlockchainRegistrationIsSent(newUser);
 

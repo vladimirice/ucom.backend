@@ -32,7 +32,7 @@ describe('Posts API', () => {
   });
 
   describe('Post-offer activity', () => {
-    it('Get info that user joined to post-offer', async () => {
+    it.skip('Get info that user joined to post-offer', async () => {
       const post = await PostsService.findLastPostOfferByAuthor(userVlad.id);
 
       await helpers.ActivityHelper.createJoin(userJane, post.id);

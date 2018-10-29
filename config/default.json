@@ -16,10 +16,6 @@
   "auth": {
     "jwt_secret_key": "secret_key"
   },
-  "eosConfig": {
-    "httpEndpoint": "https://api.uos.u.community:7888",
-    "blockchain_is_enabled": true
-  },
   "eosAccounts": {
     "creatorAccountName": "12345",
     "creatorPrivateKey": "12345"

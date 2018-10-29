@@ -8,9 +8,6 @@
     "dialect": "postgres",
     "logging": false
   },
-  "eosConfig": {
-    "httpEndpoint": "https://api.uos.u.community:7888"
-  },
   "auth": {
     "jwt_secret_key": "secret_key"
   },
