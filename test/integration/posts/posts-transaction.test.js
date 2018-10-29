@@ -1,8 +1,11 @@
 const helpers = require('../helpers');
 const delay = require('delay');
+const gen     = require('../../generators');
 
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
-const ContentTypeDictionary = require('uos-app-transaction').ContentTypeDictionary;
+const { ContentTypeDictionary, InteractionTypeDictionary } = require('uos-app-transaction');
+
+const PostsRepository = require('../../../lib/posts/repository').Main;
 
 let userVlad;
 let userJane;
@@ -48,11 +51,51 @@ describe('Posts related blockchain transactions.', () => {
   });
 
   describe('Posts activity transactions', () => {
-    it.skip('should create and process valid UPVOTE transaction', async () => {
-      // TODO
-    });
-    it.skip('should create and process valid DOWNVOTE transaction', async () => {
-      // TODO
+
+    describe('Votes related transactions', function () {
+      it('Jane upvotes Vlad posts', async () => {
+        const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        await helpers.PostHelper.requestToUpvotePost(userJane, postId);
+
+        const blockchainId = await PostsRepository.findBlockchainIdById(postId);
+
+        let activity;
+        while(!activity) {
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userJane.id);
+          await delay(100);
+        }
+
+        const expectedPushResult = helpers.EosTransaction.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
+          userJane.account_name,
+          blockchainId,
+          InteractionTypeDictionary.getUpvoteId()
+        );
+
+        expect(JSON.parse(activity.signed_transaction)).toMatchObject(helpers.EosTransaction.getPartOfSignedUserVotesPostOfOtherUser());
+        expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedPushResult);
+      }, 10000);
+
+      it('Jane downvotes Vlad posts', async () => {
+        const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        await helpers.PostHelper.requestToDownvotePost(userJane, postId);
+
+        const blockchainId = await PostsRepository.findBlockchainIdById(postId);
+
+        let activity;
+        while(!activity) {
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userJane.id);
+          await delay(100);
+        }
+
+        const expectedPushResult = helpers.EosTransaction.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
+          userJane.account_name,
+          blockchainId,
+          InteractionTypeDictionary.getDownvoteId()
+        );
+
+        expect(JSON.parse(activity.signed_transaction)).toMatchObject(helpers.EosTransaction.getPartOfSignedUserVotesPostOfOtherUser());
+        expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedPushResult);
+      }, 10000);
     });
   });
 

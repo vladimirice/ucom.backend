@@ -1,8 +1,13 @@
 const helpers = require('../helpers');
-const delay = require('delay');
+const delay   = require('delay');
+const gen     = require('../../generators');
 
 const RabbitMqService         = require('../../../lib/jobs/rabbitmq-service');
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+
+const CommentsRepository = require('../../../lib/comments/repository').Main;
+
+const { InteractionTypeDictionary } = require('uos-app-transaction');
 
 let userVlad;
 let userJane;
@@ -197,5 +202,55 @@ describe('Comment related blockchain transactions.', () => {
       expect(activity.signed_transaction.length).toBeGreaterThan(0);
       expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedBlockchainResponse);
     }, 10000);
+  });
+
+  describe('Comments activity transactions', () => {
+    describe('Votes related transactions', function () {
+      it('Jane upvotes Vlad posts', async () => {
+        const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+
+        await helpers.Comments.requestToUpvoteComment(postId, comment.id, userJane);
+        const blockchainId = await CommentsRepository.findBlockchainIdById(comment.id);
+
+        let activity;
+        while(!activity) {
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userJane.id);
+          await delay(100);
+        }
+
+        const expectedPushResult = helpers.EosTransaction.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
+          userJane.account_name,
+          blockchainId,
+          InteractionTypeDictionary.getUpvoteId()
+        );
+
+        expect(JSON.parse(activity.signed_transaction)).toMatchObject(helpers.EosTransaction.getPartOfSignedUserVotesPostOfOtherUser());
+        expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedPushResult);
+      }, 20000);
+
+      it('Jane DOWNVOTES Vlad posts', async () => {
+        const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+
+        await helpers.Comments.requestToDownvoteComment(postId, comment.id, userJane);
+        const blockchainId = await CommentsRepository.findBlockchainIdById(comment.id);
+
+        let activity;
+        while(!activity) {
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userJane.id);
+          await delay(100);
+        }
+
+        const expectedPushResult = helpers.EosTransaction.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
+          userJane.account_name,
+          blockchainId,
+          InteractionTypeDictionary.getDownvoteId()
+        );
+
+        expect(JSON.parse(activity.signed_transaction)).toMatchObject(helpers.EosTransaction.getPartOfSignedUserVotesPostOfOtherUser());
+        expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedPushResult);
+      }, 20000);
+    })
   });
 });

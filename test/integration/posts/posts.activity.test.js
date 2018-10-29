@@ -60,76 +60,6 @@ describe('User to post activity', () => {
       });
 
     });
-
-    describe('Negative scenarios', () => {
-      // it('Not possible to join media post', async () => {
-      //   // TODO
-      // });
-
-      // it('Not possible to upvote twice', async () => {
-      //   const posts = await PostService.findAllByAuthor(userVlad.id);
-      //   const postId = posts[0]['id'];
-      //
-      //   const res = await request(server)
-      //     .post(`/api/v1/posts/${postId}/upvote`)
-      //     .set('Authorization', `Bearer ${userJane.token}`)
-      //   ;
-      //
-      //   ResponseHelper.expectStatusOk(res);
-      //
-      //   const responseTwo = await request(server)
-      //     .post(`/api/v1/posts/${postId}/upvote`)
-      //     .set('Authorization', `Bearer ${userJane.token}`)
-      //   ;
-      //
-      //   ResponseHelper.expectStatusBadRequest(responseTwo);
-      // });
-
-      // it('Not possible to join to myself post', async () => {
-      //   const posts = await PostService.findAllByAuthor(userVlad.id);
-      //   const postId = posts[0]['id'];
-      //
-      //   const res = await request(server)
-      //     .post(`/api/v1/posts/${postId}/upvote`)
-      //     .set('Authorization', `Bearer ${userVlad.token}`)
-      //   ;
-      //
-      //   ResponseHelper.expectStatusBadRequest(res);
-      // });
-
-
-      // it('Should return 400 if postID is not a valid integer', async () => {
-      //   const postId = 'invalidPostId';
-      //   const userJane = await UserHelper.getUserJane();
-      //
-      //   const res = await request(server)
-      //     .post(`/api/v1/posts/${postId}/upvote`)
-      //     .set('Authorization', `Bearer ${userJane.token}`)
-      //   ;
-      //
-      //   ResponseHelper.expectStatusBadRequest(res);
-      // });
-
-      // it('Should return 404 if on post with provided ID', async () => {
-      //   const postId = '100500';
-      //   const userJane = await UserHelper.getUserJane();
-      //
-      //   const res = await request(server)
-      //     .post(`/api/v1/posts/${postId}/upvote`)
-      //     .set('Authorization', `Bearer ${userJane.token}`)
-      //   ;
-      //
-      //   ResponseHelper.expectStatusNotFound(res);
-      // });
-
-      // it('Not possible to follow without auth token', async () => {
-      //   const res = await request(server)
-      //     .post('/api/v1/posts/1/upvote')
-      //   ;
-      //
-      //   ResponseHelper.expectStatusUnauthorized(res);
-      // });
-    })
   });
 
   it('List of posts contain different myself data related to users activity', async () => {
@@ -365,4 +295,74 @@ describe('User to post activity', () => {
       });
     });
   });
+
+  // describe('Negative scenarios', () => {
+    // it('Not possible to join media post', async () => {
+    //   // TODO
+    // });
+
+    // it('Not possible to upvote twice', async () => {
+    //   const posts = await PostService.findAllByAuthor(userVlad.id);
+    //   const postId = posts[0]['id'];
+    //
+    //   const res = await request(server)
+    //     .post(`/api/v1/posts/${postId}/upvote`)
+    //     .set('Authorization', `Bearer ${userJane.token}`)
+    //   ;
+    //
+    //   ResponseHelper.expectStatusOk(res);
+    //
+    //   const responseTwo = await request(server)
+    //     .post(`/api/v1/posts/${postId}/upvote`)
+    //     .set('Authorization', `Bearer ${userJane.token}`)
+    //   ;
+    //
+    //   ResponseHelper.expectStatusBadRequest(responseTwo);
+    // });
+
+    // it('Not possible to join to myself post', async () => {
+    //   const posts = await PostService.findAllByAuthor(userVlad.id);
+    //   const postId = posts[0]['id'];
+    //
+    //   const res = await request(server)
+    //     .post(`/api/v1/posts/${postId}/upvote`)
+    //     .set('Authorization', `Bearer ${userVlad.token}`)
+    //   ;
+    //
+    //   ResponseHelper.expectStatusBadRequest(res);
+    // });
+
+
+    // it('Should return 400 if postID is not a valid integer', async () => {
+    //   const postId = 'invalidPostId';
+    //   const userJane = await UserHelper.getUserJane();
+    //
+    //   const res = await request(server)
+    //     .post(`/api/v1/posts/${postId}/upvote`)
+    //     .set('Authorization', `Bearer ${userJane.token}`)
+    //   ;
+    //
+    //   ResponseHelper.expectStatusBadRequest(res);
+    // });
+
+    // it('Should return 404 if on post with provided ID', async () => {
+    //   const postId = '100500';
+    //   const userJane = await UserHelper.getUserJane();
+    //
+    //   const res = await request(server)
+    //     .post(`/api/v1/posts/${postId}/upvote`)
+    //     .set('Authorization', `Bearer ${userJane.token}`)
+    //   ;
+    //
+    //   ResponseHelper.expectStatusNotFound(res);
+    // });
+
+    // it('Not possible to follow without auth token', async () => {
+    //   const res = await request(server)
+    //     .post('/api/v1/posts/1/upvote')
+    //   ;
+    //
+    //   ResponseHelper.expectStatusUnauthorized(res);
+    // });
+  // })
 });

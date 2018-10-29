@@ -7,7 +7,6 @@ const { cpUpload } = require('../../lib/posts/post-edit-middleware');
 const { descriptionParser } = require('../../lib/posts/post-description-image-middleware');
 
 const PostService = require('../../lib/posts/post-service');
-const ActivityService = require('../../lib/activity/activity-service');
 const PostRepository = require('../../lib/posts/posts-repository');
 
 require('express-async-errors');
@@ -30,15 +29,7 @@ router.get('/:post_id', async (req, res) => {
 });
 
 router.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  const userFrom = req['user'];
-  const post_id = req['post_id'];
-
-  await ActivityService.userJoinsPost(userFrom, post_id);
-
-  res.send({
-    post_id,
-    'user_id': userFrom.id,
-  });
+  res.status(404).send('Action is disabled');
 });
 
 router.post('/:post_id/upvote', [authTokenMiddleWare, cpUpload], async (req, res) => {

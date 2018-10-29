@@ -35,9 +35,7 @@ describe('Notifications create-update', () => {
   describe('Direct post notifications', () => {
     describe('Positive', () => {
       it('User creates direct post for other user', async () => {
-          await gen.Posts.createUserDirectPostForOtherUser(userJane, userVlad);
-
-          return;
+        await gen.Posts.createUserDirectPostForOtherUser(userJane, userVlad);
 
         let notifications = [];
         while(_.isEmpty(notifications)) {
@@ -134,6 +132,70 @@ describe('Notifications create-update', () => {
       };
 
       helpers.Common.checkOneNotificationsFromList(notification, options);
+    });
+  });
+
+  describe('User voting activity', () => {
+    describe('User to post activity', function () {
+      it('user upvotes other user post', async () => {
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        await helpers.Posts.requestToUpvotePost(userJane, postId);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification'
+        };
+
+        helpers.Common.checkUserUpvotesPostOfOtherUser(notification, options);
+      });
+
+      it('user UPVOTES post of organization', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+        await helpers.Posts.requestToUpvotePost(userJane, postId);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification'
+        };
+
+        helpers.Common.checkUserUpvotesPostOfOrg(notification, options);
+      });
+    });
+
+    describe('User to post comment activity', function () {
+      it('user upvotes other user comment', async () => {
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+
+        await helpers.Comments.requestToUpvoteComment(postId, comment.id, userJane);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification'
+        };
+
+        helpers.Common.checkUserUpvotesCommentOfOtherUser(notification, options);
+      });
+
+      it('user UPVOTES comment of organization', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+
+        await helpers.Comments.requestToUpvoteComment(postId, comment.id, userJane);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification'
+        };
+
+        helpers.Common.checkUserUpvotesCommentOfOrg(notification, options);
+      });
     });
   });
 

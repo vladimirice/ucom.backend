@@ -1,7 +1,3 @@
-const UserActivityService = require('../../../lib/users/user-activity-service');
-const CommentsService = require('../../../lib/comments/comments-service');
-const UsersActivityService = require('../../../lib/users/user-activity-service');
-const PostsService = require('../../../lib/posts/post-service');
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
 class EosTransactionHelper {
@@ -91,6 +87,34 @@ class EosTransactionHelper {
               "authorization": [
                 {
                   "actor": "vlad",
+                  "permission": "active"
+                }
+              ],
+            }
+          ],
+          "transaction_extensions": []
+        },
+      }
+    };
+
+  }
+  static getPartOfSignedUserVotesPostOfOtherUser() {
+    return {
+      "broadcast": false,
+      "transaction": {
+        "compression": "none",
+        "transaction": {
+          "max_net_usage_words": 0,
+          "max_cpu_usage_ms": 0,
+          "delay_sec": 0,
+          "context_free_actions": [],
+          "actions": [
+            {
+              "account": "tst.activity",
+              "name": "usertocont",
+              "authorization": [
+                {
+                  "actor": "jane",
                   "permission": "active"
                 }
               ],
@@ -206,6 +230,50 @@ class EosTransactionHelper {
                 "parent_content_id": "",
               },
             },
+            "cpu_usage": 0,
+            "total_cpu_usage": 0,
+            "inline_traces": []
+          }
+        ],
+        "except": null
+      }
+    };
+  }
+
+  /**
+   *
+   * @param {string} accountName
+   * @param {string} blockchainId
+   * @param {number} interactionTypeId
+   * @return {{processed: {receipt: {status: string}, scheduled: boolean, action_traces: {receipt: {receiver: string}, act: {account: string, name: string, authorization: {actor: string, permission: string}[], data: {acc: string, content_id: *}}, cpu_usage: number, total_cpu_usage: number, inline_traces: Array}[], except: null}}}
+   */
+  static getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(accountName, blockchainId, interactionTypeId) {
+    return {
+      "processed": {
+        "receipt": {
+          "status": "executed",
+        },
+        "scheduled": false,
+        "action_traces": [
+          {
+            "receipt": {
+              "receiver": "tst.activity",
+            },
+            "act": {
+              "account": "tst.activity",
+              "name": "usertocont",
+              "authorization": [
+                {
+                  "actor": accountName,
+                  "permission": "active"
+                }
+              ],
+              "data": {
+                "acc": accountName,
+                "content_id": blockchainId,
+              },
+            },
+            "console": `usertocont acc = ${accountName} content_id = ${blockchainId} interaction_type_id = ${interactionTypeId}`,
             "cpu_usage": 0,
             "total_cpu_usage": 0,
             "inline_traces": []

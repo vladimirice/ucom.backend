@@ -178,6 +178,65 @@ class CommonHelper {
    *
    * @param {Object} model
    * @param {Object} options
+   */
+  static checkUserUpvotesPostOfOtherUser(model, options = {}) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserUpvotesPostOfOtherUser());
+
+    UsersHelper.checkIncludedUserPreview(model.data);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
+  }
+
+  static checkUserUpvotesCommentOfOtherUser(model, options = {}) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserUpvotesCommentOfOtherUser());
+
+    UsersHelper.checkIncludedUserPreview(model.data);
+
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   */
+  static checkUserUpvotesPostOfOrg(model, options = {}) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserUpvotesPostOfOrg());
+
+    UsersHelper.checkIncludedUserPreview(model.data);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
+
+    OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization)
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   */
+  static checkUserUpvotesCommentOfOrg(model, options = {}) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserUpvotesCommentOfOrg());
+
+    UsersHelper.checkIncludedUserPreview(model.data);
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
+      postProcessing: 'notificationWithOrg'
+    });
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
+    OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
    * @private
    */
   static checkUserCommentsPostNotification(model, options) {
