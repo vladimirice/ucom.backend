@@ -11,6 +11,9 @@
   "auth": {
     "jwt_secret_key": "secret_key"
   },
+  "servers": {
+    "websocket": "http://localhost:5000"
+  },
   "ipfs": {
     "host": "85.10.211.115",
     "port": "5001",

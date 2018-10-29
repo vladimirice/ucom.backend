@@ -9,6 +9,7 @@
   "dependencies": {
     "amqplib": "0.5.2",
     "app-root-path": "2.1.0",
+    "axios": "0.18.0",
     "bs58": "4.0.1",
     "config": "^2.0.1",
     "cookie-parser": "~1.4.3",
