@@ -137,7 +137,7 @@ describe('Notifications create-update', () => {
 
   describe('User voting activity', () => {
     describe('User to post activity', function () {
-      it('user upvotes other user post', async () => {
+      it('user UPVOTES other user post', async () => {
         const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
         await helpers.Posts.requestToUpvotePost(userJane, postId);
 
@@ -148,6 +148,19 @@ describe('Notifications create-update', () => {
         };
 
         helpers.Common.checkUserUpvotesPostOfOtherUser(notification, options);
+      });
+
+      it('user DOWNVOTES other user post', async () => {
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        await helpers.Posts.requestToDownvotePost(userJane, postId);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification'
+        };
+
+        helpers.Common.checkUserDownvotesPostOfOtherUser(notification, options);
       });
 
       it('user UPVOTES post of organization', async () => {
@@ -163,10 +176,24 @@ describe('Notifications create-update', () => {
 
         helpers.Common.checkUserUpvotesPostOfOrg(notification, options);
       });
+
+      it('user DOWNVOTES post of organization', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+        await helpers.Posts.requestToDownvotePost(userJane, postId);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification'
+        };
+
+        helpers.Common.checkUserDownvotesPostOfOrg(notification, options);
+      });
     });
 
     describe('User to post comment activity', function () {
-      it('user upvotes other user comment', async () => {
+      it('user UPVOTES other user comment', async () => {
         const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
         const comment = await gen.Comments.createCommentForPost(postId, userVlad);
 
@@ -179,6 +206,21 @@ describe('Notifications create-update', () => {
         };
 
         helpers.Common.checkUserUpvotesCommentOfOtherUser(notification, options);
+      });
+
+      it('user DOWNVOTES other user comment', async () => {
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+
+        await helpers.Comments.requestToDownvoteComment(postId, comment.id, userJane);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification'
+        };
+
+        helpers.Common.checkUserDownvotesCommentOfOtherUser(notification, options);
       });
 
       it('user UPVOTES comment of organization', async () => {
@@ -195,6 +237,22 @@ describe('Notifications create-update', () => {
         };
 
         helpers.Common.checkUserUpvotesCommentOfOrg(notification, options);
+      });
+
+      it('user DOWNVOTES comment of organization', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+
+        await helpers.Comments.requestToDownvoteComment(postId, comment.id, userJane);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification'
+        };
+
+        helpers.Common.checkUserDownvotesCommentOfOrg(notification, options);
       });
     });
   });
@@ -478,10 +536,9 @@ describe('Notifications create-update', () => {
 
       await orgGen.createOrgWithTeam(author, teamMembers);
 
-      delay(100); // wait a bit until consumer process the request and creates db record
-      const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
+      const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userJane);
 
-      const seen = await helpers.Notifications.requestToMarkNotificationSeen(userJane, janeNotifications[0].id);
+      const seen = await helpers.Notifications.requestToMarkNotificationSeen(userJane, notification.id);
 
       const options = {
         myselfData: true
@@ -494,11 +551,10 @@ describe('Notifications create-update', () => {
 
     it('mark alert notification as seen. Should be finished', async () => {
       await helpers.Activity.requestToCreateFollow(userVlad, userJane);
-      delay(200);
 
-      const janeNotifications = await helpers.Notifications.requestToGetNotificationsList(userJane);
+      const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userJane);
 
-      const seen = await helpers.Notifications.requestToMarkNotificationSeen(userJane, janeNotifications[0].id);
+      const seen = await helpers.Notifications.requestToMarkNotificationSeen(userJane, notification.id);
 
       const options = {
         myselfData: true
