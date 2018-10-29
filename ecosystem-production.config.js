@@ -1,44 +1,57 @@
-const NODE_ENV_PARAM = 'production';
+const NODE_ENV              = 'production';
+const HTTP_SERVER_PORT      = 3000;
+const WEBSOCKET_SERVER_PORT = 5000;
 
 module.exports = {
   apps : [
     {
-      name:           `${NODE_ENV_PARAM}_backend`,
+      name:           `${NODE_ENV}_backend`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/www',
       watch:          false,
       autorestart:    true,
       env: {
-        PORT:         3000,
-        NODE_ENV:     NODE_ENV_PARAM,
+        PORT:         HTTP_SERVER_PORT,
+        NODE_ENV:     NODE_ENV,
       },
     },
     {
-      name:           `${NODE_ENV_PARAM}_blockchain_consumer`,
+      name:           `${NODE_ENV}_websocket`,
+      instance_var:   'INSTANCE_ID',
+      script:         'bin/websocket.js',
+      env: {
+        PORT:         WEBSOCKET_SERVER_PORT,
+        NODE_ENV:     NODE_ENV,
+        watch:        false,
+        autorestart:  true,
+      },
+    },
+    {
+      name:           `${NODE_ENV}_blockchain_consumer`,
       script:         'bin/blockchain-consumer.js',
       watch:          false,
       autorestart:    true,
       env: {
-        NODE_ENV:     NODE_ENV_PARAM,
+        NODE_ENV:     NODE_ENV,
       },
     },
     {
-      name:           `${NODE_ENV_PARAM}_notifications_consumer`,
+      name:           `${NODE_ENV}_notifications_consumer`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/notifications-consumer.js',
       watch:          false,
       autorestart:    true,
       env: {
-        NODE_ENV:     NODE_ENV_PARAM,
+        NODE_ENV:     NODE_ENV,
       },
     },
     {
-      name: `${NODE_ENV_PARAM}_importance_worker`,
+      name: `${NODE_ENV}_importance_worker`,
       script: 'bin/worker-update-importance.js',
       watch: false,
       cron_restart: '* * * * *',
       env: {
-        NODE_ENV: NODE_ENV_PARAM
+        NODE_ENV: NODE_ENV
       },
     },
   ],

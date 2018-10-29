@@ -1,4 +1,6 @@
-const NODE_ENV = 'test';
+const NODE_ENV              = 'test';
+const HTTP_SERVER_PORT      = 3000;
+const WEBSOCKET_SERVER_PORT = 5000;
 
 module.exports = {
   apps : [
@@ -7,7 +9,18 @@ module.exports = {
       instance_var:   'INSTANCE_ID',
       script:         'bin/www',
       env: {
-        PORT:         3000,
+        PORT:         HTTP_SERVER_PORT,
+        NODE_ENV:     NODE_ENV,
+        watch:        true,
+        autorestart:  true,
+      },
+    },
+    {
+      name:           `${NODE_ENV}_websocket`,
+      instance_var:   'INSTANCE_ID',
+      script:         'bin/websocket.js',
+      env: {
+        PORT:         WEBSOCKET_SERVER_PORT,
         NODE_ENV:     NODE_ENV,
         watch:        true,
         autorestart:  true,
