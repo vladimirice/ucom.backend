@@ -62,14 +62,8 @@ router.post('/', [ upload.array() ], async function (req, res, next) {
     const token = AuthService.getNewJwtToken(newUser);
 
     try {
-      if (process.env.NODE_ENV === 'production') {
         await EosApi.transactionToCreateNewAccount(newUser.account_name, newUser.owner_public_key, newUser.public_key);
-
         await UserService.setBlockchainRegistrationIsSent(newUser);
-
-      } else {
-        console.log('User blockchain creation is disabled for env: ', process.env.NODE_ENV);
-      }
     } catch (err) {
       // TODO #log
       console.log(err);
