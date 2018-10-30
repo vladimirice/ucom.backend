@@ -44,6 +44,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     entity_name_for: {
       type: DataTypes.STRING,
+    },
+    parent_id: {
+      type: DataTypes.INTEGER,
     }
   }, {
     underscored: true,

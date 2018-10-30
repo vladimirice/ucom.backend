@@ -20,6 +20,17 @@ class RequestHelper {
 
   /**
    *
+   * @param {number} postId
+   * @return {string}
+   */
+  static getCreateRepostUrl(postId) {
+    const onePostUrl = this.getOnePostUrl(postId);
+
+    return `${onePostUrl}/repost`;
+  }
+
+  /**
+   *
    * @param {Object} req
    * @param {Object} user
    */
