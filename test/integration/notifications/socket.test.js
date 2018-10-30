@@ -1,40 +1,69 @@
 const io = require('socket.io-client');
 
-const socketURL = 'http://localhost:3000';
-// const socketURL = 'https://backend.u.community:443';
+const config        = require('config');
+const websocketHost = config.servers.websocket;
+
+const delay = require('delay');
+
+const gen     = require('../../generators');
+const helpers = require('../helpers');
+const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
+
+// local token
 const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiYWNjb3VudF9uYW1lIjoiYWRtaW5fYWNjb3VudF9uYW1lIiwiaWF0IjoxNTM0NDI0OTY4fQ.OBZCv4izTR0K6Mi6Fcjn3WT4N5MieKH5VpesY2WNfeM';
+// const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OSwiYWNjb3VudF9uYW1lIjoidmFzeWFwdXBraW4zIiwiaWF0IjoxNTQwNTQ5NjYyfQ.mvZ2WvBol2y3WDlR53ftHOtNqKZECsyweeVLOOmLrAg';
 
-const options = {
-  transports: ['websocket'],
-  query: {token: token}
-};
+let userVlad;
+let userJane;
+let userPetr;
+let userRokky;
 
-// var chatUser1 = {'name':'Tom'};
-// var chatUser2 = {'name':'Sally'};
-// var chatUser3 = {'name':'Dana'};
+let socket;
+
+helpers.Mock.mockAllTransactionSigning();
+helpers.Mock.mockAllBlockchainJobProducers();
 
 describe('Suite of unit tests', function() {
+  beforeAll(async () => {
+    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+  });
 
-  var socket;
+  afterAll(async () => {
+    await helpers.SeedsHelper.sequelizeAfterAll();
+  });
 
-  beforeEach(function(done) {
-    // Setup
-    socket = io.connect(socketURL, {
-      'reconnection delay' : 0
-      , 'reopen delay' : 0
-      , 'force new connection' : true,
-      transports: ['websocket'],
+  beforeEach(async (done) => {
+    await RabbitMqService.purgeNotificationsQueue();
+    await helpers.SeedsHelper.initUsersOnly();
+
+    socket = io(websocketHost, {
+      transports: [
+        'websocket'
+      ],
       query: {token: token}
     });
+
+    // Setup
+    // socket = io.connect(websocketHost, {
+    //   'reconnection delay' : 0
+    //   , 'reopen delay' : 0
+    //   , 'force new connection' : true,
+    //   transports: ['websocket'],
+    //   query: {token: token}
+    // });
     socket.on('connect', function() {
       console.log('worked...');
       done();
     });
+
+    socket.on('*', (event, data) => {
+      console.log(event);
+      console.log(data);
+      done();
+    });
+
     socket.on('disconnect', function() {
       console.log('disconnected...');
-    });
-    socket.on('notification', function(msg) {
-      console.log('Message from socket: ', msg);
     });
   });
 
@@ -51,63 +80,16 @@ describe('Suite of unit tests', function() {
   });
 
   describe('First (hopefully useful) test', function() {
+    it.skip('Doing some things with indexOf()', async () => {
 
-    it('Doing some things with indexOf()', function(done) {
-      done();
-    });
+      socket.on('notification', function(msg) {
+        console.warn('Message from socket: ', msg);
+      });
 
-    it('Doing something else with indexOf()', function(done) {
-      done();
-    });
+      const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+      await helpers.Posts.requestToUpvotePost(userJane, postId);
 
+      const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+    }, 30000);
   });
-
 });
-
-it('Should broadcast new user to all users', async function() {
-
-  // Place real token here, without Bearer
-
-  // const socket = io('https://backend.u.community:443', {
-  //   transports: [
-  //     'websocket'
-  //   ],
-  //   query: {token: token}
-  // });
-
-  const client1 = await io.connect(socketURL, options);
-
-  client1.on('connect', function(msg) {
-
-    console.warn('connected');
-    console.warn(JSON.stringify(msg, null, 2));
-  });
-
-  // client1.on('connect', function(data) {
-    // client1.emit('connection name', chatUser1);
-    //
-    // /* Since first client is connected, we connect
-    // the second client. */
-    // var client2 = io.connect(socketURL, options);
-    //
-    // client2.on('connect', function(data){
-    //   client2.emit('connection name', chatUser2);
-    // });
-    //
-    // client2.on('new user', function(usersName){
-    //   usersName.should.equal(chatUser2.name + " has joined.");
-    //   client2.disconnect();
-    // });
-  // });
-
-  // var numUsers = 0;
-  // client1.on('new user', function(usersName){
-  //   numUsers += 1;
-  //
-  //   if(numUsers === 2){
-  //     usersName.should.equal(chatUser2.name + " has joined.");
-  //     client1.disconnect();
-  //     done();
-  //   }
-  // });
-}, 10000);
