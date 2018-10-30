@@ -28,6 +28,15 @@ class RequestHelper {
       .set('Authorization', `Bearer ${user.token}`)
     ;
   }
+
+  /**
+   *
+   * @return {string}
+   */
+  static getMyselfUrl() {
+    return myselfUrl;
+  }
+
   /**
    *
    * @param {number} id

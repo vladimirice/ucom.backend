@@ -1,5 +1,7 @@
 const request = require('supertest');
 const server = require('../../../app');
+
+const helpers = require('../helpers');
 const UserHelper = require('./../helpers/users-helper');
 const SeedsHelper = require('./../helpers/seeds-helper');
 const UsersRepository = require('../../../lib/users/users-repository');
@@ -25,6 +27,20 @@ describe('Users API', () => {
   });
 
   afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
+
+  it('Get myself', async () => {
+    const res = await request(server)
+      .get(helpers.Req.getMyselfUrl())
+      .set('Authorization', `Bearer ${userVlad.token}`)
+    ;
+
+    helpers.Res.expectStatusOk(res);
+
+    const body = res.body;
+
+    expect(body.is_tracking_allowed).toBeDefined();
+    expect(body.is_tracking_allowed).toBeFalsy();
+  });
 
   it('GET all users', async () => {
     const res = await request(server)

@@ -71,6 +71,9 @@ module.exports = (sequelize, DataTypes) => {
     owner_public_key: {
       type: DataTypes.STRING
     },
+    is_tracking_allowed: {
+      type: DataTypes.BOOLEAN
+    },
   }, {
     underscored: true,
     freezeTableName: true,
@@ -120,7 +123,13 @@ module.exports = (sequelize, DataTypes) => {
      */
     Users.getFieldsForPreview = function() {
       return [
-        'id', 'account_name', 'first_name', 'last_name', 'nickname', 'avatar_filename', 'current_rate',
+        'id',
+        'account_name',
+        'first_name',
+        'last_name',
+        'nickname',
+        'avatar_filename',
+        'current_rate',
       ];
     };
   };

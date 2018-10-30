@@ -152,6 +152,7 @@ class UsersHelper {
 
     // TODO
     const expected = UsersRepository.getModel().getFieldsForPreview().sort();
+
     ResponseHelper.expectAllFieldsExistence(user, expected);
   }
 

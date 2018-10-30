@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const _ = require('lodash');
 const EosJsEcc = require('../../lib/crypto/eosjs-ecc');
-const {AppError} = require('../../lib/api/errors');
+const { AppError } = require('../../lib/api/errors');
 const AuthValidator = require('../../lib/auth/validators');
 const AuthService = require('../../lib/auth/authService');
 const models = require('../../models');
@@ -13,7 +13,7 @@ const upload = multer();
 
 /* Register new user */
 router.post('/', [ upload.array() ], async function (req, res, next) {
-  const payload = _.pick(req.body, ['account_name', 'public_key', 'sign', 'brainkey']);
+  const payload = _.pick(req.body, ['account_name', 'public_key', 'sign', 'brainkey', 'is_tracking_allowed']);
 
   const { error } = AuthValidator.validateRegistration(req.body);
   if (error) {
@@ -49,14 +49,15 @@ router.post('/', [ upload.array() ], async function (req, res, next) {
     }
 
     // TODO #refactor - move to Repository behind the service
-     const newUser = await models['Users'].create({
-        account_name:     payload.account_name,
-        nickname:         payload.account_name,
-        created_at:       new Date(),
-        updated_at:       new Date(),
-        public_key:       payload.public_key,
-        private_key:      EosApi.getActivePrivateKeyByBrainkey(payload.brainkey),
-        owner_public_key: EosApi.getOwnerPublicKeyByBrainKey(payload.brainkey)
+     const newUser = await models.Users.create({
+        account_name:         payload.account_name,
+        nickname:             payload.account_name,
+        created_at:           new Date(),
+        updated_at:           new Date(),
+        public_key:           payload.public_key,
+        private_key:          EosApi.getActivePrivateKeyByBrainkey(payload.brainkey),
+        owner_public_key:     EosApi.getOwnerPublicKeyByBrainKey(payload.brainkey),
+        is_tracking_allowed:  !!payload.is_tracking_allowed || false,
       });
 
     const token = AuthService.getNewJwtToken(newUser);
