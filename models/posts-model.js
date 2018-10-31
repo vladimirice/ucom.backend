@@ -247,6 +247,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'post_id',
       as: 'post_stats'
     });
+
+    models[TABLE_NAME].belongsTo(models[TABLE_NAME], {
+      foreignKey: 'parent_id',
+      as: 'post'
+    });
   };
 
   return Posts;

@@ -106,4 +106,15 @@ describe('Post repost API', () => {
     });
   });
 
+  describe('Update post-repost', () => {
+    describe('Negative', () => {
+      it('It is not possible to patch post-repost', async () => {
+
+        const parentPostId  = await gen.Posts.createMediaPostByUserHimself(userJane);
+        const repostId      = await gen.Posts.createRepostOfUserPost(userVlad, parentPostId);
+
+        await helpers.Posts.requestToPatchPostRepost(repostId, userVlad, 400)
+      });
+    });
+  });
 });
