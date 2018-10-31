@@ -10,7 +10,6 @@ const ActivityGroupDictionary = require('../../../lib/activity/activity-group-di
 const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
 
 const PostsModelProvider      = require('../../../lib/posts/service').ModelProvider;
-const UsersModelProvider      = require('../../../lib/users/service').ModelProvider;
 
 const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
@@ -66,8 +65,8 @@ describe('Post repost API', () => {
         expect(activity.entity_name).toBe(PostsModelProvider.getEntityName());
 
         expect(activity.activity_group_id).toBe(ActivityGroupDictionary.getGroupContentCreation());
-        expect(+activity.entity_id_on).toBe(repostAuthor.id);
-        expect(activity.entity_name_on).toBe(UsersModelProvider.getEntityName());
+        expect(+activity.entity_id_on).toBe(postId);
+        expect(activity.entity_name_on).toBe(PostsModelProvider.getEntityName());
 
         expect(activity.event_id).toBe(EventIdDictionary.getUserRepostsOtherUserPost());
       });

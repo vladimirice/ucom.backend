@@ -35,6 +35,7 @@ describe('Myself. Get requests', () => {
       it('should get correct users_ids and org_ids I follow', async () => {
         // This is unit test
 
+        // noinspection JSDeprecatedSymbols
         await helpers.Seeds.seedOrganizations();
 
         const myself = userVlad;
@@ -119,6 +120,10 @@ describe('Myself. Get requests', () => {
         const queryString = helpers.Req.getPaginationQueryString(1, 20);
 
         const posts = await helpers.Users.requestToGetMyselfNewsFeed(userVlad, queryString);
+
+        posts.forEach(post => {
+          expect(post.description).toBeDefined();
+        });
 
         expect(posts.some(post => post.id === vladMediaPost)).toBeTruthy();
         expect(posts.some(post => post.id === vladPostOffer)).toBeTruthy();

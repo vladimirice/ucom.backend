@@ -32,6 +32,48 @@ describe('Notifications create-update', () => {
     await helpers.SeedsHelper.initUsersOnly();
   });
 
+  describe('Repost notifications', function () {
+    describe('Positive', () => {
+      it('somebody shares your own post', async () => {
+        const parentPostId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const repostId = await gen.Posts.createRepostOfUserPost(userJane, parentPostId);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        helpers.Common.checkUserRepostsOtherUserPost(
+          notification,
+          options,
+          repostId,
+          parentPostId,
+        )
+      });
+
+      it('somebody shares your organization post', async () => {
+        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+
+        const parentPostId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+        const repostId = await gen.Posts.createRepostOfUserPost(userJane, parentPostId);
+
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userVlad);
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        helpers.Common.checkUserRepostsOrgPost(
+          notification,
+          options,
+          repostId,
+          parentPostId,
+        )
+      });
+    });
+  });
+
   describe('Direct post notifications', () => {
     describe('Positive', () => {
       it('User creates direct post for other user', async () => {

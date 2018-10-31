@@ -120,6 +120,8 @@ class PostsHelper {
       case ContentTypeDictionary.getTypeDirectPost():
         this.checkDirectPostItself(post, options);
         break;
+      case ContentTypeDictionary.getTypeRepost():
+        break;
       default:
         throw new Error(`Unsupported post_type_id ${post.post_type_id}`);
     }

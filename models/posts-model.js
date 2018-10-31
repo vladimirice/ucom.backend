@@ -98,7 +98,7 @@ module.exports = (sequelize, DataTypes) => {
     return [
       'id',
       'title',
-      // 'description',
+      'description',
       'leading_text',
       'current_vote',
       'current_rate',
@@ -149,7 +149,7 @@ module.exports = (sequelize, DataTypes) => {
     return [
       'id',
       'post_type_id',
-      // 'description',
+      'description',
       'current_vote',
       'current_rate',
       'created_at',

@@ -207,6 +207,11 @@ class SeedsHelper {
     await models.posts.bulkCreate(postsSeeds);
   }
 
+  /**
+   * @deprecated
+   * @use generators
+   * @return {Promise<void>}
+   */
   static async seedOrganizations() {
     await models.organizations.bulkCreate(organizationsSeeds);
   }

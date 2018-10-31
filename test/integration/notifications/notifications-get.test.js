@@ -25,7 +25,6 @@ describe('Get notifications', () => {
 
   describe('Notifications list', () => {
     it('get notifications of several types - all of them has required structure', async () => {
-
       await commonGen.createAllTypesOfNotifications(userVlad, userJane, userPetr, userRokky);
 
       let models = [];

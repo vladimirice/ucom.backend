@@ -141,6 +141,45 @@ class CommonHelper {
   }
 
   /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   * @param {number} expectedDataPostId
+   * @param {number} expectedTargetEntityPostId
+   */
+  static checkUserRepostsOtherUserPost(model, options, expectedDataPostId, expectedTargetEntityPostId) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserRepostsOtherUserPost());
+
+    this.checkOneRepostForNotification(model.data.post, false);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
+
+    expect(model.data.post.id).toBe(expectedDataPostId);
+    expect(model.target_entity.post.id).toBe(expectedTargetEntityPostId);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
+   * @param {number} expectedDataPostId
+   * @param {number} expectedTargetEntityPostId
+   */
+  static checkUserRepostsOrgPost(model, options, expectedDataPostId, expectedTargetEntityPostId) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserRepostsOrgPost());
+
+    this.checkOneRepostForNotification(model.data.post, false);
+
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
+    OrgHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
+
+    expect(model.data.post.id).toBe(expectedDataPostId);
+    expect(model.target_entity.post.id).toBe(expectedTargetEntityPostId);
+  }
+
+  /**
    * @param {Object} model
    */
   static checkOrgUsersTeamInvitationNotification(model) {
@@ -453,6 +492,27 @@ class CommonHelper {
     }
 
     this._checkMyselfData(post, options);
+  }
+
+  /**
+   *
+   * @param {Object} post
+   * @param {boolean} isOrg
+   */
+  static checkOneRepostForNotification(post, isOrg) {
+    expect(_.isEmpty(post)).toBeFalsy();
+
+    expect(post.user_id).toBeDefined();
+    expect(post.id).toBeDefined();
+
+    expect(post.post_type_id).toBe(ContentTypeDictionary.getTypeRepost());
+    UsersHelper.checkIncludedUserPreview(post);
+
+    if (isOrg) {
+      OrgHelper.checkOneOrganizationPreviewFields(post.post.organization);
+    } else {
+      expect(post.organization).toBeFalsy();
+    }
   }
 
   /**

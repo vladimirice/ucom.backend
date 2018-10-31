@@ -35,7 +35,11 @@ describe('Organizations. Get requests', () => {
           const response = await helpers.Users.requestToGetWallFeedAsMyself(userJane, wallOwner, queryString, false);
           const totalAmount = await UsersFeedRepository.countAllForUserWallFeed(wallOwner.id);
 
-          helpers.Res.checkMetadata(response, page, perPage, totalAmount, true)
+          helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
+
+          response.data.forEach(post => {
+            expect(post.description).toBeDefined();
+          });
         });
 
         it('Metadata', async () => {
