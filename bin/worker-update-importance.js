@@ -1,5 +1,8 @@
 const EosImportance = require('../lib/eos/eos-importance');
+const { EosApi } = require('../lib/eos/eosApi');
 
-EosImportance.updateRatesByBlockchain().then(res => {
+EosApi.initTransactionFactory();
+
+EosImportance.updateRatesByBlockchain().then(() => {
   console.log('Promise is resolved');
 });
