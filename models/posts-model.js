@@ -44,6 +44,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     entity_name_for: {
       type: DataTypes.STRING,
+    },
+    parent_id: {
+      type: DataTypes.INTEGER,
     }
   }, {
     underscored: true,
@@ -243,6 +246,11 @@ module.exports = (sequelize, DataTypes) => {
     models[TABLE_NAME].hasOne(models['post_stats'], {
       foreignKey: 'post_id',
       as: 'post_stats'
+    });
+
+    models[TABLE_NAME].belongsTo(models[TABLE_NAME], {
+      foreignKey: 'parent_id',
+      as: 'post'
     });
   };
 

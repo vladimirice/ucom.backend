@@ -11,11 +11,28 @@ const PostStatsRepository = reqlib('/lib/posts/stats/post-stats-repository');
 const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
 const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
-const _ = require('lodash');
-
 require('jest-expect-message');
 
 class PostsHelper {
+
+  /**
+   *
+   * @param {number} postId
+   * @param {Object} user
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   */
+  static async requestToPatchPostRepost(postId, user, expectedStatus = 200) {
+    const res = await request(server)
+      .patch(RequestHelper.getOnePostUrl(postId))
+      .set('Authorization', `Bearer ${user.token}`)
+      .field('description', 'new repost description')
+    ;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
 
   /**
    *
@@ -618,6 +635,7 @@ class PostsHelper {
    *
    * @param {number} post_id
    * @returns {Promise<Object>}
+   * @link PostsService#findOnePostByIdAndProcess
    */
   static async requestToGetOnePostAsGuest(post_id) {
     const res = await request(server)

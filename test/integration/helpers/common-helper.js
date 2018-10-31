@@ -434,6 +434,28 @@ class CommonHelper {
   /**
    *
    * @param {Object} post
+   * @param {Object} options
+   * @param {boolean} isOrg
+   */
+  static checkOneRepostForList(post, options, isOrg) {
+    expect(_.isEmpty(post)).toBeFalsy();
+    expect(_.isEmpty(post.post)).toBeFalsy();
+
+    PostsHelper.checkPostItselfCommonFields(post.post, options);
+
+    UsersHelper.checkIncludedUserPreview(post);
+    UsersHelper.checkIncludedUserPreview(post.post);
+
+    if (isOrg) {
+      OrgHelper.checkOneOrganizationPreviewFields(post.post.organization);
+    }
+
+    this._checkMyselfData(post, options);
+  }
+
+  /**
+   *
+   * @param {Object} post
    * @param {Object} expectedValues
    * @param {Object} author
    */

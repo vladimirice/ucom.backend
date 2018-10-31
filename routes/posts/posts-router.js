@@ -1,6 +1,6 @@
 const config = require('config');
 
-const router = require('./comments-router');
+const PostsRouter = require('./comments-router');
 const {AppError, BadRequestError} = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../../lib/posts/post-edit-middleware');
@@ -12,14 +12,14 @@ const PostRepository = require('../../lib/posts/posts-repository');
 require('express-async-errors');
 
 /* Get all posts */
-router.get('/', async (req, res) => {
+PostsRouter.get('/', async (req, res) => {
   const result = await getPostService(req).findAll(req.query);
 
   res.send(result);
 });
 
 /* Get one post by ID */
-router.get('/:post_id', async (req, res) => {
+PostsRouter.get('/:post_id', async (req, res) => {
   const PostService = getPostService(req);
   const postId      = req.post_id;
 
@@ -28,24 +28,31 @@ router.get('/:post_id', async (req, res) => {
   res.send(post);
 });
 
-router.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (req, res) => {
+PostsRouter.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (req, res) => {
   res.status(404).send('Action is disabled');
 });
 
-router.post('/:post_id/upvote', [authTokenMiddleWare, cpUpload], async (req, res) => {
+PostsRouter.post('/:post_id/upvote', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const result = await getPostService(req).userUpvotesPost(req['post_id'], req.body);
 
   return res.status(201).send(result);
 });
 
-router.post('/:post_id/downvote', [authTokenMiddleWare, cpUpload], async (req, res) => {
+PostsRouter.post('/:post_id/downvote', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const result = await getPostService(req).userDownvotesPost(req['post_id'], req.body);
 
   return res.status(201).send(result);
 });
 
+PostsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  const service = getPostService(req);
+  const response = await service.processRepostCreation(req.body, req.post_id);
+
+  res.status(201).send(response);
+});
+
 /* Upload post picture (for description) */
-router.post('/image', [descriptionParser], async (req, res) => {
+PostsRouter.post('/image', [descriptionParser], async (req, res) => {
   const filename = req['files']['image'][0].filename;
   const rootUrl = config.get('host')['root_url'];
 
@@ -59,7 +66,7 @@ router.post('/image', [descriptionParser], async (req, res) => {
 });
 
 /* Create new post */
-router.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
+PostsRouter.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
   const newPost = await getPostService(req).processNewPostCreation(req);
 
   const response = PostService.isDirectPost(newPost) ? newPost : {
@@ -70,7 +77,7 @@ router.post('/', [ authTokenMiddleWare, cpUpload ], async (req, res) => {
 });
 
 /* Update Post */
-router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
+PostsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const user_id = req['user'].id;
   const post_id = req['post_id'];
 
@@ -94,7 +101,7 @@ router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   }
 });
 
-router.param('post_id', (req, res, next, post_id) => {
+PostsRouter.param('post_id', (req, res, next, post_id) => {
   const value = parseInt(post_id);
 
   if (!value) {
@@ -127,4 +134,4 @@ function getPostService(req) {
   return req['container'].get('post-service');
 }
 
-module.exports = router;
+module.exports = PostsRouter;
