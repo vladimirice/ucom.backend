@@ -102,7 +102,11 @@ describe('Post repost API', () => {
 
       it.skip('not possible to repost not existed post', async () => {
         // TODO
-      })
+      });
+
+      it.skip('not possible to repost direct post made on yours wall', async () => {
+        // TODO
+      });
     });
   });
 

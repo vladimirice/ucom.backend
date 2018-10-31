@@ -448,6 +448,8 @@ class CommonHelper {
 
     if (isOrg) {
       OrgHelper.checkOneOrganizationPreviewFields(post.post.organization);
+    } else {
+      expect(post.post.organization).toBeFalsy();
     }
 
     this._checkMyselfData(post, options);

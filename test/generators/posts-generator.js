@@ -22,7 +22,6 @@ class PostsGenerator {
       promises.push(this.createMediaPostByUserHimself(wallOwner));
       promises.push(this.createPostOfferByUserHimself(wallOwner));
       promises.push(this.createUserDirectPostForOtherUser(directPostAuthor, wallOwner));
-
     }
     const postsIds = await Promise.all(promises);
 
@@ -156,6 +155,22 @@ class PostsGenerator {
     ResponseHelper.expectStatusCreated(res);
 
     return +res.body.id;
+  }
+
+  /**
+   *
+   * @param {Object} postAuthor
+   * @param {Object} repostAuthor
+   * @return {Promise<{parentPostId: number, repostId: void}>}
+   */
+  static async createNewPostWithRepost(postAuthor, repostAuthor) {
+    const parentPostId  = await this.createMediaPostByUserHimself(postAuthor);
+    const repostId      = await this.createRepostOfUserPost(repostAuthor, parentPostId);
+
+    return {
+      parentPostId,
+      repostId
+    }
   }
 
   /**

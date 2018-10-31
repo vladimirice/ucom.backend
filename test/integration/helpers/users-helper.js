@@ -15,14 +15,15 @@ require('jest-expect-message');
 class UsersHelper {
 
   /**
-   * See {@link PostsService#findAndProcessAllForUserWallFeed}
    *
-   * @param {Object} wallOwner
+   *  @param {Object} wallOwner
    * @param {string} query
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
+   *
+   * @link PostsService#findAndProcessAllForUserWallFeed
    */
   static async requestToGetWallFeedAsGuest(wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
