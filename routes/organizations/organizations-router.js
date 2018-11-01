@@ -33,9 +33,9 @@ OrgRouter.get('/:organization_id/wall-feed', [ cpUploadArray ], async function(r
   res.send(response);
 });
 
-/* Create post for this user */
+/* Create post for this organization */
 OrgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpUploadArray], async function(req, res) {
-  const response = await getPostService(req).processNewPostCreationForOrg(req);
+  const response = await getPostService(req).processNewDirectPostCreationForOrg(req);
 
   res.send(response);
 });

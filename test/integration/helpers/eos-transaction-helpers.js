@@ -8,7 +8,15 @@ class EosTransactionHelper {
     ]);
   }
 
-
+  /**
+   *
+   * @param {Object} activity
+   * @param {Object} expected
+   */
+  static checkTransactionsParts(activity, expected) {
+    expect(JSON.parse(activity.signed_transaction)).toMatchObject(expected.signed_transaction);
+    expect(JSON.parse(activity.blockchain_response)).toMatchObject(expected.blockchain_response);
+  }
 
   /**
    *
@@ -59,6 +67,91 @@ class EosTransactionHelper {
               "authorization": [
                 {
                   "actor": "vlad",
+                  "permission": "active"
+                }
+              ],
+            }
+          ],
+          "transaction_extensions": []
+        },
+      }
+    };
+  }
+
+  static getPartOfSignedUserCreatesDirectPostOfOtherUser() {
+    return {
+      "broadcast": false,
+      "transaction": {
+        "compression": "none",
+        "transaction": {
+          "max_net_usage_words": 0,
+          "max_cpu_usage_ms": 0,
+          "delay_sec": 0,
+          "context_free_actions": [],
+          "actions": [
+            {
+              "account": "tst.activity",
+              "name": "dirpost",
+              "authorization": [
+                {
+                  "actor": "vlad",
+                  "permission": "active"
+                }
+              ],
+            }
+          ],
+          "transaction_extensions": []
+        },
+      }
+    };
+
+  }
+  static getPartOfSignedUserCreatesDirectPostOfOrg() {
+    return {
+      "broadcast": false,
+      "transaction": {
+        "compression": "none",
+        "transaction": {
+          "max_net_usage_words": 0,
+          "max_cpu_usage_ms": 0,
+          "delay_sec": 0,
+          "context_free_actions": [],
+          "actions": [
+            {
+              "account": "tst.activity",
+              "name": "dirpostorg",
+              "authorization": [
+                {
+                  "actor": "vlad",
+                  "permission": "active"
+                }
+              ],
+            }
+          ],
+          "transaction_extensions": []
+        },
+      }
+    };
+
+  }
+
+  static getPartOfSignedUserCreatesRepost(actorAccountName) {
+    return {
+      "broadcast": false,
+      "transaction": {
+        "compression": "none",
+        "transaction": {
+          "max_net_usage_words": 0,
+          "max_cpu_usage_ms": 0,
+          "delay_sec": 0,
+          "context_free_actions": [],
+          "actions": [
+            {
+              "account": "tst.activity",
+              "name": "makecontent",
+              "authorization": [
+                {
+                  "actor": actorAccountName,
                   "permission": "active"
                 }
               ],
@@ -192,6 +285,114 @@ class EosTransactionHelper {
                 "acc": "vlad",
                 "content_type_id": 1,
                 "parent_content_id": "",
+              },
+            },
+            "cpu_usage": 0,
+            "total_cpu_usage": 0,
+            "inline_traces": []
+          }
+        ],
+        "except": null
+      }
+    };
+  }
+
+  static getPartOfBlockchainResponseOnUserCreatesDirectPostOfOtherUser() {
+    return {
+      "processed": {
+        "receipt": {
+          "status": "executed",
+        },
+        "scheduled": false,
+        "action_traces": [
+          {
+            "receipt": {
+              "receiver": "tst.activity",
+            },
+            "act": {
+              "account": "tst.activity",
+              "name": "dirpost",
+              "authorization": [
+                {
+                  "actor": "vlad",
+                  "permission": "active"
+                }
+              ],
+              "data": {
+                "acc": "vlad",
+                "content_type_id": 10,
+              },
+            },
+            "cpu_usage": 0,
+            "total_cpu_usage": 0,
+            "inline_traces": []
+          }
+        ],
+        "except": null
+      }
+    };
+  }
+  static getPartOfBlockchainResponseOnUserCreatesDirectPostOfOrg() {
+    return {
+      "processed": {
+        "receipt": {
+          "status": "executed",
+        },
+        "scheduled": false,
+        "action_traces": [
+          {
+            "receipt": {
+              "receiver": "tst.activity",
+            },
+            "act": {
+              "account": "tst.activity",
+              "name": "dirpostorg",
+              "authorization": [
+                {
+                  "actor": "vlad",
+                  "permission": "active"
+                }
+              ],
+              "data": {
+                "acc": "vlad",
+                "content_type_id": 10,
+              },
+            },
+            "cpu_usage": 0,
+            "total_cpu_usage": 0,
+            "inline_traces": []
+          }
+        ],
+        "except": null
+      }
+    };
+  }
+
+  static getPartOfBlockchainResponseOnUserCreatesRepost(actorAccountName, parentBlockchainId) {
+    return {
+      "processed": {
+        "receipt": {
+          "status": "executed",
+        },
+        "scheduled": false,
+        "action_traces": [
+          {
+            "receipt": {
+              "receiver": "tst.activity",
+            },
+            "act": {
+              "account": "tst.activity",
+              "name": "makecontent",
+              "authorization": [
+                {
+                  "actor": actorAccountName,
+                  "permission": "active"
+                }
+              ],
+              "data": {
+                "acc": actorAccountName,
+                "content_type_id": 11,
+                "parent_content_id": parentBlockchainId,
               },
             },
             "cpu_usage": 0,

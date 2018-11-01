@@ -3,6 +3,10 @@ const ResponseHelper = require('./response-helper');
 const request = require('supertest');
 const server = require('../../../app');
 
+const delay = require('delay');
+
+const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+
 class ActivityHelper {
   static async requestToCreateFollow(whoActs, targetUser, expectedStatus = 201) {
     const res = await request(server)
@@ -13,6 +17,22 @@ class ActivityHelper {
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} userFrom
+   * @return {Promise<*>}
+   */
+  static async requestToWaitAndGetTransaction(userFrom) {
+    let activity = null;
+
+    while(!activity) {
+      activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userFrom.id);
+      await delay(200);
+    }
+
+    return activity;
   }
 
   /**

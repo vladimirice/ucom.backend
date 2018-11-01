@@ -86,6 +86,26 @@ class MockHelper {
         body.signed_transaction = 'sample_user_himself_new_post_transaction';
       }
     };
+
+    // noinspection JSUnusedLocalSymbols
+    EosTransactionService.appendSignedUserCreatesRepost = function (body, user, parentContentBlockchainId) {
+      body.blockchain_id = 'sample_blockchain_id';
+      body.signed_transaction = 'sample_signed_transaction';
+    };
+
+    // noinspection JSUnusedLocalSymbols
+    EosTransactionService.appendSignedUserCreatesDirectPostForOtherUser = function (body, user, accountNameTo) {
+      body.blockchain_id = 'sample_blockchain_id';
+
+      body.signed_transaction = 'sample_signed_transaction';
+    };
+
+    // noinspection JSUnusedLocalSymbols
+    EosTransactionService.appendSignedUserCreatesDirectPostForOrg = function (body, user, orgBlockchainIdTo) {
+      body.blockchain_id = 'sample_blockchain_id';
+
+      body.signed_transaction = 'sample_signed_transaction';
+    }
   }
 
   static mockOrganizationBlockchain() {
