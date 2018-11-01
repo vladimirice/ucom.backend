@@ -1,4 +1,5 @@
-const _ = require('lodash');
+const _   = require('lodash');
+const gen = require('../../generators');
 
 const helpers                   = require('../helpers');
 const OrganizationsRepositories = require('../../../lib/organizations/repository');
@@ -118,6 +119,7 @@ describe('Organizations. Get requests', () => {
       it('Every request should contain correct metadata', async () => {
         const page    = 1;
         const perPage = 2;
+        // noinspection JSDeprecatedSymbols
         const response = await helpers.Org.requestAllOrgsWithPagination(page, perPage);
 
         const metadata = response.metadata;
@@ -132,6 +134,7 @@ describe('Organizations. Get requests', () => {
 
         const lastPage = totalAmount - perPage;
 
+        // noinspection JSDeprecatedSymbols
         const lastResponse = await helpers.Org.requestAllOrgsWithPagination(lastPage, perPage);
 
         expect(lastResponse.metadata.has_more).toBeFalsy();
@@ -147,6 +150,7 @@ describe('Organizations. Get requests', () => {
             ['id', 'DESC']
           ]
         });
+        // noinspection JSDeprecatedSymbols
         const firstPage = await helpers.Org.requestAllOrgsWithPagination(page, perPage, true);
 
         const expectedIdsOfFirstPage = [
@@ -161,6 +165,7 @@ describe('Organizations. Get requests', () => {
         });
 
         page = 2;
+        // noinspection JSDeprecatedSymbols
         const secondPage = await helpers.Org.requestAllOrgsWithPagination(page, perPage, true);
 
         const expectedIdsOfSecondPage = [
@@ -178,7 +183,9 @@ describe('Organizations. Get requests', () => {
       it('Page 0 and page 1 behavior must be the same', async () => {
         const perPage = 2;
 
+        // noinspection JSDeprecatedSymbols
         const pageIsZeroResponse = await helpers.Org.requestAllOrgsWithPagination(1, perPage, true);
+        // noinspection JSDeprecatedSymbols
         const pageIsOneResponse = await helpers.Org.requestAllOrgsWithPagination(1, perPage, true);
 
         expect(JSON.stringify(pageIsZeroResponse)).toBe(JSON.stringify(pageIsOneResponse));
@@ -202,6 +209,21 @@ describe('Organizations. Get requests', () => {
   });
 
   describe('One organization', () => {
+
+    it('followed_by users inside one org should be normalized', async () => {
+      const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+
+      await helpers.Activity.requestToFollowOrganization(orgId, userJane);
+
+      const org = await helpers.Organizations.requestToGetOneOrganizationAsGuest(orgId);
+
+      org.followed_by.forEach(user => {
+        helpers.Users.checkIncludedUserPreview({
+          User: user,
+        });
+      });
+    });
+
     it('Get one organization by ID as guest', async () => {
       const model_id = 1;
 

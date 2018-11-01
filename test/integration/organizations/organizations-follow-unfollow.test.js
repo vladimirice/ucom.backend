@@ -152,7 +152,7 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         await helpers.Org.requestToFollowOrganization(org_id, user, 400);
       });
 
-      it('should not be possible to follow organization which does not exist', async () => {
+      it.skip('should not be possible to follow organization which does not exist', async () => {
         // TODO
       });
 
@@ -187,7 +187,7 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         expect(body.errors.general).toMatch('unfollow before follow');
       });
 
-      it('should not be possible to unfollow twice', async () => {
+      it.skip('should not be possible to unfollow twice', async () => {
         // TODO
       });
 

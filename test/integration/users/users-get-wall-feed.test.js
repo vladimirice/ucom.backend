@@ -161,7 +161,7 @@ describe('Organizations. Get requests', () => {
     });
 
     describe('Negative', () => {
-      it('Should not show posts not related to user', async () => {
+      it.skip('Should not show posts not related to user', async () => {
         // TODO
       });
     });

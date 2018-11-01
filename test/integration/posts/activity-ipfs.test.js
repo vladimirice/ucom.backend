@@ -111,47 +111,48 @@ describe('IPFS consumer', () => {
   });
 
   describe('Correct post data for IPFS', () => {
-    // TODO
-    // it('Media Post.', async () => {
-    //   // This is actually must be unit test
-    //   const newPostId = await helpers.PostHelper.requestToCreateMediaPost(userVlad);
-    //
-    //   const postJobPayload = {
-    //     id: newPostId,
-    //     post_type_id: ContentTypeDictionary.getTypeMediaPost(),
-    //   };
-    //
-    //   const data = await PostJobSerializer.getPostDataForIpfs(postJobPayload);
-    //
-    //   let expectedAttributes = PostRepository.getModel().getMediaPostAttributesForIpfs();
-    //
-    //   expectedAttributes.push('User.account_name');
-    //   helpers.ResponseHelper.expectAllFieldsExistence(data, expectedAttributes);
-    // });
+    it.skip('Media Post.', async () => {
+      // TODO
+      // This is actually must be unit test
+      const newPostId = await helpers.PostHelper.requestToCreateMediaPost(userVlad);
 
-    // TODO
-    // it('Post Offer', async () => {
-    //   // This is actually must be unit test
-    //   const newPostId = await helpers.PostHelper.requestToCreatePostOffer(userVlad);
-    //
-    //   const postJobPayload = {
-    //     id: newPostId,
-    //     post_type_id: ContentTypeDictionary.getTypeOffer(),
-    //   };
-    //
-    //   const data = await PostJobSerializer.getPostDataForIpfs(postJobPayload);
-    //
-    //   let expectedAttributes = PostRepository.getModel().getMediaPostAttributesForIpfs();
-    //
-    //   const expectedPostOfferAttributes = PostOfferRepository.getPostOfferModel().getPostOfferAttributesForIpfs();
-    //
-    //   expectedPostOfferAttributes.forEach(attribute => {
-    //     expectedAttributes.push(`post_offer.${attribute}`);
-    //   });
-    //
-    //   expectedAttributes.push('User.account_name');
-    //   helpers.ResponseHelper.expectAllFieldsExistence(data, expectedAttributes);
-    // });
+      const postJobPayload = {
+        id: newPostId,
+        post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+      };
+
+      const data = await PostJobSerializer.getPostDataForIpfs(postJobPayload);
+
+      let expectedAttributes = PostRepository.getModel().getMediaPostAttributesForIpfs();
+
+      expectedAttributes.push('User.account_name');
+      helpers.ResponseHelper.expectAllFieldsExistence(data, expectedAttributes);
+    });
+
+
+    it.skip('Post Offer', async () => {
+      // TODO
+      // This is actually must be unit test
+      const newPostId = await helpers.PostHelper.requestToCreatePostOffer(userVlad);
+
+      const postJobPayload = {
+        id: newPostId,
+        post_type_id: ContentTypeDictionary.getTypeOffer(),
+      };
+
+      const data = await PostJobSerializer.getPostDataForIpfs(postJobPayload);
+
+      let expectedAttributes = PostRepository.getModel().getMediaPostAttributesForIpfs();
+
+      const expectedPostOfferAttributes = PostOfferRepository.getPostOfferModel().getPostOfferAttributesForIpfs();
+
+      expectedPostOfferAttributes.forEach(attribute => {
+        expectedAttributes.push(`post_offer.${attribute}`);
+      });
+
+      expectedAttributes.push('User.account_name');
+      helpers.ResponseHelper.expectAllFieldsExistence(data, expectedAttributes);
+    });
   });
 
   it.skip('should produce, consume and save ipfs meta for Post-Offer', async () => {

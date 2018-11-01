@@ -476,11 +476,11 @@ describe('Organizations. Create-update requests', () => {
         }, modifiedSource);
       });
 
-      it('If ID of different entity is provided - new one will be created and id will be ignored', async () => {
+      it.skip('If ID of different entity is provided - new one will be created and id will be ignored', async () => {
         // TODO
       });
 
-      it('should not be possible to update sensitive social networks data by request', async () => {
+      it.skip('should not be possible to update sensitive social networks data by request', async () => {
         // TODO
       });
 
@@ -533,7 +533,7 @@ describe('Organizations. Create-update requests', () => {
         expect(usersTeam.some(data => data.user_id === userVlad.id)).toBeFalsy();
       });
 
-      it('should be possible to remove all board by clearing it', async () => {
+      it.skip('should be possible to remove all board by clearing it', async () => {
         // TODO
       });
 
@@ -777,7 +777,7 @@ describe('Organizations. Create-update requests', () => {
         helpers.ResponseHelper.expectStatusUnauthorized(res);
       });
 
-      it('should throw correct error messages related to invalid fields', async () => {
+      it.skip('should throw correct error messages related to invalid fields', async () => {
         // TODO
       })
     });

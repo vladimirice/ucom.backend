@@ -92,7 +92,7 @@ describe('Organizations. Get requests', () => {
         await helpers.Post.requestToCreateMediaPostOfOrganization(userVlad, org_id, 400);
       });
 
-      it('should set organization_id = null for regular post creation', async () => {
+      it.skip('should set organization_id = null for regular post creation', async () => {
         // TODO
       });
     });
@@ -106,11 +106,11 @@ describe('Organizations. Get requests', () => {
         await helpers.Post.updatePostWithFields(post_id, userJane, null, 404);
       });
 
-      it('should not be possible to update post and change or delete organization ID', async () => {
+      it.skip('should not be possible to update post and change or delete organization ID', async () => {
         // TODO
       });
 
-      it('should not be possible to update post and change author_id', async () => {
+      it.skip('should not be possible to update post and change author_id', async () => {
         // TODO - move to post autotests
       });
 

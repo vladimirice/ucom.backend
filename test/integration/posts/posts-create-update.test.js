@@ -56,7 +56,7 @@ describe('Posts API', () => {
       const post_id = 1;
 
       const fieldsToChange = {
-      'description': '<div><div><a href="https://example.com">test href</a><p>1000 UOS tokens as is.</p><p>&lt;/p&gt;&lt;script&gt;alert(\'123\')&lt;/script&gt;2</p><div><figure>\n' +
+      'description': '<div><i>extra_text</i><div><a href="https://example.com">test href</a><p>1000 UOS tokens as is.</p><p>&lt;/p&gt;&lt;script&gt;alert(\'123\')&lt;/script&gt;2</p><div><figure>\n' +
       '    <img src="https://backend.u.community/upload/post-image-1537444720877.jpg" />\n' +
       '        \n' +
       '</figure></div><p> </p><p></p><div>\n' +
@@ -369,6 +369,7 @@ describe('Posts API', () => {
             'entity_name_for':  UsersModelProvider.getEntityName(),
           };
 
+          // noinspection JSDeprecatedSymbols
           const post = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser, newPostFields.description);
 
           const options = {
@@ -397,6 +398,7 @@ describe('Posts API', () => {
             'entity_name_for':  OrgModelProvider.getEntityName(),
           };
 
+          // noinspection JSDeprecatedSymbols
           const post = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId, newPostFields.description);
 
           const options = {
@@ -411,22 +413,22 @@ describe('Posts API', () => {
           }, user);
         });
 
-        it('For other organization without making from organization', async () => {
+        it.skip('For other organization without making from organization', async () => {
           // TODO
         });
       });
     });
     describe('Negative', () => {
 
-      it('not possible to create direct post as regular post', async () => {
+      it.skip('not possible to create direct post as regular post', async () => {
         // TODO
       });
 
-      it('not possible to create media post or post offer as direct post', async () => {
+      it.skip('not possible to create media post or post offer as direct post', async () => {
         // TODO
       });
 
-      it('not possible to change entity_id_for and entity_name_for by request', async () => {
+      it.skip('not possible to change entity_id_for and entity_name_for by request', async () => {
         // TODO
       });
 
@@ -455,6 +457,7 @@ describe('Posts API', () => {
             description: 'changed sample description of direct post'
           };
 
+          // noinspection JSDeprecatedSymbols
           const postBefore  = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser);
           const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
 
@@ -475,6 +478,7 @@ describe('Posts API', () => {
             description: 'changed sample description of direct post'
           };
 
+          // noinspection JSDeprecatedSymbols
           const postBefore  = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId);
           const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
 
@@ -571,7 +575,7 @@ describe('Posts API', () => {
     });
 
     describe('Negative', () => {
-      it('Direct post. Not possible to change entity_id_for and entity_name_for by request', async () => {
+      it.skip('Direct post. Not possible to change entity_id_for and entity_name_for by request', async () => {
         // TODO
       });
 
@@ -593,6 +597,7 @@ describe('Posts API', () => {
     it('Media post. Should create valid activity record', async () => {
       const user = userVlad;
 
+      // noinspection JSDeprecatedSymbols
       const newPostId      = await helpers.Post.requestToCreateMediaPost(user);
       const activity  = await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newPostId);
       expect(activity).not.toBeNull();
@@ -611,6 +616,7 @@ describe('Posts API', () => {
     it('Post-offer. Should create valid activity record', async () => {
       const user = userVlad;
 
+      // noinspection JSDeprecatedSymbols
       const newPostId = await helpers.Post.requestToCreatePostOffer(user);
       const activity  = await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newPostId);
       expect(activity).not.toBeNull();

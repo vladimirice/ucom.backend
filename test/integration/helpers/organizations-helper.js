@@ -619,6 +619,7 @@ class OrganizationsHelper {
    *
    * @param {number} orgId
    * @return {Promise<Object>}
+   * @link OrganizationService#findOneOrgByIdAndProcess
    */
   static async requestToGetOneOrganizationAsGuest(orgId) {
     const url = RequestHelper.getOneOrganizationUrl(orgId);

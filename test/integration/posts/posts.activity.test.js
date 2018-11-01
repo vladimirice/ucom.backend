@@ -15,6 +15,8 @@ const { InteractionTypeDictionary } = require('uos-app-transaction');
 
 const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
+const PostsService = require('../../../lib/posts/repository').Main;
+
 let userVlad, userJane, userPetr;
 
 helpers.Mock.mockAllTransactionSigning();
@@ -296,73 +298,78 @@ describe('User to post activity', () => {
     });
   });
 
-  // describe('Negative scenarios', () => {
-    // it('Not possible to join media post', async () => {
-    //   // TODO
-    // });
+  describe('Negative scenarios', () => {
+    it.skip('Not possible to join media post', async () => {
+      // TODO
+    });
 
-    // it('Not possible to upvote twice', async () => {
-    //   const posts = await PostService.findAllByAuthor(userVlad.id);
-    //   const postId = posts[0]['id'];
-    //
-    //   const res = await request(server)
-    //     .post(`/api/v1/posts/${postId}/upvote`)
-    //     .set('Authorization', `Bearer ${userJane.token}`)
-    //   ;
-    //
-    //   ResponseHelper.expectStatusOk(res);
-    //
-    //   const responseTwo = await request(server)
-    //     .post(`/api/v1/posts/${postId}/upvote`)
-    //     .set('Authorization', `Bearer ${userJane.token}`)
-    //   ;
-    //
-    //   ResponseHelper.expectStatusBadRequest(responseTwo);
-    // });
+    it.skip('Not possible to upvote twice', async () => {
+      // TODO
+      const posts = await PostsService.findAllByAuthor(userVlad.id);
+      const postId = posts[0]['id'];
 
-    // it('Not possible to join to myself post', async () => {
-    //   const posts = await PostService.findAllByAuthor(userVlad.id);
-    //   const postId = posts[0]['id'];
-    //
-    //   const res = await request(server)
-    //     .post(`/api/v1/posts/${postId}/upvote`)
-    //     .set('Authorization', `Bearer ${userVlad.token}`)
-    //   ;
-    //
-    //   ResponseHelper.expectStatusBadRequest(res);
-    // });
+      const res = await request(server)
+        .post(`/api/v1/posts/${postId}/upvote`)
+        .set('Authorization', `Bearer ${userJane.token}`)
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+
+      const responseTwo = await request(server)
+        .post(`/api/v1/posts/${postId}/upvote`)
+        .set('Authorization', `Bearer ${userJane.token}`)
+      ;
+
+      ResponseHelper.expectStatusBadRequest(responseTwo);
+    });
+
+    it.skip('Not possible to join to myself post', async () => {
+      // TODO
+      const posts = await PostsService.findAllByAuthor(userVlad.id);
+      const postId = posts[0]['id'];
+
+      const res = await request(server)
+        .post(`/api/v1/posts/${postId}/upvote`)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+    });
 
 
-    // it('Should return 400 if postID is not a valid integer', async () => {
-    //   const postId = 'invalidPostId';
-    //   const userJane = await UserHelper.getUserJane();
-    //
-    //   const res = await request(server)
-    //     .post(`/api/v1/posts/${postId}/upvote`)
-    //     .set('Authorization', `Bearer ${userJane.token}`)
-    //   ;
-    //
-    //   ResponseHelper.expectStatusBadRequest(res);
-    // });
+    it.skip('Should return 400 if postID is not a valid integer', async () => {
+      // TODO
+      const postId = 'invalidPostId';
+      const userJane = await UserHelper.getUserJane();
 
-    // it('Should return 404 if on post with provided ID', async () => {
-    //   const postId = '100500';
-    //   const userJane = await UserHelper.getUserJane();
-    //
-    //   const res = await request(server)
-    //     .post(`/api/v1/posts/${postId}/upvote`)
-    //     .set('Authorization', `Bearer ${userJane.token}`)
-    //   ;
-    //
-    //   ResponseHelper.expectStatusNotFound(res);
-    // });
+      const res = await request(server)
+        .post(`/api/v1/posts/${postId}/upvote`)
+        .set('Authorization', `Bearer ${userJane.token}`)
+      ;
 
-    // it('Not possible to follow without auth token', async () => {
-    //   const res = await request(server)
-    //     .post('/api/v1/posts/1/upvote')
-    //   ;
-    //
-    //   ResponseHelper.expectStatusUnauthorized(res);
-    // });
-  // })
+      ResponseHelper.expectStatusBadRequest(res);
+    });
+
+    it.skip('Should return 404 if on post with provided ID', async () => {
+      // TODO
+      const postId = '100500';
+      const userJane = await UserHelper.getUserJane();
+
+      const res = await request(server)
+        .post(`/api/v1/posts/${postId}/upvote`)
+        .set('Authorization', `Bearer ${userJane.token}`)
+      ;
+
+      ResponseHelper.expectStatusNotFound(res);
+    });
+
+    it.skip('Not possible to follow without auth token', async () => {
+      // TODO
+      const res = await request(server)
+        .post('/api/v1/posts/1/upvote')
+      ;
+
+      ResponseHelper.expectStatusUnauthorized(res);
+    });
+  })
 });

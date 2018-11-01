@@ -42,7 +42,7 @@ describe('Blockchain transactions', () => {
       expect(activity.signed_transaction.length).toBeGreaterThan(0);
     }, 10000);
 
-    it('should get and process signed transaction from frontend', async () => {
+    it.skip('should get and process signed transaction from frontend', async () => {
       // TODO
     });
   });

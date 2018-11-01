@@ -101,7 +101,7 @@ describe('Comments', () => {
   describe('Comments only API - without parent post', () => {
     describe('Positive scenarios', () => {
 
-      it('should provide comments without auth', async () => {
+      it.skip('should provide comments without auth', async () => {
         // TODO
       });
 
@@ -119,7 +119,7 @@ describe('Comments', () => {
       });
     });
 
-    it('should provide myself activity data', async () => {
+    it.skip('should provide myself activity data', async () => {
       // TODO
     });
   });
@@ -289,7 +289,7 @@ describe('Comments', () => {
         // TODO provide more checks
       });
 
-      it('should check and catch activity_group_id content is created by org if it is created by user himself', async () => {
+      it.skip('should check and catch activity_group_id content is created by org if it is created by user himself', async () => {
         // TODO
       });
     })

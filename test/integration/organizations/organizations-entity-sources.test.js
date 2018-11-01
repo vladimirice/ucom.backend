@@ -90,11 +90,11 @@ describe('Organizations. Entity source related creation-updating', () => {
     });
 
     describe('Negative scenarios', () => {
-      it('No community if search query match nothing', async () => {
+      it.skip('No community if search query match nothing', async () => {
         // TODO
       });
 
-      it('No partnership if search query is wrong', async () => {
+      it.skip('No partnership if search query is wrong', async () => {
         // TODO
       });
     });
@@ -290,7 +290,7 @@ describe('Organizations. Entity source related creation-updating', () => {
       });
     });
 
-    it('should create sources separately', async () => {
+    it.skip('should create sources separately', async () => {
       // TODO
     });
 
@@ -323,17 +323,17 @@ describe('Organizations. Entity source related creation-updating', () => {
     });
 
 
-    it('should update existing external source avatar filename', async () => {
+    it.skip('should update existing external source avatar filename', async () => {
       // TODO
     })
   });
 
   describe('Negative scenarios', () => {
-    it('should not be possible to update community and partnership by ID which is not belong to current organization', async () => {
+    it.skip('should not be possible to update community and partnership by ID which is not belong to current organization', async () => {
       // TODO
     });
 
-    it('should not be possible to save malformed pair entity_id + entity_name', async () => {
+    it.skip('should not be possible to save malformed pair entity_id + entity_name', async () => {
       // TODO
     });
   });

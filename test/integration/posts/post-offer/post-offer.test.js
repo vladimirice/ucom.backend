@@ -78,7 +78,7 @@ describe('Posts API', () => {
   });
 
   describe('Negative scenarios', function () {
-    it('no post_type_id or it is malformed', async () => {
+    it.skip('no post_type_id or it is malformed', async () => {
       // TODO
     });
   });
