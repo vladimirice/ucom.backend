@@ -42,6 +42,17 @@ class RequestHelper {
 
   /**
    *
+   * @param {Object} req
+   * @param {Object} fields
+   */
+  static addFieldsToRequest(req, fields) {
+    for (const field in fields) {
+      req.field(field, fields[field]);
+    }
+  }
+
+  /**
+   *
    * @return {string}
    */
   static getMyselfUrl() {

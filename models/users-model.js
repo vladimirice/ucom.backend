@@ -108,6 +108,19 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
 
+    /**
+     *
+     * @return {string[]}
+     */
+    Users.getUsersUniqueFields = function () {
+      // TODO parse schema instead
+      return [
+        'phone_number',
+        'email'
+      ];
+    };
+
+
     Users.getSensitiveData = function() {
       return [
         'private_key',

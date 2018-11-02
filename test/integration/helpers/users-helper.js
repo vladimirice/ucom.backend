@@ -16,7 +16,33 @@ class UsersHelper {
 
   /**
    *
-   *  @param {Object} wallOwner
+   * @param {Object} myself
+   * @param {Object} fieldsToChange
+   * @param {number} expectedStatus
+   * @return {Promise<Object>}
+   *
+   * @see UsersService#processUserUpdating
+   */
+  static async requestToUpdateMyself(myself, fieldsToChange, expectedStatus = 200) {
+    const url = RequestHelper.getMyselfUrl();
+
+    const req = request(server)
+      .patch(url)
+    ;
+
+    RequestHelper.addAuthToken(req, myself);
+    RequestHelper.addFieldsToRequest(req, fieldsToChange);
+
+    const res = await req;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
+  /**
+   *
+   * @param {Object} wallOwner
    * @param {string} query
    * @param {boolean} dataOnly
    * @param {number} expectedStatus

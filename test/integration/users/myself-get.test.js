@@ -1,11 +1,12 @@
 const helpers = require('../helpers');
 const gen = require('../../generators');
 
-helpers.Mock.mockAllBlockchainPart();
-
+const UsersRepository = require('./../../../lib/users/users-repository');
 const request = require('supertest');
 const server = require('../../../app');
 
+helpers.Mock.mockAllBlockchainPart();
+helpers.Mock.mockAllTransactionSigning();
 
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 
@@ -22,6 +23,33 @@ describe('Myself. Get requests', () => {
 
   beforeEach(async () => {
     await helpers.SeedsHelper.initUsersOnly();
+  });
+
+  describe('Get myself data', function () {
+    it('should be field unread_messages_count', async () => {
+      const userVlad = await helpers.Users.getUserVlad();
+
+      const res = await request(server)
+        .get(helpers.Req.getMyselfUrl())
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      expect(res.body.unread_messages_count).toBeDefined();
+    });
+
+    it('Get logged user data', async function ()  {
+      const userVlad = await helpers.Users.getUserVlad();
+
+      const res = await request(server)
+        .get(helpers.Req.getMyselfUrl())
+        .set('Authorization', `Bearer ${userVlad.token}`)
+      ;
+
+      expect(res.status).toBe(200);
+      const user = await UsersRepository.getUserById(userVlad.id);
+
+      helpers.Users.validateUserJson(res.body, userVlad, user);
+    });
   });
 
   describe('Get myself news feed', () => {

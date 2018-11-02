@@ -119,6 +119,12 @@ class SeedsHelper {
     await this._resetSequence(usersSequence);
     await this._bulkCreate(usersModel, usersSeeds);
 
+    await Promise.all([
+      models.users_education.bulkCreate(usersEducationSeeds),
+      models.users_jobs.bulkCreate(usersJobsSeeds),
+      models.users_sources.bulkCreate(sourcesSeeds),
+    ]);
+
     return await Promise.all([
         UsersHelper.getUserVlad(),
         UsersHelper.getUserJane(),
@@ -193,14 +199,7 @@ class SeedsHelper {
   }
 
   static async initSeedsForUsers() {
-    await models.users_activity.destroy({where: {}});
-    await models.posts.destroy({where: {}});
-    await models.organizations.destroy({where: {}});
-    await models.Users.destroy({where: {}});
-
-    await models.sequelize.query(`ALTER SEQUENCE users_activity_id_seq RESTART;`);
-    await models.sequelize.query(`ALTER SEQUENCE "Users_id_seq" RESTART;`);
-    await models.sequelize.query(`ALTER SEQUENCE posts_id_seq RESTART;`);
+    await this.destroyTables();
 
     await models.Users.bulkCreate(usersSeeds);
     await models.organizations.bulkCreate(organizationsSeeds);
