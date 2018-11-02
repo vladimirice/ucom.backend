@@ -5,13 +5,13 @@ const EosJsEcc = require('../lib/crypto/eosjs-ecc');
 const {AppError} = require('../lib/api/errors');
 const AuthValidator = require('../lib/auth/validators');
 const AuthService = require('../lib/auth/authService');
-const eosApi = require('../lib/eos/eosApi');
 const UsersService = require('../lib/users/users-service');
 
-const multer = require('multer');
-const upload = multer();
+const { formDataParser } = require('../lib/api/middleware/form-data-parser-middleware');
 
-router.post('/login', [upload.array()], async function (req, res, next) {
+router.post('/login', [ formDataParser ], async function (req, res, next) {
+  // Public key is not required here
+
   const payload = _.pick(req.body, ['account_name', 'public_key', 'sign']);
 
   const { error } = AuthValidator.validateLogin(req.body);
@@ -34,6 +34,7 @@ router.post('/login', [upload.array()], async function (req, res, next) {
     });
   }
 
+  // Not required for login
   if (!EosJsEcc.isValidPublic(payload.public_key)) {
     return next(new AppError('Public key is not valid', 400));
   }
@@ -48,19 +49,6 @@ router.post('/login', [upload.array()], async function (req, res, next) {
           {
             'field': 'account_name',
             'message': 'Such account does not exist in blockchain'
-          }
-        ]
-      });
-    }
-
-    const doesAccountExists = await eosApi.doesAccountExist(payload.account_name);
-
-    if(!doesAccountExists) {
-      return res.status(400).send({
-        'errors' : [
-          {
-            'field': 'account_name',
-            'message': 'Such account does not exists in blockchain'
           }
         ]
       });

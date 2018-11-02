@@ -42,6 +42,22 @@ class RequestHelper {
 
   /**
    *
+   * @param {string} url
+   * @param {Object} fields
+   * @return {Promise<Object>}
+   */
+  static async makePostGuestRequestWithFields(url, fields) {
+    const req = request(server)
+      .post(url)
+    ;
+
+    this.addFieldsToRequest(req, fields);
+
+    return await req;
+  }
+
+  /**
+   *
    * @param {Object} req
    * @param {Object} fields
    */

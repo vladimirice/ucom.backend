@@ -8,11 +8,47 @@ const EosImportance = require('../../../lib/eos/eos-importance');
 const request = require('supertest');
 const server = require('../../../app');
 
+const EosJsEcc = require('eosjs-ecc');
+
+const EosApi = require('../../../lib/eos/eosApi');
+
 const _ = require('lodash');
 
 require('jest-expect-message');
 
 class UsersHelper {
+
+  /**
+   *
+   * @link UsersAuthService#processNewUserRegistration
+   */
+  static async registerNewUser() {
+    const brainKey = EosApi.generateBrainkey();
+    const accountName = EosApi.createRandomAccountName();
+
+    const [ privateOwnerKey, privateActiveKey ] = EosApi.getKeysByBrainkey(brainKey);
+
+    // noinspection JSUnusedLocalSymbols
+    const ownerPublicKey  = EosApi.getPublicKeyByPrivate(privateOwnerKey);
+    const activePublicKey = EosApi.getPublicKeyByPrivate(privateActiveKey);
+
+    const sign = EosJsEcc.sign(accountName, privateActiveKey);
+
+    const url = RequestHelper.getRegistrationRoute();
+
+    const fields = {
+      account_name: accountName,
+      sign,
+      public_key: activePublicKey,
+      brainkey: brainKey,
+    };
+
+    const res = await RequestHelper.makePostGuestRequestWithFields(url, fields);
+
+    ResponseHelper.expectStatusCreated(res);
+
+    return res.body;
+  }
 
   /**
    *
