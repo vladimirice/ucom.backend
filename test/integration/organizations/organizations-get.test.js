@@ -246,7 +246,7 @@ describe('Organizations. Get requests', () => {
     });
 
     it('Get one organization by ID as guest', async () => {
-      const model_id = await gen.Org.createOrgWithTeam(userVlad, [userJane, userVlad]);
+      const model_id = await gen.Org.createOrgWithTeam(userVlad, [userJane, userPetr]);
 
       await helpers.Users.directlySetUserConfirmsInvitation(model_id, userJane);
 
@@ -355,7 +355,7 @@ describe('Organizations. Get requests', () => {
         const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, orgId);
 
         const usersTeam = model.users_team;
-        expect(usersTeam.some(user => user.id === userVlad.id)).toBeFalsy();
+        expect(usersTeam.some(user => user.id === userVlad.id && user.users_team_status === 1)).toBeFalsy();
         expect(usersTeam.some(user => user.id === userPetr.id)).toBeTruthy();
       });
 
