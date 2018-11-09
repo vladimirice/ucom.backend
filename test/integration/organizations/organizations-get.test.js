@@ -10,7 +10,7 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Mock.mockBlockchainPart();
+helpers.Mock.mockAllBlockchainPart();
 
 describe('Organizations. Get requests', () => {
   beforeAll(async ()  => {
@@ -22,37 +22,58 @@ describe('Organizations. Get requests', () => {
   });
 
   describe('Users with organizations data', () => {
-    it('should contain organizations list for GET one user by ID', async () => {
-      const user_id = userJane.id;
+    describe('Positive', () => {
+      it('should contain organizations list for GET one user by ID', async () => {
+        const user_id = userJane.id;
 
-      const model = await helpers.Users.requestToGetUserAsGuest(user_id);
-      const organizations = model.organizations;
+        const model = await helpers.Users.requestToGetUserAsGuest(user_id);
+        const organizations = model.organizations;
 
-      expect(organizations).toBeDefined();
+        expect(organizations).toBeDefined();
 
-      const expectedModels = await OrganizationsRepositories.Main.findAllAvailableForUser(user_id);
-      expect(organizations.length).toBe(expectedModels.length);
+        const expectedModels = await OrganizationsRepositories.Main.findAllAvailableForUser(user_id);
+        expect(organizations.length).toBe(expectedModels.length);
 
-      organizations.forEach(org => {
-        if (org.avatar_filename) {
-          expect(org.avatar_filename).toMatch('organizations/');
-        }
+        organizations.forEach(org => {
+          if (org.avatar_filename) {
+            expect(org.avatar_filename).toMatch('organizations/');
+          }
 
-        delete org.followed_by; // TODO
+          delete org.followed_by; // TODO
+        });
+
+        expectedModels.forEach(model => {
+          expect(organizations.some(org => org.id === model.id)).toBeTruthy();
+        });
+
+        helpers.Organizations.checkIncludedOrganizationPreview(model);
       });
-
-      expectedModels.forEach(model => {
-        expect(organizations.some(org => org.id === model.id)).toBeTruthy();
-      });
-
-      helpers.Organizations.checkIncludedOrganizationPreview(model);
     });
 
-    it('should not contain empty organizations array', async () => {
-      const model = await helpers.Users.requestToGetUserAsGuest(userRokky.id);
+    describe('Negative', () => {
+      it('should NOT contain organizations which invitation for you is still pending', async () => {
+        const team = [
+          userVlad,
+          userPetr,
+        ];
 
-      expect(model.organizations).toBeDefined();
-      expect(model.organizations.length).toBe(0);
+        const orgId = await gen.Org.createOrgWithTeam(userJane, team);
+
+        const model = await helpers.Users.requestToGetUserAsGuest(userVlad.id);
+        const organizations = model.organizations;
+
+        expect(organizations.some(org => org.id === orgId)).toBeFalsy();
+      });
+
+      it.skip('should NOT contain organizations which invitation you declined', () => {
+      });
+
+      it('should not contain empty organizations array', async () => {
+        const model = await helpers.Users.requestToGetUserAsGuest(userRokky.id);
+
+        expect(model.organizations).toBeDefined();
+        expect(model.organizations.length).toBe(0);
+      });
     });
   });
   describe('Posts with organizations data', () => {
@@ -225,7 +246,9 @@ describe('Organizations. Get requests', () => {
     });
 
     it('Get one organization by ID as guest', async () => {
-      const model_id = 1;
+      const model_id = await gen.Org.createOrgWithTeam(userVlad, [userJane, userVlad]);
+
+      await helpers.Users.directlySetUserConfirmsInvitation(model_id, userJane);
 
       await helpers.Org.createSocialNetworksDirectly(model_id);
 
@@ -239,7 +262,6 @@ describe('Organizations. Get requests', () => {
       expect(model.users_team).toBeDefined();
       expect(model.users_team.length).toBeGreaterThan(0);
 
-      expect(model.avatar_filename).toMatch('organizations/');
       expect(model.social_networks).toBeDefined();
 
       expect(model.current_rate).toBeDefined();
@@ -300,14 +322,6 @@ describe('Organizations. Get requests', () => {
       expect(myselfData.member).toBeDefined();
     });
 
-    it('should contain myselfData editable false if request not from author', async () => {
-      const model_id = await OrganizationsRepositories.Main.findLastIdByAuthor(userVlad.id);
-      const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userJane, model_id);
-
-      expect(model.myselfData.editable).toBeFalsy();
-      expect(model.myselfData.member).toBeFalsy();
-    });
-
     it('should contain myselfData editable true and member true if author request his organization', async () => {
       const user = userVlad;
 
@@ -316,6 +330,60 @@ describe('Organizations. Get requests', () => {
 
       expect(model.myselfData.editable).toBeTruthy();
       expect(model.myselfData.member).toBeTruthy();
+    });
+
+    it('should contain myselfData member true if user is not author but organization team member', async () => {
+      const orgId = await gen.Org.createOrgWithTeam(userJane, [
+        userVlad, userPetr
+      ]);
+
+      await helpers.Users.directlySetUserConfirmsInvitation(orgId, userVlad);
+
+      const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+      expect(model.myselfData.editable).toBeFalsy();
+      expect(model.myselfData.member).toBeTruthy();
+    });
+
+    describe('Negative', () => {
+      it('should NOT contain user in board if invitation status is not confirmed', async () => {
+        const orgId = await gen.Org.createOrgWithTeam(userJane, [
+          userVlad, userPetr
+        ]);
+
+        await helpers.Users.directlySetUserConfirmsInvitation(orgId, userPetr);
+
+        const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+
+        const usersTeam = model.users_team;
+        expect(usersTeam.some(user => user.id === userVlad.id)).toBeFalsy();
+        expect(usersTeam.some(user => user.id === userPetr.id)).toBeTruthy();
+      });
+
+      it('should not contain myselfData member true if user invitation request is not confirmed', async () => {
+        const orgId = await gen.Org.createOrgWithTeam(userJane, [
+          userVlad, userPetr
+        ]);
+
+        await helpers.Users.directlySetUserConfirmsInvitation(orgId, userPetr);
+
+        const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+
+        expect(model.myselfData.editable).toBeFalsy();
+        expect(model.myselfData.member).toBeFalsy();
+
+        // Smoke test
+        const modelByPetr = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userPetr, orgId);
+        expect(modelByPetr.myselfData.editable).toBeFalsy();
+        expect(modelByPetr.myselfData.member).toBeTruthy();
+      });
+
+      it('should contain myselfData editable false if request not from author', async () => {
+        const model_id = await OrganizationsRepositories.Main.findLastIdByAuthor(userVlad.id);
+        const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userJane, model_id);
+
+        expect(model.myselfData.editable).toBeFalsy();
+        expect(model.myselfData.member).toBeFalsy();
+      });
     });
   });
 });

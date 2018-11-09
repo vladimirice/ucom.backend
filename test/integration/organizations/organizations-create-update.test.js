@@ -14,8 +14,7 @@ let userJane;
 let userPetr;
 let userRokky;
 
-
-helpers.Mock.mockBlockchainPart();
+helpers.Mock.mockAllBlockchainPart();
 
 describe('Organizations. Create-update requests', () => {
   beforeAll(async () => {
@@ -116,6 +115,7 @@ describe('Organizations. Create-update requests', () => {
           'avatar_filename': helpers.FileToUpload.getSampleFilePathToUpload(),
         };
 
+        // noinspection JSDeprecatedSymbols
         const body = await helpers.Organizations.requestToCreateNewOrganization(userPetr, newModelFields);
         const lastModel = await OrganizationsRepositories.Main.findLastByAuthor(userPetr.id);
         expect(lastModel).not.toBeNull();
@@ -234,6 +234,7 @@ describe('Organizations. Create-update requests', () => {
           }
         });
 
+        // noinspection JSDeprecatedSymbols
         await helpers.Organizations.requestToCreateNewOrganization(userPetr, infectedFields);
         const lastModel = await OrganizationsRepositories.Main.findLastByAuthor(userPetr.id);
 
@@ -265,6 +266,9 @@ describe('Organizations. Create-update requests', () => {
 
         helpers.Res.expectStatusCreated(res);
 
+        await helpers.Users.directlySetUserConfirmsInvitation(+res.body.id, userJane);
+        await helpers.Users.directlySetUserConfirmsInvitation(+res.body.id, userPetr);
+
         const lastModel = await OrganizationsRepositories.Main.findLastByAuthor(author.id);
 
         const usersTeam = lastModel['users_team'];
@@ -276,7 +280,7 @@ describe('Organizations. Create-update requests', () => {
           expect(record).toBeDefined();
           expect(+record.entity_id).toBe(+lastModel.id);
           expect(record.entity_name).toMatch('org');
-          expect(record.status).toBe(0);
+          expect(record.status).toBe(1);
         });
 
         // should not add author to the board - ignore it
@@ -514,7 +518,7 @@ describe('Organizations. Create-update requests', () => {
           newUsersTeam
         );
 
-        const orgAfter = await OrganizationsRepositories.Main.findOneById(org_id);
+        const orgAfter = await OrganizationsRepositories.Main.findOneById(org_id, 0);
         const avatarFilenameAfter = orgAfter.avatar_filename;
 
         delete sampleOrganizationFields.avatar_filename;

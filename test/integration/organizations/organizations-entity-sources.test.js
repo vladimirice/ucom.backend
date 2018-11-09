@@ -9,7 +9,7 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Mock.mockBlockchainPart();
+helpers.Mock.mockAllBlockchainPart();
 
 describe('Organizations. Entity source related creation-updating', () => {
   beforeAll(async () => {

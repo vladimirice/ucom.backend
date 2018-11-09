@@ -41,6 +41,9 @@ deploy-production:
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy_production.sh
 
+deploy-frontend:
+	ssh dev@5.9.119.5 bash deploy_frontend
+
 deploy:
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy_staging.sh

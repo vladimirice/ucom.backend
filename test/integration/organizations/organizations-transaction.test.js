@@ -5,14 +5,10 @@ const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 const UsersRepositories = require('../../../lib/users/repository');
 
 const { ContentTypeDictionary } = require('uos-app-transaction');
-const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
-const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+const ActivityGroupDictionary   = require('../../../lib/activity/activity-group-dictionary');
+const UsersActivityRepository   = require('../../../lib/users/repository').Activity;
 
-
-let userVlad;
-let userJane;
-let userPetr;
-let userRokky;
+let userVlad, userJane, userPetr, userRokky;
 
 describe('Organizations. Blockchain transactions', () => {
   beforeAll(async () => {

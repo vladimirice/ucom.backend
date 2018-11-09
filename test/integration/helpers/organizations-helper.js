@@ -666,6 +666,8 @@ class OrganizationsHelper {
    * @param {Object} user - myself
    * @param {number} orgId
    * @return {Promise<Object>}
+   *
+   * @link OrganizationService#findOneOrgByIdAndProcess
    */
   static async requestToGetOneOrganizationAsMyself(user, orgId) {
     const url = RequestHelper.getOneOrganizationUrl(orgId);

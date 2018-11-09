@@ -9,6 +9,9 @@ const UsersTeamStatusDictionary = require('../../../lib/users/dictionary').Users
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
+const UsersTeamRepository = require('../../../lib/users/repository').UsersTeam;
+const OrgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
+
 const helpers = require('../helpers');
 
 let userVlad;
@@ -530,12 +533,11 @@ describe('Notifications create-update', () => {
 
         // get organizations board and see that status is confirmed
 
-        const org = await helpers.Org.requestToGetOneOrganizationAsGuest(newOrgId);
 
-        const usersTeam = org.users_team;
+        const usersTeam = await UsersTeamRepository.findAllRelatedToEntity(OrgModelProvider.getEntityName(), newOrgId);
 
-        const userPetrMember = usersTeam.find(data => data.id === userPetr.id);
-        expect(userPetrMember.users_team_status).toBe(UsersTeamStatusDictionary.getStatusDeclined());
+        const userPetrMember = usersTeam.find(data => data.user_id === userPetr.id);
+        expect(userPetrMember.status).toBe(UsersTeamStatusDictionary.getStatusDeclined());
       });
 
       it.skip('should delete pending notifications if user is deleted from the board', async () => {

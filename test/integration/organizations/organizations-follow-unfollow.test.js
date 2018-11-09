@@ -6,7 +6,7 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Mock.mockBlockchainPart();
+helpers.Mock.mockAllBlockchainPart();
 
 describe('User follows-unfollows organizations. Without transaction checking.', () => {
   beforeAll(async ()  => {
@@ -155,8 +155,6 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
       it.skip('should not be possible to follow organization which does not exist', async () => {
         // TODO
       });
-
-      // TODO - add more scenarios from user follows user
     });
   });
 
@@ -190,8 +188,6 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
       it.skip('should not be possible to unfollow twice', async () => {
         // TODO
       });
-
-      // TODO - add more scenarios from user follows user
     });
   });
 });

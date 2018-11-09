@@ -1,4 +1,5 @@
 const helpers = require('../helpers');
+const gen     = require('../../generators');
 const PostsRepository = require('../../../lib/posts/repository');
 
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
@@ -6,9 +7,7 @@ const ActivityGroupDictionary = require('../../../lib/activity/activity-group-di
 const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 const OrgModelProvider = require('../../../lib/organizations/service').ModelProvider;
 
-
-helpers.Mock.mockPostTransactionSigning();
-helpers.Mock.mockBlockchainPart();
+helpers.Mock.mockAllBlockchainPart();
 
 let userVlad, userJane, userPetr, userRokky;
 
@@ -27,21 +26,21 @@ describe('Organizations. Get requests', () => {
 
   describe('Organization creates post.', () => {
     describe('Positive scenarios', () => {
-        it('should be possible to create post on behalf of organization by org author', async () => {
-          // It is supposed that media post and post offer blockchain creations have same logic
-          const user = userPetr;
-          const org_id = 1;
+      it('should be possible to create post on behalf of organization by org author', async () => {
+        // It is supposed that post offer blockchain creations have same logic
 
-          await helpers.Post.requestToCreateMediaPostOfOrganization(user, org_id);
+        const orgId   = await gen.Org.createOrgWithoutTeam(userVlad);
+        const postId  = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
 
-          const newPost = await PostsRepository.MediaPosts.findLastMediaPostByAuthor(user.id);
-          expect(newPost.organization_id).toBe(org_id);
+        const newPost = await PostsRepository.MediaPosts.findLastMediaPostByAuthor(userVlad.id);
+        expect(newPost.organization_id).toBe(orgId);
+        expect(newPost.id).toBe(postId);
 
-          await helpers.Posts.expectPostDbValues(newPost, {
-            'entity_id_for':    "" + org_id,
-            'entity_name_for':  OrgModelProvider.getEntityName(),
-          });
+        await helpers.Posts.expectPostDbValues(newPost, {
+          'entity_id_for':    "" + orgId,
+          'entity_name_for':  OrgModelProvider.getEntityName(),
         });
+      });
 
       it('should create valid activity record', async () => {
         const user = userVlad;
@@ -63,17 +62,18 @@ describe('Organizations. Get requests', () => {
       });
 
       it('should be possible to create post on behalf of organization by org team member', async () => {
-        const org_id = 1;
-        const user = userJane;
+        const orgId     = await gen.Org.createOrgWithTeam(userJane, [ userVlad ]);
+        await helpers.Users.directlySetUserConfirmsInvitation(orgId, userVlad);
 
-        await helpers.Post.requestToCreateMediaPostOfOrganization(user, org_id);
+        const newPostId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
 
-        const newPost = await PostsRepository.MediaPosts.findLastMediaPostByAuthor(user.id);
-        expect(newPost.organization_id).toBe(org_id);
-        expect(newPost.user_id).toBe(userJane.id);
+        const newPost = await PostsRepository.MediaPosts.findLastMediaPostByAuthor(userVlad.id);
+        expect(newPost.organization_id).toBe(orgId);
+        expect(newPost.user_id).toBe(userVlad.id);
+        expect(newPost.id).toBe(newPostId);
 
         await helpers.Posts.expectPostDbValues(newPost, {
-          'entity_id_for':    "" + org_id,
+          'entity_id_for':    "" + orgId,
           'entity_name_for':  OrgModelProvider.getEntityName(),
         });
       });
@@ -83,18 +83,26 @@ describe('Organizations. Get requests', () => {
       it('should not be possible to create post if you are not author or team member of campaign', async () => {
         const org_id = 1;
 
+        // noinspection JSDeprecatedSymbols
         await helpers.Post.requestToCreateMediaPostOfOrganization(userRokky, org_id, 403);
       });
 
       it('should not be possible to create post by organization which does not exist', async () => {
         const org_id = 100500;
 
+        // noinspection JSDeprecatedSymbols
         await helpers.Post.requestToCreateMediaPostOfOrganization(userVlad, org_id, 400);
       });
 
-      it.skip('should set organization_id = null for regular post creation', async () => {
-        // TODO
+      it('should NOT be possible to create post on behalf of organization by member with pending invitation', async () => {
+        const org_id = 1;
+        const user = userJane;
+
+        // noinspection JSDeprecatedSymbols
+        await helpers.Post.requestToCreateMediaPostOfOrganization(user, org_id, 403);
       });
+
+      it.skip('should set organization_id = null for regular post creation', async () => {});
     });
   });
 
@@ -132,16 +140,33 @@ describe('Organizations. Get requests', () => {
     });
 
     it('should contain myself member data if is got by org member', async () => {
-      const userAuthor = userJane;
-      const post_id = 1;
+      const orgId = await gen.Org.createOrgWithTeam(userJane, [userVlad ]);
+      const postId = await gen.Posts.createMediaPostOfOrganization(userJane, orgId);
 
-      const post = await helpers.Post.requestToGetOnePostAsMyself(post_id, userAuthor);
+      await helpers.Users.directlySetUserConfirmsInvitation(orgId, userVlad);
+
+      const post = await helpers.Post.requestToGetOnePostAsMyself(postId, userVlad);
 
       const myselfData = post.myselfData;
       expect(myselfData).toBeDefined();
 
       expect(myselfData.organization_member).toBeDefined();
       expect(myselfData.organization_member).toBeTruthy();
+    });
+
+    describe('Negative', () => {
+      it('should contain myself member false if invitation is still pending', async () => {
+        const orgId = await gen.Org.createOrgWithTeam(userJane, [userVlad]);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userJane, orgId);
+
+        const post = await helpers.Post.requestToGetOnePostAsMyself(postId, userVlad);
+
+        const myselfData = post.myselfData;
+        expect(myselfData).toBeDefined();
+
+        expect(myselfData.organization_member).toBeDefined();
+        expect(myselfData.organization_member).toBeFalsy();
+      });
     });
 
     it('should contain myself member false if not belong to org', async () => {
@@ -156,6 +181,7 @@ describe('Organizations. Get requests', () => {
       expect(myselfData.organization_member).toBeDefined();
       expect(myselfData.organization_member).toBeFalsy();
     });
+
   });
 
 });

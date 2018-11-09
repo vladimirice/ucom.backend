@@ -8,6 +8,9 @@ const EosImportance = require('../../../lib/eos/eos-importance');
 const request = require('supertest');
 const server = require('../../../app');
 
+const UsersTeamRepository = require('../../../lib/users/repository').UsersTeam;
+const OrgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
+
 const EosJsEcc = require('eosjs-ecc');
 
 const EosApi = require('../../../lib/eos/eosApi');
@@ -17,6 +20,20 @@ const _ = require('lodash');
 require('jest-expect-message');
 
 class UsersHelper {
+
+  /**
+   *
+   * @param {number} orgId
+   * @param {Object} user
+   * @return {Promise<void>}
+   */
+  static async directlySetUserConfirmsInvitation(orgId, user) {
+    await UsersTeamRepository.setStatusConfirmed(
+      OrgModelProvider.getEntityName(),
+      orgId,
+      user.id
+    );
+  }
 
   /**
    *
@@ -248,6 +265,8 @@ class UsersHelper {
    *
    * @param {number} user_id
    * @return {Promise<Object>}
+   *
+   * @link UsersService#getUserByIdAndProcess
    */
   static async requestToGetUserAsGuest(user_id) {
     const res = await request(server)

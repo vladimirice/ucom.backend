@@ -1,8 +1,7 @@
 const helpers = require('../helpers');
+const gen     = require('../../generators');
 
-helpers.Mock.mockPostTransactionSigning();
-helpers.Mock.mockBlockchainPart();
-helpers.Mock.mockCommentTransactionSigning();
+helpers.Mock.mockAllBlockchainPart();
 
 let userVlad;
 let userJane;
@@ -28,6 +27,7 @@ describe('Organization members creates comments', () => {
         const post_id = 1; // post_id = 1 is belong to organization of author vlad
         const org_id  = 1;
 
+        // noinspection JSDeprecatedSymbols
         const body = await helpers.Comments.requestToCreateComment(post_id, userVlad);
         expect(body.organization_id).toBeDefined();
         expect(body.organization_id).toBe(org_id);
@@ -35,27 +35,50 @@ describe('Organization members creates comments', () => {
         helpers.Org.checkOneOrganizationPreviewFields(body.organization);
       });
 
-      it('should fill comment on comment organization_id if is created by org team member in org post feed', async () => {
-        const post_id = 1; // post_id = 1 is belong to organization of author vlad
-        const org_id  = 1;
+      it('should fill comment organization_id if is created by org team member in org post feed', async () => {
+        const orgId = await gen.Org.createOrgWithTeam(userJane, [
+          userVlad, userPetr
+        ]);
 
-        const body = await helpers.Comments.requestToCreateComment(post_id, userJane);
-        expect(body.organization_id).toBeDefined();
-        expect(body.organization_id).toBe(org_id);
+        const postId = await gen.Posts.createMediaPostOfOrganization(userJane, orgId);
+        await helpers.Users.directlySetUserConfirmsInvitation(orgId, userVlad);
 
-        expect(body.organization).toBeDefined();
+        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
 
-        helpers.Org.checkOneOrganizationPreviewFields(body.organization);
+        expect(comment.organization_id).toBeDefined();
+        expect(comment.organization_id).not.toBeNull();
+        expect(comment.organization_id).toBe(postId);
+
+        expect(comment.organization).toBeDefined();
+        expect(comment.organization).not.toBeNull();
+
+        helpers.Org.checkOneOrganizationPreviewFields(comment.organization);
       });
     });
     describe('Negative scenarios', () => {
       it('should not fill organization_id if comment author is not a org member', async () => {
         const post_id = 1; // post_id = 1 is belong to organization of author vlad
 
+        // noinspection JSDeprecatedSymbols
         const body = await helpers.Comments.requestToCreateComment(post_id, userRokky);
         expect(body.organization_id).toBeNull();
         expect(body.organization).toBeNull();
       });
+
+      it('should NOT fill organization_id if comment author has invitation with not-confirmed status', async () => {
+        const orgId = await gen.Org.createOrgWithTeam(userJane, [
+          userVlad, userPetr
+        ]);
+
+        const postId = await gen.Posts.createMediaPostOfOrganization(userJane, orgId);
+
+        // noinspection JSDeprecatedSymbols
+        const body = await helpers.Comments.requestToCreateComment(postId, userVlad);
+        expect(body.organization_id).toBeNull();
+
+        expect(body.organization).toBeNull();
+      });
+
 
       it.skip('should not fill organization_id if comment author is not a org member but post is belong to org', async () => {
       });
@@ -74,8 +97,10 @@ describe('Organization members creates comments', () => {
         const post_id = 1; // post_id = 1 is belong to organization of author vlad
         const org_id  = 1;
 
+        // noinspection JSDeprecatedSymbols
         const parentComment = await helpers.Comments.requestToCreateComment(post_id, userRokky);
 
+        // noinspection JSDeprecatedSymbols
         const body = await helpers.Comments.requestToCreateCommentOnComment(post_id, parentComment.id, userVlad);
         expect(body.organization_id).toBeDefined();
         expect(body.organization_id).toBe(org_id);
@@ -84,29 +109,38 @@ describe('Organization members creates comments', () => {
       });
 
       it('should fill comment on comment organization_id if is created by org team member in org post feed', async () => {
-        const post_id = 1; // post_id = 1 is belong to organization of author vlad
-        const org_id  = 1;
+        const orgId = await gen.Org.createOrgWithTeam(userJane, [
+          userVlad, userPetr
+        ]);
 
-        const parentComment = await helpers.Comments.requestToCreateComment(post_id, userRokky);
+        const postId        = await gen.Posts.createMediaPostOfOrganization(userJane, orgId);
+        const parentComment = await gen.Comments.createCommentForPost(postId, userJane);
 
-        const body = await helpers.Comments.requestToCreateCommentOnComment(post_id, parentComment.id, userJane);
-        expect(body.organization_id).toBeDefined();
-        expect(body.organization_id).toBe(org_id);
+        await helpers.Users.directlySetUserConfirmsInvitation(orgId, userVlad);
 
-        expect(body.organization).toBeDefined();
+        const comment = await gen.Comments.createCommentOnComment(postId, parentComment.id, userVlad);
+        expect(comment.organization_id).toBeDefined();
+        expect(comment.organization_id).toBe(orgId);
 
-        helpers.Org.checkOneOrganizationPreviewFields(body.organization);
+        expect(comment.organization).toBeDefined();
+
+        helpers.Org.checkOneOrganizationPreviewFields(comment.organization);
       });
     });
     describe('Negative scenarios', () => {
       it('should not fill organization_id if comment author is not a org member', async () => {
         const post_id = 1; // post_id = 1 is belong to organization of author vlad
 
+        // noinspection JSDeprecatedSymbols
         const parentComment = await helpers.Comments.requestToCreateComment(post_id, userVlad);
 
+        // noinspection JSDeprecatedSymbols
         const body = await helpers.Comments.requestToCreateCommentOnComment(post_id, parentComment.id, userRokky);
         expect(body.organization_id).toBeNull();
         expect(body.organization).toBeNull();
+      });
+
+      it.skip('should NOT fill organization_id if comment author has invitation with not-confirmed status', async () => {
       });
 
       it.skip('should not fill organization_id if comment author is not a org member but post is belong to org', async () => {
