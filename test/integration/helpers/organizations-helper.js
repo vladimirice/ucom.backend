@@ -729,6 +729,8 @@ class OrganizationsHelper {
    * @param {Object} newModelFields
    * @param {Object[]} usersTeam
    * @return {Promise<Object>}
+   *
+   * @link OrganizationsService#updateOrganization
    */
   static async requestToUpdateOrganization(org_id, user, newModelFields, usersTeam) {
 

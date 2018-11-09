@@ -491,7 +491,9 @@ describe('Organizations. Create-update requests', () => {
       it('should be possible to update organization with users team updating', async () => {
         const org_id = 1;
         const user = userVlad;
-        const orgBefore = await OrganizationsRepositories.Main.findOneById(org_id);
+        const orgBefore = await OrganizationsRepositories.Main.findOneById(org_id, 0);
+
+        const userPetrBefore = orgBefore.users_team.find(data => data.user_id === userPetr.id);
 
         const avatarFilenameBefore = orgBefore.avatar_filename;
 
@@ -533,7 +535,11 @@ describe('Organizations. Create-update requests', () => {
 
         expect(usersTeam.some(data => data.user_id === userJane.id)).toBeFalsy();
         expect(usersTeam.some(data => data.user_id === userRokky.id)).toBeTruthy();
-        expect(usersTeam.some(data => data.user_id === userPetr.id)).toBeTruthy();
+
+        const userPetrAfter = usersTeam.find(data => data.user_id === userPetr.id);
+
+        expect(userPetrAfter).toMatchObject(userPetrBefore);
+
         expect(usersTeam.some(data => data.user_id === userVlad.id)).toBeFalsy();
       });
 
