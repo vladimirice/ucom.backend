@@ -56,7 +56,7 @@ describe('Posts API', () => {
       const post_id = 1;
 
       const fieldsToChange = {
-      'description': '<div><i>extra_text</i><div><a href="https://example.com">test href</a><p>1000 UOS tokens as is.</p><p>&lt;/p&gt;&lt;script&gt;alert(\'123\')&lt;/script&gt;2</p><div><figure>\n' +
+      'description': '<div><strike>this is strike</strike><i>extra_text</i><div><a href="https://example.com">test href</a><p>1000 UOS tokens as is.</p><p>&lt;/p&gt;&lt;script&gt;alert(\'123\')&lt;/script&gt;2</p><div><figure>\n' +
       '    <img src="https://backend.u.community/upload/post-image-1537444720877.jpg" />\n' +
       '        \n' +
       '</figure></div><p> </p><p></p><div>\n' +
