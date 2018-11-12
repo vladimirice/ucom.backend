@@ -8,7 +8,6 @@ const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
 const UserActivityService = require('../lib/users/user-activity-service');
 const UserService = require('../lib/users/users-service');
-const winston = require('../config/winston');
 
 /* Find users by name fields - shortcut */
 UsersRouter.get('/search', async (req, res) => {
@@ -64,8 +63,6 @@ UsersRouter.post('/:user_id/follow', [authTokenMiddleWare, bodyParser ], async f
   const userFrom = req.user;
   const userToId = req.user_id;
 
-  winston.info(`Action - user follows other user. Request body is: ${JSON.stringify(req.body)}`);
-
   await UserActivityService.userFollowsAnotherUser(userFrom, userToId, req.body);
 
   res.status(status('201')).send({
@@ -77,8 +74,6 @@ UsersRouter.post('/:user_id/follow', [authTokenMiddleWare, bodyParser ], async f
 UsersRouter.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser ], async function(req, res) {
   const userFrom = req.user;
   const userIdTo = req.user_id;
-
-  winston.info(`Action - user UNfollows other user. Request body is: ${JSON.stringify(req.body)}`);
 
   await UserActivityService.userUnfollowsUser(userFrom, userIdTo, req.body);
 

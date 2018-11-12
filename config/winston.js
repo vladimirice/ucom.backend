@@ -4,7 +4,15 @@ const { format }  = require('winston');
 const { combine, timestamp, label, printf } = format;
 
 const MAX_FILE_SIZE = 104857600; // 100 MB;
-const MAX_FILES     = 20;
+const MAX_FILES     = 30;
+
+const LOGGER__API     = 'api';
+const LOGGER_CONSUMER = 'consumer';
+
+const LOGGERS_ALL = [
+  LOGGER__API,
+  LOGGER_CONSUMER
+];
 
 const myFormat = printf((info) => {
   if (info instanceof Error) {
@@ -15,7 +23,7 @@ const myFormat = printf((info) => {
 });
 
 const options = {
-  file: {
+  file_error: {
     level: 'error',
     filename: `${appRoot}/logs/app_error.log`,
     json: false,
@@ -23,7 +31,7 @@ const options = {
     maxFiles: MAX_FILES,
     colorize: false,
   },
-  file_info: {
+  file_combined: {
     level: 'info',
     filename: `${appRoot}/logs/app_combined.log`,
     json: false,
@@ -31,30 +39,48 @@ const options = {
     maxFiles: MAX_FILES,
     colorize: false,
   },
-  console: {
-    level: 'debug',
-    handleExceptions: true,
+  test_console: {
+    level: 'error',
+    // handleExceptions: true,
     json: false,
     colorize: true,
   },
 };
 
-const logger = winston.createLogger({
-  format: combine(
-    label({ label: 'general' }),
+const transports = [
+  new winston.transports.File(options.file_error),
+  new winston.transports.File(options.file_combined),
+];
+
+function getFormat(labelToSet) {
+  return combine(
+    label({ label: labelToSet }),
     timestamp(),
     myFormat
-  ),
-  transports: [
-    new winston.transports.File(options.file),
-    new winston.transports.File(options.file_info),
-  ]
-});
+  );
+}
 
-logger.stream = {
-  write: function(message, encoding) {
-    logger.info(message);
+for (let i = 0; i < LOGGERS_ALL.length; i++) {
+  const loggerName = LOGGERS_ALL[i];
+
+  winston.loggers.add(loggerName, {
+    format: getFormat(loggerName),
+    transports,
+  });
+
+  if (process.env.NODE_ENV === 'test') {
+    winston.loggers.get(loggerName).add(new winston.transports.Console(options.test_console));
+  }
+}
+
+const ApiLoggerStream = {
+  write: function(message) {
+    winston.loggers.get(LOGGER__API).info(message);
   },
 };
 
-module.exports = logger;
+module.exports = {
+  ApiLogger:      winston.loggers.get(LOGGER__API),
+  ConsumerLogger: winston.loggers.get(LOGGER_CONSUMER),
+  ApiLoggerStream
+};

@@ -8,7 +8,6 @@ const authTokenMiddleWare   = require('../../lib/auth/auth-token-middleware');
 const { cpUpload, cpUploadArray }          = require('../../lib/organizations/middleware/organization-create-edit-middleware');
 const OrgIdParamMiddleware  = require('../../lib/organizations/middleware/organization-id-param-middleware');
 const ActivityUserToOrg    = require('../../lib/users/activity').UserToOrg;
-const winston               = require('../../config/winston');
 
 /* Get all organizations */
 OrgRouter.get('/', async (req, res) => {
@@ -73,8 +72,6 @@ OrgRouter.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray ]
   const userFrom    = req.user;
   const entityIdTo  = req.organization_id;
 
-  winston.info(`Action - user follows organization. Request body is: ${JSON.stringify(req.body)}`);
-
   await ActivityUserToOrg.userFollowsOrganization(userFrom, entityIdTo, req.body);
 
   res.status(status('201')).send({
@@ -86,8 +83,6 @@ OrgRouter.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray ]
 OrgRouter.post('/:organization_id/unfollow', [ authTokenMiddleWare, cpUploadArray ], async function(req, res) {
   const userFrom    = req.user;
   const entityIdTo  = req.organization_id;
-
-  winston.info(`Action - user UNfollows organization. Request body is: ${JSON.stringify(req.body)}`);
 
   await ActivityUserToOrg.userUnfollowsOrganization(userFrom, entityIdTo, req.body);
 

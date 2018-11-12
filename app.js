@@ -4,7 +4,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const path = require('path');
-const winston = require('./config/winston');
+const { ApiLoggerStream, ApiLogger } = require('./config/winston');
 
 global.reqlib = require('app-root-path').require;
 
@@ -25,10 +25,10 @@ const EosApi = require('./lib/eos/eosApi');
 
 const app = express();
 
-process.on('uncaughtException', (ex) => { winston.error(ex); });
+process.on('uncaughtException', (ex) => { ApiLogger.error(ex); });
 process.on('unhandledRejection', (ex) => { throw ex; });
 
-app.use(morgan('combined', { stream: winston.stream }));
+app.use(morgan('combined', { stream: ApiLoggerStream }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
