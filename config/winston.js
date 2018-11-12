@@ -1,4 +1,6 @@
-const appRoot     = require('app-root-path');
+const appRoot = require('app-root-path');
+const Sentry  = require('winston-sentry-raven-transport');
+
 const winston     = require('winston');
 const { format }  = require('winston');
 const { combine, timestamp, label, printf } = format;
@@ -15,8 +17,10 @@ const LOGGERS_ALL = [
 ];
 
 const myFormat = printf((info) => {
+  const nodeEnv = process.env.NODE_ENV;
+
   if (info instanceof Error) {
-    return `${info.timestamp}.[${info.label}].${info.level}: ${info.message}. Stack: ${info.stack}. Full JSON: ${JSON.stringify(info, null, 2)}`;
+    return `${info.timestamp}.[${nodeEnv}].[${info.label}].${info.level}: ${info.message}. Stack: ${info.stack}. Full JSON: ${JSON.stringify(info, null, 2)}`;
   }
 
   return `${info.timestamp}.[${info.label}].${info.level}: ${JSON.stringify(info.message)}`;
@@ -45,11 +49,16 @@ const options = {
     json: false,
     colorize: true,
   },
+  sentry: {
+    dsn: 'http://32db371651644b0da6d582d2c71d05c3@sentry.u.community/1',
+    level: 'error',
+  }
 };
 
 const transports = [
   new winston.transports.File(options.file_error),
   new winston.transports.File(options.file_combined),
+  new Sentry(options.sentry)
 ];
 
 function getFormat(labelToSet) {
