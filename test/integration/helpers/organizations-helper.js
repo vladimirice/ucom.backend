@@ -904,6 +904,8 @@ class OrganizationsHelper {
    * @param {Object} user
    * @param {Object} requiredFields
    * @return {Promise<Object>}
+   *
+   * @link OrganizationService#processNewOrganizationCreation
    */
   static async requestToCreateNewOrganization(user, requiredFields = null) {
     let newModelFields;
