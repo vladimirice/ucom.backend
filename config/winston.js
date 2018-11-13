@@ -58,8 +58,13 @@ const options = {
 const transports = [
   new winston.transports.File(options.file_error),
   new winston.transports.File(options.file_combined),
-  new Sentry(options.sentry)
 ];
+
+if (process.env.NODE_ENV === 'production') {
+  transports.push(
+    new Sentry(options.sentry)
+  );
+}
 
 function getFormat(labelToSet) {
   return combine(

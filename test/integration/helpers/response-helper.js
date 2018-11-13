@@ -152,15 +152,41 @@ class ResponseHelper {
     expect(data).not.toBeNull();
     expect(Array.isArray(data)).toBeTruthy();
 
-    expect(metadata).toBeDefined();
-    expect(metadata).not.toBeNull();
-
-    expect(Array.isArray(metadata)).toBeFalsy();
-    expect(typeof metadata).toBe('object');
+    this.expectValidMetadataStructure(metadata);
 
     if (!allowEmpty) {
       expect(data.length).toBeGreaterThan(0);
     }
+  }
+
+  /**
+   *
+   * @param {Object} metadata
+   * @param {boolean} allowEmpty
+   */
+  static expectValidMetadataStructure(metadata, allowEmpty = false) {
+    expect(metadata).toBeDefined();
+    expect(metadata).not.toBeNull();
+    expect(typeof metadata).toBe('object');
+
+    expect(metadata.total_amount).toBeDefined();
+    expect(typeof metadata.total_amount).toBe('number');
+
+    if (allowEmpty) {
+      expect(metadata.total_amount).toBeGreaterThanOrEqual(0);
+    } else {
+      expect(metadata.total_amount).toBeGreaterThan(0);
+    }
+
+    expect(metadata.page).toBeDefined();
+    // expect(typeof metadata.page).toBe('number'); // TODO
+
+    expect(metadata.per_page).toBeDefined();
+    // expect(metadata.per_page).toBeGreaterThan(0); // TODO
+    // expect(typeof metadata.per_page).toBe('number'); // TODO
+
+    expect(metadata.has_more).toBeDefined();
+    expect(typeof metadata.has_more).toBe('boolean');
   }
 
   static checkMetadata(response, page, perPage, totalAmount, hasMore) {
