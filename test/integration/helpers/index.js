@@ -31,4 +31,6 @@ module.exports = {
   Common: require('./common-helper'),
 
   Notifications: require('./notifications-helper'),
+
+  Blockchain: require('./blockchain-helper'),
 };

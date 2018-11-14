@@ -4,19 +4,26 @@ const ResponseHelper = require('./response-helper');
 
 const apiV1Prefix = '/api/v1';
 
-const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
-const registrationRoute = '/api/v1/auth/registration';
-const postsUrl          = `${apiV1Prefix}/posts`;
-const usersUrl          = `${apiV1Prefix}/users`;
-const organizationsUrl  = `${apiV1Prefix}/organizations`;
-const myselfUrl          = `${apiV1Prefix}/myself`;
+const checkAccountRoute   = '/api/v1/auth/registration/validate-account-name';
+const registrationRoute   = '/api/v1/auth/registration';
+const postsUrl            = `${apiV1Prefix}/posts`;
+const usersUrl            = `${apiV1Prefix}/users`;
+const organizationsUrl    = `${apiV1Prefix}/organizations`;
+const myselfUrl           = `${apiV1Prefix}/myself`;
 
-const communityUrl = `${apiV1Prefix}/community`;
-const partnershipUrl = `${apiV1Prefix}/partnership`;
-
-const blockchainRouterPrefix = '/blockchain';
+const communityUrl        = `${apiV1Prefix}/community`;
+const partnershipUrl      = `${apiV1Prefix}/partnership`;
+const blockchainUrl       = `${apiV1Prefix}/blockchain`;
 
 class RequestHelper {
+
+  /**
+   *
+   * @return {string}
+   */
+  static getBlockchainNodesListUrl() {
+    return `${blockchainUrl}/nodes`;
+  }
 
   /**
    *
@@ -234,7 +241,7 @@ class RequestHelper {
    * @return {string}
    */
   static getBlockchainContentUniqidUrl() {
-    return `${apiV1Prefix}${blockchainRouterPrefix}/content/uniqid`;
+    return `${blockchainUrl}/content/uniqid`;
   }
 
 

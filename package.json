@@ -47,6 +47,7 @@
     "supertest": "^3.1.0",
     "uniqid": "5.0.3",
     "uos-app-transaction": "git+ssh://git@bitbucket.org/gravityprotocol/uos.app.transaction.git",
+    "uos-app-wallet": "git+ssh://git@bitbucket.org/gravityprotocol/uos-app-wallet.git",
     "winston": "3.0.0",
     "winston-sentry-raven-transport": "1.0.2"
   },
