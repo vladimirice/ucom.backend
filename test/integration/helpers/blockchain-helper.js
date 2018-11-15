@@ -4,7 +4,77 @@ const server = require('../../../app');
 const Req = require('./request-helper');
 const Res = require('./response-helper');
 
+const BlockchainService = require('../../../lib/eos/service').Blockchain;
+const BlockchainNodesRepository = require('../../../lib/eos/repository').Main;
+
+const { WalletApi } = require('uos-app-wallet');
+
 class BlockchainHelper {
+  static async mockGetBlockchainNodesWalletMethod() {
+    let initialData = await WalletApi.getBlockchainNodes();
+
+    initialData.z_super_new1 = {
+      title: 'z_super_new1',
+      votes_count: 5,
+      votes_amount: 100,
+      currency: 'UOS',
+      bp_status: 1,
+    };
+
+
+    const created = [
+      initialData.z_super_new1
+    ];
+
+    // lets also change something
+    const dataKeys = Object.keys(initialData);
+
+    const deleted = [
+      dataKeys[0]
+    ];
+
+    const updated = [
+      initialData[dataKeys[1]],
+      initialData[dataKeys[2]],
+    ];
+
+    initialData[dataKeys[1]].votes_count = 10;
+    initialData[dataKeys[1]].votes_amount = 250;
+
+    initialData[dataKeys[2]].bp_status = 2;
+    initialData[dataKeys[2]].votes_amount = 0;
+    initialData[dataKeys[2]].votes_count = 0;
+
+    delete initialData[dataKeys[0]];
+
+    WalletApi.getBlockchainNodes = async function () {
+      return initialData;
+    };
+
+    return {
+      created,
+      updated,
+      deleted,
+    }
+  }
+
+  /**
+   *
+   * @return {Promise<Object>}
+   */
+  static async getAllBlockchainNodes() {
+    return BlockchainNodesRepository.findAllBlockchainNodes(true);
+  }
+
+  /**
+   *
+   * @return {Promise<void>}
+   *
+   */
+  static async updateBlockchainNodes() {
+    return await BlockchainService.updateBlockchainNodesByBlockchain();
+  }
+
   /**
    * @return {Promise<Object>}
    *

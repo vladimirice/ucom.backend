@@ -10,6 +10,11 @@ describe('Blockchain nodes get', () => {
     [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
   });
 
+  beforeEach(async () => {
+    await helpers.Seeds.truncateBlockchainNodesTable();
+    await helpers.Blockchain.updateBlockchainNodes();
+  });
+
   describe('Positive', () => {
     it('Get nodes list without filters for guest', async () => {
       const data = await helpers.Blockchain.requestToGetNodesList();

@@ -31,6 +31,8 @@ const minorTables = [
   EntityModelProvider.getNotificationsTableName(),
   UsersRepositories.UsersTeam.getModelName(),
 
+  'blockchain_nodes',
+
   'post_ipfs_meta',
 
   'users_education',
@@ -154,6 +156,10 @@ class SeedsHelper {
     return models[name].bulkCreate(seeds)
   }
 
+  static async truncateBlockchainNodesTable() {
+    return this.truncateTable('blockchain_nodes');
+  }
+
   static async destroyTables() {
 
     // noinspection SqlResolve
@@ -178,7 +184,7 @@ class SeedsHelper {
     const minorTablesPromises = [];
 
     minorTables.forEach(table => {
-      minorTablesPromises.push(models[table].destroy(params));
+      minorTablesPromises.push(models.sequelize.query(`TRUNCATE TABLE ${table}`));
     });
 
     await Promise.all(minorTablesPromises);
@@ -195,7 +201,7 @@ class SeedsHelper {
    * @returns {Promise<void>}
    */
   static async truncateTable(tableName) {
-    await models[tableName].destroy({where: {}});
+    await models.sequelize.query(`TRUNCATE TABLE ${tableName};`);
   }
 
   static async initSeedsForUsers() {

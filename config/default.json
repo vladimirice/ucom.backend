@@ -9,7 +9,7 @@
     "password": "uos",
     "database": "uos_backend_app",
     "host": "uos-backend-postgres.dev",
-    "port": "5433",
+    "port": "5434",
     "dialect": "postgres",
     "logging": false
   },
