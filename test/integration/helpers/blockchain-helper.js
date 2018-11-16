@@ -6,12 +6,73 @@ const Res = require('./response-helper');
 
 const BlockchainService = require('../../../lib/eos/service').Blockchain;
 const BlockchainNodesRepository = require('../../../lib/eos/repository').Main;
+const { TransactionSender } = require('uos-app-transaction');
 
 const { WalletApi } = require('uos-app-wallet');
 
 class BlockchainHelper {
-  static async mockGetBlockchainNodesWalletMethod() {
-    let initialData = await WalletApi.getBlockchainNodes();
+  /**
+   *
+   * @param {string} accountName
+   * @param {string} privateKey
+   * @return {Promise<void>}
+   */
+  static async rollbackAllUnstakingRequests(accountName, privateKey) {
+    const state = await WalletApi.getAccountState(accountName);
+
+    if (state.resources.net.unstaking_request.amount === 0 && state.resources.cpu.unstaking_request.amount === 0) {
+      console.warn('nothing to rollback');
+
+      return;
+    }
+
+    const net = state.resources.net.tokens.self_delegated + state.resources.net.unstaking_request.amount;
+    const cpu = state.resources.cpu.tokens.self_delegated + state.resources.cpu.unstaking_request.amount;
+
+    await TransactionSender.stakeOrUnstakeTokens(accountName, privateKey, net, cpu);
+
+    const stateAfter = await WalletApi.getAccountInfo(accountName);
+
+    expect(stateAfter.resources.net.unstaking_request.amount).toBe(0);
+    expect(stateAfter.resources.cpu.unstaking_request.amount).toBe(0);
+  }
+
+  /**
+   *
+   * @param {string} accountName
+   * @param {string} privateKey
+   * @return {Promise<void>}
+   */
+  static async stakeSomethingIfNecessary(accountName, privateKey) {
+    const accountState = await WalletApi.getAccountState(accountName);
+
+    if (accountState.tokens.staked === 0) {
+      await WalletApi.stakeOrUnstakeTokens(accountName, privateKey, 10, 10)
+    }
+  }
+
+  /**
+   *
+   * @param {string} accountName
+   * @param {string} privateKey
+   * @return {Promise<Object>}
+   */
+  static resetVotingState(accountName, privateKey) {
+    return WalletApi.voteForBlockProducers(accountName, privateKey, []);
+  }
+
+  static async mockGetBlockchainNodesWalletMethod(addToVote = [], replaceFor = {}) {
+    let {producerData:initialData, voters } = await WalletApi.getBlockchainNodes();
+
+    addToVote.forEach(data => {
+      voters.push(data);
+    });
+
+    if (Object.keys(replaceFor).length > 0) {
+      voters.forEach(voter => {
+        voter.producers = replaceFor[voter.owner] || voter.producers;
+      });
+    }
 
     initialData.z_super_new1 = {
       title: 'z_super_new1',
@@ -21,9 +82,17 @@ class BlockchainHelper {
       bp_status: 1,
     };
 
+    initialData.z_super_new2 = {
+      title: 'z_super_new2',
+      votes_count: 5,
+      votes_amount: 100,
+      currency: 'UOS',
+      bp_status: 1,
+    };
 
     const created = [
-      initialData.z_super_new1
+      initialData.z_super_new1,
+      initialData.z_super_new2
     ];
 
     // lets also change something
@@ -48,7 +117,10 @@ class BlockchainHelper {
     delete initialData[dataKeys[0]];
 
     WalletApi.getBlockchainNodes = async function () {
-      return initialData;
+      return {
+        voters,
+        producerData: initialData,
+      };
     };
 
     return {
@@ -63,7 +135,7 @@ class BlockchainHelper {
    * @return {Promise<Object>}
    */
   static async getAllBlockchainNodes() {
-    return BlockchainNodesRepository.findAllBlockchainNodes(true);
+    return BlockchainNodesRepository.findAllBlockchainNodes();
   }
 
   /**
@@ -80,9 +152,9 @@ class BlockchainHelper {
    *
    * @link BlockchainService#getAndProcessNodes
    */
-  static async requestToGetNodesList(myself = null, withMyselfBpVote = false, expectedStatus = 200) {
+  static async requestToGetNodesList(myself = null, withMyselfBpVote = false, expectedStatus = 200, searchString = '', allowEmpty = false) {
     const queryString = withMyselfBpVote ? '?myself_bp_vote=true' : '';
-    let url = Req.getBlockchainNodesListUrl() + queryString;
+    let url = Req.getBlockchainNodesListUrl() + queryString + searchString;
 
     const req = request(server)
       .get(url)
@@ -100,7 +172,7 @@ class BlockchainHelper {
       return res.body;
     }
 
-    Res.expectValidListResponse(res);
+    Res.expectValidListResponse(res, allowEmpty);
 
     return res.body.data;
   }
