@@ -4,6 +4,8 @@ const server = require('../../../app');
 const Req = require('./request-helper');
 const Res = require('./response-helper');
 
+const accountsData = require('../../../config/accounts-data');
+
 const BlockchainService       = require('../../../lib/eos/service').Blockchain;
 const BlockchainModelProvider = require('../../../lib/eos/service').ModelProvider;
 
@@ -12,7 +14,27 @@ const { TransactionSender } = require('uos-app-transaction');
 
 const { WalletApi } = require('uos-app-wallet');
 
+
+let accountName = 'vlad';
+let privateKey = accountsData[accountName].activePk;
+
 class BlockchainHelper {
+
+  /**
+   *
+   * @return {string}
+   */
+  static getTesterAccountName() {
+    return accountName;
+  }
+  /**
+   *
+   * @return {string}
+   */
+  static getTesterPrivateKey() {
+    return privateKey;
+  }
+
   /**
    *
    * @param {string} accountName
@@ -63,7 +85,7 @@ class BlockchainHelper {
     return WalletApi.voteForBlockProducers(accountName, privateKey, []);
   }
 
-  static async mockGetBlockchainNodesWalletMethod(addToVote = {}) {
+  static async mockGetBlockchainNodesWalletMethod(addToVote = {}, toDelete = true) {
     let {producerData:initialData, voters } = await WalletApi.getBlockchainNodes();
 
     voters = {
@@ -111,7 +133,9 @@ class BlockchainHelper {
     initialData[dataKeys[2]].votes_amount = 0;
     initialData[dataKeys[2]].votes_count = 0;
 
-    delete initialData[dataKeys[0]];
+    if (toDelete) {
+      delete initialData[dataKeys[0]];
+    }
 
     WalletApi.getBlockchainNodes = async function () {
       return {

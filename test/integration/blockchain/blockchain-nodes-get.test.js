@@ -5,8 +5,12 @@ const _ = require('lodash');
 
 let userVlad, userJane, userPetr, userRokky;
 WalletApi.initForStagingEnv();
+WalletApi.setNodeJsEnv();
 
 const initialMockFunction = WalletApi.getBlockchainNodes;
+
+const accountName = helpers.Blockchain.getTesterAccountName();
+const privateKey  = helpers.Blockchain.getTesterPrivateKey();
 
 describe('Blockchain nodes get', () => {
   beforeAll(async () => {
@@ -16,6 +20,8 @@ describe('Blockchain nodes get', () => {
   beforeEach(async () => {
     await helpers.Seeds.destroyTables();
     await helpers.Seeds.initUsersOnly();
+
+    WalletApi.getBlockchainNodes = initialMockFunction;
     await helpers.Blockchain.updateBlockchainNodes();
   });
 
@@ -43,6 +49,19 @@ describe('Blockchain nodes get', () => {
       helpers.Blockchain.checkManyProducers(data, false);
     });
 
+    it('should contain myself data for user who did not vote yet', async () => {
+      await helpers.Blockchain.resetVotingState(accountName, privateKey);
+      await helpers.Blockchain.updateBlockchainNodes();
+
+      const data = await helpers.Blockchain.requestToGetNodesList(userVlad);
+      helpers.Blockchain.checkManyProducers(data, true);
+
+      data.forEach(model => {
+        expect(model.myselfData).toBeDefined();
+        expect(model.myselfData.bp_vote).toBeFalsy();
+      });
+    }, 10000);
+
     it('Get nodes list without filters for myself', async () => {
       const producers = [
         'calc2',
@@ -57,7 +76,7 @@ describe('Blockchain nodes get', () => {
         },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor));
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
       await helpers.Blockchain.updateBlockchainNodes();
 
       const nodesList = await helpers.Blockchain.requestToGetNodesList(userVlad);
@@ -86,7 +105,7 @@ describe('Blockchain nodes get', () => {
         },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor));
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
       await helpers.Blockchain.updateBlockchainNodes();
 
       const data = await helpers.Blockchain.requestToGetNodesList(userVlad, true);
@@ -100,7 +119,7 @@ describe('Blockchain nodes get', () => {
     }, 30000);
 
     it('Get nodes which match only search criteria', async () => {
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod();
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod({}, false);
       await helpers.Blockchain.updateBlockchainNodes();
 
       const data = await helpers.Blockchain.requestToGetNodesList(userVlad, false, 200, '?&search=_sUp');

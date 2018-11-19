@@ -53,7 +53,7 @@ describe('Blockchain nodes updating', () => {
         }
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote));
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
       await helpers.Blockchain.updateBlockchainNodes();
 
       const nodes = await BlockchainNodesRepository.findAllBlockchainNodes();
