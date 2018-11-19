@@ -54,5 +54,14 @@ module.exports = {
         NODE_ENV: NODE_ENV
       },
     },
+    {
+      name: `${NODE_ENV}_update_blockchain_nodes`,
+      script: 'bin/worker-update-blockchain-nodes.js',
+      watch: false,
+      cron_restart: '* * * * *',
+      env: {
+        NODE_ENV: NODE_ENV
+      },
+    },
   ],
 };

@@ -38,7 +38,7 @@ describe('Organizations. Blockchain transactions', () => {
         activity_group_id: ActivityGroupDictionary.getGroupContentCreation(),
         user_id_from: userVlad.id,
         entity_id_to: response.id,
-        entity_name: 'organizations'
+        entity_name: "org       "
       };
 
       // noinspection JSCheckFunctionSignatures

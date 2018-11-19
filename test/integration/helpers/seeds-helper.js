@@ -297,11 +297,13 @@ class SeedsHelper {
     });
   }
 
+  static async doAfterAll() {
+    await models.sequelize.close();
+  }
 
   static async sequelizeAfterAll() {
     await models.sequelize.close();
   }
-
 
   /**
    *

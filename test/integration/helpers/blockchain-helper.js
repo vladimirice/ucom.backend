@@ -4,7 +4,9 @@ const server = require('../../../app');
 const Req = require('./request-helper');
 const Res = require('./response-helper');
 
-const BlockchainService = require('../../../lib/eos/service').Blockchain;
+const BlockchainService       = require('../../../lib/eos/service').Blockchain;
+const BlockchainModelProvider = require('../../../lib/eos/service').ModelProvider;
+
 const BlockchainNodesRepository = require('../../../lib/eos/repository').Main;
 const { TransactionSender } = require('uos-app-transaction');
 
@@ -61,18 +63,13 @@ class BlockchainHelper {
     return WalletApi.voteForBlockProducers(accountName, privateKey, []);
   }
 
-  static async mockGetBlockchainNodesWalletMethod(addToVote = [], replaceFor = {}) {
+  static async mockGetBlockchainNodesWalletMethod(addToVote = {}) {
     let {producerData:initialData, voters } = await WalletApi.getBlockchainNodes();
 
-    addToVote.forEach(data => {
-      voters.push(data);
-    });
-
-    if (Object.keys(replaceFor).length > 0) {
-      voters.forEach(voter => {
-        voter.producers = replaceFor[voter.owner] || voter.producers;
-      });
-    }
+    voters = {
+      ...voters,
+      ...addToVote,
+    };
 
     initialData.z_super_new1 = {
       title: 'z_super_new1',
@@ -198,9 +195,7 @@ class BlockchainHelper {
     expect(model).not.toBeNull();
     expect(typeof model).toBe('object');
 
-    const expected = [
-      'id', 'title', 'votes_amount', 'votes_count', 'currency', 'bp_status',
-    ];
+    const expected = BlockchainModelProvider.getFieldsForPreview();
 
     if (isMyselfDataRequired) {
       expected.push('myselfData');

@@ -6,6 +6,7 @@ let userVlad, userJane, userPetr, userRokky;
 WalletApi.initForStagingEnv();
 WalletApi.setNodeJsEnv();
 
+const _ = require('lodash');
 const initialMockFunction = WalletApi.getBlockchainNodes;
 
 const { TransactionSender } = require('uos-app-transaction');
@@ -23,16 +24,16 @@ describe('Blockchain nodes updating', () => {
   beforeEach(async () => {
     await helpers.Seeds.destroyTables();
     await helpers.Seeds.initUsersOnly();
-  });
 
-  afterEach(() => {
     WalletApi.getBlockchainNodes = initialMockFunction;
   });
 
+  afterAll(async () => { await helpers.Seeds.doAfterAll(); });
+
   describe('Update users activity', () => {
     it('should create basic users activity of bp votes', async () => {
-      const addToVote = [
-        {
+      const addToVote = {
+        'petr': {
           owner: 'petr',
           producers: [
             'calc2',
@@ -41,7 +42,7 @@ describe('Blockchain nodes updating', () => {
             'z_super_new2'
           ],
         },
-        {
+        'rokky': {
           owner: 'rokky',
           producers: [
             'calc3',
@@ -50,19 +51,23 @@ describe('Blockchain nodes updating', () => {
             'calc5',
           ],
         }
-      ];
+      };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(addToVote);
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote));
       await helpers.Blockchain.updateBlockchainNodes();
+
       const nodes = await BlockchainNodesRepository.findAllBlockchainNodes();
 
       const petrMustVoteTo = nodes.filter(data => {
-        return ~addToVote[0].producers.indexOf(data.title);
+        return ~addToVote['petr'].producers.indexOf(data.title);
       });
 
+      expect(petrMustVoteTo.length).toBeGreaterThan(0);
+
       const rokkyMustVoteTo = nodes.filter(data => {
-        return ~addToVote[1].producers.indexOf(data.title);
+        return ~addToVote['rokky'].producers.indexOf(data.title);
       });
+      expect(rokkyMustVoteTo.length).toBeGreaterThan(0);
 
       const res = await UsersActivityRepository.findAllUpvoteUsersBlockchainNodesActivity();
 
@@ -74,7 +79,7 @@ describe('Blockchain nodes updating', () => {
         return data.user_id_from === userRokky.id
       });
 
-      expect(petrActivity.length).toBe(petrMustVoteTo.length);
+      expect(petrActivity.length).toBe(Object.keys(petrMustVoteTo).length);
       expect(rokkyActivity.length).toBe(rokkyMustVoteTo.length);
 
       petrMustVoteTo.forEach(data => {
@@ -87,8 +92,8 @@ describe('Blockchain nodes updating', () => {
     }, 10000);
 
     it('should update users activity if somebody votes', async () => {
-      const addToVote = [
-        {
+      const addToVote = {
+        'petr': {
           owner: 'petr',
           producers: [
             'calc2',
@@ -97,7 +102,7 @@ describe('Blockchain nodes updating', () => {
             'z_super_new2'
           ],
         },
-        {
+        'rokky': {
           owner: 'rokky',
           producers: [
             'calc3',
@@ -106,20 +111,18 @@ describe('Blockchain nodes updating', () => {
             'calc5',
           ],
         }
-      ];
+      };
 
-      const initialFunction = WalletApi.getBlockchainNodes;
-
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(addToVote);
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote));
       await helpers.Blockchain.updateBlockchainNodes();
       const nodes = await BlockchainNodesRepository.findAllBlockchainNodes();
 
       // restore mocked function
-      WalletApi.getBlockchainNodes = initialFunction;
+      WalletApi.getBlockchainNodes = initialMockFunction;
 
       // lets update userPetr state
-      const addToVoteAfter = [
-        {
+      const addToVoteAfter = {
+        'petr': {
           owner: 'petr',
           producers: [
             // add these ones
@@ -135,7 +138,7 @@ describe('Blockchain nodes updating', () => {
             'z_super_new2'
           ],
         },
-        {
+        'rokky': {
           owner: 'rokky',
           producers: [
             // add these ones
@@ -151,20 +154,20 @@ describe('Blockchain nodes updating', () => {
             'calc4',
           ],
         }
-      ];
+      };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(addToVoteAfter);
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVoteAfter));
       await helpers.Blockchain.updateBlockchainNodes();
 
       const petrMustVoteTo = nodes.filter(data => {
-        return ~addToVoteAfter[0].producers.indexOf(data.title);
+        return ~addToVoteAfter.petr.producers.indexOf(data.title);
       });
       const petrMustNotContain = nodes.filter(data => {
         return ~['calc2', 'calc5'].indexOf(data.title);
       });
 
       const rokkyMustVoteTo = nodes.filter(data => {
-        return ~addToVoteAfter[1].producers.indexOf(data.title);
+        return ~addToVoteAfter.rokky.producers.indexOf(data.title);
       });
       const rokkyMustNotContain = nodes.filter(data => {
         return ~['z_super_new1', 'calc5'].indexOf(data.title);
@@ -211,12 +214,10 @@ describe('Blockchain nodes updating', () => {
     it('should create new node records for empty database', async () => {
       await helpers.Blockchain.updateBlockchainNodes();
 
-      const res = await helpers.Blockchain.getAllBlockchainNodes();
-      expect(res.length).toBe(5); // hardcoded constant
+      await helpers.Blockchain.requestToGetNodesList();
     });
 
     it('should update node records - some nodes are added and some are removed', async () => {
-      // initial state
       await helpers.Blockchain.updateBlockchainNodes();
 
       const {created, updated, deleted} = await helpers.Blockchain.mockGetBlockchainNodesWalletMethod();

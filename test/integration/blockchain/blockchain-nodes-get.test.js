@@ -1,6 +1,7 @@
 const helpers = require('../helpers');
 
 const { WalletApi } = require('uos-app-wallet');
+const _ = require('lodash');
 
 let userVlad, userJane, userPetr, userRokky;
 WalletApi.initForStagingEnv();
@@ -22,6 +23,8 @@ describe('Blockchain nodes get', () => {
     WalletApi.getBlockchainNodes = initialMockFunction;
   });
 
+  afterAll(async () => { await helpers.Seeds.doAfterAll(); });
+
   describe('Sorting smoke tests', () => {
     it('order by different fields', async () => {
       const fieldsToSort = [
@@ -41,33 +44,32 @@ describe('Blockchain nodes get', () => {
     });
 
     it('Get nodes list without filters for myself', async () => {
-      // TODO hardcoded voting condition - should determine beforehand
+      const producers = [
+        'calc2',
+        'calc5',
+        'calc4',
+      ];
 
       const replaceFor = {
-        'vlad': [
-            'calc2',
-            'calc5',
-            'calc4',
-          ],
+        'vlad': {
+          owner: 'vlad',
+          producers,
+        },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod([], replaceFor);
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor));
       await helpers.Blockchain.updateBlockchainNodes();
 
-      const data = await helpers.Blockchain.requestToGetNodesList(userVlad);
-      helpers.Blockchain.checkManyProducers(data, true);
+      const nodesList = await helpers.Blockchain.requestToGetNodesList(userVlad);
+      helpers.Blockchain.checkManyProducers(nodesList, true);
 
-      const calc2Producer = data.find(producer => producer.title === 'calc2');
-      const calc4Producer = data.find(producer => producer.title === 'calc4');
-      const calc5Producer = data.find(producer => producer.title === 'calc5');
-
-      const calc3Producer = data.find(producer => producer.title === 'calc3');
-
-      expect(calc3Producer.myselfData.bp_vote).toBeFalsy();
-
-      expect(calc5Producer.myselfData.bp_vote).toBeTruthy();
-      expect(calc2Producer.myselfData.bp_vote).toBeTruthy();
-      expect(calc4Producer.myselfData.bp_vote).toBeTruthy();
+      nodesList.forEach(node => {
+        if (~producers.indexOf(node.title)) {
+          expect(node.myselfData.bp_vote).toBeTruthy();
+        } else {
+          expect(node.myselfData.bp_vote).toBeFalsy();
+        }
+      });
     });
 
     it('Get nodes list with myself_bp_vote=true filter - voted only', async () => {
@@ -78,10 +80,13 @@ describe('Blockchain nodes get', () => {
       ];
 
       const replaceFor = {
-        'vlad': nodeTitlesToVote,
+        'vlad': {
+          owner: 'vlad',
+          producers: nodeTitlesToVote,
+        },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod([], replaceFor);
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor));
       await helpers.Blockchain.updateBlockchainNodes();
 
       const data = await helpers.Blockchain.requestToGetNodesList(userVlad, true);
@@ -92,7 +97,7 @@ describe('Blockchain nodes get', () => {
       nodeTitlesToVote.forEach(title => {
         expect(data.some(producer => producer.title === title && producer.myselfData.bp_vote === true)).toBeTruthy()
       });
-    });
+    }, 30000);
 
     it('Get nodes which match only search criteria', async () => {
       await helpers.Blockchain.mockGetBlockchainNodesWalletMethod();
@@ -105,7 +110,7 @@ describe('Blockchain nodes get', () => {
         'z_super_new2',
       ];
 
-      expect(data.length).toBe(2);
+      expect(data.length).toBe(expectedTitles.length);
 
       expectedTitles.forEach(title => {
         expect(data.some(data => data.title === title)).toBeTruthy();
