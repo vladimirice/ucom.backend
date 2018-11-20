@@ -42,6 +42,8 @@ const minorTables = [
   'post_offer',
   'post_users_team',
 
+  'entity_sources',
+
   'post_stats',
 
   // 'activity_user_user',
@@ -254,17 +256,6 @@ class SeedsHelper {
   }
 
   static async resetOrganizationRelatedSeeds() {
-    const tables = [
-      'comments',
-      UsersRepositories.Activity.getModelName(),
-      UsersRepositories.UsersTeam.getModelName(),
-      'post_stats',
-      'post_ipfs_meta',
-      PostRepositories.MediaPosts.getModelName(),
-      EntityModelProvider.getSourcesTableName(),
-      OrganizationsRepositories.Main.getOrganizationsModelName(),
-    ];
-
     const tablesToInsert = [
       UsersRepositories.Activity.getModelName(),
       UsersRepositories.UsersTeam.getModelName(),
@@ -272,7 +263,8 @@ class SeedsHelper {
       PostRepositories.MediaPosts.getModelName(),
     ];
 
-    await this._truncateTablesByList(tables);
+    await this.destroyTables();
+    await models.Users.bulkCreate(usersSeeds);
     await this._initTablesByList(tablesToInsert, []);
   }
 

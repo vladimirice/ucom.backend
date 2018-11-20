@@ -102,7 +102,7 @@ class UsersHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    *
-   * @link PostsService#findAndProcessAllForUserWallFeed
+   * @link PostsFetchService#findAndProcessAllForUserWallFeed
    */
   static async requestToGetWallFeedAsGuest(wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
