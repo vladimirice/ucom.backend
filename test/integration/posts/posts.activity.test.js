@@ -7,11 +7,8 @@ const UserHelper = require('../helpers/users-helper');
 
 const SeedsHelper = require('../helpers/seeds-helper');
 const ResponseHelper = require('../helpers/response-helper');
-const ActivityUserPostRepository = require('../../../lib/activity/activity-user-post-repository');
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 const PostRepository = require('../../../lib/posts/posts-repository');
-const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
-const { InteractionTypeDictionary } = require('uos-app-transaction');
 
 const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
@@ -37,24 +34,24 @@ describe('User to post activity', () => {
   describe('User to post JOIN activity', () => {
     describe('Positive scenarios', () => {
       it.skip('Jane joins Vlad post', async () => {
-        const vladPost = await PostOfferRepository.findLastByAuthor(userVlad.id);
-
-        const res = await request(server)
-          .post(helpers.Req.getJoinUrl(vladPost.id))
-          .set('Authorization', `Bearer ${userJane.token}`)
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-
-        expect(res.body['post_id']).toBe(vladPost.id);
-
-        const activity = await ActivityUserPostRepository.getUserPostJoin(userJane.id, vladPost.id);
-
-        expect(activity).toBeDefined();
-
-        expect(activity.user_id_from).toBe(userJane.id);
-        expect(activity.post_id_to).toBe(vladPost.id);
-        expect(activity.activity_type_id).toBe(InteractionTypeDictionary.getJoinId());
+        // const vladPost = await PostOfferRepository.findLastByAuthor(userVlad.id);
+        //
+        // const res = await request(server)
+        //   .post(helpers.Req.getJoinUrl(vladPost.id))
+        //   .set('Authorization', `Bearer ${userJane.token}`)
+        // ;
+        //
+        // ResponseHelper.expectStatusOk(res);
+        //
+        // expect(res.body['post_id']).toBe(vladPost.id);
+        //
+        // const activity = await ActivityUserPostRepository.getUserPostJoin(userJane.id, vladPost.id);
+        //
+        // expect(activity).toBeDefined();
+        //
+        // expect(activity.user_id_from).toBe(userJane.id);
+        // expect(activity.post_id_to).toBe(vladPost.id);
+        // expect(activity.activity_type_id).toBe(InteractionTypeDictionary.getJoinId());
       });
 
       it.skip('There is a myselfData join for joined post', async () => {
@@ -72,23 +69,22 @@ describe('User to post activity', () => {
     const postIdToUpvote    = await PostRepository.findFirstMediaPostIdUserId(targetUserId);
     const postIdToDownvote  = await PostRepository.findLastMediaPostIdUserId(targetUserId);
 
-    const janePostOfferId = await helpers.Post.requestToCreatePostOffer(userJane);
-
-    await request(server)
-      .post(helpers.Req.getJoinUrl(janePostOfferId))
-      .set('Authorization', `Bearer ${userVlad.token}`)
-    ;
+    const postIdToNoVote    = await gen.Posts.createMediaPostByUserHimself(userJane);
+    await gen.Posts.createRepostOfUserPost(userVlad, postIdToNoVote);
 
     await helpers.Posts.requestToUpvotePost(userVlad, postIdToUpvote);
     await helpers.Posts.requestToDownvotePost(userVlad, postIdToDownvote);
     await helpers.Posts.requestToUpvotePost(userPetr, postIdToUpvote); // disturbance
 
     const res = await request(server)
-      .get(helpers.Req.getPostsUrl())
+      .get(helpers.Req.getPostsUrl() + '?post_type_id=1')
       .set('Authorization', `Bearer ${userVlad.token}`)
     ;
 
     const posts = res.body.data;
+
+    const postNoVote = posts.find(post => post.id === postIdToNoVote);
+    expect(postNoVote.myselfData.myselfVote).toBe('no_vote');
 
     const upvotedPost = posts.find(post => post.id === postIdToUpvote);
     expect(upvotedPost.myselfData).toBeDefined();
@@ -97,11 +93,6 @@ describe('User to post activity', () => {
 
     const downvotedPost = posts.find(post => post.id === postIdToDownvote);
     expect(downvotedPost.myselfData.myselfVote).toBe('downvote');
-
-
-    const joinedPost = posts.find(post => post.id === janePostOfferId);
-
-    // expect(joinedPost.myselfData.join).toBeTruthy();
   }, 10000);
 
   describe('Upvote-related tests', () => {
@@ -123,18 +114,10 @@ describe('User to post activity', () => {
         expect(body.current_vote).toBe(1);
 
         // noinspection JSCheckFunctionSignatures
-        const [ userUpvote, changedPost ]= await Promise.all([
-          ActivityUserPostRepository.getUserPostUpvote(userJane.id, postId),
-          PostRepository.findOneById(postId)
-        ]);
+
+        const changedPost = await PostRepository.findOneById(postId);
 
         expect(changedPost.current_vote).toBe(1);
-
-        expect(userUpvote).toBeDefined();
-
-        expect(userUpvote.user_id_from).toBe(userJane.id);
-        expect(userUpvote.post_id_to).toBe(postId);
-        expect(userUpvote.activity_type_id).toBe(InteractionTypeDictionary.getUpvoteId());
 
         const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
         expect(+activity.entity_id_to).toBe(+postId);
@@ -215,13 +198,6 @@ describe('User to post activity', () => {
 
         const postVoteAfter = await PostRepository.getPostCurrentVote(postId);
         expect(postVoteAfter).toBe(-1);
-
-        const activity = await ActivityUserPostRepository.getUserPostDownvote(whoVotes.id, postId);
-        expect(activity).toBeDefined();
-
-        expect(activity.user_id_from).toBe(whoVotes.id);
-        expect(activity.post_id_to).toBe(postId);
-        expect(activity.activity_type_id).toBe(InteractionTypeDictionary.getDownvoteId());
 
         const usersActivity = await UsersActivityRepository.findLastByUserIdAndEntityId(whoVotes.id, postId);
         expect(+usersActivity.entity_id_to).toBe(+postId);

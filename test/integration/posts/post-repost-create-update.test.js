@@ -85,12 +85,33 @@ describe('Post repost API', () => {
         expect(activity.event_id).toBe(EventIdDictionary.getUserRepostsOrgPost());
       });
 
-      it('get list of posts with repost inside with different structure', async () => {
+      it.skip('get list of posts with repost inside with different structure', async () => {
 
       });
     });
 
     describe('Negative', () => {
+      it('not possible to repost the same post twice by the same user', async () => {
+        const parentPostAuthor = userVlad;
+        const repostAuthor = userJane;
+
+        const postId = await gen.Posts.createMediaPostByUserHimself(parentPostAuthor);
+        await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
+
+        await gen.Posts.createRepostOfUserPost(repostAuthor, postId, 400);
+      });
+
+      it('not possible to repost the same org post twice by the same user', async () => {
+        const parentPostAuthor = userVlad;
+        const repostAuthor     = userJane;
+
+        const orgId   = await gen.Org.createOrgWithoutTeam(parentPostAuthor);
+        const postId  = await gen.Posts.createMediaPostOfOrganization(parentPostAuthor, orgId);
+
+        await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
+        await gen.Posts.createRepostOfUserPost(repostAuthor, postId, 400);
+      });
+
       it.skip('not possible to repost your own post', async () => {
         // TODO
       });

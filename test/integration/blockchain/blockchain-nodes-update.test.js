@@ -113,8 +113,9 @@ describe('Blockchain nodes updating', () => {
         }
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote));
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
       await helpers.Blockchain.updateBlockchainNodes();
+
       const nodes = await BlockchainNodesRepository.findAllBlockchainNodes();
 
       // restore mocked function
@@ -156,7 +157,7 @@ describe('Blockchain nodes updating', () => {
         }
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVoteAfter));
+      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVoteAfter), false);
       await helpers.Blockchain.updateBlockchainNodes();
 
       const petrMustVoteTo = nodes.filter(data => {
@@ -220,7 +221,7 @@ describe('Blockchain nodes updating', () => {
     it('should update node records - some nodes are added and some are removed', async () => {
       await helpers.Blockchain.updateBlockchainNodes();
 
-      const {created, updated, deleted} = await helpers.Blockchain.mockGetBlockchainNodesWalletMethod();
+      const {created, updated, deleted} = await helpers.Blockchain.mockGetBlockchainNodesWalletMethod({}, false);
 
       // new state
       await helpers.Blockchain.updateBlockchainNodes();

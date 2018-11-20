@@ -56,7 +56,6 @@ describe('Myself. Get requests', () => {
     describe('Positive', () => {
       describe('Test pagination', () => {
         it.skip('Test pagination', async () => {
-          // TODO
         });
       });
 
@@ -82,6 +81,48 @@ describe('Myself. Get requests', () => {
 
         expect(usersIds.sort()).toEqual(usersIdsToFollow.sort());
         expect(orgIds.sort()).toEqual(orgIdsToFollow.sort());
+      });
+
+      it('should get myself news feed with repost_available which is set properly', async () => {
+        const parentPostAuthor = userVlad;
+        const repostAuthor = userJane;
+
+        await helpers.Activity.requestToCreateFollow(repostAuthor, parentPostAuthor);
+
+        const [postIdToRepost, secondPostIdToRepost, postIdNotToRepost, secondPostIdNotToRepost] =
+          await Promise.all([
+            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+          ]);
+
+        await Promise.all([
+          gen.Posts.createRepostOfUserPost(repostAuthor, postIdToRepost),
+          gen.Posts.createRepostOfUserPost(repostAuthor, secondPostIdToRepost)
+        ]);
+
+        const posts = await helpers.Users.requestToGetMyselfNewsFeed(repostAuthor);
+
+        posts.forEach(post => {
+          expect(post.myselfData.repost_available).toBeDefined();
+        });
+
+        const repostedPost = posts.find(post => post.id === postIdToRepost);
+        expect(repostedPost).toBeDefined();
+        expect(repostedPost.myselfData.repost_available).toBeFalsy();
+
+        const secondRepostedPost = posts.find(post => post.id === secondPostIdToRepost);
+        expect(secondRepostedPost).toBeDefined();
+        expect(secondRepostedPost.myselfData.repost_available).toBeFalsy();
+
+        const notRepostedPost = posts.find(post => post.id === postIdNotToRepost);
+        expect(notRepostedPost).toBeDefined();
+        expect(notRepostedPost.myselfData.repost_available).toBeTruthy();
+
+        const secondNotRepostedPost = posts.find(post => post.id === secondPostIdNotToRepost);
+        expect(secondNotRepostedPost).toBeDefined();
+        expect(secondNotRepostedPost.myselfData.repost_available).toBeTruthy();
       });
 
       it('should get myself news feed with posts of entities I follow', async () => {

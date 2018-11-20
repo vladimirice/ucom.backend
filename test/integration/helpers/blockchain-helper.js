@@ -117,9 +117,10 @@ class BlockchainHelper {
     // lets also change something
     const dataKeys = Object.keys(initialData);
 
-    const deleted = [
-      dataKeys[0]
-    ];
+    const deleted = [];
+    if (toDelete) {
+      deleted.push(dataKeys[0]);
+    }
 
     const updated = [
       initialData[dataKeys[1]],
@@ -133,9 +134,9 @@ class BlockchainHelper {
     initialData[dataKeys[2]].votes_amount = 0;
     initialData[dataKeys[2]].votes_count = 0;
 
-    if (toDelete) {
-      delete initialData[dataKeys[0]];
-    }
+    deleted.forEach(index => {
+      delete initialData[index];
+    });
 
     WalletApi.getBlockchainNodes = async function () {
       return {

@@ -143,16 +143,17 @@ class PostsGenerator {
   /**
    * @param {Object} repostAuthor
    * @param {number} postId
+   * @param {number} expectedStatus
    * @return {Promise<void>}
    *
-   * @link PostService#processRepostCreation
+   * @link PostCreatorService#processRepostCreation
    */
-  static async createRepostOfUserPost(repostAuthor, postId) {
+  static async createRepostOfUserPost(repostAuthor, postId, expectedStatus = 201) {
     const res = await request(server)
       .post(RequestHelper.getCreateRepostUrl(postId))
       .set('Authorization', `Bearer ${repostAuthor.token}`)
     ;
-    ResponseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return +res.body.id;
   }

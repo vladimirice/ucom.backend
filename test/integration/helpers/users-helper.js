@@ -158,8 +158,6 @@ class UsersHelper {
 
   // noinspection OverlyComplexFunctionJS
   /**
-   * See {@link PostsService#findAndProcessAllForOrgWallFeed}
-   *
    * @param {Object} myself
    * @param {Object} wallOwner
    * @param {string} query
@@ -167,6 +165,8 @@ class UsersHelper {
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
+   *
+   * @link PostsFetchService#findAndProcessAllForUserWallFeed
    */
   static async requestToGetWallFeedAsMyself(myself, wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;

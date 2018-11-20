@@ -3,6 +3,8 @@ const server = require('../../../app');
 const expect = require('expect');
 
 const helpers = require('../helpers');
+const gen     = require('../../generators');
+
 const UsersHelper     = helpers.Users;
 const SeedsHelper     = helpers.Seeds;
 const PostHelper      = helpers.Posts;
@@ -74,6 +76,91 @@ describe('Posts API', () => {
 
         expect(actualPostToUpvote.myselfData.myselfVote).toBe('upvote');
         expect(actualPostToDownvote.myselfData.myselfVote).toBe('downvote');
+      });
+
+      it('should contain repost_available property for org wall', async () => {
+        const parentPostAuthor = userVlad;
+        const repostAuthor = userJane;
+        const orgId = await gen.Org.createOrgWithoutTeam(parentPostAuthor);
+
+        const [
+          orgPostIdToRepost,
+          secondOrgPostIdToRepost,
+          orgPostIdNotToRepost,
+          secondOrgPostIdNotToRepost
+        ] = await Promise.all([
+            gen.Posts.createMediaPostOfOrganization(parentPostAuthor, orgId),
+            gen.Posts.createMediaPostOfOrganization(parentPostAuthor, orgId),
+            gen.Posts.createMediaPostOfOrganization(parentPostAuthor, orgId),
+            gen.Posts.createMediaPostOfOrganization(parentPostAuthor, orgId),
+          ]);
+
+        await Promise.all([
+          gen.Posts.createRepostOfUserPost(repostAuthor, orgPostIdToRepost),
+          gen.Posts.createRepostOfUserPost(repostAuthor, secondOrgPostIdToRepost)
+        ]);
+
+        const posts = await helpers.Org.requestToGetOrgWallFeedAsMyself(repostAuthor, orgId);
+
+        posts.forEach(post => {
+          expect(post.myselfData.repost_available).toBeDefined();
+        });
+
+        const repostedPost = posts.find(post => post.id === orgPostIdToRepost);
+        expect(repostedPost).toBeDefined();
+        expect(repostedPost.myselfData.repost_available).toBeFalsy();
+
+        const secondRepostedPost = posts.find(post => post.id === secondOrgPostIdToRepost);
+        expect(secondRepostedPost).toBeDefined();
+        expect(secondRepostedPost.myselfData.repost_available).toBeFalsy();
+
+        const notRepostedPost = posts.find(post => post.id === orgPostIdNotToRepost);
+        expect(notRepostedPost).toBeDefined();
+        expect(notRepostedPost.myselfData.repost_available).toBeTruthy();
+
+        const secondNotRepostedPost = posts.find(post => post.id === secondOrgPostIdNotToRepost);
+        expect(secondNotRepostedPost).toBeDefined();
+        expect(secondNotRepostedPost.myselfData.repost_available).toBeTruthy();
+      });
+
+      it('should contain repost_available property for user wall', async () => {
+        const parentPostAuthor = userVlad;
+        const repostAuthor = userJane;
+
+        const [postIdToRepost, secondPostIdToRepost, postIdNotToRepost, secondPostIdNotToRepost] =
+          await Promise.all([
+            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+        ]);
+
+        await Promise.all([
+          gen.Posts.createRepostOfUserPost(repostAuthor, postIdToRepost),
+          gen.Posts.createRepostOfUserPost(repostAuthor, secondPostIdToRepost)
+        ]);
+
+        const posts = await helpers.Users.requestToGetWallFeedAsMyself(repostAuthor, parentPostAuthor);
+
+        posts.forEach(post => {
+          expect(post.myselfData.repost_available).toBeDefined();
+        });
+
+        const repostedPost = posts.find(post => post.id === postIdToRepost);
+        expect(repostedPost).toBeDefined();
+        expect(repostedPost.myselfData.repost_available).toBeFalsy();
+
+        const secondRepostedPost = posts.find(post => post.id === secondPostIdToRepost);
+        expect(secondRepostedPost).toBeDefined();
+        expect(secondRepostedPost.myselfData.repost_available).toBeFalsy();
+
+        const notRepostedPost = posts.find(post => post.id === postIdNotToRepost);
+        expect(notRepostedPost).toBeDefined();
+        expect(notRepostedPost.myselfData.repost_available).toBeTruthy();
+
+        const secondNotRepostedPost = posts.find(post => post.id === secondPostIdNotToRepost);
+        expect(secondNotRepostedPost).toBeDefined();
+        expect(secondNotRepostedPost.myselfData.repost_available).toBeTruthy();
       });
     });
   });

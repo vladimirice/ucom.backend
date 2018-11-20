@@ -47,8 +47,6 @@ class OrganizationsHelper {
 
   // noinspection OverlyComplexFunctionJS
   /**
-   * See {@link PostsService#findAndProcessAllForUserWallFeed}
-   *
    * @param {Object} myself
    * @param {number} targetOrgId
    * @param {string} query
@@ -56,6 +54,8 @@ class OrganizationsHelper {
    * @param {number} expectedStatus
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
+   *
+   * @link PostsFetchService#findAndProcessAllForOrgWallFeed
    */
   static async requestToGetOrgWallFeedAsMyself(myself, targetOrgId, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const url = RequestHelper.getOneOrgWallFeed(targetOrgId) + query;
