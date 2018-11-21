@@ -5,4 +5,5 @@ EosApi.initTransactionFactory();
 
 EosImportance.updateRatesByBlockchain().then(() => {
   console.log('Promise is resolved');
+  process.exit(0);
 });

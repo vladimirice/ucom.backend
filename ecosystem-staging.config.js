@@ -49,7 +49,7 @@ module.exports = {
       name: `${NODE_ENV}_importance_worker`,
       script: 'bin/worker-update-importance.js',
       watch: false,
-      cron_restart: '* * * * *',
+      cron_restart: '*/5 * * * *',
       env: {
         NODE_ENV: NODE_ENV
       },
