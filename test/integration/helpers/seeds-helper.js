@@ -215,7 +215,6 @@ class SeedsHelper {
   }
 
   /**
-   * @deprecated
    * @use generators
    * @return {Promise<void>}
    */

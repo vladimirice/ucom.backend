@@ -1,6 +1,8 @@
 const request = require('supertest');
-const server = require('../../../app');
-const ResponseHelper = require('./response-helper');
+const server  = require('../../../app');
+
+const ResponseHelper      = require('./response-helper');
+const FileToUploadHelper  = require('./file-to-upload-helper');
 
 const apiV1Prefix = '/api/v1';
 
@@ -72,6 +74,17 @@ class RequestHelper {
     for (const field in fields) {
       req.field(field, fields[field]);
     }
+  }
+
+  /**
+   *
+   * @param {Object} req
+   * @param {string} field
+   */
+  static addSampleMainImageFilename(req, field = 'main_image_filename') {
+    req
+      .attach(field, FileToUploadHelper.getSampleFilePathToUpload())
+    ;
   }
 
   /**

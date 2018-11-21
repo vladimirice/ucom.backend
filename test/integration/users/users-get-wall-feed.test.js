@@ -114,10 +114,8 @@ describe('Organizations. Get requests', () => {
         const directPostAuthor = userJane;
 
         const promisesToCreatePosts = [
-          helpers.Posts.requestToCreateMediaPost(targetUser), // User himself creates posts
-          helpers.Posts.requestToCreatePostOffer(targetUser),
-
-          helpers.Posts.requestToCreateDirectPostForUser(directPostAuthor, targetUser), // somebody creates post in users wall
+          gen.Posts.createMediaPostByUserHimself(targetUser),
+          gen.Posts.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
         ];
 
         await Promise.all(promisesToCreatePosts);
@@ -137,10 +135,9 @@ describe('Organizations. Get requests', () => {
         const directPostAuthor = userJane;
 
         const promisesToCreatePosts = [
-          helpers.Posts.requestToCreateMediaPost(targetUser), // User himself creates posts
-          helpers.Posts.requestToCreatePostOffer(targetUser),
-
-          helpers.Posts.requestToCreateDirectPostForUser(directPostAuthor, targetUser), // somebody creates post in users wall
+          gen.Posts.createMediaPostByUserHimself(targetUser),
+          gen.Posts.createPostOfferByUserHimself(targetUser),
+          gen.Posts.createUserDirectPostForOtherUser(directPostAuthor, targetUser),
         ];
 
         const [newMediaPostId, newPostOfferId] = await Promise.all(promisesToCreatePosts);

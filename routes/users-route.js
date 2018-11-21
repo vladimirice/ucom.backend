@@ -9,6 +9,8 @@ const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
 const UserActivityService = require('../lib/users/user-activity-service');
 const UserService = require('../lib/users/users-service');
 
+const { cpUpload } = require('../lib/posts/post-edit-middleware');
+
 /* Find users by name fields - shortcut */
 UsersRouter.get('/search', async (req, res) => {
   const query = req.query.q;
@@ -42,7 +44,7 @@ UsersRouter.get('/:user_id/posts', async function(req, res) {
 });
 
 /* Create post for this user */
-UsersRouter.post('/:user_id/posts', [authTokenMiddleWare, bodyParser], async function(req, res) {
+UsersRouter.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async function(req, res) {
   const response = await getPostService(req).processNewDirectPostCreationForUser(req);
 
   res.send(response);

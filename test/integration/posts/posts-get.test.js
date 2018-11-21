@@ -464,6 +464,7 @@ describe('Posts API', () => {
 
     it('All posts. Guest. No filters', async () => {
       const posts = await helpers.Posts.requestToGetManyPostsAsGuest();
+
       const postsFromDb = await PostsRepository.findAllPosts();
 
       const options = {

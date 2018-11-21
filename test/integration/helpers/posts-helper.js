@@ -184,6 +184,7 @@ class PostsHelper {
     ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
 
     const mustBeNotNull = PostsModelProvider.getModel().getDirectPostNotNullFields();
+    expect(post.main_image_filename).toBeDefined();
 
     if (options.postProcessing === 'notification') {
       const commentsCountIndex = mustBeNotNull.indexOf('comments_count');

@@ -6,6 +6,9 @@ const OrgRouter  = express.Router();
 
 const authTokenMiddleWare   = require('../../lib/auth/auth-token-middleware');
 const { cpUpload, cpUploadArray }          = require('../../lib/organizations/middleware/organization-create-edit-middleware');
+
+const { cpUpload:cpPostUpload } = require('../../lib/posts/post-edit-middleware');
+
 const OrgIdParamMiddleware  = require('../../lib/organizations/middleware/organization-id-param-middleware');
 const ActivityUserToOrg    = require('../../lib/users/activity').UserToOrg;
 
@@ -33,7 +36,7 @@ OrgRouter.get('/:organization_id/wall-feed', [ cpUploadArray ], async function(r
 });
 
 /* Create post for this organization */
-OrgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpUploadArray], async function(req, res) {
+OrgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], async function(req, res) {
   const response = await getPostService(req).processNewDirectPostCreationForOrg(req);
 
   res.send(response);

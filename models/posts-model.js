@@ -135,7 +135,6 @@ module.exports = (sequelize, DataTypes) => {
   Posts.getFieldsToExcludeFromDirectPost = function () {
     return [
       'title',
-      'main_image_filename',
       'leading_text',
       'blockchain_status'
     ];

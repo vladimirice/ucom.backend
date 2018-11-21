@@ -114,9 +114,10 @@ describe('Organizations. Get requests', () => {
         const orgId = 1;
         const otherOrgId = 4;
 
-        // disturbance
-        const otherPosts = await gen.Posts.generateOrgPostsForWall(otherOrgId, userJane, userVlad);
-        const generatedPosts = await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane);
+        const [otherPosts, generatedPosts] = await Promise.all([
+          gen.Posts.generateOrgPostsForWall(otherOrgId, userJane, userVlad),
+          gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane),
+        ]);
 
         const posts = await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId);
 
@@ -138,7 +139,7 @@ describe('Organizations. Get requests', () => {
         const otherOrgId = 4;
 
         // disturbance
-        const otherPosts = await gen.Posts.generateOrgPostsForWall(otherOrgId, userJane, userVlad);
+        const otherPosts    = await gen.Posts.generateOrgPostsForWall(otherOrgId, userJane, userVlad);
         const generatedPosts = await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane);
 
         const posts = await helpers.Org.requestToGetOrgWallFeedAsMyself(userVlad, orgId);

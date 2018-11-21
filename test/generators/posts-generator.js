@@ -42,7 +42,7 @@ class PostsGenerator {
     for (let i = 0; i < mul; i++) {
       promises.push(this.createMediaPostOfOrganization(orgAuthor, orgId)); // User himself creates posts of organization
       promises.push(this.createPostOfferOfOrganization(orgAuthor, orgId)); // User himself creates posts of organization
-      promises.push(this.createDirectPostForOrganization(orgAuthor, orgId)); // Somebody creates direct post on organization wall
+      promises.push(this.createDirectPostForOrganization(orgAuthor, orgId, null, false, true)); // Somebody creates direct post on organization wall
     }
 
     const postsIds = await Promise.all(promises);
@@ -111,28 +111,6 @@ class PostsGenerator {
       .field('current_vote',        newPostFields['current_vote'])
       .field('action_button_title', newPostFields['action_button_title'])
       .field('organization_id',     newPostFields['organization_id'])
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    return +res.body.id;
-  }
-
-  /**
-   * @param {Object} user
-   * @param {number} targetOrgId
-   * @param {string|null} givenDescription
-   * @return {Promise<number>}
-   */
-  static async createDirectPostForOrganization(user, targetOrgId, givenDescription = null) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
-    const description = givenDescription || 'sample direct post description';
-
-    const res = await request(server)
-      .post(RequestHelper.getOrgDirectPostUrl(targetOrgId))
-      .set('Authorization',   `Bearer ${user.token}`)
-      .field('description',   description)
-      .field('post_type_id',  postTypeId)
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -243,23 +221,74 @@ class PostsGenerator {
   }
 
   /**
-   * @param {Object} postAuthor
+   * @param {Object} myself
    * @param {Object} wallOwner
    * @param {string|null} givenDescription
+   * @param {boolean} withImage
    * @return {Promise<void>}
+   *
+   * @link PostsService#processNewDirectPostCreationForUser
    */
-  static async createUserDirectPostForOtherUser(postAuthor, wallOwner, givenDescription = null) {
+  static async createUserDirectPostForOtherUser(myself, wallOwner, givenDescription = null, withImage = false) {
+    const url = RequestHelper.getUserDirectPostUrl(wallOwner);
+
+    return this._createDirectPost(url, myself, givenDescription, withImage);
+  }
+
+  /**
+   * @param {Object} myself
+   * @param {number} targetOrgId
+   * @param {string|null} givenDescription
+   * @param {boolean} withImage
+   * @param {boolean} idOnly
+   * @return {Promise<number>}
+   *
+   * @link PostsService#processNewDirectPostCreationForOrg
+   */
+  static async createDirectPostForOrganization(myself, targetOrgId, givenDescription = null, withImage = false, idOnly = false) {
+    const url = RequestHelper.getOrgDirectPostUrl(targetOrgId);
+
+    return this._createDirectPost(url, myself, givenDescription, withImage, idOnly);
+  }
+
+
+  /**
+   * @param {string} url
+   * @param {Object} myself
+   * @param {string|null} givenDescription
+   * @param {boolean} withImage
+   * @param {boolean} idOnly
+   * @return {Promise<void>}
+   *
+   * @link PostsService#processNewDirectPostCreationForUser
+   */
+  static async _createDirectPost(url, myself, givenDescription = null, withImage = false, idOnly = false) {
     const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
-    const res = await request(server)
-      .post(RequestHelper.getUserDirectPostUrl(wallOwner))
-      .set('Authorization',   `Bearer ${postAuthor.token}`)
-      .field('description',   description)
-      .field('post_type_id',  postTypeId)
+    const req = request(server)
+      .post(url)
     ;
 
+    const fields = {
+      description,
+      post_type_id: postTypeId,
+    };
+
+    RequestHelper.addAuthToken(req, myself);
+    RequestHelper.addFieldsToRequest(req, fields);
+
+    if (withImage) {
+      RequestHelper.addSampleMainImageFilename(req);
+    }
+
+    const res = await req;
+
     ResponseHelper.expectStatusOk(res);
+
+    if (idOnly) {
+      return res.body.id;
+    }
 
     return res.body;
   }

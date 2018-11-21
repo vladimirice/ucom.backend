@@ -3,7 +3,7 @@ const server = require('../../../app');
 const expect = require('expect');
 
 const helpers = require('../helpers');
-
+const gen     = require('../../generators');
 
 const UserHelper      = helpers.UserHelper;
 const SeedsHelper     = helpers.Seeds;
@@ -24,7 +24,7 @@ const OrgModelProvider        = require('../../../lib/organizations/service').Mo
 
 const PostsService            = require('./../../../lib/posts/post-service');
 
-const avatarPath = `${__dirname}/../../../seeders/images/ankr_network.png`;
+const avatarPath = helpers.FileToUpload.getSampleFilePathToUpload();
 
 const postOfferUrl  = helpers.Req.getPostsUrl();
 const rootUrl       = RequestHelper.getPostsUrl();
@@ -356,6 +356,22 @@ describe('Posts API', () => {
       });
 
       describe('Create direct post', () => {
+        it('Create direct post with picture', async () => {
+          const post = await gen.Posts.createUserDirectPostForOtherUser(userVlad, userJane, null, true);
+          expect(post.main_image_filename).toBeDefined();
+
+          await helpers.FileToUpload.isFileUploaded(post.main_image_filename);
+        });
+
+        it('Create direct post for org with picture', async () => {
+          const orgId = await gen.Org.createOrgWithoutTeam(userJane);
+          
+          const post = await gen.Posts.createDirectPostForOrganization(userVlad, orgId, null, true);
+          expect(post.main_image_filename).toBeDefined();
+
+          await helpers.FileToUpload.isFileUploaded(post.main_image_filename);
+        });
+
         it('For User without organization', async () => {
           const user = userVlad;
           const targetUser = userJane;

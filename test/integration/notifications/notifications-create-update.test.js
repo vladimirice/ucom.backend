@@ -458,13 +458,9 @@ describe('Notifications create-update', () => {
 
         await orgGen.updateOrgUsersTeam(newOrgId, author, newTeamMembers);
 
-        delay(500);
+        const notification = await helpers.Notifications.requestToGetOnlyOneNotification(userRokky);
 
-        const rokkyNotifications = await helpers.Notifications.requestToGetNotificationsList(userRokky);
-
-        expect(rokkyNotifications.length).toBe(1);
-
-        helpers.Notifications.checkUsersTeamInvitationPromptFromDb(rokkyNotifications[0], userRokky.id, newOrgId, true);
+        helpers.Notifications.checkUsersTeamInvitationPromptFromDb(notification, userRokky.id, newOrgId, true);
       }, 10000);
 
       it('should properly CONFIRM users team invitation prompt', async () => {
