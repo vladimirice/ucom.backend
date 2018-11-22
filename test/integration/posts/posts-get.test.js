@@ -41,6 +41,299 @@ describe('Posts API', () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
+  describe('GET posts', () => {
+    describe('Test filtering', () => {
+      it('GET only media posts', async () => {
+        let url = RequestHelper.getPostsUrl();
+        url += `?post_type_id=${ContentTypeDictionary.getTypeMediaPost()}`;
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+        const mediaPosts = res.body.data;
+
+        const mediaPostsFromDb = await PostsRepository.findAllMediaPosts(true);
+
+        expect(mediaPosts.length).toBe(mediaPostsFromDb.length);
+      });
+
+      it('GET only post-offers', async () => {
+        let url = RequestHelper.getPostsUrl();
+        url += `?post_type_id=${ContentTypeDictionary.getTypeOffer()}`;
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+        const fromRequest = res.body.data;
+
+        const fromDb = await PostOfferRepository.findAllPostOffers(true);
+
+        expect(fromRequest.length).toBe(fromDb.length);
+      });
+    });
+    describe('Test pagination', async () => {
+      it('Fix bug about has more', async () => {
+        const postsOwner = userVlad;
+        const directPostAuthor = userJane;
+
+        await PostsGen.generateUsersPostsForUserWall(postsOwner, directPostAuthor, 50);
+
+        const queryString = 'page=2&post_type_id=1&sort_by=-current_rate&per_page=20';
+
+        const response = await helpers.Posts.requestToGetManyPostsAsGuest(queryString, false);
+
+        helpers.Res.checkMetadata(response, 2, 20, 54, true);
+
+      }, 10000);
+
+      it('Every request should contain correct metadata', async () => {
+        const perPage = 2;
+        let page = 1;
+
+        const response = await PostHelper.requestAllPostsWithPagination(page, perPage);
+
+        const metadata = response['metadata'];
+
+        const totalAmount = await PostsRepository.countAllPosts();
+
+        expect(metadata).toBeDefined();
+        expect(metadata.has_more).toBeTruthy();
+        expect(metadata.page).toBe(page);
+        expect(metadata.per_page).toBe(perPage);
+        expect(metadata.total_amount).toBe(totalAmount);
+
+        const lastPage = totalAmount - perPage;
+
+        const lastResponse = await PostHelper.requestAllPostsWithPagination(lastPage, perPage);
+
+        expect(lastResponse.metadata.has_more).toBeFalsy();
+      });
+
+      it('Get two post pages', async () => {
+        const perPage = 2;
+        let page = 1;
+
+        const posts = await PostsRepository.findAllPosts({
+          'order': [
+            ['current_rate', 'DESC'],
+            ['id', 'DESC']
+          ]
+        });
+        const firstPage = await PostHelper.requestAllPostsWithPagination(page, perPage, true);
+
+        const expectedIdsOfFirstPage = [
+          posts[page - 1].id,
+          posts[page].id,
+        ];
+
+        expect(firstPage.length).toBe(perPage);
+
+        firstPage.forEach((post, i) => {
+          expect(post.id).toBe(expectedIdsOfFirstPage[i])
+        });
+
+        page = 2;
+        const secondPage = await PostHelper.requestAllPostsWithPagination(page, perPage, true);
+
+        const expectedIdsOfSecondPage = [
+          posts[page].id,
+          posts[page + 1].id,
+        ];
+
+        expect(secondPage.length).toBe(perPage);
+
+        secondPage.forEach((post, i) => {
+          expect(post.id).toBe(expectedIdsOfSecondPage[i])
+        });
+
+      });
+
+      it('Page 0 and page 1 behavior must be the same', async () => {
+        const perPage = 2;
+
+        const pageIsZeroResponse = await PostHelper.requestAllPostsWithPagination(1, perPage, true);
+        const pageIsOneResponse = await PostHelper.requestAllPostsWithPagination(1, perPage, true);
+
+        expect(JSON.stringify(pageIsZeroResponse)).toBe(JSON.stringify(pageIsOneResponse));
+      });
+    });
+
+    describe('Test sorting', async () => {
+      it('Sort by rate_delta', async () => {
+        const url = RequestHelper.getPostsUrl() + '?sort_by=-rate_delta';
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        // TODO
+      });
+
+      it('Sort by current_rate DESC', async () => {
+        // title, comments_count, rate
+
+        const url = RequestHelper.getPostsUrl() + '?sort_by=-current_rate,-id';
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        const minPostId = await PostsRepository.findMinPostIdByParameter('current_rate');
+        const maxPostId = await PostsRepository.findMaxPostIdByParameter('current_rate');
+
+        const posts = res.body.data;
+
+        expect(posts[posts.length - 1].id).toBe(minPostId);
+        expect(posts[0].id).toBe(maxPostId);
+      });
+      it('Sort by current_rate ASC', async () => {
+        // title, comments_count, rate
+
+        const url = RequestHelper.getPostsUrl() + '?sort_by=current_rate,-id';
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        const minPostId = await PostsRepository.findMinPostIdByParameter('current_rate');
+        const maxPostId = await PostsRepository.findMaxPostIdByParameter('current_rate');
+
+        const posts = res.body.data;
+
+        expect(posts[posts.length - 1].id).toBe(maxPostId);
+        expect(posts[0].id).toBe(minPostId);
+      });
+
+      it('Sort by title DESC', async () => {
+
+        const url = RequestHelper.getPostsUrl() + '?sort_by=title,-id';
+
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        const minPostId = await PostsRepository.findMinPostIdByParameter('title');
+        const maxPostId = await PostsRepository.findMaxPostIdByParameter('title');
+
+        const posts = res.body.data;
+
+        expect(posts[posts.length - 1].id).toBe(maxPostId);
+        expect(posts[0].id).toBe(minPostId);
+      });
+
+      it('Sort by comments_count DESC', async () => {
+        const postToComments = [
+          {
+            post_id: 3,
+            comments_count: 200
+          },
+          {
+            post_id: 1,
+            comments_count: 150
+          },
+          {
+            post_id: 4,
+            comments_count: 100
+          },
+        ];
+
+        const setComments = [];
+        postToComments.forEach(data => {
+          setComments.push(PostHelper.setCommentCountDirectly(data.post_id, data.comments_count));
+        });
+        await Promise.all(setComments);
+
+        const posts = await PostHelper.requestToGetManyPostsAsGuest('sort_by=-comments_count');
+
+        postToComments.forEach((data, index) => {
+          expect(posts[index].id).toBe(data.post_id);
+        });
+      });
+
+      it('Sort by comments_count ASC', async () => {
+        const postToComments = [
+          {
+            post_id: 2,
+            comments_count: 0,
+          },
+          {
+            post_id: 5,
+            comments_count: 10
+          },
+          {
+            post_id: 4,
+            comments_count: 100
+          },
+          {
+            post_id: 1,
+            comments_count: 150
+          },
+
+          {
+            post_id: 3,
+            comments_count: 200
+          },
+        ];
+
+        const setComments = [];
+        postToComments.forEach(data => {
+          setComments.push(PostHelper.setCommentCountDirectly(data.post_id, data.comments_count));
+        });
+        await Promise.all(setComments);
+
+        const posts = await PostHelper.requestToGetManyPostsAsGuest('sort_by=comments_count');
+
+        postToComments.forEach((data, index) => {
+          expect(posts[index].id).toBe(data.post_id);
+        });
+      });
+    });
+
+    it('All posts. Guest. No filters', async () => {
+      const posts = await helpers.Posts.requestToGetManyPostsAsGuest();
+
+      const postsFromDb = await PostsRepository.findAllPosts();
+
+      const options = {
+        'myselfData':     false,
+        'postProcessing': 'list',
+      };
+
+      helpers.Common.checkPostsListFromApi(posts, postsFromDb.length, options);
+    });
+
+    it('All posts. Myself. No filters', async () => {
+      const posts = await helpers.Posts.requestToGetManyPostsAsMyself(userVlad);
+      const postsFromDb = await PostsRepository.findAllPosts();
+
+      const options = {
+        'myselfData':     true,
+        'postProcessing': 'list',
+      };
+
+      helpers.Common.checkPostsListFromApi(posts, postsFromDb.length, options);
+    });
+
+    it('Must be 404 response if post id is not correct', async () => {
+      const res = await request(server)
+        .get(`${postsUrl}/100500`)
+      ;
+
+      ResponseHelper.expectStatusNotFound(res);
+    });
+  });
+
   describe('Myself data related to post properties', function () {
     describe('Posts lists', () => {
       it('should contain myself_vote upvote or downvote in all posts list', async () => {
@@ -211,288 +504,6 @@ describe('Posts API', () => {
 
         helpers.Common.checkOnePostForPage(post, options);
       });
-    });
-  });
-
-  describe('GET posts', () => {
-    describe('Test filtering', () => {
-      it('GET only media posts', async () => {
-        let url = RequestHelper.getPostsUrl();
-        url += `?post_type_id=${ContentTypeDictionary.getTypeMediaPost()}`;
-
-        const res = await request(server)
-          .get(url)
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-        const mediaPosts = res.body.data;
-
-        const mediaPostsFromDb = await PostsRepository.findAllMediaPosts(true);
-
-        expect(mediaPosts.length).toBe(mediaPostsFromDb.length);
-      });
-
-      it('GET only post-offers', async () => {
-        let url = RequestHelper.getPostsUrl();
-        url += `?post_type_id=${ContentTypeDictionary.getTypeOffer()}`;
-
-        const res = await request(server)
-          .get(url)
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-        const fromRequest = res.body.data;
-
-        const fromDb = await PostOfferRepository.findAllPostOffers(true);
-
-        expect(fromRequest.length).toBe(fromDb.length);
-      });
-    });
-    describe('Test pagination', async () => {
-      it('Fix bug about has more', async () => {
-        const postsOwner = userVlad;
-        const directPostAuthor = userJane;
-
-        await PostsGen.generateUsersPostsForUserWall(postsOwner, directPostAuthor, 50);
-
-        const queryString = 'page=2&post_type_id=1&sort_by=-current_rate&per_page=20';
-
-        const response = await helpers.Posts.requestToGetManyPostsAsGuest(queryString, false);
-
-        helpers.Res.checkMetadata(response, 2, 20, 54, true);
-
-      }, 10000);
-
-      it('Every request should contain correct metadata', async () => {
-        const perPage = 2;
-        let page = 1;
-
-        const response = await PostHelper.requestAllPostsWithPagination(page, perPage);
-
-        const metadata = response['metadata'];
-
-        const totalAmount = await PostsRepository.countAllPosts();
-
-        expect(metadata).toBeDefined();
-        expect(metadata.has_more).toBeTruthy();
-        expect(metadata.page).toBe(page);
-        expect(metadata.per_page).toBe(perPage);
-        expect(metadata.total_amount).toBe(totalAmount);
-
-        const lastPage = totalAmount - perPage;
-
-        const lastResponse = await PostHelper.requestAllPostsWithPagination(lastPage, perPage);
-
-        expect(lastResponse.metadata.has_more).toBeFalsy();
-      });
-
-      it('Get two post pages', async () => {
-        const perPage = 2;
-        let page = 1;
-
-        const posts = await PostsRepository.findAllPosts({
-          'order': [
-            ['current_rate', 'DESC'],
-            ['id', 'DESC']
-          ]
-        });
-        const firstPage = await PostHelper.requestAllPostsWithPagination(page, perPage, true);
-
-        const expectedIdsOfFirstPage = [
-          posts[page - 1].id,
-          posts[page].id,
-        ];
-
-        expect(firstPage.length).toBe(perPage);
-
-        firstPage.forEach((post, i) => {
-          expect(post.id).toBe(expectedIdsOfFirstPage[i])
-        });
-
-        page = 2;
-        const secondPage = await PostHelper.requestAllPostsWithPagination(page, perPage, true);
-
-        const expectedIdsOfSecondPage = [
-          posts[page].id,
-          posts[page + 1].id,
-        ];
-
-        expect(secondPage.length).toBe(perPage);
-
-        secondPage.forEach((post, i) => {
-          expect(post.id).toBe(expectedIdsOfSecondPage[i])
-        });
-
-      });
-
-      it('Page 0 and page 1 behavior must be the same', async () => {
-        const perPage = 2;
-
-        const pageIsZeroResponse = await PostHelper.requestAllPostsWithPagination(1, perPage, true);
-        const pageIsOneResponse = await PostHelper.requestAllPostsWithPagination(1, perPage, true);
-
-        expect(JSON.stringify(pageIsZeroResponse)).toBe(JSON.stringify(pageIsOneResponse));
-      });
-    });
-
-    describe('Test sorting', async () => {
-      it('Sort by current_rate DESC', async () => {
-        // title, comments_count, rate
-
-        const url = RequestHelper.getPostsUrl() + '?sort_by=-current_rate,-id';
-
-        const res = await request(server)
-          .get(url)
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-
-        const minPostId = await PostsRepository.findMinPostIdByParameter('current_rate');
-        const maxPostId = await PostsRepository.findMaxPostIdByParameter('current_rate');
-
-        const posts = res.body.data;
-
-        expect(posts[posts.length - 1].id).toBe(minPostId);
-        expect(posts[0].id).toBe(maxPostId);
-      });
-      it('Sort by current_rate ASC', async () => {
-        // title, comments_count, rate
-
-        const url = RequestHelper.getPostsUrl() + '?sort_by=current_rate,-id';
-
-        const res = await request(server)
-          .get(url)
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-
-        const minPostId = await PostsRepository.findMinPostIdByParameter('current_rate');
-        const maxPostId = await PostsRepository.findMaxPostIdByParameter('current_rate');
-
-        const posts = res.body.data;
-
-        expect(posts[posts.length - 1].id).toBe(maxPostId);
-        expect(posts[0].id).toBe(minPostId);
-      });
-
-      it('Sort by title DESC', async () => {
-
-        const url = RequestHelper.getPostsUrl() + '?sort_by=title,-id';
-
-        const res = await request(server)
-          .get(url)
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-
-        const minPostId = await PostsRepository.findMinPostIdByParameter('title');
-        const maxPostId = await PostsRepository.findMaxPostIdByParameter('title');
-
-        const posts = res.body.data;
-
-        expect(posts[posts.length - 1].id).toBe(maxPostId);
-        expect(posts[0].id).toBe(minPostId);
-      });
-
-      it('Sort by comments_count DESC', async () => {
-        const postToComments = [
-          {
-            post_id: 3,
-            comments_count: 200
-          },
-          {
-            post_id: 1,
-            comments_count: 150
-          },
-          {
-            post_id: 4,
-            comments_count: 100
-          },
-        ];
-
-        const setComments = [];
-        postToComments.forEach(data => {
-          setComments.push(PostHelper.setCommentCountDirectly(data.post_id, data.comments_count));
-        });
-        await Promise.all(setComments);
-
-        const posts = await PostHelper.requestToGetManyPostsAsGuest('sort_by=-comments_count');
-
-        postToComments.forEach((data, index) => {
-          expect(posts[index].id).toBe(data.post_id);
-        });
-      });
-
-      it('Sort by comments_count ASC', async () => {
-        const postToComments = [
-          {
-            post_id: 2,
-            comments_count: 0,
-          },
-          {
-            post_id: 5,
-            comments_count: 10
-          },
-          {
-            post_id: 4,
-            comments_count: 100
-          },
-          {
-            post_id: 1,
-            comments_count: 150
-          },
-
-          {
-            post_id: 3,
-            comments_count: 200
-          },
-        ];
-
-        const setComments = [];
-        postToComments.forEach(data => {
-          setComments.push(PostHelper.setCommentCountDirectly(data.post_id, data.comments_count));
-        });
-        await Promise.all(setComments);
-
-        const posts = await PostHelper.requestToGetManyPostsAsGuest('sort_by=comments_count');
-
-        postToComments.forEach((data, index) => {
-          expect(posts[index].id).toBe(data.post_id);
-        });
-      });
-    });
-
-    it('All posts. Guest. No filters', async () => {
-      const posts = await helpers.Posts.requestToGetManyPostsAsGuest();
-
-      const postsFromDb = await PostsRepository.findAllPosts();
-
-      const options = {
-        'myselfData':     false,
-        'postProcessing': 'list',
-      };
-
-      helpers.Common.checkPostsListFromApi(posts, postsFromDb.length, options);
-    });
-
-    it('All posts. Myself. No filters', async () => {
-      const posts = await helpers.Posts.requestToGetManyPostsAsMyself(userVlad);
-      const postsFromDb = await PostsRepository.findAllPosts();
-
-      const options = {
-        'myselfData':     true,
-        'postProcessing': 'list',
-      };
-
-      helpers.Common.checkPostsListFromApi(posts, postsFromDb.length, options);
-    });
-
-    it('Must be 404 response if post id is not correct', async () => {
-      const res = await request(server)
-        .get(`${postsUrl}/100500`)
-      ;
-
-      ResponseHelper.expectStatusNotFound(res);
     });
   });
 
