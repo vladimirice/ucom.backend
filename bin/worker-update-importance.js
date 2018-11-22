@@ -4,6 +4,5 @@ const EosApi = require('../lib/eos/eosApi');
 EosApi.initTransactionFactory();
 
 EosImportance.updateRatesByBlockchain().then(() => {
-  console.log('Promise is resolved');
-  process.exit(0);
+  console.log('Job is finished');
 });
