@@ -16,6 +16,7 @@ npm i uos-app-transaction
 npm i uos-app-wallet
 echo "NPM install is done"
 echo "Lets restart pm2"
-/home/dev/.nvm/versions/node/v10.9.0/bin/pm2 restart ecosystem-production.config.js
+/home/dev/.nvm/versions/node/v10.9.0/bin/pm2 restart ecosystem-production.config.js --update-env
+/home/dev/.nvm/versions/node/v10.9.0/bin/pm2 save
 echo "Restart is finished"
 echo "Deploy is finished"
