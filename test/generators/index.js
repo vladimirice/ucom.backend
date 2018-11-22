@@ -5,6 +5,7 @@ module.exports = {
   Common:   require('./common-generator'),
 
   Entity: {
-    Notifications: require('./entity/entity-notifications-generator'),
+    Notifications:  require('./entity/entity-notifications-generator'),
+    EventParam:     require('./entity/entity-event-param-generator'),
   }
 };

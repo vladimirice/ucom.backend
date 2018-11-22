@@ -7,6 +7,9 @@ const ActivityProducer = require('../../../lib/jobs/activity-producer');
 
 const EosTransactionService = require('../../../lib/eos/eos-transaction-service');
 
+let orgCounter = 1;
+let postCreationCounter = 1;
+
 class MockHelper {
 
   static mockAllTransactionSigning() {
@@ -79,12 +82,14 @@ class MockHelper {
       organizationBlockchainId = null
     ) {
       if (organizationBlockchainId) {
-        body.blockchain_id = 'sample_new_org_post_blockchain_id';
+        body.blockchain_id = 'sample_new_org_post_blockchain_id_' + postCreationCounter;
         body.signed_transaction = 'sample_new_org_post_transaction';
       } else {
-        body.blockchain_id = 'sample_user_himself_new_post_blockchain_id';
+        body.blockchain_id = 'sample_user_himself_new_post_blockchain_id_' + postCreationCounter;
         body.signed_transaction = 'sample_user_himself_new_post_transaction';
       }
+
+      postCreationCounter++;
     };
 
     // noinspection JSUnusedLocalSymbols
@@ -110,10 +115,10 @@ class MockHelper {
 
   static mockOrganizationBlockchain() {
     OrganizationService._addSignedTransactionsForOrganizationCreation = async function (req) {
-      // console.log('MOCK add signed transaction is called');
-
-      req.blockchain_id = 'sample_blockchain_id';
+      req.blockchain_id = 'sample_blockchain_id_' + orgCounter;
       req.signed_transaction = 'sample_signed_transaction';
+
+      orgCounter++;
     };
   }
 

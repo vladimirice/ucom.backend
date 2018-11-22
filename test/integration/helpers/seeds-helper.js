@@ -31,6 +31,9 @@ const minorTables = [
   EntityModelProvider.getNotificationsTableName(),
   UsersRepositories.UsersTeam.getModelName(),
 
+  'entity_event_param',
+  'entity_stats_current',
+
   'blockchain_nodes',
 
   'post_ipfs_meta',

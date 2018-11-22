@@ -4,6 +4,9 @@
     "profile_files_upload_dir": "/upload",
     "organization_files_upload_dir": "/upload/organizations"
   },
+  "db_knex": {
+    "connection_string": "postgresql://uos:uos@127.0.0.1:5434/uos_backend_app"
+  },
   "db": {
     "username": "uos",
     "password": "uos",
