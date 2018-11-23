@@ -21,6 +21,24 @@ describe('UOS Importance', () => {
     helpers.Mock.mockAllBlockchainPart();
   });
 
+  // it('sample', async () => {
+  //   await EntityStatsCurrentRepository.sample();
+  //
+  //
+  //
+  //   /*
+  //     "postgresql://uos_reader:8dv3tzGx17fUOM5Q@127.0.0.1:5432/production_uos_backend_app"
+  //   */
+  //
+  //   // host 5.9.119.5
+  //   // port 5432
+  //   // production_uos_backend_app
+  //   // uos_reader
+  //   //
+  //   // 8dv3tzGx17fUOM5Q
+  //
+  // });
+
   it('posts only workflow - fresh stats table', async () => {
     const dataSet = gen.Entity.EventParam.getSampleDataSet();
 
