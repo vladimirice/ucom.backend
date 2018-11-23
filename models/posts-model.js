@@ -247,6 +247,10 @@ module.exports = (sequelize, DataTypes) => {
       as: 'post_stats'
     });
 
+    models[TABLE_NAME].hasOne(models['entity_stats_current'], {
+      foreignKey: 'entity_id',
+    });
+
     models[TABLE_NAME].belongsTo(models[TABLE_NAME], {
       foreignKey: 'parent_id',
       as: 'post'

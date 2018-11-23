@@ -163,7 +163,7 @@ describe('Posts API', () => {
     });
 
     describe('Test sorting', async () => {
-      it('Sort by rate_delta', async () => {
+      it('Sort by rate_delta - simple smoke test', async () => {
         const url = RequestHelper.getPostsUrl() + '?sort_by=-rate_delta';
         const res = await request(server)
           .get(url)
