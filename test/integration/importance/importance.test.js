@@ -1,7 +1,7 @@
 const helpers = require('../helpers');
 const gen     = require('../../generators');
 
-const PostsModelProvider            = require('../../../lib/posts/service/posts-model-provider');
+
 const ImportanceEventService        = require('../../../lib/eos/service/importance-event-service');
 const EntityStatsCurrentRepository  = require('../../../lib/entities/repository/entity-stats-current-repository');
 
@@ -18,64 +18,16 @@ describe('UOS Importance', () => {
   });
   beforeEach(async () => {
     await helpers.SeedsHelper.initUsersOnly();
+    helpers.Mock.mockAllBlockchainPart();
   });
 
   it('posts only workflow - fresh stats table', async () => {
-    const createdAtSet = {
-      before: '2018-11-21 00:00:00.999275',
-      after: '2018-11-22 00:00:00.999275',
-    };
-
-    const dataSet = [
-      {
-        blockchain_id: 'sample_user_himself_new_post_blockchain_id_1', // this structure is generated inside mock function
-        entity_name: PostsModelProvider.getEntityName(),
-        event_type: 1,
-        importance: {
-          before: 7.721208926,
-          after: 10.211208926,
-        },
-        created_at: createdAtSet,
-      },
-      {
-        blockchain_id: 'sample_user_himself_new_post_blockchain_id_2', // this structure is generated inside mock function
-        entity_name: PostsModelProvider.getEntityName(),
-        event_type: 1,
-        importance: {
-          before: 4.721208926,
-          after: 2.211208926,
-        },
-        created_at: createdAtSet,
-      },
-      // disturbance
-      {
-        blockchain_id: 'sample_anything', // this structure is generated inside mock function
-        entity_name: 'org       ',
-        event_type: 1,
-        importance: {
-          before: 4.721208926,
-          after: 2.211208926,
-        },
-        created_at: createdAtSet,
-      },
-
-      // disturbance
-      {
-        blockchain_id: 'other_sample_anything', // this structure is generated inside mock function
-        entity_name: 'users     ',
-        event_type: 10,
-        importance: {
-          before: 4.721208926,
-          after: 2.211208926,
-        },
-        created_at: createdAtSet,
-      },
-    ];
+    const dataSet = gen.Entity.EventParam.getSampleDataSet();
 
     const postIdOne = await gen.Posts.createMediaPostByUserHimself(userVlad);
     const postIdTwo = await gen.Posts.createMediaPostByUserHimself(userVlad);
 
-    await gen.Entity.EventParam.createBasicSample(dataSet);
+    await gen.Entity.EventParam.createBasicSample();
 
     await ImportanceEventService.updateDeltaRateStats();
 
@@ -88,15 +40,78 @@ describe('UOS Importance', () => {
     expect(+res[postIdTwo].toFixed(2)).toBe(+postTwoExpectedDelta.toFixed(2));
   });
 
-  it.skip('Check situation - no before records (no rating yet) - entity is newcomer-star', async () => {
-    // TODO
+  it('Check situation - no before records (no rating yet) - entity is newcomer-star', async () => {
+    const postIdOne = await gen.Posts.createMediaPostByUserHimself(userVlad);
+    const postIdTwo = await gen.Posts.createMediaPostByUserHimself(userVlad);
+
+    const dataSet = gen.Entity.EventParam.getSampleDataSet();
+
+    await gen.Entity.EventParam.createBasicSample([], [0]);
+
+    await ImportanceEventService.updateDeltaRateStats();
+
+    const res = await EntityStatsCurrentRepository.getImportanceDeltaForPosts([postIdOne, postIdTwo]);
+
+    expect(+res[postIdOne].toFixed(2)).toBe(+dataSet[0].importance.after.toFixed(2));
+
+    const postTwoExpectedDelta = dataSet[1].importance.after - dataSet[1].importance.before;
+    expect(+res[postIdTwo].toFixed(2)).toBe(+postTwoExpectedDelta.toFixed(2));
   });
 
-  it.skip('Check situation - no after records (rating is disappeared somehow) - make delta maximum', async () => {
-    // TODO
+  it('Check situation - no after records (rating is disappeared somehow) - make delta zero', async () => {
+    const postIdOne = await gen.Posts.createMediaPostByUserHimself(userVlad);
+    const postIdTwo = await gen.Posts.createMediaPostByUserHimself(userVlad);
+
+    const dataSet = gen.Entity.EventParam.getSampleDataSet();
+
+    await gen.Entity.EventParam.createBasicSample([], [], [0]);
+
+    await ImportanceEventService.updateDeltaRateStats();
+
+    const res = await EntityStatsCurrentRepository.getImportanceDeltaForPosts([postIdOne, postIdTwo]);
+
+    expect(+res[postIdOne].toFixed(2)).toBe(0);
+
+    const postTwoExpectedDelta = dataSet[1].importance.after - dataSet[1].importance.before;
+    expect(+res[postIdTwo].toFixed(2)).toBe(+postTwoExpectedDelta.toFixed(2));
   });
 
-  it.skip('Check second insert must update value and not create new or cause an error. Updated at should be updated but not created at', async () => {
-    // TODO
+  it('Check second insert must update value and not create new or cause an error. Updated at should be updated but not created at', async () => {
+    // Init basic set as for fresh test
+    const postIdOne = await gen.Posts.createMediaPostByUserHimself(userVlad);
+    const postIdTwo = await gen.Posts.createMediaPostByUserHimself(userVlad);
+
+    await gen.Entity.EventParam.createBasicSample();
+    await ImportanceEventService.updateDeltaRateStats();
+
+    const resBefore = await EntityStatsCurrentRepository.getImportanceDeltaForPosts([postIdOne, postIdTwo]);
+
+    // Update post stats
+
+    const dataSet = gen.Entity.EventParam.getSampleDataSet();
+    dataSet[0].importance = {
+      before: 10.211208926,
+      after: 6.281208926,
+    };
+
+    dataSet[1].importance = {
+      before: 10.721208926,
+      after: 21.281208926,
+    };
+
+    await gen.Entity.EventParam.createBasicSample(dataSet);
+    await ImportanceEventService.updateDeltaRateStats();
+
+    const resAfter = await EntityStatsCurrentRepository.getImportanceDeltaForPosts([postIdOne, postIdTwo]);
+    expect(Object.keys(resAfter).length).toBe(2);
+
+    expect(+resBefore[postIdOne].toFixed(2)).not.toBe(+resAfter[postIdOne].toFixed(2));
+    expect(+resBefore[postIdTwo].toFixed(2)).not.toBe(+resAfter[postIdTwo].toFixed(2));
+
+    const postOneExpectedDelta = dataSet[0].importance.after - dataSet[0].importance.before;
+    const postTwoExpectedDelta = dataSet[1].importance.after - dataSet[1].importance.before;
+
+    expect(+resAfter[postIdOne].toFixed(2)).toBe(+postOneExpectedDelta.toFixed(2));
+    expect(+resAfter[postIdTwo].toFixed(2)).toBe(+postTwoExpectedDelta.toFixed(2));
   });
 });

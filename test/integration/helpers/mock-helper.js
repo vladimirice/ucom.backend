@@ -13,6 +13,8 @@ let postCreationCounter = 1;
 class MockHelper {
 
   static mockAllTransactionSigning() {
+    orgCounter = 1;
+    postCreationCounter = 1;
 
     this.mockPostTransactionSigning();
     this.mockUsersActivityBackendSigner();
