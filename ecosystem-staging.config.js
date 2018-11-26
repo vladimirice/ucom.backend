@@ -63,5 +63,14 @@ module.exports = {
         NODE_ENV: NODE_ENV
       },
     },
+    {
+      name: `${NODE_ENV}_update_stats`,
+      script: 'bin/worker-update-stats.js',
+      watch: false,
+      cron_restart: '0 /1 * * *',
+      env: {
+        NODE_ENV: NODE_ENV
+      },
+    },
   ],
 };
