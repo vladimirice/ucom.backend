@@ -221,7 +221,8 @@ describe('Blockchain nodes updating', () => {
     it('should update node records - some nodes are added and some are removed', async () => {
       await helpers.Blockchain.updateBlockchainNodes();
 
-      const {created, updated, deleted} = await helpers.Blockchain.mockGetBlockchainNodesWalletMethod({}, false);
+      const {created, updated, deleted} = await helpers.Blockchain.mockGetBlockchainNodesWalletMethod();
+      expect(deleted.length).toBeGreaterThan(0);
 
       // new state
       await helpers.Blockchain.updateBlockchainNodes();
@@ -239,6 +240,15 @@ describe('Blockchain nodes updating', () => {
 
       deleted.forEach(noExpectedTitle => {
         expect(res.some(data => data.title === noExpectedTitle)).toBeFalsy();
+      });
+
+      // restore removed node
+      WalletApi.getBlockchainNodes = initialMockFunction;
+      await helpers.Blockchain.updateBlockchainNodes();
+
+      const resAfterRestore = await helpers.Blockchain.requestToGetNodesList();
+      deleted.forEach(noExpectedTitle => {
+        expect(resAfterRestore.some(data => data.title === noExpectedTitle)).toBeTruthy();
       });
     });
   });
