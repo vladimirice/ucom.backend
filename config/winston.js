@@ -10,10 +10,12 @@ const MAX_FILES     = 30;
 
 const LOGGER__API     = 'api';
 const LOGGER_CONSUMER = 'consumer';
+const LOGGER_WORKER   = 'worker';
 
 const LOGGERS_ALL = [
   LOGGER__API,
-  LOGGER_CONSUMER
+  LOGGER_CONSUMER,
+  LOGGER_WORKER,
 ];
 
 const myFormat = printf((info) => {
@@ -96,5 +98,7 @@ const ApiLoggerStream = {
 module.exports = {
   ApiLogger:      winston.loggers.get(LOGGER__API),
   ConsumerLogger: winston.loggers.get(LOGGER_CONSUMER),
+  WorkerLogger:   winston.loggers.get(LOGGER_WORKER),
+
   ApiLoggerStream
 };

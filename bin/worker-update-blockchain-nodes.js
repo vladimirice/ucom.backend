@@ -1,6 +1,8 @@
 const BlockchainService = require('../lib/eos/service').Blockchain;
 const { WalletApi }     = require('uos-app-wallet');
 
+const { WorkerLogger } = require('../../../config/winston');
+
 switch (process.env.NODE_ENV) {
   case 'test':
     WalletApi.initForTestEnv();
@@ -17,4 +19,7 @@ switch (process.env.NODE_ENV) {
 
 BlockchainService.updateBlockchainNodesByBlockchain().then(() => {
   console.log('Promise is resolved');
+}).catch(err => {
+  WorkerLogger.error(err);
+  console.error('There is an error. See logs');
 });

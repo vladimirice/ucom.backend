@@ -27,7 +27,7 @@ describe('Notifications create-update', () => {
     [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
   });
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    // await helpers.SeedsHelper.sequelizeAfterAll();
   });
   beforeEach(async () => {
     await helpers.SeedsHelper.truncateTable('entity_notifications');
@@ -53,7 +53,7 @@ describe('Notifications create-update', () => {
           repostId,
           parentPostId,
         )
-      });
+      }, 10000);
 
       it('somebody shares your organization post', async () => {
         const orgId = await gen.Org.createOrgWithoutTeam(userVlad);

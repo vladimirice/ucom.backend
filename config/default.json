@@ -5,28 +5,37 @@
     "organization_files_upload_dir": "/upload/organizations"
   },
   "db_knex": {
-    "connection_string": "postgresql://uos:uos@127.0.0.1:5434/uos_backend_app"
+    "connection_string": "postgresql://uos:uos@uos-backend-postgres-test.dev:5432/uos_backend_app"
   },
   "db": {
     "username": "uos",
     "password": "uos",
     "database": "uos_backend_app",
-    "host": "uos-backend-postgres.dev",
-    "port": "5434",
+    "host": "uos-backend-postgres-test.dev",
+    "port": "5432",
     "dialect": "postgres",
     "logging": false
   },
   "auth": {
     "jwt_secret_key": "secret_key"
   },
+    "servers": {
+    "websocket": "http://localhost:5000"
+  },
   "eosAccounts": {
     "creatorAccountName": "12345",
     "creatorPrivateKey": "12345"
   },
+    "ipfs": {
+    "host": "85.10.211.115",
+    "port": "5001",
+    "api-path": "/api/v0/"
+  },
   "rabbitmq": {
-    "connection_string": "amqp://guest:guest@127.0.0.1:5672",
-    "activity_exchange_name": "activity",
-    "ipfs_queue_name": "ipfs",
-    "blockchain_queue_name": "blockchain"
+    "connection_string": "amqp://guest:guest@173.18.212.20:5672",
+    "activity_exchange_name": "test_activity",
+    "ipfs_queue_name": "test_ipfs",
+    "blockchain_queue_name": "test_blockchain",
+    "notifications_queue_name": "test_notifications"
   }
 }

@@ -3,12 +3,10 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
 
-    queryInterface.addColumn('Users', 'avatar_filename', {
+    return queryInterface.addColumn('Users', 'avatar_filename', {
       type: Sequelize.STRING,
       required: false,
     });
-
-    return queryInterface;
   },
 
   down: (queryInterface, Sequelize) => {
