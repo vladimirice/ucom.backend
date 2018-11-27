@@ -1,7 +1,7 @@
 const BlockchainService = require('../lib/eos/service').Blockchain;
 const { WalletApi }     = require('uos-app-wallet');
 
-const { WorkerLogger } = require('../../../config/winston');
+const { WorkerLogger } = require('../config/winston');
 
 switch (process.env.NODE_ENV) {
   case 'test':
