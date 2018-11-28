@@ -12,6 +12,11 @@ ENV_VALUE_DEV=development
 d-up:
 	docker-compose up -d --build
 
+init-project ip:
+	docker-compose up -d --build
+	make ditd
+	make pmt
+
 pmt:
 	PM2_USER_PARAM_RESTART=true pm2 reload ecosystem-test.config.js --update-env
 
