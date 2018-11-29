@@ -10,7 +10,15 @@ router.get('/', [ authTokenMiddleWare ], async function(req, res) {
   const currentUserId = req['user'].id;
   const user = await getUserService(req).getUserByIdAndProcess(currentUserId);
 
-  res.send(user)
+  res.send(user);
+});
+
+/* Get myself blockchain transactions */
+router.get('/blockchain/transactions', [ authTokenMiddleWare ], async function(req, res) {
+  const service = getBlockchainService(req);
+  const response = await service.getAndProcessMyselfBlockchainTransactions();
+
+  res.send(response);
 });
 
 router.get('/news-feed', [ authTokenMiddleWare ], async function(req, res) {
@@ -88,6 +96,14 @@ function getPostService(req) {
  */
 function getEntityNotificationsService(req) {
   return req.container.get('entity-notifications-service');
+}
+
+/**
+ * @param {Object} req
+ * @returns {BlockchainService}
+ */
+function getBlockchainService(req) {
+  return req['container'].get('blockchain-service');
 }
 
 module.exports = router;

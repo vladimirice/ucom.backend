@@ -152,11 +152,11 @@ class ResponseHelper {
     expect(data).not.toBeNull();
     expect(Array.isArray(data)).toBeTruthy();
 
-    this.expectValidMetadataStructure(metadata, allowEmpty);
-
     if (!allowEmpty) {
       expect(data.length).toBeGreaterThan(0);
     }
+
+    this.expectValidMetadataStructure(metadata, allowEmpty);
   }
 
   /**

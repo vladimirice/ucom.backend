@@ -15,6 +15,15 @@ const { TransactionSender } = require('uos-app-transaction');
 const { WalletApi } = require('uos-app-wallet');
 
 
+// TODO - move to WalletApiDictionary
+const TR_TYPE__TRANSFER_FROM  = 10;
+const TR_TYPE__TRANSFER_TO    = 11;
+const TR_TYPE_STAKE_RESOURCES = 20;
+
+const TR_TYPE_UNSTAKING_REQUEST = 30;
+const TR_TYPE_VOTE_FOR_BP       = 40;
+const TR_TYPE_CLAIM_EMISSION    = 50;
+
 let accountName = 'vlad';
 let privateKey = accountsData[accountName].activePk;
 
@@ -197,6 +206,88 @@ class BlockchainHelper {
     Res.expectValidListResponse(res, allowEmpty);
 
     return res.body.data;
+  }
+
+  /**
+   * @return {Promise<Object>}
+   *
+   * @link BlockchainService#getAndProcessMyselfBlockchainTransactions
+   */
+  static async requestToGetMyselfBlockchainTransactions(myself, expectedStatus = 200, queryString = '', allowEmpty = false) {
+    let url = Req.getMyselfBlockchainTransactionsUrl() + `/?${queryString}`;
+
+    const req = request(server)
+      .get(url)
+    ;
+
+    Req.addAuthToken(req, myself);
+
+    const res = await req;
+
+    Res.expectStatusToBe(res, expectedStatus);
+
+    if (expectedStatus !== 200) {
+      return res.body;
+    }
+
+    // TODO validate response list
+    Res.expectValidListResponse(res, allowEmpty);
+
+    return res.body.data;
+  }
+
+  /**
+   *
+   * @param models
+   */
+  static checkMyselfBlockchainTransactionsStructure(models) {
+
+    const commonFields = [
+      'updated_at',
+      'tr_type',
+    ];
+
+    const trTypeToFieldSet = {
+      [TR_TYPE__TRANSFER_TO]: [
+        'User',
+        'memo',
+        'tokens',
+        // TODO validate inner object structure
+      ],
+      [TR_TYPE__TRANSFER_FROM]: [
+        'User',
+        'memo',
+        'tokens',
+        // TODO validate inner object structure
+      ],
+      [TR_TYPE_STAKE_RESOURCES]: [
+        'resources',
+        // TODO validate inner object structure
+      ],
+      [TR_TYPE_UNSTAKING_REQUEST]: [
+        'resources',
+        // TODO validate inner object structure
+      ],
+      [TR_TYPE_VOTE_FOR_BP]: [
+        'producers'
+        // TODO validate inner object structure
+      ],
+      [TR_TYPE_CLAIM_EMISSION]: [
+        'tokens'
+        // TODO validate inner object structure
+      ],
+    };
+
+    models.forEach(model => {
+      expect(model.tr_type).toBeDefined();
+
+      const requiredFields = trTypeToFieldSet[model.tr_type];
+      expect(requiredFields).toBeDefined();
+
+      const expected = requiredFields.concat(commonFields);
+
+      expect(Object.keys(model).sort()).toEqual(expected.sort());
+    });
   }
 
   /**

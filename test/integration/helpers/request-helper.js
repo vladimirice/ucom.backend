@@ -17,7 +17,16 @@ const communityUrl        = `${apiV1Prefix}/community`;
 const partnershipUrl      = `${apiV1Prefix}/partnership`;
 const blockchainUrl       = `${apiV1Prefix}/blockchain`;
 
+const myselfBlockchainTransactionsUrl       = `${myselfUrl}/blockchain/transactions`;
+
 class RequestHelper {
+  /**
+   *
+   * @return {string}
+   */
+  static getMyselfBlockchainTransactionsUrl() {
+    return myselfBlockchainTransactionsUrl;
+  }
 
   /**
    *
