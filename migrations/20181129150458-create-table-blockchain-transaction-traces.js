@@ -1,4 +1,4 @@
-const TABLE_NAME = 'blockchain_transaction_traces';
+const TABLE_NAME = 'blockchain_tr_traces';
 
 module.exports = {
   up: (queryInterface) => {
