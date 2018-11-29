@@ -7,6 +7,10 @@
   "db_knex": {
     "connection_string": "postgresql://uos:uos@uos-backend-postgres-test.dev:5432/uos_backend_app"
   },
+  "eos": {
+    "mongo_connection_string": "mongodb://node:YtrgOJbzre04Ak7q@159.69.157.38:27017/?authMechanism=DEFAULT&authSource=node",
+    "mongo_db_name": "node"
+  },
   "db": {
     "username": "uos",
     "password": "uos",

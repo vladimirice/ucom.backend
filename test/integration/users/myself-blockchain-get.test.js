@@ -1,5 +1,7 @@
 const helpers = require('../helpers');
 
+const BlockchainService = require('../../../lib/eos/service/blockchain-service');
+
 helpers.Mock.mockAllBlockchainPart();
 helpers.Mock.mockAllTransactionSigning();
 
@@ -22,6 +24,10 @@ describe('Myself blockchain GET', () => {
     it('Ensure different transactions structure', async () => {
       const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad);
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    })
+    });
+
+    it('sample', async () => {
+      await BlockchainService.mongoDbSample();
+    });
   });
 });
