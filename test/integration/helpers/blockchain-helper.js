@@ -24,6 +24,9 @@ const TR_TYPE_UNSTAKING_REQUEST = 30;
 const TR_TYPE_VOTE_FOR_BP       = 40;
 const TR_TYPE_CLAIM_EMISSION    = 50;
 
+const TR_TYPE_BUY_RAM           = 60;
+const TR_TYPE_SELL_RAM          = 61;
+
 let accountName = 'vlad';
 let privateKey = accountsData[accountName].activePk;
 
@@ -248,6 +251,14 @@ class BlockchainHelper {
     ];
 
     const trTypeToFieldSet = {
+      [TR_TYPE_BUY_RAM]: [
+        'resources',
+        // TODO validate inner object structure
+      ],
+      [TR_TYPE_SELL_RAM]: [
+        'resources',
+        // TODO validate inner object structure
+      ],
       [TR_TYPE__TRANSFER_TO]: [
         'User',
         'memo',
