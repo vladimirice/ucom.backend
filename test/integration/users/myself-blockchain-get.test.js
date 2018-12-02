@@ -28,10 +28,10 @@ describe('Myself blockchain GET', () => {
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
     });
 
-    it('sample', async () => {
-      await BlockchainTrTracesRepository.setSeqCurrentValByMaxNum();
-
-      await BlockchainTrTracesService.syncMongoDbAndPostgres();
-    }, 200000);
+    // it('sample', async () => {
+    //   await BlockchainTrTracesRepository.setSeqCurrentValByMaxNum();
+    //
+    //   await BlockchainTrTracesService.syncMongoDbAndPostgres();
+    // }, 200000);
   });
 });
