@@ -19,7 +19,14 @@ describe('Myself blockchain GET', () => {
   });
 
   describe('Get blockchain transactions', () => {
-    it('Ensure different transactions structure', async () => {
+    it('Pagination smoke test', async () => {
+      const queryString = helpers.Req.getPaginationQueryString(1, 10);
+
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
+
+    });
+
+    it('Smoke test. Ensure different transactions structure', async () => {
       const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad);
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
     });
