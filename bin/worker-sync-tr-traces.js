@@ -6,5 +6,5 @@ const BlockchainTrTracesRepository  = require('../lib/eos/repository/blockchain-
 
   await BlockchainTrTracesService.syncMongoDbAndPostgres();
 
-  console.log('worker had finished its work')
+  console.log('worker had finished its work');
 })();
