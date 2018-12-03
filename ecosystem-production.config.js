@@ -74,7 +74,7 @@ module.exports = {
     },
     {
       name: `${NODE_ENV}_sync_tr_traces`,
-      script: 'bin/worker-sync-tr-traces',
+      script: 'bin/worker-sync-tr-traces.js',
       watch: false,
       cron_restart: '* * * * *',
       env: {
