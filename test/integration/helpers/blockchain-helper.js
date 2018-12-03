@@ -223,7 +223,7 @@ class BlockchainHelper {
     let url = Req.getMyselfBlockchainTransactionsUrl();
 
     if (queryString) {
-      url += `/?${queryString}`;
+      url += `${queryString}`;
     }
 
     const req = request(server)

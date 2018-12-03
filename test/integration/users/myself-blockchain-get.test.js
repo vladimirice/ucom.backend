@@ -20,10 +20,9 @@ describe('Myself blockchain GET', () => {
 
   describe('Get blockchain transactions', () => {
     it('Pagination smoke test', async () => {
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-
+      const queryString = helpers.Req.getPaginationQueryString(2, 5);
       const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
-
+      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
     });
 
     it('Smoke test. Ensure different transactions structure', async () => {

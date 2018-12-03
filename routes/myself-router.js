@@ -16,7 +16,7 @@ router.get('/', [ authTokenMiddleWare ], async function(req, res) {
 /* Get myself blockchain transactions */
 router.get('/blockchain/transactions', [ authTokenMiddleWare ], async function(req, res) {
   const service = getBlockchainService(req);
-  const response = await service.getAndProcessMyselfBlockchainTransactions();
+  const response = await service.getAndProcessMyselfBlockchainTransactions(req.query);
 
   res.send(response);
 });
