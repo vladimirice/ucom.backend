@@ -1,9 +1,5 @@
 const helpers = require('../helpers');
 
-const BlockchainTrTracesService = require('../../../lib/eos/service/blockchain-tr-traces-service');
-
-const BlockchainTrTracesRepository = require('../../../lib/eos/repository/blockchain-tr-traces-repository');
-
 helpers.Mock.mockAllBlockchainPart();
 helpers.Mock.mockAllTransactionSigning();
 
@@ -27,11 +23,5 @@ describe('Myself blockchain GET', () => {
       const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad);
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
     });
-
-    // it('sample', async () => {
-    //   await BlockchainTrTracesRepository.setSeqCurrentValByMaxNum();
-    //
-    //   await BlockchainTrTracesService.syncMongoDbAndPostgres();
-    // }, 200000);
   });
 });

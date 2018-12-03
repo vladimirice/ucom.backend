@@ -47,6 +47,7 @@ class BlockchainHelper {
     return privateKey;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {string} accountName
@@ -73,6 +74,7 @@ class BlockchainHelper {
     expect(stateAfter.resources.cpu.unstaking_request.amount).toBe(0);
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {string} accountName
@@ -164,6 +166,7 @@ class BlockchainHelper {
     }
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {Promise<Object>}
@@ -217,7 +220,11 @@ class BlockchainHelper {
    * @link BlockchainService#getAndProcessMyselfBlockchainTransactions
    */
   static async requestToGetMyselfBlockchainTransactions(myself, expectedStatus = 200, queryString = '', allowEmpty = false) {
-    let url = Req.getMyselfBlockchainTransactionsUrl() + `/?${queryString}`;
+    let url = Req.getMyselfBlockchainTransactionsUrl();
+
+    if (queryString) {
+      url += `/?${queryString}`;
+    }
 
     const req = request(server)
       .get(url)
@@ -244,10 +251,10 @@ class BlockchainHelper {
    * @param models
    */
   static checkMyselfBlockchainTransactionsStructure(models) {
-
     const commonFields = [
       'updated_at',
       'tr_type',
+      'memo'
     ];
 
     const trTypeToFieldSet = {
