@@ -19,6 +19,9 @@ describe('Myself blockchain GET', () => {
   });
 
   describe('Get blockchain transactions', () => {
+    it.skip('Seed with sample transactions and test fetching', async () => {
+    });
+
     it('Pagination smoke test', async () => {
       const queryString = helpers.Req.getPaginationQueryString(2, 5);
       const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
