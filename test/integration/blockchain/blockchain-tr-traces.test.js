@@ -2,7 +2,7 @@ const helpers = require('../helpers');
 
 const BlockchainTrTracesService     = require('../../../lib/eos/service/blockchain-tr-traces-service');
 
-const BlockchainTrTracesDictionary  = require('../../../lib/eos/dictionary/blockchain-tr-traces-dictionary');
+const BlockchainTrTracesDictionary  = require('uos-app-wallet').Dictionary.BlockchainTrTraces;
 
 helpers.Mock.mockAllBlockchainPart();
 helpers.Mock.mockAllTransactionSigning();
@@ -23,7 +23,7 @@ describe('Blockchain tr traces sync tests', () => {
   });
 
   it.skip('Sync stake with unstake. Compare with etalon', async () => {
-    const trType = BlockchainTrTracesDictionary.getTypeMultiActions();
+    const trType = BlockchainTrTracesDictionary.getTypeClaimEmission();
     await BlockchainTrTracesService.syncMongoDbAndPostgres([trType]);
   }, 200000);
 });
