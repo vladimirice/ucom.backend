@@ -163,6 +163,28 @@ describe('Posts API', () => {
     });
 
     describe('Test sorting', async () => {
+      it('sort by created_at_date and current rate - smoke test', async () => {
+        const url = RequestHelper.getPostsUrl() + '?sort_by=-created_at_date,-current_rate';
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        // TODO
+      });
+
+      it('sort by current_rate_daily_delta - smoke test', async () => {
+        const url = RequestHelper.getPostsUrl() + '?sort_by=-current_rate_delta_daily';
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        // TODO
+      });
+
       it('Sort by rate_delta - simple smoke test', async () => {
         const url = RequestHelper.getPostsUrl() + '?sort_by=-rate_delta';
         const res = await request(server)
