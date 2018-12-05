@@ -194,17 +194,6 @@ describe('Posts API', () => {
         // TODO
       });
 
-      it('Sort by rate_delta - simple smoke test', async () => {
-        const url = RequestHelper.getPostsUrl() + '?sort_by=-rate_delta';
-        const res = await request(server)
-          .get(url)
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-
-        // TODO
-      });
-
       it('Sort by current_rate DESC', async () => {
         // title, comments_count, rate
 
