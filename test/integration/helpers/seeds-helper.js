@@ -33,6 +33,7 @@ const minorTables = [
 
   'entity_event_param',
   'entity_stats_current',
+  'blockchain_tr_traces',
 
   'blockchain_nodes',
 
