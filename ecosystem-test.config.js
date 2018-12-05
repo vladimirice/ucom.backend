@@ -1,6 +1,6 @@
 const NODE_ENV              = 'test';
 const HTTP_SERVER_PORT      = 3000;
-const WEBSOCKET_SERVER_PORT = 5000;
+// const WEBSOCKET_SERVER_PORT = 5000;
 const IGNORE_WATCH = ["node_modules", "public", "logs"];
 
 module.exports = {
@@ -17,18 +17,18 @@ module.exports = {
         autorestart:  true,
       },
     },
-    {
-      name:           `${NODE_ENV}_websocket`,
-      instance_var:   'INSTANCE_ID',
-      script:         'bin/websocket.js',
-      watch:          true,
-      ignore_watch:   IGNORE_WATCH,
-      env: {
-        PORT:         WEBSOCKET_SERVER_PORT,
-        NODE_ENV:     NODE_ENV,
-        autorestart:  true,
-      },
-    },
+    // {
+    //   name:           `${NODE_ENV}_websocket`,
+    //   instance_var:   'INSTANCE_ID',
+    //   script:         'bin/websocket.js',
+    //   watch:          true,
+    //   ignore_watch:   IGNORE_WATCH,
+    //   env: {
+    //     PORT:         WEBSOCKET_SERVER_PORT,
+    //     NODE_ENV:     NODE_ENV,
+    //     autorestart:  true,
+    //   },
+    // },
     {
       name:           `${NODE_ENV}_blockchain_consumer`,
       script:         'bin/blockchain-consumer.js',

@@ -67,7 +67,7 @@ module.exports = {
       name: `${NODE_ENV}_update_stats`,
       script: 'bin/worker-update-stats.js',
       watch: false,
-      cron_restart: '0 3 * * *',
+      cron_restart: '0 */1 * * *',
       env: {
         NODE_ENV: NODE_ENV
       },
@@ -76,7 +76,7 @@ module.exports = {
       name: `${NODE_ENV}_sync_tr_traces`,
       script: 'bin/worker-sync-tr-traces.js',
       watch: false,
-      cron_restart: '* * * * *',
+      cron_restart: '*/2 * * * *',
       env: {
         NODE_ENV: NODE_ENV
       },
