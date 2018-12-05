@@ -163,15 +163,24 @@ describe('Posts API', () => {
     });
 
     describe('Test sorting', async () => {
-      it('sort by created_at_date and current rate - smoke test', async () => {
-        const url = RequestHelper.getPostsUrl() + '?sort_by=-created_at_date,-current_rate';
+      it('Smoke test. Nothing is found', async () => {
+        const url = RequestHelper.getPostsUrl() + '?post_type_id=100500&created_at=24_hours&sort_by=-current_rate';
         const res = await request(server)
           .get(url)
         ;
 
         ResponseHelper.expectStatusOk(res);
 
-        // TODO
+        expect(res.body.data.length).toBe(0)
+      });
+
+      it('Smoke test. Sort by current rate but only daily', async () => {
+        const url = RequestHelper.getPostsUrl() + '?post_type_id=1&created_at=24_hours&sort_by=-current_rate';
+        const res = await request(server)
+          .get(url)
+        ;
+
+        ResponseHelper.expectStatusOk(res);
       });
 
       it('sort by current_rate_daily_delta - smoke test', async () => {
