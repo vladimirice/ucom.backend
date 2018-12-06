@@ -16,22 +16,1158 @@ const { WalletApi } = require('uos-app-wallet');
 
 const BlockchainTrTypesDictionary = require('uos-app-wallet').Dictionary.BlockchainTrTraces;
 
-// TODO - move to WalletApiDictionary
-const TR_TYPE__TRANSFER_FROM  = 10;
-const TR_TYPE__TRANSFER_TO    = 11;
-const TR_TYPE_STAKE_RESOURCES = 20;
-
-const TR_TYPE_UNSTAKING_REQUEST = 30;
-const TR_TYPE_VOTE_FOR_BP       = 40;
-const TR_TYPE_CLAIM_EMISSION    = 50;
-
-const TR_TYPE_BUY_RAM           = 60;
-const TR_TYPE_SELL_RAM          = 61;
+const UsersHelper = require('./users-helper');
 
 let accountName = 'vlad';
 let privateKey = accountsData[accountName].activePk;
 
 class BlockchainHelper {
+
+  static getEtalonVladTrTraces() {
+    return [
+      {
+        // "id": "2",
+        "tr_type": 12,
+        "tr_processed_data": {
+          "tokens": {
+            "active": 6,
+            "currency": "UOS"
+          }
+        },
+        "memo": "",
+        "tr_id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
+        "external_id": "5c08e15af24a510c2ffdbe27",
+        "account_name_from": "vlad",
+        "account_name_to": "jane",
+        "raw_tr_data": {
+          "id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
+          "_id": "5c08e15af24a510c2ffdbe27",
+          "except": null,
+          "elapsed": 16754,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 16754,
+            "net_usage_words": 16
+          },
+          "createdAt": "2018-12-06T08:44:10.449Z",
+          "net_usage": 128,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "to": "jane",
+                  "from": "vlad",
+                  "memo": "",
+                  "quantity": "6.0000 UOS"
+                },
+                "name": "transfer",
+                "account": "eosio.token",
+                "hex_data": "0000000000904cdc0000000000a0a67960ea00000000000004554f530000000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
+              "console": "",
+              "elapsed": 4937,
+              "receipt": {
+                "receiver": "eosio.token",
+                "act_digest": "da60719110b967b43d3d19cc1dea86a125d0b8f0b6daa0ef4c02611fcfdda39c",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1915
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 1132,
+                "global_sequence": 34144585
+              },
+              "cpu_usage": 0,
+              "inline_traces": [
+                {
+                  "act": {
+                    "data": {
+                      "to": "jane",
+                      "from": "vlad",
+                      "memo": "",
+                      "quantity": "6.0000 UOS"
+                    },
+                    "name": "transfer",
+                    "account": "eosio.token",
+                    "hex_data": "0000000000904cdc0000000000a0a67960ea00000000000004554f530000000000",
+                    "authorization": [
+                      {
+                        "actor": "vlad",
+                        "permission": "active"
+                      }
+                    ]
+                  },
+                  "trx_id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
+                  "console": "",
+                  "elapsed": 10,
+                  "receipt": {
+                    "receiver": "vlad",
+                    "act_digest": "da60719110b967b43d3d19cc1dea86a125d0b8f0b6daa0ef4c02611fcfdda39c",
+                    "abi_sequence": 2,
+                    "auth_sequence": [
+                      [
+                        "vlad",
+                        1916
+                      ]
+                    ],
+                    "code_sequence": 2,
+                    "recv_sequence": 23,
+                    "global_sequence": 34144586
+                  },
+                  "cpu_usage": 0,
+                  "inline_traces": [],
+                  "total_cpu_usage": 0
+                },
+                {
+                  "act": {
+                    "data": {
+                      "to": "jane",
+                      "from": "vlad",
+                      "memo": "",
+                      "quantity": "6.0000 UOS"
+                    },
+                    "name": "transfer",
+                    "account": "eosio.token",
+                    "hex_data": "0000000000904cdc0000000000a0a67960ea00000000000004554f530000000000",
+                    "authorization": [
+                      {
+                        "actor": "vlad",
+                        "permission": "active"
+                      }
+                    ]
+                  },
+                  "trx_id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
+                  "console": "",
+                  "elapsed": 951,
+                  "receipt": {
+                    "receiver": "jane",
+                    "act_digest": "da60719110b967b43d3d19cc1dea86a125d0b8f0b6daa0ef4c02611fcfdda39c",
+                    "abi_sequence": 2,
+                    "auth_sequence": [
+                      [
+                        "vlad",
+                        1917
+                      ]
+                    ],
+                    "code_sequence": 2,
+                    "recv_sequence": 41,
+                    "global_sequence": 34144587
+                  },
+                  "cpu_usage": 0,
+                  "inline_traces": [],
+                  "total_cpu_usage": 0
+                }
+              ],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-12-06T08:44:10.000Z",
+        // "mongodb_created_at": "2018-12-06T08:44:10.000Z",
+        // "created_at": "2018-12-06T09:28:36.786Z",
+        // "updated_at": "2018-12-06T09:28:36.786Z"
+      },
+      {
+        // "id": "4",
+        "tr_type": 12,
+        "tr_processed_data": {
+          "tokens": {
+            "active": 5,
+            "currency": "UOS"
+          }
+        },
+        "memo": "",
+        "tr_id": "9254b29ec0097e080a8202b00cd490b3072063867a006fb2a215fc08d73d8312",
+        "external_id": "5c08e15df24a510c2ffdbe47",
+        "account_name_from": "jane",
+        "account_name_to": "vlad",
+        "raw_tr_data": {
+          "id": "9254b29ec0097e080a8202b00cd490b3072063867a006fb2a215fc08d73d8312",
+          "_id": "5c08e15df24a510c2ffdbe47",
+          "except": null,
+          "elapsed": 1224,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 1224,
+            "net_usage_words": 16
+          },
+          "createdAt": "2018-12-06T08:44:13.154Z",
+          "net_usage": 128,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "to": "vlad",
+                  "from": "jane",
+                  "memo": "",
+                  "quantity": "5.0000 UOS"
+                },
+                "name": "transfer",
+                "account": "eosio.token",
+                "hex_data": "0000000000a0a6790000000000904cdc50c300000000000004554f530000000000",
+                "authorization": [
+                  {
+                    "actor": "jane",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "9254b29ec0097e080a8202b00cd490b3072063867a006fb2a215fc08d73d8312",
+              "console": "",
+              "elapsed": 791,
+              "receipt": {
+                "receiver": "eosio.token",
+                "act_digest": "b2af7a637fb225f768bf0b4d5f8e893fb93186b5aa88a2c1b50289b78eaca2c1",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "jane",
+                    644
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 1133,
+                "global_sequence": 34144594
+              },
+              "cpu_usage": 0,
+              "inline_traces": [
+                {
+                  "act": {
+                    "data": {
+                      "to": "vlad",
+                      "from": "jane",
+                      "memo": "",
+                      "quantity": "5.0000 UOS"
+                    },
+                    "name": "transfer",
+                    "account": "eosio.token",
+                    "hex_data": "0000000000a0a6790000000000904cdc50c300000000000004554f530000000000",
+                    "authorization": [
+                      {
+                        "actor": "jane",
+                        "permission": "active"
+                      }
+                    ]
+                  },
+                  "trx_id": "9254b29ec0097e080a8202b00cd490b3072063867a006fb2a215fc08d73d8312",
+                  "console": "",
+                  "elapsed": 7,
+                  "receipt": {
+                    "receiver": "jane",
+                    "act_digest": "b2af7a637fb225f768bf0b4d5f8e893fb93186b5aa88a2c1b50289b78eaca2c1",
+                    "abi_sequence": 2,
+                    "auth_sequence": [
+                      [
+                        "jane",
+                        645
+                      ]
+                    ],
+                    "code_sequence": 2,
+                    "recv_sequence": 42,
+                    "global_sequence": 34144595
+                  },
+                  "cpu_usage": 0,
+                  "inline_traces": [],
+                  "total_cpu_usage": 0
+                },
+                {
+                  "act": {
+                    "data": {
+                      "to": "vlad",
+                      "from": "jane",
+                      "memo": "",
+                      "quantity": "5.0000 UOS"
+                    },
+                    "name": "transfer",
+                    "account": "eosio.token",
+                    "hex_data": "0000000000a0a6790000000000904cdc50c300000000000004554f530000000000",
+                    "authorization": [
+                      {
+                        "actor": "jane",
+                        "permission": "active"
+                      }
+                    ]
+                  },
+                  "trx_id": "9254b29ec0097e080a8202b00cd490b3072063867a006fb2a215fc08d73d8312",
+                  "console": "",
+                  "elapsed": 8,
+                  "receipt": {
+                    "receiver": "vlad",
+                    "act_digest": "b2af7a637fb225f768bf0b4d5f8e893fb93186b5aa88a2c1b50289b78eaca2c1",
+                    "abi_sequence": 2,
+                    "auth_sequence": [
+                      [
+                        "jane",
+                        646
+                      ]
+                    ],
+                    "code_sequence": 2,
+                    "recv_sequence": 24,
+                    "global_sequence": 34144596
+                  },
+                  "cpu_usage": 0,
+                  "inline_traces": [],
+                  "total_cpu_usage": 0
+                }
+              ],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-12-06T08:44:13.000Z",
+        // "mongodb_created_at": "2018-12-06T08:44:13.000Z",
+        // "created_at": "2018-12-06T09:28:36.786Z",
+        // "updated_at": "2018-12-06T09:28:36.786Z"
+      }
+    ];
+  }
+  static getEtalonVladStakeWithUnstake() {
+    return [
+      {
+        // "id": "1",
+        "tr_type": 21,
+        "tr_processed_data": {
+          "resources": {
+            "cpu": {
+              "tokens": {
+                "currency": "UOS",
+                "self_delegated": 2
+              },
+              "unstaking_request": {
+                "amount": 0,
+                "currency": "UOS"
+              }
+            },
+            "net": {
+              "tokens": {
+                "currency": "UOS",
+                "self_delegated": 0
+              },
+              "unstaking_request": {
+                "amount": 3,
+                "currency": "UOS"
+              }
+            }
+          }
+        },
+        "memo": "",
+        "tr_id": "e399d14bb1669126233f3dd7cee3e61b1883076c5665251adc4bbcec63655448",
+        "external_id": "5c06e1c4f24a510c2fedbf18",
+        "account_name_from": "vlad",
+        "account_name_to": "vlad",
+        "raw_tr_data": {
+          "id": "e399d14bb1669126233f3dd7cee3e61b1883076c5665251adc4bbcec63655448",
+          "_id": "5c06e1c4f24a510c2fedbf18",
+          "except": null,
+          "elapsed": 20494,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 20494,
+            "net_usage_words": 39
+          },
+          "createdAt": "2018-12-04T20:21:24.868Z",
+          "net_usage": 312,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "from": "vlad",
+                  "receiver": "vlad",
+                  "unstake_cpu_quantity": "0.0000 UOS",
+                  "unstake_net_quantity": "3.0000 UOS"
+                },
+                "name": "undelegatebw",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc0000000000904cdc307500000000000004554f5300000000000000000000000004554f5300000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "e399d14bb1669126233f3dd7cee3e61b1883076c5665251adc4bbcec63655448",
+              "console": "",
+              "elapsed": 6405,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "475f7d105e4fb1d5babd8534af0e1b04104e978f51f91c73bbc419bfd6cd5881",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1833
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 18917837,
+                "global_sequence": 33882467
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            },
+            {
+              "act": {
+                "data": {
+                  "from": "vlad",
+                  "receiver": "vlad",
+                  "transfer": 0,
+                  "stake_cpu_quantity": "2.0000 UOS",
+                  "stake_net_quantity": "0.0000 UOS"
+                },
+                "name": "delegatebw",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc0000000000904cdc000000000000000004554f5300000000204e00000000000004554f530000000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "e399d14bb1669126233f3dd7cee3e61b1883076c5665251adc4bbcec63655448",
+              "console": "",
+              "elapsed": 3174,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "fdb8c572fa49003094d43877f9a40886e77817febbd194f02594cc65672d1694",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1834
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 18917838,
+                "global_sequence": 33882468
+              },
+              "cpu_usage": 0,
+              "inline_traces": [
+                {
+                  "act": {
+                    "data": {
+                      "to": "eosio.stake",
+                      "from": "vlad",
+                      "memo": "stake bandwidth",
+                      "quantity": "2.0000 UOS"
+                    },
+                    "name": "transfer",
+                    "account": "eosio.token",
+                    "hex_data": "0000000000904cdc0014341903ea3055204e00000000000004554f53000000000f7374616b652062616e647769647468",
+                    "authorization": [
+                      {
+                        "actor": "vlad",
+                        "permission": "active"
+                      }
+                    ]
+                  },
+                  "trx_id": "e399d14bb1669126233f3dd7cee3e61b1883076c5665251adc4bbcec63655448",
+                  "console": "",
+                  "elapsed": 2536,
+                  "receipt": {
+                    "receiver": "eosio.token",
+                    "act_digest": "333df59abbe27f7328a9f1f70d33aa9ea370069a11457e64bc18c09b2b30c51d",
+                    "abi_sequence": 2,
+                    "auth_sequence": [
+                      [
+                        "vlad",
+                        1835
+                      ]
+                    ],
+                    "code_sequence": 2,
+                    "recv_sequence": 1112,
+                    "global_sequence": 33882469
+                  },
+                  "cpu_usage": 0,
+                  "inline_traces": [
+                    {
+                      "act": {
+                        "data": {
+                          "to": "eosio.stake",
+                          "from": "vlad",
+                          "memo": "stake bandwidth",
+                          "quantity": "2.0000 UOS"
+                        },
+                        "name": "transfer",
+                        "account": "eosio.token",
+                        "hex_data": "0000000000904cdc0014341903ea3055204e00000000000004554f53000000000f7374616b652062616e647769647468",
+                        "authorization": [
+                          {
+                            "actor": "vlad",
+                            "permission": "active"
+                          }
+                        ]
+                      },
+                      "trx_id": "e399d14bb1669126233f3dd7cee3e61b1883076c5665251adc4bbcec63655448",
+                      "console": "",
+                      "elapsed": 4,
+                      "receipt": {
+                        "receiver": "vlad",
+                        "act_digest": "333df59abbe27f7328a9f1f70d33aa9ea370069a11457e64bc18c09b2b30c51d",
+                        "abi_sequence": 2,
+                        "auth_sequence": [
+                          [
+                            "vlad",
+                            1836
+                          ]
+                        ],
+                        "code_sequence": 2,
+                        "recv_sequence": 21,
+                        "global_sequence": 33882470
+                      },
+                      "cpu_usage": 0,
+                      "inline_traces": [],
+                      "total_cpu_usage": 0
+                    },
+                    {
+                      "act": {
+                        "data": {
+                          "to": "eosio.stake",
+                          "from": "vlad",
+                          "memo": "stake bandwidth",
+                          "quantity": "2.0000 UOS"
+                        },
+                        "name": "transfer",
+                        "account": "eosio.token",
+                        "hex_data": "0000000000904cdc0014341903ea3055204e00000000000004554f53000000000f7374616b652062616e647769647468",
+                        "authorization": [
+                          {
+                            "actor": "vlad",
+                            "permission": "active"
+                          }
+                        ]
+                      },
+                      "trx_id": "e399d14bb1669126233f3dd7cee3e61b1883076c5665251adc4bbcec63655448",
+                      "console": "",
+                      "elapsed": 920,
+                      "receipt": {
+                        "receiver": "eosio.stake",
+                        "act_digest": "333df59abbe27f7328a9f1f70d33aa9ea370069a11457e64bc18c09b2b30c51d",
+                        "abi_sequence": 2,
+                        "auth_sequence": [
+                          [
+                            "vlad",
+                            1837
+                          ]
+                        ],
+                        "code_sequence": 2,
+                        "recv_sequence": 340,
+                        "global_sequence": 33882471
+                      },
+                      "cpu_usage": 0,
+                      "inline_traces": [],
+                      "total_cpu_usage": 0
+                    }
+                  ],
+                  "total_cpu_usage": 0
+                }
+              ],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-12-04T20:21:24.000Z",
+        // "mongodb_created_at": "2018-12-04T20:21:24.000Z",
+        // "created_at": "2018-12-06T10:48:44.789Z",
+        // "updated_at": "2018-12-06T10:48:44.789Z"
+      },
+      {
+        // "id": "3",
+        "tr_type": 21,
+        "tr_processed_data": {
+          "resources": {
+            "cpu": {
+              "tokens": {
+                "currency": "UOS",
+                "self_delegated": 0
+              },
+              "unstaking_request": {
+                "amount": 7,
+                "currency": "UOS"
+              }
+            },
+            "net": {
+              "tokens": {
+                "currency": "UOS",
+                "self_delegated": 3
+              },
+              "unstaking_request": {
+                "amount": 0,
+                "currency": "UOS"
+              }
+            }
+          }
+        },
+        "memo": "",
+        "tr_id": "5e5f2220189baf1e9dd4093b0eb97af58ac81bd83ea23356892acb54150f2e03",
+        "external_id": "5c08f5e0f24a510c2fffd7f8",
+        "account_name_from": "vlad",
+        "account_name_to": "vlad",
+        "raw_tr_data": {
+          "id": "5e5f2220189baf1e9dd4093b0eb97af58ac81bd83ea23356892acb54150f2e03",
+          "_id": "5c08f5e0f24a510c2fffd7f8",
+          "except": null,
+          "elapsed": 5801,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 5801,
+            "net_usage_words": 34
+          },
+          "createdAt": "2018-12-06T10:11:44.779Z",
+          "net_usage": 272,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "from": "vlad",
+                  "receiver": "vlad",
+                  "transfer": 0,
+                  "stake_cpu_quantity": "0.0000 UOS",
+                  "stake_net_quantity": "3.0000 UOS"
+                },
+                "name": "delegatebw",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc0000000000904cdc307500000000000004554f5300000000000000000000000004554f530000000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "5e5f2220189baf1e9dd4093b0eb97af58ac81bd83ea23356892acb54150f2e03",
+              "console": "",
+              "elapsed": 3338,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "22a0e5ab02a5460df5c2de23aa8418fab11a0a70749b63903424f0a36009f4a5",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1921
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 19190290,
+                "global_sequence": 34198546
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            },
+            {
+              "act": {
+                "data": {
+                  "from": "vlad",
+                  "receiver": "vlad",
+                  "unstake_cpu_quantity": "7.0000 UOS",
+                  "unstake_net_quantity": "0.0000 UOS"
+                },
+                "name": "undelegatebw",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc0000000000904cdc000000000000000004554f5300000000701101000000000004554f5300000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "5e5f2220189baf1e9dd4093b0eb97af58ac81bd83ea23356892acb54150f2e03",
+              "console": "",
+              "elapsed": 2201,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "0251278462a2676125fc22496ac1f51fc861e77ab9c8947f5e6fa5101a16e3c5",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1922
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 19190291,
+                "global_sequence": 34198547
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-12-06T10:11:44.000Z",
+        // "mongodb_created_at": "2018-12-06T10:11:44.000Z",
+        // "created_at": "2018-12-06T10:48:44.789Z",
+        // "updated_at": "2018-12-06T10:48:44.789Z"
+      }
+    ];
+  }
+
+
+  static getEtalonVladUnstakingRequests() {
+    return [
+      {
+        // "id": "1",
+        "tr_type": 30,
+        "tr_processed_data": {
+          "resources": {
+            "cpu": {
+              "unstaking_request": {
+                "amount": 0,
+                "currency": "UOS"
+              }
+            },
+            "net": {
+              "unstaking_request": {
+                "amount": 3,
+                "currency": "UOS"
+              }
+            }
+          }
+        },
+        "memo": "",
+        "tr_id": "b19bf74ff2a397f92857e36c279b43f3ce2ee697487639706fdcc8387f1f83ee",
+        "external_id": "5c0906a5f24a510c2f022551",
+        "account_name_from": "vlad",
+        "account_name_to": "vlad",
+        "raw_tr_data": {
+          "id": "b19bf74ff2a397f92857e36c279b43f3ce2ee697487639706fdcc8387f1f83ee",
+          "_id": "5c0906a5f24a510c2f022551",
+          "except": null,
+          "elapsed": 1833,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 1833,
+            "net_usage_words": 23
+          },
+          "createdAt": "2018-12-06T11:23:17.028Z",
+          "net_usage": 184,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "from": "vlad",
+                  "receiver": "vlad",
+                  "unstake_cpu_quantity": "0.0000 UOS",
+                  "unstake_net_quantity": "3.0000 UOS"
+                },
+                "name": "undelegatebw",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc0000000000904cdc307500000000000004554f5300000000000000000000000004554f5300000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "b19bf74ff2a397f92857e36c279b43f3ce2ee697487639706fdcc8387f1f83ee",
+              "console": "",
+              "elapsed": 1608,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "475f7d105e4fb1d5babd8534af0e1b04104e978f51f91c73bbc419bfd6cd5881",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1925
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 19198879,
+                "global_sequence": 34260076
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-12-06T11:23:17.000Z",
+        // "mongodb_created_at": "2018-12-06T11:23:17.000Z",
+        // "created_at": "2018-12-06T11:39:21.664Z",
+        // "updated_at": "2018-12-06T11:39:21.664Z"
+      },
+      {
+        // "id": "3",
+        "tr_type": 30,
+        "tr_processed_data": {
+          "resources": {
+            "cpu": {
+              "unstaking_request": {
+                "amount": 2,
+                "currency": "UOS"
+              }
+            },
+            "net": {
+              "unstaking_request": {
+                "amount": 0,
+                "currency": "UOS"
+              }
+            }
+          }
+        },
+        "memo": "",
+        "tr_id": "847dd0b78d38769206bbdca9d7862a7f7062e4078716b8087e404355f5cf40f8",
+        "external_id": "5c0906aaf24a510c2f02267e",
+        "account_name_from": "vlad",
+        "account_name_to": "vlad",
+        "raw_tr_data": {
+          "id": "847dd0b78d38769206bbdca9d7862a7f7062e4078716b8087e404355f5cf40f8",
+          "_id": "5c0906aaf24a510c2f02267e",
+          "except": null,
+          "elapsed": 1950,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 1950,
+            "net_usage_words": 23
+          },
+          "createdAt": "2018-12-06T11:23:22.621Z",
+          "net_usage": 184,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "from": "vlad",
+                  "receiver": "vlad",
+                  "unstake_cpu_quantity": "2.0000 UOS",
+                  "unstake_net_quantity": "0.0000 UOS"
+                },
+                "name": "undelegatebw",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc0000000000904cdc000000000000000004554f5300000000204e00000000000004554f5300000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "847dd0b78d38769206bbdca9d7862a7f7062e4078716b8087e404355f5cf40f8",
+              "console": "",
+              "elapsed": 1687,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "c4866e45328fa2ef09e465e66ab288104943a36f060b6a593e596b8b52598a52",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1926
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 19198891,
+                "global_sequence": 34260208
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-12-06T11:23:22.000Z",
+        // "mongodb_created_at": "2018-12-06T11:23:22.000Z",
+        // "created_at": "2018-12-06T11:39:21.664Z",
+        // "updated_at": "2018-12-06T11:39:21.664Z"
+      },
+      {
+        // "id": "5",
+        "tr_type": 30,
+        "tr_processed_data": {
+          "resources": {
+            "cpu": {
+              "unstaking_request": {
+                "amount": 2,
+                "currency": "UOS"
+              }
+            },
+            "net": {
+              "unstaking_request": {
+                "amount": 2,
+                "currency": "UOS"
+              }
+            }
+          }
+        },
+        "memo": "",
+        "tr_id": "80ad7119439cbbf74eda33bcd62b9f627f37b082192094ad37bfa7542aff8ffc",
+        "external_id": "5c0906b0f24a510c2f0227a1",
+        "account_name_from": "vlad",
+        "account_name_to": "vlad",
+        "raw_tr_data": {
+          "id": "80ad7119439cbbf74eda33bcd62b9f627f37b082192094ad37bfa7542aff8ffc",
+          "_id": "5c0906b0f24a510c2f0227a1",
+          "except": null,
+          "elapsed": 3686,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 3686,
+            "net_usage_words": 39
+          },
+          "createdAt": "2018-12-06T11:23:28.336Z",
+          "net_usage": 312,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "from": "vlad",
+                  "receiver": "vlad",
+                  "unstake_cpu_quantity": "0.0000 UOS",
+                  "unstake_net_quantity": "2.0000 UOS"
+                },
+                "name": "undelegatebw",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc0000000000904cdc204e00000000000004554f5300000000000000000000000004554f5300000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "80ad7119439cbbf74eda33bcd62b9f627f37b082192094ad37bfa7542aff8ffc",
+              "console": "",
+              "elapsed": 1976,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "09b71ee611080b169ae0c0116d550a8570df9c86fd30b3fb9fa9a84b823de561",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1927
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 19198903,
+                "global_sequence": 34260330
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            },
+            {
+              "act": {
+                "data": {
+                  "from": "vlad",
+                  "receiver": "vlad",
+                  "unstake_cpu_quantity": "2.0000 UOS",
+                  "unstake_net_quantity": "0.0000 UOS"
+                },
+                "name": "undelegatebw",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc0000000000904cdc000000000000000004554f5300000000204e00000000000004554f5300000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "80ad7119439cbbf74eda33bcd62b9f627f37b082192094ad37bfa7542aff8ffc",
+              "console": "",
+              "elapsed": 1434,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "c4866e45328fa2ef09e465e66ab288104943a36f060b6a593e596b8b52598a52",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1928
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 19198904,
+                "global_sequence": 34260331
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-12-06T11:23:28.000Z",
+        // "mongodb_created_at": "2018-12-06T11:23:28.000Z",
+        // "created_at": "2018-12-06T11:39:21.664Z",
+        // "updated_at": "2018-12-06T11:39:21.664Z"
+      }
+    ];
+  }
+
+  static getEthalonVladVotesForBp() {
+    return [
+      {
+        // "id": "1",
+        "tr_type": 40,
+        "tr_processed_data": {
+          "producers": []
+        },
+        "memo": "",
+        "tr_id": "5536b0e4b2c9ecf18e8f8fd84bb17da158349fefb7767fbfe0daff7ccefd7728",
+        "external_id": "5c0089f2f24a510c2fdda072",
+        "account_name_from": "vlad",
+        "account_name_to": null,
+        "raw_tr_data": {
+          "id": "5536b0e4b2c9ecf18e8f8fd84bb17da158349fefb7767fbfe0daff7ccefd7728",
+          "_id": "5c0089f2f24a510c2fdda072",
+          "except": null,
+          "elapsed": 1387,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 1798,
+            "net_usage_words": 14
+          },
+          "createdAt": "2018-11-30T00:53:06.948Z",
+          "net_usage": 112,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "proxy": "",
+                  "voter": "vlad",
+                  "producers": []
+                },
+                "name": "voteproducer",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc000000000000000000",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "5536b0e4b2c9ecf18e8f8fd84bb17da158349fefb7767fbfe0daff7ccefd7728",
+              "console": "",
+              "elapsed": 1219,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "5e3729bfc655aba4e5c1fcf8ae7f4844297e80c14bc3add372b6a4bc03208d4a",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1419
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 15741896,
+                "global_sequence": 21746410
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-11-30T00:53:06.000Z",
+        // "mongodb_created_at": "2018-11-30T00:53:06.000Z",
+        // "created_at": "2018-12-06T10:27:56.896Z",
+        // "updated_at": "2018-12-06T10:27:56.896Z"
+      },
+      {
+        // "id": "2",
+        "tr_type": 40,
+        "tr_processed_data": {
+          "producers": [
+            "calc2",
+            "calc4"
+          ]
+        },
+        "memo": "",
+        "tr_id": "7a6fc58ed9d09e12c6a1c4cf9d151ed5c40fca530cb8f7a019c5625456bf2cf7",
+        "external_id": "5c0089f2f24a510c2fdda08e",
+        "account_name_from": "vlad",
+        "account_name_to": null,
+        "raw_tr_data": {
+          "id": "7a6fc58ed9d09e12c6a1c4cf9d151ed5c40fca530cb8f7a019c5625456bf2cf7",
+          "_id": "5c0089f2f24a510c2fdda08e",
+          "except": null,
+          "elapsed": 1491,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 1594,
+            "net_usage_words": 16
+          },
+          "createdAt": "2018-11-30T00:53:06.962Z",
+          "net_usage": 128,
+          "scheduled": false,
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "proxy": "",
+                  "voter": "vlad",
+                  "producers": [
+                    "calc2",
+                    "calc4"
+                  ]
+                },
+                "name": "voteproducer",
+                "account": "eosio",
+                "hex_data": "0000000000904cdc000000000000000002000000000081a241000000000082a241",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "7a6fc58ed9d09e12c6a1c4cf9d151ed5c40fca530cb8f7a019c5625456bf2cf7",
+              "console": "",
+              "elapsed": 1319,
+              "receipt": {
+                "receiver": "eosio",
+                "act_digest": "e1e75725874921a43d2121e797daec67299c31e6c2a04c87a9351dedae07bc9a",
+                "abi_sequence": 2,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1420
+                  ]
+                ],
+                "code_sequence": 2,
+                "recv_sequence": 15741910,
+                "global_sequence": 21746424
+              },
+              "cpu_usage": 0,
+              "inline_traces": [],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-11-30T00:53:06.000Z",
+        // "mongodb_created_at": "2018-11-30T00:53:06.000Z",
+        // "created_at": "2018-12-06T10:27:56.896Z",
+        // "updated_at": "2018-12-06T10:27:56.896Z"
+      }
+    ]
+  }
   static getEthalonVladStakeTrTrace() {
     return [
       {
@@ -983,55 +2119,16 @@ class BlockchainHelper {
    * @param models
    */
   static checkMyselfBlockchainTransactionsStructure(models) {
-    const commonFields = [
-      'updated_at',
-      'tr_type',
-      'memo',
-      'raw_tr_data'
-    ];
-
     const trTypeToProcessor = {
       [BlockchainTrTypesDictionary.getTypeTransfer()]:        BlockchainHelper._checkTrTransfer,
-      [BlockchainTrTypesDictionary.getTypeStakeResources()]:  BlockchainHelper._checkTrStake,
-    };
+      [BlockchainTrTypesDictionary.getLabelTransferFrom()]:   BlockchainHelper._checkTrTransfer,
+      [BlockchainTrTypesDictionary.getLabelTransferTo()]:     BlockchainHelper._checkTrTransfer,
 
-    const trTypeToFieldSet = {
-      [TR_TYPE_BUY_RAM]: [
-        'resources',
-        // TODO validate inner object structure
-      ],
-      [TR_TYPE_SELL_RAM]: [
-        'resources',
-        // TODO validate inner object structure
-      ],
-      [TR_TYPE__TRANSFER_TO]: [
-        'User',
-        'memo',
-        'tokens',
-        // TODO validate inner object structure
-      ],
-      [TR_TYPE__TRANSFER_FROM]: [
-        'User',
-        'memo',
-        'tokens',
-        // TODO validate inner object structure
-      ],
-      [TR_TYPE_STAKE_RESOURCES]: [
-        'resources',
-        // TODO validate inner object structure
-      ],
-      [TR_TYPE_UNSTAKING_REQUEST]: [
-        'resources',
-        // TODO validate inner object structure
-      ],
-      [TR_TYPE_VOTE_FOR_BP]: [
-        'producers'
-        // TODO validate inner object structure
-      ],
-      [TR_TYPE_CLAIM_EMISSION]: [
-        'tokens'
-        // TODO validate inner object structure
-      ],
+      [BlockchainTrTypesDictionary.getTypeStakeResources()]:  BlockchainHelper._checkTrStake,
+      [BlockchainTrTypesDictionary.getTypeUnstakingRequest()]:  BlockchainHelper._checkUnstakingRequest,
+      [BlockchainTrTypesDictionary.getTypeStakeWithUnstake()]:  BlockchainHelper._checkTrStakeWithUnstake,
+      [BlockchainTrTypesDictionary.getTypeVoteForBp()]:       BlockchainHelper._checkTrVoteForBp,
+      [BlockchainTrTypesDictionary.getTypeClaimEmission()]:       BlockchainHelper._getTypeEmission,
     };
 
     models.forEach(model => {
@@ -1041,15 +2138,30 @@ class BlockchainHelper {
 
       if (checker) {
         checker(model);
+      } else {
+        throw new Error(`There is no processor for tr_type: ${model.tr_type}`);
       }
-
-      const requiredFields = trTypeToFieldSet[model.tr_type];
-      expect(requiredFields).toBeDefined();
-
-      const expected = requiredFields.concat(commonFields);
-
-      expect(Object.keys(model).sort()).toEqual(expected.sort());
     });
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @private
+   */
+  static _checkTrTransfer(model) {
+    const possibleValues = [
+      BlockchainTrTypesDictionary.getLabelTransferFrom(),
+      BlockchainTrTypesDictionary.getLabelTransferTo(),
+    ];
+
+    BlockchainHelper._checkCommonTrTracesFields(model);
+    expect(~possibleValues.indexOf(model.tr_type)).toBeTruthy();
+    expect(model.tokens).toBeDefined();
+    expect(typeof model.tokens.active).toBe('number');
+    expect(model.tokens.currency).toBe('UOS');
+
+    UsersHelper.checkIncludedUserPreview(model);
   }
 
   /**
@@ -1059,18 +2171,8 @@ class BlockchainHelper {
    */
   static _checkTrStake(model) {
     BlockchainHelper._checkCommonTrTracesFields(model);
-    // TODO
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static _checkTrTransfer(model) {
-    BlockchainHelper._checkCommonTrTracesFields(model);
     expect(model.memo).toBe('');
-    expect(model.tr_type).toBe(BlockchainTrTypesDictionary.getTypeTransfer());
+    expect(model.tr_type).toBe(BlockchainTrTypesDictionary.getTypeStakeResources());
 
     expect(model.resources).toBeDefined();
 
@@ -1084,6 +2186,92 @@ class BlockchainHelper {
     expect(model.resources.net.tokens).toBeDefined();
     expect(model.resources.net.tokens.currency).toBe('UOS');
     expect(model.resources.net.tokens.self_delegated).toBeGreaterThanOrEqual(0);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @private
+   */
+  static _checkTrStakeWithUnstake(model) {
+    BlockchainHelper._checkCommonTrTracesFields(model);
+    expect(model.memo).toBe('');
+    expect(model.tr_type).toBe(BlockchainTrTypesDictionary.getTypeStakeWithUnstake());
+
+    expect(model.resources).toBeDefined();
+
+    expect(model.resources.cpu).toBeDefined();
+    expect(model.resources.cpu.tokens).toBeDefined();
+    expect(model.resources.cpu.tokens.currency).toBe('UOS');
+    expect(typeof model.resources.cpu.tokens.self_delegated).toBe('number');
+    expect(model.resources.cpu.tokens.self_delegated).toBeGreaterThanOrEqual(0);
+
+    expect(model.resources.cpu.unstaking_request).toBeDefined();
+    expect(model.resources.cpu.unstaking_request.amount).toBeGreaterThanOrEqual(0);
+
+    expect(model.resources.net).toBeDefined();
+    expect(model.resources.net.tokens).toBeDefined();
+    expect(model.resources.net.tokens.currency).toBe('UOS');
+    expect(typeof model.resources.net.tokens.self_delegated).toBe('number');
+    expect(model.resources.net.tokens.self_delegated).toBeGreaterThanOrEqual(0);
+    expect(model.resources.net.unstaking_request).toBeDefined();
+    expect(model.resources.net.unstaking_request.amount).toBeGreaterThanOrEqual(0);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @private
+   */
+  static _checkUnstakingRequest(model) {
+    BlockchainHelper._checkCommonTrTracesFields(model);
+    expect(model.memo).toBe('');
+    expect(model.tr_type).toBe(BlockchainTrTypesDictionary.getTypeUnstakingRequest());
+
+    expect(model.resources).toBeDefined();
+
+    expect(model.resources.cpu).toBeDefined();
+    expect(model.resources.cpu.tokens).not.toBeDefined();
+
+    expect(model.resources.cpu.unstaking_request).toBeDefined();
+    expect(model.resources.cpu.unstaking_request.amount).toBeGreaterThanOrEqual(0);
+    expect(model.resources.cpu.unstaking_request.currency).toBe('UOS');
+
+    expect(model.resources.net).toBeDefined();
+    expect(model.resources.net.tokens).not.toBeDefined();
+
+    expect(model.resources.net.unstaking_request).toBeDefined();
+    expect(model.resources.net.unstaking_request.amount).toBeGreaterThanOrEqual(0);
+    expect(model.resources.net.unstaking_request.currency).toBe('UOS');
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @private
+   */
+  static _checkTrVoteForBp(model) {
+    BlockchainHelper._checkCommonTrTracesFields(model);
+    expect(model.memo).toBe('');
+    expect(model.tr_type).toBe(BlockchainTrTypesDictionary.getTypeVoteForBp());
+
+    expect(Array.isArray(model.producers)).toBeTruthy();
+
+  }
+  /**
+   *
+   * @param {Object} model
+   * @private
+   */
+  static _getTypeEmission(model) {
+    BlockchainHelper._checkCommonTrTracesFields(model);
+
+    expect(model.memo).toBe('');
+    expect(model.tr_type).toBe(BlockchainTrTypesDictionary.getTypeClaimEmission());
+
+    expect(model.tokens).toBeDefined();
+    expect(model.tokens.emission).toBeGreaterThan(0);
+    expect(model.tokens.currency).toBe('UOS');
   }
 
   /**
