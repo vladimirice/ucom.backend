@@ -33,7 +33,7 @@ describe('Test auth workflow', () => {
     // TODO put here all positive scenarios
     it('Send correct login request with already existed user', async () => {
       const account_name = janeSeed.account_name;
-      const private_key = janeEosAccount.private_key;
+      const private_key = janeEosAccount.activePk;
       const public_key = janeSeed.public_key;
 
       const usersCountBefore = await models.Users.count({where: {account_name: account_name}});
@@ -57,12 +57,12 @@ describe('Test auth workflow', () => {
   it('Send correct auth request but with account which does not exist in blockchain', async () => {
     const account_name = 'testuser';
 
-    const sign = await EosJsEcc.sign(account_name, eosAccount.private_key);
+    const sign = await EosJsEcc.sign(account_name, eosAccount.activePk);
 
     const res = await request(server)
       .post(registerUrl)
       .field('account_name', account_name)
-      .field('public_key', eosAccount.public_key)
+      .field('public_key', eosAccount.activePubKey)
       .field('sign', sign)
     ;
 
@@ -100,7 +100,7 @@ describe('Test auth workflow', () => {
     const res = await request(server)
       .post(registerUrl)
       .field('account_name', eosAccount.account_name)
-      .field('public_key', eosAccount.public_key)
+      .field('public_key', eosAccount.activePubKey)
       .field('sign', 'invalidSign')
     ;
 
@@ -139,7 +139,7 @@ describe('Test auth workflow', () => {
 
   it('Send account name and sign of invalid private key', async () => {
     const account_name = janeSeed.account_name;
-    const private_key = vladEosAccount.private_key;
+    const private_key = vladEosAccount.activePk;
     const public_key = vladSeed.public_key;
 
     const sign = EosJsEcc.sign(account_name, private_key);

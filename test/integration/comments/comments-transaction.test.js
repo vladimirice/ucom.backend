@@ -7,7 +7,7 @@ const UsersActivityRepository = require('../../../lib/users/repository').Activit
 
 const CommentsRepository = require('../../../lib/comments/repository').Main;
 
-const { InteractionTypeDictionary } = require('uos-app-transaction');
+const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 let userVlad;
 let userJane;

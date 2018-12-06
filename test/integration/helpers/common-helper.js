@@ -7,7 +7,7 @@ const EventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
 
 const _ = require('lodash');
 
-const { ContentTypeDictionary } = require('uos-app-transaction');
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 
 require('jest-expect-message');

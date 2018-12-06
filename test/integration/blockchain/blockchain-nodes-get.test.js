@@ -1,6 +1,6 @@
 const helpers = require('../helpers');
 
-const { WalletApi } = require('uos-app-wallet');
+const { WalletApi } = require('ucom-libs-wallet');
 const _ = require('lodash');
 
 let userVlad, userJane, userPetr, userRokky;

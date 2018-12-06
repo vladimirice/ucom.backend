@@ -3,7 +3,7 @@ const delay = require('delay');
 const gen     = require('../../generators');
 
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
-const { ContentTypeDictionary, InteractionTypeDictionary } = require('uos-app-transaction');
+const { ContentTypeDictionary, InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const PostsRepository = require('../../../lib/posts/repository').Main;
 

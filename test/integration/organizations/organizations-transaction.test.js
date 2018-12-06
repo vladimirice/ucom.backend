@@ -4,7 +4,7 @@ const delay = require('delay');
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 const UsersRepositories = require('../../../lib/users/repository');
 
-const { ContentTypeDictionary } = require('uos-app-transaction');
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const ActivityGroupDictionary   = require('../../../lib/activity/activity-group-dictionary');
 const UsersActivityRepository   = require('../../../lib/users/repository').Activity;
 

@@ -1,6 +1,6 @@
 const helpers = require('../helpers');
 
-const { WalletApi } = require('uos-app-wallet');
+const { WalletApi } = require('ucom-libs-wallet');
 
 let userVlad, userJane, userPetr, userRokky;
 WalletApi.initForStagingEnv();
@@ -9,7 +9,7 @@ WalletApi.setNodeJsEnv();
 const _ = require('lodash');
 const initialMockFunction = WalletApi.getBlockchainNodes;
 
-const { TransactionSender } = require('uos-app-transaction');
+const { TransactionSender } = require('ucom-libs-social-transactions');
 
 TransactionSender.initForStagingEnv();
 

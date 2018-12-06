@@ -1,3 +1,5 @@
+const accountsData = require('../../config/accounts-data');
+
 const usersSeeds = [{
     // id = 1
     account_name: 'vlad',
@@ -20,7 +22,7 @@ const usersSeeds = [{
     first_currency: 'BTC',
     first_currency_year: '2008',
     personal_website_url: 'https://www.blockchain.com/',
-    private_key: '5Hq7Bb6ntCXJzEKSmELemLYhs3iUGX7wBh3CPUSgmEBLnnPSpX6',
+    private_key: accountsData.vlad.activePk,
   },
   {
     // id = 2
@@ -44,7 +46,7 @@ const usersSeeds = [{
     first_currency: 'ETH',
     first_currency_year: '2012',
     personal_website_url: 'https://bitcointalk.org/',
-    private_key: '5Ke5uSaPTQubXTJW9EVhzvK8mvTB1v28WfPpCostFpBk1Cx1EgN',
+    private_key: accountsData.jane.activePk,
   },
   {
     // id = 3
@@ -68,7 +70,7 @@ const usersSeeds = [{
     first_currency: 'BTH',
     first_currency_year: '2009',
     personal_website_url: 'https://example.com/',
-    private_key: '5KRL4nV8Gcp6AkrBjJDPvkDgxr1Jq3DrsorNApwax8m5eieg4Bj',
+    private_key: accountsData.petr.activePk,
   },
   {
     // id = 4

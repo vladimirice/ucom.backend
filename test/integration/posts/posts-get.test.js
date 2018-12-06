@@ -11,7 +11,7 @@ const PostHelper      = helpers.Posts;
 const RequestHelper   = helpers.Req;
 const ResponseHelper  = helpers.Res;
 
-const { ContentTypeDictionary } = require('uos-app-transaction');
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const PostsService = require('./../../../lib/posts/post-service');
 const PostsRepository = require('./../../../lib/posts/posts-repository');

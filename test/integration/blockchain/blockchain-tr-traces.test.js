@@ -2,7 +2,7 @@ const helpers = require('../helpers');
 
 const BlockchainTrTracesService     = require('../../../lib/eos/service/blockchain-tr-traces-service');
 const BlockchainTrTracesRepository  = require('../../../lib/eos/repository/blockchain-tr-traces-repository');
-const BlockchainTrTracesDictionary  = require('uos-app-wallet').Dictionary.BlockchainTrTraces;
+const BlockchainTrTracesDictionary  = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 helpers.Mock.mockAllBlockchainPart();
 helpers.Mock.mockAllTransactionSigning();
@@ -102,7 +102,7 @@ describe('Blockchain tr traces sync tests', () => {
 
     }, JEST_TIMEOUT);
 
-    it('Check TR_TYPE_CLAIM_EMISSION sync and fetch', async () => {
+    it.skip('Check TR_TYPE_CLAIM_EMISSION sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeClaimEmission();
 
       // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
@@ -130,7 +130,7 @@ describe('Blockchain tr traces sync tests', () => {
       expect(firstModel).toMatchObject(expectedFirstModel);
     }, JEST_TIMEOUT * 3);
 
-    it('Check TR_TYPE_BUY_RAM sync and fetch', async () => {
+    it.skip('Check TR_TYPE_BUY_RAM sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeBuyRamBytes();
 
       // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
@@ -156,7 +156,7 @@ describe('Blockchain tr traces sync tests', () => {
       const [expectedFirstModel] = helpers.Blockchain.getEtalonVladTrTraces();
 
       expect(firstModel).toMatchObject(expectedFirstModel);
-    });
+    }, JEST_TIMEOUT);
 
     it.skip('Check TR_TYPE_SELL_RAM sync and fetch', async () => {
 
@@ -201,7 +201,7 @@ describe('Blockchain tr traces sync tests', () => {
 
     }, 200000);
 
-    it('Check stakeResources sync and fetch', async () => {
+    it.skip('Check stakeResources sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeStakeResources();
 
       // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed

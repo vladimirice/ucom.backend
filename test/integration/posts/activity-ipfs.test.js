@@ -7,7 +7,7 @@ const IpfsApi = require('../../../lib/ipfs/ipfs-api');
 const PostJobSerializer = require('../../../lib/posts/post-job-serializer');
 const PostRepository = require('../../../lib/posts/posts-repository');
 const PostOfferRepository = require('../../../lib/posts/repository').PostOffer;
-const ContentTypeDictionary = require('uos-app-transaction').ContentTypeDictionary;
+const ContentTypeDictionary = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
 let userVlad;
 let userJane;

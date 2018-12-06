@@ -8,7 +8,7 @@ const PostRepository = require('../../../lib/posts/posts-repository');
 
 const PostStatsRepository = reqlib('/lib/posts/stats/post-stats-repository');
 
-const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
+const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
 const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
 require('jest-expect-message');

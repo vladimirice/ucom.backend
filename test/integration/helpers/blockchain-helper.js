@@ -10,11 +10,11 @@ const BlockchainService       = require('../../../lib/eos/service').Blockchain;
 const BlockchainModelProvider = require('../../../lib/eos/service').ModelProvider;
 
 const BlockchainNodesRepository = require('../../../lib/eos/repository').Main;
-const { TransactionSender } = require('uos-app-transaction');
+const { TransactionSender } = require('ucom-libs-social-transactions');
 
-const { WalletApi } = require('uos-app-wallet');
+const { WalletApi } = require('ucom-libs-wallet');
 
-const BlockchainTrTypesDictionary = require('uos-app-wallet').Dictionary.BlockchainTrTraces;
+const BlockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 const UsersHelper = require('./users-helper');
 

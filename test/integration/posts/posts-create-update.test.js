@@ -16,7 +16,7 @@ const PostStatsRepository     = require('../../../lib/posts/stats/post-stats-rep
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
-const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
+const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
 const PostsModelProvider      = require('../../../lib/posts/service').ModelProvider;
 const UsersModelProvider      = require('../../../lib/users/service').ModelProvider;
@@ -365,7 +365,7 @@ describe('Posts API', () => {
 
         it('Create direct post for org with picture', async () => {
           const orgId = await gen.Org.createOrgWithoutTeam(userJane);
-          
+
           const post = await gen.Posts.createDirectPostForOrganization(userVlad, orgId, null, true);
           expect(post.main_image_filename).toBeDefined();
 

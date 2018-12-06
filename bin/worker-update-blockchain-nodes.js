@@ -1,5 +1,5 @@
 const BlockchainService = require('../lib/eos/service').Blockchain;
-const { WalletApi }     = require('uos-app-wallet');
+const { WalletApi }     = require('ucom-libs-wallet');
 
 const { WorkerLogger } = require('../config/winston');
 

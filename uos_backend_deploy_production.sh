@@ -13,7 +13,7 @@ echo "Applying migrations done"
 echo "Lets make npm install"
 npm install --only=prod
 npm i uos-app-transaction
-npm i uos-app-wallet
+npm i ucom-libs-wallet
 echo "NPM install is done"
 echo "Lets restart pm2"
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 restart ecosystem-production.config.js --update-env

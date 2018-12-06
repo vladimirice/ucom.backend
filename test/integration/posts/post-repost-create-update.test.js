@@ -7,7 +7,7 @@ const PostsRepository         = require('../../../lib/posts/repository').MediaPo
 const UsersActivityRepository = require('../../../lib/users/repository').Activity;
 
 const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
-const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
+const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
 const PostsModelProvider      = require('../../../lib/posts/service').ModelProvider;
 

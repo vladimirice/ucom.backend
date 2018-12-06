@@ -8,7 +8,7 @@
     "connection_string": "postgresql://uos:uos@uos-backend-postgres-test.dev:5432/uos_backend_app"
   },
   "eos": {
-    "mongo_connection_string": "mongodb://uos:opinion4680@142.93.100.96:27017/?authMechanism=DEFAULT&authSource=EOS",
+    "mongo_connection_string": "mongodb://user:password@127.0.0.1:27017/?authMechanism=DEFAULT&authSource=EOS",
     "mongo_db_name": "EOS"
   },
   "db": {

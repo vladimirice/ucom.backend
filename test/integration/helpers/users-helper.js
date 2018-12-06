@@ -1,5 +1,6 @@
 const usersSeeds = require('../../../seeders/users/users');
-const eosAccounts = require('../../../seeders/users/eos_accounts');
+const accountsData = require('../../../config/accounts-data');
+
 const AuthService = require('../../../lib/auth/authService');
 const UsersRepository = require('../../../lib/users/users-repository');
 const RequestHelper = require('../helpers/request-helper');
@@ -438,7 +439,7 @@ class UsersHelper {
   }
 
   static getVladEosAccount() {
-    return eosAccounts[0];
+    return accountsData.vlad;
   }
 
   static getUserJaneSeed() {
@@ -446,7 +447,7 @@ class UsersHelper {
   }
 
   static getJaneEosAccount() {
-    return eosAccounts[1];
+    return accountsData.jane;
   }
 }
 

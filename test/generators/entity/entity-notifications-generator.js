@@ -1,7 +1,7 @@
 const RequestHelper   = require('../../integration/helpers').Req;
 const ResponseHelper  = require('../../integration/helpers').Res;
 
-const ContentTypeDictionary   = require('uos-app-transaction').ContentTypeDictionary;
+const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
 const faker = require('faker');
 
