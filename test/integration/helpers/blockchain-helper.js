@@ -986,11 +986,13 @@ class BlockchainHelper {
     const commonFields = [
       'updated_at',
       'tr_type',
-      'memo'
+      'memo',
+      'raw_tr_data'
     ];
 
     const trTypeToProcessor = {
-      [BlockchainTrTypesDictionary.getTypeTransfer()]: BlockchainHelper._checkTrTransfer,
+      [BlockchainTrTypesDictionary.getTypeTransfer()]:        BlockchainHelper._checkTrTransfer,
+      [BlockchainTrTypesDictionary.getTypeStakeResources()]:  BlockchainHelper._checkTrStake,
     };
 
     const trTypeToFieldSet = {
@@ -1055,6 +1057,16 @@ class BlockchainHelper {
    * @param {Object} model
    * @private
    */
+  static _checkTrStake(model) {
+    BlockchainHelper._checkCommonTrTracesFields(model);
+    // TODO
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @private
+   */
   static _checkTrTransfer(model) {
     BlockchainHelper._checkCommonTrTracesFields(model);
     expect(model.memo).toBe('');
@@ -1082,6 +1094,8 @@ class BlockchainHelper {
   static _checkCommonTrTracesFields(model) {
     expect(typeof model.updated_at).toBe('string');
     expect(model.updated_at.length).toBeGreaterThan(0);
+    expect(model.raw_tr_data).toBeDefined();
+    expect(Object.keys(model.raw_tr_data).length).toBeGreaterThan(0);
   }
 
   /**
