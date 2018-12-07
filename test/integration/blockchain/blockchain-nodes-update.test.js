@@ -30,6 +30,12 @@ describe('Blockchain nodes updating', () => {
 
   afterAll(async () => { await helpers.Seeds.doAfterAll(); });
 
+  describe('Some use cases not covered by tests yet', () => {
+    it.skip('should properly process situation - I voted for node but node is deleted from voters list', async () => {
+
+    });
+  });
+
   describe('Update users activity', () => {
     it('should create basic users activity of bp votes', async () => {
       const addToVote = {
