@@ -2,21 +2,16 @@
 . ~/.nvm/nvm.sh
 . ~/.bashrc
 
-cd /var/www/uos.app.backend.staging
+echo "Let's deploy on staging"
+cd /var/www/ucom.backend.staging
 pwd
 echo "Making git pull..."
 git pull
-echo "Git pull is ended"
+echo "Let's make npm install"
+npm install --only=prod
 echo "Applying migrations..."
 NODE_ENV=staging node_modules/.bin/sequelize db:migrate
-echo "Applying migrations done"
-echo "Lets make npm install"
-npm install --only=prod
-npm i uos-app-transaction
-npm i ucom-libs-wallet
-echo "NPM install is done"
-echo "Lets restart pm2"
+echo "Lets restart pm2 with update env and saving new configuration"
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 restart ecosystem-staging.config.js --update-env
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 save
-echo "Restart is finished"
-echo "Deploy is finished"
+echo "Deploy on staging is finished"
