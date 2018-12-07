@@ -178,6 +178,7 @@ EosApi.initTransactionFactory();
 
     try {
       const { accountData } = await UsersHelper.registerNewUser(accountName.toLowerCase());
+      console.log(JSON.stringify(accountData));
       accountsToWrite.push(accountData);
     } catch (e) {
       console.error(`Not possible to register user with account name ${accountName}. Skipped. Error message is: ${e.message}`);
