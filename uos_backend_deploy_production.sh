@@ -2,21 +2,15 @@
 . ~/.nvm/nvm.sh
 . ~/.bashrc
 
-cd /var/www/uos.app.backend
+cd /var/www/ucom.backend
 pwd
 echo "Making git pull..."
 git pull
-echo "Git pull is ended"
-echo "Applying migrations..."
-NODE_ENV=production node_modules/.bin/sequelize db:migrate
-echo "Applying migrations done"
 echo "Lets make npm install"
 npm install --only=prod
-npm i uos-app-transaction
-npm i ucom-libs-wallet
-echo "NPM install is done"
+echo "Applying migrations..."
+NODE_ENV=production node_modules/.bin/sequelize db:migrate
 echo "Lets restart pm2"
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 restart ecosystem-production.config.js --update-env
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 save
-echo "Restart is finished"
 echo "Deploy is finished"
