@@ -37,13 +37,13 @@ class UsersHelper {
   }
 
   /**
-   *
+   * @param {string|null} accountName
    * @link UsersAuthService#processNewUserRegistration
    */
-  static async registerNewUser() {
+  static async registerNewUser(accountName = null) {
     const brainKey = EosApi.generateBrainkey();
-    const accountName = EosApi.createRandomAccountName();
 
+    accountName = accountName || EosApi.createRandomAccountName();
     const [ privateOwnerKey, privateActiveKey ] = EosApi.getKeysByBrainkey(brainKey);
 
     // noinspection JSUnusedLocalSymbols
@@ -63,9 +63,24 @@ class UsersHelper {
 
     const res = await RequestHelper.makePostGuestRequestWithFields(url, fields);
 
-    ResponseHelper.expectStatusCreated(res);
+    if (res.status !== 201) {
+      throw new Error(`There is an error during request. Body is: ${JSON.stringify(res.body)}`);
+    }
 
-    return res.body;
+    // ResponseHelper.expectStatusCreated(res);
+
+    return {
+      body: res.body,
+      accountData: {
+        accountName,
+        brainKey,
+        privateKeyOwner:  privateOwnerKey,
+        publicKeyOwner:   ownerPublicKey,
+
+        privateKeyActive: privateActiveKey,
+        publicKeyActive:  activePublicKey,
+      }
+    };
   }
 
   /**

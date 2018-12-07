@@ -13,7 +13,7 @@ describe('Test registration workflow', () => {
   });
 
   it('Register new user', async () => {
-    const body = await helpers.Users.registerNewUser();
+    const {body} = await helpers.Users.registerNewUser();
 
     const patchResponse = await request(server)
       .patch('/api/v1/myself')
