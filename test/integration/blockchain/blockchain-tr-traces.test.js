@@ -1,6 +1,6 @@
 const helpers = require('../helpers');
 
-const BlockchainTrTracesService     = require('../../../lib/eos/service/blockchain-tr-traces-service');
+const BlockchainTrTracesService     = require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
 const BlockchainTrTracesRepository  = require('../../../lib/eos/repository/blockchain-tr-traces-repository');
 const BlockchainTrTracesDictionary  = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
@@ -166,6 +166,9 @@ describe('Blockchain tr traces sync tests', () => {
 
     it('Check typeTransfer sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeTransfer();
+      await BlockchainTrTracesService.syncMongoDbAndPostgres([trType]);
+
+      return;
 
       // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
       // Only if resync will happen
@@ -174,6 +177,7 @@ describe('Blockchain tr traces sync tests', () => {
       const idGreaterThan = '5c07debdf24a510c2ff5a843';
 
       await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], idGreaterThan, idLessThan);
+
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
       const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
