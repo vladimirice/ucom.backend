@@ -72,14 +72,14 @@ module.exports = {
         NODE_ENV: NODE_ENV
       },
     },
-    {
-      name: `${NODE_ENV}_sync_tr_traces`,
-      script: 'bin/worker-sync-tr-traces.js',
-      watch: false,
-      cron_restart: '*/2 * * * *',
-      env: {
-        NODE_ENV: NODE_ENV
-      },
-    },
+    // {
+    //   name: `${NODE_ENV}_sync_tr_traces`,
+    //   script: 'bin/worker-sync-tr-traces.js',
+    //   watch: false,
+    //   cron_restart: '*/2 * * * *',
+    //   env: {
+    //     NODE_ENV: NODE_ENV
+    //   },
+    // },
   ],
 };
