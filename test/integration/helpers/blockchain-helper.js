@@ -23,6 +23,367 @@ let privateKey = accountsData[accountName].activePk;
 
 class BlockchainHelper {
 
+  static getEtalonVladTrEmission() {
+    return [
+      {
+        // "id": "1",
+        "tr_type": 50,
+        "tr_processed_data": {
+          "tokens": {
+            "currency": "UOS",
+            "emission": 4075.2938
+          }
+        },
+        "memo": "",
+        "tr_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+        "external_id": "5c007f51f24a510c2fb94902",
+        "account_name_from": null,
+        "account_name_to": "vlad",
+        "raw_tr_data": {
+          "id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+          "_id": "5c007f51f24a510c2fb94902",
+          "except": null,
+          "elapsed": 2933,
+          "receipt": {
+            "status": "executed",
+            "cpu_usage_us": 3546,
+            "net_usage_words": 13
+          },
+          "createdAt": "2018-11-30T00:07:45.623Z",
+          "net_usage": 104,
+          "scheduled": false,
+          "block_data": {
+            "block_id": "00e5ca528753e676de4d55fdd8e613f62f25057b3641734c50e800a97e330339",
+            "producer": "calc5",
+            "block_num": 15059538,
+            "validated": true,
+            "executed_at": "2018-11-12T12:44:27.500",
+            "irreversible": true,
+            "previous_block_id": "00e5ca5116f451f3342ed0a4905ff2db0becf4a180fe5b0b3443086373f9dafd"
+          },
+          "action_traces": [
+            {
+              "act": {
+                "data": {
+                  "owner": "vlad"
+                },
+                "name": "withdrawal",
+                "account": "uos.calcs",
+                "hex_data": "0000000000904cdc",
+                "authorization": [
+                  {
+                    "actor": "vlad",
+                    "permission": "active"
+                  }
+                ]
+              },
+              "trx_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+              "console": "",
+              "elapsed": 995,
+              "receipt": {
+                "receiver": "uos.calcs",
+                "act_digest": "7c254361c8da8798e30eaa3a38ba8d22c80f7625c70dd61e83ffe6f86b6e1d62",
+                "abi_sequence": 1,
+                "auth_sequence": [
+                  [
+                    "vlad",
+                    1349
+                  ]
+                ],
+                "code_sequence": 1,
+                "recv_sequence": 1000861,
+                "global_sequence": 20139962
+              },
+              "cpu_usage": 0,
+              "inline_traces": [
+                {
+                  "act": {
+                    "data": {
+                      "to": "uos.calcs",
+                      "memo": "issue tokens for account",
+                      "quantity": "4075.2938 UOS"
+                    },
+                    "name": "issue",
+                    "account": "eosio.token",
+                    "hex_data": "0000c0281a0430d52ad76d020000000004554f530000000018697373756520746f6b656e7320666f72206163636f756e74",
+                    "authorization": [
+                      {
+                        "actor": "eosio",
+                        "permission": "active"
+                      }
+                    ]
+                  },
+                  "trx_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+                  "console": "",
+                  "elapsed": 716,
+                  "receipt": {
+                    "receiver": "eosio.token",
+                    "act_digest": "7df47fd784edabab99998d2c8d8fec1f3cf923f022532ae0e3261c93e7db5cb6",
+                    "abi_sequence": 2,
+                    "auth_sequence": [
+                      [
+                        "eosio",
+                        15059755
+                      ]
+                    ],
+                    "code_sequence": 2,
+                    "recv_sequence": 754,
+                    "global_sequence": 20139963
+                  },
+                  "cpu_usage": 0,
+                  "inline_traces": [
+                    {
+                      "act": {
+                        "data": {
+                          "to": "uos.calcs",
+                          "from": "eosio",
+                          "memo": "issue tokens for account",
+                          "quantity": "4075.2938 UOS"
+                        },
+                        "name": "transfer",
+                        "account": "eosio.token",
+                        "hex_data": "0000000000ea30550000c0281a0430d52ad76d020000000004554f530000000018697373756520746f6b656e7320666f72206163636f756e74",
+                        "authorization": [
+                          {
+                            "actor": "eosio",
+                            "permission": "active"
+                          }
+                        ]
+                      },
+                      "trx_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+                      "console": "",
+                      "elapsed": 402,
+                      "receipt": {
+                        "receiver": "eosio.token",
+                        "act_digest": "50ba64e63fbb82717da06fbea7d403b3a764e2bce66e4fc8c7dfaaafb15ab11a",
+                        "abi_sequence": 2,
+                        "auth_sequence": [
+                          [
+                            "eosio",
+                            15059756
+                          ]
+                        ],
+                        "code_sequence": 2,
+                        "recv_sequence": 755,
+                        "global_sequence": 20139964
+                      },
+                      "cpu_usage": 0,
+                      "inline_traces": [
+                        {
+                          "act": {
+                            "data": {
+                              "to": "uos.calcs",
+                              "from": "eosio",
+                              "memo": "issue tokens for account",
+                              "quantity": "4075.2938 UOS"
+                            },
+                            "name": "transfer",
+                            "account": "eosio.token",
+                            "hex_data": "0000000000ea30550000c0281a0430d52ad76d020000000004554f530000000018697373756520746f6b656e7320666f72206163636f756e74",
+                            "authorization": [
+                              {
+                                "actor": "eosio",
+                                "permission": "active"
+                              }
+                            ]
+                          },
+                          "trx_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+                          "console": "",
+                          "elapsed": 58,
+                          "receipt": {
+                            "receiver": "eosio",
+                            "act_digest": "50ba64e63fbb82717da06fbea7d403b3a764e2bce66e4fc8c7dfaaafb15ab11a",
+                            "abi_sequence": 2,
+                            "auth_sequence": [
+                              [
+                                "eosio",
+                                15059757
+                              ]
+                            ],
+                            "code_sequence": 2,
+                            "recv_sequence": 15060880,
+                            "global_sequence": 20139965
+                          },
+                          "cpu_usage": 0,
+                          "inline_traces": [],
+                          "total_cpu_usage": 0
+                        },
+                        {
+                          "act": {
+                            "data": {
+                              "to": "uos.calcs",
+                              "from": "eosio",
+                              "memo": "issue tokens for account",
+                              "quantity": "4075.2938 UOS"
+                            },
+                            "name": "transfer",
+                            "account": "eosio.token",
+                            "hex_data": "0000000000ea30550000c0281a0430d52ad76d020000000004554f530000000018697373756520746f6b656e7320666f72206163636f756e74",
+                            "authorization": [
+                              {
+                                "actor": "eosio",
+                                "permission": "active"
+                              }
+                            ]
+                          },
+                          "trx_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+                          "console": "",
+                          "elapsed": 48,
+                          "receipt": {
+                            "receiver": "uos.calcs",
+                            "act_digest": "50ba64e63fbb82717da06fbea7d403b3a764e2bce66e4fc8c7dfaaafb15ab11a",
+                            "abi_sequence": 2,
+                            "auth_sequence": [
+                              [
+                                "eosio",
+                                15059758
+                              ]
+                            ],
+                            "code_sequence": 2,
+                            "recv_sequence": 1000862,
+                            "global_sequence": 20139966
+                          },
+                          "cpu_usage": 0,
+                          "inline_traces": [],
+                          "total_cpu_usage": 0
+                        }
+                      ],
+                      "total_cpu_usage": 0
+                    }
+                  ],
+                  "total_cpu_usage": 0
+                },
+                {
+                  "act": {
+                    "data": {
+                      "to": "vlad",
+                      "from": "uos.calcs",
+                      "memo": "transfer issued tokens for account",
+                      "quantity": "4075.2938 UOS"
+                    },
+                    "name": "transfer",
+                    "account": "eosio.token",
+                    "hex_data": "0000c0281a0430d50000000000904cdc2ad76d020000000004554f5300000000227472616e736665722069737375656420746f6b656e7320666f72206163636f756e74",
+                    "authorization": [
+                      {
+                        "actor": "uos.calcs",
+                        "permission": "active"
+                      }
+                    ]
+                  },
+                  "trx_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+                  "console": "",
+                  "elapsed": 445,
+                  "receipt": {
+                    "receiver": "eosio.token",
+                    "act_digest": "7ca3f861289efa9d14a03af9357b06ade1ea0042d33827b56ceacdd9a05fc194",
+                    "abi_sequence": 2,
+                    "auth_sequence": [
+                      [
+                        "uos.calcs",
+                        999722
+                      ]
+                    ],
+                    "code_sequence": 2,
+                    "recv_sequence": 756,
+                    "global_sequence": 20139967
+                  },
+                  "cpu_usage": 0,
+                  "inline_traces": [
+                    {
+                      "act": {
+                        "data": {
+                          "to": "vlad",
+                          "from": "uos.calcs",
+                          "memo": "transfer issued tokens for account",
+                          "quantity": "4075.2938 UOS"
+                        },
+                        "name": "transfer",
+                        "account": "eosio.token",
+                        "hex_data": "0000c0281a0430d50000000000904cdc2ad76d020000000004554f5300000000227472616e736665722069737375656420746f6b656e7320666f72206163636f756e74",
+                        "authorization": [
+                          {
+                            "actor": "uos.calcs",
+                            "permission": "active"
+                          }
+                        ]
+                      },
+                      "trx_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+                      "console": "",
+                      "elapsed": 53,
+                      "receipt": {
+                        "receiver": "uos.calcs",
+                        "act_digest": "7ca3f861289efa9d14a03af9357b06ade1ea0042d33827b56ceacdd9a05fc194",
+                        "abi_sequence": 2,
+                        "auth_sequence": [
+                          [
+                            "uos.calcs",
+                            999723
+                          ]
+                        ],
+                        "code_sequence": 2,
+                        "recv_sequence": 1000863,
+                        "global_sequence": 20139968
+                      },
+                      "cpu_usage": 0,
+                      "inline_traces": [],
+                      "total_cpu_usage": 0
+                    },
+                    {
+                      "act": {
+                        "data": {
+                          "to": "vlad",
+                          "from": "uos.calcs",
+                          "memo": "transfer issued tokens for account",
+                          "quantity": "4075.2938 UOS"
+                        },
+                        "name": "transfer",
+                        "account": "eosio.token",
+                        "hex_data": "0000c0281a0430d50000000000904cdc2ad76d020000000004554f5300000000227472616e736665722069737375656420746f6b656e7320666f72206163636f756e74",
+                        "authorization": [
+                          {
+                            "actor": "uos.calcs",
+                            "permission": "active"
+                          }
+                        ]
+                      },
+                      "trx_id": "97a06b69bb3aa1728aaec96224127b2324983ef806a28f3e03579dc5891eb26d",
+                      "console": "",
+                      "elapsed": 3,
+                      "receipt": {
+                        "receiver": "vlad",
+                        "act_digest": "7ca3f861289efa9d14a03af9357b06ade1ea0042d33827b56ceacdd9a05fc194",
+                        "abi_sequence": 2,
+                        "auth_sequence": [
+                          [
+                            "uos.calcs",
+                            999724
+                          ]
+                        ],
+                        "code_sequence": 2,
+                        "recv_sequence": 16,
+                        "global_sequence": 20139969
+                      },
+                      "cpu_usage": 0,
+                      "inline_traces": [],
+                      "total_cpu_usage": 0
+                    }
+                  ],
+                  "total_cpu_usage": 0
+                }
+              ],
+              "total_cpu_usage": 0
+            }
+          ]
+        },
+        // "tr_executed_at": "2018-11-12T09:44:27.000Z",
+        // "mongodb_created_at": "2018-11-30T00:07:45.000Z",
+        // "created_at": "2018-12-10T18:20:18.085Z",
+        // "updated_at": "2018-12-10T18:20:18.085Z"
+      }
+    ]
+  }
+
   static getEtalonVladTrTraces() {
     return [
       {
