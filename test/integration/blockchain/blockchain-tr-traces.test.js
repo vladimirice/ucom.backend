@@ -1,6 +1,8 @@
+const moment = require('moment');
+
 const helpers = require('../helpers');
 
-const BlockchainTrTracesService     = require('../../../lib/eos/service/blockchain-tr-traces-service');
+const BlockchainTrTracesService     = require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
 const BlockchainTrTracesRepository  = require('../../../lib/eos/repository/blockchain-tr-traces-repository');
 const BlockchainTrTracesDictionary  = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
@@ -9,7 +11,7 @@ helpers.Mock.mockAllTransactionSigning();
 
 let userVlad, userJane, userPetr, userRokky;
 
-const JEST_TIMEOUT = 20000;
+const JEST_TIMEOUT = 40000;
 
 describe('Blockchain tr traces sync tests', () => {
   beforeAll(async () => {
@@ -61,7 +63,7 @@ describe('Blockchain tr traces sync tests', () => {
       expect(firstModel).toMatchObject(expectedFirstModel);
       expect(secondModel).toMatchObject(expectedSecondModel);
 
-    }, 20000);
+    }, JEST_TIMEOUT);
 
     it('Check TR_TYPE_UNSTAKING_REQUEST sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeUnstakingRequest();
@@ -102,7 +104,7 @@ describe('Blockchain tr traces sync tests', () => {
 
     }, JEST_TIMEOUT);
 
-    it.skip('Check TR_TYPE_CLAIM_EMISSION sync and fetch', async () => {
+    it('Check TR_TYPE_CLAIM_EMISSION sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeClaimEmission();
 
       // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
@@ -123,44 +125,16 @@ describe('Blockchain tr traces sync tests', () => {
 
       const orderBySet = ['external_id', 'ASC'];
       const [firstModel] =
-        await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
+      await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
 
-      const [expectedFirstModel] = helpers.Blockchain.getEtalonVladTrTraces();
-
-      expect(firstModel).toMatchObject(expectedFirstModel);
-    }, JEST_TIMEOUT * 3);
-
-    it.skip('Check TR_TYPE_BUY_RAM sync and fetch', async () => {
-      const trType = BlockchainTrTracesDictionary.getTypeBuyRamBytes();
-
-      // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
-      // Only if resync will happen
-      // Without hardcoded ids it will be a big delay in searching
-      const idLessThan    = '5c009373f24a510c2f01fd6e';
-      const idGreaterThan = '5c007f42f24a510c2fb91192';
-
-      await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], idGreaterThan, idLessThan);
-
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
-      expect(models.length).toBe(1);
-
-      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-
-      expect(models[0].tokens.emission).toBe(4075.2938);
-
-      const orderBySet = ['external_id', 'ASC'];
-      const [firstModel] =
-        await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
-
-      const [expectedFirstModel] = helpers.Blockchain.getEtalonVladTrTraces();
+      const [expectedFirstModel] = helpers.Blockchain.getEtalonVladTrEmission();
 
       expect(firstModel).toMatchObject(expectedFirstModel);
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 4);
 
-    it.skip('Check TR_TYPE_SELL_RAM sync and fetch', async () => {
+    it.skip('Check TR_TYPE_BUY_RAM sync and fetch', async () => {}, JEST_TIMEOUT);
 
-    });
+    it.skip('Check TR_TYPE_SELL_RAM sync and fetch', async () => {});
 
     it.skip('Check TR_TYPE_MYSELF_REGISTRATION sync and fetch', async () => {});
 
@@ -171,7 +145,7 @@ describe('Blockchain tr traces sync tests', () => {
       // Only if resync will happen
       // Without hardcoded ids it will be a big delay in searching
       const idLessThan    = '5c08e292f24a510c2ffdc7fb';
-      const idGreaterThan = '5c07debdf24a510c2ff5a843';
+      const idGreaterThan = '5c08e15af24a510c2ffdbe27';
 
       await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], idGreaterThan, idLessThan);
 
@@ -192,16 +166,19 @@ describe('Blockchain tr traces sync tests', () => {
 
       const orderBySet = ['external_id', 'ASC'];
       const [firstModel, secondModel] =
-        await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
+      await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
 
       const [expectedFirstModel, expectedSecondModel] = helpers.Blockchain.getEtalonVladTrTraces();
+
+      firstModel.tr_executed_at   = moment(firstModel.tr_executed_at).utc().unix();
+      secondModel.tr_executed_at  = moment(secondModel.tr_executed_at).utc().unix();
 
       expect(firstModel).toMatchObject(expectedFirstModel);
       expect(secondModel).toMatchObject(expectedSecondModel);
 
     }, 200000);
 
-    it.skip('Check stakeResources sync and fetch', async () => {
+    it('Check stakeResources sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeStakeResources();
 
       // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
@@ -217,11 +194,11 @@ describe('Blockchain tr traces sync tests', () => {
 
       expect(models.length).toBe(2);
 
-      expect(models[0].resources.net.tokens.self_delegated).toBe(8);
-      expect(models[0].resources.cpu.tokens.self_delegated).toBe(8);
+      expect(models[0].resources.net.tokens.self_delegated).toBe(80);
+      expect(models[0].resources.cpu.tokens.self_delegated).toBe(80);
 
-      expect(models[1].resources.net.tokens.self_delegated).toBe(80);
-      expect(models[1].resources.cpu.tokens.self_delegated).toBe(80);
+      expect(models[1].resources.net.tokens.self_delegated).toBe(8);
+      expect(models[1].resources.cpu.tokens.self_delegated).toBe(8);
 
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
 
