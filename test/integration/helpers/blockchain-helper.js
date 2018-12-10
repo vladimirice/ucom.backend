@@ -26,7 +26,7 @@ class BlockchainHelper {
   static getEtalonVladTrTraces() {
     return [
       {
-        // "id": "2",
+        // "id": "1",
         "tr_type": 12,
         "tr_processed_data": {
           "tokens": {
@@ -36,22 +36,31 @@ class BlockchainHelper {
         },
         "memo": "",
         "tr_id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
-        "external_id": "5c08e15af24a510c2ffdbe27",
+        "external_id": "5c08e15af24a510c2ffdbe2d",
         "account_name_from": "vlad",
         "account_name_to": "jane",
         "raw_tr_data": {
           "id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
-          "_id": "5c08e15af24a510c2ffdbe27",
+          "_id": "5c08e15af24a510c2ffdbe2d",
           "except": null,
-          "elapsed": 16754,
+          "elapsed": 1779,
           "receipt": {
             "status": "executed",
-            "cpu_usage_us": 16754,
+            "cpu_usage_us": 8087,
             "net_usage_words": 16
           },
-          "createdAt": "2018-12-06T08:44:10.449Z",
+          "createdAt": "2018-12-06T08:44:10.505Z",
           "net_usage": 128,
           "scheduled": false,
+          "block_data": {
+            "block_id": "0124a18ce6f2e6129c00bc39aa0598e91545d3ba02c72cd687f9bae56c3604b0",
+            "producer": "calc2",
+            "block_num": 19177868,
+            "validated": true,
+            "executed_at": "2018-12-06T08:44:10.500",
+            "irreversible": true,
+            "previous_block_id": "0124a18badc31de86903dd5f76fe413a622b567752886cd2973913153c0b5e8c"
+          },
           "action_traces": [
             {
               "act": {
@@ -73,7 +82,7 @@ class BlockchainHelper {
               },
               "trx_id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
               "console": "",
-              "elapsed": 4937,
+              "elapsed": 1419,
               "receipt": {
                 "receiver": "eosio.token",
                 "act_digest": "da60719110b967b43d3d19cc1dea86a125d0b8f0b6daa0ef4c02611fcfdda39c",
@@ -110,7 +119,7 @@ class BlockchainHelper {
                   },
                   "trx_id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
                   "console": "",
-                  "elapsed": 10,
+                  "elapsed": 7,
                   "receipt": {
                     "receiver": "vlad",
                     "act_digest": "da60719110b967b43d3d19cc1dea86a125d0b8f0b6daa0ef4c02611fcfdda39c",
@@ -149,7 +158,7 @@ class BlockchainHelper {
                   },
                   "trx_id": "5db9280470c27bd4452b6ff68809f642b3b2076c65e2bc289d06ebe6cce4402d",
                   "console": "",
-                  "elapsed": 951,
+                  "elapsed": 8,
                   "receipt": {
                     "receiver": "jane",
                     "act_digest": "da60719110b967b43d3d19cc1dea86a125d0b8f0b6daa0ef4c02611fcfdda39c",
@@ -173,13 +182,13 @@ class BlockchainHelper {
             }
           ]
         },
-        // "tr_executed_at": "2018-12-06T08:44:10.000Z",
+        "tr_executed_at": 1544075050,
         // "mongodb_created_at": "2018-12-06T08:44:10.000Z",
-        // "created_at": "2018-12-06T09:28:36.786Z",
-        // "updated_at": "2018-12-06T09:28:36.786Z"
+        // "created_at": "2018-12-10T15:05:56.515Z",
+        // "updated_at": "2018-12-10T15:05:56.515Z"
       },
       {
-        // "id": "4",
+        // "id": "2",
         "tr_type": 12,
         "tr_processed_data": {
           "tokens": {
@@ -205,6 +214,15 @@ class BlockchainHelper {
           "createdAt": "2018-12-06T08:44:13.154Z",
           "net_usage": 128,
           "scheduled": false,
+          "block_data": {
+            "block_id": "0124a192d2b3b67f7539f04248202e02d674eb91ff488ef82fdf303ad9853e7f",
+            "producer": "calc3",
+            "block_num": 19177874,
+            "validated": true,
+            "executed_at": "2018-12-06T08:44:13.500",
+            "irreversible": true,
+            "previous_block_id": "0124a191126f23c2fcc2aeaf3677d502a13b25a6f9de066694bebb35187b2fc9"
+          },
           "action_traces": [
             {
               "act": {
@@ -326,10 +344,10 @@ class BlockchainHelper {
             }
           ]
         },
-        // "tr_executed_at": "2018-12-06T08:44:13.000Z",
+        "tr_executed_at": 1544075053,
         // "mongodb_created_at": "2018-12-06T08:44:13.000Z",
-        // "created_at": "2018-12-06T09:28:36.786Z",
-        // "updated_at": "2018-12-06T09:28:36.786Z"
+        // "created_at": "2018-12-10T15:07:37.938Z",
+        // "updated_at": "2018-12-10T15:07:37.938Z"
       }
     ];
   }
@@ -2283,6 +2301,8 @@ class BlockchainHelper {
     expect(typeof model.updated_at).toBe('string');
     expect(model.updated_at.length).toBeGreaterThan(0);
     expect(model.raw_tr_data).toBeDefined();
+    expect(model.raw_tr_data.block_data).toBeDefined();
+    expect(Object.keys(model.raw_tr_data.block_data).length).toBe(7);
     expect(Object.keys(model.raw_tr_data).length).toBeGreaterThan(0);
   }
 

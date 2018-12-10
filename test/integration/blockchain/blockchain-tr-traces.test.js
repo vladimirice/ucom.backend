@@ -1,3 +1,5 @@
+const moment = require('moment');
+
 const helpers = require('../helpers');
 
 const BlockchainTrTracesService     = require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
@@ -166,18 +168,14 @@ describe('Blockchain tr traces sync tests', () => {
 
     it('Check typeTransfer sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeTransfer();
-      await BlockchainTrTracesService.syncMongoDbAndPostgres([trType]);
-
-      return;
 
       // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
       // Only if resync will happen
       // Without hardcoded ids it will be a big delay in searching
       const idLessThan    = '5c08e292f24a510c2ffdc7fb';
-      const idGreaterThan = '5c07debdf24a510c2ff5a843';
+      const idGreaterThan = '5c08e15af24a510c2ffdbe27';
 
       await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], idGreaterThan, idLessThan);
-
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
       const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
@@ -196,9 +194,12 @@ describe('Blockchain tr traces sync tests', () => {
 
       const orderBySet = ['external_id', 'ASC'];
       const [firstModel, secondModel] =
-        await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
+      await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
 
       const [expectedFirstModel, expectedSecondModel] = helpers.Blockchain.getEtalonVladTrTraces();
+
+      firstModel.tr_executed_at   = moment(firstModel.tr_executed_at).utc().unix();
+      secondModel.tr_executed_at  = moment(secondModel.tr_executed_at).utc().unix();
 
       expect(firstModel).toMatchObject(expectedFirstModel);
       expect(secondModel).toMatchObject(expectedSecondModel);
