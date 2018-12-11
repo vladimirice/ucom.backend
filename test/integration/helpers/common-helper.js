@@ -46,6 +46,7 @@ class CommonHelper {
     }
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {{myselfData: boolean, postProcessing: string}}
@@ -64,7 +65,7 @@ class CommonHelper {
    */
   static checkOneCommentPreviewWithRelations(comment, options) {
     CommentsHelper.checkOneCommentPreviewFields(comment, options);
-    UsersHelper.checkUserPreview(comment.User);
+    UsersHelper.checkIncludedUserPreview(comment);
 
     if (comment.organization_id) {
       OrgHelper.checkOneOrganizationPreviewFields(comment.organization);
@@ -413,7 +414,7 @@ class CommonHelper {
   /**
    *
    * @param {Object[]} posts
-   * @param {number} expectedLength
+   * @param {number|null} expectedLength
    * @param {Object} options
    */
   static checkPostsListFromApi(posts, expectedLength = null, options = {}) {

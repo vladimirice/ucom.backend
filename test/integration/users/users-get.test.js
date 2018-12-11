@@ -5,8 +5,6 @@ const helpers = require('../helpers');
 const UserHelper = require('./../helpers/users-helper');
 const SeedsHelper = require('./../helpers/seeds-helper');
 const UsersRepository = require('../../../lib/users/users-repository');
-const RequestHelper = require('../helpers/request-helper');
-const ResponseHelper = require('../helpers/response-helper');
 
 require('jest-expect-message');
 
@@ -42,21 +40,46 @@ describe('Users API', () => {
     expect(body.is_tracking_allowed).toBeFalsy();
   });
 
-  it('GET all users', async () => {
-    const res = await request(server)
-      .get(RequestHelper.getUsersUrl())
-    ;
+  describe('Sorting and pagination', () => {
+    it('Sort by allowed fields - smoke tests', async () => {
+      let queryString = helpers.Req.getPaginationQueryString(1, 2);
+      queryString += '&sort_by=-current_rate,created_at,-account_name,id';
+      queryString += '&v2=true';
 
-    ResponseHelper.expectStatusOk(res);
-
-    const sensitiveData = UsersRepository.getModel().getSensitiveData();
-
-    res.body.forEach(user => {
-      sensitiveData.forEach(field => {
-        expect(user[field], `Field ${field} is defined`).not.toBeDefined();
-      })
+      const users = await UserHelper.requestUserListAsGuest(queryString);
+      helpers.Users.checkManyUsersPreview(users);
     });
 
+    it('Get users with pagination', async () => {
+      let queryString = helpers.Req.getPaginationQueryString(1, 2);
+      queryString += '&v2=true';
+
+      const users = await UserHelper.requestUserListAsGuest(queryString);
+
+      expect(users.length).toBe(2);
+      helpers.Users.checkManyUsersPreview(users);
+
+      let queryStringFour = helpers.Req.getPaginationQueryString(1, 5);
+      queryStringFour += '&v2=true';
+
+      const usersFour = await UserHelper.requestUserListAsGuest(queryStringFour);
+      expect(usersFour.length).toBe(4);
+      helpers.Users.checkManyUsersPreview(usersFour);
+
+      // No envelope if no param
+      let url = helpers.Req.getUsersUrl();
+
+      const usersOld = await request(server)
+        .get(url)
+      ;
+
+      helpers.Res.expectStatusOk(usersOld);
+
+      expect(usersOld.body.data).not.toBeDefined();
+      expect(usersOld.body.metadata).not.toBeDefined();
+
+      helpers.Users.checkManyUsersPreview(usersOld.body)
+    });
   });
 
   it('GET user by ID without auth', async () => {

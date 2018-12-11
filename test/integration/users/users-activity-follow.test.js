@@ -171,7 +171,8 @@ describe('User to user activity', () => {
           ActivityHelper.requestToCreateFollow(userPetr, userJane)
         ]);
 
-        const users = await UserHelper.requestUserListAsGuest();
+        const queryString = '?v2=true';
+        const users = await UserHelper.requestUserListAsGuest(queryString);
 
         const userWithMyself = users.some(user => user.myselfData !== undefined);
 

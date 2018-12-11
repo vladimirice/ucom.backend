@@ -243,13 +243,24 @@ class UsersHelper {
     ResponseHelper.expectAllFieldsExistence(model.User, expected);
   }
 
+  /**
+   *
+   * @param {Object[]} users
+   */
+  static checkManyUsersPreview(users) {
+    users.forEach(user => {
+      this.checkUserPreview(user);
+    })
+  }
+
+  /**
+   *
+   * @param {Object} user
+   */
   static checkUserPreview(user) {
-    expect(user).toBeTruthy();
-
-    // TODO
-    const expected = UsersRepository.getModel().getFieldsForPreview().sort();
-
-    ResponseHelper.expectAllFieldsExistence(user, expected);
+    this.checkIncludedUserPreview({
+      User: user
+    });
   }
 
   /**
@@ -376,15 +387,19 @@ class UsersHelper {
 
   /**
    * @returns {Promise<Object[]>}
+   * @link UsersService#findAllAndProcessForList
    */
-  static async requestUserListAsGuest() {
+  static async requestUserListAsGuest(queryString = '', allowEmpty = false) {
+    let url = RequestHelper.getUsersUrl() + queryString;
+
     const res = await request(server)
-      .get(RequestHelper.getUsersUrl())
+      .get(url)
     ;
 
     ResponseHelper.expectStatusOk(res);
+    ResponseHelper.expectValidListResponse(res, allowEmpty);
 
-    return res.body;
+    return res.body.data;
   }
 
   /**

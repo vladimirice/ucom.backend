@@ -22,7 +22,7 @@ UsersRouter.get('/search', async (req, res) => {
 
 /* GET all users */
 UsersRouter.get('/', async function(req, res) {
-  const users = await getUserService(req).findAllAndProcessForList();
+  const users = await getUserService(req).findAllAndProcessForList(req.query);
 
   res.send(users);
 });
