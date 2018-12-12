@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const path = require('path');
 const { ApiLoggerStream, ApiLogger } = require('./config/winston');
 
-global.reqlib = require('app-root-path').require;
+global.reqlib = require('app-root-path').require; // deprecated
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users-route');
@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(diContainerMiddleware);
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'))); // #task - separate server to serve static files
 
 app.use(function (req, res, next) {
 
