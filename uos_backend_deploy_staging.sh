@@ -5,6 +5,8 @@
 echo "Let's deploy on staging"
 cd /var/www/ucom.backend.staging
 pwd
+git fetch
+git checkout staging
 echo "Making git pull..."
 git pull
 echo "Let's make npm install"
