@@ -4,6 +4,7 @@ const WEBSOCKET_SERVER_PORT = 5000;
 
 module.exports = {
   apps : [
+    // ================ Services ======================
     {
       name:           `${NODE_ENV}_backend`,
       instance_var:   'INSTANCE_ID',
@@ -26,6 +27,7 @@ module.exports = {
         autorestart:  true,
       },
     },
+    // ================ Consumers ======================
     {
       name:           `${NODE_ENV}_blockchain_consumer`,
       script:         'bin/blockchain-consumer.js',
@@ -45,6 +47,7 @@ module.exports = {
         NODE_ENV:     NODE_ENV,
       },
     },
+    // ================ Workers (CRON) ======================
     {
       name: `${NODE_ENV}_importance_worker`,
       script: 'bin/worker-update-importance.js',

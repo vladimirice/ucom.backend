@@ -4,6 +4,9 @@
     "profile_files_upload_dir": "/upload",
     "organization_files_upload_dir": "/upload/organizations"
   },
+  "frontend": {
+    "main_html_filename": "/home/vlad/Projects/uos/uos.app.backend/test/integration/static-renderer/template-sample.html"
+  },
   "db_knex": {
     "connection_string": "postgresql://uos:uos@uos-backend-postgres-test.dev:5432/uos_backend_app"
   },

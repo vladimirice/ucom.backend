@@ -1,9 +1,11 @@
 const NODE_ENV              = 'staging';
 const HTTP_SERVER_PORT      = 3001;
 const WEBSOCKET_SERVER_PORT = 5001;
+const STATIC_RENDERER_PORT  = 3010;
 
 module.exports = {
   apps : [
+    // ================ Services ======================
     {
       name:           `${NODE_ENV}_backend`,
       instance_var:   'INSTANCE_ID',
@@ -27,6 +29,18 @@ module.exports = {
       },
     },
     {
+      name:           `${NODE_ENV}_static_renderer`,
+      instance_var:   'INSTANCE_ID',
+      script:         'bin/service-static-renderer.js',
+      env: {
+        PORT:         STATIC_RENDERER_PORT,
+        NODE_ENV:     NODE_ENV,
+        watch:        false,
+        autorestart:  true,
+      },
+    },
+    // ================ Consumers ======================
+    {
       name:           `${NODE_ENV}_blockchain_consumer`,
       script:         'bin/blockchain-consumer.js',
       watch:          false,
@@ -45,6 +59,7 @@ module.exports = {
         NODE_ENV:     NODE_ENV,
       },
     },
+    // ================ Workers (CRON) ======================
     {
       name: `${NODE_ENV}_importance_worker`,
       script: 'bin/worker-update-importance.js',
