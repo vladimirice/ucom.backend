@@ -29,7 +29,7 @@ describe('Posts API', () => {
      */
     it('try to render simple post', async () => {
       const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
-      const url = `/posts/${postId}`;
+      const url = `/posts/${postId}?fid=32132132312`;
 
       const res = await request(server)
         .get(url)
