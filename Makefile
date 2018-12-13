@@ -56,11 +56,14 @@ deploy:
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy_staging.sh
 
-prod-logs:
-	ssh dev@5.9.119.5 'bash -s' < ./pm2_production_logs.sh
+production-logs pl:
+	ssh dev@5.9.119.5 'bash -s' < ./pm2_error_logs.sh production
+
+staging-logs sl:
+	ssh dev@5.9.119.5 'bash -s' < ./pm2_error_logs.sh staging
 
 prod-console:
-	ssh dev@5.9.119.5 'bash -s' < ./pm2_api_console.sh
+	ssh dev@5.9.119.5 'bash -s' < ./pm2_console_logs.sh production_backend
 
 ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
