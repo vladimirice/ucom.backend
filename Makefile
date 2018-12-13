@@ -53,6 +53,7 @@ deploy-frontend:
 	ssh dev@5.9.119.5 bash deploy_frontend
 
 deploy:
+	git checkout staging
 	git push
 	ssh dev@5.9.119.5 'bash -s' < ./uos_backend_deploy_staging.sh
 
