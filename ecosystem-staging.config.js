@@ -10,6 +10,7 @@ module.exports = {
       name:           `${NODE_ENV}_backend`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/www',
+      instances:      'max',
       watch:          false,
       autorestart:    true,
       env: {

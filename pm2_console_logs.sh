@@ -2,4 +2,4 @@
 . ~/.nvm/nvm.sh
 . ~/.bashrc
 
-pm2 logs uos_backend
+pm2 logs $1 --lines=100
