@@ -38,7 +38,9 @@ describe('Blockchain nodes get', () => {
       ];
 
       const queryString = `?sort_by=${fieldsToSort.join(',')}`;
-      await helpers.Blockchain.requestToGetNodesList(null, false, 200, queryString);
+      const data = await helpers.Blockchain.requestToGetNodesList(null, false, 200, queryString);
+
+      helpers.Blockchain.checkManyProducers(data, false);
     });
   });
 

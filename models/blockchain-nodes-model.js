@@ -53,5 +53,11 @@ module.exports = (db, Sequelize) => {
     ];
   };
 
+  Model.getPostProcessingFields = function () {
+    return [
+      'votes_percentage',
+    ];
+  };
+
   return Model;
 };

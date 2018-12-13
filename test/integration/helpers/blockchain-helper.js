@@ -2688,7 +2688,9 @@ class BlockchainHelper {
     expect(model).not.toBeNull();
     expect(typeof model).toBe('object');
 
-    const expected = BlockchainModelProvider.getFieldsForPreview();
+    const expected = BlockchainModelProvider.getFieldsForPreview().concat(
+      BlockchainModelProvider.getModel().getPostProcessingFields()
+    );
 
     if (isMyselfDataRequired) {
       expected.push('myselfData');
@@ -2712,6 +2714,8 @@ class BlockchainHelper {
     expect(model.currency).toBe('UOS');
 
     expect([1, 2]).toContain(model.bp_status);
+    expect(model.votes_percentage).toBeDefined();
+    expect(typeof model.votes_percentage).toBe('number');
 
     if (isMyselfDataRequired) {
       expect(model.myselfData).toBeDefined();
