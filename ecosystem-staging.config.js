@@ -34,6 +34,8 @@ module.exports = {
       name:           `${NODE_ENV}_app_static_renderer`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/app-static-renderer.js',
+      instances:      'max',
+      exec_mode:      'cluster',
       env: {
         PORT:         STATIC_RENDERER_PORT,
         NODE_ENV:     NODE_ENV,

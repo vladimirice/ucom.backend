@@ -14,6 +14,6 @@ npm install --only=prod
 echo "Applying migrations..."
 NODE_ENV=staging node_modules/.bin/sequelize db:migrate
 echo "Lets restart pm2 with update env and saving new configuration"
-/home/dev/.nvm/versions/node/v10.9.0/bin/pm2 restart ecosystem-staging.config.js --update-env
+/home/dev/.nvm/versions/node/v10.9.0/bin/pm2 reload ecosystem-staging.config.js --update-env
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 save
 echo "Deploy on staging is finished"
