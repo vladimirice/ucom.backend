@@ -5,7 +5,7 @@ const STATIC_RENDERER_PORT  = 3010;
 
 module.exports = {
   apps : [
-    // ================ Services ======================
+    // ================ Apps (interaction with user) =============
     {
       name:           `${NODE_ENV}_backend`,
       instance_var:   'INSTANCE_ID',
@@ -29,9 +29,9 @@ module.exports = {
       },
     },
     {
-      name:           `${NODE_ENV}_static_renderer`,
+      name:           `${NODE_ENV}_app_static_renderer`,
       instance_var:   'INSTANCE_ID',
-      script:         'bin/service-static-renderer.js',
+      script:         'bin/app-static-renderer.js',
       env: {
         PORT:         STATIC_RENDERER_PORT,
         NODE_ENV:     NODE_ENV,

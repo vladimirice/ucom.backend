@@ -4,7 +4,7 @@ const WEBSOCKET_SERVER_PORT = 5000;
 
 module.exports = {
   apps : [
-    // ================ Services ======================
+    // ================ Apps (interaction with user) =============
     {
       name:           `${NODE_ENV}_backend`,
       instance_var:   'INSTANCE_ID',
