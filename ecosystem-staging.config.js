@@ -11,6 +11,7 @@ module.exports = {
       instance_var:   'INSTANCE_ID',
       script:         'bin/www',
       instances:      'max',
+      exec_mode:      'cluster',
       watch:          false,
       autorestart:    true,
       env: {
