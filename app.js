@@ -1,14 +1,12 @@
-const createError = require('http-errors');
-require('express-async-errors');
 const express = require('express');
-const cookieParser = require('cookie-parser');
-const morgan = require('morgan');
-const path = require('path');
-const { ApiLoggerStream, ApiLogger } = require('./config/winston');
+const path    = require('path');
 
-global.reqlib = require('app-root-path').require; // deprecated
+const { ApiLoggerStream, ApiLogger }  = require('./config/winston');
+const ApiErrorAndLoggingHelper        = require('./lib/api/helpers/api-error-and-logging-helper');
+const diContainerMiddleware           = require('./lib/api/di-container-middleware');
 
-const indexRouter = require('./routes/index');
+const EosApi                          = require('./lib/eos/eosApi');
+
 const usersRouter = require('./routes/users-route');
 const authRouter = require('./routes/auth');
 const myselfRouter = require('./routes/myself-router');
@@ -19,24 +17,18 @@ const blockchainRouter = require('./routes/blockchain/blockchain-router');
 const communityRouter = require('./routes/community-router');
 const partnershipRouter = require('./routes/partnership-router');
 
-const errorMiddleware = require('./lib/api/error-middleware');
-const diContainerMiddleware = require('./lib/api/di-container-middleware');
-const EosApi = require('./lib/eos/eosApi');
-
 const app = express();
 
-process.on('uncaughtException', (ex) => { ApiLogger.error(ex); });
-process.on('unhandledRejection', (ex) => { throw ex; });
-
-app.use(morgan('combined', { stream: ApiLoggerStream }));
+// only for autotests - check is file upload
+if (process.env.NODE_ENV === 'test') {
+  app.use(express.static(path.join(__dirname, 'public'))); // #task - separate server to serve static files
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(diContainerMiddleware);
 
-app.use(express.static(path.join(__dirname, 'public'))); // #task - separate server to serve static files
-
+// #task - very weak origin policy
 app.use(function (req, res, next) {
 
   // Website you wish to allow to connect
@@ -58,7 +50,6 @@ app.use(function (req, res, next) {
 
 EosApi.initTransactionFactory();
 
-app.use('/api/v1', indexRouter);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/myself', myselfRouter);
@@ -71,11 +62,6 @@ app.use('/api/v1/community', communityRouter);
 app.use('/api/v1/partnership', partnershipRouter);
 require('./lib/auth/passport');
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
-app.use(errorMiddleware);
+ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
 
 module.exports = app;

@@ -1,12 +1,10 @@
-const reqlib = require('app-root-path').require;
-
 const request = require('supertest');
 const server = require('../../../app');
 const RequestHelper = require('./request-helper');
 const ResponseHelper = require('./response-helper');
 const PostRepository = require('../../../lib/posts/posts-repository');
 
-const PostStatsRepository = reqlib('/lib/posts/stats/post-stats-repository');
+const PostStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
 
 const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
 const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');

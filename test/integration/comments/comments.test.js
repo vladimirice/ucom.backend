@@ -1,12 +1,10 @@
 const request = require('supertest');
 const _ = require('lodash');
 const server = require('../../../app');
-const reqlib = require('app-root-path').require;
-
 const helpers = require('../helpers');
 
-const CommentsRepository = reqlib('/lib/comments/comments-repository');
-const PostService = reqlib('/lib/posts/post-service');
+const CommentsRepository  = require('../../../lib/comments/comments-repository');
+const PostService         = require('../../../lib/posts/post-service');
 
 let userVlad, userJane;
 

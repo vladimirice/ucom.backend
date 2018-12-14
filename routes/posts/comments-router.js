@@ -1,7 +1,7 @@
 const express = require('express');
 
 const router = express.Router();
-const authTokenMiddleWare = reqlib('/lib/auth/auth-token-middleware');
+const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
 const {AppError, BadRequestError} = require('../../lib/api/errors');
 const CommentsRepository = require('../../lib/comments/comments-repository');
 const { cpUploadArray } = require('../../lib/organizations/middleware/organization-create-edit-middleware');

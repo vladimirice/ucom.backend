@@ -7,13 +7,13 @@ cd /var/www/ucom.backend.staging
 pwd
 git fetch
 git checkout staging
-echo "Making git pull..."
+echo "Making git pull"
 git pull
-echo "Let's make npm install"
-npm install --only=prod
+echo "Let's make npm ci, ignore scripts and install only for production"
+npm ci --ignore-scripts --only=production
 echo "Applying migrations..."
 NODE_ENV=staging node_modules/.bin/sequelize db:migrate
-echo "Lets restart pm2 with update env and saving new configuration"
+echo "Lets reload pm2 with update env and saving new configuration"
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 reload ecosystem-staging.config.js --update-env
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 save
 echo "Deploy on staging is finished"

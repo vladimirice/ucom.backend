@@ -1,7 +1,5 @@
 const request = require('supertest');
 const server = require('../../../app');
-const reqlib = require('app-root-path').require;
-
 const gen = require('../../generators');
 
 const helpers = require('../helpers');
@@ -9,7 +7,7 @@ const helpers = require('../helpers');
 const UserHelper = require('../helpers/users-helper');
 const SeedsHelper = require('../helpers/seeds-helper');
 const ResponseHelper = require('../helpers/response-helper');
-const CommentsRepository = reqlib('/lib/comments/comments-repository');
+const CommentsRepository = require('../../../lib/comments/comments-repository');
 const CommentsHelper = require('../helpers/comments-helper');
 const PostHelper = require('../helpers/posts-helper');
 const ActivityUserCommentRepository = require('../../../lib/activity/activity-user-comment-repository');
