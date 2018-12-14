@@ -1,3 +1,5 @@
+const accountsData = require('../../../config/accounts-data');
+
 const RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
 class EosTransactionHelper {
@@ -38,7 +40,7 @@ class EosTransactionHelper {
               "name": "makecontent",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
@@ -66,7 +68,7 @@ class EosTransactionHelper {
               "name": "makecontorg",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
@@ -94,7 +96,7 @@ class EosTransactionHelper {
               "name": "dirpost",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
@@ -122,7 +124,7 @@ class EosTransactionHelper {
               "name": "dirpostorg",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
@@ -179,7 +181,7 @@ class EosTransactionHelper {
               "name": "makecontent",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
@@ -207,7 +209,7 @@ class EosTransactionHelper {
               "name": "usertocont",
               "authorization": [
                 {
-                  "actor": "jane",
+                  "actor": accountsData.jane.account_name,
                   "permission": "active"
                 }
               ],
@@ -240,12 +242,12 @@ class EosTransactionHelper {
               "name": "makecontent",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
               "data": {
-                "acc": "vlad",
+                "acc": accountsData.vlad.account_name,
                 "content_type_id": 4,
                 "parent_content_id": "",
               },
@@ -277,12 +279,12 @@ class EosTransactionHelper {
               "name": "makecontorg",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
               "data": {
-                "acc": "vlad",
+                "acc": accountsData.vlad.account_name,
                 "content_type_id": 1,
                 "parent_content_id": "",
               },
@@ -314,12 +316,12 @@ class EosTransactionHelper {
               "name": "dirpost",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
               "data": {
-                "acc": "vlad",
+                "acc": accountsData.vlad.account_name,
                 "content_type_id": 10,
               },
             },
@@ -349,12 +351,12 @@ class EosTransactionHelper {
               "name": "dirpostorg",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
               "data": {
-                "acc": "vlad",
+                "acc": accountsData.vlad.account_name,
                 "content_type_id": 10,
               },
             },
@@ -421,12 +423,12 @@ class EosTransactionHelper {
               "name": "makecontent",
               "authorization": [
                 {
-                  "actor": "vlad",
+                  "actor": accountsData.vlad.account_name,
                   "permission": "active"
                 }
               ],
               "data": {
-                "acc": "vlad",
+                "acc": accountsData.vlad.account_name,
                 "content_type_id": postTypeId,
                 "parent_content_id": "",
               },

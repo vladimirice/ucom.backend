@@ -1,6 +1,7 @@
 const moment = require('moment');
 
 const helpers = require('../helpers');
+const gen     = require('../../generators');
 
 const BlockchainTrTracesService     = require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
 const BlockchainTrTracesRepository  = require('../../../lib/eos/repository/blockchain-tr-traces-repository');
@@ -27,41 +28,113 @@ describe('Blockchain tr traces sync tests', () => {
   });
 
   describe('check sync', function () {
+    it('Check stakeResources sync and fetch', async () => {
+      const accountAlias = 'vlad';
+
+      const netAmountSeparated = 2;
+      const cpuAmountSeparated = 3;
+
+      const netAmountBoth = 4;
+      const cpuAmountBoth = 5;
+
+      const [netSeparatedTr, cpuSeparatedTr, bothTr] = await Promise.all([
+        gen.BlockchainTr.createStakeOrUnstake(accountAlias, netAmountSeparated, 0),
+        gen.BlockchainTr.createStakeOrUnstake(accountAlias, 0, cpuAmountSeparated),
+        gen.BlockchainTr.createStakeOrUnstake(accountAlias, netAmountBoth, cpuAmountBoth),
+      ]);
+
+      const trType = BlockchainTrTracesDictionary.getTypeStakeResources();
+
+      await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], [netSeparatedTr, cpuSeparatedTr, bothTr]);
+
+      const queryString = helpers.Req.getPaginationQueryString(1, 10);
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
+
+      expect(models.length).toBe(3);
+
+      let checked = 0;
+      models.forEach(model => {
+        if (model.raw_tr_data.id === netSeparatedTr) {
+          expect(model.resources.net.tokens.self_delegated).toBe(netAmountSeparated);
+          expect(model.resources.cpu.tokens.self_delegated).toBe(0);
+          checked++;
+        } else if (model.raw_tr_data.id === cpuSeparatedTr) {
+          expect(model.resources.net.tokens.self_delegated).toBe(0);
+          expect(model.resources.cpu.tokens.self_delegated).toBe(cpuAmountSeparated);
+          checked++;
+        } else if (model.raw_tr_data.id === bothTr) {
+          expect(model.resources.net.tokens.self_delegated).toBe(netAmountBoth);
+          expect(model.resources.cpu.tokens.self_delegated).toBe(cpuAmountBoth);
+          checked++;
+        }
+      });
+
+      expect(checked).toBe(3);
+
+      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
+
+      // #task strict comparison
+
+      // const orderBySet = ['external_id', 'ASC'];
+      // const [firstModel, secondModel, thirdModel] =
+      //   await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
+
+      // const [expectedFirstModel, expectedSecondModel, expectedThirdModel] =
+      //   helpers.Blockchain.getEthalonVladStakeTrTrace(userVlad.account_name);
+
+      // expect(firstModel).toMatchObject(expectedFirstModel);
+      // expect(secondModel).toMatchObject(expectedSecondModel);
+      // expect(thirdModel).toMatchObject(expectedThirdModel);
+    }, JEST_TIMEOUT);
+
     it('Check TR_TYPE_STAKE_WITH_UNSTAKE sync and fetch', async () => {
+      const userAlias = 'vlad';
+
+      const trOneNet = -1;
+      const trOneCpu = 4;
+
+      const trTwoNet = 3;
+      const trTwoCpu = -2;
+
+      const [trOne, trTwo] = await Promise.all([
+        gen.BlockchainTr.createStakeOrUnstake(userAlias, trOneNet, trOneCpu),
+        gen.BlockchainTr.createStakeOrUnstake(userAlias, trTwoNet, trTwoCpu),
+      ]);
+
       const trType = BlockchainTrTracesDictionary.getTypeStakeWithUnstake();
+      await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
 
-      // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
-      // Only if resync will happen
-      // Without hardcoded ids it will be a big delay in searching
-      const idLessThan    = '5c08f5fcf24a510c2fffd8da';
-      const idGreaterThan = '5c00b648f24a510c2f9e11c1';
-
-      await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], idGreaterThan, idLessThan);
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
       const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
       expect(models.length).toBe(2);
 
+
+      let checked = 0;
+      models.forEach(model => {
+        if (model.raw_tr_data.id === trOne) {
+          expect(model.resources.cpu.tokens.self_delegated).toBe(trOneCpu);
+          expect(model.resources.net.unstaking_request.amount).toBe(Math.abs(trOneNet));
+          checked++;
+        } else if (model.raw_tr_data.id === trTwo) {
+          expect(model.resources.net.tokens.self_delegated).toBe(trTwoNet);
+          expect(model.resources.cpu.unstaking_request.amount).toBe(Math.abs(trTwoCpu));
+          checked++;
+        }
+      });
+
+      expect(checked).toBe(2);
+
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
 
-      expect(models[0].resources.net.tokens.self_delegated).toBe(3);
-      expect(models[0].resources.net.unstaking_request.amount).toBe(0);
-      expect(models[0].resources.cpu.tokens.self_delegated).toBe(0);
-      expect(models[0].resources.cpu.unstaking_request.amount).toBe(7);
-
-      expect(models[1].resources.net.tokens.self_delegated).toBe(0);
-      expect(models[1].resources.net.unstaking_request.amount).toBe(3);
-      expect(models[1].resources.cpu.tokens.self_delegated).toBe(2);
-      expect(models[1].resources.cpu.unstaking_request.amount).toBe(0);
-
-      const orderBySet = ['external_id', 'ASC'];
-      const [firstModel, secondModel] =
-        await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
-
-      const [expectedFirstModel, expectedSecondModel] = helpers.Blockchain.getEtalonVladStakeWithUnstake();
-
-      expect(firstModel).toMatchObject(expectedFirstModel);
-      expect(secondModel).toMatchObject(expectedSecondModel);
+      // const orderBySet = ['external_id', 'ASC'];
+      // const [firstModel, secondModel] =
+      //   await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
+      //
+      // const [expectedFirstModel, expectedSecondModel] = helpers.Blockchain.getEtalonVladStakeWithUnstake();
+      //
+      // expect(firstModel).toMatchObject(expectedFirstModel);
+      // expect(secondModel).toMatchObject(expectedSecondModel);
 
     }, JEST_TIMEOUT);
 
@@ -178,39 +251,6 @@ describe('Blockchain tr traces sync tests', () => {
 
     }, 200000);
 
-    it('Check stakeResources sync and fetch', async () => {
-      const trType = BlockchainTrTracesDictionary.getTypeStakeResources();
-
-      // Hardcoded values from the "past" of blockchain. It is expected than these values will not be changed
-      // Only if resync will happen
-      // Without hardcoded ids it will be a big delay in searching
-      const idLessThan    = '5c0084d9f24a510c2fcc2881';
-      const idGreaterThan = '5c0076b2f24a510c2f9bae82';
-
-      await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], idGreaterThan, idLessThan);
-
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad, 200, queryString);
-
-      expect(models.length).toBe(2);
-
-      expect(models[0].resources.net.tokens.self_delegated).toBe(80);
-      expect(models[0].resources.cpu.tokens.self_delegated).toBe(80);
-
-      expect(models[1].resources.net.tokens.self_delegated).toBe(8);
-      expect(models[1].resources.cpu.tokens.self_delegated).toBe(8);
-
-      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-
-      const orderBySet = ['external_id', 'ASC'];
-      const [firstModel, secondModel] =
-        await BlockchainTrTracesRepository.findAllTrTracesWithAllDataByAccountName(userVlad.account_name, orderBySet);
-
-      const [expectedFirstModel, expectedSecondModel] = helpers.Blockchain.getEthalonVladStakeTrTrace();
-
-      expect(firstModel).toMatchObject(expectedFirstModel);
-      expect(secondModel).toMatchObject(expectedSecondModel);
-    }, 200000);
 
     it('Check voteForBP sync and fetch', async () => {
       const trType = BlockchainTrTracesDictionary.getTypeVoteForBp();
@@ -247,6 +287,10 @@ describe('Blockchain tr traces sync tests', () => {
       expect(firstModel).toMatchObject(expectedFirstModel);
       expect(secondModel).toMatchObject(expectedSecondModel);
     }, JEST_TIMEOUT);
+  });
+
+  it.skip('test real tr block data from blockchain', async () => {
+    // now there is a mockup inside blockchain tr traces processor
   });
 
   describe('Send new transactions and check that sync is working for them', () => {

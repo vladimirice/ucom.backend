@@ -2,8 +2,8 @@ const accountsData = require('../../config/accounts-data');
 
 const usersSeeds = [{
     // id = 1
-    account_name: 'vlad',
-    nickname: 'vlad',
+    account_name: accountsData.vlad.account_name,
+    nickname: accountsData.vlad.account_name,
     first_name: 'Vlad',
     last_name: 'Ivanov',
     email: 'vlad.ivanov@gmail.com',
@@ -17,7 +17,7 @@ const usersSeeds = [{
     created_at: new Date(),
     updated_at: new Date(),
     avatar_filename: null,
-    public_key: 'EOS7u9ckBz7Qi3LVsN7kM9wViX7Qya7XL5eWZg3vg6nKARyk8xV8U',
+    public_key: accountsData.vlad.activePubKey,
     currency_to_show: 'ETH',
     first_currency: 'BTC',
     first_currency_year: '2008',
@@ -26,8 +26,8 @@ const usersSeeds = [{
   },
   {
     // id = 2
-    account_name: 'jane',
-    nickname: 'jane',
+    account_name: accountsData.jane.account_name,
+    nickname: accountsData.jane.account_name,
     first_name: 'Jane',
     last_name: 'Ivanova',
     email: 'jane.ivanova@example.com',
@@ -41,7 +41,7 @@ const usersSeeds = [{
     created_at: new Date(),
     updated_at: new Date(),
     avatar_filename: null,
-    public_key: 'EOS5SURs5Evb2e3ybaxFdRvLjLzqHUixx7SJEHz1uqTLy36C7MRsm',
+    public_key: accountsData.jane.activePubKey,
     currency_to_show: 'EOS',
     first_currency: 'ETH',
     first_currency_year: '2012',
@@ -50,8 +50,8 @@ const usersSeeds = [{
   },
   {
     // id = 3
-    account_name: 'petr',
-    nickname: 'petr',
+    account_name: accountsData.petr.account_name,
+    nickname: accountsData.petr.account_name,
     first_name: 'Petr',
     last_name: 'Pavlov',
     email: 'petr.pavlov@example.com',
@@ -65,7 +65,7 @@ const usersSeeds = [{
     created_at: new Date(),
     updated_at: new Date(),
     avatar_filename: null,
-    public_key: 'sample_public_key',
+    public_key: accountsData.petr.activePubKey,
     currency_to_show: 'BTH',
     first_currency: 'BTH',
     first_currency_year: '2009',
@@ -74,8 +74,8 @@ const usersSeeds = [{
   },
   {
     // id = 4
-    account_name: 'rokky',
-    nickname: 'rokky',
+    account_name: accountsData.rokky.account_name,
+    nickname: accountsData.rokky.account_name,
     first_name: 'Rokky',
     last_name: 'Semenov',
     email: 'rokky.semenov@example.com',
@@ -89,11 +89,12 @@ const usersSeeds = [{
     created_at: new Date(),
     updated_at: new Date(),
     avatar_filename: null,
-    public_key: 'sample_public_key_2',
+    public_key: accountsData.rokky.activePubKey,
     currency_to_show: 'ETH',
     first_currency: 'ETH',
     first_currency_year: '2015',
-    personal_website_url: 'https://example2.org/'
+    personal_website_url: 'https://example2.org/',
+    private_key: accountsData.rokky.activePk
   },
 ];
 

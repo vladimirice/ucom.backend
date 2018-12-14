@@ -407,7 +407,9 @@ class UsersHelper {
    * @returns {Promise<Object>}
    */
   static async getUserPetr() {
-    const fromDb = await UsersRepository.getUserByAccountName('petr');
+    const userAccountData = accountsData.petr;
+
+    const fromDb = await UsersRepository.getUserByAccountName(userAccountData.account_name);
     expect(fromDb).toBeDefined();
 
     const data = {
@@ -427,7 +429,9 @@ class UsersHelper {
    * @returns {Promise<Object>}
    */
   static async getUserRokky() {
-    const fromDb = await UsersRepository.getUserByAccountName('rokky');
+    const userAccountData = accountsData.rokky;
+
+    const fromDb = await UsersRepository.getUserByAccountName(userAccountData.account_name);
     expect(fromDb).toBeDefined();
 
     const data = {

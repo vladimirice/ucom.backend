@@ -58,15 +58,24 @@ typings/
 
 # next.js build output
 .next
+
+# IDE
 .idea
+
+# docker files
 docker-compose.yml
+
+# config files
 config/production.json
-config/development.json
 config/test.json
 config/staging.json
-playground.js
+config/accounts-data.js
+
+# static files
 public/upload/*
 !public/upload/.gitkeep
-config/accounts-data.js
 !public/upload/organizations/.gitkeep
-edu.js
+
+# local files
+playground.js
+bash_alias.txt

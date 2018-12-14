@@ -9,8 +9,8 @@ git fetch
 git checkout staging
 echo "Making git pull"
 git pull
-echo "Let's make npm ci, ignore scripts and install only for production"
-npm ci --ignore-scripts --only=production
+echo "Let's make npm ci and install only non-dev dependencies"
+npm ci --only=production
 echo "Applying migrations..."
 NODE_ENV=staging node_modules/.bin/sequelize db:migrate
 echo "Lets reload pm2 with update env and saving new configuration"
