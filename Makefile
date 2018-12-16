@@ -8,22 +8,23 @@ DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
 ENV_VALUE_TEST=test
 
 init-project ip:
-	make docker-up-build-force
-	npm ci
-	make docker-init-test-db
-	make pm2-reload-test-ecosystem
+	docker-compose down
+	docker-compose up -d --build --force-recreate
 
 pm2-reload-test-ecosystem pmt:
-	pm2 reload ecosystem-test.config.js --update-env
+	docker-compose exec -T --user=root node pm2 reload ecosystem-test.config.js --update-env
 
 docker-up-build:
 	docker-compose up -d --build
 
-docker-up-build-force:
+docker-up-build-force df:
 	docker-compose up -d --build --force-recreate
 
 docker-db-shell d-db:
 	docker-compose exec --user=root db /bin/bash
+
+docker-backend-shell d-back:
+	docker-compose exec --user=root backend /bin/bash
 
 deploy-staging deploy:
 	git checkout staging
@@ -50,7 +51,7 @@ prod-console:
 ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
 
-docker-init-test-db:
-	NODE_ENV=${ENV_VALUE_TEST} ${DB_DROP_COMMAND}
-	NODE_ENV=${ENV_VALUE_TEST} ${DB_CREATE_COMMAND}
-	NODE_ENV=${ENV_VALUE_TEST} ${DB_MIGRATE_COMMAND}
+docker-init-test-db ditd:
+	docker-compose exec -T --user=root node ${DB_DROP_COMMAND}
+	docker-compose exec -T --user=root node ${DB_CREATE_COMMAND}
+	docker-compose exec -T --user=root node ${DB_MIGRATE_COMMAND}

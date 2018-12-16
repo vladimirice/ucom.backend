@@ -1,4 +1,4 @@
-#mac version
+#!!! this file is outdated !!!
 version: '2'
 
 networks:

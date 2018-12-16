@@ -5,7 +5,7 @@
     "organization_files_upload_dir": "/upload/organizations"
   },
   "frontend": {
-    "main_html_filename": "/home/vlad/Projects/uos/uos.app.backend/test/integration/static-renderer/template-sample.html"
+    "main_html_filename": "path/to/frontend_template"
   },
   "db_knex": {
     "connection_string": "postgresql://uos:uos@uos-backend-postgres-test.dev:5432/uos_backend_app"
@@ -26,7 +26,7 @@
   "auth": {
     "jwt_secret_key": "secret_key"
   },
-    "servers": {
+  "servers": {
     "websocket": "http://localhost:5000"
   },
   "eosAccounts": {
@@ -39,7 +39,7 @@
     "api-path": "/api/v0/"
   },
   "rabbitmq": {
-    "connection_string": "amqp://guest:guest@173.18.212.20:5672",
+    "connection_string": "amqp://guest:guest@uos-backend-rabbitmq.dev:5672",
     "activity_exchange_name": "test_activity",
     "ipfs_queue_name": "test_ipfs",
     "blockchain_queue_name": "test_blockchain",

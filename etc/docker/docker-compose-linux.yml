@@ -1,4 +1,3 @@
-#linux version
 version: '2'
 
 networks:
@@ -8,23 +7,29 @@ networks:
       config:
       - subnet: 173.18.212.0/24
 services:
-  db:
-    container_name: uos_backend_postgres
-    hostname: uos-backend-postgres.dev
-    image: postgres
+  backend:
+    container_name: ucom_backend
+    build:
+      dockerfile: ./etc/docker/nodejs/Dockerfile
+      context: ./
+    depends_on:
+      - db_test
+      - rabbitmq
+    working_dir: /var/www/ucom.backend
     environment:
-      - POSTGRES_USER=uos
-      - POSTGRES_PASSWORD=uos
-      - POSTGRES_DB=uos_backend_app
+      - NODE_ENV=test
+    volumes:
+      - ./:/var/www/ucom.backend
+    extra_hosts:
+      - "uos-backend-postgres-test.dev:173.18.212.11"
+      - "uos-backend-rabbitmq.dev:173.18.212.20"
     networks:
       uos_backend_network:
-        ipv4_address: 173.18.212.10
-    expose:
-    - "5432"
+        ipv4_address: 173.18.212.30
   db_test:
-    container_name: uos_backend_postgres_test
+    container_name: ucom_backend_db_test
     hostname: uos-backend-postgres-test.dev
-    image: postgres
+    image: postgres:10.6
     environment:
       - POSTGRES_USER=uos
       - POSTGRES_PASSWORD=uos
@@ -32,17 +37,13 @@ services:
     networks:
       uos_backend_network:
         ipv4_address: 173.18.212.11
-    expose:
-    - "5432"
-  rabbit:
-    container_name: uos_backend_rabbitmq
+  rabbitmq:
+    container_name: ucom_backend_rabbitmq
     hostname: uos-backend-rabbitmq.dev
     image: rabbitmq:3.7.7-management
     environment:
-    - RABBITMQ_DEFAULT_USER = guest
-    - RABBITMQ_DEFAULT_PASS = guest
-    expose:
-    - "5672"
+      - RABBITMQ_DEFAULT_USER = guest
+      - RABBITMQ_DEFAULT_PASS = guest
     networks:
       uos_backend_network:
         ipv4_address: 173.18.212.20
