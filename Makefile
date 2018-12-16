@@ -8,7 +8,7 @@ DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
 ENV_VALUE_TEST=test
 
 init-project ip:
-	docker-up-build-force
+	make docker-up-build-force
 	npm ci
 	make docker-init-test-db
 	make pm2-reload-test-ecosystem

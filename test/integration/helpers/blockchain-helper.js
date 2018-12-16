@@ -18,10 +18,27 @@ const BlockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.Block
 
 const UsersHelper = require('./users-helper');
 
-let accountName = 'vlad';
-let privateKey = accountsData[accountName].activePk;
+let accountAlias = 'vlad';
+let privateKey = accountsData[accountAlias].activePk;
 
 class BlockchainHelper {
+
+  /**
+   *
+   * @param {string} userAlias
+   * @returns {*}
+   */
+  static getAccountNameByUserAlias(userAlias) {
+    return accountsData[userAlias].account_name;
+  }
+
+  /**
+   *
+   * @returns {string[]}
+   */
+  static getBlockProducersList() {
+    return accountsData.block_producers;
+  }
 
   static getEtalonVladTrEmission() {
     return [
@@ -2376,7 +2393,7 @@ class BlockchainHelper {
    * @return {string}
    */
   static getTesterAccountName() {
-    return accountName;
+    return accountsData[accountAlias].account_name;
   }
   /**
    *
@@ -2591,15 +2608,17 @@ class BlockchainHelper {
    */
   static checkMyselfBlockchainTransactionsStructure(models) {
     const trTypeToProcessor = {
-      [BlockchainTrTypesDictionary.getTypeTransfer()]:        BlockchainHelper._checkTrTransfer,
-      [BlockchainTrTypesDictionary.getLabelTransferFrom()]:   BlockchainHelper._checkTrTransfer,
-      [BlockchainTrTypesDictionary.getLabelTransferTo()]:     BlockchainHelper._checkTrTransfer,
+      [BlockchainTrTypesDictionary.getTypeTransfer()]:          BlockchainHelper._checkTrTransfer,
+      [BlockchainTrTypesDictionary.getLabelTransferFrom()]:     BlockchainHelper._checkTrTransfer,
+      [BlockchainTrTypesDictionary.getLabelTransferTo()]:       BlockchainHelper._checkTrTransfer,
 
-      [BlockchainTrTypesDictionary.getTypeStakeResources()]:  BlockchainHelper._checkTrStake,
+      [BlockchainTrTypesDictionary.getTypeStakeResources()]:    BlockchainHelper._checkTrStake,
       [BlockchainTrTypesDictionary.getTypeUnstakingRequest()]:  BlockchainHelper._checkUnstakingRequest,
       [BlockchainTrTypesDictionary.getTypeStakeWithUnstake()]:  BlockchainHelper._checkTrStakeWithUnstake,
-      [BlockchainTrTypesDictionary.getTypeVoteForBp()]:       BlockchainHelper._checkTrVoteForBp,
-      [BlockchainTrTypesDictionary.getTypeClaimEmission()]:       BlockchainHelper._getTypeEmission,
+      [BlockchainTrTypesDictionary.getTypeVoteForBp()]:         BlockchainHelper._checkTrVoteForBp,
+      [BlockchainTrTypesDictionary.getTypeClaimEmission()]:     BlockchainHelper._getTypeEmission,
+      [BlockchainTrTypesDictionary.getTypeBuyRamBytes()]:       BlockchainHelper._checkTypeBuyOrSellRam,
+      [BlockchainTrTypesDictionary.getTypeSellRam()]:           BlockchainHelper._checkTypeBuyOrSellRam,
     };
 
     models.forEach(model => {
@@ -2743,6 +2762,32 @@ class BlockchainHelper {
     expect(model.tokens).toBeDefined();
     expect(model.tokens.emission).toBeGreaterThan(0);
     expect(model.tokens.currency).toBe('UOS');
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @private
+   */
+  static _checkTypeBuyOrSellRam(model) {
+    const expectedTrTypes = [
+      BlockchainTrTypesDictionary.getTypeBuyRamBytes(),
+      BlockchainTrTypesDictionary.getTypeSellRam(),
+    ];
+
+    BlockchainHelper._checkCommonTrTracesFields(model);
+
+    expect(model.memo).toBe('');
+    expect(~expectedTrTypes.indexOf(model.tr_type)).toBeTruthy();
+
+    expect(model.resources).toBeDefined();
+    expect(model.resources.ram).toBeDefined();
+    expect(model.resources.ram.amount).toBeGreaterThan(0);
+    expect(model.resources.ram.dimension).toBe('kB');
+
+    expect(model.resources.ram.tokens).toBeDefined();
+    expect(model.resources.ram.tokens.amount).toBeGreaterThan(0);
+    expect(model.resources.ram.tokens.currency).toBe('UOS');
   }
 
   /**

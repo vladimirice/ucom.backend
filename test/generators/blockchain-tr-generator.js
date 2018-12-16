@@ -9,8 +9,77 @@ class BlockchainTrGenerator {
   /**
    *
    * @param {string} accountAlias
+   * @param {string[]} producers
+   * @returns {Promise<string>} transaction ID
+   */
+  static async createVoteForBp(accountAlias, producers) {
+    const accountsData = await this._checkUser(accountAlias);
+
+    const res = await WalletApi.voteForBlockProducers(accountsData.account_name, accountsData.activePk, producers);
+    this._checkIsTransactionOk(res);
+
+    return res.transaction_id;
+  }
+
+  /**
+   *
+   * @param {string} accountAlias
+   * @param {number} bytesAmount
+   * @returns {Promise<string>}
+   */
+  static async createBuyRam(accountAlias, bytesAmount) {
+    const accountsData = await this._checkUser(accountAlias);
+
+    const res = await WalletApi.buyRam(accountsData.account_name, accountsData.activePk, bytesAmount);
+    this._checkIsTransactionOk(res);
+
+    return res.transaction_id;
+  }
+
+  /**
+   *
+   * @param {string} accountAlias
+   * @param {number} bytesAmount
+   * @returns {Promise<string>}
+   */
+  static async createSellRam(accountAlias, bytesAmount) {
+    const accountsData = await this._checkUser(accountAlias);
+
+    const res = await WalletApi.sellRam(accountsData.account_name, accountsData.activePk, bytesAmount);
+    this._checkIsTransactionOk(res);
+
+    return res.transaction_id;
+  }
+
+  /**
+   *
+   * @param {string} accountAliasFrom
+   * @param {string} accountAliasTo
+   * @param {number} amount
+   * @returns {Promise<string>} transaction ID
+   */
+  static async createTokenTransfer(accountAliasFrom, accountAliasTo, amount) {
+    const accountDataFrom = await this._checkUser(accountAliasFrom);
+    const accountDataTo   = await this._checkUser(accountAliasTo);
+
+    const res = await WalletApi.sendTokens(
+      accountDataFrom.account_name,
+      accountDataFrom.activePk,
+      accountDataTo.account_name,
+      amount
+    );
+    this._checkIsTransactionOk(res);
+
+    return res.transaction_id;
+  }
+
+  /**
+   *
+   * @param {string} accountAlias
    * @param {number} netToStake
    * @param {number} cpuToStake
+   *
+   * @return {Promise<string>} transaction ID
    */
   static async createStakeOrUnstake(accountAlias, netToStake = 0, cpuToStake = 0) {
     const accountData = await this._checkUser(accountAlias);

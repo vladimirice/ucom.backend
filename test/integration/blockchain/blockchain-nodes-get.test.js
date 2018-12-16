@@ -52,6 +52,7 @@ describe('Blockchain nodes get', () => {
     });
 
     it('should contain myself data for user who did not vote yet', async () => {
+
       await helpers.Blockchain.resetVotingState(accountName, privateKey);
       await helpers.Blockchain.updateBlockchainNodes();
 
@@ -65,15 +66,18 @@ describe('Blockchain nodes get', () => {
     }, 10000);
 
     it('Get nodes list without filters for myself', async () => {
+      const accountName   = helpers.Blockchain.getTesterAccountName();
+      const producersList = helpers.Blockchain.getBlockProducersList();
+
       const producers = [
-        'calc2',
-        'calc5',
-        'calc4',
+        producersList[1],
+        producersList[4],
+        producersList[3],
       ];
 
       const replaceFor = {
-        'vlad': {
-          owner: 'vlad',
+        [accountName]: {
+          owner: accountName,
           producers,
         },
       };
@@ -94,15 +98,18 @@ describe('Blockchain nodes get', () => {
     });
 
     it('Get nodes list with myself_bp_vote=true filter - voted only', async () => {
+      const accountName   = helpers.Blockchain.getTesterAccountName();
+      const producersList = helpers.Blockchain.getBlockProducersList();
+
       const nodeTitlesToVote = [
-        'calc2',
-        'calc5',
-        'calc4',
+        producersList[1],
+        producersList[4],
+        producersList[3],
       ];
 
       const replaceFor = {
-        'vlad': {
-          owner: 'vlad',
+        [accountName]: {
+          owner: accountName,
           producers: nodeTitlesToVote,
         },
       };

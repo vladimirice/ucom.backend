@@ -38,23 +38,27 @@ describe('Blockchain nodes updating', () => {
 
   describe('Update users activity', () => {
     it('should create basic users activity of bp votes', async () => {
+      const petrAccountName   = helpers.Blockchain.getAccountNameByUserAlias('petr');
+      const rokkyAccountName  = helpers.Blockchain.getAccountNameByUserAlias('rokky');
+      const producers = helpers.Blockchain.getBlockProducersList();
+
       const addToVote = {
-        'petr': {
-          owner: 'petr',
+        [petrAccountName]: {
+          owner: petrAccountName,
           producers: [
-            'calc2',
-            'calc5',
-            'calc4',
+            producers[0],
+            producers[2],
+            producers[3],
             'z_super_new2'
           ],
         },
-        'rokky': {
-          owner: 'rokky',
+        [rokkyAccountName]: {
+          owner: rokkyAccountName,
           producers: [
-            'calc3',
-            'calc4',
+            producers[1],
+            producers[3],
             'z_super_new1',
-            'calc5',
+            producers[4],
           ],
         }
       };
@@ -65,13 +69,13 @@ describe('Blockchain nodes updating', () => {
       const nodes = await BlockchainNodesRepository.findAllBlockchainNodes();
 
       const petrMustVoteTo = nodes.filter(data => {
-        return ~addToVote['petr'].producers.indexOf(data.title);
+        return ~addToVote[petrAccountName].producers.indexOf(data.title);
       });
 
       expect(petrMustVoteTo.length).toBeGreaterThan(0);
 
       const rokkyMustVoteTo = nodes.filter(data => {
-        return ~addToVote['rokky'].producers.indexOf(data.title);
+        return ~addToVote[rokkyAccountName].producers.indexOf(data.title);
       });
       expect(rokkyMustVoteTo.length).toBeGreaterThan(0);
 
@@ -98,23 +102,27 @@ describe('Blockchain nodes updating', () => {
     }, 10000);
 
     it('should update users activity if somebody votes', async () => {
+      const petrAccountName   = helpers.Blockchain.getAccountNameByUserAlias('petr');
+      const rokkyAccountName  = helpers.Blockchain.getAccountNameByUserAlias('rokky');
+      const producers         = helpers.Blockchain.getBlockProducersList();
+
       const addToVote = {
-        'petr': {
-          owner: 'petr',
+        [petrAccountName]: {
+          owner: petrAccountName,
           producers: [
-            'calc2',
-            'calc5',
-            'calc4',
+            producers[1],
+            producers[4],
+            producers[3],
             'z_super_new2'
           ],
         },
-        'rokky': {
-          owner: 'rokky',
+        [rokkyAccountName]: {
+          owner: rokkyAccountName,
           producers: [
-            'calc3',
-            'calc4',
+            producers[2],
+            producers[3],
             'z_super_new1',
-            'calc5',
+            producers[4],
           ],
         }
       };
@@ -129,27 +137,27 @@ describe('Blockchain nodes updating', () => {
 
       // lets update userPetr state
       const addToVoteAfter = {
-        'petr': {
-          owner: 'petr',
+        [petrAccountName]: {
+          owner: petrAccountName,
           producers: [
             // add these ones
             'z_super_new1',
-            'calc3',
+            producers[2],
 
             // remove these nodes from voting
             // 'calc2',
             // 'calc5',
 
             // remain these ones
-            'calc4',
+            producers[3],
             'z_super_new2'
           ],
         },
-        'rokky': {
-          owner: 'rokky',
+        [rokkyAccountName]: {
+          owner: rokkyAccountName,
           producers: [
             // add these ones
-            'calc2',
+            producers[1],
             'z_super_new2',
 
             // remove
@@ -157,8 +165,8 @@ describe('Blockchain nodes updating', () => {
             // 'calc5',
 
             // remain
-            'calc3',
-            'calc4',
+            producers[2],
+            producers[3],
           ],
         }
       };
@@ -167,17 +175,17 @@ describe('Blockchain nodes updating', () => {
       await helpers.Blockchain.updateBlockchainNodes();
 
       const petrMustVoteTo = nodes.filter(data => {
-        return ~addToVoteAfter.petr.producers.indexOf(data.title);
+        return ~addToVoteAfter[petrAccountName].producers.indexOf(data.title);
       });
       const petrMustNotContain = nodes.filter(data => {
-        return ~['calc2', 'calc5'].indexOf(data.title);
+        return ~[producers[1], producers[4]].indexOf(data.title);
       });
 
       const rokkyMustVoteTo = nodes.filter(data => {
-        return ~addToVoteAfter.rokky.producers.indexOf(data.title);
+        return ~addToVoteAfter[rokkyAccountName].producers.indexOf(data.title);
       });
       const rokkyMustNotContain = nodes.filter(data => {
-        return ~['z_super_new1', 'calc5'].indexOf(data.title);
+        return ~['z_super_new1', producers[4]].indexOf(data.title);
       });
 
       const res = await UsersActivityRepository.findAllUpvoteUsersBlockchainNodesActivity();
