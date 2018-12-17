@@ -1,0 +1,9 @@
+{
+  "eos": {
+    "mongo_connection_string": "mongodb://user:password@127.0.0.1:27017/?authMechanism=DEFAULT&authSource=admin",
+    "mongo_db_name": "admin"
+  },
+  "frontend": {
+    "main_html_filename": "path/to/frontend_template"
+  }
+}
