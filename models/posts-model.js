@@ -47,6 +47,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     parent_id: {
       type: DataTypes.INTEGER,
+    },
+    entity_images: {
+      type: DataTypes.JSONB,
     }
   }, {
     underscored: true,
@@ -60,7 +63,10 @@ module.exports = (sequelize, DataTypes) => {
       'post_type_id',
       'title',
       'description',
-      'main_image_filename',
+
+      'main_image_filename', // deprecated
+      'entity_images',
+
       'current_vote',
       'current_rate',
       'created_at',
@@ -102,7 +108,10 @@ module.exports = (sequelize, DataTypes) => {
       'leading_text',
       'current_vote',
       'current_rate',
-      'main_image_filename',
+
+      'main_image_filename', // deprecated
+      'entity_images',
+
       'user_id',
       'post_type_id',
       'blockchain_id',

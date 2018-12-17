@@ -127,6 +127,27 @@ class PostsHelper {
 
   /**
    *
+   * @param {Object} model
+   */
+  static checkEntityImages(model) {
+    expect(model.entity_images).toBeDefined();
+
+    if (model.main_image_filename === null && model.entity_images === null) {
+
+      return;
+    }
+
+    expect(model.entity_images.article_title).toBeDefined();
+    expect(Array.isArray(model.entity_images.article_title)).toBeTruthy();
+    expect(model.entity_images.article_title.length).toBe(1);
+
+    if (model.main_image_filename) {
+      expect(model.entity_images.article_title[0].url).toMatch(model.main_image_filename);
+    }
+  }
+
+  /**
+   *
    * @param {Object} post
    * @param {Object} options
    */
@@ -147,6 +168,8 @@ class PostsHelper {
     }
 
     ResponseHelper.expectFieldsAreExist(post, mustExist);
+
+    this.checkEntityImages(post);
   }
 
   /**

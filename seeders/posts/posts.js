@@ -12,7 +12,14 @@ const seeds = [
     created_at: new Date(),
     updated_at: new Date(),
     blockchain_id: 'pstms1-yed143ojlcdq0dl',
-    organization_id: 1
+    organization_id: 1,
+    entity_images: {
+      article_title: [
+        {
+          url: 'http://localhost:3000/upload/sample_filename_1.jpg'
+        }
+      ]
+    }
   },
   {
     // id: 2
@@ -28,6 +35,13 @@ const seeds = [
     updated_at: new Date(),
     blockchain_id: 'pstms2-yed14jljlcgmepl',
     organization_id: 1,
+    entity_images: {
+      article_title: [
+        {
+          url: 'http://localhost:3000/upload/sample_filename_2.jpg'
+        }
+      ]
+    }
   },
   {
     // id: 3
@@ -41,7 +55,14 @@ const seeds = [
     leading_text: 'Hey. Here is a cool announcement. Please read quickly and be the first.',
     created_at: new Date(),
     updated_at: new Date(),
-    blockchain_id: 'pstms3-yed14jsjlcgnnwk'
+    blockchain_id: 'pstms3-yed14jsjlcgnnwk',
+    entity_images: {
+      article_title: [
+        {
+          url: 'http://localhost:3000/upload/sample_filename_3.jpg'
+        }
+      ]
+    }
   },
   {
     // id: 4
@@ -55,7 +76,14 @@ const seeds = [
     leading_text: 'Marketing is a core instrument to develop the product.',
     created_at: new Date(),
     updated_at: new Date(),
-    blockchain_id: 'pstms4-yed14jwjlcgnv3p'
+    blockchain_id: 'pstms4-yed14jwjlcgnv3p',
+    entity_images: {
+      article_title: [
+        {
+          url: 'http://localhost:3000/upload/sample_filename_4.jpg'
+        }
+      ]
+    }
   },
   {
     // id: 5
@@ -69,7 +97,14 @@ const seeds = [
     leading_text: 'Our cool offer is here',
     created_at: new Date(),
     updated_at: new Date(),
-    blockchain_id: 'pstos5-15uv8u4jlhp11i8'
+    blockchain_id: 'pstos5-15uv8u4jlhp11i8',
+    entity_images: {
+      article_title: [
+        {
+          url: 'http://localhost:3000/upload/sample_filename_5.jpg'
+        }
+      ]
+    }
   }
 ];
 
