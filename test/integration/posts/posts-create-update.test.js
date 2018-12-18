@@ -168,6 +168,37 @@ describe('Posts API', () => {
 
   describe('Create post', () => {
     describe('Positive', () => {
+      it('Create media post without any images', async () => {
+        const myself = userVlad;
+
+        const newPostFields = {
+          'title': 'Extremely new post',
+          'description': 'Our super post description',
+          'leading_text': 'extremely leading text',
+          'post_type_id': ContentTypeDictionary.getTypeMediaPost(),
+
+          'entity_images': null,
+          'main_image_filename': null,
+        };
+
+        const res = await request(server)
+          .post(postsUrl)
+          .set('Authorization', `Bearer ${myself.token}`)
+          .field('title', newPostFields['title'])
+          .field('description', newPostFields['description'])
+          .field('post_type_id', newPostFields['post_type_id'])
+          .field('leading_text', newPostFields['leading_text'])
+          .field('entity_images', '')
+        ;
+
+        helpers.Res.expectStatusOk(res);
+
+        const posts = await helpers.Post.requestToGetManyPostsAsGuest();
+        const newPost = posts.find(data => data.title === newPostFields['title']);
+
+        expect(newPost).toMatchObject(newPostFields);
+      });
+
       it('Create media post with entity_images', async () => {
         const myself = userVlad;
 
