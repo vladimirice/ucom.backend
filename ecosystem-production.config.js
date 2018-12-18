@@ -7,9 +7,11 @@ module.exports = {
   apps : [
     // ================ Apps (interaction with user) =============
     {
-      name:           `${NODE_ENV}_backend`,
+      name:           `${NODE_ENV}_app_backend`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/www',
+      instances:      'max',
+      exec_mode:      'cluster',
       watch:          false,
       autorestart:    true,
       env: {
@@ -18,7 +20,7 @@ module.exports = {
       },
     },
     {
-      name:           `${NODE_ENV}_websocket`,
+      name:           `${NODE_ENV}_app_websocket`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/websocket.js',
       env: {
