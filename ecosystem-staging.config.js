@@ -20,7 +20,7 @@ module.exports = {
       },
     },
     {
-      name:           `${NODE_ENV}_websocket`,
+      name:           `${NODE_ENV}_app_websocket`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/app-websocket.js',
       env: {
@@ -45,7 +45,7 @@ module.exports = {
     },
     // ================ Consumers ======================
     {
-      name:           `${NODE_ENV}_blockchain_consumer`,
+      name:           `${NODE_ENV}_consumer_transaction_sender`,
       script:         'bin/consumer-transaction-sender.js',
       watch:          false,
       autorestart:    true,
@@ -54,7 +54,7 @@ module.exports = {
       },
     },
     {
-      name:           `${NODE_ENV}_notifications_consumer`,
+      name:           `${NODE_ENV}_consumer_notifications_sender`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/consumer-notifications-sender.js',
       watch:          false,
