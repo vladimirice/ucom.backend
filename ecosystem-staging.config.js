@@ -7,7 +7,7 @@ module.exports = {
   apps : [
     // ================ Apps (interaction with user) =============
     {
-      name:           `${NODE_ENV}_backend`,
+      name:           `${NODE_ENV}_app_backend`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/www',
       instances:      'max',
@@ -65,7 +65,7 @@ module.exports = {
     },
     // ================ Workers (CRON) ======================
     {
-      name: `${NODE_ENV}_importance_worker`,
+      name: `${NODE_ENV}_worker_update_importance`,
       script: 'bin/worker-update-importance.js',
       watch: false,
       cron_restart: '*/5 * * * *',
@@ -74,7 +74,7 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_update_blockchain_nodes`,
+      name: `${NODE_ENV}_worker_update_blockchain_nodes`,
       script: 'bin/worker-update-blockchain-nodes.js',
       watch: false,
       cron_restart: '* * * * *',
@@ -83,7 +83,7 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_update_stats`,
+      name: `${NODE_ENV}_worker_update_stats`,
       script: 'bin/worker-update-stats.js',
       watch: false,
       cron_restart: '0 */1 * * *',
@@ -92,7 +92,7 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_sync_tr_traces`,
+      name: `${NODE_ENV}_worker_sync_tr_traces`,
       script: 'bin/worker-sync-tr-traces.js',
       watch: false,
       cron_restart: '*/2 * * * *',
