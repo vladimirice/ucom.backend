@@ -7,7 +7,7 @@ module.exports = {
   apps : [
     // ================ Apps (interaction with user) =============
     {
-      name:           `${NODE_ENV}_backend`,
+      name:           `${NODE_ENV}_app_backend`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/www',
       instances:      'max',
@@ -20,9 +20,9 @@ module.exports = {
       },
     },
     {
-      name:           `${NODE_ENV}_websocket`,
+      name:           `${NODE_ENV}_app_websocket`,
       instance_var:   'INSTANCE_ID',
-      script:         'bin/websocket.js',
+      script:         'bin/app-websocket.js',
       env: {
         PORT:         WEBSOCKET_SERVER_PORT,
         NODE_ENV:     NODE_ENV,
@@ -45,8 +45,8 @@ module.exports = {
     },
     // ================ Consumers ======================
     {
-      name:           `${NODE_ENV}_blockchain_consumer`,
-      script:         'bin/blockchain-consumer.js',
+      name:           `${NODE_ENV}_consumer_transaction_sender`,
+      script:         'bin/consumer-transaction-sender.js',
       watch:          false,
       autorestart:    true,
       env: {
@@ -54,9 +54,9 @@ module.exports = {
       },
     },
     {
-      name:           `${NODE_ENV}_notifications_consumer`,
+      name:           `${NODE_ENV}_consumer_notifications_sender`,
       instance_var:   'INSTANCE_ID',
-      script:         'bin/notifications-consumer.js',
+      script:         'bin/consumer-notifications-sender.js',
       watch:          false,
       autorestart:    true,
       env: {
@@ -65,7 +65,7 @@ module.exports = {
     },
     // ================ Workers (CRON) ======================
     {
-      name: `${NODE_ENV}_importance_worker`,
+      name: `${NODE_ENV}_worker_update_importance`,
       script: 'bin/worker-update-importance.js',
       watch: false,
       cron_restart: '*/5 * * * *',
@@ -74,7 +74,7 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_update_blockchain_nodes`,
+      name: `${NODE_ENV}_worker_update_blockchain_nodes`,
       script: 'bin/worker-update-blockchain-nodes.js',
       watch: false,
       cron_restart: '* * * * *',
@@ -83,7 +83,7 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_update_stats`,
+      name: `${NODE_ENV}_worker_update_stats`,
       script: 'bin/worker-update-stats.js',
       watch: false,
       cron_restart: '0 */1 * * *',
@@ -92,7 +92,7 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_sync_tr_traces`,
+      name: `${NODE_ENV}_worker_sync_tr_traces`,
       script: 'bin/worker-sync-tr-traces.js',
       watch: false,
       cron_restart: '*/2 * * * *',
