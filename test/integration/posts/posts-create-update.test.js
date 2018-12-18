@@ -397,7 +397,7 @@ describe('Posts API', () => {
         const userVlad = await helpers.Users.getUserVlad();
 
         let firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
-
+        // await helpers.Posts.makeFieldNull(firstPostBefore.id, 'main_image_filename');
 
         const fieldsToChange = {
           'title': 'This is title to change',
@@ -428,6 +428,9 @@ describe('Posts API', () => {
         helpers.Posts.validatePatchResponse(res, postAfter);
 
         helpers.Res.expectValuesAreExpected(fieldsToChange, postAfter);
+
+        // entity_images field do not change main_image_filename
+        expect(firstPostBefore.main_image_filename).toBe(postAfter.main_image_filename);
 
         helpers.Post.checkEntityImages(postAfter);
       });
