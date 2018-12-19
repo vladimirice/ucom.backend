@@ -12,7 +12,7 @@ init-project ip:
 	docker-compose up -d --build --force-recreate
 
 pm2-reload-test-ecosystem pmt:
-	docker-compose exec -T --user=root node pm2 reload ecosystem-test.config.js --update-env
+	docker-compose exec -T --user=root backend pm2 reload ecosystem-test.config.js --update-env
 
 docker-db-migrate dm:
 	docker-compose exec -T --user=root backend ${DB_MIGRATE_COMMAND}
@@ -58,6 +58,6 @@ ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
 
 docker-init-test-db ditd:
-	docker-compose exec -T --user=root node ${DB_DROP_COMMAND}
-	docker-compose exec -T --user=root node ${DB_CREATE_COMMAND}
-	docker-compose exec -T --user=root node ${DB_MIGRATE_COMMAND}
+	docker-compose exec -T --user=root backend ${DB_DROP_COMMAND}
+	docker-compose exec -T --user=root backend ${DB_CREATE_COMMAND}
+	docker-compose exec -T --user=root backend ${DB_MIGRATE_COMMAND}

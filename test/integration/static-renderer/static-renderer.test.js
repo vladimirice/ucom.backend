@@ -25,6 +25,10 @@ describe('Posts API', () => {
 
   describe('Static renderer', () => {
     describe('Positive', async () => {
+      it.skip('should render image correctly based on entity_images property', async () => {
+
+      });
+
       /**
        * @link StaticRendererService#getHtml
        */
@@ -39,7 +43,7 @@ describe('Posts API', () => {
         expect(res.status).toBe(200);
         expect(res.type).toBe('text/html');
 
-        expect(res.text).toBe(getExpectedPostOneHtml(res.request.host));
+        expect(res.text).toBe(getExpectedPostOneHtml('https://' + res.request.host));
       });
     });
 
