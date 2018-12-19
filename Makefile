@@ -46,7 +46,10 @@ staging-error-logs sl:
 	ssh gt 'bash -s' < ./pm2_error_logs.sh staging
 
 prod-console:
-	ssh gt 'bash -s' < ./pm2_console_logs.sh production_backend
+	ssh gt 'bash -s' < ./pm2_console_logs.sh production_app_backend
+
+staging-console:
+	ssh gt 'bash -s' < ./pm2_console_logs.sh staging_app_backend
 
 ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
