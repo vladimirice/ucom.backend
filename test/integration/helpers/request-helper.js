@@ -17,9 +17,19 @@ const communityUrl        = `${apiV1Prefix}/community`;
 const partnershipUrl      = `${apiV1Prefix}/partnership`;
 const blockchainUrl       = `${apiV1Prefix}/blockchain`;
 
+const tagsUrl             = `${apiV1Prefix}/tags`;
+
 const myselfBlockchainTransactionsUrl       = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+
+  /**
+   *
+   * @returns {string}
+   */
+  static getTagsRootUrl() {
+    return tagsUrl;
+  }
   /**
    *
    * @return {string}

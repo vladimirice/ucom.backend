@@ -1,5 +1,6 @@
 
 module.exports = {
+  Tags:           require('./tags-helper'),
   RequestHelper:  require('./request-helper'), // @deprecated name
   Req:            require('./request-helper'),
 

@@ -16,6 +16,7 @@ const organizationsRouter = require('./routes/organizations/organizations-router
 const blockchainRouter = require('./routes/blockchain/blockchain-router');
 const communityRouter = require('./routes/community-router');
 const partnershipRouter = require('./routes/partnership-router');
+const tagsRouter = require('./routes/tags/tags-router');
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use('/api/v1/organizations', organizationsRouter);
 app.use('/api/v1/blockchain', blockchainRouter);
 app.use('/api/v1/community', communityRouter);
 app.use('/api/v1/partnership', partnershipRouter);
+app.use('/api/v1/tags', tagsRouter);
 require('./lib/auth/passport');
 
 ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
