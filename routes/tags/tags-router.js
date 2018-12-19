@@ -1,7 +1,8 @@
 const express = require('express');
 const TagsRouter  = express.Router();
 
-const TagsFetchService = require('../../lib/tags/service/tags-fetch-service');
+const TagsFetchService    = require('../../lib/tags/service/tags-fetch-service');
+const { BadRequestError } = require('../../lib/api/errors');
 
 TagsRouter.get('/:tag_id', async (req, res) => {
   const response = await TagsFetchService.findAndProcessOneTagById(req.tag_id);

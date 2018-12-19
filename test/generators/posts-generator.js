@@ -251,7 +251,6 @@ class PostsGenerator {
     return this._createDirectPost(url, myself, givenDescription, withImage, idOnly);
   }
 
-
   /**
    * @param {string} url
    * @param {Object} myself

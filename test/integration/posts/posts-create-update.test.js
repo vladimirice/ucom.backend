@@ -3,7 +3,6 @@ const server = require('../../../app');
 const expect = require('expect');
 
 const helpers = require('../helpers');
-const gen     = require('../../generators');
 
 const UserHelper      = helpers.UserHelper;
 const SeedsHelper     = helpers.Seeds;
@@ -20,7 +19,6 @@ const ContentTypeDictionary   = require('ucom-libs-social-transactions').Content
 
 const PostsModelProvider      = require('../../../lib/posts/service').ModelProvider;
 const UsersModelProvider      = require('../../../lib/users/service').ModelProvider;
-const OrgModelProvider        = require('../../../lib/organizations/service').ModelProvider;
 
 const PostsService            = require('./../../../lib/posts/post-service');
 
@@ -166,7 +164,7 @@ describe('Posts API', () => {
     });
   });
 
-  describe('Create post', () => {
+  describe('Media post creation', function () {
     describe('Positive', () => {
       it('Create media post without any images', async () => {
         const myself = userVlad;
@@ -241,6 +239,7 @@ describe('Posts API', () => {
         expect(newPost).toMatchObject(newPostFields);
       });
 
+
       it('Create media post', async () => {
         const myself = userVlad;
 
@@ -288,81 +287,6 @@ describe('Posts API', () => {
 
         helpers.Post.checkEntityImages(newPost);
       });
-
-      describe('Create direct post', () => {
-        it('Create direct post with picture', async () => {
-          const post = await gen.Posts.createUserDirectPostForOtherUser(userVlad, userJane, null, true);
-          expect(post.main_image_filename).toBeDefined();
-
-          await helpers.FileToUpload.isFileUploaded(post.main_image_filename);
-        });
-
-        it('Create direct post for org with picture', async () => {
-          const orgId = await gen.Org.createOrgWithoutTeam(userJane);
-
-          const post = await gen.Posts.createDirectPostForOrganization(userVlad, orgId, null, true);
-          expect(post.main_image_filename).toBeDefined();
-
-          await helpers.FileToUpload.isFileUploaded(post.main_image_filename);
-        });
-
-        it('For User without organization', async () => {
-          const user = userVlad;
-          const targetUser = userJane;
-
-          const newPostFields = {
-            description: 'Our super post description',
-          };
-
-          const expected = {
-            'entity_id_for':    "" + targetUser.id,
-            'entity_name_for':  UsersModelProvider.getEntityName(),
-          };
-
-          // noinspection JSDeprecatedSymbols
-          const post = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser, newPostFields.description);
-
-          const options = {
-            myselfData: true,
-            postProcessing: 'full'
-          };
-
-          await helpers.Common.checkOnePostForPage(post, options);
-
-          await helpers.Common.checkDirectPostInDb(post, {
-            ...expected,
-            ...newPostFields
-          }, user);
-        });
-
-        it('For organization without organization', async () => {
-          const user = userVlad;
-          const targetOrgId = 1;
-
-          const newPostFields = {
-            description: 'Our super post description',
-          };
-
-          const expected = {
-            'entity_id_for':    "" + targetOrgId,
-            'entity_name_for':  OrgModelProvider.getEntityName(),
-          };
-
-          // noinspection JSDeprecatedSymbols
-          const post = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId, newPostFields.description);
-
-          const options = {
-            myselfData: true,
-            postProcessing: 'full'
-          };
-
-          await helpers.Common.checkOnePostForPage(post, options);
-          await helpers.Common.checkDirectPostInDb(post, {
-            ...expected,
-            ...newPostFields
-          }, user);
-        });
-      });
     });
     describe('Negative', () => {
       it('It is not possible to create post without token', async () => {
@@ -379,51 +303,6 @@ describe('Posts API', () => {
   describe('Update post', () => {
 
     describe('Positive', () => {
-
-      describe('Update direct post', () => {
-        it('Update direct post for user without organization', async () => {
-          const user        = userVlad;
-          const targetUser  = userJane;
-
-          const expectedValues = {
-            description: 'changed sample description of direct post'
-          };
-
-          // noinspection JSDeprecatedSymbols
-          const postBefore  = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser);
-          const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
-
-          const options = {
-            myselfData: true,
-            postProcessing: 'full'
-          };
-
-          await helpers.Common.checkOnePostForPage(postAfter, options);
-          await helpers.Common.checkDirectPostInDb(postAfter, expectedValues, userVlad);
-        });
-
-        it('Update direct post for organization without organization', async () => {
-          const user          = userVlad;
-          const targetOrgId   = 1;
-
-          const expectedValues = {
-            description: 'changed sample description of direct post'
-          };
-
-          // noinspection JSDeprecatedSymbols
-          const postBefore  = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId);
-          const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
-
-          const options = {
-            myselfData: true,
-            postProcessing: 'full'
-          };
-
-          await helpers.Common.checkOnePostForPage(postAfter, options);
-          await helpers.Common.checkDirectPostInDb(postAfter, expectedValues, userVlad);
-        });
-      });
-
       it('Update Media Post and also update entity_images', async () => {
         const userVlad = await helpers.Users.getUserVlad();
 
@@ -633,9 +512,6 @@ describe('Posts API', () => {
 
       helpers.Res.expectValuesAreExpected(expectedValues, activity);
     });
-    it.skip('Direct post. Not possible to change entity_id_for and entity_name_for by request', async () => {
-      // TODO
-    });
     it.skip('Update post-offer by its author', async () => {
       const userVlad = await UserHelper.getUserVlad();
       const firstPostBefore = await PostsService.findLastPostOfferByAuthor(userVlad.id);
@@ -680,9 +556,6 @@ describe('Posts API', () => {
 
       const userVladInTeam = postUsersTeam.find(data => data.user_id === userVlad.id);
       expect(userVladInTeam).not.toBeDefined();
-    });
-    it.skip('not possible to create direct post as regular post', async () => {
-      // TODO
     });
     it.skip('not possible to create media post or post offer as direct post', async () => {
       // TODO
