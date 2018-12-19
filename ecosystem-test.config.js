@@ -36,7 +36,7 @@ module.exports = {
     // ================ Consumers ======================
     {
       name:           `${NODE_ENV}_blockchain_consumer`,
-      script:         'bin/blockchain-consumer.js',
+      script:         'bin/consumer-transaction-sender.js',
       watch:          true,
       ignore_watch:   IGNORE_WATCH,
       env: {
@@ -47,7 +47,7 @@ module.exports = {
     {
       name:           `${NODE_ENV}_notifications_consumer`,
       instance_var:   'INSTANCE_ID',
-      script:         'bin/notifications-consumer.js',
+      script:         'bin/consumer-notifications-sender.js',
       watch:          true,
       ignore_watch:   IGNORE_WATCH,
       env: {
