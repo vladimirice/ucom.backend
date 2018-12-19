@@ -1,4 +1,4 @@
-# U.community backend API service
+# U°Community Backend API Service
 
 ## Main goals
 
@@ -24,7 +24,7 @@ Installation instruction (TODO):
 
 ## For reference
 
-### Blockchain MongoDb indexes
+### Blockchain MongoDB indexes
 
 #### transaction_traces
 
