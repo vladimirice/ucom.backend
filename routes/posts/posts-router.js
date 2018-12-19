@@ -86,6 +86,9 @@ PostsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res)
   // noinspection OverlyComplexBooleanExpressionJS
   if (files && files['main_image_filename'] && files['main_image_filename'][0] && files['main_image_filename'][0].filename) {
     req.body['main_image_filename'] = files['main_image_filename'][0].filename;
+  } else {
+    // Not required to update main_image_filename if there is not uploaded file
+    delete req.body.main_image_filename;
   }
 
   const params = req.body;

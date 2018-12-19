@@ -14,6 +14,9 @@ init-project ip:
 pm2-reload-test-ecosystem pmt:
 	docker-compose exec -T --user=root node pm2 reload ecosystem-test.config.js --update-env
 
+docker-db-migrate dm:
+	docker-compose exec -T --user=root backend ${DB_MIGRATE_COMMAND}
+
 docker-up-build:
 	docker-compose up -d --build
 
