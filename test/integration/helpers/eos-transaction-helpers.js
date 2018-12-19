@@ -6,7 +6,7 @@ class EosTransactionHelper {
   static async purgeQueues() {
     await Promise.all([
       RabbitMqService.purgeBlockchainQueue(),
-      RabbitMqService.purgeIpfsQueue()
+      // RabbitMqService.purgeIpfsQueue()
     ]);
   }
 
