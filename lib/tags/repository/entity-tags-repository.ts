@@ -1,11 +1,13 @@
+import { Transaction } from 'knex';
+
 const knex = require('../../../config/knex');
 
 const TABLE_NAME = 'entity_tags';
 
 class EntityTagsRepository {
 
-  static async createNewEntityTags(toInsert: Object[]) : Promise<any> {
-    return knex(TABLE_NAME).insert(toInsert);
+  static async createNewEntityTags(toInsert: Object[], trx: Transaction) : Promise<any> {
+    return knex(TABLE_NAME).transacting(trx).insert(toInsert);
   }
 
   static async findAllByEntity(entityId: number, entityName: string): Promise<Object> {
@@ -19,7 +21,7 @@ class EntityTagsRepository {
     ;
 
     const res: Object = {};
-    unprocessed.forEach(item => {
+    unprocessed.forEach((item) => {
       res[item.tag_title] = +item.id;
     });
 
@@ -27,4 +29,4 @@ class EntityTagsRepository {
   }
 }
 
-module.exports = EntityTagsRepository;
+export = EntityTagsRepository;

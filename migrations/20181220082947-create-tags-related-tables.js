@@ -60,7 +60,7 @@ module.exports = {
         created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
       
-      ALTER TABLE ${POSTS_TABLE_NAME} ADD COLUMN entity_tags JSONB DEFAULT NULL;
+      ALTER TABLE ${POSTS_TABLE_NAME} ADD COLUMN entity_tags text[] DEFAULT NULL;
     `;
 
     return queryInterface.sequelize.query(sql);

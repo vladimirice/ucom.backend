@@ -7,10 +7,9 @@ helpers.Mock.mockAllBlockchainPart();
 
 const _ = require('lodash');
 
-const UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
-const Processor = require('../../../lib/posts/service/post-activity-processor');
-const TagsParser = require('../../../lib/tags/service/tags-parser-service');
-
+const UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository.js');
+const Processor = require('../../../lib/posts/service/post-activity-processor.js');
+const TagsParser = require('../../../lib/tags/service/tags-parser-service.js');
 
 describe('Create-update tags', () => {
   beforeAll(async () => {
@@ -52,22 +51,22 @@ describe('Create-update tags', () => {
     await gen.Posts.createMediaPostByUserHimself(user, values);
     const activity = await UsersActivityRepository.findLastByUserId(user.id);
 
-    const a = await Processor.processOneActivity(activity.id);
+    await Processor.processOneActivity(activity.id);
+
+    // TODO check records exist
+
+
   });
 
-  it('If no tags - do nothing', async () => {
+  it.skip('If no tags - do nothing', async () => {
     // TODO
   });
 
-  it('Process only one tag', async () => {
+  it.skip('Process only one tag', async () => {
     // TODO
   });
 
-  it('Process many tags', async () => {
-    // TODO
-  });
-
-  it('Process tags with two or more symbols #', async () => {
+  it.skip('Process many tags', async () => {
     // TODO
   });
 });

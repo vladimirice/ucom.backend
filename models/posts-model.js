@@ -50,6 +50,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     entity_images: {
       type: DataTypes.JSONB,
+    },
+    entity_tags: {
+      type: DataTypes.JSONB,
     }
   }, {
     underscored: true,
