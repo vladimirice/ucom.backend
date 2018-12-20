@@ -1,3 +1,9 @@
+DOCKER_BACKEND_APP_USER=node
+DOCKER_BACKEND_APP_NAME=backend
+
+DOCKER_B_EXEC_CMD=docker-compose exec -T --user=${DOCKER_BACKEND_APP_USER} ${DOCKER_BACKEND_APP_NAME}
+DOCKER_B_EXEC_CMD_ROOT=docker-compose exec -T --user=root ${DOCKER_BACKEND_APP_NAME}
+
 SEQ_EXEC_FILE=node_modules/.bin/sequelize
 
 DB_DROP_COMMAND=${SEQ_EXEC_FILE} db:drop
@@ -9,10 +15,20 @@ ENV_VALUE_TEST=test
 
 init-project ip:
 	docker-compose down
-	docker-compose up -d --build --force-recreate
+	make docker-up-build-force
+	make docker-npm-ci
+	make docker-init-test-db
+	make pm2-reload-test-ecosystem
+	make docker-pm2-list
 
 pm2-reload-test-ecosystem pmt:
-	docker-compose exec -T --user=root backend pm2 reload ecosystem-test.config.js --update-env
+	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
+
+docker-npm-ci:
+	${DOCKER_B_EXEC_CMD} npm ci
+
+docker-chown:
+	${DOCKER_B_EXEC_CMD_ROOT} chgrp -R docker: /var/www/ucom.backend
 
 docker-db-migrate dm:
 	docker-compose exec -T --user=root backend ${DB_MIGRATE_COMMAND}
@@ -20,14 +36,20 @@ docker-db-migrate dm:
 docker-up-build:
 	docker-compose up -d --build
 
+docker-run-tests:
+	${DOCKER_B_EXEC_CMD} npm test
+
 docker-up-build-force df:
 	docker-compose up -d --build --force-recreate
 
-docker-db-shell d-db:
-	docker-compose exec --user=root db /bin/bash
+docker-db-test-bash d-db:
+	docker-compose exec --user=root db_test /bin/bash
 
-docker-backend-shell d-back:
-	docker-compose exec --user=root backend /bin/bash
+docker-backend-bash:
+	docker-compose exec --user=${DOCKER_BACKEND_APP_USER} ${DOCKER_BACKEND_APP_NAME} /bin/bash
+
+docker-pm2-list:
+	${DOCKER_B_EXEC_CMD} pm2 list
 
 deploy-staging deploy:
 	git checkout staging
@@ -58,6 +80,6 @@ ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
 
 docker-init-test-db ditd:
-	docker-compose exec -T --user=root backend ${DB_DROP_COMMAND}
-	docker-compose exec -T --user=root backend ${DB_CREATE_COMMAND}
-	docker-compose exec -T --user=root backend ${DB_MIGRATE_COMMAND}
+	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
+	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
+   	${DOCKER_B_EXEC_CMD} ${DB_MIGRATE_COMMAND}
