@@ -31,6 +31,8 @@ const minorTables = [
   EntityModelProvider.getNotificationsTableName(),
   UsersRepositories.UsersTeam.getModelName(),
 
+  'entity_tags',
+  'tags',
   'entity_event_param',
   'entity_stats_current',
   'blockchain_tr_traces',
@@ -190,7 +192,7 @@ class SeedsHelper {
     const minorTablesPromises = [];
 
     minorTables.forEach(table => {
-      minorTablesPromises.push(models.sequelize.query(`TRUNCATE TABLE ${table}`));
+      minorTablesPromises.push(models.sequelize.query(`DELETE FROM ${table} WHERE 1=1`));
     });
 
     await Promise.all(minorTablesPromises);

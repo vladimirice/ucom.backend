@@ -10,6 +10,7 @@ DB_DROP_COMMAND=${SEQ_EXEC_FILE} db:drop
 DB_CREATE_COMMAND=${SEQ_EXEC_FILE} db:create
 DB_MIGRATE_COMMAND=${SEQ_EXEC_FILE} db:migrate
 DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
+DB_GENERATE_MIGRATION=${SEQ_EXEC_FILE} migration:generate
 
 ENV_VALUE_TEST=test
 
@@ -31,7 +32,10 @@ docker-chown:
 	${DOCKER_B_EXEC_CMD_ROOT} chgrp -R docker: /var/www/ucom.backend
 
 docker-db-migrate dm:
-	docker-compose exec -T --user=root backend ${DB_MIGRATE_COMMAND}
+	${DOCKER_B_EXEC_CMD} ${DB_MIGRATE_COMMAND}
+
+docker-db-create-migration dmg:
+	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} --name ${NAME}
 
 docker-up-build:
 	docker-compose up -d --build
@@ -82,4 +86,4 @@ ipfs-tunnel:
 docker-init-test-db ditd:
 	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
 	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
-   	${DOCKER_B_EXEC_CMD} ${DB_MIGRATE_COMMAND}
+	make docker-db-migrate
