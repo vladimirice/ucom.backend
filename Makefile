@@ -19,6 +19,7 @@ init-project ip:
 	make docker-up-build-force
 	make docker-npm-ci
 	make docker-init-test-db
+	make docker-compile-typescript
 	make pm2-reload-test-ecosystem
 	make docker-pm2-list
 
@@ -27,6 +28,9 @@ pm2-reload-test-ecosystem pmt:
 
 docker-npm-ci:
 	${DOCKER_B_EXEC_CMD} npm ci
+
+docker-compile-typescript:
+	${DOCKER_B_EXEC_CMD} npm run compile-ts
 
 docker-chown:
 	${DOCKER_B_EXEC_CMD_ROOT} chgrp -R docker: /var/www/ucom.backend

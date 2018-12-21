@@ -33,6 +33,7 @@ class ResponseHelper {
     expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(status);
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {Object} res
@@ -145,6 +146,8 @@ class ResponseHelper {
    * @param {boolean} allowEmpty
    */
   static expectValidListResponse(res, allowEmpty = false) {
+    this.expectStatusOk(res);
+
     const data      = res.body.data;
     const metadata  = res.body.metadata;
 

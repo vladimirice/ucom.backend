@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "jest --verbose --runInBand"
+    "test": "jest --verbose --runInBand",
+    "compile-ts": "tsc"
   },
   "dependencies": {
     "amqplib": "0.5.2",
