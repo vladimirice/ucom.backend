@@ -11,7 +11,6 @@ describe('GET tags', () => {
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.destroyTables();
     await helpers.Seeds.initUsersOnly();
   });
 

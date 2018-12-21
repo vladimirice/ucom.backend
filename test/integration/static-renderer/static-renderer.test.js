@@ -20,7 +20,7 @@ describe('Posts API', () => {
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
   });
 
   describe('Static renderer', () => {

@@ -32,6 +32,7 @@ const minorTables = [
   UsersRepositories.UsersTeam.getModelName(),
 
   'entity_tags',
+  'entity_state_log',
   'tags',
   'entity_event_param',
   'entity_stats_current',

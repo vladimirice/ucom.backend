@@ -22,7 +22,7 @@ describe('Myself. Get requests', () => {
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
   });
 
   describe('Get myself data', function () {

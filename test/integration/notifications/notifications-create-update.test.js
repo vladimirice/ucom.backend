@@ -30,9 +30,8 @@ describe('Notifications create-update', () => {
     // await helpers.SeedsHelper.sequelizeAfterAll();
   });
   beforeEach(async () => {
-    await helpers.SeedsHelper.truncateTable('entity_notifications');
     await RabbitMqService.purgeNotificationsQueue();
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
   });
 
   describe('Repost notifications', function () {

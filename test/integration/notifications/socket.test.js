@@ -34,7 +34,7 @@ describe('Suite of unit tests', function() {
 
   beforeEach(async (done) => {
     await RabbitMqService.purgeNotificationsQueue();
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
 
     socket = io(websocketHost, {
       transports: [

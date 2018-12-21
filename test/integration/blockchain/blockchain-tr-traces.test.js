@@ -21,7 +21,7 @@ describe('Blockchain tr traces sync tests', () => {
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
   });
 
   describe('check sync', function () {

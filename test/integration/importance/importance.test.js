@@ -17,7 +17,7 @@ describe('UOS Importance', () => {
     await helpers.SeedsHelper.doAfterAll();
   });
   beforeEach(async () => {
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
     helpers.Mock.mockAllBlockchainPart();
   });
 

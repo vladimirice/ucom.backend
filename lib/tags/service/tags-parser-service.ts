@@ -14,4 +14,4 @@ class TagsParserService {
   }
 }
 
-module.exports = TagsParserService;
+export = TagsParserService;

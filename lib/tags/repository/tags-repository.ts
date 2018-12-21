@@ -12,6 +12,10 @@ class TagsRepository {
     return knex(this.getTableName()).transacting(trx).returning(['id', 'title']).insert(tags);
   }
 
+  static async getAllTags() {
+    return knex(this.getTableName()).select('*');
+  }
+
   /**
    * @return string
    */

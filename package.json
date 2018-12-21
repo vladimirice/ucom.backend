@@ -46,6 +46,7 @@
     "winston-sentry-raven-transport": "1.0.2"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.5.9",
     "@types/knex": "^0.15.1",
     "@types/node": "^10.12.17",
     "delay": "4.0.1",

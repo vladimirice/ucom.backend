@@ -15,7 +15,7 @@ describe('Myself blockchain GET', () => {
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
   });
 
   describe('Get blockchain transactions', () => {

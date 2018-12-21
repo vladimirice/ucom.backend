@@ -1,7 +1,8 @@
-const entityTagsRepository: any    = require('../repository/entity-tags-repository');
-const tagsRepository    = require('../repository/tags-repository');
-const postsModelProvider: any = require('../../posts/service/posts-model-provider');
-const postsRepository: any = require('../../posts/posts-repository');
+const entityTagsRepository: any = require('../repository/entity-tags-repository');
+const tagsRepository            = require('../repository/tags-repository');
+const postsModelProvider: any   = require('../../posts/service/posts-model-provider');
+const postsRepository: any      = require('../../posts/posts-repository');
+const entityStateLogRepository  = require('../../entities/repository/entity-state-log-repository');
 
 const knex = require('../../../config/knex');
 
@@ -18,22 +19,37 @@ class TagsProcessorService {
 
     await knex.transaction(async (trx) => {
       const tagsToInsert: Object[]  = this.getTagsToInsert(titlesToInsert, activity);
-      const createdTags: Object[]   = await tagsRepository.createNewTags(tagsToInsert, trx);
 
-      const entityTagsToInsert: Object[] = this.getEntityTagsToInsert(createdTags, activity);
-      await entityTagsRepository.createNewEntityTags(entityTagsToInsert, trx);
+      if (tagsToInsert.length > 0) {
+        const createdTags: Object[]   = await tagsRepository.createNewTags(tagsToInsert, trx);
+        const entityTagsToInsert: Object[] = this.getEntityTagsToInsert(createdTags, activity);
+        await entityTagsRepository.createNewEntityTags(entityTagsToInsert, trx);
 
-      await postsRepository.updatePostEntityTagsById(activity.entity_id, titlesToInsert, trx);
+        const processedPost = await postsRepository.updatePostEntityTagsById(
+          activity.entity_id,
+          titlesToInsert,
+          trx,
+        );
+
+        await entityStateLogRepository.insertNewState(
+          activity.entity_id,
+          postsModelProvider.getEntityName(),
+          processedPost,
+          trx,
+        );
+      } else {
+        console.log('no tags. Nothing to insert.');
+      }
     });
   }
 
   private static getTagsToInsert(
-    titlesToCreate: string[],
+    titlesToInsert: string[],
     activity: activityWithContentEntity,
   ): Object[] {
     const tags: Object[] = [];
 
-    titlesToCreate.forEach((tagTitle) => {
+    titlesToInsert.forEach((tagTitle) => {
       tags.push({
         title: tagTitle,
         first_entity_id: activity.entity_id,

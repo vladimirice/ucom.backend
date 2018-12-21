@@ -18,7 +18,6 @@ describe('Blockchain nodes get', () => {
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.destroyTables();
     await helpers.Seeds.initUsersOnly();
 
     WalletApi.getBlockchainNodes = initialMockFunction;

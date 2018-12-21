@@ -27,6 +27,25 @@ class EntityTagsRepository {
 
     return res;
   }
+
+  /**
+   *
+   * @param {number} entityId
+   * @param {string} entityName
+   */
+  static async findAllWithAllFieldsByEntity(
+    entityId: number,
+    entityName: string,
+  ): Promise<Object[]> {
+    const where = {
+      entity_id: entityId,
+      entity_name: entityName,
+    };
+
+    return knex(TABLE_NAME)
+        .where(where)
+    ;
+  }
 }
 
 export = EntityTagsRepository;

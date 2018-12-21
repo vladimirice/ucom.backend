@@ -7,8 +7,6 @@ helpers.Mock.mockAllBlockchainPart();
 
 const _ = require('lodash');
 
-const UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository.js');
-const Processor = require('../../../lib/posts/service/post-activity-processor.js');
 const TagsParser = require('../../../lib/tags/service/tags-parser-service.js');
 
 describe('Create-update tags', () => {
@@ -17,7 +15,6 @@ describe('Create-update tags', () => {
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.destroyTables();
     await helpers.Seeds.initUsersOnly();
   });
 
@@ -39,34 +36,5 @@ describe('Create-update tags', () => {
         expect(actual).toMatchObject(expected);
       }
     })
-  });
-
-  it('Process post with tags without consumer', async () => {
-    const user = userVlad;
-
-    const values = {
-      description: '#hello there! I am #amazing',
-    };
-
-    await gen.Posts.createMediaPostByUserHimself(user, values);
-    const activity = await UsersActivityRepository.findLastByUserId(user.id);
-
-    await Processor.processOneActivity(activity.id);
-
-    // TODO check records exist
-
-
-  });
-
-  it.skip('If no tags - do nothing', async () => {
-    // TODO
-  });
-
-  it.skip('Process only one tag', async () => {
-    // TODO
-  });
-
-  it.skip('Process many tags', async () => {
-    // TODO
   });
 });
