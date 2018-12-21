@@ -30,6 +30,47 @@ class RequestHelper {
   static getTagsRootUrl() {
     return tagsUrl;
   }
+
+  /**
+   *
+   * @param {string} tagTitle
+   */
+  static getTagsWallFeedUrl(tagTitle) {
+    return `${RequestHelper.getTagsRootUrl()}/${tagTitle}/wall-feed`;
+  }
+
+  /**
+   *
+   * @param {string} tagTitle
+   */
+  static getTagsOrgUrl(tagTitle) {
+    return `${RequestHelper.getTagsRootUrl()}/${tagTitle}/organizations`;
+  }
+
+  /**
+   *
+   * @param {string} tagTitle
+   */
+  static getTagsUsersUrl(tagTitle) {
+    return `${RequestHelper.getTagsRootUrl()}/${tagTitle}/users`;
+  }
+
+  /**
+   *
+   * @param {string} url
+   * @param {boolean} getBodyOnly
+   * @returns {Promise<*>}
+   */
+  static async makeGetRequestForList(url, getBodyOnly = true) {
+    const res = await request(server)
+      .get(url)
+    ;
+
+    ResponseHelper.expectValidListResponse(res);
+
+    return getBodyOnly ? res.body : res;
+  }
+
   /**
    *
    * @return {string}

@@ -4,8 +4,8 @@ const ResponseHelper  = require('../integration/helpers').Res;
 const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
 const request = require('supertest');
-const server = require('../../app');
-
+const server  = require('../../app');
+const _       = require('lodash');
 class PostsGenerator {
 
   /**
@@ -155,10 +155,11 @@ class PostsGenerator {
   /**
    *
    * @param {Object} user
+   * @param {Object} values
    * @returns {Promise<number>}
    */
-  static async createMediaPostByUserHimself(user) {
-    const newPostFields = {
+  static async createMediaPostByUserHimself(user, values = {}) {
+    const defaultValues = {
       'title': 'Extremely new post',
       'description': 'Our super post description',
       'leading_text': 'extremely leading text',
@@ -167,6 +168,8 @@ class PostsGenerator {
       'current_rate': 0.0000000000,
       'current_vote': 0,
     };
+
+    const newPostFields = _.defaults(values, defaultValues);
 
     const res = await request(server)
       .post(RequestHelper.getPostsUrl())
@@ -250,7 +253,6 @@ class PostsGenerator {
 
     return this._createDirectPost(url, myself, givenDescription, withImage, idOnly);
   }
-
 
   /**
    * @param {string} url

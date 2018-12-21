@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "jest --verbose --runInBand"
+    "test": "jest --verbose --runInBand",
+    "compile-ts": "tsc"
   },
   "dependencies": {
     "amqplib": "0.5.2",
@@ -45,12 +46,18 @@
     "winston-sentry-raven-transport": "1.0.2"
   },
   "devDependencies": {
+    "@types/knex": "^0.15.1",
+    "@types/node": "^10.12.17",
     "delay": "4.0.1",
     "expect": "^23.6.0",
     "faker": "^4.1.0",
     "jest": "^23.6.0",
     "jest-expect-message": "1.0.0",
     "socket.io-client": "2.1.1",
-    "supertest": "^3.3.0"
+    "supertest": "^3.3.0",
+    "tslint": "^5.12.0",
+    "tslint-config-airbnb": "^5.11.1",
+    "tsutils": "^3.5.2",
+    "typescript": "^3.2.2"
   }
 }
