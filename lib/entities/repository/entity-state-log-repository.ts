@@ -33,7 +33,7 @@ class EntityStateLogRepository {
     stateObject: Object,
     trx: Transaction,
   ): Promise<Object> {
-    return knex(TABLE_NAME).transacting(trx).insert({
+    return trx(TABLE_NAME).transacting(trx).insert({
       entity_id: entityId,
       entity_name: entityName,
       state_json: JSON.stringify(stateObject),

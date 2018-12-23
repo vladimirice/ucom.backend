@@ -148,8 +148,17 @@ class ResponseHelper {
   static expectValidListResponse(res, allowEmpty = false) {
     this.expectStatusOk(res);
 
-    const data      = res.body.data;
-    const metadata  = res.body.metadata;
+    this.expectValidListBody(res.body, allowEmpty);
+  }
+
+  /**
+   *
+   * @param {Object} body
+   * @param {boolean} allowEmpty
+   */
+  static expectValidListBody(body, allowEmpty = false) {
+    const data      = body.data;
+    const metadata  = body.metadata;
 
     expect(data).toBeDefined();
     expect(data).not.toBeNull();
@@ -160,6 +169,9 @@ class ResponseHelper {
     }
 
     this.expectValidMetadataStructure(metadata, allowEmpty);
+
+    expect(data.length, 'It seems that you use different WHERE conditions to fetch data and calc total amount')
+      .toBe(metadata.total_amount);
   }
 
   /**

@@ -1,57 +1,57 @@
 const express = require('express');
 const TagsRouter  = express.Router();
 
-const TagsFetchService    = require('../../lib/tags/service/tags-fetch-service');
-// const { BadRequestError } = require('../../lib/api/errors');
+const TagsFetchService    = require('../../lib/tags/service/tags-fetch-service.js');
+const tagsApiMiddleware   = require('../../lib/tags/api/tag-api-middleware.js');
 
 TagsRouter.get('/:tag_identity', async (req, res) => {
-  const response = await TagsFetchService.findAndProcessOneTagById(req.tag_identity);
+  const tagTitle = req.tag_identity;
+  const currentUserId = getCurrentUserId(req);
+
+  const response = await TagsFetchService.findAndProcessOneTagById(tagTitle, currentUserId);
 
   res.send(response);
 });
 
 TagsRouter.get('/:tag_identity/wall-feed', async (req, res) => {
-  const userId = 1; // TODO - mockup
-  const query = req.query;
+  const query     = req.query;
+  const tagTitle  = req.tag_identity;
 
-  const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId, query);
+  const response = await getPostService(req).findAndProcessAllForTagWallFeed(tagTitle, query);
 
   res.send(response);
 });
 
 TagsRouter.get('/:tag_identity/organizations', async (req, res) => {
-  const query = req.query;
+  const query     = req.query;
+  const tagTitle  = req.tag_identity;
 
-  const response = await getOrganizationService(req).getAllForPreview(query);
+  const response = await getOrganizationService(req).findAllByTagTitle(tagTitle, query);
 
   res.send(response);
 });
 
 TagsRouter.get('/:tag_identity/users', async (req, res) => {
   const query = req.query;
+  const tagTitle = req.tag_identity;
 
-  const response = await getUserService(req).findAllAndProcessForList(query);
+  const response = await getUserService(req).findAllAndProcessForListByTagTitle(tagTitle, query);
 
   res.send(response);
 });
 
-TagsRouter.param('tag_identity', (req, res, next, incomingValue) => {
-  // const value = parseInt(incomingValue);
+TagsRouter.param('tag_identity', tagsApiMiddleware.tagIdentityParam);
 
-  // if (!value) {
-  //   throw new BadRequestError({
-  //     'tag_id': 'Tag ID must be a valid integer'
-  //   })
-  // }
+/**
+ *
+ * @param {Object} req
+ * @returns {number|null}
+ */
+function getCurrentUserId(req) {
+  const service = req['container'].get('current-user');
 
-  // noinspection JSUndefinedPropertyAssignment
-  req.tag_identity = incomingValue;
-
-  next();
-
-  // Check is tag exist and catch exceptions properly
-  // TODO
-});
+  return service.getCurrentUserId();
+}
 
 /**
  *

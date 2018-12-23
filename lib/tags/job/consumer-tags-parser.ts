@@ -8,15 +8,12 @@ class ConsumerTagsParser {
     const queueName = rabbitMqService.getTagsParserQueueName();
 
     return channel.consume(queueName, async (message) => {
-
       let messageContent;
       let parsedMessageContent;
 
       try {
         messageContent        = message.content.toString();
         parsedMessageContent  = JSON.parse(messageContent);
-
-        console.dir(messageContent);
 
         await postActivityProcessor.processOneActivity(parsedMessageContent.id);
       } catch (err) {
@@ -29,9 +26,11 @@ class ConsumerTagsParser {
 
           // In order to terminate consumer properly - with error exit code
         throw err;
+
       } finally {
         channel.ack(message);
       }
+
     },                     { noAck: false });
   }
 }

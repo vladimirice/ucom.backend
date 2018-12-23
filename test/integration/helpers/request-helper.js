@@ -57,18 +57,34 @@ class RequestHelper {
 
   /**
    *
+   * @param {string} tagTitle
+   * @returns {string}
+   */
+  static getOneTagUrl(tagTitle) {
+    return `${RequestHelper.getTagsRootUrl()}/${tagTitle}`;
+  }
+
+  /**
+   *
    * @param {string} url
-   * @param {boolean} getBodyOnly
+   * @param {Object} myself
+   * @param {boolean} getOnlyData
    * @returns {Promise<*>}
    */
-  static async makeGetRequestForList(url, getBodyOnly = true) {
-    const res = await request(server)
+  static async makeGetRequestForList(url, myself = null, getOnlyData = true) {
+    const req = request(server)
       .get(url)
     ;
 
+    if (myself) {
+      this.addAuthToken(req, myself);
+    }
+
+    const res = await req;
+
     ResponseHelper.expectValidListResponse(res);
 
-    return getBodyOnly ? res.body : res;
+    return getOnlyData ? res.body.data : res.body;
   }
 
   /**

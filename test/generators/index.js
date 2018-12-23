@@ -8,5 +8,6 @@ module.exports = {
   Entity: {
     Notifications:  require('./entity/entity-notifications-generator'),
     EventParam:     require('./entity/entity-event-param-generator'),
+    Tags:           require('./entity/entity-tags-generator'),
   }
 };
