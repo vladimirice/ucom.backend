@@ -3,4 +3,4 @@ type activityWithContentEntity = {
   entity_id:        number;
   user_id_from:     number;
   org_id:           number | null;
-}
+};

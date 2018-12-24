@@ -1,11 +1,14 @@
 const helpers = require('../helpers');
 const gen = require('../../generators');
 
-const UsersFeedRepository = require('../../../lib/common/repository').UsersFeed;
+const usersFeedRepository = require('../../../lib/common/repository').UsersFeed;
 
 helpers.Mock.mockAllBlockchainPart();
 
-let userVlad, userJane, userPetr, userRokky;
+let userVlad;
+let userJane;
+let userPetr;
+let userRokky;
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
@@ -17,7 +20,7 @@ describe('Organizations. Get requests', () => {
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
   });
 
   describe('Users wall feed', () => {
@@ -32,12 +35,18 @@ describe('Organizations. Get requests', () => {
           const perPage = 2;
 
           const queryString = helpers.Req.getPaginationQueryString(page, perPage);
-          const response = await helpers.Users.requestToGetWallFeedAsMyself(userJane, wallOwner, queryString, false);
-          const totalAmount = await UsersFeedRepository.countAllForUserWallFeed(wallOwner.id);
+          const response =
+            await helpers.Users.requestToGetWallFeedAsMyself(
+              userJane,
+              wallOwner,
+              queryString,
+              false,
+            );
+          const totalAmount = await usersFeedRepository.countAllForUserWallFeed(wallOwner.id);
 
           helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
 
-          response.data.forEach(post => {
+          response.data.forEach((post) => {
             expect(post.description).toBeDefined();
           });
         });
@@ -52,8 +61,9 @@ describe('Organizations. Get requests', () => {
 
           const queryString = helpers.Req.getPaginationQueryString(page, perPage);
 
-          const response = await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryString, false);
-          const totalAmount = await UsersFeedRepository.countAllForUserWallFeed(wallOwner.id);
+          const response =
+            await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryString, false);
+          const totalAmount = await usersFeedRepository.countAllForUserWallFeed(wallOwner.id);
 
           helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
 
@@ -62,10 +72,11 @@ describe('Organizations. Get requests', () => {
 
           const queryStringLast = helpers.Req.getPaginationQueryString(
             lastPage,
-            perPage
+            perPage,
           );
 
-          const lastResponse = await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryStringLast, false);
+          const lastResponse =
+            await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryStringLast, false);
 
           helpers.Res.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
         });
@@ -77,7 +88,7 @@ describe('Organizations. Get requests', () => {
           const perPage = 2;
           let page = 1;
 
-          const posts = await UsersFeedRepository.findAllForUserWallFeed(wallOwner.id);
+          const posts = await usersFeedRepository.findAllForUserWallFeed(wallOwner.id);
           const expectedIdsOfFirstPage = [
             posts[page - 1].id,
             posts[page].id,
@@ -89,12 +100,13 @@ describe('Organizations. Get requests', () => {
           expect(firstPage.length).toBe(perPage);
 
           firstPage.forEach((post, i) => {
-            expect(post.id).toBe(expectedIdsOfFirstPage[i])
+            expect(post.id).toBe(expectedIdsOfFirstPage[i]);
           });
 
           page = 2;
           const queryStringSecondPage = helpers.Req.getPaginationQueryString(page, perPage);
-          const secondPage = await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryStringSecondPage);
+          const secondPage =
+            await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryStringSecondPage);
 
           const expectedIdsOfSecondPage = [
             posts[page].id,
@@ -104,7 +116,7 @@ describe('Organizations. Get requests', () => {
           expect(secondPage.length).toBe(perPage);
 
           secondPage.forEach((post, i) => {
-            expect(post.id).toBe(expectedIdsOfSecondPage[i])
+            expect(post.id).toBe(expectedIdsOfSecondPage[i]);
           });
         });
       });
@@ -123,7 +135,7 @@ describe('Organizations. Get requests', () => {
         const posts = await helpers.Users.requestToGetWallFeedAsGuest(targetUser);
 
         const options = {
-          'myselfData': false,
+          myselfData: false,
           postProcessing: 'list',
         };
 
@@ -149,18 +161,62 @@ describe('Organizations. Get requests', () => {
         const posts = await helpers.Users.requestToGetWallFeedAsMyself(userJane, targetUser);
 
         const options = {
-          'myselfData': true,
+          myselfData: true,
           postProcessing: 'list',
         };
 
         await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
       });
     });
-
-    describe('Negative', () => {
-      it.skip('Should not show posts not related to user', async () => {
-        // TODO
-      });
-    });
   });
+
+  it('Get tag wall feed', async () => {
+    const tagName       = 'summer';
+    const otherTagName  = 'summertime';
+
+    const descriptions = [
+      `Hi everyone! #${tagName} is so close. Lets organize an #${otherTagName}`,
+      `Hi everyone! #${otherTagName} is so close. Lets organize an #${tagName}`,
+      `Hi everyone! #${tagName} is so close`,
+      `Hi everyone! #${otherTagName} is so close`,
+    ];
+
+    const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+
+    const promisesToCreatePosts = [
+      gen.Posts.createMediaPostByUserHimself(userVlad, { description: descriptions[0] }),
+      gen.Posts.createMediaPostOfOrganization(userVlad, orgId, { description: descriptions[1] }),
+
+      gen.Posts.createMediaPostByUserHimself(userJane, { description: descriptions[2] }),
+      gen.Posts.createMediaPostByUserHimself(userJane, { description: descriptions[3] }),
+    ];
+
+    const expectedLength = promisesToCreatePosts.length - 1;
+
+    const [vladHimselfPostId, vladOrgPostId, janeHerselfPostId, janeHerselfNotRelatedPostId] =
+      await Promise.all(promisesToCreatePosts);
+
+    await gen.Posts.createMediaPostByUserHimself(userVlad);
+
+    const url = helpers.Req.getTagsWallFeedUrl(tagName);
+
+    const models = await helpers.Req.makeGetRequestForList(url, true);
+
+    expect(models.some((item): any => item.id === vladHimselfPostId)).toBeTruthy();
+    expect(models.some((item): any => item.id === vladOrgPostId)).toBeTruthy();
+    expect(models.some((item): any => item.id === janeHerselfPostId)).toBeTruthy();
+    expect(models.some((item): any => item.id === janeHerselfNotRelatedPostId)).toBeFalsy();
+
+    const options = {
+      myselfData: false,
+      postProcessing: 'list',
+    };
+
+    await helpers.Common.checkPostsListFromApi(models, expectedLength, options);
+  });
+
+  describe('Posts feeds skipped tests - implement them in future', () => {
+    it.skip('Should not show posts not related to user', async () => {});
+  });
+
 });

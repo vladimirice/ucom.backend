@@ -118,7 +118,7 @@ class UsersHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    *
-   * @link PostsFetchService#findAndProcessAllForUserWallFeed
+   * @link postsFetchService#findAndProcessAllForUserWallFeed
    */
   static async requestToGetWallFeedAsGuest(wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
@@ -182,7 +182,7 @@ class UsersHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    *
-   * @link PostsFetchService#findAndProcessAllForUserWallFeed
+   * @link postsFetchService#findAndProcessAllForUserWallFeed
    */
   static async requestToGetWallFeedAsMyself(myself, wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;

@@ -54,16 +54,18 @@ class PostsGenerator {
    *
    * @param {Object} user
    * @param {number} org_id
-   * @param {number} expectedStatus
+   * @param {Object} values
    * @return {Promise<number>}
    */
-  static async createMediaPostOfOrganization(user, org_id, expectedStatus = 200) {
-    const newPostFields = {
+  static async createMediaPostOfOrganization(user, org_id, values = {}) {
+    const defaultValues = {
       'title': 'Extremely new post',
       'description': 'Our super post description',
       'leading_text': 'extremely leading text',
       'post_type_id': 1,
     };
+
+    const newPostFields = _.defaults(values, defaultValues);
 
     const res = await request(server)
       .post(RequestHelper.getPostsUrl())
@@ -75,7 +77,7 @@ class PostsGenerator {
       .field('organization_id', org_id)
     ;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }

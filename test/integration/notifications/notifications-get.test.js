@@ -20,7 +20,7 @@ describe('Get notifications', () => {
     await helpers.SeedsHelper.sequelizeAfterAll();
   });
   beforeEach(async () => {
-    await helpers.SeedsHelper.initUsersOnly();
+    await helpers.Seeds.initUsersOnly();
   });
 
   describe('Notifications list', () => {

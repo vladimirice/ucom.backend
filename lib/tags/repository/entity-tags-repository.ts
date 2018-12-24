@@ -7,7 +7,7 @@ const TABLE_NAME = 'entity_tags';
 class EntityTagsRepository {
 
   static async createNewEntityTags(toInsert: Object[], trx: Transaction) : Promise<any> {
-    return knex(TABLE_NAME).transacting(trx).insert(toInsert);
+    return trx(TABLE_NAME).insert(toInsert);
   }
 
   static async findAllByEntity(entityId: number, entityName: string): Promise<Object> {
@@ -26,6 +26,25 @@ class EntityTagsRepository {
     });
 
     return res;
+  }
+
+  /**
+   *
+   * @param {number} entityId
+   * @param {string} entityName
+   */
+  static async findAllWithAllFieldsByEntity(
+    entityId: number,
+    entityName: string,
+  ): Promise<Object[]> {
+    const where = {
+      entity_id: entityId,
+      entity_name: entityName,
+    };
+
+    return knex(TABLE_NAME)
+        .where(where)
+    ;
   }
 }
 

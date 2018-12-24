@@ -36,6 +36,7 @@
     "activity_exchange_name": "test_activity",
     "ipfs_queue_name": "test_ipfs",
     "blockchain_queue_name": "test_blockchain",
-    "notifications_queue_name": "test_notifications"
+    "notifications_queue_name": "test_notifications",
+    "tags_parser_queue_name": "test_tags_parser"
   }
 }

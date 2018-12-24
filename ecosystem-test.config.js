@@ -35,7 +35,17 @@ module.exports = {
 
     // ================ Consumers ======================
     {
-      name:           `${NODE_ENV}_blockchain_consumer`,
+      name:           `${NODE_ENV}_consumer_tags_parser`,
+      script:         'bin/consumer-tags-parser.js',
+      watch:          true,
+      ignore_watch:   IGNORE_WATCH,
+      env: {
+        NODE_ENV:     NODE_ENV,
+        autorestart:  true,
+      },
+    },
+    {
+      name:           `${NODE_ENV}_consumer_transaction_sender`,
       script:         'bin/consumer-transaction-sender.js',
       watch:          true,
       ignore_watch:   IGNORE_WATCH,
@@ -45,7 +55,7 @@ module.exports = {
       },
     },
     {
-      name:           `${NODE_ENV}_notifications_consumer`,
+      name:           `${NODE_ENV}_consumer_notifications_sender`,
       instance_var:   'INSTANCE_ID',
       script:         'bin/consumer-notifications-sender.js',
       watch:          true,

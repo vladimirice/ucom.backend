@@ -17,6 +17,8 @@ const PostRepositories = require('../../../lib/posts/repository');
 const UsersModelProvider =  require('../../../lib/users/service').ModelProvider;
 const EntityModelProvider = require('../../../lib/entities/service').ModelProvider;
 
+const RabbitMqService     = require('../../../lib/jobs/rabbitmq-service.js');
+
 const seedsDir = '../../../seeders';
 
 const tableToSeeds = {
@@ -32,6 +34,7 @@ const minorTables = [
   UsersRepositories.UsersTeam.getModelName(),
 
   'entity_tags',
+  'entity_state_log',
   'tags',
   'entity_event_param',
   'entity_stats_current',
@@ -64,6 +67,8 @@ const majorTables = [
   'posts',
   'organizations',
   'Users',
+
+  'tags',
 ];
 
 class SeedsHelper {
@@ -117,8 +122,23 @@ class SeedsHelper {
     return model.toJSON();
   }
 
+  /**
+   *
+   * @returns {Promise<void>}
+   */
+  static async purgeAllQueues() {
+    await RabbitMqService.purgeAllQueues();
+  }
+
+  /**
+   *
+   * @returns {Promise<*>}
+   */
   static async beforeAllRoutine() {
-    await this.destroyTables();
+    await Promise.all([
+      this.destroyTables(),
+      this.purgeAllQueues(),
+    ]);
 
     const usersModel = UsersRepositories.Main.getUsersModelName();
 
@@ -164,10 +184,6 @@ class SeedsHelper {
     return models[name].bulkCreate(seeds)
   }
 
-  static async truncateBlockchainNodesTable() {
-    return this.truncateTable('blockchain_nodes');
-  }
-
   static async destroyTables() {
 
     // noinspection SqlResolve
@@ -187,8 +203,6 @@ class SeedsHelper {
 
     await Promise.all(resetSequencePromises);
 
-    const params = {where: {}};
-
     const minorTablesPromises = [];
 
     minorTables.forEach(table => {
@@ -198,7 +212,7 @@ class SeedsHelper {
     await Promise.all(minorTablesPromises);
 
     for (let i = 0; i < majorTables.length; i++) {
-      await models[majorTables[i]].destroy(params);
+      await models.sequelize.query(`DELETE FROM "${majorTables[i]}" WHERE 1=1`);
     }
   }
 
@@ -300,26 +314,6 @@ class SeedsHelper {
 
   static async sequelizeAfterAll() {
     await models.sequelize.close();
-  }
-
-  /**
-   *
-   * @param {Array} tables
-   * @return {Promise<void>}
-   */
-  static async _truncateTablesByList(tables) {
-    const params = {where: {}};
-
-    let promises = [];
-
-    tables.forEach(table => {
-      promises.push(models[table].destroy(params));
-
-      const sequenceName = SeedsHelper.getSequenceNameByModelName(table);
-      promises.push(models.sequelize.query(`ALTER SEQUENCE ${sequenceName} RESTART;`))
-    });
-
-    await Promise.all(promises);
   }
 
   /**

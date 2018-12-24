@@ -55,7 +55,7 @@ class OrganizationsHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    *
-   * @link PostsFetchService#findAndProcessAllForOrgWallFeed
+   * @link postsFetchService#findAndProcessAllForOrgWallFeed
    */
   static async requestToGetOrgWallFeedAsMyself(myself, targetOrgId, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
     const url = RequestHelper.getOneOrgWallFeed(targetOrgId) + query;

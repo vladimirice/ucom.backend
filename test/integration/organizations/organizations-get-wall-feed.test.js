@@ -19,8 +19,8 @@ describe('Organizations. Get requests', () => {
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.initUsersOnly();
-    await helpers.Seeds.seedOrganizations();
+    await helpers.Seeds.initUsersOnly();
+    await helpers.Seeds.seedOrganizations(); // deprecated. Use generator
   });
 
   describe('Organizations wall feed', () => {

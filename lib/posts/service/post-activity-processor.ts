@@ -7,12 +7,21 @@ const entityTagsRepo = require('../../tags/repository/entity-tags-repository');
 const postsModelProvider: any = require('../../posts/service/posts-model-provider');
 
 class PostActivityProcessor {
+  /**
+   *
+   * @param {number} activityId
+   */
   static async processOneActivity(activityId: number) {
     const activity: activityWithContentEntity | null =
       await usersActivityRepository.findOneWithPostById(activityId);
 
-    if (activity === null) {
-      throw new Error(`Given activity ID ${activityId} do not represent activity with post`);
+    if (!activity) {
+      console.log(
+        `Given activity ID ${activityId}
+        do not represent activity with post. Or should be skipped.`,
+      );
+
+      return;
     }
 
     const [inputData, existingData] = await Promise.all([
