@@ -5,6 +5,8 @@ const winston     = require('winston');
 const { format }  = require('winston');
 const { combine, timestamp, label, printf } = format;
 
+const { stringify } = require('flatted/cjs');
+
 const MAX_FILE_SIZE = 104857600; // 100 MB;
 const MAX_FILES     = 30;
 
@@ -22,7 +24,7 @@ const myFormat = printf((info) => {
   const nodeEnv = process.env.NODE_ENV;
 
   if (info instanceof Error) {
-    return `${info.timestamp}.[${nodeEnv}].[${info.label}].${info.level}: ${info.message}. Stack: ${info.stack}. Full JSON: ${JSON.stringify(info, null, 2)}`;
+    return `${info.timestamp}.[${nodeEnv}].[${info.label}].${info.level}: ${info.message}. Stack: ${info.stack}. Full JSON: ${stringify(info)}`;
   }
 
   return `${info.timestamp}.[${info.label}].${info.level}: ${JSON.stringify(info.message)}`;
@@ -57,6 +59,7 @@ const options = {
   }
 };
 
+// noinspection JSValidateTypes
 const transports = [
   new winston.transports.File(options.file_error),
   new winston.transports.File(options.file_combined),

@@ -19,6 +19,8 @@ let userJane;
 let userPetr;
 let userRokky;
 
+const JEST_TIMEOUT = 10000;
+
 helpers.Mock.mockAllTransactionSigning();
 helpers.Mock.mockAllBlockchainJobProducers();
 
@@ -52,7 +54,7 @@ describe('Notifications create-update', () => {
           repostId,
           parentPostId,
         )
-      }, 10000);
+      }, JEST_TIMEOUT);
 
       it('somebody shares your organization post', async () => {
         const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
@@ -122,7 +124,7 @@ describe('Notifications create-update', () => {
         };
 
         helpers.Common.checkOneNotificationsFromList(notification, options)
-      });
+      }, JEST_TIMEOUT);
     });
   });
 
@@ -151,7 +153,8 @@ describe('Notifications create-update', () => {
       };
 
       helpers.Common.checkOneNotificationsFromList(notification, options);
-    });
+    }, JEST_TIMEOUT);
+
     it('User creates comment on your comment', async () => {
       const postAuthor = userVlad;
       const commentAuthor = userJane;
@@ -176,7 +179,8 @@ describe('Notifications create-update', () => {
       };
 
       helpers.Common.checkOneNotificationsFromList(notification, options);
-    });
+    }, JEST_TIMEOUT);
+
   });
 
   describe('User voting activity', () => {

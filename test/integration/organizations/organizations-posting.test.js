@@ -91,7 +91,7 @@ describe('Organizations. Get requests', () => {
         const org_id = 100500;
 
         // noinspection JSDeprecatedSymbols
-        await helpers.Post.requestToCreateMediaPostOfOrganization(userVlad, org_id, 400);
+        await helpers.Post.requestToCreateMediaPostOfOrganization(userVlad, org_id, 404);
       });
 
       it('should NOT be possible to create post on behalf of organization by member with pending invitation', async () => {

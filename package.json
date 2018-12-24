@@ -17,6 +17,7 @@
     "eosjs-ecc": "^4.0.3",
     "express": "~4.16.0",
     "express-async-errors": "3.0.0",
+    "flatted": "^2.0.0",
     "helmet": "^3.15.0",
     "http-errors": "~1.6.2",
     "ipfs-api": "24.0.1",
