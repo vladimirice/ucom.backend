@@ -54,6 +54,15 @@ class EntityTagsGenerator {
                 description: `Hi everyone! #${tagsSet[0]} is so close`,
             });
             yield tagHelper.getPostWhenTagsAreProcessed(janePostOneId);
+            return {
+                tagsTitles: tagsSet,
+                posts: {
+                    vlad: [
+                        vladPostOneId,
+                        vladPostTwoId,
+                    ],
+                },
+            };
         });
     }
 }

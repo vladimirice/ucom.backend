@@ -119,7 +119,7 @@ describe('Direct posts create-update', () => {
 
           // noinspection JSDeprecatedSymbols
           const postBefore  = await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser);
-          const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
+          const postAfter   = await helpers.Posts.requestToUpdatePostDescription(postBefore.id, user, expectedValues.description);
 
           const options = {
             myselfData: true,
@@ -140,7 +140,7 @@ describe('Direct posts create-update', () => {
 
           // noinspection JSDeprecatedSymbols
           const postBefore  = await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId);
-          const postAfter   = await helpers.Posts.requestToUpdateDirectPost(postBefore.id, user, expectedValues.description);
+          const postAfter   = await helpers.Posts.requestToUpdatePostDescription(postBefore.id, user, expectedValues.description);
 
           const options = {
             myselfData: true,

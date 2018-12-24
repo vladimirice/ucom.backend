@@ -3,6 +3,7 @@ const server = require('../../../app');
 const expect = require('expect');
 
 const helpers = require('../helpers');
+const gen = require('../../generators');
 
 const UserHelper      = helpers.UserHelper;
 const SeedsHelper     = helpers.Seeds;
@@ -303,6 +304,36 @@ describe('Posts API', () => {
   describe('Update post', () => {
 
     describe('Positive', () => {
+      it('Media Post updating should lead to updating activity', async () => {
+        await helpers.Seeds.initUsersOnly(); // this means that seeds are not used in this autotest
+
+        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+
+        const fieldsToChange = {
+          'title': 'This is title to change',
+          'description': 'Also necessary to change description',
+          'leading_text': 'And leading text',
+        };
+
+        const res = await request(server)
+          .patch(`${postsUrl}/${postId}`)
+          .set('Authorization', `Bearer ${userVlad.token}`)
+          .field('title',         fieldsToChange['title'])
+          .field('description',   fieldsToChange['description'])
+          .field('leading_text',  fieldsToChange['leading_text'])
+        ;
+
+        helpers.Res.expectStatusOk(res);
+
+        // expect required users activity
+        const activity  = await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, postId);
+        // expect this is updating
+
+        expect(activity.activity_group_id).toBe(ActivityGroupDictionary.getGroupContentUpdating());
+        expect(activity.activity_type_id).toBe(ContentTypeDictionary.getTypeMediaPost());
+        expect(activity.event_id).toBeNull();
+      });
+
       it('Update Media Post and also update entity_images', async () => {
         const userVlad = await helpers.Users.getUserVlad();
 

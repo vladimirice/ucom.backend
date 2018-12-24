@@ -10,6 +10,10 @@ class EntityTagsRepository {
     return trx(TABLE_NAME).insert(toInsert);
   }
 
+  static async deleteEntityTagsByPrimaryKey(ids: number[], trx: Transaction): Promise<any> {
+    return trx(TABLE_NAME).whereIn('id', ids).del();
+  }
+
   static async findAllByEntity(entityId: number, entityName: string): Promise<Object> {
     const where = {
       entity_id: entityId,

@@ -86,6 +86,36 @@ class TagsHelper {
     }
     /**
      *
+     * @param {number} modelId
+     * @param {string[]} expectedTags
+     * @returns {Promise<Object>}
+     */
+    static getPostWhenTagsAreUpdated(modelId, expectedTags) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let model;
+            while (true) {
+                model = yield postsRepository.findOnlyPostItselfById(modelId);
+                if (JSON.stringify(model.entity_tags.sort()) === JSON.stringify(expectedTags.sort())) {
+                    break;
+                }
+                delay(100);
+            }
+            return model;
+        });
+    }
+    /**
+     *
+     * @param {number} modelId
+     * @param {string[]} expectedTags
+     */
+    static checkRelatedPostModelsByPostId(modelId, expectedTags) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const model = yield this.getPostWhenTagsAreUpdated(modelId, expectedTags);
+            return this.checkRelatedPostModels(expectedTags, model);
+        });
+    }
+    /**
+     *
      * @param {string[]} expectedTags
      * @param {Object} model
      * @returns {Promise<Object>}
@@ -93,7 +123,37 @@ class TagsHelper {
     static checkRelatedPostModels(expectedTags, model) {
         return __awaiter(this, void 0, void 0, function* () {
             const entityName = postsModelProvider.getEntityName();
-            return this.checkRelatedModels(expectedTags, model, entityName);
+            if (expectedTags.length > 0) {
+                return this.checkRelatedModels(expectedTags, model, entityName);
+            }
+            return this.checkThereAreNoTags(model, entityName);
+        });
+    }
+    /**
+     *
+     * @param model
+     * @param entityName
+     */
+    static checkThereAreNoTags(model, entityName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            expect(model.entity_tags.length).toBe(0);
+            const [allTags, entityTags, entityStateLog] = yield Promise.all([
+                tagsRepository.getAllTags(),
+                entityTagsRepository.findAllWithAllFieldsByEntity(model.id, entityName),
+                entityStateLogRepository.findLastEntityStateLog(model.id, entityName),
+            ]);
+            expect(entityTags.length).toBe(0);
+            // Check entityStateLogRecords
+            expect(entityStateLog).toBeDefined();
+            expect(entityStateLog).not.toBeNull();
+            expect(+entityStateLog.entity_id).toBe(+model.id);
+            expect(entityStateLog.entity_name).toBe(entityName);
+            expect(JSON.stringify(entityStateLog.state_json).length).toBeGreaterThan(0);
+            return {
+                allTags,
+                entityTags,
+                entityStateLog,
+            };
         });
     }
     /**
@@ -111,6 +171,9 @@ class TagsHelper {
                 entityTagsRepository.findAllWithAllFieldsByEntity(model.id, entityName),
                 entityStateLogRepository.findLastEntityStateLog(model.id, entityName),
             ]);
+            entityTags.forEach((entityTag) => {
+                expect(!!(~expectedTags.indexOf(entityTag.tag_title))).toBeTruthy();
+            });
             const dbTags = [];
             // Expect that all tagModels are created or exists in Db
             expectedTags.forEach((tagTitle) => {
@@ -119,6 +182,7 @@ class TagsHelper {
                 dbTags.push(dbTag);
             });
             // Check entity_tags records related to model
+            // Check that there are no deleted records
             dbTags.forEach((dbTag) => {
                 const entityTag = entityTags.find((item) => +item.tag_id === +dbTag.id);
                 expect(entityTag).toBeDefined();

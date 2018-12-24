@@ -82,7 +82,8 @@ module.exports = (sequelize, DataTypes) => {
       'entity_id_for',
       'entity_name_for',
 
-      'comments_count'
+      'comments_count',
+      'entity_tags',
     ];
   };
 

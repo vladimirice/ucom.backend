@@ -55,6 +55,16 @@ class EntityTagsGenerator {
     });
 
     await tagHelper.getPostWhenTagsAreProcessed(janePostOneId);
+
+    return {
+      tagsTitles: tagsSet,
+      posts: {
+        vlad: [
+          vladPostOneId,
+          vladPostTwoId,
+        ],
+      },
+    };
   }
 }
 

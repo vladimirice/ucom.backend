@@ -1,10 +1,11 @@
+const _     = require('lodash');
+const knex  = require('../../../config/knex');
+
 const entityTagsRepository: any = require('../repository/entity-tags-repository');
 const tagsRepository            = require('../repository/tags-repository');
 const postsModelProvider: any   = require('../../posts/service/posts-model-provider');
 const postsRepository: any      = require('../../posts/posts-repository');
 const entityStateLogRepository  = require('../../entities/repository/entity-state-log-repository');
-
-const knex = require('../../../config/knex');
 
 class TagsProcessorService {
   static async processTags(
@@ -12,10 +13,8 @@ class TagsProcessorService {
     inputData: string[],
     existingData: Object,
   ) {
-    const [titlesToInsert, idsToDelete] =
-      this.getTitlesToCreateAndIdsToDelete(inputData, existingData);
-
-    console.dir(`Ids to delete: ${idsToDelete}`);
+    const [titlesToInsert, entityTagsIdsToDelete] =
+      this.getTitlesToInsertAndIdsToDelete(inputData, existingData);
 
     const existingTags: Object = await tagsRepository.findAllTagsByTitles(titlesToInsert);
 
@@ -32,30 +31,22 @@ class TagsProcessorService {
         ...existingTags,
       };
 
-      console.dir(tagModels);
-
       const entityTagsToInsert: Object[] =
           this.getEntityTagsToInsert(titlesToInsert, activity, tagModels);
 
-      await entityTagsRepository.createNewEntityTags(entityTagsToInsert, trx);
-
-      const processedPost = await postsRepository.updatePostEntityTagsById(
-          activity.entity_id,
-          titlesToInsert,
-          trx,
-        );
+      const [processedPost] = await Promise.all([
+        postsRepository.updatePostEntityTagsById(activity.entity_id, inputData, trx),
+        entityTagsRepository.createNewEntityTags(entityTagsToInsert, trx),
+        entityTagsRepository.deleteEntityTagsByPrimaryKey(entityTagsIdsToDelete, trx),
+      ]);
 
       await entityStateLogRepository.insertNewState(
-          activity.entity_id,
-          postsModelProvider.getEntityName(),
-          processedPost,
-          trx,
-        );
-
-      console.log('finish transaction ');
-
+        activity.entity_id,
+        postsModelProvider.getEntityName(),
+        processedPost,
+        trx,
+      );
     });
-
   }
 
   private static getTagsToInsert(
@@ -105,14 +96,32 @@ class TagsProcessorService {
     return entityTags;
   }
 
-  private static getTitlesToCreateAndIdsToDelete(inputData: string[], existingData: Object) {
-    if (Object.keys(existingData).length !== 0) {
-      throw new Error('You must implement tags updating logic');
-    }
+  /**
+   *
+   * @param {string[]} inputData
+   * @param {Object} existingData
+   *
+   * @private
+   */
+  private static getTitlesToInsertAndIdsToDelete(
+    inputData: string[],
+    existingData: Object,
+  ): [string[], number[]] {
+    // if something from input data does not exist inside existing data - this is data to insert
+    // if something from existing data does not exist inside input data - this is data to delete
+
+    const toInsert: string[] = _.difference(inputData, Object.keys(existingData));
+
+    const toDelete: string[] = _.difference(Object.keys(existingData), inputData);
+
+    const entityTagsIdsToDelete: number[] = [];
+    toDelete.forEach((title: string) => {
+      entityTagsIdsToDelete.push(+existingData[title]);
+    });
 
     return [
-      inputData,
-      [], // TODO - tags updating
+      toInsert,
+      entityTagsIdsToDelete,
     ];
   }
 }

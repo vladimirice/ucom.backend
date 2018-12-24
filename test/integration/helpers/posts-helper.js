@@ -290,13 +290,20 @@ class PostsHelper {
    * @param {number} postId
    * @param {Object} user
    * @param {string|null} givenDescription
-   * @return {Promise<void>}
+   * @param {string[]} tags
+   * @return {Promise<Object>}
    */
-  static async requestToUpdateDirectPost(postId, user, givenDescription) {
+  static async requestToUpdatePostDescription(postId, user, givenDescription, tags = []) {
+    let description = givenDescription || 'extremely updated one';
+
+    tags.forEach((tag) => {
+      description += ` #${tag} `
+    });
+
     const res = await request(server)
       .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization',   `Bearer ${user.token}`)
-      .field('description',   givenDescription)
+      .field('description',   description)
     ;
 
     ResponseHelper.expectStatusOk(res);

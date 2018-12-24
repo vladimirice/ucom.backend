@@ -104,6 +104,40 @@ class TagsHelper {
 
   /**
    *
+   * @param {number} modelId
+   * @param {string[]} expectedTags
+   * @returns {Promise<Object>}
+   */
+  static async getPostWhenTagsAreUpdated(modelId: number, expectedTags: string[]) {
+    let model;
+
+    while (true) {
+      model = await postsRepository.findOnlyPostItselfById(modelId);
+
+      if (JSON.stringify(model.entity_tags.sort()) === JSON.stringify(expectedTags.sort())) {
+        break;
+      }
+
+      delay(100);
+    }
+
+    return model;
+  }
+
+  /**
+   *
+   * @param {number} modelId
+   * @param {string[]} expectedTags
+   */
+  static async checkRelatedPostModelsByPostId(modelId: number, expectedTags: string[]) {
+    const model: any =
+      await this.getPostWhenTagsAreUpdated(modelId, expectedTags);
+
+    return this.checkRelatedPostModels(expectedTags, model);
+  }
+
+  /**
+   *
    * @param {string[]} expectedTags
    * @param {Object} model
    * @returns {Promise<Object>}
@@ -111,7 +145,42 @@ class TagsHelper {
   static async checkRelatedPostModels(expectedTags, model) {
     const entityName = postsModelProvider.getEntityName();
 
-    return this.checkRelatedModels(expectedTags, model, entityName);
+    if (expectedTags.length > 0) {
+      return this.checkRelatedModels(expectedTags, model, entityName);
+    }
+
+    return this.checkThereAreNoTags(model, entityName);
+  }
+
+  /**
+   *
+   * @param model
+   * @param entityName
+   */
+  static async checkThereAreNoTags(model, entityName: string) {
+    expect(model.entity_tags.length).toBe(0);
+
+    const [allTags, entityTags, entityStateLog] = await Promise.all([
+      tagsRepository.getAllTags(),
+      entityTagsRepository.findAllWithAllFieldsByEntity(model.id, entityName),
+      entityStateLogRepository.findLastEntityStateLog(model.id, entityName),
+    ]);
+
+    expect(entityTags.length).toBe(0);
+
+    // Check entityStateLogRecords
+    expect(entityStateLog).toBeDefined();
+    expect(entityStateLog).not.toBeNull();
+
+    expect(+entityStateLog.entity_id).toBe(+model.id);
+    expect(entityStateLog.entity_name).toBe(entityName);
+    expect(JSON.stringify(entityStateLog.state_json).length).toBeGreaterThan(0);
+
+    return {
+      allTags,
+      entityTags,
+      entityStateLog,
+    };
   }
 
   /**
@@ -130,6 +199,10 @@ class TagsHelper {
       entityStateLogRepository.findLastEntityStateLog(model.id, entityName),
     ]);
 
+    entityTags.forEach((entityTag: any) => {
+      expect(!!(~expectedTags.indexOf(entityTag.tag_title))).toBeTruthy();
+    });
+
     const dbTags: Object[] = [];
 
     // Expect that all tagModels are created or exists in Db
@@ -141,6 +214,8 @@ class TagsHelper {
     });
 
     // Check entity_tags records related to model
+    // Check that there are no deleted records
+
     dbTags.forEach((dbTag: any) => {
       const entityTag = entityTags.find((item: any) => +item.tag_id === +dbTag.id);
       expect(entityTag).toBeDefined();
