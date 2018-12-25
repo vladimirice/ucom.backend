@@ -30,14 +30,15 @@ describe('Tags parser consumer', () => {
   });
 
   describe('Updating', () => {
-    let existingTitles : string[];
+    let existingTitles: string[];
     let existingVladPostId;
+    let existingPosts;
 
     beforeEach(async () => {
       // lets create some disturbance
-      const { tagsTitles, posts } = await tagsGenerator.createPostsWithTags(userVlad, userJane);
-      existingTitles = tagsTitles;
-      existingVladPostId = posts.vlad[0];
+      ({ posts: existingPosts, tagsTitles:existingTitles } =
+        await tagsGenerator.createPostsWithTags(userVlad, userJane));
+      existingVladPostId = existingPosts.vlad[0];
     });
 
     describe('post without any tags', () => {
@@ -234,6 +235,30 @@ describe('Tags parser consumer', () => {
 
         await tagsHelper.checkRelatedPostModels(expectedTags, postAfter);
       });
+
+      it('If no new tags - create nothing new in tags model', async () => {
+        const postId = existingVladPostId;
+
+        const post: any = await helpers.Posts.requestToGetOnePostAsGuest(postId);
+
+        const entityTagsBefore = await tagsHelper.getRelatedPostEntityTags(postId);
+
+        const expectedTags = [
+          post.entity_tags[0],
+          post.entity_tags[1],
+        ];
+
+        await postsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
+
+        const postAfter: any =
+          await tagsHelper.getPostWhenTagsAreUpdated(postId, expectedTags);
+
+        await tagsHelper.checkRelatedPostModels(expectedTags, postAfter);
+
+        const entityTagsAfter = await tagsHelper.getRelatedPostEntityTags(postId);
+
+        expect(entityTagsAfter).toEqual(entityTagsBefore);
+      });
     });
   });
 
@@ -348,21 +373,5 @@ describe('Tags parser consumer', () => {
       await helpers.Tags.checkRelatedPostModels(expectedTags, processedModel);
 
     }, 10000);
-
-    it.skip('Create entity_tags with filled org_id if it is appreciable', async () => {
-
-    });
-
-    it.skip('If no tags - do nothing', async () => {
-    });
-
-    it.skip('Process only one tag', async () => {
-    });
-    it.skip('If no new tags - create nothing new in tags model', async () => {
-    });
-
-    it.skip('should produce no tags records if there are no ones for new post', async () => {
-
-    });
   });
 });

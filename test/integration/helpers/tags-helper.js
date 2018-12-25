@@ -156,6 +156,12 @@ class TagsHelper {
             };
         });
     }
+    static getRelatedPostEntityTags(modelId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const entityName = postsModelProvider.getEntityName();
+            return entityTagsRepository.findAllWithAllFieldsByEntity(modelId, entityName);
+        });
+    }
     /**
      *
      * @param {string[]} expectedTags

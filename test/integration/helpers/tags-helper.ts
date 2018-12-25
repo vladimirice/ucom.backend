@@ -142,7 +142,7 @@ class TagsHelper {
    * @param {Object} model
    * @returns {Promise<Object>}
    */
-  static async checkRelatedPostModels(expectedTags, model) {
+  static async checkRelatedPostModels(expectedTags: string[], model: Object) {
     const entityName = postsModelProvider.getEntityName();
 
     if (expectedTags.length > 0) {
@@ -181,6 +181,12 @@ class TagsHelper {
       entityTags,
       entityStateLog,
     };
+  }
+
+  static async getRelatedPostEntityTags(modelId: any): Promise<Object[]> {
+    const entityName = postsModelProvider.getEntityName();
+
+    return entityTagsRepository.findAllWithAllFieldsByEntity(modelId, entityName);
   }
 
   /**

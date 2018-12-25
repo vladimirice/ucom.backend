@@ -1,14 +1,18 @@
 const helpers = require('../helpers');
 const gen = require('../../generators');
 
+const mockHelper = require('../helpers/mock-helper');
 const usersFeedRepository = require('../../../lib/common/repository').UsersFeed;
 
-helpers.Mock.mockAllBlockchainPart();
+mockHelper.mockAllTransactionSigning();
+mockHelper.mockBlockchainPart();
 
 let userVlad;
 let userJane;
 let userPetr;
 let userRokky;
+
+const requestHelper = require('../helpers/request-helper');
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
@@ -200,7 +204,7 @@ describe('Organizations. Get requests', () => {
 
     const url = helpers.Req.getTagsWallFeedUrl(tagName);
 
-    const models = await helpers.Req.makeGetRequestForList(url, true);
+    const models = await requestHelper.makeGetRequestForList(url);
 
     expect(models.some((item): any => item.id === vladHimselfPostId)).toBeTruthy();
     expect(models.some((item): any => item.id === vladOrgPostId)).toBeTruthy();

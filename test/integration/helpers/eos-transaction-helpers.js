@@ -252,8 +252,6 @@ class EosTransactionHelper {
                 "parent_content_id": "",
               },
             },
-            "cpu_usage": 0,
-            "total_cpu_usage": 0,
             "inline_traces": []
           }
         ],
@@ -289,8 +287,6 @@ class EosTransactionHelper {
                 "parent_content_id": "",
               },
             },
-            "cpu_usage": 0,
-            "total_cpu_usage": 0,
             "inline_traces": []
           }
         ],
@@ -325,8 +321,6 @@ class EosTransactionHelper {
                 "content_type_id": 10,
               },
             },
-            "cpu_usage": 0,
-            "total_cpu_usage": 0,
             "inline_traces": []
           }
         ],
@@ -360,8 +354,6 @@ class EosTransactionHelper {
                 "content_type_id": 10,
               },
             },
-            "cpu_usage": 0,
-            "total_cpu_usage": 0,
             "inline_traces": []
           }
         ],
@@ -397,8 +389,6 @@ class EosTransactionHelper {
                 "parent_content_id": parentBlockchainId,
               },
             },
-            "cpu_usage": 0,
-            "total_cpu_usage": 0,
             "inline_traces": []
           }
         ],
@@ -433,8 +423,6 @@ class EosTransactionHelper {
                 "parent_content_id": "",
               },
             },
-            "cpu_usage": 0,
-            "total_cpu_usage": 0,
             "inline_traces": []
           }
         ],
@@ -477,8 +465,6 @@ class EosTransactionHelper {
               },
             },
             "console": `usertocont acc = ${accountName} content_id = ${blockchainId} interaction_type_id = ${interactionTypeId}`,
-            "cpu_usage": 0,
-            "total_cpu_usage": 0,
             "inline_traces": []
           }
         ],

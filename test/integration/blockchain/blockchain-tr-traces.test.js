@@ -12,16 +12,12 @@ let userVlad, userJane, userPetr, userRokky;
 const JEST_TIMEOUT = 40000;
 
 describe('Blockchain tr traces sync tests', () => {
-  beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
-  });
-
   afterAll(async () => {
     await helpers.SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
   });
 
   describe('check sync', function () {
