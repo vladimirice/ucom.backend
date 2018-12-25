@@ -1,6 +1,6 @@
 const _ = require('lodash');
 
-const TAG_REGEX = /#([a-zA-Z]+)/gm;
+const TAG_REGEX = /#[a-zA-z]([a-zA-Z0-9]*)/gm;
 
 class TagsParserService {
   static parseTags(inputString: string): string[] {
