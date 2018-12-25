@@ -20,8 +20,12 @@ describe('Create-update tags', () => {
   describe('Tags parser', () => {
     it('Tags parser basic checks', async () => {
       const data = {
-        '#null#undefined!#undefined2!# #a #b2 hello! #a998bc I #amazing #1tool:) #too.l:)' :
-          ['null', 'undefined', 'undefined2', 'a', 'b2', 'a998bc', 'amazing', 'too'],
+        '#null#undefined!#undefined2!# #a #b2 # hello! #a998bc' : [
+          'null', 'undefined', 'undefined2', 'a', 'b2', 'a998bc',
+        ],
+        ' I #am__az_ing_ #1tool:) #too.l #_9abc:)' : [
+          'am__az_ing_', 'too',
+        ],
         '#null#null## hello there! I am amazing' : ['null'],
         '#null2 hello! #undefined! I #ama2zing90 #1tool:)' : ['null2', 'undefined', 'ama2zing90'],
       };
