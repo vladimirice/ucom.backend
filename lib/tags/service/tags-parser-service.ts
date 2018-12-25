@@ -1,6 +1,7 @@
 const _ = require('lodash');
 
 const TAG_REGEX = /#[a-zA-z]([a-zA-Z0-9]*)/gm;
+const TAG_MAX_LENGTH = 2048;
 
 class TagsParserService {
   static parseTags(inputString: string): string[] {
@@ -10,7 +11,9 @@ class TagsParserService {
       return [];
     }
 
-    return _.uniq(tagsArray.map(item => item.replace('#', '')));
+    const uniqueValues = _.uniq(tagsArray.map(item => item.replace('#', '')));
+
+    return uniqueValues.filter(item => item.length < TAG_MAX_LENGTH);
   }
 }
 
