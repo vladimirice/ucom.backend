@@ -22,55 +22,10 @@ describe('GET Tags', () => {
   });
 
   it('Get one tag page by tag name', async () => {
-    const tagsSet = [
-      'summer', 'party', 'openair', 'eos', 'ether',
-    ];
+    const generated = await tagsGenerator.createPostsWithTags(userVlad, userJane);
 
-    const postOneTags = [
-      tagsSet[0],
-      tagsSet[1],
-    ];
-
-    const postTwoTags = [
-      tagsSet[0], // existing tag, not unique
-      tagsSet[2], // new tag
-      tagsSet[1], // existing tag, not unique
-    ];
-
-    const janePostOneTags = [
-      tagsSet[2], // existing tag, not unique
-      tagsSet[3], // new tag
-      tagsSet[4], // new tag
-    ];
-
-    const vladPostOneId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
-      description: `Hi everyone! #${postOneTags[0]} #${postOneTags[0]} is so close.
-        Lets organize a #${postOneTags[1]}`,
-    });
-
-    await helpers.Tags.getPostWhenTagsAreProcessed(vladPostOneId);
-
-    const vladPostTwoId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
-      description: `Hi everyone again! #${postTwoTags[0]} is so close.
-        Lets organize #${postTwoTags[1]} #${postTwoTags[2]}`,
-    });
-
-    await helpers.Tags.getPostWhenTagsAreProcessed(vladPostTwoId);
-
-    const janePostOneId = await gen.Posts.createMediaPostByUserHimself(userJane, {
-      description: `Hi everyone! #${janePostOneTags[0]} is so close.
-        Lets buy some #${janePostOneTags[1]} and #${janePostOneTags[2]} and #${janePostOneTags[1]}`,
-    });
-
-    const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
-    await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
-      description: `Hi everyone! #${tagsSet[0]} is so close`,
-    });
-
-    await helpers.Tags.getPostWhenTagsAreProcessed(janePostOneId);
-
-    const tagName = 'summer';
-    const expectedFeedPosts = 3;
+    const tagName = generated.tagsTitles[0];
+    const expectedFeedPosts = generated.posts.total_amount;
 
     const data = await helpers.Tags.requestToGetOneTagPageByTitleAsGuest(tagName);
 

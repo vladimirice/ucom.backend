@@ -1,6 +1,8 @@
 const postsGenerator  = require('../posts-generator');
 const orgsGenerator   = require('../organizations-generator');
-const tagHelper       = require('../../integration/helpers/tags-helper');
+
+const tagHelper   = require('../../integration/helpers/tags-helper');
+const postsHelper = require('../../integration/helpers/posts-helper');
 
 class EntityTagsGenerator {
   /**
@@ -56,9 +58,17 @@ class EntityTagsGenerator {
 
     await tagHelper.getPostWhenTagsAreProcessed(janePostOneId);
 
+    // noinspection JSDeprecatedSymbols
+    await postsHelper.requestToCreateDirectPostForUser(
+      userVlad,
+      userJane,
+      `Our super #${tagsSet[0]} post #${tagsSet[1]} description`,
+    );
+
     return {
       tagsTitles: tagsSet,
       posts: {
+        total_amount: 4,
         vlad: [
           vladPostOneId,
           vladPostTwoId,

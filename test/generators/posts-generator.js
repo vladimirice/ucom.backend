@@ -132,6 +132,7 @@ class PostsGenerator {
     const res = await request(server)
       .post(RequestHelper.getCreateRepostUrl(postId))
       .set('Authorization', `Bearer ${repostAuthor.token}`)
+      .field('description', 'hello from such strange one')
     ;
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 

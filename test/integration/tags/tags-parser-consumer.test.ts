@@ -9,9 +9,11 @@ const gen     = require('../../generators');
 const mockHelper = require('../helpers/mock-helper');
 const seedsHelper = require('../helpers/seeds-helper');
 
-const tagsGenerator = require('../../generators/entity/entity-tags-generator');
+const tagsGenerator   = require('../../generators/entity/entity-tags-generator');
+const postsGenerator  = require('../../generators/posts-generator');
+const orgGenerator    = require('../../generators/organizations-generator');
+
 const tagsHelper = require('../helpers/tags-helper');
-const postsGenerator = require('../../generators/posts-generator');
 const postsHelper = require('../helpers/posts-helper');
 
 let userVlad;
@@ -262,7 +264,55 @@ describe('Tags parser consumer', () => {
     });
   });
 
-  describe('Tags for new posts', () => {
+  describe('Creating - Tags for new posts', () => {
+    it('should create tags for direct post of user himself', async () => {
+
+      const expectedTags = [
+        'summer',
+        'party',
+      ];
+
+      const user = userVlad;
+      const targetUser = userJane;
+
+      const newPostFields = {
+        description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
+      };
+
+      // noinspection JSDeprecatedSymbols
+      const directPost = await postsHelper.requestToCreateDirectPostForUser(
+        user,
+        targetUser,
+        newPostFields.description,
+      );
+
+      await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
+    });
+
+    it('should create tags for direct post of org', async () => {
+      const user = userVlad;
+
+      const expectedTags = [
+        'summer',
+        'party',
+      ];
+
+      const orgId = await orgGenerator.createOrgWithoutTeam(user);
+
+      const newPostFields = {
+        description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
+      };
+
+      // noinspection JSDeprecatedSymbols//////////////
+      const directPost = await helpers.Posts.requestToCreateDirectPostForOrganization(
+        user,
+        orgId,
+        newPostFields.description,
+      );
+
+      await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
+    });
+
     it('Should create org post and have an appropriate org_id in entity_tags', async () => {
       const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
 

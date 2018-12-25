@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const postsGenerator = require('../posts-generator');
 const orgsGenerator = require('../organizations-generator');
 const tagHelper = require('../../integration/helpers/tags-helper');
+const postsHelper = require('../../integration/helpers/posts-helper');
 class EntityTagsGenerator {
     /**
      *
@@ -54,9 +55,12 @@ class EntityTagsGenerator {
                 description: `Hi everyone! #${tagsSet[0]} is so close`,
             });
             yield tagHelper.getPostWhenTagsAreProcessed(janePostOneId);
+            // noinspection JSDeprecatedSymbols
+            yield postsHelper.requestToCreateDirectPostForUser(userVlad, userJane, `Our super #${tagsSet[0]} post #${tagsSet[1]} description`);
             return {
                 tagsTitles: tagsSet,
                 posts: {
+                    total_amount: 4,
                     vlad: [
                         vladPostOneId,
                         vladPostTwoId,

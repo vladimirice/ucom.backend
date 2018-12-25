@@ -75,6 +75,7 @@ describe('Direct posts create-update', () => {
           ...newPostFields
         }, user);
       });
+
       it('For organization without organization', async () => {
         const user = userVlad;
         const targetOrgId = 1;

@@ -114,7 +114,9 @@ class TagsHelper {
     while (true) {
       model = await postsRepository.findOnlyPostItselfById(modelId);
 
-      if (JSON.stringify(model.entity_tags.sort()) === JSON.stringify(expectedTags.sort())) {
+      if (model.entity_tags
+        && JSON.stringify(model.entity_tags.sort()) === JSON.stringify(expectedTags.sort())
+      ) {
         break;
       }
 
