@@ -55,8 +55,7 @@ class EntityTagsGenerator {
                 description: `Hi everyone! #${tagsSet[0]} is so close`,
             });
             yield tagHelper.getPostWhenTagsAreProcessed(janePostOneId);
-            // noinspection JSDeprecatedSymbols
-            yield postsHelper.requestToCreateDirectPostForUser(userVlad, userJane, `Our super #${tagsSet[0]} post #${tagsSet[1]} description`);
+            yield this.createDirectPostForUserWithTags(userVlad, userJane, tagsSet[0], tagsSet[1]);
             return {
                 tagsTitles: tagsSet,
                 posts: {
@@ -67,6 +66,13 @@ class EntityTagsGenerator {
                     ],
                 },
             };
+        });
+    }
+    static createDirectPostForUserWithTags(userVlad, userJane, firstTag, secondTag) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const description = `Our super #${firstTag} post #${secondTag} description`;
+            const directPost = yield postsHelper.requestToCreateDirectPostForUser(userVlad, userJane, description);
+            return tagHelper.getPostWhenTagsAreProcessed(directPost.id);
         });
     }
 }

@@ -58,12 +58,7 @@ class EntityTagsGenerator {
 
     await tagHelper.getPostWhenTagsAreProcessed(janePostOneId);
 
-    // noinspection JSDeprecatedSymbols
-    await postsHelper.requestToCreateDirectPostForUser(
-      userVlad,
-      userJane,
-      `Our super #${tagsSet[0]} post #${tagsSet[1]} description`,
-    );
+    await this.createDirectPostForUserWithTags(userVlad, userJane, tagsSet[0], tagsSet[1]);
 
     return {
       tagsTitles: tagsSet,
@@ -75,6 +70,23 @@ class EntityTagsGenerator {
         ],
       },
     };
+  }
+
+  public static async createDirectPostForUserWithTags(
+    userVlad: Object,
+    userJane: Object,
+    firstTag: string,
+    secondTag: string,
+  ) {
+    const description = `Our super #${firstTag} post #${secondTag} description`;
+
+    const directPost = await postsHelper.requestToCreateDirectPostForUser(
+      userVlad,
+      userJane,
+      description,
+    );
+
+    return tagHelper.getPostWhenTagsAreProcessed(directPost.id);
   }
 }
 

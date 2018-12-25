@@ -19,7 +19,7 @@ const postsHelper = require('../helpers/posts-helper');
 let userVlad;
 let userJane;
 
-describe('Tags parser consumer', () => {
+describe('Tags parsing by consumer', () => {
   beforeAll(async () => {
     mockHelper.mockAllTransactionSigning();
     mockHelper.mockAllBlockchainJobProducers();
@@ -31,7 +31,170 @@ describe('Tags parser consumer', () => {
     [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
   });
 
-  describe('Updating', () => {
+  describe('Creating - tags for new posts', () => {
+    describe('direct posts', () => {
+      it('should create tags for direct post of user himself', async () => {
+
+        const expectedTags = [
+          'summer',
+          'party',
+        ];
+
+        const user = userVlad;
+        const targetUser = userJane;
+
+        const newPostFields = {
+          description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
+        };
+
+        // noinspection JSDeprecatedSymbols
+        const directPost = await postsHelper.requestToCreateDirectPostForUser(
+          user,
+          targetUser,
+          newPostFields.description,
+        );
+
+        await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
+      });
+
+      it('should create tags for direct post of org', async () => {
+        const user = userVlad;
+
+        const expectedTags = [
+          'summer',
+          'party',
+        ];
+
+        const orgId = await orgGenerator.createOrgWithoutTeam(user);
+
+        const newPostFields = {
+          description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
+        };
+
+        // noinspection JSDeprecatedSymbols//////////////
+        const directPost = await helpers.Posts.requestToCreateDirectPostForOrganization(
+          user,
+          orgId,
+          newPostFields.description,
+        );
+
+        await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
+      });
+    });
+
+    it('Should create org post and have an appropriate org_id in entity_tags', async () => {
+      const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+
+      const postTags = [
+        'summer',
+        'undefined',
+      ];
+
+      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId, {
+        description: `Hi everyone! #${postTags[0]} is so close. Lets organize a #${postTags[1]}`,
+      });
+
+      const processedModel = await tagsHelper.getPostWhenTagsAreProcessed(postId);
+
+      await tagsHelper.checkRelatedPostModels(postTags, processedModel);
+    });
+
+    it('Three posts are created. Without orgs. Some tags are duplicated', async () => {
+      // lets create some posts with tags
+
+      const tagsSet = [
+        'summer', 'party', 'openair', 'eos', 'ether',
+      ];
+
+      const postOneTags = [
+        tagsSet[0],
+        tagsSet[1],
+      ];
+
+      const postTwoTags = [
+        tagsSet[0], // existing tag, not unique
+        tagsSet[2], // new tag
+        tagsSet[1], // existing tag, not unique
+      ];
+
+      const janePostOneTags = [
+        tagsSet[2], // existing tag, not unique
+        tagsSet[3], // new tag
+        tagsSet[4], // new tag
+      ];
+
+      const vladPostOneId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
+        description: `Hi everyone! #${postOneTags[0]} #${postOneTags[0]} is so close.
+        Lets organize a #${postOneTags[1]}`,
+      });
+
+      const vladPostOneModel = await helpers.Tags.getPostWhenTagsAreProcessed(vladPostOneId);
+      const { dbTags:vladPostOneDbTags } =
+        await helpers.Tags.checkRelatedPostModels(postOneTags, vladPostOneModel);
+
+      delay(500);
+
+      const vladPostTwoId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
+        description: `Hi everyone again! #${postTwoTags[0]} is so close.
+        Lets organize #${postTwoTags[1]} #${postTwoTags[2]}`,
+      });
+
+      const vladPostTwoModel = await helpers.Tags.getPostWhenTagsAreProcessed(vladPostTwoId);
+      const { dbTags: vladPostTwoDbTags } =
+        await helpers.Tags.checkRelatedPostModels(
+          _.uniq(postOneTags.concat(postTwoTags)),
+          vladPostTwoModel,
+        );
+
+      expect(vladPostOneDbTags.length + 1).toBe(vladPostTwoDbTags.length);
+
+      expect(vladPostOneDbTags.find((item: any) => item.title === tagsSet[0]))
+        .toEqual(vladPostTwoDbTags.find((item: any) => item.title === tagsSet[0]))
+      ;
+
+      expect(vladPostOneDbTags.find((item: any) => item.title === tagsSet[1]))
+        .toEqual(vladPostTwoDbTags.find((item: any) => item.title === tagsSet[1]))
+      ;
+
+      delay(500);
+
+      const janePostOneId = await gen.Posts.createMediaPostByUserHimself(userJane, {
+        description: `Hi everyone! #${janePostOneTags[0]} is so close.
+        Lets buy some #${janePostOneTags[1]} and #${janePostOneTags[2]} and #${janePostOneTags[1]}`,
+      });
+
+      const janePostOneModel = await helpers.Tags.getPostWhenTagsAreProcessed(janePostOneId);
+      const { dbTags: janePostOneDbTags } = await helpers.Tags.checkRelatedPostModels(
+        janePostOneTags,
+        janePostOneModel,
+      );
+
+      expect(vladPostTwoDbTags.find((item: any) => item.title === tagsSet[2]))
+        .toEqual(janePostOneDbTags.find((item: any) => item.title === tagsSet[2]))
+      ;
+    });
+
+    it('one post with new tags is created', async () => {
+      const user = userVlad;
+
+      const expectedTags = [
+        'hello',
+        'amazing',
+      ];
+
+      const values = {
+        description: `#${expectedTags[0]} there! I am #${expectedTags[1]}`,
+      };
+
+      const modelId = await gen.Posts.createMediaPostByUserHimself(user, values);
+      const processedModel = await helpers.Tags.getPostWhenTagsAreProcessed(modelId);
+
+      await helpers.Tags.checkRelatedPostModels(expectedTags, processedModel);
+
+    }, 10000);
+  });
+
+  describe('Updating - change tags of existing posts', () => {
     let existingTitles: string[];
     let existingVladPostId;
     let existingPosts;
@@ -41,6 +204,72 @@ describe('Tags parser consumer', () => {
       ({ posts: existingPosts, tagsTitles:existingTitles } =
         await tagsGenerator.createPostsWithTags(userVlad, userJane));
       existingVladPostId = existingPosts.vlad[0];
+    });
+
+    describe('Direct posts', () => {
+      it('Update direct post of user himself', async () => {
+        const initialTags = [
+          'summer',
+          'party',
+        ];
+
+        const postBefore = await tagsGenerator.createDirectPostForUserWithTags(
+          userVlad,
+          userJane,
+          initialTags[0],
+          initialTags[1],
+        );
+
+        const expectedTags = [
+          'predator',
+          initialTags[0],
+        ];
+
+        await postsHelper.requestToUpdatePostDescription(
+          postBefore.id,
+          userVlad,
+          null,
+          expectedTags,
+        );
+
+        await tagsHelper.checkRelatedPostModelsByPostId(postBefore.id, expectedTags);
+      });
+
+      it('Update direct post for org', async () => {
+        const user = userVlad;
+
+        const initialTags = [
+          'summer',
+          'party',
+        ];
+
+        const orgId = await orgGenerator.createOrgWithoutTeam(user);
+
+        const newPostFields = {
+          description: `Our super #${initialTags[0]} post #${initialTags[1]} description`,
+        };
+
+        // noinspection JSDeprecatedSymbols//////////////
+        const postBefore = await helpers.Posts.requestToCreateDirectPostForOrganization(
+          user,
+          orgId,
+          newPostFields.description,
+        );
+
+        const expectedTags = [
+          'predator',
+          initialTags[0],
+        ];
+
+        await postsHelper.requestToUpdatePostDescription(
+          postBefore.id,
+          userVlad,
+          null,
+          expectedTags,
+        );
+
+        await tagsHelper.checkRelatedPostModelsByPostId(postBefore.id, expectedTags);
+      });
     });
 
     describe('post without any tags', () => {
@@ -262,166 +491,5 @@ describe('Tags parser consumer', () => {
         expect(entityTagsAfter).toEqual(entityTagsBefore);
       });
     });
-  });
-
-  describe('Creating - Tags for new posts', () => {
-    it('should create tags for direct post of user himself', async () => {
-
-      const expectedTags = [
-        'summer',
-        'party',
-      ];
-
-      const user = userVlad;
-      const targetUser = userJane;
-
-      const newPostFields = {
-        description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
-      };
-
-      // noinspection JSDeprecatedSymbols
-      const directPost = await postsHelper.requestToCreateDirectPostForUser(
-        user,
-        targetUser,
-        newPostFields.description,
-      );
-
-      await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
-    });
-
-    it('should create tags for direct post of org', async () => {
-      const user = userVlad;
-
-      const expectedTags = [
-        'summer',
-        'party',
-      ];
-
-      const orgId = await orgGenerator.createOrgWithoutTeam(user);
-
-      const newPostFields = {
-        description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
-      };
-
-      // noinspection JSDeprecatedSymbols//////////////
-      const directPost = await helpers.Posts.requestToCreateDirectPostForOrganization(
-        user,
-        orgId,
-        newPostFields.description,
-      );
-
-      await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
-    });
-
-    it('Should create org post and have an appropriate org_id in entity_tags', async () => {
-      const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
-
-      const postTags = [
-        'summer',
-        'undefined',
-      ];
-
-      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId, {
-        description: `Hi everyone! #${postTags[0]} is so close. Lets organize a #${postTags[1]}`,
-      });
-
-      const processedModel = await tagsHelper.getPostWhenTagsAreProcessed(postId);
-
-      await tagsHelper.checkRelatedPostModels(postTags, processedModel);
-    });
-
-    it('Three posts are created. Without orgs. Some tags are duplicated', async () => {
-      // lets create some posts with tags
-
-      const tagsSet = [
-        'summer', 'party', 'openair', 'eos', 'ether',
-      ];
-
-      const postOneTags = [
-        tagsSet[0],
-        tagsSet[1],
-      ];
-
-      const postTwoTags = [
-        tagsSet[0], // existing tag, not unique
-        tagsSet[2], // new tag
-        tagsSet[1], // existing tag, not unique
-      ];
-
-      const janePostOneTags = [
-        tagsSet[2], // existing tag, not unique
-        tagsSet[3], // new tag
-        tagsSet[4], // new tag
-      ];
-
-      const vladPostOneId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
-        description: `Hi everyone! #${postOneTags[0]} #${postOneTags[0]} is so close.
-        Lets organize a #${postOneTags[1]}`,
-      });
-
-      const vladPostOneModel = await helpers.Tags.getPostWhenTagsAreProcessed(vladPostOneId);
-      const { dbTags:vladPostOneDbTags } =
-        await helpers.Tags.checkRelatedPostModels(postOneTags, vladPostOneModel);
-
-      delay(500);
-
-      const vladPostTwoId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
-        description: `Hi everyone again! #${postTwoTags[0]} is so close.
-        Lets organize #${postTwoTags[1]} #${postTwoTags[2]}`,
-      });
-
-      const vladPostTwoModel = await helpers.Tags.getPostWhenTagsAreProcessed(vladPostTwoId);
-      const { dbTags: vladPostTwoDbTags } =
-        await helpers.Tags.checkRelatedPostModels(
-          _.uniq(postOneTags.concat(postTwoTags)),
-          vladPostTwoModel,
-      );
-
-      expect(vladPostOneDbTags.length + 1).toBe(vladPostTwoDbTags.length);
-
-      expect(vladPostOneDbTags.find((item: any) => item.title === tagsSet[0]))
-        .toEqual(vladPostTwoDbTags.find((item: any) => item.title === tagsSet[0]))
-      ;
-
-      expect(vladPostOneDbTags.find((item: any) => item.title === tagsSet[1]))
-        .toEqual(vladPostTwoDbTags.find((item: any) => item.title === tagsSet[1]))
-      ;
-
-      delay(500);
-
-      const janePostOneId = await gen.Posts.createMediaPostByUserHimself(userJane, {
-        description: `Hi everyone! #${janePostOneTags[0]} is so close.
-        Lets buy some #${janePostOneTags[1]} and #${janePostOneTags[2]} and #${janePostOneTags[1]}`,
-      });
-
-      const janePostOneModel = await helpers.Tags.getPostWhenTagsAreProcessed(janePostOneId);
-      const { dbTags: janePostOneDbTags } = await helpers.Tags.checkRelatedPostModels(
-        janePostOneTags,
-        janePostOneModel,
-      );
-
-      expect(vladPostTwoDbTags.find((item: any) => item.title === tagsSet[2]))
-        .toEqual(janePostOneDbTags.find((item: any) => item.title === tagsSet[2]))
-      ;
-    });
-
-    it('one post with new tags is created', async () => {
-      const user = userVlad;
-
-      const expectedTags = [
-        'hello',
-        'amazing',
-      ];
-
-      const values = {
-        description: `#${expectedTags[0]} there! I am #${expectedTags[1]}`,
-      };
-
-      const modelId = await gen.Posts.createMediaPostByUserHimself(user, values);
-      const processedModel = await helpers.Tags.getPostWhenTagsAreProcessed(modelId);
-
-      await helpers.Tags.checkRelatedPostModels(expectedTags, processedModel);
-
-    }, 10000);
   });
 });
