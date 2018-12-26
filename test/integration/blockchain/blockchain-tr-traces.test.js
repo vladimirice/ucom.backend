@@ -1,6 +1,8 @@
 const helpers = require('../helpers');
 const gen     = require('../../generators');
 
+const delay = require('delay');
+
 const BlockchainTrTracesService     = require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
 const BlockchainTrTracesDictionary  = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
@@ -35,6 +37,8 @@ describe('Blockchain tr traces sync tests', () => {
         gen.BlockchainTr.createStakeOrUnstake(accountAlias, 0, cpuAmountSeparated),
         gen.BlockchainTr.createStakeOrUnstake(accountAlias, netAmountBoth, cpuAmountBoth),
       ]);
+
+      delay(1000); // approximate lag of mining
 
       const trType = BlockchainTrTracesDictionary.getTypeStakeResources();
 
@@ -82,6 +86,8 @@ describe('Blockchain tr traces sync tests', () => {
         gen.BlockchainTr.createStakeOrUnstake(userAlias, trTwoNet, trTwoCpu),
       ]);
 
+      delay(1000); // approximate lag of mining
+
       const trType = BlockchainTrTracesDictionary.getTypeStakeWithUnstake();
       await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
 
@@ -126,6 +132,8 @@ describe('Blockchain tr traces sync tests', () => {
         gen.BlockchainTr.createStakeOrUnstake(accountAlias, netAmountBoth, cpuAmountBoth),
       ]);
 
+      delay(1000); // approximate lag of mining
+
       await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], [netSeparatedTr, cpuSeparatedTr, bothTr]);
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
@@ -163,6 +171,8 @@ describe('Blockchain tr traces sync tests', () => {
         gen.BlockchainTr.createTokenTransfer('vlad', 'jane', vladToJaneAmount),
         gen.BlockchainTr.createTokenTransfer('jane', 'vlad', janeToVladAmount)
       ]);
+
+      delay(1000); // approximate lag of mining
 
       const trType = BlockchainTrTracesDictionary.getTypeTransfer();
       await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
@@ -202,6 +212,8 @@ describe('Blockchain tr traces sync tests', () => {
         gen.BlockchainTr.createVoteForBp(userAlias, []),
       ]);
 
+      delay(1000); // approximate lag of mining
+
       const trType = BlockchainTrTracesDictionary.getTypeVoteForBp();
 
       await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
@@ -235,6 +247,8 @@ describe('Blockchain tr traces sync tests', () => {
 
     const trOne = await gen.BlockchainTr.createBuyRam(userAlias, bytesAmount);
 
+    delay(1000); // approximate lag of mining
+
     const trType = BlockchainTrTracesDictionary.getTypeBuyRamBytes();
 
     await BlockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne]);
@@ -256,6 +270,8 @@ describe('Blockchain tr traces sync tests', () => {
     const bytesAmount = 1024 * 1024 * 5;
 
     const trOne = await gen.BlockchainTr.createSellRam(userAlias, bytesAmount);
+
+    delay(1000); // approximate lag of mining
 
     const trType = BlockchainTrTracesDictionary.getTypeSellRam();
 

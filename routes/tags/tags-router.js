@@ -6,9 +6,10 @@ const tagsApiMiddleware   = require('../../lib/tags/api/tag-api-middleware.js');
 
 TagsRouter.get('/:tag_identity', async (req, res) => {
   const tagTitle = req.tag_identity;
+  const dbTag = req.db_tag;
   const currentUserId = getCurrentUserId(req);
 
-  const response = await TagsFetchService.findAndProcessOneTagById(tagTitle, currentUserId);
+  const response = await TagsFetchService.findAndProcessOneTagById(dbTag, tagTitle, currentUserId);
 
   res.send(response);
 });

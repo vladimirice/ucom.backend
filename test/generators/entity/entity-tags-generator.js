@@ -40,24 +40,63 @@ class EntityTagsGenerator {
                 description: `Hi everyone! #${postOneTags[0]} #${postOneTags[0]} is so close.
       Lets organize a #${postOneTags[1]}`,
             });
-            yield tagHelper.getPostWhenTagsAreProcessed(vladPostOneId);
             const vladPostTwoId = yield postsGenerator.createMediaPostByUserHimself(userVlad, {
                 description: `Hi everyone again! #${postTwoTags[0]} is so close.
       Lets organize #${postTwoTags[1]} #${postTwoTags[2]}`,
             });
-            yield tagHelper.getPostWhenTagsAreProcessed(vladPostTwoId);
             const janePostOneId = yield postsGenerator.createMediaPostByUserHimself(userJane, {
                 description: `Hi everyone! #${janePostOneTags[0]} is so close.
       Lets buy some #${janePostOneTags[1]} and #${janePostOneTags[2]} and #${janePostOneTags[1]}`,
             });
             const orgOneId = yield orgsGenerator.createOrgWithoutTeam(userVlad);
-            yield postsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
+            const vladOrgPostId = yield postsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
                 description: `Hi everyone! #${tagsSet[0]} is so close`,
             });
-            yield tagHelper.getPostWhenTagsAreProcessed(janePostOneId);
-            yield this.createDirectPostForUserWithTags(userVlad, userJane, tagsSet[0], tagsSet[1]);
+            const directPost = yield this.createDirectPostForUserWithTags(userVlad, userJane, tagsSet[0], tagsSet[1]);
+            yield Promise.all([
+                tagHelper.getPostWhenTagsAreProcessed(janePostOneId),
+                tagHelper.getPostWhenTagsAreProcessed(vladOrgPostId),
+                tagHelper.getPostWhenTagsAreProcessed(directPost.id),
+                tagHelper.getPostWhenTagsAreProcessed(vladPostOneId),
+                tagHelper.getPostWhenTagsAreProcessed(vladPostTwoId),
+            ]);
+            const postsPreview = {
+                [vladPostOneId]: {
+                    user: userVlad,
+                    tags: postOneTags,
+                },
+                [vladPostTwoId]: {
+                    user: userVlad,
+                    tags: postTwoTags,
+                },
+                [janePostOneId]: {
+                    user: userJane,
+                    tags: janePostOneTags,
+                },
+                [vladOrgPostId]: {
+                    user: userVlad,
+                    tags: [
+                        tagsSet[0],
+                    ],
+                },
+                [directPost.id]: {
+                    user: userVlad,
+                    tags: [
+                        tagsSet[0],
+                        tagsSet[1],
+                    ],
+                },
+            };
             return {
+                postsPreview,
                 tagsTitles: tagsSet,
+                postsIds: [
+                    vladPostOneId,
+                    vladPostTwoId,
+                    janePostOneId,
+                    directPost.id,
+                    vladOrgPostId,
+                ],
                 posts: {
                     total_amount: 4,
                     vlad: [

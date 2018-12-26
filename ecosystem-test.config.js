@@ -48,10 +48,10 @@ module.exports = {
       name:           `${NODE_ENV}_consumer_tags_parser`,
       script:         'bin/consumer-tags-parser.js',
       watch:          true,
-      ignore_watch:   IGNORE_WATCH,
       env: {
         NODE_ENV:     NODE_ENV,
         autorestart:  true,
+        watch: true,
       },
     },
     {

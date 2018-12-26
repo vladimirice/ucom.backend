@@ -1,8 +1,30 @@
 import { Transaction } from 'knex';
+import { StringToNumObj, DbTag } from '../interfaces/dto-interfaces';
 
 const knex = require('../../../config/knex');
 
 class TagsRepository {
+
+  static async updateTagsCurrentRates(tagsToRate: StringToNumObj) {
+    let whenThenString: string = ' ';
+    for (const title in tagsToRate) {
+      const value: number = tagsToRate[title];
+
+      whenThenString += `WHEN title = '${title}' THEN ${value}`;
+    }
+
+    const sql = `
+      UPDATE tags
+        SET current_rate =
+          CASE
+            ${whenThenString}
+          ELSE 0 -- If there are no titles with rate then there are no posts with such tags
+          END
+    `;
+
+    return knex.raw(sql);
+  }
+
   /**
    *
    * @param {Object} tags
@@ -21,12 +43,9 @@ class TagsRepository {
     return res;
   }
 
-  /**
-   * @param {string} tagTitle
-   */
-  static async findOneByTitle(tagTitle: string): Promise<Object|null> {
+  static async findOneByTitle(tagTitle: string): Promise<DbTag|null> {
     const data = await knex(this.getTableName())
-      .select(['id', 'title', 'created_at'])
+      .select(['id', 'title', 'current_rate', 'created_at'])
       .where('title', tagTitle)
       .first()
     ;
@@ -36,6 +55,7 @@ class TagsRepository {
     }
 
     data.id = +data.id;
+    data.current_rate = +data.current_rate;
 
     return data;
   }
