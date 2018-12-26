@@ -89,6 +89,28 @@ class RequestHelper {
 
   /**
    *
+   * @param {string} url
+   * @param {number} expectedStatus
+   * @param {Object} myself
+   * @returns {Promise<*>}
+   */
+  static async makeGetRequest(url, expectedStatus, myself = null) {
+    const req = request(server)
+      .get(url)
+    ;
+
+    if (myself) {
+      this.addAuthToken(req, myself);
+    }
+
+    const res = await req;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res;
+  }
+
+  /**
+   *
    * @return {string}
    */
   static getMyselfBlockchainTransactionsUrl() {

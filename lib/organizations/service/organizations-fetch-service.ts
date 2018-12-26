@@ -9,6 +9,8 @@ class OrganizationsFetchService {
    * @param {Object} query
    */
   static async findAndProcessAllByTagTitle(tagTitle, query) {
+    queryFilterService.checkLastIdExistence(query);
+
     const promises = [
       organizationsRepository.findAllByTagTitle(tagTitle, query),
       organizationsRepository.countAllByTagTitle(tagTitle),

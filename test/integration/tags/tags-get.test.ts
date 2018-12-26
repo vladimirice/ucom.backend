@@ -5,6 +5,8 @@ const helpers     = require('../helpers');
 const tagsHelper  = require('../helpers/tags-helper');
 const tagsGenerator = require('../../generators/entity/entity-tags-generator');
 
+const requestHelper = require('../helpers/request-helper');
+
 let userVlad;
 let userJane;
 let userPetr;
@@ -19,6 +21,86 @@ describe('GET Tags', () => {
   });
   beforeEach(async () => {
     [userVlad, userJane, userPetr] = await helpers.SeedsHelper.beforeAllRoutine();
+  });
+
+  describe('pagination last id is required', () => {
+    it('is NOT required for related organizations if page is 1', async () => {
+      const tagTitle = 'summer';
+
+      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
+      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+        description: `Hi everyone! #${tagTitle} is so close`,
+      });
+
+      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+      const queryString = requestHelper.getPaginationQueryString(1, 10);
+
+      const url = helpers.Req.getTagsOrgUrl(tagTitle) + queryString;
+
+      await requestHelper.makeGetRequestForList(url);
+    });
+
+    it('is required for related organizations if page is more than 1', async () => {
+      const tagTitle = 'summer';
+
+      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
+      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+        description: `Hi everyone! #${tagTitle} is so close`,
+      });
+      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+
+      const queryString = requestHelper.getPaginationQueryString(2, 10);
+      const url = helpers.Req.getTagsOrgUrl(tagTitle) + queryString;
+
+      await requestHelper.makeGetRequest(url, 400);
+    });
+
+    it('last id = string is not correct', async () => {
+      const tagTitle = 'summer';
+
+      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
+      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+        description: `Hi everyone! #${tagTitle} is so close`,
+      });
+      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+
+      const queryString = requestHelper.getPaginationQueryString(2, 10);
+      const url = requestHelper.getTagsOrgUrl(tagTitle) + queryString + '&last_id=hello';
+
+      await requestHelper.makeGetRequest(url, 400);
+    });
+
+    it('last id = float - is not correct', async () => {
+      const tagTitle = 'summer';
+
+      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
+      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+        description: `Hi everyone! #${tagTitle} is so close`,
+      });
+
+      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+
+      const queryString = requestHelper.getPaginationQueryString(2, 10);
+      const url = requestHelper.getTagsOrgUrl(tagTitle) + queryString + '&last_id=12.06';
+
+      await requestHelper.makeGetRequest(url, 400);
+    });
+
+    it('lets provide correct last id', async () => {
+      const tagTitle = 'summer';
+
+      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
+      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+        description: `Hi everyone! #${tagTitle} is so close`,
+      });
+
+      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+
+      const queryString = requestHelper.getPaginationQueryString(2, 10);
+      const url = requestHelper.getTagsOrgUrl(tagTitle) + queryString + '&last_id=12';
+
+      await requestHelper.makeGetRequestForList(url);
+    });
   });
 
   it('Get one tag page by tag name', async () => {
