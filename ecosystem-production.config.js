@@ -70,6 +70,15 @@ module.exports = {
       },
     },
     {
+      name: `${NODE_ENV}_worker_update_tags_importance`,
+      script: 'bin/worker-update-tag-importance.js',
+      watch: false,
+      cron_restart: '*/5 * * * *',
+      env: {
+        NODE_ENV: NODE_ENV
+      },
+    },
+    {
       name: `${NODE_ENV}_worker_update_blockchain_nodes`,
       script: 'bin/worker-update-blockchain-nodes.js',
       watch: false,
