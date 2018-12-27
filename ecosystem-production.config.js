@@ -1,7 +1,6 @@
 const NODE_ENV              = 'production';
 const HTTP_SERVER_PORT      = 3000;
 const WEBSOCKET_SERVER_PORT = 5000;
-const STATIC_RENDERER_PORT  = 3011;
 
 module.exports = {
   apps : [
@@ -30,20 +29,6 @@ module.exports = {
         autorestart:  true,
       },
     },
-    {
-      name:           `${NODE_ENV}_app_static_renderer`,
-      instance_var:   'INSTANCE_ID',
-      script:         'bin/app-static-renderer.js',
-      instances:      'max',
-      exec_mode:      'cluster',
-      env: {
-        PORT:         STATIC_RENDERER_PORT,
-        NODE_ENV:     NODE_ENV,
-        watch:        false,
-        autorestart:  true,
-      },
-    },
-
     // ================ Consumers ======================
     {
       name:           `${NODE_ENV}_consumer_transaction_sender`,

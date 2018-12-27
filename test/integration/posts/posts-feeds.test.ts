@@ -4,6 +4,8 @@ const gen = require('../../generators');
 const mockHelper = require('../helpers/mock-helper');
 const usersFeedRepository = require('../../../lib/common/repository').UsersFeed;
 
+const tagsHelper = require('../helpers/tags-helper');
+
 mockHelper.mockAllTransactionSigning();
 mockHelper.mockBlockchainPart();
 
@@ -201,6 +203,13 @@ describe('Organizations. Get requests', () => {
       await Promise.all(promisesToCreatePosts);
 
     await gen.Posts.createMediaPostByUserHimself(userVlad);
+
+    await Promise.all([
+      tagsHelper.getPostWhenTagsAreProcessed(vladHimselfPostId),
+      tagsHelper.getPostWhenTagsAreProcessed(vladOrgPostId),
+      tagsHelper.getPostWhenTagsAreProcessed(janeHerselfPostId),
+      tagsHelper.getPostWhenTagsAreProcessed(janeHerselfNotRelatedPostId),
+    ]);
 
     const url = helpers.Req.getTagsWallFeedUrl(tagName);
 

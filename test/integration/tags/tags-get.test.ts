@@ -65,7 +65,7 @@ describe('GET Tags', () => {
       await tagsHelper.getPostWhenTagsAreProcessed(postId);
 
       const queryString = requestHelper.getPaginationQueryString(2, 10);
-      const url = requestHelper.getTagsOrgUrl(tagTitle) + queryString + '&last_id=hello';
+      const url = `${requestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=hello`;
 
       await requestHelper.makeGetRequest(url, 400);
     });
@@ -81,7 +81,7 @@ describe('GET Tags', () => {
       await tagsHelper.getPostWhenTagsAreProcessed(postId);
 
       const queryString = requestHelper.getPaginationQueryString(2, 10);
-      const url = requestHelper.getTagsOrgUrl(tagTitle) + queryString + '&last_id=12.06';
+      const url = `${requestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=12.06`;
 
       await requestHelper.makeGetRequest(url, 400);
     });
@@ -97,7 +97,7 @@ describe('GET Tags', () => {
       await tagsHelper.getPostWhenTagsAreProcessed(postId);
 
       const queryString = requestHelper.getPaginationQueryString(1, 3);
-      const url = requestHelper.getTagsOrgUrl(tagTitle) + queryString + '&last_id=12';
+      const url = `${requestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=12`;
 
       await requestHelper.makeGetRequestForList(url);
     });
@@ -143,34 +143,8 @@ describe('GET Tags', () => {
   });
 
   it('Get tag related organizations', async () => {
-    const orgOneId    = await gen.Org.createOrgWithoutTeam(userVlad);
-    const orgTwoId    = await gen.Org.createOrgWithoutTeam(userJane);
-    const orgThreeId  = await gen.Org.createOrgWithoutTeam(userVlad);
-    const orgFourId   = await gen.Org.createOrgWithoutTeam(userVlad);
 
-    const postTags = [
-      'summer',
-      'undefined',
-    ];
-
-    await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
-      description: `Hi everyone! #${postTags[0]} is so close`,
-    });
-
-    await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
-      description: `Hi everyone! #${postTags[0]} is so close close close ${postTags[1]}`,
-    });
-
-    await gen.Posts.createMediaPostOfOrganization(userJane, orgTwoId, {
-      description: `Hi everyone! #${postTags[0]} is so close ha`,
-    });
-    await gen.Posts.createMediaPostOfOrganization(userVlad, orgFourId, {
-      description: `Hi everyone! #${postTags[0]} is so close ha`,
-    });
-
-    await gen.Posts.createMediaPostOfOrganization(userVlad, orgThreeId, {
-      description: `Hi everyone! #${postTags[1]} is so close`,
-    });
+    const { postTags, orgIds } = await tagsGenerator.createPostsWithTagsForOrgs(userVlad, userJane);
 
     const url = helpers.Req.getTagsOrgUrl(postTags[0]);
 
@@ -178,9 +152,10 @@ describe('GET Tags', () => {
 
     expect(models.length).toBe(3);
 
-    expect(models.some((item): any => item.id === orgOneId)).toBeTruthy();
-    expect(models.some((item): any => item.id === orgTwoId)).toBeTruthy();
-    expect(models.some((item): any => item.id === orgThreeId)).toBeFalsy();
+    expect(models.some((item): any => item.id === orgIds[0])).toBeTruthy();
+    expect(models.some((item): any => item.id === orgIds[1])).toBeTruthy();
+    expect(models.some((item): any => item.id === orgIds[3])).toBeTruthy();
+    expect(models.some((item): any => item.id === orgIds[2])).toBeFalsy();
 
     helpers.Organizations.checkOrganizationsPreviewFields(models);
   });
@@ -191,21 +166,28 @@ describe('GET Tags', () => {
       'undefined',
     ];
 
-    await gen.Posts.createMediaPostByUserHimself(userVlad, {
+    const postOneId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
       description: `Hi everyone! #${postTags[0]} is so close`,
     });
 
-    await gen.Posts.createMediaPostByUserHimself(userVlad, {
+    const postTwoId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
       description: `Hi everyone! #${postTags[0]} is so close - here is another description`,
     }); // to test duplications issue
 
-    await gen.Posts.createMediaPostByUserHimself(userJane, {
+    const postThreeId = await gen.Posts.createMediaPostByUserHimself(userJane, {
       description: `Hi everyone! #${postTags[0]} is so close close close ${postTags[1]}`,
     });
 
-    await gen.Posts.createMediaPostByUserHimself(userPetr, {
+    const postFourId = await gen.Posts.createMediaPostByUserHimself(userPetr, {
       description: `Hi everyone! #${postTags[1]} is so close ha`,
     });
+
+    await Promise.all([
+      tagsHelper.getPostWhenTagsAreProcessed(postOneId),
+      tagsHelper.getPostWhenTagsAreProcessed(postTwoId),
+      tagsHelper.getPostWhenTagsAreProcessed(postThreeId),
+      tagsHelper.getPostWhenTagsAreProcessed(postFourId),
+    ]);
 
     const url = `${helpers.Req.getTagsUsersUrl(postTags[0])}/?v2=true`;
 
