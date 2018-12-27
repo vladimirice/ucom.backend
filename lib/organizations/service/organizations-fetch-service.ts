@@ -10,13 +10,14 @@ class OrganizationsFetchService {
    */
   static async findAndProcessAllByTagTitle(tagTitle, query) {
     queryFilterService.checkLastIdExistence(query);
+    const params = queryFilterService.getQueryParameters(query);
 
     const promises = [
-      organizationsRepository.findAllByTagTitle(tagTitle, query),
+      organizationsRepository.findAllByTagTitle(tagTitle, params),
       organizationsRepository.countAllByTagTitle(tagTitle),
     ];
 
-    return this.findAndProcessAllByParams(promises, query);
+    return this.findAndProcessAllByParams(promises, query, params);
   }
 
   /**
@@ -39,17 +40,11 @@ class OrganizationsFetchService {
     };
   }
 
-  /**
-   *
-   * @param {Object[]} promises
-   * @param {Object} query
-   */
   private static async findAndProcessAllByParams(
     promises: Object[],
     query: Object,
+    params: Object,
   ): Promise<Object> {
-    const params = queryFilterService.getQueryParameters(query);
-
     const [data, totalAmount] = await Promise.all(promises);
 
     orgPostProcessor.processManyOrganizations(data);

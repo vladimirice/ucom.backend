@@ -96,7 +96,7 @@ describe('GET Tags', () => {
 
       await tagsHelper.getPostWhenTagsAreProcessed(postId);
 
-      const queryString = requestHelper.getPaginationQueryString(2, 10);
+      const queryString = requestHelper.getPaginationQueryString(1, 3);
       const url = requestHelper.getTagsOrgUrl(tagTitle) + queryString + '&last_id=12';
 
       await requestHelper.makeGetRequestForList(url);
@@ -146,6 +146,7 @@ describe('GET Tags', () => {
     const orgOneId    = await gen.Org.createOrgWithoutTeam(userVlad);
     const orgTwoId    = await gen.Org.createOrgWithoutTeam(userJane);
     const orgThreeId  = await gen.Org.createOrgWithoutTeam(userVlad);
+    const orgFourId   = await gen.Org.createOrgWithoutTeam(userVlad);
 
     const postTags = [
       'summer',
@@ -163,6 +164,9 @@ describe('GET Tags', () => {
     await gen.Posts.createMediaPostOfOrganization(userJane, orgTwoId, {
       description: `Hi everyone! #${postTags[0]} is so close ha`,
     });
+    await gen.Posts.createMediaPostOfOrganization(userVlad, orgFourId, {
+      description: `Hi everyone! #${postTags[0]} is so close ha`,
+    });
 
     await gen.Posts.createMediaPostOfOrganization(userVlad, orgThreeId, {
       description: `Hi everyone! #${postTags[1]} is so close`,
@@ -172,7 +176,7 @@ describe('GET Tags', () => {
 
     const models = await helpers.Req.makeGetRequestForList(url);
 
-    expect(models.length).toBe(2);
+    expect(models.length).toBe(3);
 
     expect(models.some((item): any => item.id === orgOneId)).toBeTruthy();
     expect(models.some((item): any => item.id === orgTwoId)).toBeTruthy();
