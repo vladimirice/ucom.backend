@@ -1,7 +1,6 @@
 const NODE_ENV              = 'staging';
 const HTTP_SERVER_PORT      = 3001;
 const WEBSOCKET_SERVER_PORT = 5001;
-const STATIC_RENDERER_PORT  = 3010;
 
 module.exports = {
   apps : [
@@ -25,19 +24,6 @@ module.exports = {
       script:         'bin/app-websocket.js',
       env: {
         PORT:         WEBSOCKET_SERVER_PORT,
-        NODE_ENV:     NODE_ENV,
-        watch:        false,
-        autorestart:  true,
-      },
-    },
-    {
-      name:           `${NODE_ENV}_app_static_renderer`,
-      instance_var:   'INSTANCE_ID',
-      script:         'bin/app-static-renderer.js',
-      instances:      'max',
-      exec_mode:      'cluster',
-      env: {
-        PORT:         STATIC_RENDERER_PORT,
         NODE_ENV:     NODE_ENV,
         watch:        false,
         autorestart:  true,
