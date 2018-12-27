@@ -31,6 +31,16 @@ module.exports = {
     },
     // ================ Consumers ======================
     {
+      name:           `${NODE_ENV}_consumer_tags_parser`,
+      script:         'bin/consumer-tags-parser.js',
+      watch:          false,
+      autorestart:    true,
+      env: {
+        NODE_ENV:     NODE_ENV,
+        autorestart:  true,
+      },
+    },
+    {
       name:           `${NODE_ENV}_consumer_transaction_sender`,
       script:         'bin/consumer-transaction-sender.js',
       watch:          false,
