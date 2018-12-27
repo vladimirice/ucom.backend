@@ -72,6 +72,9 @@ deploy-production:
 deploy-frontend-staging deploy-frontend:
 	ssh gt bash deploy_frontend_staging
 
+deploy-frontend-production:
+	ssh gt bash deploy_frontend_production
+
 production-error-logs pl:
 	ssh gt 'bash -s' < ./pm2_error_logs.sh production
 
