@@ -164,6 +164,26 @@ class CommonHelper {
    *
    * @param {Object} model
    * @param {Object} options
+   * @param {number} expectedPostId
+   * @param {number} expectedUserIdFrom
+   * @param expectedUserIdTo
+   */
+  static checkUserMentionsYouInsidePost(model, options, expectedPostId, expectedUserIdFrom, expectedUserIdTo) {
+    expect(model.event_id).toBe(EventIdDictionary.getUserHasMentionedYouInPost());
+
+    expect(model.data.post.id).toBe(expectedPostId);
+    expect(model.data.post.User.id, expectedUserIdFrom);
+    PostsHelper.checkPostItselfCommonFields(model.data.post, options);
+    UsersHelper.checkIncludedUserPreview(model.data.post);
+
+    expect(model.target_entity.User.id).toBe(expectedUserIdTo);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   * @param {Object} options
    * @param {number} expectedDataPostId
    * @param {number} expectedTargetEntityPostId
    */

@@ -12,6 +12,60 @@ const orgsGenerator = require('../organizations-generator');
 const tagHelper = require('../../integration/helpers/tags-helper');
 const postsHelper = require('../../integration/helpers/posts-helper');
 class EntityTagsGenerator {
+    static createPostsWithTagsForOrgs(userVlad, userJane) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const [orgOneId, orgTwoId, orgThreeId, orgFourId,] = yield Promise.all([
+                orgsGenerator.createOrgWithoutTeam(userVlad),
+                orgsGenerator.createOrgWithoutTeam(userJane),
+                orgsGenerator.createOrgWithoutTeam(userVlad),
+                orgsGenerator.createOrgWithoutTeam(userVlad),
+            ]);
+            const postTags = [
+                'summer',
+                'undefined',
+            ];
+            const [vladPostOneId, vladPostTwoId, vladPostThreeId, vladPostFourId, janePostIdOne,] = yield Promise.all([
+                postsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
+                    description: `Hi everyone! #${postTags[0]} is so close`,
+                }),
+                postsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
+                    description: `Hi everyone! #${postTags[0]} is so close close close ${postTags[1]}`,
+                }),
+                postsGenerator.createMediaPostOfOrganization(userVlad, orgThreeId, {
+                    description: `Hi everyone! #${postTags[1]} is so close`,
+                }),
+                postsGenerator.createMediaPostOfOrganization(userVlad, orgFourId, {
+                    description: `Hi everyone! #${postTags[0]} is so close ha`,
+                }),
+                postsGenerator.createMediaPostOfOrganization(userJane, orgTwoId, {
+                    description: `Hi everyone! #${postTags[0]} is so close ha`,
+                }),
+            ]);
+            yield Promise.all([
+                tagHelper.getPostWhenTagsAreProcessed(vladPostOneId),
+                tagHelper.getPostWhenTagsAreProcessed(vladPostTwoId),
+                tagHelper.getPostWhenTagsAreProcessed(vladPostThreeId),
+                tagHelper.getPostWhenTagsAreProcessed(vladPostFourId),
+                tagHelper.getPostWhenTagsAreProcessed(janePostIdOne),
+            ]);
+            return {
+                postTags,
+                postIds: [
+                    vladPostOneId,
+                    vladPostTwoId,
+                    vladPostThreeId,
+                    vladPostFourId,
+                    janePostIdOne,
+                ],
+                orgIds: [
+                    orgOneId,
+                    orgTwoId,
+                    orgThreeId,
+                    orgFourId,
+                ],
+            };
+        });
+    }
     /**
      *
      * @param {Object} userVlad

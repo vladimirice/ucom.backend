@@ -8,6 +8,8 @@ const gen     = require('../../generators');
 
 const mockHelper = require('../helpers/mock-helper');
 const seedsHelper = require('../helpers/seeds-helper');
+const notificationsHelper = require('../helpers/notifications-helper');
+const commonHelper = require('../helpers/common-helper');
 
 const tagsGenerator   = require('../../generators/entity/entity-tags-generator');
 const postsGenerator  = require('../../generators/posts-generator');
@@ -18,6 +20,7 @@ const postsHelper = require('../helpers/posts-helper');
 
 let userVlad;
 let userJane;
+let userPetr;
 
 describe('Tags parsing by consumer', () => {
   beforeAll(async () => {
@@ -28,7 +31,36 @@ describe('Tags parsing by consumer', () => {
     await seedsHelper.doAfterAll();
   });
   beforeEach(async () => {
-    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr] = await seedsHelper.beforeAllRoutine();
+  });
+
+  describe('Notification related to mentions', () => {
+    it('Create notification based on mentions', async () => {
+      const newPostFields = {
+        description: 'Our @petrpetrpetr super post description',
+      };
+
+      ////// noinspection JSDeprecatedSymbols //
+      const expectedPost = await postsHelper.requestToCreateDirectPostForUser(
+        userVlad,
+        userJane,
+        newPostFields.description,
+      );
+
+      const notification = await notificationsHelper.requestToGetOnlyOneNotification(userPetr);
+
+      const options = {
+        postProcessing: 'notification',
+      };
+
+      commonHelper.checkUserMentionsYouInsidePost(
+        notification,
+        options,
+        expectedPost.id,
+        userVlad.id,
+        userPetr.id,
+      );
+    }, 10000);
   });
 
   describe('Creating - tags for new posts', () => {

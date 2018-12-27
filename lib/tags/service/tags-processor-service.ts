@@ -7,12 +7,18 @@ const postsModelProvider: any   = require('../../posts/service/posts-model-provi
 const postsRepository: any      = require('../../posts/posts-repository');
 const entityStateLogRepository  = require('../../entities/repository/entity-state-log-repository');
 
+const tagsParser = require('../../tags/service/tags-parser-service');
+const entityTagsRepo = require('../../tags/repository/entity-tags-repository');
+
 class TagsProcessorService {
   static async processTags(
     activity: activityWithContentEntity,
-    inputData: string[],
-    existingData: Object,
   ) {
+    const [inputData, existingData]: [string[], Object] = await Promise.all([
+      tagsParser.parseTags(activity.post_description),
+      entityTagsRepo.findAllByEntity(activity.entity_id, postsModelProvider.getEntityName()),
+    ]);
+
     const [titlesToInsert, entityTagsIdsToDelete] =
       this.getTitlesToInsertAndIdsToDelete(inputData, existingData);
 

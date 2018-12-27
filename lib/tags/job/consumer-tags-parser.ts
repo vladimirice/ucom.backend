@@ -15,6 +15,7 @@ class ConsumerTagsParser {
         messageContent        = message.content.toString();
         parsedMessageContent  = JSON.parse(messageContent);
 
+        // Post processor
         await postActivityProcessor.processOneActivity(parsedMessageContent.id);
       } catch (err) {
         // Our test user. In order to clean logs from his invalid actions
