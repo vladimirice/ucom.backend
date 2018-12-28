@@ -1,3 +1,5 @@
+import { ActivityWithContentEntity } from '../../users/interfaces/dto-interfaces';
+
 const _     = require('lodash');
 const knex  = require('../../../config/knex');
 
@@ -12,10 +14,10 @@ const entityTagsRepo = require('../../tags/repository/entity-tags-repository');
 
 class TagsProcessorService {
   static async processTags(
-    activity: activityWithContentEntity,
+    activity: ActivityWithContentEntity,
   ) {
     const [inputData, existingData]: [string[], Object] = await Promise.all([
-      tagsParser.parseTags(activity.post_description),
+      tagsParser.parseTags(activity.description),
       entityTagsRepo.findAllByEntity(activity.entity_id, postsModelProvider.getEntityName()),
     ]);
 
@@ -57,7 +59,7 @@ class TagsProcessorService {
 
   private static getTagsToInsert(
     titlesToInsert: string[],
-    activity: activityWithContentEntity,
+    activity: ActivityWithContentEntity,
     existingTags: Object,
   ): Object[] {
     const tags: Object[] = [];
@@ -77,7 +79,7 @@ class TagsProcessorService {
 
   private static getEntityTagsToInsert(
     titlesToInsert: string[],
-    activity: activityWithContentEntity,
+    activity: ActivityWithContentEntity,
     tagModels: Object,
   ): Object[] {
     const entityTags: Object[] = [];

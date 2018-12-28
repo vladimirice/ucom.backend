@@ -1,302 +1,282 @@
-const RequestHelper   = require('../integration/helpers').Req;
-const ResponseHelper  = require('../integration/helpers').Res;
-
-const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
-
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+const requestHelper = require('../integration/helpers').Req;
+const responseHelper = require('../integration/helpers').Res;
+const ContentTypeDictionary = require('ucom-libs-social-transactions').ContentTypeDictionary;
 const request = require('supertest');
-const server  = require('../../app');
-const _       = require('lodash');
+const server = require('../../app');
+const _ = require('lodash');
 class PostsGenerator {
-
-  /**
-   *
-   * @param {Object} wallOwner
-   * @param {Object} directPostAuthor
-   * @param {number} mul
-   * @return {Promise<number[]>}
-   */
-  static async generateUsersPostsForUserWall(wallOwner, directPostAuthor, mul = 1) {
-    const promises = [];
-
-    for (let i = 0; i < mul; i++) {
-      promises.push(this.createMediaPostByUserHimself(wallOwner));
-      promises.push(this.createPostOfferByUserHimself(wallOwner));
-      promises.push(this.createUserDirectPostForOtherUser(directPostAuthor, wallOwner));
+    /**
+     *
+     * @param {Object} wallOwner
+     * @param {Object} directPostAuthor
+     * @param {number} mul
+     * @return {Promise<number[]>}
+     */
+    static generateUsersPostsForUserWall(wallOwner, directPostAuthor, mul = 1) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const promises = [];
+            for (let i = 0; i < mul; i += 1) {
+                promises.push(this.createMediaPostByUserHimself(wallOwner));
+                promises.push(this.createPostOfferByUserHimself(wallOwner));
+                promises.push(this.createUserDirectPostForOtherUser(directPostAuthor, wallOwner));
+            }
+            const postsIds = yield Promise.all(promises);
+            return postsIds.sort();
+        });
     }
-    const postsIds = await Promise.all(promises);
-
-    return postsIds.sort();
-  }
-
-  /**
-   *
-   * @param {number} orgId
-   * @param {Object} orgAuthor
-   * @param {Object} directPostAuthor
-   * @param {number} mul
-   * @return {Promise<void>}
-   */
-  static async generateOrgPostsForWall(orgId, orgAuthor, directPostAuthor, mul = 1) {
-    const promises = [];
-
-    for (let i = 0; i < mul; i++) {
-      promises.push(this.createMediaPostOfOrganization(orgAuthor, orgId)); // User himself creates posts of organization
-      promises.push(this.createPostOfferOfOrganization(orgAuthor, orgId)); // User himself creates posts of organization
-      promises.push(this.createDirectPostForOrganization(orgAuthor, orgId, null, false, true)); // Somebody creates direct post on organization wall
+    /**
+     *
+     * @param {number} orgId
+     * @param {Object} orgAuthor
+     * @param {Object} directPostAuthor
+     * @param {number} mul
+     * @return {Promise<void>}
+     */
+    static generateOrgPostsForWall(orgId, orgAuthor, directPostAuthor, mul = 1) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const promises = [];
+            for (let i = 0; i < mul; i += 1) {
+                promises.push(this.createMediaPostOfOrganization(orgAuthor, orgId)); // User himself creates posts of organization
+                promises.push(this.createPostOfferOfOrganization(orgAuthor, orgId)); // User himself creates posts of organization
+                promises.push(this.createDirectPostForOrganization(directPostAuthor, orgId, null, false, true)); // Somebody creates direct post on organization wall
+            }
+            const postsIds = yield Promise.all(promises);
+            return postsIds.sort();
+        });
     }
-
-    const postsIds = await Promise.all(promises);
-
-    return postsIds.sort();
-  }
-
-  /**
-   *
-   * @param {Object} user
-   * @param {number} org_id
-   * @param {Object} values
-   * @return {Promise<number>}
-   */
-  static async createMediaPostOfOrganization(user, org_id, values = {}) {
-    const defaultValues = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'post_type_id': 1,
-    };
-
-    const newPostFields = _.defaults(values, defaultValues);
-
-    const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('title', newPostFields['title'])
-      .field('description', newPostFields['description'])
-      .field('post_type_id', newPostFields['post_type_id'])
-      .field('leading_text', newPostFields['leading_text'])
-      .field('organization_id', org_id)
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    return +res.body.id;
-  }
-
-  /**
-   *
-   * @param {Object} user
-   * @param {number} orgId
-   * @returns {Promise<number>}
-   */
-  static async createPostOfferOfOrganization(user, orgId) {
-    let newPostFields = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'user_id': user.id,
-      'post_type_id': ContentTypeDictionary.getTypeOffer(),
-      'current_rate': '0.0000000000',
-      'current_vote': 0,
-      'action_button_title': 'TEST_BUTTON_CONTENT',
-      'organization_id': orgId,
-    };
-
-    const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('title',               newPostFields['title'])
-      .field('description',         newPostFields['description'])
-      .field('leading_text',        newPostFields['leading_text'])
-      .field('user_id',             newPostFields['user_id'])
-      .field('post_type_id',        newPostFields['post_type_id'])
-      .field('current_rate',        newPostFields['current_rate'])
-      .field('current_vote',        newPostFields['current_vote'])
-      .field('action_button_title', newPostFields['action_button_title'])
-      .field('organization_id',     newPostFields['organization_id'])
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    return +res.body.id;
-  }
-
-  /**
-   * @param {Object} repostAuthor
-   * @param {number} postId
-   * @param {number} expectedStatus
-   * @return {Promise<void>}
-   *
-   * @link PostCreatorService#processRepostCreation
-   */
-  static async createRepostOfUserPost(repostAuthor, postId, expectedStatus = 201) {
-    const res = await request(server)
-      .post(RequestHelper.getCreateRepostUrl(postId))
-      .set('Authorization', `Bearer ${repostAuthor.token}`)
-      .field('description', 'hello from such strange one')
-    ;
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
-
-    return +res.body.id;
-  }
-
-  /**
-   *
-   * @param {Object} postAuthor
-   * @param {Object} repostAuthor
-   * @return {Promise<{parentPostId: number, repostId: void}>}
-   */
-  static async createNewPostWithRepost(postAuthor, repostAuthor) {
-    const parentPostId  = await this.createMediaPostByUserHimself(postAuthor);
-    const repostId      = await this.createRepostOfUserPost(repostAuthor, parentPostId);
-
-    return {
-      parentPostId,
-      repostId
+    /**
+     *
+     * @param {Object} user
+     * @param {number} orgId
+     * @param {Object} values
+     * @return {Promise<number>}
+     */
+    static createMediaPostOfOrganization(user, orgId, values = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const defaultValues = {
+                title: 'Extremely new post',
+                description: 'Our super post description',
+                leading_text: 'extremely leading text',
+                post_type_id: 1,
+            };
+            const newPostFields = _.defaults(values, defaultValues);
+            const res = yield request(server)
+                .post(requestHelper.getPostsUrl())
+                .set('Authorization', `Bearer ${user.token}`)
+                .field('title', newPostFields['title'])
+                .field('description', newPostFields['description'])
+                .field('post_type_id', newPostFields['post_type_id'])
+                .field('leading_text', newPostFields['leading_text'])
+                .field('organization_id', orgId);
+            responseHelper.expectStatusOk(res);
+            return +res.body.id;
+        });
     }
-  }
-
-  /**
-   *
-   * @param {Object} user
-   * @param {Object} values
-   * @returns {Promise<number>}
-   */
-  static async createMediaPostByUserHimself(user, values = {}) {
-    const defaultValues = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'post_type_id': ContentTypeDictionary.getTypeMediaPost(),
-      'user_id': user.id,
-      'current_rate': 0.0000000000,
-      'current_vote': 0,
-    };
-
-    const newPostFields = _.defaults(values, defaultValues);
-
-    const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('title',         newPostFields['title'])
-      .field('description',   newPostFields['description'])
-      .field('leading_text',  newPostFields['leading_text'])
-      .field('post_type_id',  newPostFields['post_type_id'])
-      .field('user_id',       newPostFields['user_id'])
-      .field('current_rate',  newPostFields['current_rate'])
-      .field('current_vote',  newPostFields['current_vote'])
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    return +res.body.id;
-  }
-
-  /**
-   *
-   * @param {Object} user
-   * @return {Promise<number>}
-   */
-  static async createPostOfferByUserHimself(user) {
-    let newPostFields = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'user_id': user.id,
-      'post_type_id': ContentTypeDictionary.getTypeOffer(),
-      'current_rate': '0.0000000000',
-      'current_vote': 0,
-      'action_button_title': 'TEST_BUTTON_CONTENT',
-    };
-
-    const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('title',               newPostFields['title'])
-      .field('description',         newPostFields['description'])
-      .field('leading_text',        newPostFields['leading_text'])
-      .field('user_id',             newPostFields['user_id'])
-      .field('post_type_id',        newPostFields['post_type_id'])
-      .field('current_rate',        newPostFields['current_rate'])
-      .field('current_vote',        newPostFields['current_vote'])
-      .field('action_button_title', newPostFields['action_button_title'])
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    return +res.body.id;
-  }
-
-  /**
-   * @param {Object} myself
-   * @param {Object} wallOwner
-   * @param {string|null} givenDescription
-   * @param {boolean} withImage
-   * @return {Promise<void>}
-   *
-   * @link PostsService#processNewDirectPostCreationForUser
-   */
-  static async createUserDirectPostForOtherUser(myself, wallOwner, givenDescription = null, withImage = false) {
-    const url = RequestHelper.getUserDirectPostUrl(wallOwner);
-
-    return this._createDirectPost(url, myself, givenDescription, withImage);
-  }
-
-  /**
-   * @param {Object} myself
-   * @param {number} targetOrgId
-   * @param {string|null} givenDescription
-   * @param {boolean} withImage
-   * @param {boolean} idOnly
-   * @return {Promise<number>}
-   *
-   * @link PostsService#processNewDirectPostCreationForOrg
-   */
-  static async createDirectPostForOrganization(myself, targetOrgId, givenDescription = null, withImage = false, idOnly = false) {
-    const url = RequestHelper.getOrgDirectPostUrl(targetOrgId);
-
-    return this._createDirectPost(url, myself, givenDescription, withImage, idOnly);
-  }
-
-  /**
-   * @param {string} url
-   * @param {Object} myself
-   * @param {string|null} givenDescription
-   * @param {boolean} withImage
-   * @param {boolean} idOnly
-   * @return {Promise<void>}
-   *
-   * @link PostsService#processNewDirectPostCreationForUser
-   */
-  static async _createDirectPost(url, myself, givenDescription = null, withImage = false, idOnly = false) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
-    const description = givenDescription || 'sample direct post description';
-
-    const req = request(server)
-      .post(url)
-    ;
-
-    const fields = {
-      description,
-      post_type_id: postTypeId,
-    };
-
-    RequestHelper.addAuthToken(req, myself);
-    RequestHelper.addFieldsToRequest(req, fields);
-
-    if (withImage) {
-      RequestHelper.addSampleMainImageFilename(req);
+    /**
+     *
+     * @param {Object} user
+     * @param {number} orgId
+     * @returns {Promise<number>}
+     */
+    static createPostOfferOfOrganization(user, orgId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const newPostFields = {
+                title: 'Extremely new post',
+                description: 'Our super post description',
+                leading_text: 'extremely leading text',
+                user_id: user.id,
+                post_type_id: ContentTypeDictionary.getTypeOffer(),
+                current_rate: '0.0000000000',
+                current_vote: 0,
+                action_button_title: 'TEST_BUTTON_CONTENT',
+                organization_id: orgId,
+            };
+            const res = yield request(server)
+                .post(requestHelper.getPostsUrl())
+                .set('Authorization', `Bearer ${user.token}`)
+                .field('title', newPostFields['title'])
+                .field('description', newPostFields['description'])
+                .field('leading_text', newPostFields['leading_text'])
+                .field('user_id', newPostFields['user_id'])
+                .field('post_type_id', newPostFields['post_type_id'])
+                .field('current_rate', newPostFields['current_rate'])
+                .field('current_vote', newPostFields['current_vote'])
+                .field('action_button_title', newPostFields['action_button_title'])
+                .field('organization_id', newPostFields['organization_id']);
+            responseHelper.expectStatusOk(res);
+            return +res.body.id;
+        });
     }
-
-    const res = await req;
-
-    ResponseHelper.expectStatusOk(res);
-
-    if (idOnly) {
-      return res.body.id;
+    /**
+     * @param {Object} repostAuthor
+     * @param {number} postId
+     * @param {number} expectedStatus
+     * @return {Promise<void>}
+     *
+     * @link PostCreatorService#processRepostCreation
+     */
+    static createRepostOfUserPost(repostAuthor, postId, expectedStatus = 201) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield request(server)
+                .post(requestHelper.getCreateRepostUrl(postId))
+                .set('Authorization', `Bearer ${repostAuthor.token}`)
+                .field('description', 'hello from such strange one');
+            responseHelper.expectStatusToBe(res, expectedStatus);
+            return +res.body.id;
+        });
     }
-
-    return res.body;
-  }
+    /**
+     *
+     * @param {Object} postAuthor
+     * @param {Object} repostAuthor
+     * @return {Promise<{parentPostId: number, repostId: void}>}
+     */
+    static createNewPostWithRepost(postAuthor, repostAuthor) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const parentPostId = yield this.createMediaPostByUserHimself(postAuthor);
+            const repostId = yield this.createRepostOfUserPost(repostAuthor, parentPostId);
+            return {
+                parentPostId,
+                repostId,
+            };
+        });
+    }
+    /**
+     *
+     * @param {Object} user
+     * @param {Object} values
+     * @returns {Promise<number>}
+     */
+    static createMediaPostByUserHimself(user, values = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const defaultValues = {
+                title: 'Extremely new post',
+                description: 'Our super post description',
+                leading_text: 'extremely leading text',
+                post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+                user_id: user.id,
+                current_rate: 0.0000000000,
+                current_vote: 0,
+            };
+            const newPostFields = _.defaults(values, defaultValues);
+            const res = yield request(server)
+                .post(requestHelper.getPostsUrl())
+                .set('Authorization', `Bearer ${user.token}`)
+                .field('title', newPostFields['title'])
+                .field('description', newPostFields['description'])
+                .field('leading_text', newPostFields['leading_text'])
+                .field('post_type_id', newPostFields['post_type_id'])
+                .field('user_id', newPostFields['user_id'])
+                .field('current_rate', newPostFields['current_rate'])
+                .field('current_vote', newPostFields['current_vote']);
+            responseHelper.expectStatusOk(res);
+            return +res.body.id;
+        });
+    }
+    /**
+     *
+     * @param {Object} user
+     * @return {Promise<number>}
+     */
+    static createPostOfferByUserHimself(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const newPostFields = {
+                title: 'Extremely new post',
+                description: 'Our super post description',
+                leading_text: 'extremely leading text',
+                user_id: user.id,
+                post_type_id: ContentTypeDictionary.getTypeOffer(),
+                current_rate: '0.0000000000',
+                current_vote: 0,
+                action_button_title: 'TEST_BUTTON_CONTENT',
+            };
+            const res = yield request(server)
+                .post(requestHelper.getPostsUrl())
+                .set('Authorization', `Bearer ${user.token}`)
+                .field('title', newPostFields['title'])
+                .field('description', newPostFields['description'])
+                .field('leading_text', newPostFields['leading_text'])
+                .field('user_id', newPostFields['user_id'])
+                .field('post_type_id', newPostFields['post_type_id'])
+                .field('current_rate', newPostFields['current_rate'])
+                .field('current_vote', newPostFields['current_vote'])
+                .field('action_button_title', newPostFields['action_button_title']);
+            responseHelper.expectStatusOk(res);
+            return +res.body.id;
+        });
+    }
+    /**
+     * @param {Object} myself
+     * @param {Object} wallOwner
+     * @param {string|null} givenDescription
+     * @param {boolean} withImage
+     * @return {Promise<void>}
+     *
+     * @link PostsService#processNewDirectPostCreationForUser
+     */
+    static createUserDirectPostForOtherUser(myself, wallOwner, givenDescription = null, withImage = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = requestHelper.getUserDirectPostUrl(wallOwner);
+            return this.createDirectPost(url, myself, givenDescription, withImage);
+        });
+    }
+    /**
+     * @param {Object} myself
+     * @param {number} targetOrgId
+     * @param {string|null} givenDescription
+     * @param {boolean} withImage
+     * @param {boolean} idOnly
+     * @return {Promise<number>}
+     *
+     * @link PostsService#processNewDirectPostCreationForOrg
+     */
+    static createDirectPostForOrganization(myself, targetOrgId, givenDescription = null, withImage = false, idOnly = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = requestHelper.getOrgDirectPostUrl(targetOrgId);
+            return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
+        });
+    }
+    /**
+     * @param {string} url
+     * @param {Object} myself
+     * @param {string|null} givenDescription
+     * @param {boolean} withImage
+     * @param {boolean} idOnly
+     * @return {Promise<void>}
+     *
+     * @link PostsService#processNewDirectPostCreationForUser
+     */
+    static createDirectPost(url, myself, givenDescription = null, withImage = false, idOnly = false) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const postTypeId = ContentTypeDictionary.getTypeDirectPost();
+            const description = givenDescription || 'sample direct post description';
+            const req = request(server)
+                .post(url);
+            const fields = {
+                description,
+                post_type_id: postTypeId,
+            };
+            requestHelper.addAuthToken(req, myself);
+            requestHelper.addFieldsToRequest(req, fields);
+            if (withImage) {
+                requestHelper.addSampleMainImageFilename(req);
+            }
+            const res = yield req;
+            responseHelper.expectStatusOk(res);
+            if (idOnly) {
+                return res.body.id;
+            }
+            return res.body;
+        });
+    }
 }
-
 module.exports = PostsGenerator;

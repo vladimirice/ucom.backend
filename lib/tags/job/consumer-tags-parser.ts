@@ -1,6 +1,7 @@
-const rabbitMqService         = require('../../jobs/rabbitmq-service');
-const postActivityProcessor   = require('../../posts/service/post-activity-processor');
-const { ConsumerLogger }      = require('../../../config/winston');
+const rabbitMqService             = require('../../jobs/rabbitmq-service');
+const postActivityProcessor       = require('../../posts/service/post-activity-processor');
+const commentsActivityProcessor   = require('../../comments/service/comments-activity-processor');
+const { ConsumerLogger }          = require('../../../config/winston');
 
 class ConsumerTagsParser {
   static async consume() {
@@ -15,8 +16,12 @@ class ConsumerTagsParser {
         messageContent        = message.content.toString();
         parsedMessageContent  = JSON.parse(messageContent);
 
-        // Post processor
-        await postActivityProcessor.processOneActivity(parsedMessageContent.id);
+        const processedAsPost =
+          await postActivityProcessor.processOneActivity(parsedMessageContent.id);
+
+        if (!processedAsPost) {
+          await commentsActivityProcessor.processOneActivity(parsedMessageContent.id);
+        }
       } catch (err) {
         // Our test user. In order to clean logs from his invalid actions
         err.message +=
