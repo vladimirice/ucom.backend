@@ -151,6 +151,25 @@ class NotificationsHelper {
     return notifications[0];
   }
 
+  /**
+   *
+   * @param {Object} myself
+   * @param {number} requiredAmount
+   * @return {Promise<*>}
+   *
+   * @link EntityNotificationsService#getAllNotifications
+   */
+  static async requestToGetExactNotificationsAmount(myself, requiredAmount = 1) {
+    let notifications = [];
+    while(_.isEmpty(notifications) || notifications.length < requiredAmount ) {
+      notifications = await this.requestToGetOnlyOneNotificationBeforeReceive(myself);
+      delay(100);
+    }
+
+    return notifications;
+  }
+
+  // @deprecated - delete it in future
   static async requestToGetOnlyOneNotificationBeforeReceive(myself) {
     const url = RequestHelper.getMyselfNotificationsList();
 

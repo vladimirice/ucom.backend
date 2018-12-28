@@ -18,6 +18,8 @@ const orgGenerator    = require('../../generators/organizations-generator');
 const tagsHelper = require('../helpers/tags-helper');
 const postsHelper = require('../helpers/posts-helper');
 
+const eventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
+
 let userVlad;
 let userJane;
 let userPetr;
@@ -35,12 +37,11 @@ describe('Tags parsing by consumer', () => {
   });
 
   describe('Notification related to mentions', () => {
-    it('Create notification based on mentions', async () => {
+    it('Create notification based on one mention', async () => {
       const newPostFields = {
         description: 'Our @petrpetrpetr super post description',
       };
 
-      ////// noinspection JSDeprecatedSymbols //
       const expectedPost = await postsHelper.requestToCreateDirectPostForUser(
         userVlad,
         userJane,
@@ -59,6 +60,41 @@ describe('Tags parsing by consumer', () => {
         expectedPost.id,
         userVlad.id,
         userPetr.id,
+      );
+    }, 10000);
+
+    it('Create notifications based on two mentions', async () => {
+      const newPostFields = {
+        description: 'Our @petrpetrpetr @janejanejane super post description',
+      };
+
+      const expectedPost = await postsHelper.requestToCreateDirectPostForUser(
+        userVlad,
+        userJane,
+        newPostFields.description,
+      );
+
+      const options = {
+        postProcessing: 'notification',
+      };
+
+      const notifications =
+        await notificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
+
+      expect(notifications.some(
+        item => item.event_id === eventIdDictionary.getUserCreatesDirectPostForOtherUser()),
+      ).toBeTruthy();
+
+      const mentionNotification = notifications.find(
+        item => item.event_id === eventIdDictionary.getUserHasMentionedYouInPost(),
+      );
+
+      commonHelper.checkUserMentionsYouInsidePost(
+        mentionNotification,
+        options,
+        expectedPost.id,
+        userVlad.id,
+        userJane.id,
       );
     }, 10000);
   });
@@ -522,6 +558,11 @@ describe('Tags parsing by consumer', () => {
 
         expect(entityTagsAfter).toEqual(entityTagsBefore);
       });
+    });
+  });
+
+  describe('Skipped tests', () => {
+    it.skip('Create mentions based on ones in media post description', async () => {
     });
   });
 });
