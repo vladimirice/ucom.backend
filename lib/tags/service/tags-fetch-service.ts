@@ -5,6 +5,8 @@ const usersFetchService         = require('../../users/service/users-fetch-servi
 const organizationsFetchService =
   require('../../organizations/service/organizations-fetch-service');
 
+const apiPostProcessor = require('../../common/service/api-post-processor');
+
 const moment = require('moment');
 
 class TagsFetchService {
@@ -35,6 +37,8 @@ class TagsFetchService {
       ),
       organizationsFetchService.findAndProcessAllByTagTitle(tagTitle, relatedEntitiesQuery),
     ]);
+
+    apiPostProcessor.processOneTag(dbTag);
 
     return {
       posts,

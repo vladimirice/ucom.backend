@@ -1,10 +1,17 @@
-interface TagCurrentRateDto {
+interface PostWithTagCurrentRateDto {
   readonly current_rate: number;
   readonly entity_tags: string[];
 }
 
 interface StringToNumObj {
   [index: string]: number;
+}
+
+interface TagToRate {
+  title: string;
+  ratePerPost: number;
+  postsAmount: number;
+  currentRate: number;
 }
 
 interface DbTag {
@@ -15,7 +22,8 @@ interface DbTag {
 }
 
 export {
-  TagCurrentRateDto,
+  PostWithTagCurrentRateDto,
   StringToNumObj,
   DbTag,
+  TagToRate,
 };

@@ -1,4 +1,4 @@
-import { TagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
+import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 
 const models = require('../../models');
 const moment = require('moment');
@@ -626,7 +626,7 @@ class PostsRepository {
   public static async findAllWithTagsForTagCurrentRate(
     offset: number = 0,
     limit: number = 10,
-  ): Promise<TagCurrentRateDto[]> {
+  ): Promise<PostWithTagCurrentRateDto[]> {
     // it is ok for tag to have current_rate = 0 because post rate is decreased due to time
     // So WHERE current_rate > 0 for post is not ok for current_rate calculation
 
