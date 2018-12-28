@@ -122,7 +122,6 @@ class PostsGenerator {
      * @param {number} expectedStatus
      * @return {Promise<void>}
      *
-     * @link PostCreatorService#processRepostCreation
      */
     static createRepostOfUserPost(repostAuthor, postId, expectedStatus = 201) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -221,7 +220,6 @@ class PostsGenerator {
      * @param {boolean} withImage
      * @return {Promise<void>}
      *
-     * @link PostsService#processNewDirectPostCreationForUser
      */
     static createUserDirectPostForOtherUser(myself, wallOwner, givenDescription = null, withImage = false) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -237,7 +235,6 @@ class PostsGenerator {
      * @param {boolean} idOnly
      * @return {Promise<number>}
      *
-     * @link PostsService#processNewDirectPostCreationForOrg
      */
     static createDirectPostForOrganization(myself, targetOrgId, givenDescription = null, withImage = false, idOnly = false) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -253,7 +250,6 @@ class PostsGenerator {
      * @param {boolean} idOnly
      * @return {Promise<void>}
      *
-     * @link PostsService#processNewDirectPostCreationForUser
      */
     static createDirectPost(url, myself, givenDescription = null, withImage = false, idOnly = false) {
         return __awaiter(this, void 0, void 0, function* () {
