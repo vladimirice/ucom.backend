@@ -3,7 +3,7 @@ const _ = require('lodash');
 const TAG_REGEX           = /#[a-zA-Z]\w*/gm;
 const TAG_MAX_LENGTH = 2048;
 
-const USER_MENTIONS_REGEX = /^@[a-z1-5]{12}$/gm;
+const USER_MENTIONS_REGEX = /@[a-z1-5]{12}/gm;
 
 class TagsParserService {
   static parseTags(inputString: string): string[] {
