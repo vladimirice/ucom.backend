@@ -1,13 +1,13 @@
 const request = require('supertest');
 const server = require('../../../app');
-const RequestHelper = require('./request-helper');
-const ResponseHelper = require('./response-helper');
-const PostRepository = require('../../../lib/posts/posts-repository');
+const requestHelper = require('./request-helper');
+const responseHelper = require('./response-helper');
+const postRepository = require('../../../lib/posts/posts-repository');
 
-const PostStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
+const postStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
 
-const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
-const PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+const contentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
+const postsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
 require('jest-expect-message');
 
@@ -22,12 +22,12 @@ class PostsHelper {
    */
   static async requestToPatchPostRepost(postId, user, expectedStatus = 200) {
     const res = await request(server)
-      .patch(RequestHelper.getOnePostUrl(postId))
+      .patch(requestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('description', 'new repost description')
     ;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -35,33 +35,36 @@ class PostsHelper {
   /**
    *
    * @param {Object} user
-   * @param {number} post_id
+   * @param {number} postId
    * @param {Object|null} fieldsToChange
    * @param {number} expectedStatus
    * @return {Promise<void>}
    */
-  static async updatePostWithFields(post_id, user, fieldsToChange = null, expectedStatus = 200) {
-    if (!fieldsToChange) {
-      // noinspection AssignmentToFunctionParameterJS
-      fieldsToChange = {
-        'title': 'This is title to change',
-        'description': 'Also necessary to change description',
-        'leading_text': 'And leading text',
-      };
-    }
+  static async updatePostWithFields(
+    postId,
+    user,
+    fieldsToChange: any = null,
+    expectedStatus = 200,
+  ) {
+
+    const toChange = fieldsToChange || {
+      title: 'This is title to change',
+      description: 'Also necessary to change description',
+      leading_text: 'And leading text',
+    };
 
     const req = request(server)
-      .patch(RequestHelper.getOnePostUrl(post_id))
+      .patch(requestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    for (const field in fieldsToChange) {
-      req.field(field, fieldsToChange[field]);
+    for (const field in toChange) {
+      req.field(field, toChange[field]);
     }
 
     const res = await req;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -71,29 +74,29 @@ class PostsHelper {
    * @see PostsGenerator
    *
    * @param {Object} user
-   * @param {number} org_id
+   * @param {number} orgId
    * @param {number} expectedStatus
    * @return {Promise<Object>}
    */
-  static async requestToCreateMediaPostOfOrganization(user, org_id, expectedStatus = 200) {
+  static async requestToCreateMediaPostOfOrganization(user, orgId, expectedStatus = 200) {
     const newPostFields = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'post_type_id': 1,
+      title: 'Extremely new post',
+      description: 'Our super post description',
+      leading_text: 'extremely leading text',
+      post_type_id: 1,
     };
 
     const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
+      .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields['title'])
       .field('description', newPostFields['description'])
       .field('post_type_id', newPostFields['post_type_id'])
       .field('leading_text', newPostFields['leading_text'])
-      .field('organization_id', org_id)
+      .field('organization_id', orgId)
     ;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -104,21 +107,21 @@ class PostsHelper {
    * @param {Object} options
    */
   static checkPostItselfCommonFields(post, options) {
-    this._checkWrongPostProcessingSmell(post);
+    this.checkWrongPostProcessingSmell(post);
 
     expect(post.post_type_id).toBeTruthy();
 
     switch (post.post_type_id) {
-      case ContentTypeDictionary.getTypeMediaPost():
+      case contentTypeDictionary.getTypeMediaPost():
         this.checkMediaPostFields(post, options);
         break;
-      case ContentTypeDictionary.getTypeOffer():
+      case contentTypeDictionary.getTypeOffer():
         this.checkPostOfferFields(post, options);
         break;
-      case ContentTypeDictionary.getTypeDirectPost():
+      case contentTypeDictionary.getTypeDirectPost():
         this.checkDirectPostItself(post, options);
         break;
-      case ContentTypeDictionary.getTypeRepost():
+      case contentTypeDictionary.getTypeRepost():
         break;
       default:
         throw new Error(`Unsupported post_type_id ${post.post_type_id}`);
@@ -156,19 +159,21 @@ class PostsHelper {
     let mustExist;
     switch (options.postProcessing) {
       case 'list':
-        mustExist = PostsModelProvider.getModel().getMediaOrOfferPostMustExistFields();
+        mustExist = postsModelProvider.getModel().getMediaOrOfferPostMustExistFields();
         break;
       case 'full':
-        mustExist = PostsModelProvider.getModel().getMediaPostFullFields();
+        mustExist = postsModelProvider.getModel().getMediaPostFullFields();
         break;
       case 'notification':
-        mustExist = PostsModelProvider.getModel().getFieldsRequiredForNotification();
+        mustExist = postsModelProvider.getModel().getFieldsRequiredForNotification();
         break;
       default:
-        throw new Error(`Unsupported postProcessing option (or it is not set): ${options.postProcessing}`);
+        throw new Error(
+          `Unsupported postProcessing option (or it is not set): ${options.postProcessing}`,
+        );
     }
 
-    ResponseHelper.expectFieldsAreExist(post, mustExist);
+    responseHelper.expectFieldsAreExist(post, mustExist);
 
     this.checkEntityImages(post);
   }
@@ -184,16 +189,18 @@ class PostsHelper {
     let mustExist;
     switch (options.postProcessing) {
       case 'list':
-        mustExist = PostsModelProvider.getModel().getFieldsForPreview();
+        mustExist = postsModelProvider.getModel().getFieldsForPreview();
         break;
       case 'full':
-        mustExist = PostsModelProvider.getModel().getMediaPostFullFields();
+        mustExist = postsModelProvider.getModel().getMediaPostFullFields();
         break;
       default:
-        throw new Error(`Unsupported postProcessing option (or it is not set): ${options.postProcessing}`);
+        throw new Error(
+          `Unsupported postProcessing option (or it is not set): ${options.postProcessing}`,
+        );
     }
 
-    ResponseHelper.expectFieldsAreExist(post, mustExist);
+    responseHelper.expectFieldsAreExist(post, mustExist);
   }
 
   /**
@@ -201,11 +208,11 @@ class PostsHelper {
    * @param {Object} post
    * @param {Object} options
    */
-  static checkDirectPostItself(post, options = {}) {
-    const toExclude = PostsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
-    ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
+  static checkDirectPostItself(post, options: any = {}) {
+    const toExclude = postsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
+    responseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
 
-    const mustBeNotNull = PostsModelProvider.getModel().getDirectPostNotNullFields();
+    const mustBeNotNull = postsModelProvider.getModel().getDirectPostNotNullFields();
     expect(post.main_image_filename).toBeDefined();
 
     if (options.postProcessing === 'notification') {
@@ -214,26 +221,26 @@ class PostsHelper {
       delete mustBeNotNull[commentsCountIndex];
     }
 
-    ResponseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
+    responseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
 
-    this._checkWrongPostProcessingSmell(post);
+    this.checkWrongPostProcessingSmell(post);
   }
 
   static async expectPostDbValues(post, expected) {
-    const entity = await PostRepository.findOnlyPostItselfById(post.id);
+    const entity = await postRepository.findOnlyPostItselfById(post.id);
     expect(entity).toBeDefined();
     expect(entity).not.toBeNull();
 
     expect(entity).toMatchObject(expected);
   }
 
-
   /**
    *
    * @param {Object} post
    * @private
    */
-  static _checkWrongPostProcessingSmell(post) {
+  private static checkWrongPostProcessingSmell(post) {
+    // @ts-ignore
     expect(typeof post.current_rate, 'Probably post is not post-processed').not.toBe('string');
   }
 
@@ -246,17 +253,17 @@ class PostsHelper {
    * @return {Promise<void>}
    */
   static async requestToCreateDirectPostForUser(user, targetUser, givenDescription = null) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
+    const postTypeId  = contentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const res = await request(server)
-      .post(RequestHelper.getUserDirectPostUrl(targetUser))
+      .post(requestHelper.getUserDirectPostUrl(targetUser))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -269,18 +276,22 @@ class PostsHelper {
    * @param {string|null} givenDescription
    * @return {Promise<void>}
    */
-  static async requestToCreateDirectPostForOrganization(user, targetOrgId, givenDescription = null) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
+  static async requestToCreateDirectPostForOrganization(
+    user,
+    targetOrgId,
+    givenDescription = null,
+  ) {
+    const postTypeId  = contentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const res = await request(server)
-      .post(RequestHelper.getOrgDirectPostUrl(targetOrgId))
+      .post(requestHelper.getOrgDirectPostUrl(targetOrgId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -297,16 +308,16 @@ class PostsHelper {
     let description = givenDescription || 'extremely updated one';
 
     tags.forEach((tag) => {
-      description += ` #${tag} `
+      description += ` #${tag} `;
     });
 
     const res = await request(server)
-      .patch(RequestHelper.getOnePostUrl(postId))
+      .patch(requestHelper.getOnePostUrl(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -318,17 +329,17 @@ class PostsHelper {
    */
   static async requestToCreateMediaPost(user) {
     const newPostFields = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'post_type_id': ContentTypeDictionary.getTypeMediaPost(),
-      'user_id': user.id,
-      'current_rate': 0.0000000000,
-      'current_vote': 0,
+      title: 'Extremely new post',
+      description: 'Our super post description',
+      leading_text: 'extremely leading text',
+      post_type_id: contentTypeDictionary.getTypeMediaPost(),
+      user_id: user.id,
+      current_rate: 0.0000000000,
+      current_vote: 0,
     };
 
     const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
+      .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title',         newPostFields['title'])
       .field('description',   newPostFields['description'])
@@ -339,7 +350,7 @@ class PostsHelper {
       .field('current_vote',  newPostFields['current_vote'])
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -351,19 +362,19 @@ class PostsHelper {
    * @returns {Promise<number>}
    */
   static async requestToCreatePostOffer(user) {
-    let newPostFields = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'user_id': user.id,
-      'post_type_id': ContentTypeDictionary.getTypeOffer(),
-      'current_rate': '0.0000000000',
-      'current_vote': 0,
-      'action_button_title': 'TEST_BUTTON_CONTENT',
+    const newPostFields = {
+      title: 'Extremely new post',
+      description: 'Our super post description',
+      leading_text: 'extremely leading text',
+      user_id: user.id,
+      post_type_id: contentTypeDictionary.getTypeOffer(),
+      current_rate: '0.0000000000',
+      current_vote: 0,
+      action_button_title: 'TEST_BUTTON_CONTENT',
     };
 
     const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
+      .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title',               newPostFields['title'])
       .field('description',         newPostFields['description'])
@@ -375,7 +386,7 @@ class PostsHelper {
       .field('action_button_title', newPostFields['action_button_title'])
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -388,20 +399,20 @@ class PostsHelper {
    * @returns {Promise<number>}
    */
   static async requestToCreatePostOfferOfOrganization(user, orgId) {
-    let newPostFields = {
-      'title': 'Extremely new post',
-      'description': 'Our super post description',
-      'leading_text': 'extremely leading text',
-      'user_id': user.id,
-      'post_type_id': ContentTypeDictionary.getTypeOffer(),
-      'current_rate': '0.0000000000',
-      'current_vote': 0,
-      'action_button_title': 'TEST_BUTTON_CONTENT',
-      'organization_id': orgId,
+    const newPostFields = {
+      title: 'Extremely new post',
+      description: 'Our super post description',
+      leading_text: 'extremely leading text',
+      user_id: user.id,
+      post_type_id: contentTypeDictionary.getTypeOffer(),
+      current_rate: '0.0000000000',
+      current_vote: 0,
+      action_button_title: 'TEST_BUTTON_CONTENT',
+      organization_id: orgId,
     };
 
     const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
+      .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title',               newPostFields['title'])
       .field('description',         newPostFields['description'])
@@ -414,7 +425,7 @@ class PostsHelper {
       .field('organization_id',     newPostFields['organization_id'])
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -426,18 +437,18 @@ class PostsHelper {
    * @returns {Promise<void>}
    */
   static async makeFieldNull(postId, fieldToBeNull) {
-    let toUpdate = {};
+    const toUpdate = {};
     toUpdate[fieldToBeNull] = null;
 
-    await PostRepository.getModel().update(toUpdate,
-      { where: { id: postId } }
+    await postRepository.getModel().update(toUpdate,
+                                           { where: { id: postId } },
     );
   }
 
   static validateDbEntity(expected, actual) {
     const checkIsExistOnly = {
-      'created_at': true,
-      'updated_at': true,
+      created_at: true,
+      updated_at: true,
     };
 
     for (const field in expected) {
@@ -450,6 +461,7 @@ class PostsHelper {
         continue;
       }
 
+      // @ts-ignore
       expect(actual[field], `${field} values are not equal`).toEqual(expected[field]);
     }
   }
@@ -461,21 +473,20 @@ class PostsHelper {
     expect(body.post_id).toBe(expected.id);
   }
 
-
   /**
    *
-   * @param {number} post_id
+   * @param {number} postId
    * @param {number} commentsCount
    * @returns {Promise<void>}
    */
-  static async setCommentCountDirectly(post_id, commentsCount) {
-    await PostStatsRepository.getModel().update({
-      'comments_count': commentsCount
-    }, {
+  static async setCommentCountDirectly(postId, commentsCount) {
+    await postStatsRepository.getModel().update({
+      comments_count: commentsCount,
+    },                                          {
       where: {
-        post_id
-      }
-    })
+        post_id: postId,
+      },
+    });
 
   }
 
@@ -487,17 +498,17 @@ class PostsHelper {
    */
   static async requestToGetManyPostsAsGuest(queryString = null, dataOnly = true) {
 
-    let url = RequestHelper.getPostsUrl();
+    let url = requestHelper.getPostsUrl();
 
     if (queryString) {
-      url+= '?' + queryString;
+      url += `?${queryString}`;
     }
 
     const res = await request(server)
       .get(url)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     if (dataOnly) {
       return res.body.data;
@@ -512,14 +523,14 @@ class PostsHelper {
    * @param {number} userId
    */
   static async requestToGetManyUserPostsAsMyself(myself, userId) {
-    let url = RequestHelper.getUserPostsUrl(userId);
+    const url = requestHelper.getUserPostsUrl(userId);
 
     const res = await request(server)
       .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -532,10 +543,10 @@ class PostsHelper {
    */
   static async requestToGetManyPostsAsMyself(myself, queryString = null) {
 
-    let url = RequestHelper.getPostsUrl();
+    let url = requestHelper.getPostsUrl();
 
     if (queryString) {
-      url+= '?' + queryString;
+      url += `?${queryString}`;
     }
 
     const res = await request(server)
@@ -543,7 +554,7 @@ class PostsHelper {
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body.data;
   }
@@ -556,7 +567,7 @@ class PostsHelper {
    */
   static async getPostByMyself(postId, myself) {
     const res = await request(server)
-      .get(`${RequestHelper.getOnePostUrl(postId)}`)
+      .get(`${requestHelper.getOnePostUrl(postId)}`)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
@@ -567,33 +578,33 @@ class PostsHelper {
 
   /**
    *
-   * @param {integer} post_id
+   * @param {integer} postId
    * @returns {Promise<Object>}
    */
-  static async requestToPost(post_id) {
+  static async requestToPost(postId) {
     const res = await request(server)
-      .get(RequestHelper.getOnePostUrl(post_id))
+      .get(requestHelper.getOnePostUrl(postId))
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
 
   /**
    *
-   * @param {number} post_id
+   * @param {number} postId
    * @param {Object} user
    * @param {number} expectedStatus
    * @returns {Promise<Object>}
    */
-  static async requestToGetOnePostAsMyself(post_id, user, expectedStatus = 200) {
+  static async requestToGetOnePostAsMyself(postId, user, expectedStatus = 200) {
     const res = await request(server)
-      .get(RequestHelper.getOnePostUrl(post_id))
+      .get(requestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
       expect(res.body).toBeDefined();
@@ -611,20 +622,20 @@ class PostsHelper {
    * @returns {Promise<Object>}
    */
   static async requestToSetPostTeam(postId, user, teamUsers) {
-    const boardToChange = teamUsers.map(user => {
+    const boardToChange = teamUsers.map((user) => {
       return {
-        user_id: user.id
-      }
+        user_id: user.id,
+      };
     });
 
     const res = await request(server)
-      .patch(RequestHelper.getOnePostUrl(postId))
+      .patch(requestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('post_users_team[0][id]', boardToChange[0]['user_id'])
       .field('post_users_team[1][id]', boardToChange[1]['user_id'])
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res;
   }
@@ -641,7 +652,7 @@ class PostsHelper {
       .set('Authorization', `Bearer ${whoUpvote.token}`)
     ;
 
-    ResponseHelper.expectStatusCreated(res);
+    responseHelper.expectStatusCreated(res);
 
     return res.body;
   }
@@ -658,27 +669,27 @@ class PostsHelper {
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    ResponseHelper.expectStatusCreated(res);
+    responseHelper.expectStatusCreated(res);
 
     return res.body;
   }
 
+  // noinspection JSValidateJSDoc
   /**
    *
-   * @param {number} post_id
+   * @param {number} postId
    * @returns {Promise<Object>}
    * @link PostsService#findOnePostByIdAndProcess
    */
-  static async requestToGetOnePostAsGuest(post_id) {
+  static async requestToGetOnePostAsGuest(postId) {
     const res = await request(server)
-      .get(RequestHelper.getOnePostUrl(post_id))
+      .get(requestHelper.getOnePostUrl(postId))
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
-
 
   /**
    *
@@ -688,9 +699,9 @@ class PostsHelper {
    * @returns {Promise<Object>}
    */
   static async requestAllPostsWithPagination(page, perPage, dataOnly = false) {
-    let url = RequestHelper.getPostsUrl() + '?';
+    let url = `${requestHelper.getPostsUrl()}?`;
 
-    let params = [];
+    const params: string[] = [];
 
     if (page) {
       params.push(`page=${page}`);
@@ -705,7 +716,7 @@ class PostsHelper {
       .get(url)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     if (dataOnly) {
       return res.body.data;
@@ -720,8 +731,8 @@ class PostsHelper {
     expect(actual.title).toBe(expected.title);
 
     const checkExistsOnly = {
-      'created_at': true,
-      'updated_at': true,
+      created_at: true,
+      updated_at: true,
     };
 
     for (const field in expected) {
@@ -730,6 +741,7 @@ class PostsHelper {
       }
 
       if (checkExistsOnly[field]) {
+        // @ts-ignore
         expect(actual[field], `Field ${field} is not defined`).toBeDefined();
         continue;
       }
@@ -743,4 +755,4 @@ class PostsHelper {
   }
 }
 
-module.exports = PostsHelper;
+export = PostsHelper;

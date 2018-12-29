@@ -23,18 +23,11 @@ class CommentsGenerator {
             return res.body;
         });
     }
-    /**
-     *
-     * @param {number} postId
-     * @param {number} parentCommentId
-     * @param {Object} user
-     * @returns {Promise<Object>}
-     */
-    static createCommentOnComment(postId, parentCommentId, user) {
+    static createCommentOnComment(postId, parentCommentId, user, description = 'comment description') {
         return __awaiter(this, void 0, void 0, function* () {
             const req = request(server)
                 .post(requestHelper.getCommentOnCommentUrl(postId, parentCommentId))
-                .field('description', 'comment description');
+                .field('description', description);
             requestHelper.addAuthToken(req, user);
             const res = yield req;
             responseHelper.expectStatusCreated(res);

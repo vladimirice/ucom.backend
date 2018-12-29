@@ -8,6 +8,8 @@ const gen     = require('../../generators');
 
 const mockHelper = require('../helpers/mock-helper');
 const seedsHelper = require('../helpers/seeds-helper');
+const notificationsHelper = require('../helpers/notifications-helper');
+const commonHelper = require('../helpers/common-helper');
 
 const tagsGenerator   = require('../../generators/entity/entity-tags-generator');
 const postsGenerator  = require('../../generators/posts-generator');
@@ -18,6 +20,7 @@ const postsHelper = require('../helpers/posts-helper');
 
 let userVlad;
 let userJane;
+let userPetr;
 
 const JEST_TIMEOUT = 10000;
 
@@ -30,7 +33,48 @@ describe('Tags parsing by consumer', () => {
     await seedsHelper.doAfterAll();
   });
   beforeEach(async () => {
-    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr] = await seedsHelper.beforeAllRoutine();
+  });
+
+  describe('Creating - both tags and mentions', () => {
+    it('[Smoke] create both tags and mentions for post', async () => {
+      const expectedTags = [
+        'summer',
+        'party',
+      ];
+
+      const user = userVlad;
+      const targetUser = userJane;
+
+      const newPostFields = {
+        description: `Our super #${expectedTags[0]}
+        post #${expectedTags[1]} @${userPetr.account_name} description`,
+      };
+
+      const directPost = await postsGenerator.createUserDirectPostForOtherUser(
+        user,
+        targetUser,
+        newPostFields.description,
+      );
+
+      await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
+
+      const mentionNotification =
+        await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
+
+      const options = {
+        postProcessing: 'notification',
+      };
+
+      commonHelper.checkUserMentionsYouInsidePost(
+        mentionNotification[0],
+        options,
+        directPost.id,
+        userVlad.id,
+        userPetr.id,
+      );
+
+    });
   });
 
   describe('Creating - tags for new posts', () => {
@@ -49,8 +93,7 @@ describe('Tags parsing by consumer', () => {
           description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
         };
 
-        // noinspection JSDeprecatedSymbols
-        const directPost = await postsHelper.requestToCreateDirectPostForUser(
+        const directPost = await postsGenerator.createUserDirectPostForOtherUser(
           user,
           targetUser,
           newPostFields.description,
@@ -73,7 +116,6 @@ describe('Tags parsing by consumer', () => {
           description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
         };
 
-        // noinspection JSDeprecatedSymbols//////////////
         const directPost = await helpers.Posts.requestToCreateDirectPostForOrganization(
           user,
           orgId,
@@ -492,13 +534,6 @@ describe('Tags parsing by consumer', () => {
 
         expect(entityTagsAfter).toEqual(entityTagsBefore);
       });
-    });
-  });
-
-  describe('Skipped tests', () => {
-    it.skip('Create mentions based on ones in media post description', async () => {
-    });
-    it.skip('If you mention user twice - only one notification should be sent', async () => {
     });
   });
 });

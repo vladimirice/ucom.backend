@@ -9,7 +9,6 @@ const postsGenerator    = require('../../generators/posts-generator');
 const commentsGenerator = require('../../generators/comments-generator');
 const orgGenerator      = require('../../generators/organizations-generator');
 
-const postsHelper = require('../helpers/posts-helper');
 const eventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
 
 let userVlad;
@@ -251,12 +250,37 @@ describe('Mentions parsing by consumer', () => {
     });
 
     describe('Creation - mentions for posts', () => {
+      it('[Smoke] Media post and mentions', async () => {
+        const newPostFields = {
+          description: `Our @${userPetr.account_name} super post description`,
+        };
+
+        const expectedPostId = await postsGenerator.createMediaPostByUserHimself(
+          userVlad,
+          newPostFields,
+        );
+
+        const notification = await notificationsHelper.requestToGetOnlyOneNotification(userPetr);
+
+        const options = {
+          postProcessing: 'notification',
+        };
+
+        commonHelper.checkUserMentionsYouInsidePost(
+          notification,
+          options,
+          expectedPostId,
+          userVlad.id,
+          userPetr.id,
+        );
+      }, JEST_TIMEOUT);
+
       it('Create notification based on one mention', async () => {
         const newPostFields = {
           description: `Our @${userPetr.account_name} super post description`,
         };
 
-        const expectedPost = await postsHelper.requestToCreateDirectPostForUser(
+        const expectedPost = await postsGenerator.createUserDirectPostForOtherUser(
           userVlad,
           userJane,
           newPostFields.description,
@@ -275,14 +299,15 @@ describe('Mentions parsing by consumer', () => {
           userVlad.id,
           userPetr.id,
         );
-      }, 10000);
+      }, JEST_TIMEOUT);
+
       it('Create notifications based on two mentions', async () => {
         const newPostFields = {
           description:
             `Our @${userPetr.account_name} @${userJane.account_name} super post description`,
         };
 
-        const expectedPost = await postsHelper.requestToCreateDirectPostForUser(
+        const expectedPost = await postsGenerator.createUserDirectPostForOtherUser(
           userVlad,
           userJane,
           newPostFields.description,
@@ -319,5 +344,7 @@ describe('Mentions parsing by consumer', () => {
     });
     it.skip('If you mention user twice - only one notification should be sent', async () => {
     });
+    it.skip('Direct post updating mentions', async () => {});
+    it.skip('Org post updating mentions', async () => {});
   });
 });
