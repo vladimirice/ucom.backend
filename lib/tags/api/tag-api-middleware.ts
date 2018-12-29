@@ -26,7 +26,7 @@ class TagApiMiddleware {
         });
       }
 
-      const dbTag = await tagsRepository.findOneByTitle(incomingValue);
+      const dbTag = await tagsRepository.findOneByTitle(incomingValue.toLowerCase());
 
       if (dbTag === null) {
         throw new BadRequestError({
@@ -34,7 +34,7 @@ class TagApiMiddleware {
         },                        404);
       }
 
-      req.tag_identity  = incomingValue;
+      req.tag_identity  = incomingValue.toLowerCase();
       req.db_tag        = dbTag;
 
       next();
