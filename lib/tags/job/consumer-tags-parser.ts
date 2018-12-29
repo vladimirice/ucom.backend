@@ -21,7 +21,10 @@ class ConsumerTagsParser {
 
         if (!processedAsPost) {
           await commentsActivityProcessor.processOneActivity(parsedMessageContent.id);
+          console.log('processed as comment');
         }
+
+        console.log('end of block');
       } catch (err) {
         // Our test user. In order to clean logs from his invalid actions
         err.message +=
@@ -35,6 +38,7 @@ class ConsumerTagsParser {
 
       } finally {
         channel.ack(message);
+        console.log('acked!');
       }
 
     },                     { noAck: false });

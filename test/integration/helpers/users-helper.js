@@ -407,6 +407,7 @@ class UsersHelper {
    * @returns {Promise<Object>}
    */
   static async getUserPetr() {
+    const seed = UsersHelper.getUserPetrSeed();
     const userAccountData = accountsData.petr;
 
     const fromDb = await UsersRepository.getUserByAccountName(userAccountData.account_name);
@@ -419,6 +420,7 @@ class UsersHelper {
     const token = AuthService.getNewJwtToken(data);
 
     return {
+      ...seed,
       ...data,
       token
     }
@@ -429,6 +431,7 @@ class UsersHelper {
    * @returns {Promise<Object>}
    */
   static async getUserRokky() {
+    const seed = UsersHelper.getUserRokkySeed();
     const userAccountData = accountsData.rokky;
 
     const fromDb = await UsersRepository.getUserByAccountName(userAccountData.account_name);
@@ -441,6 +444,7 @@ class UsersHelper {
     const token = AuthService.getNewJwtToken(data);
 
     return {
+      ...seed,
       ...data,
       token
     }
@@ -478,6 +482,13 @@ class UsersHelper {
 
   static getUserJaneSeed() {
     return usersSeeds[1];
+  }
+  static getUserPetrSeed() {
+    return usersSeeds[2];
+  }
+
+  static getUserRokkySeed() {
+    return usersSeeds[3];
   }
 
   static getJaneEosAccount() {

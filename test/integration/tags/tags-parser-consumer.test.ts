@@ -8,22 +8,16 @@ const gen     = require('../../generators');
 
 const mockHelper = require('../helpers/mock-helper');
 const seedsHelper = require('../helpers/seeds-helper');
-const notificationsHelper = require('../helpers/notifications-helper');
-const commonHelper = require('../helpers/common-helper');
 
 const tagsGenerator   = require('../../generators/entity/entity-tags-generator');
 const postsGenerator  = require('../../generators/posts-generator');
-const commentsGenerator  = require('../../generators/comments-generator');
 const orgGenerator    = require('../../generators/organizations-generator');
 
 const tagsHelper = require('../helpers/tags-helper');
 const postsHelper = require('../helpers/posts-helper');
 
-const eventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
-
 let userVlad;
 let userJane;
-let userPetr;
 
 const JEST_TIMEOUT = 10000;
 
@@ -36,98 +30,7 @@ describe('Tags parsing by consumer', () => {
     await seedsHelper.doAfterAll();
   });
   beforeEach(async () => {
-    [userVlad, userJane, userPetr] = await seedsHelper.beforeAllRoutine();
-  });
-
-  describe('Notification related to mentions', () => {
-    describe('Creating - mentions for new comments', () => {
-      describe('Comment on post', () => {
-        it('Create notification based on one mention', async () => {
-          const description = 'hello @petrpetrpetr from comment';
-
-          const postId: number = await postsGenerator.createMediaPostByUserHimself(userJane);
-          const comment: any =
-            await commentsGenerator.createCommentForPost(postId, userVlad, description);
-
-          const options = {
-            postProcessing: 'notification',
-          };
-
-          const mentionNotification =
-            await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
-
-          commonHelper.checkUserMentionsYouInsideComment(
-            mentionNotification[0],
-            options,
-            comment.id,
-            userVlad.id,
-            userPetr.id,
-          );
-        }, JEST_TIMEOUT);
-      });
-    });
-
-    describe('Creation - mentions for posts', () => {
-      it('Create notification based on one mention', async () => {
-        const newPostFields = {
-          description: 'Our @petrpetrpetr super post description',
-        };
-
-        const expectedPost = await postsHelper.requestToCreateDirectPostForUser(
-          userVlad,
-          userJane,
-          newPostFields.description,
-        );
-
-        const notification = await notificationsHelper.requestToGetOnlyOneNotification(userPetr);
-
-        const options = {
-          postProcessing: 'notification',
-        };
-
-        commonHelper.checkUserMentionsYouInsidePost(
-          notification,
-          options,
-          expectedPost.id,
-          userVlad.id,
-          userPetr.id,
-        );
-      }, 10000);
-      it('Create notifications based on two mentions', async () => {
-        const newPostFields = {
-          description: 'Our @petrpetrpetr @janejanejane super post description',
-        };
-
-        const expectedPost = await postsHelper.requestToCreateDirectPostForUser(
-          userVlad,
-          userJane,
-          newPostFields.description,
-        );
-
-        const options = {
-          postProcessing: 'notification',
-        };
-
-        const notifications =
-          await notificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
-
-        expect(notifications.some(
-          item => item.event_id === eventIdDictionary.getUserCreatesDirectPostForOtherUser()),
-        ).toBeTruthy();
-
-        const mentionNotification = notifications.find(
-          item => item.event_id === eventIdDictionary.getUserHasMentionedYouInPost(),
-        );
-
-        commonHelper.checkUserMentionsYouInsidePost(
-          mentionNotification,
-          options,
-          expectedPost.id,
-          userVlad.id,
-          userJane.id,
-        );
-      }, 10000);
-    });
+    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
   });
 
   describe('Creating - tags for new posts', () => {
@@ -290,7 +193,7 @@ describe('Tags parsing by consumer', () => {
 
       await helpers.Tags.checkRelatedPostModels(expectedTags, processedModel);
 
-    }, 10000);
+    }, JEST_TIMEOUT);
   });
 
   describe('Updating - change tags of existing posts', () => {
@@ -594,6 +497,8 @@ describe('Tags parsing by consumer', () => {
 
   describe('Skipped tests', () => {
     it.skip('Create mentions based on ones in media post description', async () => {
+    });
+    it.skip('If you mention user twice - only one notification should be sent', async () => {
     });
   });
 });

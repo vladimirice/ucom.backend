@@ -24,17 +24,15 @@ class CommentsGenerator {
     return res.body;
   }
 
-  /**
-   *
-   * @param {number} postId
-   * @param {number} parentCommentId
-   * @param {Object} user
-   * @returns {Promise<Object>}
-   */
-  static async createCommentOnComment(postId, parentCommentId, user) {
+  static async createCommentOnComment(
+    postId: number,
+    parentCommentId: number,
+    user: Object,
+    description: string = 'comment description',
+  ): Promise<Object> {
     const req =  request(server)
       .post(requestHelper.getCommentOnCommentUrl(postId, parentCommentId))
-      .field('description', 'comment description')
+      .field('description', description)
     ;
 
     requestHelper.addAuthToken(req, user);

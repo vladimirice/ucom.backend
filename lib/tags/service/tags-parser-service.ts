@@ -13,7 +13,9 @@ class TagsParserService {
       return [];
     }
 
-    const uniqueValues = _.uniq(tagsArray.map(item => item.replace('#', '')));
+    const uniqueValues = _.uniq(
+      tagsArray.map(item => item.replace('#', '').toLowerCase()),
+    );
 
     return uniqueValues.filter(item => item.length < TAG_MAX_LENGTH);
   }
@@ -25,7 +27,9 @@ class TagsParserService {
       return [];
     }
 
-    return _.uniq(tagsArray.map(item => item.replace('@', '')));
+    return _.uniq(
+      tagsArray.map(item => item.replace('@', '').toLowerCase()),
+    );
   }
 }
 

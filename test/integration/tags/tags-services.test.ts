@@ -70,7 +70,7 @@ describe('Tags services', () => {
     });
   });
 
-  describe('Tags and mentions parser', () => {
+  describe('Tags parser', () => {
     it('Tags parser basic checks', async () => {
       const data = {
         '#null#undefined!#undefined2!# #a #b2 # hello! #a998bc' : [
@@ -81,6 +81,9 @@ describe('Tags services', () => {
         ],
         '#null#null## hello there! I am amazing' : ['null'],
         '#null2 hello! #undefined! I #ama2zing90 #1tool:)' : ['null2', 'undefined', 'ama2zing90'],
+        '#nUll2 hell #heLLo! #UOSNetwork #uosnetwork #UOSnetwork #UosNetwork' : [
+          'hello', 'null2', 'uosnetwork',
+        ],
       };
 
       for (const input in data) {
@@ -88,28 +91,7 @@ describe('Tags services', () => {
         const actual = tagsParser.parseTags(input);
 
         expect(actual.length).toBe(expected.length);
-        expect(actual).toMatchObject(expected);
-      }
-    });
-    it('Mentions parser basic checks', async () => {
-      const data = {
-        '@summerknight@autumnknight @otto come here!' : [
-          'summerknight', 'autumnknight',
-        ],
-        '@summerknight here are @autumnknight @otto come here!' : [
-          'summerknight', 'autumnknight',
-        ],
-        '@summerknight here are @autumnknight2!' : [
-          'summerknight', 'autumnknight',
-        ],
-      };
-
-      for (const input in data) {
-        const expected = data[input];
-        const actual = tagsParser.parseMentions(input);
-
-        expect(actual.length).toBe(expected.length);
-        expect(actual).toMatchObject(expected);
+        expect(actual.sort()).toEqual(expected.sort());
       }
     });
   });

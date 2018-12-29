@@ -11,10 +11,8 @@ class MentionsProcessorService {
   public static async processMentions(
     activity: ActivityWithContentEntity,
   ) {
-    console.log(`Activity is: ${JSON.stringify(activity, null, 2)}`);
     const mentions = tagsParser.parseMentions(activity.description);
 
-    console.log(`Mentions are: ${mentions}`);
     const userAccountNameToId = await usersRepository.findUserIdsByAccountNames(mentions);
 
     const usersIds = Object.keys(userAccountNameToId).map(key => userAccountNameToId[key]);
@@ -22,7 +20,6 @@ class MentionsProcessorService {
     for (let i = 0; i < usersIds.length; i += 1) {
       const mentionedUserId = usersIds[i];
 
-      console.log(`Mentioned user id: ${mentionedUserId}`);
       await this.processNotificationActivity(activity, mentionedUserId);
     }
   }
