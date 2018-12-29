@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const postsGenerator = require('../posts-generator');
 const orgsGenerator = require('../organizations-generator');
 const tagHelper = require('../../integration/helpers/tags-helper');
-const postsHelper = require('../../integration/helpers/posts-helper');
 class EntityTagsGenerator {
     static createPostsWithTagsForOrgs(userVlad, userJane) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -161,10 +160,16 @@ class EntityTagsGenerator {
             };
         });
     }
-    static createDirectPostForUserWithTags(userVlad, userJane, firstTag, secondTag) {
+    static createDirectPostForUserWithTags(userVlad, userJane, firstTag, secondTag = '', thirdTag = '') {
         return __awaiter(this, void 0, void 0, function* () {
-            const description = `Our super #${firstTag} post #${secondTag} description`;
-            const directPost = yield postsHelper.requestToCreateDirectPostForUser(userVlad, userJane, description);
+            let description = `Our super #${firstTag} post`;
+            if (secondTag) {
+                description += `  #${secondTag}`;
+            }
+            if (thirdTag) {
+                description += `  #${thirdTag}`;
+            }
+            const directPost = yield postsGenerator.createUserDirectPostForOtherUser(userVlad, userJane, description);
             return tagHelper.getPostWhenTagsAreProcessed(directPost.id);
         });
     }
