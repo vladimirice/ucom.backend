@@ -52,6 +52,9 @@ describe('Get notifications', () => {
       const totalAmount = 2;
       await gen.Org.createManyOrgWithSameTeam(userJane, usersTeam, totalAmount);
 
+      await helpers.Notifications.requestToGetExactNotificationsAmount(userVlad, totalAmount);
+
+
       const models = await helpers.Notifications.requestToGetNotificationsList(userVlad);
 
       helpers.Common.checkNotificationsList(models, totalAmount);
@@ -72,6 +75,8 @@ describe('Get notifications', () => {
       let perPage   = 2;
 
       const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+
+      await helpers.Notifications.requestToGetExactNotificationsAmount(userVlad, totalAmount);
 
       const response = await helpers.Notifications.requestToGetNotificationsList(userVlad, queryString, false);
       helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
@@ -99,6 +104,8 @@ describe('Get notifications', () => {
 
       const totalAmount = 6;
       await gen.Org.createManyOrgWithSameTeam(author, usersTeam, totalAmount);
+
+      await helpers.Notifications.requestToGetExactNotificationsAmount(userVlad, totalAmount);
 
       let page    = 1;
       let perPage   = 2;

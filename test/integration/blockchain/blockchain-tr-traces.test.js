@@ -212,7 +212,7 @@ describe('Blockchain tr traces sync tests', () => {
         gen.BlockchainTr.createVoteForBp(userAlias, []),
       ]);
 
-      delay(1000); // approximate lag of mining
+      delay(5000); // approximate lag of mining
 
       const trType = BlockchainTrTracesDictionary.getTypeVoteForBp();
 
