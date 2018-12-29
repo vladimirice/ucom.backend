@@ -160,11 +160,14 @@ class EntityTagsGenerator {
             };
         });
     }
-    static createDirectPostForUserWithTags(userVlad, userJane, firstTag, secondTag = '') {
+    static createDirectPostForUserWithTags(userVlad, userJane, firstTag, secondTag = '', thirdTag = '') {
         return __awaiter(this, void 0, void 0, function* () {
             let description = `Our super #${firstTag} post`;
             if (secondTag) {
-                description += `#${secondTag}`;
+                description += `  #${secondTag}`;
+            }
+            if (thirdTag) {
+                description += `  #${thirdTag}`;
             }
             const directPost = yield postsGenerator.createUserDirectPostForOtherUser(userVlad, userJane, description);
             return tagHelper.getPostWhenTagsAreProcessed(directPost.id);
