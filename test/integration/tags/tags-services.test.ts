@@ -30,6 +30,103 @@ describe('Tags services', () => {
   });
 
   describe('Tags current rate processor', () => {
+    it('If only one post and tag is only in this post - post_rate = tag_rate', async () => {
+      const firstTag = 'summer';
+      // const secondTag = 'autumn';
+
+      const post = await tagsGenerator.createDirectPostForUserWithTags(
+        userVlad,
+        userJane,
+        firstTag,
+      );
+
+      const postRate: number = 112.98;
+
+      await postsRepository.setCurrentRateToPost(post.id, postRate);
+
+      await tagsCurrentRateProcessor.process();
+
+      const tag = await tagsRepository.findOneByTitle(firstTag);
+
+      expect(tag.current_rate).toBe(postRate);
+    });
+
+    it('If only one posts and two tags - split the rate', async () => {
+      const firstTag = 'summer';
+      const secondTag = 'autumn';
+
+      const post = await tagsGenerator.createDirectPostForUserWithTags(
+        userVlad,
+        userJane,
+        firstTag,
+        secondTag,
+      );
+
+      const postRate: number = 112.98;
+
+      await postsRepository.setCurrentRateToPost(post.id, postRate);
+
+      await tagsCurrentRateProcessor.process();
+
+      const firstTagModel = await tagsRepository.findOneByTitle(firstTag);
+      expect(firstTagModel.current_rate).toBe(postRate / 2);
+
+      const secondTagModel = await tagsRepository.findOneByTitle(secondTag);
+      expect(secondTagModel.current_rate).toBe(postRate / 2);
+    });
+
+    it('Three posts, two tags', async () => {
+      const firstTag = 'summer';
+      const secondTag = 'autumn';
+
+      const allTwoTagsPostOne = await tagsGenerator.createDirectPostForUserWithTags(
+        userVlad,
+        userJane,
+        firstTag,
+        secondTag,
+      );
+
+      const allTwoTagsPostTwo = await tagsGenerator.createDirectPostForUserWithTags(
+        userVlad,
+        userJane,
+        firstTag,
+        secondTag,
+      );
+
+      const onlyFirstTagPost = await tagsGenerator.createDirectPostForUserWithTags(
+        userVlad,
+        userJane,
+        firstTag,
+      );
+
+      onlyFirstTagPost.current_rate = 231.94;
+      allTwoTagsPostOne.current_rate = 318.62;
+      allTwoTagsPostTwo.current_rate = 4462.13;
+
+      await Promise.all([
+        postsRepository.setCurrentRateToPost(onlyFirstTagPost.id, onlyFirstTagPost.current_rate),
+        postsRepository.setCurrentRateToPost(allTwoTagsPostOne.id, allTwoTagsPostOne.current_rate),
+        postsRepository.setCurrentRateToPost(allTwoTagsPostTwo.id, allTwoTagsPostTwo.current_rate),
+      ]);
+
+      await tagsCurrentRateProcessor.process();
+
+      const expectedFirstTagRate =
+        (onlyFirstTagPost.current_rate +
+        allTwoTagsPostOne.current_rate / 2 +
+        allTwoTagsPostTwo.current_rate / 2) / 3;
+
+      const expectedSecondTagRate =
+        (allTwoTagsPostOne.current_rate / 2 +
+        allTwoTagsPostTwo.current_rate / 2) / 2;
+
+      const firstTagModel = await tagsRepository.findOneByTitle(firstTag);
+      expect(firstTagModel.current_rate).toBe(expectedFirstTagRate);
+
+      const secondTagModel = await tagsRepository.findOneByTitle(secondTag);
+      expect(secondTagModel.current_rate).toBe(expectedSecondTagRate);
+    });
+
     it('[Smoke] Process rates of given posts', async () => {
       const genData = await tagsGenerator.createPostsWithTags(userVlad, userJane);
 

@@ -2,7 +2,6 @@ const postsGenerator  = require('../posts-generator');
 const orgsGenerator   = require('../organizations-generator');
 
 const tagHelper   = require('../../integration/helpers/tags-helper');
-const postsHelper = require('../../integration/helpers/posts-helper');
 
 class EntityTagsGenerator {
 
@@ -183,11 +182,19 @@ class EntityTagsGenerator {
     userVlad: Object,
     userJane: Object,
     firstTag: string,
-    secondTag: string,
+    secondTag: string = '',
+    thirdTag: string = '',
   ) {
-    const description = `Our super #${firstTag} post #${secondTag} description`;
+    let description: string = `Our super #${firstTag} post`;
 
-    const directPost = await postsHelper.requestToCreateDirectPostForUser(
+    if (secondTag) {
+      description += `  #${secondTag}`;
+    }
+    if (thirdTag) {
+      description += `  #${thirdTag}`;
+    }
+
+    const directPost = await postsGenerator.createUserDirectPostForOtherUser(
       userVlad,
       userJane,
       description,
