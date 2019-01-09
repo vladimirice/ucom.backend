@@ -133,6 +133,16 @@ class PostsGenerator {
             return +res.body.id;
         });
     }
+    static createUserPostAndRepost(postAuthor, repostAuthor) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const postId = yield this.createMediaPostByUserHimself(postAuthor);
+            const repostId = yield this.createRepostOfUserPost(repostAuthor, postId);
+            return {
+                postId,
+                repostId,
+            };
+        });
+    }
     /**
      *
      * @param {Object} postAuthor
@@ -147,6 +157,24 @@ class PostsGenerator {
                 parentPostId,
                 repostId,
             };
+        });
+    }
+    static createManyDefaultMediaPostsByUserHimself(user, amount) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const promises = [];
+            for (let i = 0; i < amount; i += 1) {
+                promises.push(this.createMediaPostByUserHimself(user));
+            }
+            return Promise.all(promises);
+        });
+    }
+    static createManyMediaPostsOfOrganization(user, orgId, amount) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const promises = [];
+            for (let i = 0; i < amount; i += 1) {
+                promises.push(this.createMediaPostOfOrganization(user, orgId));
+            }
+            return Promise.all(promises);
         });
     }
     /**
@@ -242,15 +270,6 @@ class PostsGenerator {
             return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
         });
     }
-    /**
-     * @param {string} url
-     * @param {Object} myself
-     * @param {string|null} givenDescription
-     * @param {boolean} withImage
-     * @param {boolean} idOnly
-     * @return {Promise<void>}
-     *
-     */
     static createDirectPost(url, myself, givenDescription = null, withImage = false, idOnly = false) {
         return __awaiter(this, void 0, void 0, function* () {
             const postTypeId = ContentTypeDictionary.getTypeDirectPost();

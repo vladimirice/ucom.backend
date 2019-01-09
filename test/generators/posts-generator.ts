@@ -144,6 +144,19 @@ class PostsGenerator {
     return +res.body.id;
   }
 
+  static async createUserPostAndRepost(
+    postAuthor,
+    repostAuthor,
+  ): Promise<{postId: number, repostId: number}> {
+    const postId    = await this.createMediaPostByUserHimself(postAuthor);
+    const repostId  = await this.createRepostOfUserPost(repostAuthor, postId);
+
+    return {
+      postId,
+      repostId,
+    };
+  }
+
   /**
    *
    * @param {Object} postAuthor
@@ -158,6 +171,37 @@ class PostsGenerator {
       parentPostId,
       repostId,
     };
+  }
+
+  static async createManyDefaultMediaPostsByUserHimself(
+    user: any,
+    amount: number,
+  ) {
+    const promises: any = [];
+
+    for (let i = 0; i < amount; i += 1) {
+      promises.push(
+        this.createMediaPostByUserHimself(user),
+      );
+    }
+
+    return Promise.all(promises);
+  }
+
+  static async createManyMediaPostsOfOrganization(
+    user: any,
+    orgId: number,
+    amount: number,
+  ) {
+    const promises: any = [];
+
+    for (let i = 0; i < amount; i += 1) {
+      promises.push(
+        this.createMediaPostOfOrganization(user, orgId),
+      );
+    }
+
+    return Promise.all(promises);
   }
 
   /**
@@ -271,15 +315,6 @@ class PostsGenerator {
     return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
   }
 
-  /**
-   * @param {string} url
-   * @param {Object} myself
-   * @param {string|null} givenDescription
-   * @param {boolean} withImage
-   * @param {boolean} idOnly
-   * @return {Promise<void>}
-   *
-   */
   static async createDirectPost(
     url,
     myself,

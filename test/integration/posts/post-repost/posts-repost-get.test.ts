@@ -16,8 +16,6 @@ describe('Post repost API', () => {
     [userVlad, userJane] = await Promise.all([
       helpers.Users.getUserVlad(),
       helpers.Users.getUserJane(),
-      helpers.Users.getUserPetr(),
-      helpers.Users.getUserRokky(),
     ]);
   });
 

@@ -1,20 +1,20 @@
 const usersSeeds = require('../../../seeders/users/users');
 const accountsData = require('../../../config/accounts-data');
 
-const AuthService = require('../../../lib/auth/authService');
-const UsersRepository = require('../../../lib/users/users-repository');
-const RequestHelper = require('../helpers/request-helper');
-const ResponseHelper = require('../helpers/response-helper');
-const EosImportance = require('../../../lib/eos/eos-importance');
+const authService = require('../../../lib/auth/authService');
+const usersRepository = require('../../../lib/users/users-repository');
+const requestHelper = require('../helpers/request-helper');
+const responseHelper = require('../helpers/response-helper');
+const eosImportance = require('../../../lib/eos/eos-importance');
 const request = require('supertest');
 const server = require('../../../app');
 
-const UsersTeamRepository = require('../../../lib/users/repository').UsersTeam;
-const OrgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
+const usersTeamRepository = require('../../../lib/users/repository').UsersTeam;
+const orgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
 
-const EosJsEcc = require('eosjs-ecc');
+const eosJsEcc = require('eosjs-ecc');
 
-const EosApi = require('../../../lib/eos/eosApi');
+const eosApi = require('../../../lib/eos/eosApi');
 
 const _ = require('lodash');
 
@@ -29,39 +29,35 @@ class UsersHelper {
    * @return {Promise<void>}
    */
   static async directlySetUserConfirmsInvitation(orgId, user) {
-    await UsersTeamRepository.setStatusConfirmed(
-      OrgModelProvider.getEntityName(),
+    await usersTeamRepository.setStatusConfirmed(
+      orgModelProvider.getEntityName(),
       orgId,
-      user.id
+      user.id,
     );
   }
 
-  /**
-   * @param {string|null} accountName
-   * @link UsersAuthService#processNewUserRegistration
-   */
-  static async registerNewUser(accountName = null) {
-    const brainKey = EosApi.generateBrainkey();
+  static async registerNewUser(givenAccountName = null) {
+    const brainKey = eosApi.generateBrainkey();
 
-    accountName = accountName || EosApi.createRandomAccountName();
-    const [ privateOwnerKey, privateActiveKey ] = EosApi.getKeysByBrainkey(brainKey);
+    const accountName = givenAccountName || eosApi.createRandomAccountName();
+    const [privateOwnerKey, privateActiveKey] = eosApi.getKeysByBrainkey(brainKey);
 
     // noinspection JSUnusedLocalSymbols
-    const ownerPublicKey  = EosApi.getPublicKeyByPrivate(privateOwnerKey);
-    const activePublicKey = EosApi.getPublicKeyByPrivate(privateActiveKey);
+    const ownerPublicKey  = eosApi.getPublicKeyByPrivate(privateOwnerKey);
+    const activePublicKey = eosApi.getPublicKeyByPrivate(privateActiveKey);
 
-    const sign = EosJsEcc.sign(accountName, privateActiveKey);
+    const sign = eosJsEcc.sign(accountName, privateActiveKey);
 
-    const url = RequestHelper.getRegistrationRoute();
+    const url = requestHelper.getRegistrationRoute();
 
     const fields = {
-      account_name: accountName,
       sign,
+      account_name: accountName,
       public_key: activePublicKey,
       brainkey: brainKey,
     };
 
-    const res = await RequestHelper.makePostGuestRequestWithFields(url, fields);
+    const res = await requestHelper.makePostGuestRequestWithFields(url, fields);
 
     if (res.status !== 201) {
       throw new Error(`There is an error during request. Body is: ${JSON.stringify(res.body)}`);
@@ -79,7 +75,7 @@ class UsersHelper {
 
         privateKeyActive: privateActiveKey,
         publicKeyActive:  activePublicKey,
-      }
+      },
     };
   }
 
@@ -90,21 +86,20 @@ class UsersHelper {
    * @param {number} expectedStatus
    * @return {Promise<Object>}
    *
-   * @see UsersService#processUserUpdating
    */
   static async requestToUpdateMyself(myself, fieldsToChange, expectedStatus = 200) {
-    const url = RequestHelper.getMyselfUrl();
+    const url = requestHelper.getMyselfUrl();
 
     const req = request(server)
       .patch(url)
     ;
 
-    RequestHelper.addAuthToken(req, myself);
-    RequestHelper.addFieldsToRequest(req, fieldsToChange);
+    requestHelper.addAuthToken(req, myself);
+    requestHelper.addFieldsToRequest(req, fieldsToChange);
 
     const res = await req;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -118,19 +113,24 @@ class UsersHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    *
-   * @link postsFetchService#findAndProcessAllForUserWallFeed
    */
-  static async requestToGetWallFeedAsGuest(wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
-    const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
+  static async requestToGetWallFeedAsGuest(
+    wallOwner,
+    query = '',
+    dataOnly = true,
+    expectedStatus = 200,
+    allowEmpty = false,
+  ) {
+    const url = requestHelper.getOneUserWallFeed(wallOwner.id) + query;
 
     const res = await request(server)
       .get(url)
     ;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
-      ResponseHelper.expectValidListResponse(res, allowEmpty);
+      responseHelper.expectValidListResponse(res, allowEmpty);
     }
 
     if (dataOnly) {
@@ -140,7 +140,6 @@ class UsersHelper {
     return res.body;
   }
 
-
   /**
    * @param {Object} myself
    * @param {string} queryString
@@ -149,20 +148,25 @@ class UsersHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<*>}
    *
-   * @link PostService#findAndProcessAllForMyselfNewsFeed
    */
-  static async requestToGetMyselfNewsFeed(myself, queryString = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
-    const url = RequestHelper.getMyselfNewsFeedUrl() + `/${queryString}`;
+  static async requestToGetMyselfNewsFeed(
+    myself,
+    queryString = '',
+    dataOnly = true,
+    expectedStatus = 200,
+    allowEmpty = false,
+  ) {
+    const url = `${requestHelper.getMyselfNewsFeedUrl()}/${queryString}`;
 
     const res = await request(server)
       .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
-      ResponseHelper.expectValidListResponse(res, allowEmpty);
+      responseHelper.expectValidListResponse(res, allowEmpty);
     }
 
     if (dataOnly) {
@@ -182,20 +186,26 @@ class UsersHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    *
-   * @link postsFetchService#findAndProcessAllForUserWallFeed
    */
-  static async requestToGetWallFeedAsMyself(myself, wallOwner, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
-    const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
+  static async requestToGetWallFeedAsMyself(
+    myself,
+    wallOwner,
+    query = '',
+    dataOnly = true,
+    expectedStatus = 200,
+    allowEmpty = false,
+  ) {
+    const url = requestHelper.getOneUserWallFeed(wallOwner.id) + query;
 
     const res = await request(server)
       .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    ResponseHelper.expectStatusToBe(res, expectedStatus);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
-      ResponseHelper.expectValidListResponse(res, allowEmpty);
+      responseHelper.expectValidListResponse(res, allowEmpty);
     }
 
     if (dataOnly) {
@@ -214,10 +224,13 @@ class UsersHelper {
     expect(model.User).toBeDefined();
     expect(model.User instanceof Object).toBeTruthy();
 
-    expect(typeof model.User.current_rate, 'It seems user is not post-processed').not.toBe('string');
+    // @ts-ignore
+    expect(typeof model.User.current_rate, 'It seems user is not post-processed')
+      .not.toBe('string');
 
-    const expected = givenExpected ? givenExpected : UsersRepository.getModel().getFieldsForPreview().sort();
-    ResponseHelper.expectAllFieldsExistence(model.User, expected);
+    const expected = givenExpected ?
+      givenExpected : usersRepository.getModel().getFieldsForPreview().sort();
+    responseHelper.expectAllFieldsExistence(model.User, expected);
   }
 
   /**
@@ -229,18 +242,20 @@ class UsersHelper {
     expect(model.User).toBeDefined();
     expect(model.User instanceof Object).toBeTruthy();
 
-    expect(typeof model.User.current_rate, 'It seems user is not post-processed').not.toBe('string');
-    let expected = UsersRepository.getModel().getFieldsForPreview().sort();
+    // @ts-ignore
+    expect(typeof model.User.current_rate, 'It seems user is not post-processed')
+      .not.toBe('string');
+    let expected = usersRepository.getModel().getFieldsForPreview().sort();
 
     if (options.myselfData) {
       expected = _.concat(expected, [
         'I_follow', // TODO not required for entity page if not user himself
         'followed_by', // TODO not required for entity page if not user himself
-        'myselfData'
+        'myselfData',
       ]);
     }
 
-    ResponseHelper.expectAllFieldsExistence(model.User, expected);
+    responseHelper.expectAllFieldsExistence(model.User, expected);
   }
 
   /**
@@ -248,9 +263,9 @@ class UsersHelper {
    * @param {Object[]} users
    */
   static checkManyUsersPreview(users) {
-    users.forEach(user => {
+    users.forEach((user) => {
       this.checkUserPreview(user);
-    })
+    });
   }
 
   /**
@@ -259,7 +274,7 @@ class UsersHelper {
    */
   static checkUserPreview(user) {
     this.checkIncludedUserPreview({
-      User: user
+      User: user,
     });
   }
 
@@ -271,36 +286,34 @@ class UsersHelper {
    */
   static async setSampleRateToUser(user, rateToSet = 0.1235) {
 
-    await UsersRepository.getModel().update(
+    await usersRepository.getModel().update(
       {
-        'current_rate': rateToSet
+        current_rate: rateToSet,
       },
       {
         where: {
-          id: user.id
-        }
-      }
+          id: user.id,
+        },
+      },
     );
 
-    const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
+    const rateNormalized = eosImportance.getImportanceMultiplier() * rateToSet;
 
     return +rateNormalized.toFixed();
   }
 
-
   /**
    *
-   * @param {number} user_id
+   * @param {number} userId
    * @return {Promise<Object>}
    *
-   * @link UsersService#getUserByIdAndProcess
    */
-  static async requestToGetUserAsGuest(user_id) {
+  static async requestToGetUserAsGuest(userId) {
     const res = await request(server)
-      .get(RequestHelper.getUserUrl(user_id))
+      .get(requestHelper.getUserUrl(userId))
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -315,7 +328,7 @@ class UsersHelper {
       .get(`/api/v1/users/${userId}`)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -326,15 +339,15 @@ class UsersHelper {
     expect(body.account_name).toBe(expectedUser.account_name);
 
     const fieldsToCheck = [
-        'users_education',
-        'users_jobs',
-        'users_sources'
+      'users_education',
+      'users_jobs',
+      'users_sources',
     ];
 
-    fieldsToCheck.forEach(field => {
+    fieldsToCheck.forEach((field) => {
       expect(body.hasOwnProperty(field)).toBeTruthy();
       expect(typeof body[field]).toBe('object');
-      expect(JSON.stringify(body[field])).toBe(JSON.stringify(userFromDb[field]))
+      expect(JSON.stringify(body[field])).toBe(JSON.stringify(userFromDb[field]));
     });
   }
 
@@ -342,7 +355,7 @@ class UsersHelper {
     expect(body[fileUploadField]).toBeDefined();
     expect(body[fileUploadField].length).toBeGreaterThan(0);
 
-    const dbUser = await UsersRepository.getUserById(userId);
+    const dbUser = await usersRepository.getUserById(userId);
 
     expect(dbUser[fileUploadField]).toBeDefined();
     expect(dbUser[fileUploadField]).toBe(body[fileUploadField]);
@@ -354,20 +367,20 @@ class UsersHelper {
    */
   static async getUserVlad() {
     const vladSeed = UsersHelper.getUserVladSeed();
-    const vladFromDb = await UsersRepository.getUserByAccountName(vladSeed.account_name);
+    const vladFromDb = await usersRepository.getUserByAccountName(vladSeed.account_name);
     expect(vladFromDb).toBeDefined();
 
     const vladDbData = {
-      id: vladFromDb.id
+      id: vladFromDb.id,
     };
 
-    const token = AuthService.getNewJwtToken(vladDbData);
+    const token = authService.getNewJwtToken(vladDbData);
 
     return {
       ...vladSeed,
       ...vladDbData,
-      token
-    }
+      token,
+    };
   }
 
   /**
@@ -376,28 +389,27 @@ class UsersHelper {
    */
   static async requestUserListByMyself(user) {
     const res = await request(server)
-      .get(RequestHelper.getUsersUrl())
+      .get(requestHelper.getUsersUrl())
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    ResponseHelper.expectStatusOk(res);
+    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
 
   /**
    * @returns {Promise<Object[]>}
-   * @link UsersService#findAllAndProcessForList
    */
   static async requestUserListAsGuest(queryString = '', allowEmpty = false) {
-    let url = RequestHelper.getUsersUrl() + queryString;
+    const url = requestHelper.getUsersUrl() + queryString;
 
     const res = await request(server)
       .get(url)
     ;
 
-    ResponseHelper.expectStatusOk(res);
-    ResponseHelper.expectValidListResponse(res, allowEmpty);
+    responseHelper.expectStatusOk(res);
+    responseHelper.expectValidListResponse(res, allowEmpty);
 
     return res.body.data;
   }
@@ -410,20 +422,20 @@ class UsersHelper {
     const seed = UsersHelper.getUserPetrSeed();
     const userAccountData = accountsData.petr;
 
-    const fromDb = await UsersRepository.getUserByAccountName(userAccountData.account_name);
+    const fromDb = await usersRepository.getUserByAccountName(userAccountData.account_name);
     expect(fromDb).toBeDefined();
 
     const data = {
-      id: fromDb.id
+      id: fromDb.id,
     };
 
-    const token = AuthService.getNewJwtToken(data);
+    const token = authService.getNewJwtToken(data);
 
     return {
       ...seed,
       ...data,
-      token
-    }
+      token,
+    };
   }
 
   /**
@@ -434,20 +446,20 @@ class UsersHelper {
     const seed = UsersHelper.getUserRokkySeed();
     const userAccountData = accountsData.rokky;
 
-    const fromDb = await UsersRepository.getUserByAccountName(userAccountData.account_name);
+    const fromDb = await usersRepository.getUserByAccountName(userAccountData.account_name);
     expect(fromDb).toBeDefined();
 
     const data = {
-      id: fromDb.id
+      id: fromDb.id,
     };
 
-    const token = AuthService.getNewJwtToken(data);
+    const token = authService.getNewJwtToken(data);
 
     return {
       ...seed,
       ...data,
-      token
-    }
+      token,
+    };
   }
 
   /**
@@ -456,20 +468,20 @@ class UsersHelper {
    */
   static async getUserJane() {
     const seed = UsersHelper.getUserJaneSeed();
-    const fromDb = await UsersRepository.getUserByAccountName(seed.account_name);
+    const fromDb = await usersRepository.getUserByAccountName(seed.account_name);
     expect(fromDb).toBeDefined();
 
     const data = {
-      id: fromDb.id
+      id: fromDb.id,
     };
 
-    const token = AuthService.getNewJwtToken(data);
+    const token = authService.getNewJwtToken(data);
 
     return {
       ...seed,
       ...data,
-      token
-    }
+      token,
+    };
   }
 
   static getUserVladSeed() {
@@ -496,4 +508,4 @@ class UsersHelper {
   }
 }
 
-module.exports = UsersHelper;
+export = UsersHelper;
