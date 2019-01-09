@@ -44,8 +44,8 @@ docker-db-create-migration dmg:
 docker-up-build:
 	docker-compose up -d --build
 
-docker-run-tests:
-	${DOCKER_B_EXEC_CMD} npm test
+docker-run-all-tests:
+	${DOCKER_B_EXEC_CMD} npm run test-all
 
 docker-up-build-force df:
 	docker-compose up -d --build --force-recreate

@@ -47,7 +47,7 @@ Then run:
 After it in order to run tests use this command:
 
 ```
-    make docker-run-tests
+    make docker-run-all-tests
 ```
 
 Note: There is sample `docker-compose-mac.yml`, it doesn't work. Docker compose files 

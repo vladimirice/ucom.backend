@@ -146,7 +146,7 @@ describe('Tags services', () => {
       // post without any tags - should not be processed
       await postsGenerator.createMediaPostByUserHimself(userVlad);
 
-      const posts = await tagsCurrentRateProcessor.process();
+      await tagsCurrentRateProcessor.process();
 
       const tags = await tagsRepository.getAllTags();
 
@@ -154,7 +154,6 @@ describe('Tags services', () => {
         expect(+tag.current_rate).toBeGreaterThan(0);
       });
 
-      console.dir(posts);
     }, 10000);
 
     describe('skipped tests', () => {
