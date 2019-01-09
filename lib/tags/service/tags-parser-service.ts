@@ -7,6 +7,10 @@ const USER_MENTIONS_REGEX = /@[a-z1-5]{12}/gm;
 
 class TagsParserService {
   static parseTags(inputString: string): string[] {
+    if (!inputString || inputString.length === 0) {
+      return [];
+    }
+
     const tagsArray: string[] | null = inputString.match(TAG_REGEX);
 
     if (tagsArray === null) {
@@ -21,6 +25,10 @@ class TagsParserService {
   }
 
   static parseMentions(inputString: string): string[] {
+    if (!inputString || inputString.length === 0) {
+      return [];
+    }
+
     const tagsArray: string[] | null = inputString.match(USER_MENTIONS_REGEX);
 
     if (tagsArray === null) {

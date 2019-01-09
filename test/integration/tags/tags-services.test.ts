@@ -17,6 +17,7 @@ const tagsRepository  = require('../../../lib/tags/repository/tags-repository');
 let userVlad;
 let userJane;
 
+// #task - these are is unit tests
 describe('Tags services', () => {
   beforeAll(async () => {
     mockHelper.mockAllTransactionSigning();
@@ -181,6 +182,8 @@ describe('Tags services', () => {
         '#nUll2 hell #heLLo! #UOSNetwork #uosnetwork #UOSnetwork #UosNetwork' : [
           'hello', 'null2', 'uosnetwork',
         ],
+        'hello from no tags': [],
+        '': [],
       };
 
       for (const input in data) {
@@ -190,6 +193,13 @@ describe('Tags services', () => {
         expect(actual.length).toBe(expected.length);
         expect(actual.sort()).toEqual(expected.sort());
       }
+    });
+
+    it('If description is not provided then no tags', async () => {
+      const actual = tagsParser.parseTags(null);
+
+      expect(Array.isArray(actual)).toBeTruthy();
+      expect(actual.length).toBe(0);
     });
   });
 });
