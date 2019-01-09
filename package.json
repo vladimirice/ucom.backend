@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test-all": "jest --verbose --runInBand --config ./test/all.config.js",
-    "test-tags": "jest --verbose --runInBand --config ./test/tags.config.js",
+    "test-all": "jest --verbose --runInBand",
     "compile-ts": "tsc"
   },
   "dependencies": {

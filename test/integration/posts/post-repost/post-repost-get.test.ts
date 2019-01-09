@@ -1,14 +1,19 @@
-const helpers = require('../helpers');
-const gen = require('../../generators');
+export {};
 
-let userVlad, userJane, userPetr, userRokky;
+const helpers = require('../../helpers');
+const gen = require('../../../generators');
+
+const postsHelper = require('../../helpers/posts-helper');
+
+let userVlad;
+let userJane;
 
 helpers.Mock.mockAllBlockchainPart();
 
 describe('Post repost API', () => {
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
-    [userVlad, userJane, userPetr, userRokky] = await Promise.all([
+    [userVlad, userJane] = await Promise.all([
       helpers.Users.getUserVlad(),
       helpers.Users.getUserJane(),
       helpers.Users.getUserPetr(),
@@ -39,7 +44,7 @@ describe('Post repost API', () => {
           const repost = posts.find(post => post.id === repostId);
           const options = helpers.Common.getOptionsForListAndGuest();
 
-          helpers.Post.checkMediaPostFields(mediaPost, options);
+          postsHelper.checkMediaPostFields(mediaPost, options);
           helpers.Common.checkOneRepostForList(repost, options, false);
         });
         it('Repost of user post ORG list should have correct structure', async () => {
@@ -55,11 +60,10 @@ describe('Post repost API', () => {
           const repost = posts.find(post => post.id === repostId);
           const options = helpers.Common.getOptionsForListAndGuest();
 
-          helpers.Post.checkMediaPostFields(mediaPost, options);
+          postsHelper.checkMediaPostFields(mediaPost, options);
           helpers.Common.checkOneRepostForList(repost, options, true);
         });
       });
-
 
       describe('For users news feed', () => {
         it('News feed with repost of user himself post', async () => {
@@ -67,10 +71,14 @@ describe('Post repost API', () => {
           const directPostAuthor = userVlad;
 
           const regularPostsAmount = 2;
-          const postIds = await gen.Posts.generateUsersPostsForUserWall(postsOwner, directPostAuthor, regularPostsAmount);
+          const postIds = await gen.Posts.generateUsersPostsForUserWall(
+            postsOwner,
+            directPostAuthor,
+            regularPostsAmount,
+          );
 
           const userVladPostId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
-          const janeRepostId      = await gen.Posts.createRepostOfUserPost(userJane, userVladPostId);
+          const janeRepostId    = await gen.Posts.createRepostOfUserPost(userJane, userVladPostId);
 
           await helpers.Activity.requestToCreateFollow(userVlad, userJane);
 
@@ -82,7 +90,7 @@ describe('Post repost API', () => {
           const repost = posts.find(post => post.id === janeRepostId);
           const options = helpers.Common.getOptionsForListAndMyself();
 
-          helpers.Post.checkMediaPostFields(mediaPost, options);
+          postsHelper.checkMediaPostFields(mediaPost, options);
           helpers.Common.checkOneRepostForList(repost, options, false);
         });
 
@@ -91,7 +99,11 @@ describe('Post repost API', () => {
           const directPostAuthor = userVlad;
 
           const regularPostsAmount = 2;
-          const postIds = await gen.Posts.generateUsersPostsForUserWall(postsOwner, directPostAuthor, regularPostsAmount);
+          const postIds = await gen.Posts.generateUsersPostsForUserWall(
+            postsOwner,
+            directPostAuthor,
+            regularPostsAmount,
+          );
 
           const vladOrgId     = await gen.Org.createOrgWithoutTeam(userVlad);
           const vladOrgPostId = await gen.Posts.createMediaPostOfOrganization(userVlad, vladOrgId);
@@ -108,7 +120,7 @@ describe('Post repost API', () => {
           const repost = posts.find(post => post.id === janeRepostId);
           const options = helpers.Common.getOptionsForListAndMyself();
 
-          helpers.Post.checkMediaPostFields(mediaPost, options);
+          postsHelper.checkMediaPostFields(mediaPost, options);
           helpers.Common.checkOneRepostForList(repost, options, true);
         });
       });
@@ -120,11 +132,11 @@ describe('Post repost API', () => {
       it('Get one post-repost of users post by ID', async () => {
         const { repostId } = await gen.Posts.createNewPostWithRepost(userJane, userVlad);
 
-        const post = await helpers.Posts.requestToGetOnePostAsGuest(repostId);
+        const post = await postsHelper.requestToGetOnePostAsGuest(repostId);
 
         const options = {
-          'myselfData'    : false,
-          'postProcessing': 'list',
+          myselfData    : false,
+          postProcessing: 'list',
         };
 
         helpers.Common.checkOneRepostForList(post, options, false);
@@ -136,11 +148,11 @@ describe('Post repost API', () => {
         const parentPostId  = await gen.Posts.createMediaPostOfOrganization(userJane, orgId);
         const repostId      = await gen.Posts.createRepostOfUserPost(userVlad, parentPostId);
 
-        const post = await helpers.Posts.requestToGetOnePostAsGuest(repostId);
+        const post = await postsHelper.requestToGetOnePostAsGuest(repostId);
 
         const options = {
-          'myselfData'    : false,
-          'postProcessing': 'list',
+          myselfData    : false,
+          postProcessing: 'list',
         };
 
         helpers.Common.checkOneRepostForList(post, options, true);

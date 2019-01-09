@@ -1,26 +1,29 @@
+export {};
+
 const expect  = require('expect');
 
-const helpers = require('../helpers');
-const gen = require('../../generators');
+const helpers = require('../../helpers');
+const gen = require('../../../generators');
 
-const PostsRepository         = require('../../../lib/posts/repository').MediaPosts;
-const UsersActivityRepository = require('../../../lib/users/repository').Activity;
+const postsRepository         = require('../../../../lib/posts/repository').MediaPosts;
+const usersActivityRepository = require('../../../../lib/users/repository').Activity;
 
-const ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
+const activityGroupDictionary = require('../../../../lib/activity/activity-group-dictionary');
 const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
-const PostsModelProvider      = require('../../../lib/posts/service').ModelProvider;
+const postsModelProvider      = require('../../../../lib/posts/service').ModelProvider;
 
-const EventIdDictionary = require('../../../lib/entities/dictionary').EventId;
+const eventIdDictionary = require('../../../../lib/entities/dictionary').EventId;
 
-let userVlad, userJane, userPetr, userRokky;
+let userVlad;
+let userJane;
 
 helpers.Mock.mockAllBlockchainPart();
 
 describe('Post repost API', () => {
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
-    [userVlad, userJane, userPetr, userRokky] = await Promise.all([
+    [userVlad, userJane] = await Promise.all([
       helpers.Users.getUserVlad(),
       helpers.Users.getUserJane(),
       helpers.Users.getUserPetr(),
@@ -36,7 +39,7 @@ describe('Post repost API', () => {
     await helpers.Seeds.sequelizeAfterAll();
   });
 
-  describe('Create post-repost', function () {
+  describe('Create post-repost', () => {
     describe('Positive', () => {
       it('Create repost of user himself post', async () => {
         const parentPostAuthor = userVlad;
@@ -44,31 +47,32 @@ describe('Post repost API', () => {
 
         const postId = await gen.Posts.createMediaPostByUserHimself(parentPostAuthor);
 
-        const parentPost = await PostsRepository.findOnlyPostItselfById(postId);
+        const parentPost = await postsRepository.findOnlyPostItselfById(postId);
         expect(parentPost.parent_id).toBeDefined();
         expect(parentPost.parent_id).toBeNull();
 
         const repostId = await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
 
-        const repost = await PostsRepository.findOnlyPostItselfById(repostId);
+        const repost = await postsRepository.findOnlyPostItselfById(repostId);
 
         expect(repost.post_type_id).toBe(ContentTypeDictionary.getTypeRepost());
         expect(repost.title).toBeNull();
         expect(repost.parent_id).toBeDefined();
         expect(repost.parent_id).toBe(postId);
 
-        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
+        const activity =
+          await usersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
 
         expect(activity.activity_type_id).toBe(ContentTypeDictionary.getTypeRepost());
         expect(activity.user_id_from).toBe(repostAuthor.id);
         expect(+activity.entity_id_to).toBe(+repostId);
-        expect(activity.entity_name).toBe(PostsModelProvider.getEntityName());
+        expect(activity.entity_name).toBe(postsModelProvider.getEntityName());
 
-        expect(activity.activity_group_id).toBe(ActivityGroupDictionary.getGroupContentCreation());
+        expect(activity.activity_group_id).toBe(activityGroupDictionary.getGroupContentCreation());
         expect(+activity.entity_id_on).toBe(postId);
-        expect(activity.entity_name_on).toBe(PostsModelProvider.getEntityName());
+        expect(activity.entity_name_on).toBe(postsModelProvider.getEntityName());
 
-        expect(activity.event_id).toBe(EventIdDictionary.getUserRepostsOtherUserPost());
+        expect(activity.event_id).toBe(eventIdDictionary.getUserRepostsOtherUserPost());
       });
 
       it('create repost of organization post', async () => {
@@ -80,9 +84,10 @@ describe('Post repost API', () => {
 
         const repostId = await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
 
-        const activity = await UsersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
+        const activity =
+          await usersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
 
-        expect(activity.event_id).toBe(EventIdDictionary.getUserRepostsOrgPost());
+        expect(activity.event_id).toBe(eventIdDictionary.getUserRepostsOrgPost());
       });
 
       it.skip('get list of posts with repost inside with different structure', async () => {
@@ -137,7 +142,7 @@ describe('Post repost API', () => {
         const parentPostId  = await gen.Posts.createMediaPostByUserHimself(userJane);
         const repostId      = await gen.Posts.createRepostOfUserPost(userVlad, parentPostId);
 
-        await helpers.Posts.requestToPatchPostRepost(repostId, userVlad, 400)
+        await helpers.Posts.requestToPatchPostRepost(repostId, userVlad, 400);
       });
     });
   });
