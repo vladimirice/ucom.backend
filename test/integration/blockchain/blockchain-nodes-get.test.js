@@ -30,18 +30,6 @@ describe('Blockchain nodes get', () => {
 
   afterAll(async () => { await helpers.Seeds.doAfterAll(); });
 
-
-  it('encoding sample', async () => {
-    const Eos = require("eosjs");
-    const BigNumber = require("bignumber.js");
-
-    const accountName = 'alice';
-    const encodedName = new
-    BigNumber(Eos.modules.format.encodeName(accountName, false));
-
-    console.log(encodedName);
-  });
-
   describe('Sorting smoke tests', () => {
     it('order by different fields', async () => {
       const fieldsToSort = [
