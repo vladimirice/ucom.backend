@@ -195,8 +195,6 @@ describe('Posts API', () => {
         ;
 
         responseHelper.expectStatusOk(res);
-
-        // TODO
       });
 
       it('Sort by current_rate DESC', async () => {
@@ -378,7 +376,7 @@ describe('Posts API', () => {
   describe('Get One post', () => {
     describe('Positive', () => {
       it('Get one post. Guest', async () => {
-        // TODO check different post types
+        // #task check different post types
         const postId = 1; // media post
 
         const post = await helpers.Posts.requestToGetOnePostAsGuest(postId);
@@ -392,7 +390,7 @@ describe('Posts API', () => {
       });
 
       it('Get one post. Myself', async () => {
-        // TODO check different post types
+        // #task check different post types
         const postId = 1; // media post
 
         const post = await helpers.Posts.requestToGetOnePostAsMyself(postId, userVlad);

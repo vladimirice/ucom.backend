@@ -62,7 +62,7 @@ module.exports = (db, Sequelize) => {
    * @return {string[]}
    */
   Model.getUniqueFields = function () {
-    // TODO parse schema instead
+    // #task parse schema instead
     return [
       'nickname',
       'email'

@@ -249,8 +249,8 @@ class UsersHelper {
 
     if (options.myselfData) {
       expected = _.concat(expected, [
-        'I_follow', // TODO not required for entity page if not user himself
-        'followed_by', // TODO not required for entity page if not user himself
+        'I_follow', // #task not required for entity page if not user himself
+        'followed_by', // #task not required for entity page if not user himself
         'myselfData',
       ]);
     }

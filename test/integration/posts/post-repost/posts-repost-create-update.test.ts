@@ -118,19 +118,15 @@ describe('Post repost API', () => {
       });
 
       it.skip('not possible to repost your own post', async () => {
-        // TODO
       });
 
       it.skip('not possible to repost post-repost', async () => {
-        // TODO
       });
 
       it.skip('not possible to repost not existed post', async () => {
-        // TODO
       });
 
       it.skip('not possible to repost direct post made on yours wall', async () => {
-        // TODO
       });
     });
   });

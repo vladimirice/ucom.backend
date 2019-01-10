@@ -403,7 +403,7 @@ class PostsRepository {
     return res ? res.toJSON() : null;
   }
 
-  static async findOneById(id, currentUserId, isRaw = false) {
+  static async findOneById(id, currentUserId = null, isRaw = false) {
     const include = [
       usersModelProvider.getIncludeAuthorForPreview(),
 

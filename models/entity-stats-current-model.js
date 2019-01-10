@@ -25,7 +25,7 @@ module.exports = (db, Sequelize) => {
   });
 
   Model.associate = function(models) {
-    // TODO - now stats is for posts only
+    // #task - now stats is for posts only
     models[TABLE_NAME].belongsTo(models['posts'], {foreignKey: 'entity_id'});
   };
 

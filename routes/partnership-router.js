@@ -35,7 +35,7 @@ router.get('/search', async function(req, res) {
     delete model.last_name;
     delete model.id;
 
-    // TODO - remove from search result
+    // #task - remove from search result
     delete model.account_name;
   });
 

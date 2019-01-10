@@ -93,7 +93,7 @@ class CommonHelper {
    */
   static checkOneNotificationsFromList(model, options: any = {}) {
     expect(_.isEmpty(model)).toBeFalsy();
-    notificationsHelper.checkNotificationItselfCommonFields(model, options);
+    notificationsHelper.checkNotificationItselfCommonFields(model);
     // UsersHelper.checkIncludedUserPreview(model);
 
     expect(model.data).toBeDefined();
@@ -573,8 +573,8 @@ class CommonHelper {
       ...expectedValues,
     });
 
-    // entity_stats - comments count // TODO
-    // myself data - upvoting, editable, org member // TODO
+    // entity_stats - comments count // #task
+    // myself data - upvoting, editable, org member // #task
 
     // check that related models are created
   }

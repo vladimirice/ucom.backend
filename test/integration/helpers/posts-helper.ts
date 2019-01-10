@@ -143,11 +143,6 @@ class PostsHelper {
     expect(model.entity_images.article_title).toBeDefined();
     expect(Array.isArray(model.entity_images.article_title)).toBeTruthy();
     expect(model.entity_images.article_title.length).toBe(1);
-
-    // TODO
-    // if (model.main_image_filename) {
-    //   expect(model.entity_images.article_title[0].url).toMatch(model.main_image_filename);
-    // }
   }
 
   /**
@@ -184,7 +179,7 @@ class PostsHelper {
    * @param {Object} options
    */
   static checkPostOfferFields(post, options) {
-    // TODO - check users team normalization if one page options
+    // #task - check users team normalization if one page options
 
     let mustExist;
     switch (options.postProcessing) {

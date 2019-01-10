@@ -1,3 +1,5 @@
+export {};
+
 const helpers = require('../helpers');
 const gen = require('../../generators');
 
@@ -11,14 +13,12 @@ mockHelper.mockBlockchainPart();
 
 let userVlad;
 let userJane;
-let userPetr;
-let userRokky;
 
 const requestHelper = require('../helpers/request-helper');
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
