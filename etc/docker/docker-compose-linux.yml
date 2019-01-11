@@ -25,7 +25,7 @@ services:
       - "uos-backend-rabbitmq.dev:173.18.212.20"
     networks:
       uos_backend_network:
-        ipv4_address: 173.18.212.30
+        ipv4_address: 173.18.212.40
   db_test:
     container_name: ucom_backend_db_test
     hostname: uos-backend-postgres-test.dev
@@ -47,3 +47,10 @@ services:
     networks:
       uos_backend_network:
         ipv4_address: 173.18.212.20
+  redis:
+    container_name: ucom_backend_redis
+    hostname: uos-backend-redis.dev
+    image: redis:5.0.3
+    networks:
+      uos_backend_network:
+        ipv4_address: 173.18.212.30

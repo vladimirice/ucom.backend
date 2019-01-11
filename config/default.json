@@ -16,6 +16,11 @@
     "dialect": "postgres",
     "logging": false
   },
+  "redis": {
+    "host": "127.0.0.1",
+    "port": 6379,
+    "main_db": 1
+  },
   "auth": {
     "jwt_secret_key": "secret_key"
   },
