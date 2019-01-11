@@ -47,7 +47,8 @@
     "ucom-libs-wallet": "^1.1.0",
     "uniqid": "5.0.3",
     "winston": "3.0.0",
-    "winston-sentry-raven-transport": "1.0.2"
+    "winston-sentry-raven-transport": "1.0.2",
+    "delay": "^4.0.1"
   },
   "devDependencies": {
     "@types/amqplib": "^0.5.9",
@@ -61,7 +62,6 @@
     "@types/redlock": "^3.0.2",
     "@types/request": "^2.48.1",
     "@types/supertest": "^2.0.7",
-    "delay": "4.0.1",
     "expect": "^23.6.0",
     "faker": "^4.1.0",
     "jest": "^23.6.0",
