@@ -22,11 +22,11 @@ class RedisClient {
 
   public static async actionRedlockLock(
     resource: string,
-    ttl: number, // milliseconds
+    ttlInSec: number,
   ): Promise<RedlockType.Lock> {
     const client = await this.getActionRedlock();
 
-    return client.lock(resource, ttl);
+    return client.lock(resource, ttlInSec * 1000);
   }
 
   public static async actionRedlockUnlock(

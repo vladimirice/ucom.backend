@@ -512,6 +512,7 @@ class PostsHelper {
     return res.body;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {Object} myself
@@ -635,19 +636,19 @@ class PostsHelper {
     return res;
   }
 
-  /**
-   *
-   * @param {Object} whoUpvote
-   * @param {number} postId
-   * @returns {Promise<void>}
-   */
-  static async requestToUpvotePost(whoUpvote, postId) {
+  static async requestToUpvotePost(
+    whoUpvote: any,
+    postId: number,
+    expectCreated:boolean = true,
+  ) {
     const res = await request(server)
       .post(`/api/v1/posts/${postId}/upvote`)
       .set('Authorization', `Bearer ${whoUpvote.token}`)
     ;
 
-    responseHelper.expectStatusCreated(res);
+    if (expectCreated) {
+      responseHelper.expectStatusCreated(res);
+    }
 
     return res.body;
   }
@@ -720,6 +721,7 @@ class PostsHelper {
     return res.body;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   static validateResponseJson(actual, expected) {
 
     expect(actual.hasOwnProperty('title')).toBeTruthy();
