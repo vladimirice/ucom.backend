@@ -22,6 +22,8 @@ let userPetr;
 
 helpers.Mock.mockAllTransactionSigning();
 
+const JEST_TIMEOUT = 10000;
+
 describe('User to post activity', () => {
   beforeEach(async () => { await seedsHelper.initSeeds(); });
   afterAll(async () => { await seedsHelper.sequelizeAfterAll(); });
@@ -122,7 +124,8 @@ describe('User to post activity', () => {
         ;
 
         responseHelper.expectStatusBadRequest(responseTwo);
-      });
+      }, JEST_TIMEOUT);
+
       it('Not possible to vote by myself post', async () => {
         const posts = await postRepository.findAllByAuthor(userVlad.id);
         const postId = posts[0]['id'];
@@ -133,7 +136,8 @@ describe('User to post activity', () => {
         ;
 
         responseHelper.expectStatusBadRequest(res);
-      });
+      }, JEST_TIMEOUT);
+
       it('Should return 400 if postID is not a valid integer', async () => {
         const postId = 'invalidPostId';
         const userJane = await userHelper.getUserJane();
@@ -213,7 +217,8 @@ describe('User to post activity', () => {
         ;
 
         responseHelper.expectStatusBadRequest(responseTwo);
-      });
+      }, JEST_TIMEOUT);
+
       it('Not possible to vote by myself post', async () => {
         const post = await postRepository.findLastMediaPostByAuthor(userVlad.id);
 
@@ -223,7 +228,7 @@ describe('User to post activity', () => {
         ;
 
         responseHelper.expectStatusBadRequest(res);
-      });
+      }, JEST_TIMEOUT);
       it('Should return 400 if postID is not a valid integer', async () => {
         const postId = 'invalidPostId';
         const userJane = await userHelper.getUserJane();

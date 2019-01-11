@@ -16,6 +16,8 @@ let userJane;
 
 const requestHelper = require('../helpers/request-helper');
 
+const JEST_TIMEOUT = 10000;
+
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
     [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
@@ -172,7 +174,7 @@ describe('Organizations. Get requests', () => {
         };
 
         await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
-      });
+      }, JEST_TIMEOUT);
     });
   });
 

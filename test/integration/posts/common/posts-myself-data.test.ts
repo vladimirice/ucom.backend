@@ -12,7 +12,7 @@ const orgGenerator    = require('../../../generators/organizations-generator');
 let userVlad;
 let userJane;
 
-const JEST_TIMEOUT = 5000;
+const JEST_TIMEOUT = 10000;
 
 describe('Posts myself data', () => {
   beforeAll(async () => {
