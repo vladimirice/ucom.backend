@@ -361,7 +361,7 @@ describe('User to user activity', () => {
         .set('Authorization', `Bearer ${userVlad.token}`)
       ;
 
-      responseHelper.expectStatusBadRequest(res);
+      responseHelper.expectStatusNotFound(res);
     });
   });
 });

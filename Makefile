@@ -15,7 +15,7 @@ DB_GENERATE_MIGRATION=${SEQ_EXEC_FILE} migration:generate
 ENV_VALUE_TEST=test
 
 init-project ip:
-	docker-compose down
+	docker-compose down --remove-orphans
 	make docker-up-build-force
 	make docker-npm-ci
 	make docker-init-test-db
