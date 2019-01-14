@@ -296,7 +296,34 @@ describe('Posts API', () => {
         helpers.Post.checkEntityImages(newPost);
       });
     });
+
     describe('Negative', () => {
+      it('bad request error if title too long', async () => {
+        const myself = userVlad;
+
+        const title = requestHelper.makeRandomString(256);
+
+        const newPostFields = {
+          title: title,
+          description: 'Our super post description',
+          leading_text: 'extremely leading text',
+          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          user_id: myself.id,
+        };
+
+        const res = await request(server)
+          .post(postsUrl)
+          .set('Authorization', `Bearer ${myself.token}`)
+          .field('title', newPostFields['title'])
+          .field('description', newPostFields['description'])
+          .field('post_type_id', newPostFields['post_type_id'])
+          .field('leading_text', newPostFields['leading_text'])
+          .attach('main_image_filename', avatarPath)
+        ;
+
+        helpers.Res.expectStatusBadRequest(res);
+      });
+
       it('It is not possible to create post without token', async () => {
 
         const res = await request(server)
