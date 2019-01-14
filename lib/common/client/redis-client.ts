@@ -48,7 +48,7 @@ class RedisClient {
 
           // the max number of times Redlock will attempt
           // to lock a resource before error
-          retryCount:  10,
+          retryCount:  redisConfig.redlock.retryCount,
 
           // the time in ms between attempts
           retryDelay:  200, // time in ms

@@ -4,8 +4,6 @@ const { ApiLogger } = require('../../../config/winston');
 
 const redisClient = require('../../common/client/redis-client');
 
-const delay = require('delay');
-
 const ACTIVITY_REDLOCK_TTL_SEC = 60;
 
 class ActivityApiMiddleware {
@@ -28,11 +26,6 @@ class ActivityApiMiddleware {
       const lock = await redisClient.actionRedlockLock(lockKey, ACTIVITY_REDLOCK_TTL_SEC);
 
       console.log(`Lock is here: Key is: ${lockKey}`);
-
-      if (process.env.NODE_ENV === 'test') {
-          // #ugly part in order to speed up autotests
-        await delay(3000);
-      }
 
       res.on('finish', async () => {
         await ActivityApiMiddleware.redlockAfterActivity(lock);
