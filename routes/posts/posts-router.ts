@@ -49,7 +49,10 @@ postsRouter.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (
 });
 
 postsRouter.post('/:post_id/upvote', activityMiddlewareSet, async (req, res) => {
+  console.log('Lets handle upvote route');
   const result = await getPostService(req).userUpvotesPost(req['post_id'], req.body);
+
+  console.log('Result is received');
 
   return res.status(201).send(result);
 });

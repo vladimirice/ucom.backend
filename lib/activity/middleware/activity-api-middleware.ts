@@ -16,6 +16,7 @@ class ActivityApiMiddleware {
     res: Response,
     next: Function,
   ) {
+    console.log('Lets handle redlock before activity');
     try {
       const currentUserId = req.current_user_id;
 
@@ -23,10 +24,10 @@ class ActivityApiMiddleware {
         throw new Error('It is not possible to use redlockForActivity without user token');
       }
 
-      const lock = await redisClient.actionRedlockLock(
-          `user_activity_${currentUserId}`,
-          ACTIVITY_REDLOCK_TTL_SEC,
-        );
+      const lockKey = `user_activity_${currentUserId}`;
+      const lock = await redisClient.actionRedlockLock(lockKey, ACTIVITY_REDLOCK_TTL_SEC);
+
+      console.log(`Lock is here: Key is: ${lockKey}`);
 
       if (process.env.NODE_ENV === 'test') {
           // #ugly part in order to speed up autotests
@@ -58,7 +59,9 @@ class ActivityApiMiddleware {
     res: Response,
     next: Function,
   ) {
+    console.log('Lets handle redlock after activity. Lets wait before other handlers');
     await next();
+    console.log('Lets handle unlock event');
 
     try {
       const currentUserId = req.current_user_id;
@@ -71,7 +74,9 @@ class ActivityApiMiddleware {
         throw new Error('There is no req.redlock_lock');
       }
 
+      console.log('Lets release lock');
       await redisClient.actionRedlockUnlock(req.redlock_lock);
+      console.log('lock is released');
     } catch (err) {
       err.message +=
         'There is an error related to REDIS. Lets continue without parallel action lock';
