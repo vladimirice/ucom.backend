@@ -30,7 +30,7 @@ class ActivityApiMiddleware {
 
       // if (process.env.NODE_ENV === 'test') {
           // #ugly part in order to speed up autotests
-        await delay(3000);
+        await delay(30000);
       // }
 
       req.redlock_lock = lock;
