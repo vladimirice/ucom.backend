@@ -14,7 +14,6 @@ const activityMiddlewareSet = [
     authTokenMiddleWare,
     cpUpload,
     activityApiMiddleware.redlockBeforeActivity,
-    activityApiMiddleware.redlockAfterActivity,
 ];
 /* Get all posts */
 postsRouter.get('/', async (req, res) => {

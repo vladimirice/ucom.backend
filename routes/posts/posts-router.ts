@@ -19,7 +19,6 @@ const activityMiddlewareSet = [
   authTokenMiddleWare,
   cpUpload,
   activityApiMiddleware.redlockBeforeActivity,
-  activityApiMiddleware.redlockAfterActivity,
 ];
 
 /* Get all posts */

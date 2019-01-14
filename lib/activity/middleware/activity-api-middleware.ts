@@ -34,7 +34,10 @@ class ActivityApiMiddleware {
         await delay(3000);
       }
 
-      req.redlock_lock = lock;
+      res.on('finish', async () => {
+        await this.redlockAfterActivity(lock);
+      });
+
       next();
     } catch (err) {
       let errorForNext = err;
@@ -52,37 +55,17 @@ class ActivityApiMiddleware {
     }
   }
 
-  public static async redlockAfterActivity(
-    // @ts-ignore
-    req: Request,
-    // @ts-ignore
-    res: Response,
-    next: Function,
-  ) {
-    console.log('Lets handle redlock after activity. Lets wait before other handlers');
-    await next();
+  private static async redlockAfterActivity(redlockLock) {
     console.log('Lets handle unlock event');
 
     try {
-      const currentUserId = req.current_user_id;
-
-      if (!currentUserId) {
-        throw new Error('It is not possible to use redlockForActivity without user token');
-      }
-
-      if (!req.redlock_lock) {
-        throw new Error('There is no req.redlock_lock');
-      }
-
       console.log('Lets release lock');
-      await redisClient.actionRedlockUnlock(req.redlock_lock);
+      await redisClient.actionRedlockUnlock(redlockLock);
       console.log('lock is released');
     } catch (err) {
       err.message +=
         'There is an error related to REDIS. Lets continue without parallel action lock';
       ApiLogger.error(err);
-
-      next(err);
     }
   }
 }
