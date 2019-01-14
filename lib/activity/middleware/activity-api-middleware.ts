@@ -35,7 +35,7 @@ class ActivityApiMiddleware {
       }
 
       res.on('finish', async () => {
-        await this.redlockAfterActivity(lock);
+        await ActivityApiMiddleware.redlockAfterActivity(lock);
       });
 
       next();
