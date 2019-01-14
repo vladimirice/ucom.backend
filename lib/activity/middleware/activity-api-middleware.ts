@@ -28,10 +28,10 @@ class ActivityApiMiddleware {
           ACTIVITY_REDLOCK_TTL_SEC,
         );
 
-      // if (process.env.NODE_ENV === 'test') {
+      if (process.env.NODE_ENV === 'test') {
           // #ugly part in order to speed up autotests
-        await delay(30000);
-      // }
+        await delay(3000);
+      }
 
       req.redlock_lock = lock;
       next();
