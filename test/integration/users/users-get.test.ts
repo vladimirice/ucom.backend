@@ -12,6 +12,7 @@ const usersRepository = require('../../../lib/users/users-repository');
 require('jest-expect-message');
 
 let userVlad;
+let userPetr;
 
 describe('Users API', () => {
   beforeAll(async () => { await seedsHelper.destroyTables(); });
@@ -20,8 +21,9 @@ describe('Users API', () => {
     await seedsHelper.initSeedsForUsers();
 
     // noinspection JSCheckFunctionSignatures
-    [userVlad] = await Promise.all([
+    [userVlad, userPetr] = await Promise.all([
       userHelper.getUserVlad(),
+      userHelper.getUserPetr(),
     ]);
   });
 
@@ -41,7 +43,26 @@ describe('Users API', () => {
     expect(body.is_tracking_allowed).toBeFalsy();
   });
 
-  describe('Sorting and pagination', () => {
+  describe('Sorting, pagination and filtering', () => {
+    it('should filter by user_name parameter', async () => {
+      let queryString: string = helpers.Req.getPaginationQueryString(1, 10);
+      queryString += '&sort_by=-current_rate&user_name=L'; // for smoke
+      queryString += '&v2=true';
+
+      const users = await userHelper.requestUserListAsGuest(queryString);
+      helpers.Users.checkManyUsersPreview(users);
+
+      expect(users.length).toBe(2);
+
+      expect(users.some(user => user.account_name === userVlad.account_name))
+        .toBeTruthy()
+      ;
+
+      expect(users.some(user => user.account_name === userPetr.account_name))
+        .toBeTruthy()
+      ;
+    });
+
     it('Sort by allowed fields - smoke tests', async () => {
       let queryString = helpers.Req.getPaginationQueryString(1, 2);
       queryString += '&sort_by=-current_rate,created_at,-account_name,id';
