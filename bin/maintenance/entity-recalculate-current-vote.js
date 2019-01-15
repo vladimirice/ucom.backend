@@ -4,6 +4,7 @@ const knex = require('../../config/knex');
 (async () => {
     const entityName = process.env.ENTITY === '1' ? 'posts     ' : 'comments  ';
     const tableName = process.env.ENTITY === '1' ? 'posts' : 'comments';
+    console.log(`entityName: ${entityName} and tableName: ${tableName}`);
     const sql = `
   SELECT COUNT(1), activity_type_id, entity_id_to, entity_name FROM users_activity
     WHERE activity_type_id IN (2, 4) AND activity_group_id = 2
@@ -18,6 +19,9 @@ const knex = require('../../config/knex');
         processEntity(entities, row);
     }
     await updateCurrentVote(entities, tableName);
+    console.log('updateCurrentVote is finished');
+    await setZeroCurrentVoteForInvalidOnlyTransactions(tableName, entityName);
+    console.log('setZeroCurrentVoteForInvalidOnlyTransactions is finished');
 })();
 function processEntity(entities, row) {
     if (!entities[row.entity_id_to]) {
@@ -57,20 +61,21 @@ async function updateCurrentVote(entities, tableName) {
         console.log('processed');
     }
 }
-async function setZeroCurrentVoteForInvalidOnlyTransactions() {
-    /*
-  UPDATE posts set posts.current_vote = 0 WHERE posts.id IN (
-    SELECT posts.id
-    FROM posts
-           LEFT JOIN users_activity
-                     ON posts.id = users_activity.entity_id_to
-                       AND users_activity.entity_name = 'posts     '
-                       AND users_activity.blockchain_status = 1
-                       AND activity_type_id IN (2, 4)
-                       AND activity_group_id = 2
-    WHERE
-      users_activity.id IS NULL
-      AND posts.current_vote > 0
-  );
-  */
+async function setZeroCurrentVoteForInvalidOnlyTransactions(tableName, entityName) {
+    const sql = `
+    UPDATE ${tableName} set current_vote = 0 WHERE id IN (
+      SELECT ${tableName}.id
+      FROM ${tableName}
+             LEFT JOIN users_activity
+                       ON ${tableName}.id = users_activity.entity_id_to
+                         AND users_activity.entity_name = '${entityName}'
+                         AND users_activity.blockchain_status = 1
+                         AND activity_type_id IN (2, 4)
+                         AND activity_group_id = 2
+      WHERE
+        users_activity.id IS NULL
+        AND ${tableName}.current_vote != 0
+    );
+  `;
+    await knex.raw(sql);
 }
