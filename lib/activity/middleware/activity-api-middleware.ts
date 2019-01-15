@@ -16,6 +16,7 @@ class ActivityApiMiddleware {
   ) {
     console.log('Lets handle redlock before activity');
     try {
+      // @ts-ignore
       const currentUserId = req.current_user_id;
 
       if (!currentUserId) {
