@@ -335,14 +335,25 @@ class UsersRepository {
     ];
   }
 
-  /**
-   *
-   * @returns {Function}
-   */
-  static getWhereProcessor() {
-    // @ts-ignore
+  static getWhereProcessor(): Function {
     return function (query, params) {
       params.where = {};
+
+      if (query.user_name) {
+        params.where = {
+          [Op.or]: {
+            account_name: {
+              [Op.iLike]: `%${query.user_name}%`,
+            },
+            first_name: {
+              [Op.iLike]: `%${query.user_name}%`,
+            },
+            last_name: {
+              [Op.iLike]: `%${query.user_name}%`,
+            },
+          },
+        };
+      }
     };
   }
 
