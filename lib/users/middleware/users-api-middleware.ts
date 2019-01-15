@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 const usersRepository = require('../users-repository');
 const { BadRequestError } = require('../../../lib/api/errors');
 
@@ -12,7 +12,7 @@ class UsersApiMiddleware {
    * @param {string} incomingValue
    */
   public static async userIdentityParam(
-    req: Request,
+    req: any,
     // @ts-ignore
     res: Response,
     next: Function,

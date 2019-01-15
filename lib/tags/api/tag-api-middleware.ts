@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 const { BadRequestError } = require('../../../lib/api/errors');
 
 const tagsRepository = require('../repository/tags-repository');
@@ -13,7 +13,7 @@ class TagApiMiddleware {
    * @param {string} incomingValue
    */
   public static async tagIdentityParam(
-    req: Request,
+    req: any,
     // @ts-ignore
     res: Response,
     next: Function,
