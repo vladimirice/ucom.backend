@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import { RequestQuery } from './interfaces/query-filter-interfaces';
+import { RequestQueryDto } from './interfaces/query-filter-interfaces';
 
 const _ = require('lodash');
 
@@ -12,8 +12,8 @@ class QueryFilterService {
    *
    * @param {Object} query
    */
-  static checkLastIdExistence(query: RequestQuery) {
-    const page = +query.page;
+  static checkLastIdExistence(query: RequestQueryDto) {
+    const page = query.page ? +query.page : null;
 
     if (!page || page <= 1) {
       return;
@@ -72,7 +72,7 @@ class QueryFilterService {
    * @param {Function|null} whereProcessor
    * @returns {Object}
    */
-  static getQueryParameters(query: RequestQuery, orderByRelationMap = {}, allowedSortBy = null, whereProcessor = null) {
+  static getQueryParameters(query: RequestQueryDto | null, orderByRelationMap = {}, allowedSortBy = null, whereProcessor = null) {
     const params: any = {};
 
     params.where = {};

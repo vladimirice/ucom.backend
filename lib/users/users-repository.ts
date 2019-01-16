@@ -371,7 +371,6 @@ class UsersRepository {
   }
 
   /**
-   * @deprecated
    * @param {boolean} isRaw
    * @return {Promise<*>}
    */

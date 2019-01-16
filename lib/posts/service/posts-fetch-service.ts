@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
+
 const queryFilterService  = require('../../api/filters/query-filter-service');
 const apiPostProcessor    = require('../../common/service').PostProcessor;
 const usersFeedRepository = require('../../common/repository').UsersFeed;
@@ -50,10 +52,14 @@ class PostsFetchService {
    * @param {Object} query
    * @return {Promise<{data, metadata: {total_amount: *, page: number, per_page: number, has_more: boolean}}>}
    */
-  static async findAndProcessAllForUserWallFeed(userId, currentUserId, query = null) {
-    const params = queryFilterService.getQueryParameters(query);
+  static async findAndProcessAllForUserWallFeed(
+    userId: number,
+    currentUserId: number | null,
+    query: RequestQueryDto | null = null,
+  ) {
+    const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
-    const findCountPromises = [
+    const findCountPromises: Promise<any>[] = [
       usersFeedRepository.findAllForUserWallFeed(userId, params),
       usersFeedRepository.countAllForUserWallFeed(userId),
     ];

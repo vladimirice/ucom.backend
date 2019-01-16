@@ -26,17 +26,15 @@ test('[Smoke] - test grapql env', async () => {
 
   const query = gql`
 query {
-  posts {
+  user_wall_feed(user_id: 1, page: 1, per_page: 3) {
     data {
      id
-     name
-      comments {
-        id
-        name
-      }
+     title
     },
     metadata {
       page
+      per_page
+      has_more
     }
   }
 }
