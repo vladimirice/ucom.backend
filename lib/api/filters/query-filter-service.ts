@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import { RequestQuery } from './interfaces/query-filter-interfaces';
+
 const _ = require('lodash');
 
 const { BadRequestError } = require('../../api/errors');
@@ -10,7 +12,7 @@ class QueryFilterService {
    *
    * @param {Object} query
    */
-  static checkLastIdExistence(query) {
+  static checkLastIdExistence(query: RequestQuery) {
     const page = +query.page;
 
     if (!page || page <= 1) {
@@ -70,7 +72,7 @@ class QueryFilterService {
    * @param {Function|null} whereProcessor
    * @returns {Object}
    */
-  static getQueryParameters(query, orderByRelationMap = {}, allowedSortBy = null, whereProcessor = null) {
+  static getQueryParameters(query: RequestQuery, orderByRelationMap = {}, allowedSortBy = null, whereProcessor = null) {
     const params: any = {};
 
     params.where = {};

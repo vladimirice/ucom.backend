@@ -90,7 +90,7 @@ class MockHelper {
   }
 
   static mockPostTransactionSigning() {
-    postsService._addSignedTransactionDetailsToBody = async function (
+    postsService.addSignedTransactionDetailsToBody = async function (
       body,
       // @ts-ignore
       user,
