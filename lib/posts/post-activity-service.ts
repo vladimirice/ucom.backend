@@ -1,6 +1,6 @@
 /* tslint:disable:max-line-length */
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
-const { badRequestError } = require('../api/errors');
+const { BadRequestError:badRequestError } = require('../api/errors');
 
 const usersActivityService = require('../users/user-activity-service');
 
