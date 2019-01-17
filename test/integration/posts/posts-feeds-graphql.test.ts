@@ -20,7 +20,7 @@ let userJane;
 
 const JEST_TIMEOUT = 10000;
 
-describe('$Feeds. #GraphQL', () => {
+describe('#Feeds. #GraphQL', () => {
   beforeAll(async () => {
     [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
   });
@@ -91,6 +91,19 @@ query {
 
      organization_id
 
+     comments {
+      data {
+        id
+        description
+      }
+     }
+
+     myselfData {
+      myselfVote
+      join
+      organization_member
+     }
+
      User {
       id
       account_name
@@ -138,9 +151,11 @@ query {
 
         // @ts-ignore
         const options = {
-          myselfData: false,
+          myselfData: true,
           postProcessing: 'list',
+          comments: true,
         };
+
         await serverApp.close();
 
         await helpers.Common.checkPostsListFromApi(

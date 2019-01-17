@@ -57,4 +57,4 @@ class OrganizationsFetchService {
   }
 }
 
-module.exports = OrganizationsFetchService;
+export = OrganizationsFetchService;

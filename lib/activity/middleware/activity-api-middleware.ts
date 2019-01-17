@@ -14,7 +14,6 @@ class ActivityApiMiddleware {
     res: Response,
     next: Function,
   ) {
-    console.log('Lets handle redlock before activity');
     try {
       // @ts-ignore
       const currentUserId = req.current_user_id;
@@ -25,8 +24,6 @@ class ActivityApiMiddleware {
 
       const lockKey = `user_activity_${currentUserId}`;
       const lock = await redisClient.actionRedlockLock(lockKey, ACTIVITY_REDLOCK_TTL_SEC);
-
-      console.log(`Lock is here: Key is: ${lockKey}`);
 
       res.on('finish', async () => {
         await ActivityApiMiddleware.redlockAfterActivity(lock);
@@ -50,12 +47,8 @@ class ActivityApiMiddleware {
   }
 
   private static async redlockAfterActivity(redlockLock) {
-    console.log('Lets handle unlock event');
-
     try {
-      console.log('Lets release lock');
       await redisClient.actionRedlockUnlock(redlockLock);
-      console.log('lock is released');
     } catch (err) {
       err.message +=
         'There is an error related to REDIS. Lets continue without parallel action lock';

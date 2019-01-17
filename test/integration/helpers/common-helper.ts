@@ -461,7 +461,7 @@ class CommonHelper {
    * @param {number|null} expectedLength
    * @param {Object} options
    */
-  static checkPostsListFromApi(posts, expectedLength = null, options = {}) {
+  static checkPostsListFromApi(posts, expectedLength = null, options: any = {}) {
     if (expectedLength) {
       expect(posts.length).toBe(expectedLength);
     } else {
@@ -470,7 +470,21 @@ class CommonHelper {
 
     posts.forEach((post) => {
       this.checkOneListPostFromApi(post, options);
+      this.checkCreatedAtUpdatedAtFormat(post);
+
+      if (options.comments) {
+        expect(post.comments).toBeDefined();
+        expect(post.comments).not.toBeNull();
+      }
     });
+  }
+
+  private static checkCreatedAtUpdatedAtFormat(model) {
+    expect(model.created_at).toMatch('Z');
+    expect(model.created_at).toMatch('T');
+
+    expect(model.updated_at).toMatch('Z');
+    expect(model.updated_at).toMatch('T');
   }
 
   /**

@@ -44,6 +44,10 @@ const typeDefs = gql`
     entity_name_for: String
 
     User: User!
+
+    myselfData: MyselfData
+
+    comments: comments
   }
 
   type User {
@@ -57,8 +61,9 @@ const typeDefs = gql`
   }
 
   type Comment {
-    id: ID!,
-    title: String!
+    id: Int!,
+    description: String!
+    current_vote: Float!
   }
 
   type posts {
@@ -69,6 +74,19 @@ const typeDefs = gql`
   type comments {
     data: [Comment!]!
     metadata: metadata!
+  }
+
+  type MyselfData {
+    myselfVote: String
+    join: Boolean
+    organization_member: Boolean
+    repost_available: Boolean
+
+    follow: Boolean
+    myFollower: Boolean
+
+    editable: Boolean
+    member:   Boolean
   }
 
   type metadata {
@@ -98,6 +116,9 @@ const resolvers = {
       const postsQuery: RequestQueryDto = {
         page:     args.page,
         per_page: args.per_page,
+        include: [
+          'comments',
+        ],
       };
 
       // const parsedResolveInfoFragment = parseResolveInfo(info);
@@ -105,13 +126,19 @@ const resolvers = {
       // const commentsArgs =
       // parsedResolveInfoFragment.fieldsByTypeName.posts.data.fieldsByTypeName.Post.comments.args;
 
-      // @ts-ignore
+      let res;
+      try {
+        res = await postsFetchService.findAndProcessAllForUserWallFeed(
+          args.user_id,
+          currentUserId,
+          postsQuery,
+        );
+      } catch (err) {
+        // @ts-ignore
+        const b = 0;
+      }
 
-      return await postsFetchService.findAndProcessAllForUserWallFeed(
-        args.user_id,
-        currentUserId,
-        postsQuery,
-      );
+      return res;
     },
   },
 };

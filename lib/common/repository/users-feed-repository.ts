@@ -69,11 +69,23 @@ class UsersFeedRepository {
       entity_id_for:    userId,
     };
 
-    params.include = sequelizeIncludes.getIncludeForPostList();
-
     const models = await postsModelProvider.getModel().findAll(params);
 
     return models.map(model => model.toJSON());
+  }
+
+  static getIncludeProcessor() {
+    return function (query, params) {
+      params.include = sequelizeIncludes.getIncludeForPostList();
+
+      if (!query || !query.include) {
+        return;
+      }
+
+      if (~query.include.indexOf('comments')) {
+        params.include.push(sequelizeIncludes.getIncludeForPostCommentsObject());
+      }
+    };
   }
 
   /**

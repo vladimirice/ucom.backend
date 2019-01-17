@@ -1,3 +1,7 @@
+import { MyselfDataDto } from '../interfaces/post-processing-dto';
+
+const moment = require('moment');
+
 const { InteractionTypeDictionary, ContentTypeDictionary } =
   require('ucom-libs-social-transactions');
 
@@ -5,7 +9,7 @@ const commentsPostProcessor = require('../../comments/service/comments-post-proc
 const usersPostProcessor    = require('../../users/user-post-processor');
 const orgPostProcessor      = require('../../organizations/service/organization-post-processor');
 
-const postsPostProcessor    = require('../../posts/service').PostProcessor;
+const postsPostProcessor    = require('../../posts/service/posts-post-processor');
 
 const usersModelProvider = require('../../users/users-model-provider');
 
@@ -276,20 +280,18 @@ class ApiPostProcessor {
    * @return {Array}
    */
   static processManyPosts(posts, currentUserId, userActivity) {
-    const result: any = [];
-
     for (let i = 0; i < posts.length; i += 1) {
       const post = posts[i];
-      const data = this.processOnePostForList(post, currentUserId, userActivity);
+      this.processOnePostForList(post, currentUserId, userActivity);
 
       if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
         this.processOnePostForList(post.post);
       }
 
-      result.push(data);
+      this.formatModelDateTime(post);
     }
 
-    return result;
+    return posts;
   }
 
   /**
@@ -468,12 +470,14 @@ class ApiPostProcessor {
       }
     }
 
-    model.myselfData = {
+    const myselfData: MyselfDataDto = {
       myselfVote,
       join,
       organization_member: organizationMember,
       repost_available: repostAvailable,
     };
+
+    model.myselfData = myselfData;
   }
 
   /**
@@ -527,6 +531,21 @@ class ApiPostProcessor {
       if (model[field]) {
         model[field] = +model[field];
       }
+    }
+  }
+
+  private static formatModelDateTime(model) {
+    const fields: string[] = [
+      'created_at',
+      'updated_at',
+    ];
+
+    for (const field of fields) {
+      if (!model[field]) {
+        continue;
+      }
+
+      model[field] = moment(model[field]).utc().format();
     }
   }
 }

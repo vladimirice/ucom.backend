@@ -31,18 +31,13 @@ class PostActivityService {
   static async userUpvotesPost(userFrom, modelIdTo, body) {
     // #task need DB transaction
     const activityTypeId = InteractionTypeDictionary.getUpvoteId();
-    console.log('Lets check conditions');
     const modelTo = await this.checkVotePreconditionsAndGetModelTo(userFrom, modelIdTo, body, activityTypeId);
 
-    console.log('Lets do userVotesPost');
     await this.userVotesPost(userFrom, modelTo, activityTypeId, body.signed_transaction);
-    console.log('Lets do increment');
     await postsRepository.incrementCurrentVoteCounter(modelIdTo);
 
-    console.log('Lets do getCurrent vote');
     const currentVote = await postsRepository.getPostCurrentVote(modelIdTo);
 
-    console.log('Lets return');
     return {
       current_vote: currentVote,
     };

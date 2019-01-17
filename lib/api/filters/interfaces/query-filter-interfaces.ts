@@ -4,6 +4,8 @@ interface RequestQueryDto {
   readonly page?:      number;
   readonly per_page?:  number;
   readonly last_id?:   string;
+
+  readonly include?: string[];
 }
 
 interface DbParamsDto {

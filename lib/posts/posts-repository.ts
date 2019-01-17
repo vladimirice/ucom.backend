@@ -10,9 +10,9 @@ const db = models.sequelize;
 const Op = db.Op;
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
-const orgModelProvider    = require('../organizations/service').ModelProvider;
-const postsModelProvider  = require('./service').ModelProvider;
-const usersModelProvider  = require('../users/service').ModelProvider;
+const orgModelProvider    = require('../organizations/service/organizations-model-provider');
+const postsModelProvider  = require('./service/posts-model-provider');
+const usersModelProvider  = require('../users/users-model-provider');
 
 const POST_TYPE__MEDIA_POST = ContentTypeDictionary.getTypeMediaPost();
 const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();

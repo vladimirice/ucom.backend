@@ -34,9 +34,7 @@ req, res) => {
     res.status(404).send('Action is disabled');
 });
 postsRouter.post('/:post_id/upvote', activityMiddlewareSet, async (req, res) => {
-    console.log('Lets handle upvote route');
     const result = await getPostService(req).userUpvotesPost(req['post_id'], req.body);
-    console.log('Result is received');
     return res.status(201).send(result);
 });
 postsRouter.post('/:post_id/downvote', activityMiddlewareSet, async (req, res) => {

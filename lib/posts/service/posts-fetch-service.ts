@@ -59,6 +59,9 @@ class PostsFetchService {
   ) {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
+    const includeProcessor = usersFeedRepository.getIncludeProcessor();
+    includeProcessor(query, params);
+
     const findCountPromises: Promise<any>[] = [
       usersFeedRepository.findAllForUserWallFeed(userId, params),
       usersFeedRepository.countAllForUserWallFeed(userId),
