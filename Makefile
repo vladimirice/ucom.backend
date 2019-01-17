@@ -32,6 +32,9 @@ docker-npm-ci:
 docker-compile-typescript:
 	${DOCKER_B_EXEC_CMD} npm run compile-ts
 
+docker-compile-typescript-watch:
+	${DOCKER_B_EXEC_CMD} npm run compile-ts-watch
+
 docker-chown:
 	${DOCKER_B_EXEC_CMD_ROOT} chgrp -R docker: /var/www/ucom.backend
 

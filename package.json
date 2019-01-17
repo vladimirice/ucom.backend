@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "test-all": "jest --verbose --runInBand",
-    "compile-ts": "tsc"
+    "compile-ts": "tsc",
+    "compile-ts-watch": "tsc --watch"
   },
   "dependencies": {
     "amqplib": "0.5.2",
@@ -22,7 +23,8 @@
     "express-async-errors": "3.0.0",
     "flatted": "^2.0.0",
     "graphql": "^14.0.2",
-    "graphql-fields-list": "^1.1.2",
+    "graphql-parse-resolve-info": "^4.1.0",
+    "graphql-type-json": "^0.2.1",
     "graphql-yoga": "^1.16.9",
     "helmet": "^3.15.0",
     "http-errors": "~1.6.2",
