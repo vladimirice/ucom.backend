@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import { RequestQueryComments } from '../api/filters/interfaces/query-filter-interfaces';
+
 const commentsRepository = require('./comments-repository');
 const postStatsService = require('../posts/stats/post-stats-service');
 const _ = require('lodash');
@@ -40,7 +42,12 @@ class CommentsService {
   async findAndProcessCommentsByPostId(postId: number) {
     const userId = this.currentUser.id;
 
-    return commentsFetchService.findAndProcessCommentsByPostId(postId, userId);
+    const query: RequestQueryComments = {
+      page: 1,
+      per_page: 100, // #hardcode
+    };
+
+    return commentsFetchService.findAndProcessCommentsByPostId(postId, userId, query);
   }
 
   /**

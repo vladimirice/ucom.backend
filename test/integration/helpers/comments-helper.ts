@@ -191,6 +191,10 @@ class CommentsHelper {
       ];
     }
 
+    if (options && options.commentItselfMetadata) {
+      fieldsFromRelations.push('metadata');
+    }
+
     if (options && options.myselfData) {
       fieldsFromRelations.push('myselfData');
     }

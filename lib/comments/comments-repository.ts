@@ -1,3 +1,6 @@
+import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
+import { StringToNumberCollection } from '../common/interfaces/common-types';
+
 const models = require('../../models');
 const db = models.sequelize;
 
@@ -115,31 +118,75 @@ class CommentsRepository {
     return res.toJSON();
   }
 
-  /**
-   *
-   * @param {number} commentableId
-   * @return {Promise<any[]>}
-   */
-  static async findAllByCommentableId(commentableId) {
-    // #task - it is supposed that commentable ID is aways posts
+  public static async countAllByParentIdAndDepth(
+    parentId: number,
+    depth: number,
+  ): Promise<number> {
 
-    const attributes = model.getFieldsForPreview();
     const where = {
-      commentable_id: commentableId,
+      depth,
+      parent_id: parentId,
     };
 
+    return model.count({ where });
+  }
+
+  public static async countNextDepthTotalAmount(
+    depth: number,
+    commentableId: number,
+  ): Promise<StringToNumberCollection> {
+
+    const sql: string = `
+    SELECT parent_id, COUNT(1) as amount FROM comments
+    WHERE
+      depth = ${+depth} -- next depth level
+      AND parent_id IS NOT NULL -- for reference, for depth = 1 parent_id must always be NOT NULL
+      AND commentable_id = ${+commentableId}
+    GROUP BY parent_id;
+    `;
+
+    const data = await db.query(sql, { type: db.QueryTypes.SELECT });
+
+    const res: any = {};
+
+    data.forEach((item) => {
+      res[item.parent_id] = item.amount;
+    });
+
+    return res;
+  }
+
+  public static async countAllByCommentableId(
+    commentableId: number,
+    params: DbParamsDto,
+  ): Promise<number> {
+
+    params.where.commentable_id = commentableId;
+
+    return model.count({ where: params.where });
+  }
+
+  public static async findAllByCommentableId(
+    commentableId: number,
+    params: DbParamsDto,
+  ) {
+    // #task - it is supposed that commentable ID is always Post
+
+    params.attributes = model.getFieldsForPreview();
+
+    // #hardcode - move to whereProcessor
+    if (!params.where) {
+      params.where = {};
+    }
+
+    params.where.commentable_id = commentableId;
+
     // #task - exclude user related activity to separate request, as for posts
-    const include = this.getCommentIncludedModels();
+    params.include = this.getCommentIncludedModels();
 
-    const result = await model.findAll({
-      attributes,
-      where,
-      include,
-    });
+    const result = await model.findAll(params);
 
-    return result.map((data) => {
-      return data.toJSON();
-    });
+    return result.map(data => data.toJSON());
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -211,6 +258,36 @@ class CommentsRepository {
    */
   static getActivityUserCommentModelName() {
     return 'activity_user_comment';
+  }
+
+  /**
+   *
+   * @returns {Function}
+   */
+  public static getWhereProcessor() {
+    return function (query, params) {
+      if (!params.where) {
+        params.where = {};
+      }
+
+      if (query === null || query.depth === undefined) {
+        return;
+      }
+
+      params.where.depth = +query.depth;
+    };
+  }
+
+  /**
+   *
+   * @returns {Object}
+   */
+  static getOrderByRelationMap() {
+    return {};
+  }
+
+  static getAllowedOrderBy(): string[] {
+    return [];
   }
 }
 

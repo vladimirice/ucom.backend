@@ -51,7 +51,7 @@ describe('#Feeds. #GraphQL', () => {
 
         const [postOneId, postTwo] = await Promise.all(promisesToCreatePosts);
 
-        const [commentOne] = await Promise.all([
+        const [commentOne, commentTwo] = await Promise.all([
           commentsGenerator.createCommentForPost(
             postOneId,
             userJane,
@@ -60,6 +60,9 @@ describe('#Feeds. #GraphQL', () => {
           commentsGenerator.createCommentForPost(postOneId, userJane, 'Comment two for post two'),
           commentsGenerator.createCommentForPost(postTwo.id, userJane, 'Comment two for post two'),
         ]);
+
+        const commentOnComment =
+          await commentsGenerator.createCommentOnComment(postOneId, commentOne.id, userJane);
 
         await commentsHelper.requestToUpvoteComment(postOneId, commentOne.id, userVlad);
 
@@ -112,6 +115,10 @@ query {
         id
         description
         current_vote
+
+        metadata {
+          next_depth_total_amount
+        }
 
         User {
           id
@@ -202,9 +209,35 @@ query {
           myselfData: true,
           postProcessing: 'list',
           comments: true,
+          commentsMetadataExistence: true,
+          commentItselfMetadata: true,
         };
 
         await serverApp.close();
+
+        const postOne = data.user_wall_feed.data.find(item => item.id === postOneId);
+
+        // Only first level comments (depth = 0)
+        const commentOnCommentExistence =
+          postOne.comments.data.some(item => item.id === commentOnComment.id);
+        expect(commentOnCommentExistence).toBeFalsy();
+        expect(postOne.comments.data.length).toBe(2);
+
+        const postOneCommentsMetadata = postOne.comments.metadata;
+        expect(postOneCommentsMetadata).toBeDefined();
+
+        expect(postOneCommentsMetadata.page).toBe(1);
+        expect(postOneCommentsMetadata.per_page).toBe(10);
+        expect(postOneCommentsMetadata.has_more).toBeFalsy();
+
+        const commentWithComment = postOne.comments.data.find(item => item.id === commentOne.id);
+        const commentWithoutComment = postOne.comments.data.find(item => item.id === commentTwo.id);
+
+        expect(commentWithComment.metadata).toBeDefined();
+        expect(commentWithComment.metadata.next_depth_total_amount).toBe(1);
+
+        expect(commentWithoutComment.metadata).toBeDefined();
+        expect(commentWithoutComment.metadata.next_depth_total_amount).toBe(0);
 
         await commonHelper.checkPostsListFromApi(
           data.user_wall_feed.data,

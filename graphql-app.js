@@ -6,7 +6,7 @@ const { ApolloServer, gql } = require('apollo-server-express');
 const postsFetchService = require('./lib/posts/service/posts-fetch-service');
 const authService = require('./lib/auth/authService');
 const graphQLJSON = require('graphql-type-json');
-// #task - generate field list from model //////
+// #task - generate field list from model and represent as object, not string
 const typeDefs = gql `
   type Query {
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!): posts!
@@ -74,6 +74,8 @@ const typeDefs = gql `
     path: JSON
     updated_at: String!
     user_id: Int!
+
+    metadata: comment_metadata!
   }
 
   type posts {
@@ -103,6 +105,9 @@ const typeDefs = gql `
     page: Int!,
     per_page: Int!,
     has_more: Boolean!
+  }
+
+  type comment_metadata {
     next_depth_total_amount: Int!
   }
 `;
@@ -137,6 +142,8 @@ const resolvers = {
             catch (err) {
                 // @ts-ignore
                 const b = 0;
+                // #task - log and rethrow
+                throw err;
             }
             return res;
         },
@@ -147,6 +154,7 @@ const app = express();
 const server = new ApolloServer({
     typeDefs,
     resolvers,
+    cors: false,
     context: ({ req }) => {
         return { req };
     },

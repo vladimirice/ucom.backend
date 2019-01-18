@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import { RequestQueryDto } from './interfaces/query-filter-interfaces';
+import { DbParamsDto, RequestQueryDto } from './interfaces/query-filter-interfaces';
 
 const _ = require('lodash');
 
@@ -87,14 +87,11 @@ class QueryFilterService {
     return params;
   }
 
-  /**
-   *
-   * @param {number} totalAmount
-   * @param {Object} query
-   * @param {Object} params
-   * @return {{total_amount: *, page: number, per_page: number, has_more: boolean}}
-   */
-  static getMetadata(totalAmount, query, params) {
+  public static getMetadata(
+    totalAmount: number,
+    query: RequestQueryDto,
+    params: DbParamsDto,
+  ) {
     return {
       total_amount: totalAmount,
       page:         +query.page,

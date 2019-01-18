@@ -17,7 +17,7 @@ class CommonHelper {
    * @param {Object[]} comments
    * @param {Object} options
    */
-  static checkManyCommentsPreviewWithRelations(comments, options = {}) {
+  static checkManyCommentsPreviewWithRelations(comments, options: any = {}) {
     comments.forEach((comment) => {
       this.checkOneCommentPreviewWithRelations(comment, options);
     });

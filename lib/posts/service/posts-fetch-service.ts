@@ -60,7 +60,6 @@ class PostsFetchService {
   ) {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
-    // TODO - fetch comments separately and join the results
     const includeProcessor = usersFeedRepository.getIncludeProcessor();
     includeProcessor(query, params);
 
@@ -121,7 +120,14 @@ class PostsFetchService {
     if (query && query.include && ~query.include.indexOf('comments')) {
       // #task - prototype realization for demo, N+1 issue
       for (const id of postsIds) {
-        idToPost[id].comments = await commentsFetchService.findAndProcessCommentsByPostId(id, currentUserId);
+        // #task - should be defined as default parameters for comments pagination
+        const commentsQuery = {
+          depth: 0,
+          page: 1,
+          per_page: 10,
+        };
+
+        idToPost[id].comments = await commentsFetchService.findAndProcessCommentsByPostId(id, currentUserId, commentsQuery);
       }
     }
 
