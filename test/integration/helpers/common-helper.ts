@@ -66,6 +66,8 @@ class CommonHelper {
     commentsHelper.checkOneCommentPreviewFields(comment, options);
     usersHelper.checkIncludedUserPreview(comment);
 
+    this.checkCreatedAtUpdatedAtFormat(comment);
+
     if (comment.organization_id) {
       orgHelper.checkOneOrganizationPreviewFields(comment.organization);
     }
@@ -475,6 +477,8 @@ class CommonHelper {
       if (options.comments) {
         expect(post.comments).toBeDefined();
         expect(post.comments).not.toBeNull();
+
+        this.checkManyCommentsPreviewWithRelations(post.comments.data, options);
       }
     });
   }

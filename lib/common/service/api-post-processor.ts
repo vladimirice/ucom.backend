@@ -402,6 +402,7 @@ class ApiPostProcessor {
     const processedComments = commentsPostProcessor.processManyComments(comments, currentUserId);
 
     processedComments.forEach((comment) => {
+      this.formatModelDateTime(comment);
       usersPostProcessor.processModelAuthorForListEntity(comment.User);
 
       if (comment.organization) {

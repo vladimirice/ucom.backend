@@ -14,7 +14,7 @@
     "host": "uos-backend-postgres-test.dev",
     "port": "5432",
     "dialect": "postgres",
-    "logging": true
+    "logging": false
   },
   "redis": {
     "host": "127.0.0.1",

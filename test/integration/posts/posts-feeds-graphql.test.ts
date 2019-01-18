@@ -1,11 +1,15 @@
 export {};
 
-const helpers = require('../helpers');
-const gen = require('../../generators');
-
 const mockHelper = require('../helpers/mock-helper');
 
 const { app, server } = require('../../../graphql-app');
+
+const postsGenerator    = require('../../generators/posts-generator');
+const commentsGenerator = require('../../generators/comments-generator');
+
+const seedsHelper   = require('../helpers/seeds-helper');
+const commonHelper  = require('../helpers/common-helper');
+const commentsHelper  = require('../helpers/comments-helper');
 
 require('cross-fetch/polyfill');
 const apolloClient = require('apollo-boost').default;
@@ -18,34 +22,46 @@ mockHelper.mockBlockchainPart();
 let userVlad;
 let userJane;
 
-const JEST_TIMEOUT = 10000;
+const JEST_TIMEOUT = 20000;
 
 describe('#Feeds. #GraphQL', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    await seedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    await seedsHelper.initUsersOnly();
   });
 
   describe('Users wall feed', () => {
     describe('Positive', () => {
 
-      it('should get all user-related posts as Guest', async () => {
+      it('#smoke - should get all user-related posts as Guest', async () => {
         const targetUser = userVlad;
         const directPostAuthor = userJane;
 
         const promisesToCreatePosts = [
-          gen.Posts.createMediaPostByUserHimself(targetUser),
-          gen.Posts.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
+          postsGenerator.createMediaPostByUserHimself(targetUser),
+          postsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
         ];
 
-        await Promise.all(promisesToCreatePosts);
+        const [postOneId, postTwo] = await Promise.all(promisesToCreatePosts);
+
+        const [commentOne] = await Promise.all([
+          commentsGenerator.createCommentForPost(
+            postOneId,
+            userJane,
+            'Jane comments - for post one',
+          ),
+          commentsGenerator.createCommentForPost(postOneId, userJane, 'Comment two for post two'),
+          commentsGenerator.createCommentForPost(postTwo.id, userJane, 'Comment two for post two'),
+        ]);
+
+        await commentsHelper.requestToUpvoteComment(postOneId, commentOne.id, userVlad);
 
         const serverApp = await app.listen({ port: 4001 });
 
@@ -95,6 +111,38 @@ query {
       data {
         id
         description
+        current_vote
+
+        User {
+          id
+          account_name
+          first_name
+          last_name
+          nickname
+          avatar_filename
+          current_rate
+        }
+
+        blockchain_id
+        commentable_id
+        created_at
+        activity_user_comment
+        organization
+
+        depth
+        myselfData {
+          myselfVote
+        }
+        organization_id
+        parent_id
+        path
+        updated_at
+        user_id
+      }
+      metadata {
+        page
+        per_page
+        has_more
       }
      }
 
@@ -158,7 +206,7 @@ query {
 
         await serverApp.close();
 
-        await helpers.Common.checkPostsListFromApi(
+        await commonHelper.checkPostsListFromApi(
           data.user_wall_feed.data,
           promisesToCreatePosts.length,
           options,

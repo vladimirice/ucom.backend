@@ -81,10 +81,6 @@ class UsersFeedRepository {
       if (!query || !query.include) {
         return;
       }
-
-      if (~query.include.indexOf('comments')) {
-        params.include.push(sequelizeIncludes.getIncludeForPostCommentsObject());
-      }
     };
   }
 

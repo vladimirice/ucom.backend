@@ -6,6 +6,7 @@ const apiPostProcessor    = require('../../common/service').PostProcessor;
 const usersFeedRepository = require('../../common/repository').UsersFeed;
 
 const usersActivityRepository    = require('../../users/repository/users-activity-repository');
+const commentsFetchService = require('../../comments/service/comments-fetch-service');
 
 class PostsFetchService {
   /**
@@ -102,17 +103,12 @@ class PostsFetchService {
     const [posts, totalAmount] = await Promise.all(findCountPromises);
 
     const idToPost = {};
-
-    // TODO - index posts in order to merge it with comments requesting separately
+    const postsIds: number[] = [];
     // @ts-ignore
     for (const post of posts) {
       idToPost[post.id] = post;
+      postsIds.push(+post.id);
     }
-
-    // @ts-ignore
-    const postsIds = posts.map((post) => {
-      return post.id;
-    });
 
     let userActivity;
     if (currentUserId) {
@@ -120,6 +116,13 @@ class PostsFetchService {
       userActivity = {
         posts: postsActivity,
       };
+    }
+
+    if (query && query.include && ~query.include.indexOf('comments')) {
+      // #task - prototype realization for demo, N+1 issue
+      for (const id of postsIds) {
+        idToPost[id].comments = await commentsFetchService.findAndProcessCommentsByPostId(id, currentUserId);
+      }
     }
 
     const data      = apiPostProcessor.processManyPosts(posts, currentUserId, userActivity);

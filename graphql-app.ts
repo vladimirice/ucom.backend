@@ -64,6 +64,22 @@ const typeDefs = gql`
     id: Int!,
     description: String!
     current_vote: Float!
+
+    User: User!
+    blockchain_id: String!
+    commentable_id: Int!
+    created_at: String!
+
+    activity_user_comment: JSON
+    organization: JSON
+
+    depth: Int!
+    myselfData: MyselfData
+    organization_id: Int
+    parent_id: Int
+    path: JSON
+    updated_at: String!
+    user_id: Int!
   }
 
   type posts {
@@ -93,6 +109,7 @@ const typeDefs = gql`
     page: Int!,
     per_page: Int!,
     has_more: Boolean!
+    next_depth_total_amount: Int!
   }
 `;
 
@@ -136,6 +153,9 @@ const resolvers = {
       } catch (err) {
         // @ts-ignore
         const b = 0;
+        // #task - log and rethrow
+
+        throw err;
       }
 
       return res;
@@ -149,6 +169,7 @@ const app = express();
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  cors: false,
   context: ({ req }) => {
     return { req };
   },
