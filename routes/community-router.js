@@ -1,27 +1,19 @@
+"use strict";
 const express = require('express');
 const router = express.Router();
-
-const OrgRepository = require('../lib/organizations/repository').Main;
-
-const OrgModelProvider = require('../lib/organizations/service/organizations-model-provider');
-const OrgPostProcessor = require('../lib/organizations/service/organization-post-processor');
-
-router.get('/search', async function(req, res) {
-  const query = req.query.q;
-  const models = await OrgRepository.findByNameFields(query);
-
-  models.forEach(model => {
-    model.entity_name = OrgModelProvider.getEntityName();
-    model.entity_id = model.id;
-
-    OrgPostProcessor.processOneOrg(model);
-
-    delete model.id;
-    delete model.followed_by;
-  });
-
-  res.send(models);
+const orgRepository = require('../lib/organizations/repository').Main;
+const orgModelProvider = require('../lib/organizations/service/organizations-model-provider');
+const orgPostProcessor = require('../lib/organizations/service/organization-post-processor');
+router.get('/search', async (req, res) => {
+    const query = req.query.q;
+    const models = await orgRepository.findByNameFields(query);
+    models.forEach((model) => {
+        model.entity_name = orgModelProvider.getEntityName();
+        model.entity_id = model.id;
+        orgPostProcessor.processOneOrg(model);
+        delete model.id;
+        delete model.followed_by;
+    });
+    res.send(models);
 });
-
-
 module.exports = router;

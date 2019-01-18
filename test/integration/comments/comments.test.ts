@@ -14,6 +14,8 @@ helpers.Mock.mockPostTransactionSigning();
 helpers.Mock.mockCommentTransactionSigning();
 helpers.Mock.mockSendingToQueue();
 
+const JEST_TIMEOUT = 10000;
+
 describe('Comments', () => {
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
@@ -72,7 +74,7 @@ describe('Comments', () => {
           const postStats = await postService.findPostStatsById(newPostId);
 
           expect(postStats.comments_count).toBe(2);
-        });
+        }, JEST_TIMEOUT);
       });
 
       describe('Post-offer related actions', () => {
@@ -103,7 +105,7 @@ describe('Comments', () => {
           const postStats = await postService.findPostStatsById(newPostId);
 
           expect(postStats.comments_count).toBe(2);
-        });
+        }, JEST_TIMEOUT);
       });
     });
   });
@@ -122,6 +124,7 @@ describe('Comments', () => {
 
         const options = {
           myselfData: true,
+          commentItselfMetadata: true,
         };
 
         helpers.Common.checkManyCommentsPreviewWithRelations(comments, options);

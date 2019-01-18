@@ -1,0 +1,14 @@
+export {};
+
+const eosImportance = require('../lib/eos/eos-importance');
+const eosApi = require('../lib/eos/eosApi');
+
+const { WorkerLogger } = require('../config/winston');
+eosApi.initTransactionFactory();
+
+eosImportance.updateRatesByBlockchain().then(() => {
+  console.log('Job is finished');
+}).catch((err) => {
+  WorkerLogger.error(err);
+  console.error('There is an error. See logs');
+});

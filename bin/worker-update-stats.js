@@ -1,6 +1,6 @@
-const ImportanceEventService = require('../lib/eos/service/importance-event-service');
-
-// In this case it is ok than during every deploy pm2 cron starts this process - not exactly every hour
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const importanceEventService = require('../lib/eos/service/importance-event-service');
 (async () => {
-  await ImportanceEventService.updateDeltaRateStats();
+    await importanceEventService.updateDeltaRateStats();
 })();

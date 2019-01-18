@@ -11,7 +11,7 @@ module.exports = {
     {
       name:           `${NODE_ENV}_backend`,
       instance_var:   'INSTANCE_ID',
-      script:         'bin/www',
+      script:         'bin/www.js',
       watch:          true,
       ignore_watch:   IGNORE_WATCH,
       env: {
@@ -28,18 +28,6 @@ module.exports = {
       ignore_watch:   IGNORE_WATCH,
       env: {
         PORT:         GRAPHQL_SERVER_PORT,
-        NODE_ENV:     NODE_ENV,
-        autorestart:  true,
-      },
-    },
-    {
-      name:           `${NODE_ENV}_app_static_renderer`,
-      instance_var:   'INSTANCE_ID',
-      script:         'bin/app-static-renderer.js',
-      watch:          true,
-      ignore_watch:   IGNORE_WATCH,
-      env: {
-        PORT:         STATIC_RENDERER_PORT,
         NODE_ENV:     NODE_ENV,
         autorestart:  true,
       },

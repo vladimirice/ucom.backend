@@ -8,7 +8,7 @@ module.exports = {
     {
       name:           `${NODE_ENV}_app_backend`,
       instance_var:   'INSTANCE_ID',
-      script:         'bin/www',
+      script:         'bin/www.js',
       instances:      'max',
       exec_mode:      'cluster',
       watch:          false,

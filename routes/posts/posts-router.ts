@@ -159,4 +159,4 @@ function getPostService(req) {
   return req['container'].get('post-service');
 }
 
-module.exports = postsRouter;
+export = postsRouter;

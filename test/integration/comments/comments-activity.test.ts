@@ -26,6 +26,8 @@ let userPetr;
 
 helpers.Mock.mockAllTransactionSigning();
 
+const JEST_TIMEOUT = 10000;
+
 describe('Comments', () => {
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
@@ -67,7 +69,7 @@ describe('Comments', () => {
         );
         expect(notUpvotedComment.myselfData).toBeDefined();
         expect(notUpvotedComment.myselfData.myselfVote).toBe('no_vote');
-      });
+      }, JEST_TIMEOUT);
       it('should be no myself data if no auth token', async () => {
         const postId = 1;
 
