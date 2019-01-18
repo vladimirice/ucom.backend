@@ -59,6 +59,7 @@ class PostsFetchService {
   ) {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
+    // TODO - fetch comments separately and join the results
     const includeProcessor = usersFeedRepository.getIncludeProcessor();
     includeProcessor(query, params);
 
@@ -99,6 +100,14 @@ class PostsFetchService {
    */
   private static async findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises) {
     const [posts, totalAmount] = await Promise.all(findCountPromises);
+
+    const idToPost = {};
+
+    // TODO - index posts in order to merge it with comments requesting separately
+    // @ts-ignore
+    for (const post of posts) {
+      idToPost[post.id] = post;
+    }
 
     // @ts-ignore
     const postsIds = posts.map((post) => {
