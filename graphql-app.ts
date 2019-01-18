@@ -6,16 +6,18 @@ import { RequestQueryDto } from './lib/api/filters/interfaces/query-filter-inter
 
 const { ApolloServer, gql } = require('apollo-server-express');
 
-const postsFetchService = require('./lib/posts/service/posts-fetch-service');
+const postsFetchService    = require('./lib/posts/service/posts-fetch-service');
+const commentsFetchService = require('./lib/comments/service/comments-fetch-service');
 
 const authService = require('./lib/auth/authService');
-
 const graphQLJSON = require('graphql-type-json');
 
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql`
   type Query {
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!): posts!
+
+    feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
   }
 
   scalar JSON
@@ -122,6 +124,32 @@ const resolvers = {
   JSON: graphQLJSON,
 
   Query: {
+    async feed_comments(
+      // @ts-ignore
+      parent,
+      // @ts-ignore
+      args,
+      // @ts-ignore
+      ctx,
+      // @ts-ignore
+      info,
+    ) {
+      // @ts-ignore
+
+      const commentsQuery = {
+        depth:    0, // always for first level comments
+        page:     args.page,
+        per_page: args.per_page,
+      };
+
+      const currentUserId: number = authService.extractCurrentUserByToken(ctx.req);
+
+      return await commentsFetchService.findAndProcessCommentsByPostId(
+        args.commentable_id,
+        currentUserId,
+        commentsQuery,
+      );
+    },
     async user_wall_feed(
       // @ts-ignore
       parent,

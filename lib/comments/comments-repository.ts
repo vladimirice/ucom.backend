@@ -4,6 +4,8 @@ import { StringToNumberCollection } from '../common/interfaces/common-types';
 const models = require('../../models');
 const db = models.sequelize;
 
+const _ = require('lodash');
+
 const orgModelProvider      = require('../organizations/service').ModelProvider;
 const commentsModelProvider = require('./service').ModelProvider;
 const usersModelProvider    = require('../users/service').ModelProvider;
@@ -166,18 +168,14 @@ class CommentsRepository {
     return model.count({ where: params.where });
   }
 
+  // #task - it is supposed that commentable ID is always Post
+
   public static async findAllByCommentableId(
     commentableId: number,
-    params: DbParamsDto,
+    queryParameters: DbParamsDto,
   ) {
-    // #task - it is supposed that commentable ID is always Post
-
-    params.attributes = model.getFieldsForPreview();
-
-    // #hardcode - move to whereProcessor
-    if (!params.where) {
-      params.where = {};
-    }
+    // #task - move to separateQueryService
+    const params = _.defaults(queryParameters, this.getDefaultListParams());
 
     params.where.commentable_id = commentableId;
 
@@ -288,6 +286,22 @@ class CommentsRepository {
 
   static getAllowedOrderBy(): string[] {
     return [];
+  }
+
+  private static getDefaultOrderBy() {
+    return [
+      ['id', 'DESC'],
+    ];
+  }
+
+  private static getDefaultListParams() {
+    return {
+      attributes: model.getFieldsForPreview(),
+      where: {},
+      offset: 0,
+      limit: 10,
+      order: this.getDefaultOrderBy(),
+    };
   }
 }
 

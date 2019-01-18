@@ -14,7 +14,6 @@ class CommentsFetchService {
     currentUserId: number,
     query: RequestQueryComments,
   ) {
-
     const params: DbParamsDto =
       queryFilterService.getQueryParametersWithRepository(query, commentsRepository);
 
