@@ -12,6 +12,8 @@ let userJane;
 let userPetr;
 let userRokky;
 
+const JEST_TIMEOUT = 10000;
+
 helpers.Mock.mockAllBlockchainPart();
 
 describe('Organizations. Get requests', () => {
@@ -245,7 +247,7 @@ describe('Organizations. Get requests', () => {
           User: user,
         });
       });
-    });
+    }, JEST_TIMEOUT);
 
     it('Get one organization by ID as guest', async () => {
       const modelId = await gen.Org.createOrgWithTeam(userVlad, [userJane, userPetr]);

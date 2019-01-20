@@ -19,22 +19,16 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Mock.mockUsersActivityBackendSigner();
-helpers.Mock.mockBlockchainPart();
+helpers.Mock.mockAllBlockchainPart();
+
+const JEST_TIMEOUT = 5000;
 
 describe('User to user activity', () => {
-  beforeAll(async () => { await helpers.SeedsHelper.beforeAllRoutine(); });
-
   beforeEach(async () => {
-    await helpers.SeedsHelper.initSeedsForUsers();
+    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
 
-    // noinspection JSCheckFunctionSignatures
-    [userVlad, userJane, userPetr, userRokky] = await Promise.all([
-      userHelper.getUserVlad(),
-      userHelper.getUserJane(),
-      userHelper.getUserPetr(),
-      userHelper.getUserRokky(),
-    ]);
+    await helpers.SeedsHelper.seedOrganizations();
+    await helpers.SeedsHelper.seedPosts();
   });
 
   afterAll(async () => { await helpers.SeedsHelper.sequelizeAfterAll(); });
@@ -54,7 +48,7 @@ describe('User to user activity', () => {
           await helpers.ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane);
 
           await helpers.ActivityHelper.requestToCreateFollow(userVlad, userJane);
-        });
+        }, JEST_TIMEOUT);
       });
 
       describe('Follow Negative scenarios', () => {
@@ -68,7 +62,7 @@ describe('User to user activity', () => {
 
           await helpers.ActivityHelper.requestToCreateFollow(whoActs, targetUser);
           await helpers.ActivityHelper.requestToCreateFollow(whoActs, targetUser, 400);
-        });
+        }, JEST_TIMEOUT);
 
         it('should not be possible to follow twice having follow history', async () => {
           const whoActs   = userVlad;
@@ -76,7 +70,7 @@ describe('User to user activity', () => {
 
           await helpers.ActivityHelper.requestToCreateFollowHistory(whoActs, targetUser);
           await helpers.ActivityHelper.requestToCreateFollow(whoActs, targetUser, 400);
-        });
+        }, JEST_TIMEOUT);
 
         it('should not be possible to follow without token', async () => {
           const res = await request(server)
@@ -84,7 +78,7 @@ describe('User to user activity', () => {
           ;
 
           responseHelper.expectStatusUnauthorized(res);
-        });
+        }, JEST_TIMEOUT);
       });
     });
     describe('Unfollow workflow', () => {
@@ -96,13 +90,13 @@ describe('User to user activity', () => {
             await usersActivityRepository.getLastUnfollowActivityForUser(userVlad.id, userJane.id);
           expect(activity).not.toBeNull();
           expect(activity.id).toBeTruthy();
-        });
+        }, JEST_TIMEOUT);
 
         it('should allow to create Unfollow record after follow-unfollow workflow', async () => {
           await helpers.ActivityHelper.requestToCreateFollowHistory(userVlad, userPetr);
 
           await helpers.ActivityHelper.requestToCreateUnfollow(userVlad, userPetr);
-        });
+        }, JEST_TIMEOUT);
       });
 
       describe('Negative scenarios', () => {
@@ -114,7 +108,7 @@ describe('User to user activity', () => {
           await helpers.ActivityHelper.requestToCreateUnfollow(whoActs, targetUser);
 
           await helpers.ActivityHelper.requestToCreateUnfollow(whoActs, targetUser, 400);
-        });
+        }, JEST_TIMEOUT);
 
         it('should not be possible to UNfollow twice having UNfollow history', async () => {
           const whoActs = userVlad;
@@ -122,11 +116,11 @@ describe('User to user activity', () => {
 
           await helpers.ActivityHelper.requestToCreateUnfollowHistory(whoActs, targetUser);
           await helpers.ActivityHelper.requestToCreateUnfollow(whoActs, targetUser, 400);
-        });
+        }, JEST_TIMEOUT);
 
         it('should not be possible to unfollow yourself', async () => {
           await helpers.ActivityHelper.requestToCreateUnfollow(userVlad, userVlad, 400);
-        });
+        }, JEST_TIMEOUT);
 
         it('should not be possible to unfollow user you do not follow', async () => {
           await helpers.ActivityHelper.requestToCreateFollow(
@@ -170,7 +164,7 @@ describe('User to user activity', () => {
       const responseRokky = users.find(data => data.id === userRokky.id);
       expect(responseRokky.myselfData).toBeDefined();
       expect(responseRokky.myselfData.follow).toBeFalsy();
-    });
+    }, JEST_TIMEOUT);
 
     describe('Negative scenarios', () => {
       it('MyselfData. There is no myself data if user is not logged in', async () => {
@@ -186,7 +180,7 @@ describe('User to user activity', () => {
         const userWithMyself = users.some(user => user.myselfData !== undefined);
 
         expect(userWithMyself).toBeFalsy();
-      });
+      }, JEST_TIMEOUT);
     });
   });
 
@@ -202,13 +196,16 @@ describe('User to user activity', () => {
         userVlad,
       ];
 
-      await activityHelper.requestToCreateFollowHistory(userPetr, userVlad);
-      await activityHelper.requestToCreateFollowHistory(userPetr, userRokky);
-      await activityHelper.requestToCreateFollowHistory(userJane, userPetr);
-      await activityHelper.requestToCreateFollowHistory(userVlad, userPetr);
+      await Promise.all([
+        activityHelper.requestToCreateFollowHistory(userPetr, userVlad),
+        activityHelper.requestToCreateFollowHistory(userPetr, userRokky),
+        activityHelper.requestToCreateFollowHistory(userJane, userPetr),
+        activityHelper.requestToCreateFollowHistory(userVlad, userPetr),
+      ]);
 
       const janeSampleRate = await userHelper.setSampleRateToUser(userJane);
       const userRokkySampleRate = await userHelper.setSampleRateToUser(userRokky);
+
       const user = await requestHelper.requestUserByIdAsGuest(userPetr);
 
       const followedBy = user.followed_by;
@@ -234,7 +231,7 @@ describe('User to user activity', () => {
 
       const userRokkyResponse = iFollow.find(data => data.id === userRokky.id);
       expect(+userRokkyResponse.current_rate).toBe(+userRokkySampleRate);
-    });
+    }, JEST_TIMEOUT);
 
     it('I_follow and followed_by of single user - does not exist', async () => {
       const user = await helpers.Req.requestUserByIdAsGuest(userPetr);
@@ -246,7 +243,7 @@ describe('User to user activity', () => {
       const iFollow = user.I_follow;
       expect(iFollow).toBeDefined();
       expect(iFollow.length).toBe(0);
-    });
+    }, JEST_TIMEOUT);
 
     it('Myself - I follow but not my follower', async () => {
 
@@ -263,7 +260,7 @@ describe('User to user activity', () => {
       expect(myselfData).toBeDefined();
       expect(myselfData.follow).toBeTruthy();
       expect(myselfData.myFollower).toBeFalsy();
-    });
+    }, JEST_TIMEOUT);
 
     it('Myself - My follower but I do not follow', async () => {
 
@@ -280,7 +277,7 @@ describe('User to user activity', () => {
       expect(myselfData).toBeDefined();
       expect(myselfData.follow).toBeFalsy();
       expect(myselfData.myFollower).toBeTruthy();
-    });
+    }, JEST_TIMEOUT);
 
     it('Myself both follow and my follower', async () => {
 
@@ -297,14 +294,14 @@ describe('User to user activity', () => {
       expect(myselfData).toBeDefined();
       expect(myselfData.follow).toBeTruthy();
       expect(myselfData.myFollower).toBeTruthy();
-    });
+    }, JEST_TIMEOUT);
 
     it('MyselfData. Does not exist if no token', async () => {
       await helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
       const user = await requestHelper.requestUserByIdAsGuest(userPetr);
 
       expect(user.myselfData).not.toBeDefined();
-    });
+    }, JEST_TIMEOUT);
   });
 
   describe('Post author myself activity', () => {
@@ -341,7 +338,7 @@ describe('User to user activity', () => {
       expect(author.myselfData).toBeDefined();
       expect(author.myselfData.follow).toBeDefined();
       expect(author.myselfData.follow).toBeFalsy();
-    });
+    }, JEST_TIMEOUT);
   });
 
   describe('General negative scenarios', async () => {
@@ -353,7 +350,7 @@ describe('User to user activity', () => {
       ;
 
       responseHelper.expectStatusNotFound(res);
-    });
+    }, JEST_TIMEOUT);
 
     it('Not possible to follow user if userId is malformed', async () => {
       const res = await request(server)

@@ -1,5 +1,5 @@
-// @ts-ignore
-const containerModel = require('./di-container');
+// tslint:disable-next-line:variable-name
+const ContainerModel = require('./di-container');
 const authService = require('../auth/authService');
 const userRepository = require('../users/users-repository');
 const { AppError } = require('../../lib/api/errors');
@@ -7,7 +7,7 @@ const { AppError } = require('../../lib/api/errors');
 // @ts-ignore
 export = (req, res, next) => {
   // @ts-ignore
-  const containerModel = new containerModel();
+  const containerModel = new ContainerModel();
   const container = containerModel.getContainer();
   req['container'] = container;
 

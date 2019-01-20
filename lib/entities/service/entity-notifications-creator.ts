@@ -10,8 +10,6 @@ const entityNotificationRepository      = require('../../entities/repository').N
 const activityToNotificationRepository  = require('../../users/repository').ActivityToNotification;
 const usersActivityRepository           = require('../../users/repository').Activity;
 
-const activityGroupDictionary = require('../../activity/activity-group-dictionary');
-
 const apiPostProcessor = require('../../common/service').PostProcessor;
 const eventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 

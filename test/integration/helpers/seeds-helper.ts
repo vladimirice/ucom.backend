@@ -164,6 +164,10 @@ class SeedsHelper {
     ]);
   }
 
+  public async seedOrganizations() {
+    await models.organizations.bulkCreate(organizationsSeeds);
+  }
+
   /**
    *
    * @param {string} name
@@ -243,6 +247,10 @@ class SeedsHelper {
     await models.organizations.bulkCreate(organizationsSeeds);
   }
 
+  static async seedPosts() {
+    await models.posts.bulkCreate(postsSeeds);
+  }
+
   static async initUsersOnly() {
     await this.destroyTables();
 
@@ -311,11 +319,14 @@ class SeedsHelper {
   }
 
   static async doAfterAll() {
-    await models.sequelize.close();
+    await Promise.all([
+      rabbitMqService.closeAll(),
+      models.sequelize.close(),
+    ]);
   }
 
   static async sequelizeAfterAll() {
-    await models.sequelize.close();
+    models.sequelize.close();
   }
 
   /**

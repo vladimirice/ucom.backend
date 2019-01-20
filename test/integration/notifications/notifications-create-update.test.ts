@@ -8,7 +8,6 @@ const delay = require('delay');
 
 const usersTeamStatusDictionary = require('../../../lib/users/dictionary').UsersTeamStatus;
 
-const rabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 const eventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
 const usersTeamRepository = require('../../../lib/users/repository').UsersTeam;
@@ -27,15 +26,16 @@ helpers.Mock.mockAllTransactionSigning();
 helpers.Mock.mockAllBlockchainJobProducers();
 
 describe('Notifications create-update', () => {
-  beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
-  });
   afterAll(async () => {
-    // await helpers.SeedsHelper.sequelizeAfterAll();
+    // await helpers.SeedsHelper.doAfterAll();
   });
   beforeEach(async () => {
-    await rabbitMqService.purgeNotificationsQueue();
-    await helpers.Seeds.initUsersOnly();
+    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+
+    await Promise.all([
+      helpers.SeedsHelper.seedOrganizations(),
+      helpers.SeedsHelper.seedPosts(),
+    ]);
   });
 
   describe('Repost notifications', () => {
@@ -76,7 +76,7 @@ describe('Notifications create-update', () => {
           repostId,
           parentPostId,
         );
-      });
+      }, JEST_TIMEOUT);
     });
   });
 
@@ -339,11 +339,7 @@ describe('Notifications create-update', () => {
 
         expect(notification.event_id).toBe(eventIdDictionary.getUserCommentsOrgComment());
 
-        const options = {
-          postProcessing: 'notification',
-        };
-
-        helpers.Common.checkUserCommentsOrgCommentNotification(notification, options);
+        helpers.Common.checkUserCommentsOrgCommentNotification(notification);
       });
       it('User creates comment on organization post', async () => {
         const orgAuthor = userVlad;

@@ -29,6 +29,10 @@ pm2-reload-test-ecosystem pmt:
 docker-npm-ci:
 	${DOCKER_B_EXEC_CMD} npm ci
 
+check-project:
+	make docker-compile-typescript
+	${DOCKER_B_EXEC_CMD} /bin/bash ./check-project.sh
+
 docker-compile-typescript:
 	${DOCKER_B_EXEC_CMD} npm run compile-ts
 

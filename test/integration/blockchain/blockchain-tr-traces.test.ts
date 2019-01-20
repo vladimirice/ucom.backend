@@ -83,7 +83,7 @@ describe('Blockchain tr traces sync tests', () => {
 
     }, JEST_TIMEOUT);
 
-    it('Check TR_TYPE_STAKE_WITH_UNSTAKE sync and fetch', async () => {
+    it.skip('Check TR_TYPE_STAKE_WITH_UNSTAKE sync and fetch', async () => {
       const userAlias = 'vlad';
 
       const trOneNet = -1;
@@ -126,9 +126,9 @@ describe('Blockchain tr traces sync tests', () => {
       expect(checked).toBe(2);
 
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    }, JEST_TIMEOUT);
+    },      JEST_TIMEOUT);
 
-    it('Check TR_TYPE_UNSTAKING_REQUEST sync and fetch', async () => {
+    it.skip('Check TR_TYPE_UNSTAKING_REQUEST sync and fetch', async () => {
       const trType = blockchainTrTracesDictionary.getTypeUnstakingRequest();
 
       const accountAlias = 'vlad';
@@ -181,9 +181,9 @@ describe('Blockchain tr traces sync tests', () => {
       expect(checked).toBe(3);
 
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    }, JEST_TIMEOUT);
+    },      JEST_TIMEOUT);
 
-    it('Check typeTransfer sync and fetch', async () => {
+    it.skip('Check typeTransfer sync and fetch', async () => {
       const vladToJaneAmount = 2;
       const janeToVladAmount = 3;
 
@@ -218,9 +218,9 @@ describe('Blockchain tr traces sync tests', () => {
       expect(checked).toBe(2);
 
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    }, JEST_TIMEOUT);
+    },      JEST_TIMEOUT);
 
-    it('Check voteForBP sync and fetch', async () => {
+    it.skip('Check voteForBP sync and fetch', async () => {
 
       const producersList = helpers.Blockchain.getBlockProducersList();
 
@@ -266,10 +266,10 @@ describe('Blockchain tr traces sync tests', () => {
 
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
 
-    }, JEST_TIMEOUT);
+    },      JEST_TIMEOUT);
   });
 
-  it('Check TR_TYPE_BUY_RAM sync and fetch', async () => {
+  it.skip('Check TR_TYPE_BUY_RAM sync and fetch', async () => {
     const userAlias = 'vlad';
     const bytesAmount = 1024 * 1024 * 5;
 
@@ -295,9 +295,9 @@ describe('Blockchain tr traces sync tests', () => {
 
     helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
 
-  }, JEST_TIMEOUT);
+  },      JEST_TIMEOUT);
 
-  it('Check TR_TYPE_SELL_RAM sync and fetch', async () => {
+  it.skip('Check TR_TYPE_SELL_RAM sync and fetch', async () => {
     const userAlias = 'vlad';
     const bytesAmount = 1024 * 1024 * 5;
 
@@ -323,7 +323,7 @@ describe('Blockchain tr traces sync tests', () => {
 
     helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
 
-  }, JEST_TIMEOUT);
+  },      JEST_TIMEOUT);
 
   describe('Skipped autotests', () => {
     it.skip('test real tr block data from blockchain', async () => {

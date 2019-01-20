@@ -42,14 +42,14 @@ class MockHelper {
   static mockOrganizationCreationBlockchainProducer() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
-    organizationService._sendOrgCreationActivityToRabbit = async function (newUserActivity) {};
+    organizationService.sendOrgCreationActivityToRabbit = async function (newUserActivity) {};
   }
 
   static mockUsersActivityBackendSigner() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
-    userActivityService._getSignedFollowTransaction = async function (userFrom, userToAccountName, activityTypeId) {
-      // console.log('MOCK UserActivityService._getSignedFollowTransaction is called');
+    userActivityService.getSignedFollowTransaction = async function (userFrom, userToAccountName, activityTypeId) {
+      // console.log('MOCK UserActivityService.getSignedFollowTransaction is called');
 
       return 'sample_signed_transaction';
     };
@@ -58,7 +58,7 @@ class MockHelper {
   static mockCommentTransactionSigning() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
-    commentsService._addTransactionDataToBody = async function (
+    commentsService.addTransactionDataToBody = async function (
       body,
       // @ts-ignore
       currentUser,
@@ -149,7 +149,7 @@ class MockHelper {
   }
 
   static mockOrganizationBlockchain() {
-    organizationService._addSignedTransactionsForOrganizationCreation = async function (req) {
+    organizationService.addSignedTransactionsForOrganizationCreation = async function (req) {
       req.blockchain_id = `sample_blockchain_id_${orgCounter}`;
       req.signed_transaction = 'sample_signed_transaction';
 
@@ -174,7 +174,7 @@ class MockHelper {
 
   static mockOrganizationFollowingSigning() {
     // noinspection JSUnusedLocalSymbols
-    usersToOrgActivity._addSignedTransactionsForOrganizationFollowing = async function (
+    usersToOrgActivity.addSignedTransactionsForOrganizationFollowing = async function (
       body,
       // @ts-ignore
       currentUser,
@@ -188,7 +188,7 @@ class MockHelper {
 
   static mockBlockchainPart() {
     // noinspection JSUnusedLocalSymbols
-    userActivityService._sendPayloadToRabbit = function (
+    userActivityService.sendPayloadToRabbit = function (
       // @ts-ignore
       activity,
       // @ts-ignore

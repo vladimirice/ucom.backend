@@ -342,7 +342,7 @@ describe('Tags parsing by consumer', () => {
 
         await postsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
         await tagsHelper.checkRelatedPostModelsByPostId(postId, expectedTags);
-      });
+      }, JEST_TIMEOUT);
 
       it('should add one new tag and one existing tag for post without any tags', async () => {
         const expectedTags = [
@@ -509,7 +509,7 @@ describe('Tags parsing by consumer', () => {
           await tagsHelper.getPostWhenTagsAreUpdated(vladPosts[0], expectedTags);
 
         await tagsHelper.checkRelatedPostModels(expectedTags, postAfter);
-      });
+      }, JEST_TIMEOUT);
 
       it('If no new tags - create nothing new in tags model', async () => {
         const postId = existingVladPostId;

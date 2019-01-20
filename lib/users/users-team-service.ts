@@ -1,0 +1,139 @@
+const _ = require('lodash');
+const usersTeamRepository = require('./repository').UsersTeam;
+const USERS_TEAM_PROPERTY = 'users_team';
+const updateManyToManyHelper = require('../api/helpers/UpdateManyToManyHelper');
+const models = require('../../models');
+
+class UsersTeamService {
+  /**
+   *
+   * @param {Object[]} usersTeam
+   * @return {number[]}
+   */
+  static getUsersTeamIds(usersTeam) {
+    const usersIds: any = [];
+
+    if (!usersTeam || _.isEmpty(usersTeam)) {
+      return [];
+    }
+
+    for (let i = 0; i < usersTeam.length; i += 1) {
+      const current = usersTeam[i];
+      const userId = current.id || current.user_id;
+
+      usersIds.push(userId);
+    }
+
+    return usersIds;
+  }
+
+  /**
+   *
+   * @param {number} entityId
+   * @param {string} entityName
+   * @param {Object} data
+   * @param {number|null} idToExclude
+   * @param {Object|null} transaction
+   * @return {Promise<Object[]>}
+   */
+  static async processNewModelWithTeam(
+    entityId,
+    entityName,
+    data,
+    idToExclude = null,
+    transaction = null,
+  ) {
+    const usersTeam = _.filter(data[USERS_TEAM_PROPERTY]);
+
+    if (!usersTeam || _.isEmpty(usersTeam)) {
+      return [];
+    }
+
+    const promises: any = [];
+    usersTeam.forEach((user) => {
+      if (idToExclude === null || +user.id !== idToExclude) {
+        const data = {
+          entity_id:    entityId,
+          entity_name:  entityName,
+          user_id:      +user.id,
+        };
+
+        // TODO make this separately
+        promises.push(usersTeamRepository.createNew(data, transaction));
+      }
+    });
+
+    await Promise.all(promises);
+
+    return usersTeam;
+  }
+
+  static async processUsersTeamUpdating(
+    entityId,
+    entityName,
+    data,
+    idToExclude = null,
+    transaction = null,
+  ) {
+    const usersTeam = _.filter(data[USERS_TEAM_PROPERTY]);
+    if (!usersTeam || _.isEmpty(usersTeam)) {
+      // NOT possible to remove all users because of this. Wil be fixed later
+      return null;
+    }
+
+    const usersTeamFiltered = usersTeam.filter((data) => {
+      return +data.id !== idToExclude;
+    });
+
+    const sourceModels = await usersTeamRepository.findAllRelatedToEntity(entityName, entityId);
+    const deltaData = updateManyToManyHelper.getCreateDeleteOnlyDelta(
+      sourceModels,
+      usersTeamFiltered,
+      'user_id',
+      'id',
+    );
+
+    // tslint:disable-next-line:max-line-length
+    await this.updateRelations(entityId, entityName, deltaData, usersTeamRepository.getModelName(), transaction);
+
+    return deltaData;
+  }
+
+  /**
+   *
+   * @param {number} entityId
+   * @param {string} entityName
+   * @param {Object[]} deltaData
+   * @param {string} modelName
+   * @param {Object} transaction
+   * @return {Promise<boolean>}
+   */
+  static async updateRelations(entityId, entityName, deltaData, modelName, transaction) {
+    const promises: any = [];
+
+    deltaData.added.forEach((data) => {
+      data['entity_id']   = entityId;
+      data['entity_name'] = entityName;
+      data['user_id']     = data['id'];
+
+      delete data['id'];
+
+      promises.push(models[modelName].create(data, { transaction }));
+    });
+
+    deltaData.deleted.forEach((data) => {
+      const promise = models[modelName].destroy({
+        transaction,
+        where: {
+          id: data.id,
+        },
+      });
+
+      promises.push(promise);
+    });
+
+    return Promise.all(promises);
+  }
+}
+
+export = UsersTeamService;

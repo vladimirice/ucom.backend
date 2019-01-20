@@ -15,6 +15,9 @@ const activityMiddlewareSet = [
     cpUpload,
     activityApiMiddleware.redlockBeforeActivity,
 ];
+if (process.env.NODE_ENV !== 'test') {
+    activityMiddlewareSet.push(activityApiMiddleware.redlockBeforeActivity);
+}
 /* Get all posts */
 postsRouter.get('/', async (req, res) => {
     // noinspection JSDeprecatedSymbols
