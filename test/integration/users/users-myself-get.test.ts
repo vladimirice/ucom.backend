@@ -1,10 +1,10 @@
 export {};
 
+const request = require('supertest');
 const helpers = require('../helpers');
 const gen = require('../../generators');
 
 const usersRepository = require('./../../../lib/users/users-repository');
-const request = require('supertest');
 const server = require('../../../app');
 
 helpers.Mock.mockAllBlockchainPart();
@@ -36,9 +36,7 @@ describe('Myself. Get requests', () => {
 
       const res = await request(server)
         .get(helpers.Req.getMyselfUrl())
-        .set('Authorization', `Bearer ${userVlad.token}`)
-      ;
-
+        .set('Authorization', `Bearer ${userVlad.token}`);
       expect(res.body.unread_messages_count).toBeDefined();
     });
 
@@ -47,9 +45,7 @@ describe('Myself. Get requests', () => {
 
       const res = await request(server)
         .get(helpers.Req.getMyselfUrl())
-        .set('Authorization', `Bearer ${userVlad.token}`)
-      ;
-
+        .set('Authorization', `Bearer ${userVlad.token}`);
       expect(res.status).toBe(200);
       const user = await usersRepository.getUserById(userVlad.id);
 
@@ -71,17 +67,16 @@ describe('Myself. Get requests', () => {
         await helpers.Seeds.seedOrganizations();
 
         const myself = userVlad;
-        const usersToFollow   = [userJane, userPetr];
+        const usersToFollow = [userJane, userPetr];
         const usersToUnfollow = [userRokky];
 
-        const { usersIdsToFollow } =
-          await helpers.Activity.requestToCreateFollowUnfollowHistoryOfUsers(
-            myself,
-            usersToFollow,
-            usersToUnfollow,
-          );
+        const { usersIdsToFollow } = await helpers.Activity.requestToCreateFollowUnfollowHistoryOfUsers(
+          myself,
+          usersToFollow,
+          usersToUnfollow,
+        );
 
-        const orgIdsToFollow   = [1, 3, 4];
+        const orgIdsToFollow = [1, 3, 4];
         const orgIdsToUnfollow = [2, 5];
 
         await helpers.Activity.requestToCreateFollowUnfollowHistoryOfOrgs(
@@ -90,8 +85,7 @@ describe('Myself. Get requests', () => {
           orgIdsToUnfollow,
         );
 
-        const { usersIds, orgIds } =
-          await usersActivityRepository.findOneUserFollowActivity(myself.id);
+        const { usersIds, orgIds } = await usersActivityRepository.findOneUserFollowActivity(myself.id);
 
         expect(usersIds.sort()).toEqual(usersIdsToFollow.sort());
         expect(orgIds.sort()).toEqual(orgIdsToFollow.sort());
@@ -103,13 +97,12 @@ describe('Myself. Get requests', () => {
 
         await helpers.Activity.requestToCreateFollow(repostAuthor, parentPostAuthor);
 
-        const [postIdToRepost, secondPostIdToRepost, postIdNotToRepost, secondPostIdNotToRepost] =
-          await Promise.all([
-            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
-            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
-            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
-            gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
-          ]);
+        const [postIdToRepost, secondPostIdToRepost, postIdNotToRepost, secondPostIdNotToRepost] = await Promise.all([
+          gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+          gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+          gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+          gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+        ]);
 
         await Promise.all([
           gen.Posts.createRepostOfUserPost(repostAuthor, postIdToRepost),
@@ -211,10 +204,9 @@ describe('Myself. Get requests', () => {
 
         // noinspection JSUnusedLocalSymbols
         const [
-          vladMediaPost,  vladPostOffer,  vladDirectPost,
-          janeMediaPost,  janePostOffer,  janeDirectPost,
-          petrMediaPost,  petrPostOffer,  petrDirectPost,
-          , , ,
+          vladMediaPost, vladPostOffer, vladDirectPost,
+          janeMediaPost, janePostOffer, janeDirectPost,
+          petrMediaPost, petrPostOffer, petrDirectPost,, , ,
 
           janeMediaPostOrg, janePostOfferOrg, janeDirectPostOrg,
         ] = await Promise.all(promisesToCreatePosts);
@@ -250,9 +242,7 @@ describe('Myself. Get requests', () => {
         const url = helpers.Req.getMyselfNewsFeedUrl();
 
         const res = await request(server)
-          .get(url)
-        ;
-
+          .get(url);
         helpers.Res.expectStatusUnauthorized(res);
       });
     });

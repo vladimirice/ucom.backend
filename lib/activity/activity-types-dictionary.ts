@@ -97,7 +97,6 @@ class ActivityTypesDictionary {
   static isDownvoteActivity(model) {
     return model.activity_type_id === this.getDownvoteId();
   }
-
 }
 
 export = ActivityTypesDictionary;

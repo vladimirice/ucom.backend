@@ -1,5 +1,6 @@
 const express = require('express');
-const router  = express.Router();
+
+const router = express.Router();
 const _ = require('lodash');
 const eosJsEcc = require('../lib/crypto/eosjs-ecc');
 const { AppError } = require('../lib/api/errors');
@@ -9,6 +10,7 @@ const usersService = require('../lib/users/users-service');
 
 const { formDataParser } = require('../lib/api/middleware/form-data-parser-middleware');
 
+// eslint-disable-next-line consistent-return
 router.post('/login', [formDataParser], async (req, res, next) => {
   // Public key is not required here
 
@@ -25,7 +27,7 @@ router.post('/login', [formDataParser], async (req, res, next) => {
 
   if (!user) {
     return res.status(400).send({
-      errors : [
+      errors: [
         {
           field: 'account_name',
           message: 'Such account does not exist in blockchain',
@@ -45,7 +47,7 @@ router.post('/login', [formDataParser], async (req, res, next) => {
 
     if (!isSignValid) {
       return res.status(400).send({
-        errors : [
+        errors: [
           {
             field: 'account_name',
             message: 'Such account does not exist in blockchain',
@@ -61,7 +63,6 @@ router.post('/login', [formDataParser], async (req, res, next) => {
       user,
       success: true,
     });
-
   } catch (e) {
     return next(new AppError(e.message, 400));
   }

@@ -2,7 +2,7 @@ module.exports = {
   account_creator: {
     account_name: 'accregistrar',
     activePk: 'samlpe',
-    activePubKey: 'samlpe'
+    activePubKey: 'samlpe',
   },
   vlad: {
     account_name: 'vladvladvlad',
@@ -10,7 +10,7 @@ module.exports = {
     ownerPk: 'samlpe',
     ownerPubKey: 'samlpe',
     activePk: 'samlpe',
-    activePubKey: 'samlpe'
+    activePubKey: 'samlpe',
   },
   jane: {
     account_name: 'janejanejane',
@@ -41,6 +41,6 @@ module.exports = {
     'calc2',
     'calc3',
     'calc4',
-    'calc5'
+    'calc5',
   ],
 };

@@ -1,12 +1,38 @@
 const express = require('express');
-const router  = express.Router();
+
+const router = express.Router();
 
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
-const { cpUpload }        = require('../lib/users/avatar-upload-middleware');
+const { cpUpload } = require('../lib/users/avatar-upload-middleware');
+
+/**
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+  return req.container.get('post-service');
+}
+
+function getEntityNotificationsService(req) {
+  return req.container.get('entity-notifications-service');
+}
+
+function getBlockchainService(req) {
+  return req.container.get('blockchain-service');
+}
+
+/**
+ *
+ * @param {Object} req
+ * @returns {userService}
+ */
+function getUserService(req) {
+  return req.container.get('user-service');
+}
 
 /* Get myself data (Information for profile) */
 router.get('/', [authTokenMiddleWare], async (req, res) => {
-  const currentUserId = req['user'].id;
+  const currentUserId = req.user.id;
   const user = await getUserService(req).getUserByIdAndProcess(currentUserId);
 
   res.send(user);
@@ -21,7 +47,7 @@ router.get('/blockchain/transactions', [authTokenMiddleWare], async (req, res) =
 });
 
 router.get('/news-feed', [authTokenMiddleWare], async (req, res) => {
-  const query = req.query;
+  const { query } = req;
 
   const response = await getPostService(req).findAndProcessAllForMyselfNewsFeed(query);
 
@@ -29,7 +55,7 @@ router.get('/news-feed', [authTokenMiddleWare], async (req, res) => {
 });
 
 router.get('/notifications', [authTokenMiddleWare], async (req, res) => {
-  const query = req.query;
+  const { query } = req;
   const service = getEntityNotificationsService(req);
 
   const response = await service.getAllNotifications(query);
@@ -72,29 +98,5 @@ router.patch('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
   res.send(response);
 });
 
-/**
- *
- * @param {Object} req
- * @returns {userService}
- */
-function getUserService(req) {
-  return req['container'].get('user-service');
-}
-
-/**
- * @param {Object} req
- * @returns {PostService}
- */
-function getPostService(req) {
-  return req['container'].get('post-service');
-}
-
-function getEntityNotificationsService(req) {
-  return req.container.get('entity-notifications-service');
-}
-
-function getBlockchainService(req) {
-  return req['container'].get('blockchain-service');
-}
-
+// @ts-ignore
 export = router;

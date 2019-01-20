@@ -1,11 +1,11 @@
 #!/bin/bash
 
 echo "Let's check project"
-OUTPUT="$(git status --porcelain)"
+gitOutput="$(git status --porcelain)"
 
-if [[ -z "$OUTPUT" ]]; then
+if [[ -z "$gitOutput" ]]; then
 echo "Working directory clean"
 else
-    echo ERROR: There are changes:  ${OUTPUT}. Please commit them 1>&2
+    echo ERROR: Git status - there are changes. Please commit them. ${gitOutput}. 1>&2
     exit 1 # terminate and indicate error
 fi

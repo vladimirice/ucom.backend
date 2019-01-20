@@ -1,11 +1,11 @@
 const express = require('express');
-const path    = require('path');
+const path = require('path');
 
-const { ApiLoggerStream, ApiLogger }  = require('./config/winston');
-const ApiErrorAndLoggingHelper        = require('./lib/api/helpers/api-error-and-logging-helper');
-const diContainerMiddleware           = require('./lib/api/di-container-middleware');
+const { ApiLoggerStream, ApiLogger } = require('./config/winston');
+const ApiErrorAndLoggingHelper = require('./lib/api/helpers/api-error-and-logging-helper');
+const diContainerMiddleware = require('./lib/api/di-container-middleware');
 
-const EosApi                          = require('./lib/eos/eosApi');
+const EosApi = require('./lib/eos/eosApi');
 
 const usersRouter = require('./routes/users-route');
 const authRouter = require('./routes/auth');
@@ -30,8 +30,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(diContainerMiddleware);
 
 // #task - very weak origin policy
-app.use(function (req, res, next) {
-
+app.use((req, res, next) => {
   // Website you wish to allow to connect
   res.setHeader('Access-Control-Allow-Origin', '*');
 

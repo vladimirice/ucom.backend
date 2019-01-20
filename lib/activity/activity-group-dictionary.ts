@@ -1,18 +1,17 @@
-const GROUP__CONTENT_CREATION                 = 1; // content creation by user himself
-const GROUP__CONTENT_INTERACTION              = 2;
-const GROUP__USER_USER_INTERACTION            = 3;
+const GROUP__CONTENT_CREATION = 1; // content creation by user himself
+const GROUP__CONTENT_INTERACTION = 2;
+const GROUP__USER_USER_INTERACTION = 3;
 
 // no repost creation by organization but user content creation by organization
-const GROUP_CONTENT_CREATION_BY_ORGANIZATION  = 4;
+const GROUP_CONTENT_CREATION_BY_ORGANIZATION = 4;
 
-const GROUP__USERS_TEAM_INVITATION                = 20;
-const GROUP__USER_INTERACTS_WITH_BLOCKCHAIN_NODE  = 30;
+const GROUP__USERS_TEAM_INVITATION = 20;
+const GROUP__USER_INTERACTS_WITH_BLOCKCHAIN_NODE = 30;
 
-const GROUP_CONTENT_UPDATING                      = 40;
-const GROUP_TAG_EVENT                             = 50;
+const GROUP_CONTENT_UPDATING = 40;
+const GROUP_TAG_EVENT = 50;
 
 class ActivityGroupDictionary {
-
   /**
    *
    * @return {number}

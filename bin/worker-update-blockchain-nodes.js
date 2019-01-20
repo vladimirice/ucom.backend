@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const blockchainService = require('../lib/eos/service').Blockchain;
 const { WalletApi } = require('ucom-libs-wallet');
+const blockchainService = require('../lib/eos/service').Blockchain;
 const { WorkerLogger } = require('../config/winston');
 switch (process.env.NODE_ENV) {
     case 'test':
@@ -16,6 +16,7 @@ switch (process.env.NODE_ENV) {
     default:
         throw new Error(`Unknown environment ${process.env.NODE_ENV}`);
 }
+// eslint-disable-next-line promise/always-return
 blockchainService.updateBlockchainNodesByBlockchain().then(() => {
     console.log('Promise is resolved');
 }).catch((err) => {

@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const app = require('../app');
 const http = require('http');
+const app = require('../app');
 const socketIoServer = require('../lib/websockets/socket-io-server');
 /**
  * Get port from environment and store in Express.
  */
+// eslint-disable-next-line no-use-before-define
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 /**
@@ -14,21 +15,23 @@ app.set('port', port);
 const server = http.createServer(app);
 // noinspection JSCheckFunctionSignatures
 server.listen(port);
+// eslint-disable-next-line no-use-before-define
 server.on('error', onError);
+// eslint-disable-next-line import/order
 const io = require('socket.io').listen(server);
 socketIoServer.initServer(io);
 /**
  * Normalize a port into a number, string, or false.
  */
 function normalizePort(val) {
-    const port = parseInt(val, 10);
-    if (isNaN(port)) {
+    const parsed = parseInt(val, 10);
+    if (Number.isNaN(parsed)) {
         // named pipe
         return val;
     }
-    if (port >= 0) {
+    if (parsed >= 0) {
         // port number
-        return port;
+        return parsed;
     }
     return false;
 }
@@ -45,13 +48,9 @@ function onError(error) {
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case 'EACCES':
-            console.error(`${bind} requires elevated privileges`);
-            process.exit(1);
-            break;
+            throw new Error(`${bind} requires elevated privileges`);
         case 'EADDRINUSE':
-            console.error(`${bind} is already in use`);
-            process.exit(1);
-            break;
+            throw new Error(`${bind} is already in use`);
         default:
             throw error;
     }

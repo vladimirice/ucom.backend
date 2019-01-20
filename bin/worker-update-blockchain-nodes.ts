@@ -1,7 +1,8 @@
+/* eslint-disable no-console */
 export {};
 
+const { WalletApi } = require('ucom-libs-wallet');
 const blockchainService = require('../lib/eos/service').Blockchain;
-const { WalletApi }     = require('ucom-libs-wallet');
 
 const { WorkerLogger } = require('../config/winston');
 
@@ -19,6 +20,7 @@ switch (process.env.NODE_ENV) {
     throw new Error(`Unknown environment ${process.env.NODE_ENV}`);
 }
 
+// eslint-disable-next-line promise/always-return
 blockchainService.updateBlockchainNodesByBlockchain().then(() => {
   console.log('Promise is resolved');
 }).catch((err) => {

@@ -8,6 +8,7 @@ const authValidator = require('../lib/auth/validators');
 const authService = require('../lib/auth/authService');
 const usersService = require('../lib/users/users-service');
 const { formDataParser } = require('../lib/api/middleware/form-data-parser-middleware');
+// eslint-disable-next-line consistent-return
 router.post('/login', [formDataParser], async (req, res, next) => {
     // Public key is not required here
     const payload = _.pick(req.body, ['account_name', 'public_key', 'sign']);

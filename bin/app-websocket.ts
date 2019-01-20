@@ -1,6 +1,6 @@
+/* eslint-disable no-console */
 export {};
 
-const socketIoServer = require('../lib/websockets/socket-io-server');
 
 const express = require('express');
 
@@ -8,6 +8,7 @@ const app = express();
 // noinspection TypeScriptValidateJSTypes
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const socketIoServer = require('../lib/websockets/socket-io-server');
 
 app.use(express.json());
 

@@ -29,12 +29,23 @@ pm2-reload-test-ecosystem pmt:
 docker-npm-ci:
 	${DOCKER_B_EXEC_CMD} npm ci
 
-check-project:
+docker-prepare-for-tests pft:
+	make init-project
+	make docker-check-project
+
+docker-check-project:
 	make docker-compile-typescript
-	${DOCKER_B_EXEC_CMD} /bin/bash ./check-project.sh
+	make docker-check-by-eslint
+	make docker-check-project-script
 
 docker-compile-typescript:
 	${DOCKER_B_EXEC_CMD} npm run compile-ts
+
+docker-check-by-eslint:
+	${DOCKER_B_EXEC_CMD} npm run check-by-eslint
+
+docker-check-project-script:
+	${DOCKER_B_EXEC_CMD} /bin/bash ./check-project.sh
 
 docker-compile-typescript-watch:
 	${DOCKER_B_EXEC_CMD} npm run compile-ts-watch

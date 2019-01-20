@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const socketIoServer = require('../lib/websockets/socket-io-server');
 const express = require('express');
 const app = express();
 // noinspection TypeScriptValidateJSTypes
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const socketIoServer = require('../lib/websockets/socket-io-server');
 app.use(express.json());
 const EVENT_NAME__NOTIFICATION = 'notification';
 const port = process.env.PORT || '5000';

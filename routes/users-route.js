@@ -8,6 +8,22 @@ const userActivityService = require('../lib/users/user-activity-service');
 const userService = require('../lib/users/users-service');
 const usersApiMiddleware = require('../lib/users/middleware/users-api-middleware');
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
+/**
+ *
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+    return req.container.get('post-service');
+}
+/**
+ *
+ * @param {Object} req
+ * @returns {userService}
+ */
+function getUserService(req) {
+    return req.container.get('user-service');
+}
 /* Find users by name fields - shortcut */
 usersRouter.get('/search', async (req, res) => {
     const query = req.query.q;
@@ -38,7 +54,7 @@ usersRouter.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async (req,
 /* GET wall feed for user */
 usersRouter.get('/:user_id/wall-feed', [bodyParser], async (req, res) => {
     const userId = req.user_id;
-    const query = req.query;
+    const { query } = req;
     const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId, query);
     res.send(response);
 });
@@ -61,20 +77,4 @@ usersRouter.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser], async 
     });
 });
 usersRouter.param('user_id', usersApiMiddleware.userIdentityParam);
-/**
- *
- * @param {Object} req
- * @returns {userService}
- */
-function getUserService(req) {
-    return req.container.get('user-service');
-}
-/**
- *
- * @param {Object} req
- * @returns {PostService}
- */
-function getPostService(req) {
-    return req.container.get('post-service');
-}
 module.exports = usersRouter;

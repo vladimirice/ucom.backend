@@ -1,15 +1,34 @@
 const express = require('express');
-const usersRouter  = express.Router();
-const status  = require('statuses');
+
+const usersRouter = express.Router();
+const status = require('statuses');
 
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
 const userActivityService = require('../lib/users/user-activity-service');
 const userService = require('../lib/users/users-service');
 
-const usersApiMiddleware   = require('../lib/users/middleware/users-api-middleware');
+const usersApiMiddleware = require('../lib/users/middleware/users-api-middleware');
 
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
+
+/**
+ *
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+  return req.container.get('post-service');
+}
+
+/**
+ *
+ * @param {Object} req
+ * @returns {userService}
+ */
+function getUserService(req) {
+  return req.container.get('user-service');
+}
 
 /* Find users by name fields - shortcut */
 usersRouter.get('/search', async (req, res) => {
@@ -36,7 +55,6 @@ usersRouter.get('/:user_id', async (req, res) => {
 
 /* GET all user posts */
 usersRouter.get('/:user_id/posts', async (req, res) => {
-
   const userId = req.user_id;
   const posts = await getPostService(req).findAndProcessAllForUserWallFeed(userId);
 
@@ -53,7 +71,7 @@ usersRouter.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async (req,
 /* GET wall feed for user */
 usersRouter.get('/:user_id/wall-feed', [bodyParser], async (req, res) => {
   const userId = req.user_id;
-  const query = req.query;
+  const { query } = req;
 
   const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId, query);
 
@@ -85,23 +103,5 @@ usersRouter.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser], async 
 });
 
 usersRouter.param('user_id', usersApiMiddleware.userIdentityParam);
-
-/**
- *
- * @param {Object} req
- * @returns {userService}
- */
-function getUserService(req) {
-  return req.container.get('user-service');
-}
-
-/**
- *
- * @param {Object} req
- * @returns {PostService}
- */
-function getPostService(req) {
-  return req.container.get('post-service');
-}
 
 export = usersRouter;

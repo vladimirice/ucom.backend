@@ -2,7 +2,7 @@ class AppError extends Error {
   // @ts-ignore
   private status;
 
-  constructor (message, status) {
+  constructor(message, status) {
     // noinspection JSCheckFunctionSignatures
     super(message);
 
@@ -17,8 +17,7 @@ class BadRequestError extends Error {
   // @ts-ignore
   private status;
 
-  constructor (fieldsAndMessages, status = 400) {
-
+  constructor(fieldsAndMessages, status = 400) {
     const message = {
       errors: fieldsAndMessages,
     };
@@ -37,9 +36,9 @@ class JoiBadRequestError extends Error {
   // @ts-ignore
   private status;
 
-  constructor (error) {
-
+  constructor(error) {
     const message = {
+      // eslint-disable-next-line no-use-before-define
       errors: formatJoiErrorMessages(error.details),
     };
 
@@ -57,7 +56,7 @@ class HttpForbiddenError extends Error {
   // @ts-ignore
   private status;
 
-  constructor (message) {
+  constructor(message) {
     // noinspection JSCheckFunctionSignatures
     super(message);
 
@@ -76,10 +75,12 @@ class HttpForbiddenError extends Error {
 function formatJoiErrorMessages(errors) {
   const result: any = [];
   for (let i = 0; i < errors.length; i += 1) {
-    const key = errors[i].context.key;
+    // eslint-disable-next-line
+    const { key } = errors[i].context;
     result.push({
       field: key,
-      message: errors[i].message.replace(/['"]+/g, ''),
+      // eslint-disable-next-line
+      message: errors[i].message.replace(/["']+/g, ''),
     });
   }
 

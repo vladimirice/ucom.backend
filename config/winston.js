@@ -1,18 +1,21 @@
 const appRoot = require('app-root-path');
-const Sentry  = require('winston-sentry-raven-transport');
+const Sentry = require('winston-sentry-raven-transport');
 
-const winston     = require('winston');
-const { format }  = require('winston');
-const { combine, timestamp, label, printf } = format;
+const winston = require('winston');
+const { format } = require('winston');
+
+const {
+  combine, timestamp, label, printf,
+} = format;
 
 const { stringify } = require('flatted/cjs');
 
 const MAX_FILE_SIZE = 104857600; // 100 MB;
-const MAX_FILES     = 30;
+const MAX_FILES = 30;
 
-const LOGGER__API     = 'api';
+const LOGGER__API = 'api';
 const LOGGER_CONSUMER = 'consumer';
-const LOGGER_WORKER   = 'worker';
+const LOGGER_WORKER = 'worker';
 
 const LOGGERS_ALL = [
   LOGGER__API,
@@ -56,7 +59,7 @@ const options = {
   sentry: {
     dsn: 'http://32db371651644b0da6d582d2c71d05c3@sentry.u.community/1',
     level: 'error',
-  }
+  },
 };
 
 // noinspection JSValidateTypes
@@ -67,7 +70,7 @@ const transports = [
 
 if (process.env.NODE_ENV === 'production') {
   transports.push(
-    new Sentry(options.sentry)
+    new Sentry(options.sentry),
   );
 }
 
@@ -75,11 +78,12 @@ function getFormat(labelToSet) {
   return combine(
     label({ label: labelToSet }),
     timestamp(),
-    myFormat
+    myFormat,
   );
 }
 
-for (let i = 0; i < LOGGERS_ALL.length; i++) {
+for (let i = 0; i < LOGGERS_ALL.length; i += 1) {
+  // eslint-disable-next-line security/detect-object-injection
   const loggerName = LOGGERS_ALL[i];
 
   winston.loggers.add(loggerName, {
@@ -93,15 +97,15 @@ for (let i = 0; i < LOGGERS_ALL.length; i++) {
 }
 
 const ApiLoggerStream = {
-  write: function(message) {
+  write(message) {
     winston.loggers.get(LOGGER__API).info(message);
   },
 };
 
 module.exports = {
-  ApiLogger:      winston.loggers.get(LOGGER__API),
+  ApiLogger: winston.loggers.get(LOGGER__API),
   ConsumerLogger: winston.loggers.get(LOGGER_CONSUMER),
-  WorkerLogger:   winston.loggers.get(LOGGER_WORKER),
+  WorkerLogger: winston.loggers.get(LOGGER_WORKER),
 
-  ApiLoggerStream
+  ApiLoggerStream,
 };

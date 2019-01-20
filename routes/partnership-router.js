@@ -1,7 +1,7 @@
 "use strict";
+/* eslint-disable no-param-reassign */
 const express = require('express');
 const router = express.Router();
-const _ = require('lodash');
 const orgRepository = require('../lib/organizations/repository').Main;
 const usersRepository = require('../lib/users/repository').Main;
 const orgModelProvider = require('../lib/organizations/service/organizations-model-provider');
@@ -12,10 +12,14 @@ router.get('/search', async (req, res) => {
     const orgs = await orgRepository.findByNameFields(query);
     const users = await usersRepository.findByNameFields(query);
     orgs.forEach((model) => {
+        // eslint-disable-next-line no-param-reassign
         model.entity_name = orgModelProvider.getEntityName();
+        // eslint-disable-next-line no-param-reassign
         model.entity_id = model.id;
         orgPostProcessor.processOneOrg(model);
+        // eslint-disable-next-line no-param-reassign
         delete model.id;
+        // eslint-disable-next-line no-param-reassign
         delete model.followed_by;
     });
     users.forEach((model) => {
@@ -28,6 +32,6 @@ router.get('/search', async (req, res) => {
         // #task - remove from search result
         delete model.account_name;
     });
-    res.send(_.concat(orgs, users));
+    res.send(Array.prototype.concat(orgs, users));
 });
 module.exports = router;

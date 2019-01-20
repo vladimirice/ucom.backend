@@ -1,4 +1,6 @@
+// eslint-disable-next-line no-unused-vars
 import { Request, Response } from 'express';
+
 const { BadRequestError } = require('../../../lib/api/errors');
 const { ApiLogger } = require('../../../config/winston');
 
@@ -37,8 +39,8 @@ class ActivityApiMiddleware {
           general: 'You already have an action request. Please wait until it is finished.',
         });
       } else {
-        err.message +=
-          'There is an error related to REDIS. Lets continue without parallel action lock';
+        err.message
+          += 'There is an error related to REDIS. Lets continue without parallel action lock';
         ApiLogger.error(err);
       }
 
@@ -50,8 +52,8 @@ class ActivityApiMiddleware {
     try {
       await redisClient.actionRedlockUnlock(redlockLock);
     } catch (err) {
-      err.message +=
-        'There is an error related to REDIS. Lets continue without parallel action lock';
+      err.message
+        += 'There is an error related to REDIS. Lets continue without parallel action lock';
       ApiLogger.error(err);
     }
   }

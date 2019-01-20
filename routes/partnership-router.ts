@@ -1,13 +1,14 @@
+/* eslint-disable no-param-reassign */
 const express = require('express');
+
 const router = express.Router();
-const _ = require('lodash');
 
-const orgRepository       = require('../lib/organizations/repository').Main;
-const usersRepository     = require('../lib/users/repository').Main;
-const orgModelProvider    = require('../lib/organizations/service/organizations-model-provider');
-const usersModelProvider  = require('../lib/users/users-model-provider');
+const orgRepository = require('../lib/organizations/repository').Main;
+const usersRepository = require('../lib/users/repository').Main;
+const orgModelProvider = require('../lib/organizations/service/organizations-model-provider');
+const usersModelProvider = require('../lib/users/users-model-provider');
 
-const orgPostProcessor  = require('../lib/organizations/service/organization-post-processor');
+const orgPostProcessor = require('../lib/organizations/service/organization-post-processor');
 
 router.get('/search', async (req, res) => {
   const query = req.query.q;
@@ -15,12 +16,16 @@ router.get('/search', async (req, res) => {
   const users = await usersRepository.findByNameFields(query);
 
   orgs.forEach((model) => {
+    // eslint-disable-next-line no-param-reassign
     model.entity_name = orgModelProvider.getEntityName();
-    model.entity_id   = model.id;
+    // eslint-disable-next-line no-param-reassign
+    model.entity_id = model.id;
 
     orgPostProcessor.processOneOrg(model);
 
+    // eslint-disable-next-line no-param-reassign
     delete model.id;
+    // eslint-disable-next-line no-param-reassign
     delete model.followed_by;
   });
 
@@ -39,7 +44,8 @@ router.get('/search', async (req, res) => {
     delete model.account_name;
   });
 
-  res.send(_.concat(orgs, users));
+  res.send(Array.prototype.concat(orgs, users));
 });
 
+// @ts-ignore
 export = router;
