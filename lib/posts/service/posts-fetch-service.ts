@@ -117,14 +117,15 @@ class PostsFetchService {
       };
     }
 
-    if (query && query.include && ~query.include.indexOf('comments')) {
+    // #task - use included query
+    if (query && query.included_query && query.included_query.comments) {
+
       // #task - prototype realization for demo, N+1 issue
       for (const id of postsIds) {
         // #task - should be defined as default parameters for comments pagination
         const commentsQuery = {
           depth: 0,
-          page: 1,
-          per_page: 10,
+          ...query.included_query.comments,
         };
 
         idToPost[id].comments = await commentsFetchService.findAndProcessCommentsByPostId(id, currentUserId, commentsQuery);

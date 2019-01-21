@@ -19,7 +19,7 @@ const authService = require('./lib/auth/authService');
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql`
   type Query {
-    user_wall_feed(user_id: Int!, page: Int!, per_page: Int!): posts!
+    user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
     comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
@@ -125,6 +125,11 @@ const typeDefs = gql`
   type comment_metadata {
     next_depth_total_amount: Int!
   }
+  
+  input comments_query {
+    page: Int!
+    per_page: Int!
+  }
 `;
 
 const resolvers = {
@@ -179,7 +184,7 @@ const resolvers = {
       parent,
       // @ts-ignore
       args,
-      // @ts-ignore
+      // @ts-ignoreuser_wall_feed
       ctx,
       // @ts-ignore
       info,
@@ -192,6 +197,9 @@ const resolvers = {
         include: [
           'comments',
         ],
+        included_query: {
+          comments: args.comments_query,
+        },
       };
 
       // const parsedResolveInfoFragment = parseResolveInfo(info);

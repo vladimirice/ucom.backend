@@ -6,6 +6,10 @@ interface RequestQueryDto {
   readonly last_id?: string;
 
   readonly include?: string[];
+
+  readonly included_query?: {
+      [index: string]: RequestQueryDto,
+    }
 }
 
 interface RequestQueryComments extends RequestQueryDto {

@@ -350,7 +350,6 @@ query {
         const { repostId }: { repostId: number } =
           await postsGenerator.createUserPostAndRepost(userVlad, userJane);
 
-
         const query = gql`
 query {
   user_wall_feed(user_id: ${userJane.id}, page: 1, per_page: 3) {
@@ -489,13 +488,15 @@ query {
 
         const [postOneId, postTwo] = await Promise.all(promisesToCreatePosts);
 
-        const [commentOne, commentTwo] = await Promise.all([
+        // @ts-ignore
+        const [commentOne, commentTwo, commentThree] = await Promise.all([
           commentsGenerator.createCommentForPost(
             postOneId,
             userJane,
             'Jane comments - for post one',
           ),
           commentsGenerator.createCommentForPost(postOneId, userJane, 'Comment two for post two'),
+          commentsGenerator.createCommentForPost(postOneId, userJane, 'Comment two for post two2'),
           commentsGenerator.createCommentForPost(postTwo.id, userJane, 'Comment two for post two'),
         ]);
 
@@ -507,9 +508,12 @@ query {
 
         await commentsHelper.requestToUpvoteComment(postOneId, commentOne.id, userVlad);
 
+        const commentsPage = 1;
+        const commentsPerPage = 2;
+
         const query = gql`
 query {
-  user_wall_feed(user_id: 1, page: 1, per_page: 3) {
+  user_wall_feed(user_id: 1, page: 1, per_page: 3, comments_query: {page: ${commentsPage}, per_page: ${commentsPerPage}}) {
     data {
      id
      title
@@ -631,9 +635,9 @@ query {
         const postOneCommentsMetadata = postOne.comments.metadata;
         expect(postOneCommentsMetadata).toBeDefined();
 
-        expect(postOneCommentsMetadata.page).toBe(1);
-        expect(postOneCommentsMetadata.per_page).toBe(10);
-        expect(postOneCommentsMetadata.has_more).toBeFalsy();
+        expect(postOneCommentsMetadata.page).toBe(commentsPage);
+        expect(postOneCommentsMetadata.per_page).toBe(commentsPerPage);
+        expect(postOneCommentsMetadata.has_more).toBeTruthy();
 
         const commentWithComment = postOne.comments.data.find(item => item.id === commentOne.id);
         const commentWithoutComment = postOne.comments.data.find(item => item.id === commentTwo.id);
