@@ -11,3 +11,6 @@
 * Business logic validation before sending transactions to blockchain.
 * Content storage. In future all content will be stored inside IPFS
 * Blockchain information caching - for example, transactions and block producers explorer.
+
+
+See [CONTRIBUTING](../../../uos.docs/blob/master/CONTRIBUTING.md) for U°Community projects information.
