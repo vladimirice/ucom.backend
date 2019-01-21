@@ -1,12 +1,12 @@
 import { CommentModel, CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
 
-import RequestHelper = require('../helpers/request-helper');
-
 export {};
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
 const { InMemoryCache } = require('apollo-cache-inmemory');
+
+const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 const mockHelper = require('../helpers/mock-helper.ts');
 
@@ -27,46 +27,6 @@ let userVlad;
 let userJane;
 
 const JEST_TIMEOUT = 20000;
-
-const authorPreviewGql: string = `
-          User {
-            id
-            account_name
-            first_name
-            last_name
-            nickname
-            avatar_filename
-            current_rate
-           }
-        `;
-
-const postPreviewFieldsGql: string = `
-         id
-         title
-         post_type_id
-         leading_text
-         description
-         user_id
-         blockchain_id
-    
-         created_at
-         updated_at
-    
-         main_image_filename
-         entity_images
-    
-    
-         comments_count
-         current_vote
-         current_rate
-    
-         entity_id_for
-         entity_name_for
-    
-         organization_id
-         
-         ${authorPreviewGql}
-        `;
 
 describe('#Feeds. #GraphQL', () => {
   let serverApp;
@@ -138,7 +98,7 @@ describe('#Feeds. #GraphQL', () => {
         const perPage: number = commentsOfDepthZeroResponses - 1; // check pagination
 
         // check depth for one commentZeroDepth
-        const oneDepthCommentQuery = RequestHelper.getCommentOnCommentGraphQlQuery(
+        const oneDepthCommentQuery = GraphQLSchema.getCommentsOnCommentQuery(
           postId,
           commentZeroDepth.id,
           commentZeroDepth.depth,
@@ -146,7 +106,7 @@ describe('#Feeds. #GraphQL', () => {
           perPage,
         );
 
-        const response = await client.query({ query: oneDepthCommentQuery });
+        const response = await client.query({ query: gql(oneDepthCommentQuery) });
 
         expect(response.data.comments_on_comment).toBeDefined();
         const { data }: { data: CommentModelResponse[] } = response.data.comments_on_comment;
@@ -207,7 +167,7 @@ describe('#Feeds. #GraphQL', () => {
         const secondRequestPerPage: number = commentsOfDepthZeroResponses - 1; // check pagination
 
 
-        const twoDepthCommentQuery = RequestHelper.getCommentOnCommentGraphQlQuery(
+        const twoDepthCommentQuery = GraphQLSchema.getCommentsOnCommentQuery(
           postId,
           commentOneDepth.id,
           commentOneDepth.depth,
@@ -215,7 +175,7 @@ describe('#Feeds. #GraphQL', () => {
           secondRequestPerPage,
         );
 
-        const secondResponse = await client.query({ query: twoDepthCommentQuery });
+        const secondResponse = await client.query({ query: gql(twoDepthCommentQuery) });
 
         expect(secondResponse.data.comments_on_comment).toBeDefined();
         const { data: secondData }: { data: CommentModelResponse[] } =
@@ -350,107 +310,7 @@ query {
         const { repostId }: { repostId: number } =
           await postsGenerator.createUserPostAndRepost(userVlad, userJane);
 
-        const query = gql`
-query {
-  user_wall_feed(user_id: ${userJane.id}, page: 1, per_page: 3) {
-    data {
-     id
-     title
-     post_type_id
-     leading_text
-     description
-     user_id
-     blockchain_id
-
-     created_at
-     updated_at
-
-     main_image_filename
-     entity_images
-
-
-     comments_count
-     current_vote
-     current_rate
-
-     entity_id_for
-     entity_name_for
-
-     organization_id
-     
-     post {
-       ${postPreviewFieldsGql}
-     }
-
-
-     comments {
-      data {
-        id
-        description
-        current_vote
-
-        metadata {
-          next_depth_total_amount
-        }
-
-        User {
-          id
-          account_name
-          first_name
-          last_name
-          nickname
-          avatar_filename
-          current_rate
-        }
-
-        blockchain_id
-        commentable_id
-        created_at
-        activity_user_comment
-        organization
-
-        depth
-        myselfData {
-          myselfVote
-        }
-        organization_id
-        parent_id
-        path
-        updated_at
-        user_id
-      }
-      metadata {
-        page
-        per_page
-        has_more
-      }
-     }
-
-     myselfData {
-      myselfVote
-      join
-      organization_member
-     }
-
-     User {
-      id
-      account_name
-      first_name
-      last_name
-      nickname
-      avatar_filename
-      current_rate
-     }
-   }
-
-    metadata {
-      page
-      per_page
-      has_more
-    }
-  }
-}
-    `;
+        const query = gql(GraphQLSchema.getUserWallFeedQuery(userJane.id, 1, 10, 1, 10));
 
         const response = await client.query({ query });
         const { data } = response;
@@ -509,110 +369,16 @@ query {
         await commentsHelper.requestToUpvoteComment(postOneId, commentOne.id, userVlad);
 
         const commentsPage = 1;
-        const commentsPerPage = 2;
+        const commentsPerPage = 10;
 
-        const query = gql`
-query {
-  user_wall_feed(user_id: 1, page: 1, per_page: 3, comments_query: {page: ${commentsPage}, per_page: ${commentsPerPage}}) {
-    data {
-     id
-     title
-     post_type_id
-     leading_text
-     description
-     user_id
-     blockchain_id
+        const feedPage = 1;
+        const feedPerPage = 3;
 
-     created_at
-     updated_at
+        const queryAsString = GraphQLSchema.getUserWallFeedQuery(
+          userVlad.id, feedPage, feedPerPage, commentsPage, commentsPerPage,
+        );
 
-     main_image_filename
-     entity_images
-
-
-     comments_count
-     current_vote
-     current_rate
-
-     entity_id_for
-     entity_name_for
-
-     organization_id
-     
-     post {
-       ${postPreviewFieldsGql}
-     }
-
-     comments {
-      data {
-        id
-        description
-        current_vote
-
-        metadata {
-          next_depth_total_amount
-        }
-
-        User {
-          id
-          account_name
-          first_name
-          last_name
-          nickname
-          avatar_filename
-          current_rate
-        }
-
-        blockchain_id
-        commentable_id
-        created_at
-        activity_user_comment
-        organization
-
-        depth
-        myselfData {
-          myselfVote
-        }
-        organization_id
-        parent_id
-        path
-        updated_at
-        user_id
-      }
-      metadata {
-        page
-        per_page
-        has_more
-      }
-     }
-
-     myselfData {
-      myselfVote
-      join
-      organization_member
-     }
-
-     User {
-      id
-      account_name
-      first_name
-      last_name
-      nickname
-      avatar_filename
-      current_rate
-     }
-   }
-
-    metadata {
-      page
-      per_page
-      has_more
-    }
-  }
-}
-    `;
-
-        const response = await client.query({ query });
+        const response = await client.query({ query: gql(queryAsString) });
         const { data } = response;
 
         const options = {
@@ -630,14 +396,14 @@ query {
           item => item.id === commentOnComment.id,
         );
         expect(commentOnCommentExistence).toBeFalsy();
-        expect(postOne.comments.data.length).toBe(2);
+        expect(postOne.comments.data.length).toBe(3);
 
         const postOneCommentsMetadata = postOne.comments.metadata;
         expect(postOneCommentsMetadata).toBeDefined();
 
         expect(postOneCommentsMetadata.page).toBe(commentsPage);
         expect(postOneCommentsMetadata.per_page).toBe(commentsPerPage);
-        expect(postOneCommentsMetadata.has_more).toBeTruthy();
+        expect(postOneCommentsMetadata.has_more).toBeFalsy();
 
         const commentWithComment = postOne.comments.data.find(item => item.id === commentOne.id);
         const commentWithoutComment = postOne.comments.data.find(item => item.id === commentTwo.id);
