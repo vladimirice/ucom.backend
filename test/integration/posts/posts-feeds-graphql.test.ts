@@ -1,10 +1,11 @@
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { CommentModel, CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
+
+import RequestHelper = require('../helpers/request-helper');
 
 export {};
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
-// eslint-disable-next-line node/no-extraneous-require
 const { InMemoryCache } = require('apollo-cache-inmemory');
 
 const mockHelper = require('../helpers/mock-helper.ts');
@@ -20,8 +21,7 @@ const commentsHelper = require('../helpers/comments-helper.ts');
 
 require('cross-fetch/polyfill');
 
-mockHelper.mockAllTransactionSigning();
-mockHelper.mockBlockchainPart();
+mockHelper.mockAllBlockchainPart();
 
 let userVlad;
 let userJane;
@@ -63,26 +63,143 @@ describe('#Feeds. #GraphQL', () => {
     await seedsHelper.initUsersOnly();
   });
 
-  describe('Posts depth = 0 comments', () => {
+  describe('Feed', () => {
     describe('Positive', () => {
-      it('#smoke - comments api with next_depth amount', async () => {
-        // Create new post
-        // create first level comments - 3 items
-        // create for depth = 1 comments - 3 next level comments
-        // create for depth = 2 - 3 more for every
-        // special generator
+      it('#smoke - check depth = 1 comments API', async () => {
+        const commentsOfDepthZeroResponses: number = 4;
+        const commentsOfDepthOneResponses: number = 5;
 
-        const postCreator: UserModel = userVlad;
-        // const postReplier = userJane;
+        const postId: number = await postsGenerator.createMediaPostByUserHimself(userVlad);
 
-        const postId: number = postsGenerator.createMediaPostByUserHimself(postCreator);
-
-        await commentsGenerator.createManyCommentsForPost(
+        const comments: CommentModel[] = await commentsGenerator.createManyCommentsForPost(
           postId,
-          postCreator,
+          userVlad,
           3,
         );
+
+        const commentsOfDepthOne: CommentModel[] =
+          await commentsGenerator.createManyCommentsForManyComments(
+            postId,
+            comments,
+            userJane,
+            commentsOfDepthZeroResponses,
+          );
+
+        await commentsGenerator.createManyCommentsForManyComments(
+          postId,
+          commentsOfDepthOne,
+          userVlad,
+          commentsOfDepthOneResponses,
+        );
+
+        const commentZeroDepth: CommentModel = comments[0];
+
+        const page: number = 1;
+        const perPage: number = commentsOfDepthZeroResponses - 1; // check pagination
+
+        // check depth for one commentZeroDepth
+        const oneDepthCommentQuery = RequestHelper.getCommentOnCommentGraphQlQuery(
+          postId,
+          commentZeroDepth.id,
+          commentZeroDepth.depth,
+          page,
+          perPage,
+        );
+
+        const response = await client.query({ query: oneDepthCommentQuery });
+
+        expect(response.data.comments_on_comment).toBeDefined();
+        const { data }: { data: CommentModelResponse[] } = response.data.comments_on_comment;
+
+        expect(data).toBeDefined();
+        expect(data.length).toBe(perPage);
+
+        for (const item of data) {
+          expect(item.commentable_id).toBe(postId);
+          expect(item.parent_id).toBe(commentZeroDepth.id);
+          expect(item.metadata.next_depth_total_amount).toBe(commentsOfDepthOneResponses);
+        }
+
+        const options = {
+          myselfData: true,
+          postProcessing: 'list',
+          comments: true,
+          commentsMetadataExistence: true,
+          commentItselfMetadata: true,
+        };
+
+        await commonHelper.checkManyCommentsPreviewWithRelations(data, options);
       });
+
+      it('#smoke - comments api with next_depth amount', async () => {
+        const commentsOfDepthZeroResponses: number = 4;
+        const commentsOfDepthOneResponses: number = 5;
+
+        const postId: number = await postsGenerator.createMediaPostByUserHimself(userVlad);
+
+        const comments: CommentModel[] = await commentsGenerator.createManyCommentsForPost(
+          postId,
+          userVlad,
+          3,
+        );
+
+        const commentsOfDepthOne: CommentModel[] =
+          await commentsGenerator.createManyCommentsForManyComments(
+            postId,
+            comments,
+            userJane,
+            commentsOfDepthZeroResponses,
+          );
+
+        await commentsGenerator.createManyCommentsForManyComments(
+          postId,
+          commentsOfDepthOne,
+          userVlad,
+          commentsOfDepthOneResponses,
+        );
+
+        // Check one more depth level
+        // check depth for one commentZeroDepth
+
+        const commentOneDepth: CommentModel = commentsOfDepthOne[0];
+
+        const secondRequestPage: number = 1;
+        const secondRequestPerPage: number = commentsOfDepthZeroResponses - 1; // check pagination
+
+
+        const twoDepthCommentQuery = RequestHelper.getCommentOnCommentGraphQlQuery(
+          postId,
+          commentOneDepth.id,
+          commentOneDepth.depth,
+          secondRequestPage,
+          secondRequestPerPage,
+        );
+
+        const secondResponse = await client.query({ query: twoDepthCommentQuery });
+
+        expect(secondResponse.data.comments_on_comment).toBeDefined();
+        const { data: secondData }: { data: CommentModelResponse[] } =
+          secondResponse.data.comments_on_comment;
+
+        expect(secondData).toBeDefined();
+        expect(secondData.length).toBe(secondRequestPerPage);
+
+        for (const item of secondData) {
+          expect(item.commentable_id).toBe(postId);
+          expect(item.parent_id).toBe(commentOneDepth.id);
+          expect(item.metadata.next_depth_total_amount).toBe(0);
+        }
+
+        const options = {
+          myselfData: true,
+          postProcessing: 'list',
+          comments: true,
+          commentsMetadataExistence: true,
+          commentItselfMetadata: true,
+        };
+
+        await commonHelper.checkManyCommentsPreviewWithRelations(secondData, options);
+      }, JEST_TIMEOUT);
 
       it('#smoke - should get all depth = 0 comments', async () => {
         const targetUser = userVlad;

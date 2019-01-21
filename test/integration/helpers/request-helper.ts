@@ -1,27 +1,83 @@
-const request = require('supertest');
-const server  = require('../../../app');
+import { gql } from 'apollo-boost';
+import responseHelper from './response-helper';
 
-const responseHelper      = require('./response-helper');
-const fileToUploadHelper  = require('./file-to-upload-helper');
+const request = require('supertest');
+const server = require('../../../app');
+
+
+const fileToUploadHelper = require('./file-to-upload-helper.ts');
 
 const apiV1Prefix = '/api/v1';
 
-const checkAccountRoute   = '/api/v1/auth/registration/validate-account-name';
-const registrationRoute   = '/api/v1/auth/registration';
-const postsUrl            = `${apiV1Prefix}/posts`;
-const usersUrl            = `${apiV1Prefix}/users`;
-const organizationsUrl    = `${apiV1Prefix}/organizations`;
-const myselfUrl           = `${apiV1Prefix}/myself`;
+const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
+const registrationRoute = '/api/v1/auth/registration';
+const postsUrl = `${apiV1Prefix}/posts`;
+const usersUrl = `${apiV1Prefix}/users`;
+const organizationsUrl = `${apiV1Prefix}/organizations`;
+const myselfUrl = `${apiV1Prefix}/myself`;
 
-const communityUrl        = `${apiV1Prefix}/community`;
-const partnershipUrl      = `${apiV1Prefix}/partnership`;
-const blockchainUrl       = `${apiV1Prefix}/blockchain`;
+const communityUrl = `${apiV1Prefix}/community`;
+const partnershipUrl = `${apiV1Prefix}/partnership`;
+const blockchainUrl = `${apiV1Prefix}/blockchain`;
 
-const tagsUrl             = `${apiV1Prefix}/tags`;
+const tagsUrl = `${apiV1Prefix}/tags`;
 
-const myselfBlockchainTransactionsUrl       = `${myselfUrl}/blockchain/transactions`;
+const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getCommentOnCommentGraphQlQuery(
+    postId: number,
+    parentId: number,
+    parentDepth: number,
+    page: number,
+    perPage: number,
+  ): any {
+    return gql`
+query {
+  comments_on_comment(commentable_id: ${postId}, parent_id: ${parentId}, parent_depth: ${parentDepth}, page: ${page}, per_page: ${perPage}) {
+    data {
+      id
+      description
+      current_vote
+      blockchain_id
+      commentable_id
+      created_at
+      activity_user_comment
+      organization
+      depth
+      organization_id
+      parent_id
+      path
+      updated_at
+      user_id
+
+      metadata {
+        next_depth_total_amount
+      }
+
+      User {
+        id
+        account_name
+        first_name
+        last_name
+        nickname
+        avatar_filename
+        current_rate
+      }
+
+      myselfData {
+        myselfVote
+      }
+    }
+    metadata {
+      page
+      per_page
+      has_more
+    }
+  }
+}
+    `;
+  }
 
   public static makeRandomString(length) {
     let text = '';
@@ -84,9 +140,7 @@ class RequestHelper {
    */
   static async makeGetRequestForList(url, myself = null, getOnlyData = true) {
     const req = request(server)
-      .get(url)
-    ;
-
+      .get(url);
     if (myself) {
       this.addAuthToken(req, myself);
     }
@@ -107,9 +161,7 @@ class RequestHelper {
    */
   static async makeGetRequest(url, expectedStatus, myself = null) {
     const req = request(server)
-      .get(url)
-    ;
-
+      .get(url);
     if (myself) {
       this.addAuthToken(req, myself);
     }
@@ -154,8 +206,7 @@ class RequestHelper {
    */
   static addAuthToken(req, user) {
     req
-      .set('Authorization', `Bearer ${user.token}`)
-    ;
+      .set('Authorization', `Bearer ${user.token}`);
   }
 
   /**
@@ -166,12 +217,10 @@ class RequestHelper {
    */
   static async makePostGuestRequestWithFields(url, fields) {
     const req = request(server)
-      .post(url)
-    ;
-
+      .post(url);
     this.addFieldsToRequest(req, fields);
 
-    return await req;
+    return req;
   }
 
   /**
@@ -180,6 +229,7 @@ class RequestHelper {
    * @param {Object} fields
    */
   static addFieldsToRequest(req, fields) {
+    // eslint-disable-next-line guard-for-in
     for (const field in fields) {
       req.field(field, fields[field]);
     }
@@ -192,8 +242,7 @@ class RequestHelper {
    */
   static addSampleMainImageFilename(req, field = 'main_image_filename') {
     req
-      .attach(field, fileToUploadHelper.getSampleFilePathToUpload())
-    ;
+      .attach(field, fileToUploadHelper.getSampleFilePathToUpload());
   }
 
   /**
@@ -239,6 +288,7 @@ class RequestHelper {
   static getPendingNotificationUrl(id) {
     return `${this.getMyselfNotificationsList()}/${id}/pending`;
   }
+
   /**
    *
    * @param {number} targetUserId
@@ -391,9 +441,7 @@ class RequestHelper {
   static async requestMyself(user) {
     const res = await request(server)
       .get(myselfUrl)
-      .set('Authorization', `Bearer ${user.token}`)
-    ;
-
+      .set('Authorization', `Bearer ${user.token}`);
     responseHelper.expectStatusOk(res);
 
     return res.body;
@@ -407,9 +455,7 @@ class RequestHelper {
    */
   static async requestUserById(userId) {
     const res = await request(server)
-      .get(this.getUserUrl(userId))
-    ;
-
+      .get(this.getUserUrl(userId));
     responseHelper.expectStatusOk(res);
 
     return res.body;
@@ -422,9 +468,7 @@ class RequestHelper {
    */
   static async requestUserByIdAsGuest(user) {
     const res = await request(server)
-      .get(this.getUserUrl(user.id))
-    ;
-
+      .get(this.getUserUrl(user.id));
     responseHelper.expectStatusOk(res);
 
     return res.body;
@@ -439,9 +483,7 @@ class RequestHelper {
   static async requestUserByIdAsMyself(myself, userToRequest) {
     const res = await request(server)
       .get(this.getUserUrl(userToRequest.id))
-      .set('Authorization', `Bearer ${myself.token}`)
-    ;
-
+      .set('Authorization', `Bearer ${myself.token}`);
     responseHelper.expectStatusOk(res);
 
     return res.body;
@@ -466,6 +508,7 @@ class RequestHelper {
   static getCheckAccountNameRoute() {
     return checkAccountRoute;
   }
+
   static getRegistrationRoute() {
     return registrationRoute;
   }

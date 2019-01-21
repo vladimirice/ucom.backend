@@ -56,10 +56,10 @@ class QueryFilterService {
    * #task use TypeScript interfaces
    *
    */
-  static getQueryParametersWithRepository(query, repository) {
-    const orderByRelationMap  = repository.getOrderByRelationMap();
-    const allowedOrderBy      = repository.getAllowedOrderBy();
-    const whereProcessor      = repository.getWhereProcessor();
+  public static getQueryParametersWithRepository(query, repository) {
+    const orderByRelationMap = repository.getOrderByRelationMap();
+    const allowedOrderBy = repository.getAllowedOrderBy();
+    const whereProcessor = repository.getWhereProcessor();
 
     return this.getQueryParameters(query, orderByRelationMap, allowedOrderBy, whereProcessor);
   }
@@ -94,9 +94,9 @@ class QueryFilterService {
   ) {
     return {
       total_amount: totalAmount,
-      page:         +query.page,
-      per_page:     +query.per_page,
-      has_more:     params.offset + params.limit < totalAmount,
+      page: +query.page,
+      per_page: +query.per_page,
+      has_more: params.offset + params.limit < totalAmount,
     };
   }
 
@@ -107,8 +107,8 @@ class QueryFilterService {
    * @private
    */
   private static setOffsetLimit(query, params) {
-    const page    = +query.page;
-    let perPage   = +query.per_page;
+    const page = +query.page;
+    let perPage = +query.per_page;
 
     if (!page || page < 0) {
       return;
@@ -122,13 +122,13 @@ class QueryFilterService {
       perPage = PER_PAGE_LIMIT;
     }
 
-    let offset  = 0;
+    let offset = 0;
     if (page > 1) {
       offset = (page - 1) * perPage;
     }
 
     params.offset = offset;
-    params.limit  = perPage;
+    params.limit = perPage;
   }
 
   /**
@@ -145,8 +145,7 @@ class QueryFilterService {
     }
 
     const sorting: string[][] = [];
-    query['sort_by'].split(',').forEach((value) => {
-
+    query.sort_by.split(',').forEach((value) => {
       let sortOrder = 'ASC';
       let valueToSort: string = value;
 

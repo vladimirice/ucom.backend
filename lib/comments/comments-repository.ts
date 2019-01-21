@@ -1,20 +1,22 @@
 import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
 import { StringToNumberCollection } from '../common/interfaces/common-types';
-
-const models = require('../../models');
-const db = models.sequelize;
+import { DbCommentParamsDto } from './interfaces/query-filter-interfaces';
 
 const _ = require('lodash');
 
-const orgModelProvider      = require('../organizations/service').ModelProvider;
+const models = require('../../models');
+
+const db = models.sequelize;
+
+const orgModelProvider = require('../organizations/service').ModelProvider;
 const commentsModelProvider = require('./service').ModelProvider;
-const usersModelProvider    = require('../users/service').ModelProvider;
+const usersModelProvider = require('../users/service').ModelProvider;
+
 const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
 
 const model = commentsModelProvider.getModel();
 
 class CommentsRepository {
-
   /**
    *
    * @return {Object[]}
@@ -28,8 +30,8 @@ class CommentsRepository {
       },
 
       {
-        model:  this.getActivityUserCommentModel(),
-        as:     this.getActivityUserCommentModelName(),
+        model: this.getActivityUserCommentModel(),
+        as: this.getActivityUserCommentModelName(),
         required: false,
       },
       orgModelProvider.getIncludeForPreview(),
@@ -57,9 +59,9 @@ class CommentsRepository {
    * @returns {Promise<*>}
    */
   static async incrementCurrentVoteCounter(id) {
-    return await this.getModel().update({
+    return this.getModel().update({
       current_vote: db.literal('current_vote + 1'),
-    },                                  {
+    }, {
       where: {
         id,
       },
@@ -72,9 +74,9 @@ class CommentsRepository {
    * @returns {Promise<*>}
    */
   static async decrementCurrentVoteCounter(id) {
-    return await this.getModel().update({
+    return this.getModel().update({
       current_vote: db.literal('current_vote - 1'),
-    },                                  {
+    }, {
       where: {
         id,
       },
@@ -95,7 +97,7 @@ class CommentsRepository {
       raw: true,
     });
 
-    return result ? +result['current_vote'] : null;
+    return result ? +result.current_vote : null;
   }
 
   /**
@@ -124,7 +126,6 @@ class CommentsRepository {
     parentId: number,
     depth: number,
   ): Promise<number> {
-
     const where = {
       depth,
       parent_id: parentId,
@@ -137,7 +138,6 @@ class CommentsRepository {
     depth: number,
     commentableId: number,
   ): Promise<StringToNumberCollection> {
-
     const sql: string = `
     SELECT parent_id, COUNT(1) as amount FROM comments
     WHERE
@@ -162,14 +162,18 @@ class CommentsRepository {
     commentableId: number,
     params: DbParamsDto,
   ): Promise<number> {
-
     params.where.commentable_id = commentableId;
 
     return model.count({ where: params.where });
   }
 
-  // #task - it is supposed that commentable ID is always Post
+  public static async countAllByDbParamsDto(
+    params: DbParamsDto,
+  ): Promise<number> {
+    return model.count({ where: params.where });
+  }
 
+  // #task - it is supposed that commentable ID is always Post
   public static async findAllByCommentableId(
     commentableId: number,
     queryParameters: DbParamsDto,
@@ -178,6 +182,20 @@ class CommentsRepository {
     const params = _.defaults(queryParameters, this.getDefaultListParams());
 
     params.where.commentable_id = commentableId;
+
+    // #task - exclude user related activity to separate request, as for posts
+    params.include = this.getCommentIncludedModels();
+
+    const result = await model.findAll(params);
+
+    return result.map(data => data.toJSON());
+  }
+
+  public static async findAllByDbParamsDto(
+    queryParameters: DbCommentParamsDto,
+  ) {
+    // #task - move to separateQueryService
+    const params = _.defaults(queryParameters, this.getDefaultListParams());
 
     // #task - exclude user related activity to separate request, as for posts
     params.include = this.getCommentIncludedModels();
@@ -204,7 +222,7 @@ class CommentsRepository {
       raw: true,
     });
 
-    return result ? result['path'] : null;
+    return result ? result.path : null;
   }
 
   /**
@@ -214,11 +232,11 @@ class CommentsRepository {
    * @returns {Promise<void>}
    */
   static async createNew(data, transaction) {
-    return await this.getModel().create(data, transaction);
+    return this.getModel().create(data, transaction);
   }
 
   static getModel() {
-    return models['comments'];
+    return models.comments;
   }
 
   /**
@@ -263,16 +281,26 @@ class CommentsRepository {
    * @returns {Function}
    */
   public static getWhereProcessor() {
-    return function (query, params) {
+    return (query, params: DbParamsDto) => {
       if (!params.where) {
         params.where = {};
       }
 
-      if (query === null || query.depth === undefined) {
+      if (query === null) {
         return;
       }
 
-      params.where.depth = +query.depth;
+      const allowedInt = [
+        'depth',
+        'parent_id',
+        'commentable_id',
+      ];
+
+      allowedInt.forEach((item) => {
+        if (query[item] !== undefined) {
+          params.where[item] = +query[item];
+        }
+      });
     };
   }
 

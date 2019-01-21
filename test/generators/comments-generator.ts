@@ -1,4 +1,5 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { CommentModel } from '../../lib/comments/interfaces/model-interfaces';
 
 const request = require('supertest');
 
@@ -11,7 +12,7 @@ class CommentsGenerator {
     postId: number,
     user: UserModel,
     amount: number,
-  ): Promise<any> {
+  ): Promise<CommentModel[]> {
     const promises: any = [];
 
     for (let i = 0; i < amount; i += 1) {
@@ -20,7 +21,29 @@ class CommentsGenerator {
       );
     }
 
+    // @ts-ignore
     return Promise.all(promises);
+  }
+
+  static async createManyCommentsForManyComments(
+    postId: number,
+    comments: CommentModel[],
+    user: UserModel,
+    amount: number,
+  ): Promise<CommentModel[]> {
+    const res: CommentModel[] = [];
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const comment of comments) {
+      for (let i = 0; i < amount; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        const data = await this.createCommentOnComment(postId, +comment.id, user);
+        res.push(data);
+      }
+    }
+
+    // @ts-ignore
+    return res;
   }
 
   static async createCommentForPost(
@@ -45,7 +68,7 @@ class CommentsGenerator {
     parentCommentId: number,
     user: Object,
     description: string = 'comment description',
-  ): Promise<Object> {
+  ): Promise<CommentModel> {
     const req = request(server)
       .post(requestHelper.getCommentOnCommentUrl(postId, parentCommentId))
       .field('description', description);

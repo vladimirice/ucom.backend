@@ -1,15 +1,17 @@
 interface RequestQueryDto {
-  readonly sort_by?:   string;
+  readonly sort_by?: string;
 
-  readonly page:      number;
-  readonly per_page:  number;
-  readonly last_id?:   string;
+  readonly page: number;
+  readonly per_page: number;
+  readonly last_id?: string;
 
   readonly include?: string[];
 }
 
 interface RequestQueryComments extends RequestQueryDto {
   readonly depth?: number;
+  readonly parent_id?: number;
+  readonly commentable_id?: number;
 }
 
 interface DbParamsDto {

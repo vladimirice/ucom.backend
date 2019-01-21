@@ -30,5 +30,20 @@ module.exports = {
     "node/no-unpublished-require": false,
     "eslint/no-unused-vars": false,
     "import/no-unresolved": false,
-  }
+    "import/prefer-default-export": false,
+  },
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "rules": {
+        "no-unused-vars": "off",
+        "no-undef": "off",
+        "operator-linebreak": "off",
+        "camelcase": "off",
+        "no-restricted-syntax": "off",
+        "no-param-reassign": "off",
+        "security/detect-object-injection": "off",
+      }
+    }
+  ]
 };

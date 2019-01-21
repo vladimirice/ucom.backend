@@ -1,4 +1,7 @@
-import { RequestQueryDto } from './lib/api/filters/interfaces/query-filter-interfaces';
+import { RequestQueryComments, RequestQueryDto } from './lib/api/filters/interfaces/query-filter-interfaces';
+import { AppError } from './lib/api/errors';
+
+const express = require('express');
 
 // const {
 //   parseResolveInfo,
@@ -6,11 +9,12 @@ import { RequestQueryDto } from './lib/api/filters/interfaces/query-filter-inter
 
 const { ApolloServer, gql } = require('apollo-server-express');
 
-const postsFetchService    = require('./lib/posts/service/posts-fetch-service');
+const graphQLJSON = require('graphql-type-json');
+const { ApiLogger } = require('./config/winston');
+const postsFetchService = require('./lib/posts/service/posts-fetch-service');
 const commentsFetchService = require('./lib/comments/service/comments-fetch-service');
 
 const authService = require('./lib/auth/authService');
-const graphQLJSON = require('graphql-type-json');
 
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql`
@@ -18,6 +22,7 @@ const typeDefs = gql`
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!): posts!
 
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
+    comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
   }
 
   scalar JSON
@@ -124,27 +129,44 @@ const resolvers = {
   JSON: graphQLJSON,
 
   Query: {
-    async feed_comments(
-      // @ts-ignore
-      parent,
-      // @ts-ignore
-      args,
-      // @ts-ignore
-      ctx,
-      // @ts-ignore
-      info,
-    ) {
-      // @ts-ignore
+    // @ts-ignore
+    async comments_on_comment(parent, args, ctx) {
+      const commentsQuery: RequestQueryComments = {
+        commentable_id: args.commentable_id,
+        parent_id: args.parent_id,
+        depth: args.parent_depth + 1,
 
+        page: args.page,
+        per_page: args.per_page,
+      };
+
+      let res;
+      try {
+        const currentUserId: number = authService.extractCurrentUserByToken(ctx.req);
+        res = await commentsFetchService.findAndProcessCommentsOfComment(
+          commentsQuery,
+          currentUserId,
+        );
+      } catch (err) {
+        ApiLogger.error(err);
+
+        throw new AppError('Internal server error', 500);
+      }
+
+      return res;
+    },
+
+    // @ts-ignore
+    async feed_comments(parent, args, ctx, info) {
       const commentsQuery = {
-        depth:    0, // always for first level comments
-        page:     args.page,
+        depth: 0, // always for first level comments
+        page: args.page,
         per_page: args.per_page,
       };
 
       const currentUserId: number = authService.extractCurrentUserByToken(ctx.req);
 
-      return await commentsFetchService.findAndProcessCommentsByPostId(
+      return commentsFetchService.findAndProcessCommentsByPostId(
         args.commentable_id,
         currentUserId,
         commentsQuery,
@@ -160,11 +182,10 @@ const resolvers = {
       // @ts-ignore
       info,
     ) {
-
       const currentUserId: number = authService.extractCurrentUserByToken(ctx.req);
 
       const postsQuery: RequestQueryDto = {
-        page:     args.page,
+        page: args.page,
         per_page: args.per_page,
         include: [
           'comments',
@@ -184,11 +205,9 @@ const resolvers = {
           postsQuery,
         );
       } catch (err) {
-        // @ts-ignore
-        const b = 0;
-        // #task - log and rethrow
+        ApiLogger.error(err);
 
-        throw err;
+        throw new AppError('Internal server error', 500);
       }
 
       return res;
@@ -196,16 +215,13 @@ const resolvers = {
   },
 };
 
-const express = require('express');
 
 const app = express();
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   cors: false,
-  context: ({ req }) => {
-    return { req };
-  },
+  context: ({ req }) => ({ req }),
 });
 
 server.applyMiddleware({ app });

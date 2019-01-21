@@ -1,18 +1,22 @@
 "use strict";
+const errors_1 = require("./lib/api/errors");
+const express = require('express');
 // const {
 //   parseResolveInfo,
 // } = require('graphql-parse-resolve-info');
 const { ApolloServer, gql } = require('apollo-server-express');
+const graphQLJSON = require('graphql-type-json');
+const { ApiLogger } = require('./config/winston');
 const postsFetchService = require('./lib/posts/service/posts-fetch-service');
 const commentsFetchService = require('./lib/comments/service/comments-fetch-service');
 const authService = require('./lib/auth/authService');
-const graphQLJSON = require('graphql-type-json');
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql `
   type Query {
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!): posts!
 
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
+    comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
   }
 
   scalar JSON
@@ -117,23 +121,35 @@ const typeDefs = gql `
 const resolvers = {
     JSON: graphQLJSON,
     Query: {
-        async feed_comments(
         // @ts-ignore
-        parent, 
+        async comments_on_comment(parent, args, ctx) {
+            const commentsQuery = {
+                commentable_id: args.commentable_id,
+                parent_id: args.parent_id,
+                depth: args.parent_depth + 1,
+                page: args.page,
+                per_page: args.per_page,
+            };
+            let res;
+            try {
+                const currentUserId = authService.extractCurrentUserByToken(ctx.req);
+                res = await commentsFetchService.findAndProcessCommentsOfComment(commentsQuery, currentUserId);
+            }
+            catch (err) {
+                ApiLogger.error(err);
+                throw new errors_1.AppError('Internal server error', 500);
+            }
+            return res;
+        },
         // @ts-ignore
-        args, 
-        // @ts-ignore
-        ctx, 
-        // @ts-ignore
-        info) {
-            // @ts-ignore
+        async feed_comments(parent, args, ctx, info) {
             const commentsQuery = {
                 depth: 0,
                 page: args.page,
                 per_page: args.per_page,
             };
             const currentUserId = authService.extractCurrentUserByToken(ctx.req);
-            return await commentsFetchService.findAndProcessCommentsByPostId(args.commentable_id, currentUserId, commentsQuery);
+            return commentsFetchService.findAndProcessCommentsByPostId(args.commentable_id, currentUserId, commentsQuery);
         },
         async user_wall_feed(
         // @ts-ignore
@@ -161,24 +177,19 @@ const resolvers = {
                 res = await postsFetchService.findAndProcessAllForUserWallFeed(args.user_id, currentUserId, postsQuery);
             }
             catch (err) {
-                // @ts-ignore
-                const b = 0;
-                // #task - log and rethrow
-                throw err;
+                ApiLogger.error(err);
+                throw new errors_1.AppError('Internal server error', 500);
             }
             return res;
         },
     },
 };
-const express = require('express');
 const app = express();
 const server = new ApolloServer({
     typeDefs,
     resolvers,
     cors: false,
-    context: ({ req }) => {
-        return { req };
-    },
+    context: ({ req }) => ({ req }),
 });
 server.applyMiddleware({ app });
 module.exports = {
