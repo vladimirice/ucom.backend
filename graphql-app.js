@@ -49,6 +49,8 @@ const typeDefs = gql `
     myselfData: MyselfData
 
     comments: comments
+    
+    post: Post
   }
 
   type User {

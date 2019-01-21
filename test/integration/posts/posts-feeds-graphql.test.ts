@@ -28,6 +28,46 @@ let userJane;
 
 const JEST_TIMEOUT = 20000;
 
+const authorPreviewGql: string = `
+          User {
+            id
+            account_name
+            first_name
+            last_name
+            nickname
+            avatar_filename
+            current_rate
+           }
+        `;
+
+const postPreviewFieldsGql: string = `
+         id
+         title
+         post_type_id
+         leading_text
+         description
+         user_id
+         blockchain_id
+    
+         created_at
+         updated_at
+    
+         main_image_filename
+         entity_images
+    
+    
+         comments_count
+         current_vote
+         current_rate
+    
+         entity_id_for
+         entity_name_for
+    
+         organization_id
+         
+         ${authorPreviewGql}
+        `;
+
 describe('#Feeds. #GraphQL', () => {
   let serverApp;
   let client;
@@ -306,6 +346,138 @@ query {
 
   describe('Users wall feed', () => {
     describe('Positive', () => {
+      it('#smoke - should get repost information', async () => {
+        const { repostId }: { repostId: number } =
+          await postsGenerator.createUserPostAndRepost(userVlad, userJane);
+
+
+        const query = gql`
+query {
+  user_wall_feed(user_id: ${userJane.id}, page: 1, per_page: 3) {
+    data {
+     id
+     title
+     post_type_id
+     leading_text
+     description
+     user_id
+     blockchain_id
+
+     created_at
+     updated_at
+
+     main_image_filename
+     entity_images
+
+
+     comments_count
+     current_vote
+     current_rate
+
+     entity_id_for
+     entity_name_for
+
+     organization_id
+     
+     post {
+       ${postPreviewFieldsGql}
+     }
+
+
+     comments {
+      data {
+        id
+        description
+        current_vote
+
+        metadata {
+          next_depth_total_amount
+        }
+
+        User {
+          id
+          account_name
+          first_name
+          last_name
+          nickname
+          avatar_filename
+          current_rate
+        }
+
+        blockchain_id
+        commentable_id
+        created_at
+        activity_user_comment
+        organization
+
+        depth
+        myselfData {
+          myselfVote
+        }
+        organization_id
+        parent_id
+        path
+        updated_at
+        user_id
+      }
+      metadata {
+        page
+        per_page
+        has_more
+      }
+     }
+
+     myselfData {
+      myselfVote
+      join
+      organization_member
+     }
+
+     User {
+      id
+      account_name
+      first_name
+      last_name
+      nickname
+      avatar_filename
+      current_rate
+     }
+   }
+
+    metadata {
+      page
+      per_page
+      has_more
+    }
+  }
+}
+    `;
+
+        const response = await client.query({ query });
+        const { data } = response;
+
+        // @ts-ignore
+        const repost = data.user_wall_feed.data.find(item => item.id === repostId);
+
+        expect(repost).toBeDefined();
+
+        const options = {
+          myselfData: true,
+          postProcessing: 'list',
+          comments: true,
+          commentsMetadataExistence: true,
+          commentItselfMetadata: true,
+        };
+
+        await commonHelper.checkPostsListFromApi(
+          data.user_wall_feed.data,
+          1,
+          options,
+        );
+
+        commonHelper.checkOneRepostForList(repost, options, false);
+      });
+
       it('#smoke - should get all user-related posts as Guest', async () => {
         const targetUser = userVlad;
         const directPostAuthor = userJane;
@@ -362,6 +534,10 @@ query {
      entity_name_for
 
      organization_id
+     
+     post {
+       ${postPreviewFieldsGql}
+     }
 
      comments {
       data {
