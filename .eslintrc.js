@@ -27,5 +27,8 @@ module.exports = {
     "optimize-regex/optimize-regex": "warn",
     "node/no-unsupported-features/es-syntax": false,
     "eslint/no-use-before-define": false,
+    "node/no-unpublished-require": false,
+    "eslint/no-unused-vars": false,
+    "import/no-unresolved": false,
   }
 };

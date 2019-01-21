@@ -22,6 +22,7 @@ const activityMiddlewareSet: any = [
 ];
 
 if (process.env.NODE_ENV !== 'test') {
+  console.log('Lets inject middleware');
   activityMiddlewareSet.push(activityApiMiddleware.redlockBeforeActivity);
 }
 

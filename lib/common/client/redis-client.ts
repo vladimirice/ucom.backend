@@ -24,7 +24,9 @@ class RedisClient {
     resource: string,
     ttlInSec: number,
   ): Promise<RedlockType.Lock> {
+    console.log('Lets receive client');
     const client = await this.getActionRedlock();
+    console.log('Client is received');
 
     return client.lock(resource, ttlInSec * 1000);
   }

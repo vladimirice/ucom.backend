@@ -25,7 +25,9 @@ class ActivityApiMiddleware {
       }
 
       const lockKey = `user_activity_${currentUserId}`;
+      console.log(`Lock key is: ${lockKey}`);
       const lock = await redisClient.actionRedlockLock(lockKey, ACTIVITY_REDLOCK_TTL_SEC);
+      console.log(`Lock is set for the key: ${lockKey}`);
 
       res.on('finish', async () => {
         await ActivityApiMiddleware.redlockAfterActivity(lock);
@@ -34,6 +36,8 @@ class ActivityApiMiddleware {
       next();
     } catch (err) {
       let errorForNext = err;
+      console.log(JSON.stringify(err, null, 2));
+
       if (err.name === 'LockError') {
         errorForNext = new BadRequestError({
           general: 'You already have an action request. Please wait until it is finished.',

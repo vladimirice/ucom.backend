@@ -1,13 +1,13 @@
-const requestHelper   = require('../integration/helpers').Req;
-const responseHelper  = require('../integration/helpers').Res;
+const requestHelper = require('../integration/helpers').Req;
+const responseHelper = require('../integration/helpers').Res;
 
-const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
+const ContentTypeDictionary = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
 const request = require('supertest');
-const server  = require('../../app');
-const _       = require('lodash');
-class PostsGenerator {
+const server = require('../../app');
+const _ = require('lodash');
 
+class PostsGenerator {
   /**
    *
    * @param {Object} wallOwner
@@ -76,13 +76,11 @@ class PostsGenerator {
     const res = await request(server)
       .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title', newPostFields['title'])
-      .field('description', newPostFields['description'])
-      .field('post_type_id', newPostFields['post_type_id'])
-      .field('leading_text', newPostFields['leading_text'])
-      .field('organization_id', orgId)
-    ;
-
+      .field('title', newPostFields.title)
+      .field('description', newPostFields.description)
+      .field('post_type_id', newPostFields.post_type_id)
+      .field('leading_text', newPostFields.leading_text)
+      .field('organization_id', orgId);
     responseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -110,17 +108,15 @@ class PostsGenerator {
     const res = await request(server)
       .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title',               newPostFields['title'])
-      .field('description',         newPostFields['description'])
-      .field('leading_text',        newPostFields['leading_text'])
-      .field('user_id',             newPostFields['user_id'])
-      .field('post_type_id',        newPostFields['post_type_id'])
-      .field('current_rate',        newPostFields['current_rate'])
-      .field('current_vote',        newPostFields['current_vote'])
-      .field('action_button_title', newPostFields['action_button_title'])
-      .field('organization_id',     newPostFields['organization_id'])
-    ;
-
+      .field('title', newPostFields.title)
+      .field('description', newPostFields.description)
+      .field('leading_text', newPostFields.leading_text)
+      .field('user_id', newPostFields.user_id)
+      .field('post_type_id', newPostFields.post_type_id)
+      .field('current_rate', newPostFields.current_rate)
+      .field('current_vote', newPostFields.current_vote)
+      .field('action_button_title', newPostFields.action_button_title)
+      .field('organization_id', newPostFields.organization_id);
     responseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -137,8 +133,7 @@ class PostsGenerator {
     const res = await request(server)
       .post(requestHelper.getCreateRepostUrl(postId))
       .set('Authorization', `Bearer ${repostAuthor.token}`)
-      .field('description', 'hello from such strange one')
-    ;
+      .field('description', 'hello from such strange one');
     responseHelper.expectStatusToBe(res, expectedStatus);
 
     return +res.body.id;
@@ -148,8 +143,8 @@ class PostsGenerator {
     postAuthor,
     repostAuthor,
   ): Promise<{postId: number, repostId: number}> {
-    const postId    = await this.createMediaPostByUserHimself(postAuthor);
-    const repostId  = await this.createRepostOfUserPost(repostAuthor, postId);
+    const postId = await this.createMediaPostByUserHimself(postAuthor);
+    const repostId = await this.createRepostOfUserPost(repostAuthor, postId);
 
     return {
       postId,
@@ -164,8 +159,8 @@ class PostsGenerator {
    * @return {Promise<{parentPostId: number, repostId: void}>}
    */
   static async createNewPostWithRepost(postAuthor, repostAuthor) {
-    const parentPostId  = await this.createMediaPostByUserHimself(postAuthor);
-    const repostId      = await this.createRepostOfUserPost(repostAuthor, parentPostId);
+    const parentPostId = await this.createMediaPostByUserHimself(postAuthor);
+    const repostId = await this.createRepostOfUserPost(repostAuthor, parentPostId);
 
     return {
       parentPostId,
@@ -210,7 +205,10 @@ class PostsGenerator {
    * @param {Object} values
    * @returns {Promise<number>}
    */
-  static async createMediaPostByUserHimself(user: any, values: Object = {}) {
+  static async createMediaPostByUserHimself(
+    user: any,
+    values: Object = {},
+  ): Promise<number> {
     const defaultValues = {
       title: 'Extremely new post',
       description: 'Our super post description',
@@ -226,15 +224,13 @@ class PostsGenerator {
     const res = await request(server)
       .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title',         newPostFields['title'])
-      .field('description',   newPostFields['description'])
-      .field('leading_text',  newPostFields['leading_text'])
-      .field('post_type_id',  newPostFields['post_type_id'])
-      .field('user_id',       newPostFields['user_id'])
-      .field('current_rate',  newPostFields['current_rate'])
-      .field('current_vote',  newPostFields['current_vote'])
-    ;
-
+      .field('title', newPostFields.title)
+      .field('description', newPostFields.description)
+      .field('leading_text', newPostFields.leading_text)
+      .field('post_type_id', newPostFields.post_type_id)
+      .field('user_id', newPostFields.user_id)
+      .field('current_rate', newPostFields.current_rate)
+      .field('current_vote', newPostFields.current_vote);
     responseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -260,16 +256,14 @@ class PostsGenerator {
     const res = await request(server)
       .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title',               newPostFields['title'])
-      .field('description',         newPostFields['description'])
-      .field('leading_text',        newPostFields['leading_text'])
-      .field('user_id',             newPostFields['user_id'])
-      .field('post_type_id',        newPostFields['post_type_id'])
-      .field('current_rate',        newPostFields['current_rate'])
-      .field('current_vote',        newPostFields['current_vote'])
-      .field('action_button_title', newPostFields['action_button_title'])
-    ;
-
+      .field('title', newPostFields.title)
+      .field('description', newPostFields.description)
+      .field('leading_text', newPostFields.leading_text)
+      .field('user_id', newPostFields.user_id)
+      .field('post_type_id', newPostFields.post_type_id)
+      .field('current_rate', newPostFields.current_rate)
+      .field('current_vote', newPostFields.current_vote)
+      .field('action_button_title', newPostFields.action_button_title);
     responseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -322,13 +316,11 @@ class PostsGenerator {
     withImage = false,
     idOnly = false,
   ) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
+    const postTypeId = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const req = request(server)
-      .post(url)
-    ;
-
+      .post(url);
     const fields = {
       description,
       post_type_id: postTypeId,

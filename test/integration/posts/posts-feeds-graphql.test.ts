@@ -1,20 +1,24 @@
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 export {};
 
-const mockHelper = require('../helpers/mock-helper');
+const ApolloClient = require('apollo-boost').default;
+const { gql } = require('apollo-boost');
+// eslint-disable-next-line node/no-extraneous-require
+const { InMemoryCache } = require('apollo-cache-inmemory');
+
+const mockHelper = require('../helpers/mock-helper.ts');
 
 const { app, server } = require('../../../graphql-app');
 
-const postsGenerator    = require('../../generators/posts-generator');
-const commentsGenerator = require('../../generators/comments-generator');
+const postsGenerator = require('../../generators/posts-generator.ts');
+const commentsGenerator = require('../../generators/comments-generator.ts');
 
-const seedsHelper   = require('../helpers/seeds-helper');
-const commonHelper  = require('../helpers/common-helper');
-const commentsHelper  = require('../helpers/comments-helper');
+const seedsHelper = require('../helpers/seeds-helper.ts');
+const commonHelper = require('../helpers/common-helper.ts');
+const commentsHelper = require('../helpers/comments-helper.ts');
 
 require('cross-fetch/polyfill');
-const apolloClient = require('apollo-boost').default;
-const { gql } = require('apollo-boost');
-const { InMemoryCache } = require('apollo-cache-inmemory');
 
 mockHelper.mockAllTransactionSigning();
 mockHelper.mockBlockchainPart();
@@ -33,7 +37,7 @@ describe('#Feeds. #GraphQL', () => {
 
     serverApp = await app.listen({ port: 4001 });
 
-    client = new apolloClient({
+    client = new ApolloClient({
       request: async (operation) => {
         operation.setContext({
           headers: {
@@ -61,6 +65,25 @@ describe('#Feeds. #GraphQL', () => {
 
   describe('Posts depth = 0 comments', () => {
     describe('Positive', () => {
+      it('#smoke - comments api with next_depth amount', async () => {
+        // Create new post
+        // create first level comments - 3 items
+        // create for depth = 1 comments - 3 next level comments
+        // create for depth = 2 - 3 more for every
+        // special generator
+
+        const postCreator: UserModel = userVlad;
+        // const postReplier = userJane;
+
+        const postId: number = postsGenerator.createMediaPostByUserHimself(postCreator);
+
+        await commentsGenerator.createManyCommentsForPost(
+          postId,
+          postCreator,
+          3,
+        );
+      });
+
       it('#smoke - should get all depth = 0 comments', async () => {
         const targetUser = userVlad;
         const directPostAuthor = userJane;
@@ -86,7 +109,7 @@ describe('#Feeds. #GraphQL', () => {
           commentsGenerator.createCommentOnComment(postOneId, commentOne.id, userJane),
         ]);
 
-        const page: number    = 1;
+        const page: number = 1;
         const perPage: number = 10;
 
         const query = gql`
@@ -136,7 +159,7 @@ query {
     `;
 
         const response = await client.query({ query });
-        const data = response.data;
+        const { data } = response;
 
         // #task - check all comments with metadata structure as separate helper
         expect(data.feed_comments).toBeDefined();
@@ -166,7 +189,6 @@ query {
 
   describe('Users wall feed', () => {
     describe('Positive', () => {
-
       it('#smoke - should get all user-related posts as Guest', async () => {
         const targetUser = userVlad;
         const directPostAuthor = userJane;
@@ -188,8 +210,11 @@ query {
           commentsGenerator.createCommentForPost(postTwo.id, userJane, 'Comment two for post two'),
         ]);
 
-        const commentOnComment =
-          await commentsGenerator.createCommentOnComment(postOneId, commentOne.id, userJane);
+        const commentOnComment = await commentsGenerator.createCommentOnComment(
+          postOneId,
+          commentOne.id,
+          userJane,
+        );
 
         await commentsHelper.requestToUpvoteComment(postOneId, commentOne.id, userVlad);
 
@@ -291,7 +316,7 @@ query {
     `;
 
         const response = await client.query({ query });
-        const data = response.data;
+        const { data } = response;
 
         const options = {
           myselfData: true,
@@ -304,8 +329,9 @@ query {
         const postOne = data.user_wall_feed.data.find(item => item.id === postOneId);
 
         // Only first level comments (depth = 0)
-        const commentOnCommentExistence =
-          postOne.comments.data.some(item => item.id === commentOnComment.id);
+        const commentOnCommentExistence = postOne.comments.data.some(
+          item => item.id === commentOnComment.id,
+        );
         expect(commentOnCommentExistence).toBeFalsy();
         expect(postOne.comments.data.length).toBe(2);
 
@@ -330,7 +356,6 @@ query {
           promisesToCreatePosts.length,
           options,
         );
-
       }, JEST_TIMEOUT);
     });
   });
