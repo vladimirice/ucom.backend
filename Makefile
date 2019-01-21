@@ -79,11 +79,13 @@ docker-pm2-list:
 
 deploy-staging deploy:
 	git checkout staging
+	make docker-check-project
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
 deploy-production:
 	git checkout master
+	make docker-check-project
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
 
