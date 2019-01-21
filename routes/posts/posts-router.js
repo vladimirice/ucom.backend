@@ -15,10 +15,6 @@ const activityMiddlewareSet = [
     cpUpload,
     activityApiMiddleware.redlockBeforeActivity,
 ];
-if (process.env.NODE_ENV !== 'test') {
-    console.log('Lets inject middleware');
-    activityMiddlewareSet.push(activityApiMiddleware.redlockBeforeActivity);
-}
 /* Get all posts */
 postsRouter.get('/', async (req, res) => {
     // noinspection JSDeprecatedSymbols
