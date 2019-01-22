@@ -51,6 +51,37 @@ describe('Myself. Get requests', () => {
 
       helpers.Users.validateUserJson(res.body, userVlad, user);
     });
+
+    it('should get correct users_ids and org_ids I follow', async () => {
+      // This is unit test
+
+      // noinspection JSDeprecatedSymbols
+      await helpers.Seeds.seedOrganizations();
+
+      const myself = userVlad;
+      const usersToFollow = [userJane, userPetr];
+      const usersToUnfollow = [userRokky];
+
+      const { usersIdsToFollow } = await helpers.Activity.requestToCreateFollowUnfollowHistoryOfUsers(
+        myself,
+        usersToFollow,
+        usersToUnfollow,
+      );
+
+      const orgIdsToFollow = [1, 3, 4];
+      const orgIdsToUnfollow = [2, 5];
+
+      await helpers.Activity.requestToCreateFollowUnfollowHistoryOfOrgs(
+        myself,
+        orgIdsToFollow,
+        orgIdsToUnfollow,
+      );
+
+      const { usersIds, orgIds } = await usersActivityRepository.findOneUserFollowActivity(myself.id);
+
+      expect(usersIds.sort()).toEqual(usersIdsToFollow.sort());
+      expect(orgIds.sort()).toEqual(orgIdsToFollow.sort());
+    });
   });
 
   describe('Get myself news feed', () => {
@@ -58,37 +89,6 @@ describe('Myself. Get requests', () => {
       describe('Test pagination', () => {
         it.skip('Test pagination', async () => {
         });
-      });
-
-      it('should get correct users_ids and org_ids I follow', async () => {
-        // This is unit test
-
-        // noinspection JSDeprecatedSymbols
-        await helpers.Seeds.seedOrganizations();
-
-        const myself = userVlad;
-        const usersToFollow = [userJane, userPetr];
-        const usersToUnfollow = [userRokky];
-
-        const { usersIdsToFollow } = await helpers.Activity.requestToCreateFollowUnfollowHistoryOfUsers(
-          myself,
-          usersToFollow,
-          usersToUnfollow,
-        );
-
-        const orgIdsToFollow = [1, 3, 4];
-        const orgIdsToUnfollow = [2, 5];
-
-        await helpers.Activity.requestToCreateFollowUnfollowHistoryOfOrgs(
-          myself,
-          orgIdsToFollow,
-          orgIdsToUnfollow,
-        );
-
-        const { usersIds, orgIds } = await usersActivityRepository.findOneUserFollowActivity(myself.id);
-
-        expect(usersIds.sort()).toEqual(usersIdsToFollow.sort());
-        expect(orgIds.sort()).toEqual(orgIdsToFollow.sort());
       });
 
       it('should get myself news feed with repost_available which is set properly', async () => {

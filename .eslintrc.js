@@ -43,6 +43,9 @@ module.exports = {
         "no-restricted-syntax": "off",
         "no-param-reassign": "off",
         "security/detect-object-injection": "off",
+        "no-multi-spaces": "off",
+        "no-await-in-loop": "off",
+        "key-spacing": "off",
       }
     }
   ]

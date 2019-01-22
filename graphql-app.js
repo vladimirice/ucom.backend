@@ -14,6 +14,7 @@ const authService = require('./lib/auth/authService');
 const typeDefs = gql `
   type Query {
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
     comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
@@ -185,6 +186,40 @@ const resolvers = {
             let res;
             try {
                 res = await postsFetchService.findAndProcessAllForUserWallFeed(args.user_id, currentUserId, postsQuery);
+            }
+            catch (err) {
+                ApiLogger.error(err);
+                throw new errors_1.AppError('Internal server error', 500);
+            }
+            return res;
+        },
+        async user_news_feed(
+        // @ts-ignore
+        parent, 
+        // @ts-ignore
+        args, 
+        // @ts-ignoreuser_wall_feed
+        ctx, 
+        // @ts-ignore
+        info) {
+            const currentUserId = authService.extractCurrentUserByToken(ctx.req);
+            const postsQuery = {
+                page: args.page,
+                per_page: args.per_page,
+                include: [
+                    'comments',
+                ],
+                included_query: {
+                    comments: args.comments_query,
+                },
+            };
+            // const parsedResolveInfoFragment = parseResolveInfo(info);
+            // @ts-ignore
+            // const commentsArgs =
+            // parsedResolveInfoFragment.fieldsByTypeName.posts.data.fieldsByTypeName.Post.comments.args;
+            let res;
+            try {
+                res = await postsFetchService.findAndProcessAllForMyselfNewsFeed(postsQuery, currentUserId);
             }
             catch (err) {
                 ApiLogger.error(err);

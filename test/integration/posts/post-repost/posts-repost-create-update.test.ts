@@ -1,15 +1,20 @@
+import MockHelper = require("../../helpers/mock-helper");
+import UsersHelper = require("../../helpers/users-helper");
+import SeedsHelper = require("../../helpers/seeds-helper");
+import PostsGenerator = require("../../../generators/posts-generator");
+import OrganizationsGenerator = require("../../../generators/organizations-generator");
+import PostsHelper = require("../../helpers/posts-helper");
+
 export {};
 
 const expect  = require('expect');
 
-const helpers = require('../../helpers');
-const gen = require('../../../generators');
+const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
 
 const postsRepository         = require('../../../../lib/posts/repository').MediaPosts;
-const usersActivityRepository = require('../../../../lib/users/repository').Activity;
 
+const usersActivityRepository = require('../../../../lib/users/repository').Activity;
 const activityGroupDictionary = require('../../../../lib/activity/activity-group-dictionary');
-const ContentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
 const postsModelProvider      = require('../../../../lib/posts/service').ModelProvider;
 
@@ -18,25 +23,25 @@ const eventIdDictionary = require('../../../../lib/entities/dictionary').EventId
 let userVlad;
 let userJane;
 
-helpers.Mock.mockAllBlockchainPart();
+MockHelper.mockAllBlockchainPart();
 
 describe('Post repost API', () => {
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
     [userVlad, userJane] = await Promise.all([
-      helpers.Users.getUserVlad(),
-      helpers.Users.getUserJane(),
-      helpers.Users.getUserPetr(),
-      helpers.Users.getUserRokky(),
+      UsersHelper.getUserVlad(),
+      UsersHelper.getUserJane(),
+      UsersHelper.getUserPetr(),
+      UsersHelper.getUserRokky(),
     ]);
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    await SeedsHelper.initUsersOnly();
   });
 
   afterAll(async () => {
-    await helpers.Seeds.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   describe('Create post-repost', () => {
@@ -45,13 +50,13 @@ describe('Post repost API', () => {
         const parentPostAuthor = userVlad;
         const repostAuthor = userJane;
 
-        const postId = await gen.Posts.createMediaPostByUserHimself(parentPostAuthor);
+        const postId = await PostsGenerator.createMediaPostByUserHimself(parentPostAuthor);
 
         const parentPost = await postsRepository.findOnlyPostItselfById(postId);
         expect(parentPost.parent_id).toBeDefined();
         expect(parentPost.parent_id).toBeNull();
 
-        const repostId = await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
+        const repostId = await PostsGenerator.createRepostOfUserPost(repostAuthor, postId);
 
         const repost = await postsRepository.findOnlyPostItselfById(repostId);
 
@@ -79,10 +84,10 @@ describe('Post repost API', () => {
         const parentPostAuthor = userVlad;
         const repostAuthor     = userJane;
 
-        const orgId = await gen.Org.createOrgWithoutTeam(parentPostAuthor);
-        const postId = await gen.Posts.createMediaPostOfOrganization(parentPostAuthor, orgId);
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(parentPostAuthor);
+        const postId = await PostsGenerator.createMediaPostOfOrganization(parentPostAuthor, orgId);
 
-        const repostId = await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
+        const repostId = await PostsGenerator.createRepostOfUserPost(repostAuthor, postId);
 
         const activity =
           await usersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
@@ -100,10 +105,10 @@ describe('Post repost API', () => {
         const parentPostAuthor = userVlad;
         const repostAuthor = userJane;
 
-        const postId = await gen.Posts.createMediaPostByUserHimself(parentPostAuthor);
-        await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
+        const postId = await PostsGenerator.createMediaPostByUserHimself(parentPostAuthor);
+        await PostsGenerator.createRepostOfUserPost(repostAuthor, postId);
 
-        await gen.Posts.createRepostOfUserPost(repostAuthor, postId, 400);
+        await PostsGenerator.createRepostOfUserPost(repostAuthor, postId, 400);
       });
 
       it('not possible to repost the same org post twice by the same user', async () => {
@@ -111,10 +116,10 @@ describe('Post repost API', () => {
         const repostAuthor     = userJane;
 
         const orgId   = await gen.Org.createOrgWithoutTeam(parentPostAuthor);
-        const postId  = await gen.Posts.createMediaPostOfOrganization(parentPostAuthor, orgId);
+        const postId  = await PostsGenerator.createMediaPostOfOrganization(parentPostAuthor, orgId);
 
-        await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
-        await gen.Posts.createRepostOfUserPost(repostAuthor, postId, 400);
+        await PostsGenerator.createRepostOfUserPost(repostAuthor, postId);
+        await PostsGenerator.createRepostOfUserPost(repostAuthor, postId, 400);
       });
 
       it.skip('not possible to repost your own post', async () => {
@@ -134,11 +139,10 @@ describe('Post repost API', () => {
   describe('Update post-repost', () => {
     describe('Negative', () => {
       it('It is not possible to patch post-repost', async () => {
+        const parentPostId  = await PostsGenerator.createMediaPostByUserHimself(userJane);
+        const repostId      = await PostsGenerator.createRepostOfUserPost(userVlad, parentPostId);
 
-        const parentPostId  = await gen.Posts.createMediaPostByUserHimself(userJane);
-        const repostId      = await gen.Posts.createRepostOfUserPost(userVlad, parentPostId);
-
-        await helpers.Posts.requestToPatchPostRepost(repostId, userVlad, 400);
+        await PostsHelper.requestToPatchPostRepost(repostId, userVlad, 400);
       });
     });
   });

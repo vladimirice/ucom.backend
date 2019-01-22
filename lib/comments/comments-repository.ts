@@ -318,7 +318,7 @@ class CommentsRepository {
 
   private static getDefaultOrderBy() {
     return [
-      ['id', 'DESC'],
+      ['id', 'ASC'],
     ];
   }
 

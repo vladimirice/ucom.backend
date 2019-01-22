@@ -1,3 +1,5 @@
+import {UserModel} from "../../../lib/users/interfaces/model-interfaces";
+
 const requestHelper = require('./request-helper');
 const responseHelper = require('./response-helper');
 const request = require('supertest');
@@ -46,10 +48,9 @@ class ActivityHelper {
    */
   static async requestToCreateFollowUnfollowHistoryOfUsers(
     whoActs,
-    usersToFollow = [],
-    usersToUnfollow = [],
+    usersToFollow: UserModel[] = [],
+    usersToUnfollow: UserModel[] = [],
   ) {
-
     const usersIdsToFollow: any    = [];
     const usersIdsToUnfollow: any  = [];
 
@@ -86,8 +87,8 @@ class ActivityHelper {
    */
   static async requestToCreateFollowUnfollowHistoryOfOrgs(
     whoActs,
-    idsToFollow = [],
-    idsToUnfollow = [],
+    idsToFollow: number[] = [],
+    idsToUnfollow: number[] = [],
   ) {
 
     for (let i = 0; i < idsToFollow.length; i += 1) {

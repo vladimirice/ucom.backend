@@ -17,7 +17,6 @@ ENV_VALUE_TEST=test
 init-project ip:
 	docker-compose down --remove-orphans
 	make docker-up-build-force
-	make docker-npm-ci
 	make docker-init-test-db
 	make docker-compile-typescript
 	make pm2-reload-test-ecosystem

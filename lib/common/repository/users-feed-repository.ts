@@ -69,9 +69,9 @@ class UsersFeedRepository {
       entity_id_for:    userId,
     };
 
-    const models = await postsModelProvider.getModel().findAll(params);
+    const data = await postsModelProvider.getModel().findAll(params);
 
-    return models.map(model => model.toJSON());
+    return data.map(model => model.toJSON());
   }
 
   static getIncludeProcessor() {
@@ -92,16 +92,21 @@ class UsersFeedRepository {
    * @param {Object} givenParams
    * @return {Promise<any[]>}
    */
-  static async findAllForUserNewsFeed(userId, usersIds, orgIds, givenParams) {
+  static async findAllForUserNewsFeed(
+    userId: number,
+    usersIds: number[],
+    orgIds: number[],
+    givenParams,
+  ) {
     const params = _.defaults(givenParams, this.getDefaultListParams());
 
+    // #task - move to default params
     params.attributes = postsModelProvider.getPostsFieldsForPreview();
-    params.include = sequelizeIncludes.getIncludeForPostList();
 
     params.where = {
       [Op.or]: [
         {
-          entity_id_for:   _.concat(usersIds, userId),
+          entity_id_for:   Array.prototype.concat(usersIds, userId),
           entity_name_for: usersModelProvider.getEntityName(),
         },
         {
@@ -111,11 +116,9 @@ class UsersFeedRepository {
       ],
     };
 
-    const models = await postsModelProvider.getModel().findAll(params);
+    const data = await postsModelProvider.getModel().findAll(params);
 
-    return models.map((model) => {
-      return model.toJSON();
-    });
+    return data.map(model => model.toJSON());
   }
 
   /**

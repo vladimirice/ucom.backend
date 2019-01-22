@@ -11,47 +11,10 @@ const commentsFetchService = require('../../comments/service/comments-fetch-serv
 class PostsFetchService {
   /**
    *
-   * @param {Object} query
-   * @param {number} currentUserId
-   * @return {Promise<{data, metadata: {total_amount: *, page: number, per_page: number, has_more: boolean}}>}
-   */
-  static async findAndProcessAllForMyselfNewsFeed(query, currentUserId) {
-    const params = queryFilterService.getQueryParameters(query);
-
-    const { orgIds, usersIds } = await usersActivityRepository.findOneUserFollowActivity(currentUserId);
-
-    const findCountPromises = [
-      usersFeedRepository.findAllForUserNewsFeed(currentUserId, usersIds, orgIds, params),
-      usersFeedRepository.countAllForUserNewsFeed(currentUserId, usersIds, orgIds),
-    ];
-
-    return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
-  }
-
-  /**
-   *
-   * @param {number} orgId
-   * @param {Object} query
-   * @param {number} currentUserId
-   * @return {Promise<{data, metadata: {total_amount: *, page: number, per_page: number, has_more: boolean}}>}
-   */
-  static async findAndProcessAllForOrgWallFeed(orgId, query, currentUserId) {
-    const params = queryFilterService.getQueryParameters(query);
-
-    const findCountPromises = [
-      usersFeedRepository.findAllForOrgWallFeed(orgId, params),
-      usersFeedRepository.countAllForOrgWallFeed(orgId),
-    ];
-
-    return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
-  }
-
-  /**
-   *
    * @param {number} userId
    * @param {number|null} currentUserId
    * @param {Object} query
-   * @return {Promise<{data, metadata: {total_amount: *, page: number, per_page: number, has_more: boolean}}>}
+   * @return {Promise<any>}
    */
   static async findAndProcessAllForUserWallFeed(
     userId: number,
@@ -73,10 +36,54 @@ class PostsFetchService {
 
   /**
    *
+   * @param {Object} query
+   * @param {number} currentUserId
+   * @return {Promise<any>}
+   */
+  static async findAndProcessAllForMyselfNewsFeed(
+    query: RequestQueryDto,
+    currentUserId: number,
+  ) {
+    const params: DbParamsDto = queryFilterService.getQueryParameters(query);
+
+    const includeProcessor = usersFeedRepository.getIncludeProcessor();
+    includeProcessor(query, params);
+
+    const { orgIds, usersIds }: { orgIds: number[], usersIds: number[] } =
+      await usersActivityRepository.findOneUserFollowActivity(currentUserId);
+
+    const findCountPromises = [
+      usersFeedRepository.findAllForUserNewsFeed(currentUserId, usersIds, orgIds, params),
+      usersFeedRepository.countAllForUserNewsFeed(currentUserId, usersIds, orgIds),
+    ];
+
+    return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
+  }
+
+  /**
+   *
+   * @param {number} orgId
+   * @param {Object} query
+   * @param {number} currentUserId
+   * @return {Promise<any>}
+   */
+  static async findAndProcessAllForOrgWallFeed(orgId, query, currentUserId) {
+    const params = queryFilterService.getQueryParameters(query);
+
+    const findCountPromises = [
+      usersFeedRepository.findAllForOrgWallFeed(orgId, params),
+      usersFeedRepository.countAllForOrgWallFeed(orgId),
+    ];
+
+    return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
+  }
+
+  /**
+   *
    * @param tagTitle
    * @param currentUserId
    * @param query
-   * @returns {Promise<{data: Array, metadata: {total_amount: *, page: number, per_page: number, has_more: boolean}}>}
+   * @returns {Promise<any>}
    */
   static async findAndProcessAllForTagWallFeed(tagTitle, currentUserId, query) {
     const params = queryFilterService.getQueryParameters(query, {}, []);
@@ -95,10 +102,15 @@ class PostsFetchService {
    * @param {Object} params
    * @param {number} currentUserId
    * @param {Promise[]} findCountPromises
-   * @return {Promise<{data: Array, metadata: {total_amount: *, page: number, per_page: number, has_more: boolean}}>}
+   * @return {Promise<any>}
    * @private
    */
-  private static async findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises) {
+  private static async findAndProcessAllForWallFeed(
+    query,
+    params,
+    currentUserId,
+    findCountPromises,
+  ) {
     const [posts, totalAmount] = await Promise.all(findCountPromises);
 
     const idToPost = {};
@@ -111,7 +123,11 @@ class PostsFetchService {
 
     let userActivity;
     if (currentUserId) {
-      const postsActivity = await usersActivityRepository.findOneUserToPostsVotingAndRepostActivity(currentUserId, postsIds);
+      const postsActivity = await usersActivityRepository.findOneUserToPostsVotingAndRepostActivity(
+        currentUserId,
+        postsIds,
+      );
+
       userActivity = {
         posts: postsActivity,
       };
@@ -119,7 +135,6 @@ class PostsFetchService {
 
     // #task - use included query
     if (query && query.included_query && query.included_query.comments) {
-
       // #task - prototype realization for demo, N+1 issue
       for (const id of postsIds) {
         // #task - should be defined as default parameters for comments pagination
@@ -128,7 +143,11 @@ class PostsFetchService {
           ...query.included_query.comments,
         };
 
-        idToPost[id].comments = await commentsFetchService.findAndProcessCommentsByPostId(id, currentUserId, commentsQuery);
+        idToPost[id].comments = await commentsFetchService.findAndProcessCommentsByPostId(
+          id,
+          currentUserId,
+          commentsQuery,
+        );
       }
     }
 

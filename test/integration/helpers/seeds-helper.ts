@@ -320,7 +320,7 @@ class SeedsHelper {
 
   static async doAfterAll() {
     await Promise.all([
-      rabbitMqService.closeAll(),
+      // rabbitMqService.closeAll(),
       models.sequelize.close(),
     ]);
   }
