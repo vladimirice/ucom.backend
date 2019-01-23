@@ -15,18 +15,23 @@ DB_GENERATE_MIGRATION=${SEQ_EXEC_FILE} migration:generate
 ENV_VALUE_TEST=test
 
 init-project ip:
-	docker-compose down --remove-orphans
-	make docker-up-build-force
+	npm i --only dev
+	npm ci
+	make docker-rebuild
 	make docker-init-test-db
 	make docker-compile-typescript
 	make pm2-reload-test-ecosystem
 	make docker-pm2-list
 
+docker-rebuild:
+	docker-compose down --remove-orphans
+	make docker-up-build-force
+
 pm2-reload-test-ecosystem pmt:
 	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
 
 docker-npm-ci:
-	${DOCKER_B_EXEC_CMD} npm ci
+	${DOCKER_B_EXEC_CMD} /bin/bash ssh-add_and_npm_ci.sh
 
 docker-prepare-for-tests pft:
 	make init-project
@@ -72,6 +77,9 @@ docker-db-test-bash d-db:
 
 docker-backend-bash:
 	docker-compose exec --user=${DOCKER_BACKEND_APP_USER} ${DOCKER_BACKEND_APP_NAME} /bin/bash
+
+docker-backend-bash-root:
+	docker-compose exec --user=root ${DOCKER_BACKEND_APP_NAME} /bin/bash
 
 docker-pm2-list:
 	${DOCKER_B_EXEC_CMD} pm2 list

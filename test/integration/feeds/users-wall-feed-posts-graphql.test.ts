@@ -1,14 +1,10 @@
-export {};
+import { GraphqlHelper } from '../helpers/graphql-helper';
 
-const ApolloClient = require('apollo-boost').default;
-const { gql } = require('apollo-boost');
-const { InMemoryCache } = require('apollo-cache-inmemory');
+export {};
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 const mockHelper = require('../helpers/mock-helper.ts');
-
-const { app, server } = require('../../../graphql-app');
 
 const postsGenerator = require('../../generators/posts-generator.ts');
 const commentsGenerator = require('../../generators/comments-generator.ts');
@@ -27,33 +23,16 @@ let userJane;
 const JEST_TIMEOUT = 20000 * 10;
 
 describe('#Feeds #GraphQL', () => {
-  let serverApp;
-  let client;
-
   beforeAll(async () => {
     [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
 
-    serverApp = await app.listen({ port: 4002 });
-
-    client = new ApolloClient({
-      request: async (operation) => {
-        operation.setContext({
-          headers: {
-            Authorization: `Bearer ${userVlad.token}`,
-          },
-        });
-      },
-      uri: `http://127.0.0.1:4002${server.graphqlPath}`,
-      cache: new InMemoryCache({
-        addTypename: false,
-      }),
-    });
+    await GraphqlHelper.beforeAllWithAuthToken(userVlad);
   });
 
   afterAll(async () => {
     await Promise.all([
       seedsHelper.doAfterAll(),
-      serverApp.close(),
+      GraphqlHelper.afterAll(),
     ]);
   });
 
@@ -63,16 +42,15 @@ describe('#Feeds #GraphQL', () => {
 
   describe('Positive', () => {
     it('#smoke - should get repost information', async () => {
+      const graphQlKey = 'user_wall_feed';
+
       const { repostId }: { repostId: number } =
-          await postsGenerator.createUserPostAndRepost(userVlad, userJane);
+        await postsGenerator.createUserPostAndRepost(userVlad, userJane);
 
-      const query = gql(GraphQLSchema.getUserWallFeedQuery(userJane.id, 1, 10, 1, 10));
+      const query = GraphQLSchema.getUserWallFeedQuery(userJane.id, 1, 10, 1, 10);
+      const data = await GraphqlHelper.makeRequest(query, graphQlKey);
 
-      const response = await client.query({ query });
-      const { data } = response;
-
-      // @ts-ignore
-      const repost = data.user_wall_feed.data.find(item => item.id === repostId);
+      const repost = data.find(item => item.id === repostId);
 
       expect(repost).toBeDefined();
 
@@ -85,7 +63,7 @@ describe('#Feeds #GraphQL', () => {
       };
 
       await commonHelper.checkPostsListFromApi(
-        data.user_wall_feed.data,
+        data,
         1,
         options,
       );
@@ -135,7 +113,7 @@ describe('#Feeds #GraphQL', () => {
         userVlad.id, feedPage, feedPerPage, commentsPage, commentsPerPage,
       );
 
-      const response = await client.query({ query: gql(queryAsString) });
+      const response = await GraphqlHelper.makeRequest(queryAsString);
       const { data } = response;
 
       const options = {
