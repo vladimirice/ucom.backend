@@ -8,9 +8,12 @@ const diContainerMiddleware = require('./lib/api/di-container-middleware');
 const EosApi = require('./lib/eos/eosApi');
 
 const usersRouter = require('./routes/users-route');
+const usersV2Router = require('./routes/users-route-v2');
+
 const authRouter = require('./routes/auth');
 const myselfRouter = require('./routes/myself-router');
 const postsRouter = require('./routes/posts/posts-router');
+const postsV2Router = require('./routes/posts/posts-v2-router');
 const registrationRouter = require('./routes/auth/registration');
 const organizationsRouter = require('./routes/organizations/organizations-router');
 const blockchainRouter = require('./routes/blockchain/blockchain-router');
@@ -51,6 +54,8 @@ app.use((req, res, next) => {
 EosApi.initTransactionFactory();
 
 app.use('/api/v1/users', usersRouter);
+app.use('/api/v2/users', usersV2Router);
+
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/myself', myselfRouter);
 app.use('/api/v1/posts', postsRouter);
@@ -60,6 +65,9 @@ app.use('/api/v1/blockchain', blockchainRouter);
 app.use('/api/v1/community', communityRouter);
 app.use('/api/v1/partnership', partnershipRouter);
 app.use('/api/v1/tags', tagsRouter);
+
+app.use('/api/v2/posts', postsV2Router);
+
 require('./lib/auth/passport');
 
 ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);

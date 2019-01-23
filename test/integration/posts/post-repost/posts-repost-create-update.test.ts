@@ -115,7 +115,7 @@ describe('Post repost API', () => {
         const parentPostAuthor = userVlad;
         const repostAuthor     = userJane;
 
-        const orgId   = await gen.Org.createOrgWithoutTeam(parentPostAuthor);
+        const orgId   = await OrganizationsGenerator.createOrgWithoutTeam(parentPostAuthor);
         const postId  = await PostsGenerator.createMediaPostOfOrganization(parentPostAuthor, orgId);
 
         await PostsGenerator.createRepostOfUserPost(repostAuthor, postId);

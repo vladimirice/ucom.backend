@@ -1,5 +1,11 @@
 import { MyselfDataDto } from '../interfaces/post-processing-dto';
-import CommentsPostProcessor = require("../../comments/service/comments-post-processor");
+import {ListMetadata, ListResponse} from '../interfaces/lists-interfaces';
+
+import CommentsPostProcessor = require('../../comments/service/comments-post-processor');
+import {AppError} from "../../api/errors";
+
+const PAGE_FOR_EMPTY_METADATA = 1;
+const PER_PAGE_FOR_EMPTY_METADATA = 10;
 
 const moment = require('moment');
 
@@ -17,7 +23,6 @@ const usersModelProvider = require('../../users/users-model-provider');
 const eosImportance = require('../../eos/eos-importance');
 
 class ApiPostProcessor {
-
   static processOneTag(model) {
     this.normalizeMultiplier(model);
   }
@@ -428,6 +433,34 @@ class ApiPostProcessor {
     return processed[0];
   }
 
+  public static deleteCommentsFromModel(model) {
+    delete model.comments;
+  }
+
+  public static setEmptyCommentsForOnePost(model, allowRewrite: boolean = false) {
+    if (!allowRewrite && model.comments) {
+      throw new AppError('Model already has comments', 500);
+    }
+
+    model.comments = this.getEmptyListOfModels();
+  }
+
+  private static getEmptyListOfModels(): ListResponse {
+    return {
+      data: [],
+      metadata: this.getEmptyMetadata(),
+    };
+  }
+
+  private static getEmptyMetadata(): ListMetadata {
+    return {
+      page: PAGE_FOR_EMPTY_METADATA,
+      per_page: PER_PAGE_FOR_EMPTY_METADATA,
+      total_amount: 0,
+      has_more: false,
+    };
+  }
+
   /**
    *
    * @param {Object} model
@@ -440,7 +473,7 @@ class ApiPostProcessor {
 
     const multiplier = eosImportance.getImportanceMultiplier();
 
-    model.current_rate = (model.current_rate * multiplier);
+    model.current_rate *= multiplier;
 
     model.current_rate = +model.current_rate.toFixed();
   }

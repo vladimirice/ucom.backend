@@ -47,6 +47,8 @@ module.exports = {
         "no-await-in-loop": "off",
         "key-spacing": "off",
         "sonarjs/no-duplicate-string": "off",
+        "jest/no-disabled-tests": "off",
+        "semi-style": "off",
       }
     }
   ]

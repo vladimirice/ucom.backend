@@ -13,7 +13,9 @@ const apiV2Prefix = '/api/v2';
 const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
 const registrationRoute = '/api/v1/auth/registration';
 const postsUrl = `${apiV1Prefix}/posts`;
+const postsV2Url = `${apiV2Prefix}/posts`;
 const usersUrl = `${apiV1Prefix}/users`;
+const usersUrlV2 = `${apiV2Prefix}/users`;
 const organizationsUrl = `${apiV1Prefix}/organizations`;
 const myselfUrl = `${apiV1Prefix}/myself`;
 
@@ -529,6 +531,15 @@ query {
 
   /**
    *
+   * @param {Object} user
+   * @return {string}
+   */
+  static getUserDirectPostUrlV2(user) {
+    return `${usersUrlV2}/${user.id}/posts`;
+  }
+
+  /**
+   *
    * @param {number} orgId
    * @return {string}
    */
@@ -551,6 +562,10 @@ query {
 
   static getOnePostUrl(postId) {
     return `${postsUrl}/${postId}`;
+  }
+
+  static getOnePostV2Url(postId) {
+    return `${postsV2Url}/${postId}`;
   }
 
   /**

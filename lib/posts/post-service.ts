@@ -251,7 +251,7 @@ class PostService {
       accountNameTo,
     );
 
-    return await this.processNewPostCreation(req, eventId);
+    return this.processNewPostCreation(req, eventId);
   }
 
   /**

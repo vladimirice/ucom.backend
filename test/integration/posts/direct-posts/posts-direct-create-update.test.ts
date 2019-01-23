@@ -1,12 +1,16 @@
+import MockHelper = require('../../helpers/mock-helper');
+import UsersHelper = require('../../helpers/users-helper');
+import SeedsHelper = require('../../helpers/seeds-helper');
+import PostsHelper = require('../../helpers/posts-helper');
+import CommonHelper = require('../../helpers/common-helper');
+import PostsGenerator = require('../../../generators/posts-generator');
+import FileToUploadHelper = require('../../helpers/file-to-upload-helper');
+import OrganizationsGenerator = require('../../../generators/organizations-generator');
+
 export {};
 
 const expect = require('expect');
 
-const helpers = require('../../helpers');
-const gen     = require('../../../generators');
-
-const UserHelper      = helpers.UserHelper;
-const seedsHelper     = helpers.Seeds;
 
 const usersModelProvider      = require('../../../../lib/users/service').ModelProvider;
 const orgModelProvider        = require('../../../../lib/organizations/service').ModelProvider;
@@ -14,48 +18,32 @@ const orgModelProvider        = require('../../../../lib/organizations/service')
 let userVlad;
 let userJane;
 
-helpers.Mock.mockAllBlockchainPart();
+MockHelper.mockAllBlockchainPart();
 
 describe('Direct posts create-update', () => {
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
     [userVlad, userJane] = await Promise.all([
-      UserHelper.getUserVlad(),
-      UserHelper.getUserJane(),
+      UsersHelper.getUserVlad(),
+      UsersHelper.getUserJane(),
     ]);
   });
 
   beforeEach(async () => {
-    await seedsHelper.initPostOfferSeeds();
+    await SeedsHelper.initPostOfferSeeds();
   });
 
   afterAll(async () => {
-    await seedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   describe('Direct post creation', () => {
     describe('Positive', () => {
-      it('Create direct post with picture', async () => {
-        const post =
-          await gen.Posts.createUserDirectPostForOtherUser(userVlad, userJane, null, true);
-        expect(post.main_image_filename).toBeDefined();
-
-        await helpers.FileToUpload.isFileUploaded(post.main_image_filename);
-      });
-
-      it('Create direct post for org with picture', async () => {
-        const orgId = await gen.Org.createOrgWithoutTeam(userJane);
-
-        const post = await gen.Posts.createDirectPostForOrganization(userVlad, orgId, null, true);
-        expect(post.main_image_filename).toBeDefined();
-
-        await helpers.FileToUpload.isFileUploaded(post.main_image_filename);
-      });
-      it('For User without organization', async () => {
+      it('Create direct post for user without organization', async () => {
         const user = userVlad;
         const targetUser = userJane;
 
-        const newPostFields = {
+        const newPostFields: any = {
           description: 'Our super post description',
         };
 
@@ -65,7 +53,7 @@ describe('Direct posts create-update', () => {
         };
 
         // noinspection JSDeprecatedSymbols
-        const post = await helpers.Posts.requestToCreateDirectPostForUser(
+        const post = await PostsHelper.requestToCreateDirectPostForUser(
           user,
           targetUser,
           newPostFields.description,
@@ -76,19 +64,19 @@ describe('Direct posts create-update', () => {
           postProcessing: 'full',
         };
 
-        await helpers.Common.checkOnePostForPage(post, options);
+        await CommonHelper.checkOnePostForPage(post, options);
 
-        await helpers.Common.checkDirectPostInDb(post, {
+        await CommonHelper.checkDirectPostInDb(post, {
           ...expected,
           ...newPostFields,
         },                                       user);
       });
 
-      it('For organization without organization', async () => {
+      it('Create direct post for organization without organization', async () => {
         const user = userVlad;
         const targetOrgId = 1;
 
-        const newPostFields = {
+        const newPostFields: any = {
           description: 'Our super post description',
         };
 
@@ -98,7 +86,7 @@ describe('Direct posts create-update', () => {
         };
 
         // noinspection JSDeprecatedSymbols
-        const post = await helpers.Posts.requestToCreateDirectPostForOrganization(
+        const post = await PostsHelper.requestToCreateDirectPostForOrganization(
           user,
           targetOrgId,
           newPostFields.description,
@@ -109,13 +97,35 @@ describe('Direct posts create-update', () => {
           postProcessing: 'full',
         };
 
-        await helpers.Common.checkOnePostForPage(post, options);
-        await helpers.Common.checkDirectPostInDb(post, {
+        await CommonHelper.checkOnePostForPage(post, options);
+        await CommonHelper.checkDirectPostInDb(post, {
           ...expected,
           ...newPostFields,
         },                                       user);
       });
 
+      it('Create direct post with picture', async () => {
+        const post =
+          await PostsGenerator.createUserDirectPostForOtherUser(userVlad, userJane, null, true);
+        expect(post.main_image_filename).toBeDefined();
+
+        await FileToUploadHelper.isFileUploaded(post.main_image_filename);
+      });
+
+      it('Create direct post for org with picture', async () => {
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
+
+        const post = await PostsGenerator.createDirectPostForOrganization(
+          userVlad,
+          orgId,
+          null,
+          true,
+        );
+
+        expect(post.main_image_filename).toBeDefined();
+
+        await FileToUploadHelper.isFileUploaded(post.main_image_filename);
+      });
     });
   });
 
@@ -132,8 +142,8 @@ describe('Direct posts create-update', () => {
 
           // noinspection JSDeprecatedSymbols
           const postBefore  =
-            await helpers.Posts.requestToCreateDirectPostForUser(user, targetUser);
-          const postAfter   = await helpers.Posts.requestToUpdatePostDescription(
+            await PostsHelper.requestToCreateDirectPostForUser(user, targetUser);
+          const postAfter   = await PostsHelper.requestToUpdatePostDescription(
             postBefore.id,
             user,
             expectedValues.description,
@@ -144,8 +154,8 @@ describe('Direct posts create-update', () => {
             postProcessing: 'full',
           };
 
-          await helpers.Common.checkOnePostForPage(postAfter, options);
-          await helpers.Common.checkDirectPostInDb(postAfter, expectedValues, userVlad);
+          await CommonHelper.checkOnePostForPage(postAfter, options);
+          await CommonHelper.checkDirectPostInDb(postAfter, expectedValues, userVlad);
         });
 
         it('Update direct post for organization without organization', async () => {
@@ -158,8 +168,8 @@ describe('Direct posts create-update', () => {
 
           // noinspection JSDeprecatedSymbols
           const postBefore  =
-            await helpers.Posts.requestToCreateDirectPostForOrganization(user, targetOrgId);
-          const postAfter   = await helpers.Posts.requestToUpdatePostDescription(
+            await PostsHelper.requestToCreateDirectPostForOrganization(user, targetOrgId);
+          const postAfter   = await PostsHelper.requestToUpdatePostDescription(
             postBefore.id,
             user,
             expectedValues.description,
@@ -170,8 +180,8 @@ describe('Direct posts create-update', () => {
             postProcessing: 'full',
           };
 
-          await helpers.Common.checkOnePostForPage(postAfter, options);
-          await helpers.Common.checkDirectPostInDb(postAfter, expectedValues, userVlad);
+          await CommonHelper.checkOnePostForPage(postAfter, options);
+          await CommonHelper.checkDirectPostInDb(postAfter, expectedValues, userVlad);
         });
       });
     });

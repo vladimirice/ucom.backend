@@ -290,6 +290,25 @@ class PostsGenerator {
 
   /**
    * @param {Object} myself
+   * @param {Object} wallOwner
+   * @param {string|null} givenDescription
+   * @param {boolean} withImage
+   * @return {Promise<void>}
+   *
+   */
+  static async createUserDirectPostForOtherUserV2(
+    myself,
+    wallOwner,
+    givenDescription = null,
+    withImage = false,
+  ) {
+    const url = requestHelper.getUserDirectPostUrlV2(wallOwner);
+
+    return this.createDirectPost(url, myself, givenDescription, withImage);
+  }
+
+  /**
+   * @param {Object} myself
    * @param {number} targetOrgId
    * @param {string|null} givenDescription
    * @param {boolean} withImage

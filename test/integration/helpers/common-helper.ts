@@ -1,3 +1,5 @@
+import ResponseHelper = require("./response-helper");
+
 const usersHelper         = require('./users-helper');
 const orgHelper           = require('./organizations-helper');
 const commentsHelper      = require('./comments-helper');
@@ -526,10 +528,37 @@ class CommonHelper {
 
     this.checkMyselfData(post, options);
 
-    if (options.postProcessing === 'full') {
+    if (options.postProcessing === 'full' && !options.skipCommentsChecking) {
       expect(post.comments).toBeDefined();
 
       this.checkManyCommentsPreviewWithRelations(post.comments, options);
+    }
+  }
+
+  /**
+   *
+   * @param {Object} post
+   * @param {Object} options
+   */
+  public static checkOnePostForPageV2(post, options) {
+    expect(_.isEmpty(post)).toBeFalsy();
+
+    postsHelper.checkPostItselfCommonFields(post, options);
+    usersHelper.checkIncludedUserForEntityPage(post, options);
+    orgHelper.checkOneOrgPreviewFieldsIfExists(post);
+
+    this.checkMyselfData(post, options);
+
+    if (options.postProcessing === 'full') {
+      expect(post.comments).toBeDefined();
+      expect(post.comments.data).toBeDefined();
+
+      ResponseHelper.expectValidMetadataStructure(
+        post.comments.metadata,
+        options.allowEmptyComments,
+      );
+
+      this.checkManyCommentsPreviewWithRelations(post.comments.data, options);
     }
   }
 

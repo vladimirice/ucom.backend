@@ -316,6 +316,32 @@ class PostsHelper {
 
     return res.body;
   }
+
+  /**
+   *
+   * @param {number} postId
+   * @param {Object} user
+   * @param {string|null} givenDescription
+   * @param {string[]} tags
+   * @return {Promise<Object>}
+   */
+  static async requestToUpdatePostDescriptionV2(postId, user, givenDescription, tags = []) {
+    let description = givenDescription || 'extremely updated one';
+
+    tags.forEach((tag) => {
+      description += ` #${tag} `;
+    });
+
+    const res = await request(server)
+      .patch(requestHelper.getOnePostV2Url(postId))
+      .set('Authorization',   `Bearer ${user.token}`)
+      .field('description',   description)
+    ;
+
+    responseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
   /**
    * @deprecated
    * @see PostsGenerator

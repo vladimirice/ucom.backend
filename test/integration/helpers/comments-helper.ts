@@ -195,7 +195,8 @@ class CommentsHelper {
       fieldsFromRelations.push('myselfData');
     }
 
-    if (options && options.postProcessing !== 'notification') {
+    if (options && options.postProcessing !== 'notification'
+    && options.postProcessing !== 'notificationWithOrg') {
       fieldsFromRelations.push('metadata');
 
       expect(model.metadata).toBeDefined();
