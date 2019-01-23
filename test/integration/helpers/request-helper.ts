@@ -8,6 +8,7 @@ const server = require('../../../app');
 const fileToUploadHelper = require('./file-to-upload-helper.ts');
 
 const apiV1Prefix = '/api/v1';
+const apiV2Prefix = '/api/v2';
 
 const checkAccountRoute = '/api/v1/auth/registration/validate-account-name';
 const registrationRoute = '/api/v1/auth/registration';
@@ -559,6 +560,10 @@ query {
    */
   static getCommentsUrl(postId) {
     return `/api/v1/posts/${postId}/comments`;
+  }
+
+  static getCommentsV2Url(postId: number): string {
+    return `${apiV2Prefix}/posts/${postId}/comments`;
   }
 
   /**

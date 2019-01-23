@@ -1,4 +1,5 @@
 import { MyselfDataDto } from '../interfaces/post-processing-dto';
+import CommentsPostProcessor = require("../../comments/service/comments-post-processor");
 
 const moment = require('moment');
 
@@ -421,6 +422,8 @@ class ApiPostProcessor {
    */
   static processOneComment(comment, currentUserId) {
     const processed = this.processManyComments([comment], currentUserId);
+
+    CommentsPostProcessor.setOneCommentMetadata(comment, 0);
 
     return processed[0];
   }

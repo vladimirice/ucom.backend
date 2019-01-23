@@ -11,7 +11,6 @@ const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const eventIdDictionary = require('../entities/dictionary').EventId;
 
 class CommentsActivityService {
-
   /**
    *
    * @param {Object} userFrom

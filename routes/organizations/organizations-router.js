@@ -20,7 +20,7 @@ orgRouter.get('/:organization_id', async (req, res) => {
     const model = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
     res.send(model);
 });
-/* GET wall feed for user */
+/* GET wall feed for organization */
 orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {
     const response = await getPostService(req).findAndProcessAllForOrgWallFeed(req.organization_id, req.query);
     res.send(response);

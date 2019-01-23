@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
 import { StringToNumberCollection } from '../../common/interfaces/common-types';
@@ -5,7 +6,6 @@ import { StringToNumberCollection } from '../../common/interfaces/common-types';
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 class CommentsPostProcessor {
-
   /**
    *
    * @param {Object[]} comments
@@ -14,9 +14,7 @@ class CommentsPostProcessor {
    * @return {Object[]}
    */
   static processManyComments(comments, currentUserId = null) {
-    let processedComments;
-
-    processedComments = this.formatPostComments(comments);
+    const processedComments = this.formatPostComments(comments);
     this.sortComments(processedComments);
 
     this.addMyselfData(processedComments, currentUserId);
@@ -24,15 +22,21 @@ class CommentsPostProcessor {
     return processedComments;
   }
 
+  public static setOneCommentMetadata(
+    comment,
+    nextDepthTotalAmount: number,
+  ) {
+    comment.metadata = {
+      next_depth_total_amount: nextDepthTotalAmount,
+    };
+  }
+
   public static processManyCommentMetadata(
     comments: any,
     collection: StringToNumberCollection,
-    ) {
-
+  ) {
     for (const comment of comments) {
-      comment.metadata = {
-        next_depth_total_amount: collection[comment.id] || 0,
-      };
+      this.setOneCommentMetadata(comment, collection[comment.id] || 0);
     }
   }
 
@@ -56,7 +60,6 @@ class CommentsPostProcessor {
   private static sortComments(comments) {
     // noinspection FunctionWithInconsistentReturnsJS
     comments.sort((commentA, commentB) => {
-
       const a = commentA.path;
       const b = commentB.path;
 
@@ -75,7 +78,7 @@ class CommentsPostProcessor {
         }
       }
 
-      return;
+      return 0;
     });
   }
 
@@ -93,9 +96,9 @@ class CommentsPostProcessor {
     }
 
     comments.forEach((model) => {
-
       let myselfVote = 'no_vote';
 
+      // eslint-disable-next-line no-prototype-builtins
       if (model.hasOwnProperty(activityParameter) && model[activityParameter].length > 0) {
         for (let i = 0; i < model[activityParameter].length; i += 1) {
           const current = model[activityParameter][i];

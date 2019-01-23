@@ -46,6 +46,7 @@ module.exports = {
         "no-multi-spaces": "off",
         "no-await-in-loop": "off",
         "key-spacing": "off",
+        "sonarjs/no-duplicate-string": "off",
       }
     }
   ]

@@ -9,7 +9,9 @@ const { app, server } = require('../../../graphql-app');
 let serverApp;
 let client;
 
-const PORT = 4002;
+require('cross-fetch/polyfill');
+
+const PORT = 4004;
 
 export class GraphqlHelper {
   public static async makeRequest(

@@ -53,7 +53,6 @@ EosApi.initTransactionFactory();
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/myself', myselfRouter);
-// noinspection JSCheckFunctionSignatures
 app.use('/api/v1/posts', postsRouter);
 app.use('/api/v1/auth/registration', registrationRouter);
 app.use('/api/v1/organizations', organizationsRouter);

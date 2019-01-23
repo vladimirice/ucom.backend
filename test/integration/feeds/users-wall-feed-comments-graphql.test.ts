@@ -1,24 +1,15 @@
 import { CommentModel, CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
-
-export {};
-
-const ApolloClient = require('apollo-boost').default;
-const { gql } = require('apollo-boost');
-const { InMemoryCache } = require('apollo-cache-inmemory');
+import { GraphqlHelper } from '../helpers/graphql-helper';
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 const mockHelper = require('../helpers/mock-helper.ts');
-
-const { app, server } = require('../../../graphql-app');
-
 const postsGenerator = require('../../generators/posts-generator.ts');
 const commentsGenerator = require('../../generators/comments-generator.ts');
 
 const seedsHelper = require('../helpers/seeds-helper.ts');
 const commonHelper = require('../helpers/common-helper.ts');
 
-require('cross-fetch/polyfill');
 
 mockHelper.mockAllBlockchainPart();
 
@@ -28,33 +19,15 @@ let userJane;
 const JEST_TIMEOUT = 20000;
 
 describe('#feeds #graphql', () => {
-  let serverApp;
-  let client;
-
   beforeAll(async () => {
     [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
-
-    serverApp = await app.listen({ port: 4002 });
-
-    client = new ApolloClient({
-      request: async (operation) => {
-        operation.setContext({
-          headers: {
-            Authorization: `Bearer ${userVlad.token}`,
-          },
-        });
-      },
-      uri: `http://127.0.0.1:4002${server.graphqlPath}`,
-      cache: new InMemoryCache({
-        addTypename: false,
-      }),
-    });
+    await GraphqlHelper.beforeAllWithAuthToken(userVlad);
   });
 
   afterAll(async () => {
     await Promise.all([
       seedsHelper.doAfterAll(),
-      serverApp.close(),
+      GraphqlHelper.afterAll(),
     ]);
   });
 
@@ -104,7 +77,7 @@ describe('#feeds #graphql', () => {
         perPage,
       );
 
-      const response = await client.query({ query: gql(oneDepthCommentQuery) });
+      const response = await GraphqlHelper.makeRequest(oneDepthCommentQuery);
 
       expect(response.data.comments_on_comment).toBeDefined();
       const { data }: { data: CommentModelResponse[] } = response.data.comments_on_comment;
@@ -124,6 +97,7 @@ describe('#feeds #graphql', () => {
         comments: true,
         commentsMetadataExistence: true,
         commentItselfMetadata: true,
+        apiV2Response: true,
       };
 
       await commonHelper.checkManyCommentsPreviewWithRelations(data, options);
@@ -173,7 +147,7 @@ describe('#feeds #graphql', () => {
         secondRequestPerPage,
       );
 
-      const secondResponse = await client.query({ query: gql(twoDepthCommentQuery) });
+      const secondResponse = await GraphqlHelper.makeRequest(twoDepthCommentQuery);
 
       expect(secondResponse.data.comments_on_comment).toBeDefined();
       const { data: secondData }: { data: CommentModelResponse[] } =
@@ -227,9 +201,9 @@ describe('#feeds #graphql', () => {
       const page: number = 1;
       const perPage: number = 10;
 
-      const query = gql(GraphQLSchema.getPostCommentsQuery(postOneId, page, perPage));
+      const query = GraphQLSchema.getPostCommentsQuery(postOneId, page, perPage);
 
-      const response = await client.query({ query });
+      const response = await GraphqlHelper.makeRequest(query);
       const { data } = response;
 
       // #task - check all comments with metadata structure as separate helper
@@ -257,3 +231,5 @@ describe('#feeds #graphql', () => {
     }, JEST_TIMEOUT);
   });
 });
+
+export {};

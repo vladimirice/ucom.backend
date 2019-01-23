@@ -191,15 +191,22 @@ class CommentsHelper {
       ];
     }
 
-    if (options && options.commentItselfMetadata) {
-      fieldsFromRelations.push('metadata');
-    }
-
     if (options && options.myselfData) {
       fieldsFromRelations.push('myselfData');
     }
 
-    responseHelper.expectAllFieldsExistence(model, _.concat(expected, fieldsFromRelations));
+    if (options && options.postProcessing !== 'notification') {
+      fieldsFromRelations.push('metadata');
+
+      expect(model.metadata).toBeDefined();
+      expect(typeof model.metadata.next_depth_total_amount).toBe('number');
+      expect(model.metadata.next_depth_total_amount).toBeGreaterThanOrEqual(0);
+    }
+
+    responseHelper.expectAllFieldsExistence(
+      model,
+      Array.prototype.concat(expected, fieldsFromRelations),
+    );
   }
 }
 
