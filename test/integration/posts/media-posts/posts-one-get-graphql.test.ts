@@ -10,6 +10,8 @@ import PostsGenerator = require('../../../generators/posts-generator');
 import CommentsGenerator = require('../../../generators/comments-generator');
 import UsersHelper = require('../../helpers/users-helper');
 import PostsHelper = require('../../helpers/posts-helper');
+import OrganizationsGenerator = require("../../../generators/organizations-generator");
+import OrganizationsHelper = require("../../helpers/organizations-helper");
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -144,6 +146,19 @@ describe('Get One media post #graphql', () => {
 
       expect(post.myselfData.myselfVote).toBe('upvote');
     });
+  });
+
+  it('Should contain organization data', async () => {
+    const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+
+    const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
+
+    const post: PostModelMyselfResponse =
+      await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
+
+    expect(post.organization_id).toBe(orgId);
+
+    OrganizationsHelper.checkOneOrganizationPreviewFields(post.organization);
   });
 });
 

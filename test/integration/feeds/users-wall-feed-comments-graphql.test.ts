@@ -101,7 +101,7 @@ describe('#feeds #graphql', () => {
       };
 
       await commonHelper.checkManyCommentsPreviewWithRelations(data, options);
-    });
+    }, JEST_TIMEOUT);
 
     it('#smoke - comments api with next_depth amount', async () => {
       const commentsOfDepthZeroResponses: number = 4;

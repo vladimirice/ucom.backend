@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import OrganizationsRepository = require("../../../lib/organizations/repository/organizations-repository");
+
 const request = require('supertest');
 const server = require('../../../app');
 const requestHelper = require('./request-helper');
@@ -247,7 +249,7 @@ class OrganizationsHelper {
   static checkOneOrganizationPreviewFields(model, givenExpected = null) {
     expect(model).toBeDefined();
     expect(model).not.toBeNull();
-    const expected = givenExpected ? givenExpected : organizationsRepositories.Main.getFieldsForPreview();
+    const expected = givenExpected ? givenExpected : OrganizationsRepository.getFieldsForPreview();
 
     this.checkIsPostProcessedSmell(model);
 

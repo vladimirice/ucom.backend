@@ -80,7 +80,7 @@ module.exports = (db, Sequelize) => {
       'avatar_filename',
       'nickname',
       'current_rate',
-      'user_id'
+      'user_id',
     ];
   };
 

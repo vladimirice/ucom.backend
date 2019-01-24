@@ -96,7 +96,19 @@ class CommonGenerator {
       [janeOrgIdOne, janeOrgIdTwo],
     );
 
-    return Promise.all(promisesToCreatePosts);
+    const posts = await Promise.all(promisesToCreatePosts);
+
+    const orgs = {
+      [userJane.id]: [
+        janeOrgIdOne,
+        janeOrgIdTwo,
+      ],
+    };
+
+    return {
+      posts,
+      orgs,
+    };
   }
 }
 

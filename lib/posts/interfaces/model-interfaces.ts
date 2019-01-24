@@ -3,6 +3,7 @@ import {MyselfDataDto} from "../../common/interfaces/post-processing-dto";
 interface PostModel {
   readonly id: number;
   readonly current_vote: number;
+  readonly organization_id: number | null;
 
   [index: string]: any;
 }

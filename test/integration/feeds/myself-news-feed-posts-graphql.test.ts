@@ -1,6 +1,7 @@
-import CommonGenerator = require('../../generators/common-generator');
+import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 
-export {};
+import CommonGenerator = require('../../generators/common-generator');
+import OrganizationsHelper = require('../helpers/organizations-helper');
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
@@ -60,6 +61,13 @@ describe('#feeds myself news feed. #graphql', () => {
 
   describe('Positive', () => {
     it('#smoke - myself news feed', async () => {
+      const seeds = await CommonGenerator.createFeedsForAllUsers(
+        userVlad,
+        userJane,
+        userPetr,
+        userRokky,
+      );
+
       const [
         vladMediaPost, vladDirectPost,
         janeMediaPost, janeDirectPost,
@@ -69,8 +77,7 @@ describe('#feeds myself news feed. #graphql', () => {
         rokkyMediaPost, rokkyDirectPost,
 
         janeMediaPostOrgId, janeDirectPostOrg,
-      ] = await CommonGenerator.createFeedsForAllUsers(userVlad, userJane, userPetr, userRokky);
-
+      ] = seeds.posts;
 
       const query = gql(GraphQLSchema.getUserNewsFeed(1, 10, 1, 10));
 
@@ -88,8 +95,17 @@ describe('#feeds myself news feed. #graphql', () => {
       expect(posts.some(post => post.id === petrMediaPost)).toBeTruthy();
       expect(posts.some(post => post.id === petrDirectPost.id)).toBeTruthy();
 
-      expect(posts.some(post => post.id === janeMediaPostOrgId)).toBeTruthy();
       expect(posts.some(post => post.id === janeDirectPostOrg.id)).toBeTruthy();
+
+      const janeMediaPostOrgModel: PostModelResponse =
+        posts.find(post => post.id === janeMediaPostOrgId);
+      expect(janeMediaPostOrgModel).toBeTruthy();
+
+      expect(janeMediaPostOrgModel.organization_id).toBe(seeds.orgs[userJane.id][0]);
+      OrganizationsHelper.checkOneOrganizationPreviewFields(janeMediaPostOrgModel.organization);
+
     }, JEST_TIMEOUT);
   });
 });
+
+export {};
