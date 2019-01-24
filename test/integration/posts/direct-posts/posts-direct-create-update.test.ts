@@ -9,9 +9,6 @@ import OrganizationsGenerator = require('../../../generators/organizations-gener
 
 export {};
 
-const expect = require('expect');
-
-
 const usersModelProvider      = require('../../../../lib/users/service').ModelProvider;
 const orgModelProvider        = require('../../../../lib/organizations/service').ModelProvider;
 

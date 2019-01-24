@@ -9,6 +9,16 @@ const { cpUpload, cpUploadArray } = require('../../lib/organizations/middleware/
 const { cpUpload: cpPostUpload } = require('../../lib/posts/post-edit-middleware');
 const orgIdParamMiddleware = require('../../lib/organizations/middleware/organization-id-param-middleware');
 const activityUserToOrg = require('../../lib/users/activity').UserToOrg;
+function getOrganizationService(req) {
+    return req.container.get('organizations-service');
+}
+/**
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+    return req.container.get('post-service');
+}
 /* Get all organizations */
 orgRouter.get('/', async (req, res) => {
     const response = await getOrganizationService(req).getAllForPreview(req.query);
@@ -69,14 +79,4 @@ orgRouter.post('/:organization_id/unfollow', [authTokenMiddleWare, cpUploadArray
     });
 });
 orgRouter.param('organization_id', orgIdParamMiddleware);
-function getOrganizationService(req) {
-    return req['container'].get('organizations-service');
-}
-/**
- * @param {Object} req
- * @returns {PostService}
- */
-function getPostService(req) {
-    return req['container'].get('post-service');
-}
 module.exports = orgRouter;

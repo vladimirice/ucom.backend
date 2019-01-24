@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import MockHelper = require("./mock-helper");
+
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
 const usersJobsSeeds = require('../../../seeders/users/users_jobs');
@@ -135,7 +137,13 @@ class SeedsHelper {
    *
    * @returns {Promise<*>}
    */
-  static async beforeAllRoutine() {
+  static async beforeAllRoutine(
+    mockAllBlockchain: boolean = false,
+  ) {
+    if (mockAllBlockchain) {
+      MockHelper.mockAllBlockchainPart();
+    }
+
     await Promise.all([
       this.destroyTables(),
       this.purgeAllQueues(),
@@ -156,7 +164,7 @@ class SeedsHelper {
       models.users_sources.bulkCreate(sourcesSeeds),
     ]);
 
-    return await Promise.all([
+    return Promise.all([
       usersHelper.getUserVlad(),
       usersHelper.getUserJane(),
       usersHelper.getUserPetr(),

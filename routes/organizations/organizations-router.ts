@@ -15,6 +15,18 @@ const orgIdParamMiddleware  =
   require('../../lib/organizations/middleware/organization-id-param-middleware');
 const activityUserToOrg    = require('../../lib/users/activity').UserToOrg;
 
+function getOrganizationService(req) {
+  return req.container.get('organizations-service');
+}
+
+/**
+ * @param {Object} req
+ * @returns {PostService}
+ */
+function getPostService(req) {
+  return req.container.get('post-service');
+}
+
 /* Get all organizations */
 orgRouter.get('/', async (req, res) => {
   const response = await getOrganizationService(req).getAllForPreview(req.query);
@@ -57,7 +69,6 @@ orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
 /* GET one organization posts */
 orgRouter.get('/:organization_id/posts', async (req, res) => {
-
   const orgId = req.organization_id;
   const response = await getPostService(req).findAndProcessAllForOrgWallFeed(orgId, req.query);
 
@@ -98,17 +109,5 @@ orgRouter.post('/:organization_id/unfollow', [authTokenMiddleWare, cpUploadArray
 });
 
 orgRouter.param('organization_id', orgIdParamMiddleware);
-
-function getOrganizationService(req) {
-  return req['container'].get('organizations-service');
-}
-
-/**
- * @param {Object} req
- * @returns {PostService}
- */
-function getPostService(req) {
-  return req['container'].get('post-service');
-}
 
 export = orgRouter;

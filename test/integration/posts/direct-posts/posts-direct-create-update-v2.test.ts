@@ -1,28 +1,17 @@
-import MockHelper = require('../../helpers/mock-helper');
-import UsersHelper = require('../../helpers/users-helper');
 import SeedsHelper = require('../../helpers/seeds-helper');
 import CommonHelper = require('../../helpers/common-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
 import PostsHelper = require('../../helpers/posts-helper');
-
-const usersModelProvider      = require('../../../../lib/users/service').ModelProvider;
-
-let userVlad;
-let userJane;
-
-MockHelper.mockAllBlockchainPart();
+import UsersModelProvider = require('../../../../lib/users/users-model-provider');
+import OrganizationsGenerator = require('../../../generators/organizations-generator');
+import OrganizationsModelProvider = require('../../../../lib/organizations/service/organizations-model-provider');
 
 describe('Direct posts create-update v2', () => {
-  beforeAll(async () => {
-    // noinspection JSCheckFunctionSignatures
-    [userVlad, userJane] = await Promise.all([
-      UsersHelper.getUserVlad(),
-      UsersHelper.getUserJane(),
-    ]);
-  });
+  let userVlad;
+  let userJane;
 
   beforeEach(async () => {
-    await SeedsHelper.initPostOfferSeeds();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
   });
 
   afterAll(async () => {
@@ -40,12 +29,46 @@ describe('Direct posts create-update v2', () => {
 
       const expected = {
         entity_id_for:    `${targetUser.id}`,
-        entity_name_for:  usersModelProvider.getEntityName(),
+        entity_name_for:  UsersModelProvider.getEntityName(),
       };
 
       const post = await PostsGenerator.createUserDirectPostForOtherUserV2(
         user,
         targetUser,
+        newPostFields.description,
+      );
+
+      const options = {
+        myselfData: true,
+        postProcessing: 'full',
+        allowEmptyComments: true,
+      };
+
+      await CommonHelper.checkOnePostForPageV2(post, options);
+
+      await CommonHelper.checkDirectPostInDb(post, {
+        ...expected,
+        ...newPostFields,
+      },                                       user);
+    });
+
+    it('Create direct post for organization', async () => {
+      const user = userVlad;
+
+      const targetOrgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+
+      const newPostFields: any = {
+        description: 'Our super post description',
+      };
+
+      const expected = {
+        entity_id_for:    `${targetOrgId}`,
+        entity_name_for:  OrganizationsModelProvider.getEntityName(),
+      };
+
+      const post = await PostsGenerator.createDirectPostForOrganizationV2(
+        userVlad,
+        targetOrgId,
         newPostFields.description,
       );
 

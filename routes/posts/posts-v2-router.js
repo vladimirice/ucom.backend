@@ -1,6 +1,5 @@
 "use strict";
 /* eslint-disable max-len */
-/* tslint:disable:max-line-length */
 const ApiPostProcessor = require("../../lib/common/service/api-post-processor");
 const express = require('express');
 const PostsV2Router = express.Router();

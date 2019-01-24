@@ -17,6 +17,7 @@ const postsV2Url = `${apiV2Prefix}/posts`;
 const usersUrl = `${apiV1Prefix}/users`;
 const usersUrlV2 = `${apiV2Prefix}/users`;
 const organizationsUrl = `${apiV1Prefix}/organizations`;
+const organizationsV2Url = `${apiV2Prefix}/organizations`;
 const myselfUrl = `${apiV1Prefix}/myself`;
 
 const communityUrl = `${apiV1Prefix}/community`;
@@ -545,6 +546,10 @@ query {
    */
   static getOrgDirectPostUrl(orgId) {
     return `${organizationsUrl}/${orgId}/posts`;
+  }
+
+  public static getOrgDirectPostV2UrlV(orgId: number): string {
+    return `${organizationsV2Url}/${orgId}/posts`;
   }
 
   static getUsersUrl() {

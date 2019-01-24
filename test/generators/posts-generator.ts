@@ -328,6 +328,18 @@ class PostsGenerator {
     return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
   }
 
+  static async createDirectPostForOrganizationV2(
+    myself,
+    targetOrgId,
+    givenDescription = null,
+    withImage = false,
+    idOnly = false,
+  ) {
+    const url = requestHelper.getOrgDirectPostV2UrlV(targetOrgId);
+
+    return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
+  }
+
   static async createDirectPost(
     url,
     myself,

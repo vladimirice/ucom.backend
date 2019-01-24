@@ -1,7 +1,6 @@
 /* eslint-disable max-len */
-/* tslint:disable:max-line-length */
 
-import ApiPostProcessor = require("../../lib/common/service/api-post-processor");
+import ApiPostProcessor = require('../../lib/common/service/api-post-processor');
 
 const express = require('express');
 
