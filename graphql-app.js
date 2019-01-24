@@ -43,6 +43,9 @@ const typeDefs = gql `
     post_type_id: Int!
     blockchain_id: String!
     organization_id: Int
+    
+    organization: Organization
+    
     created_at: String!
     updated_at: String!
 
@@ -104,6 +107,15 @@ const typeDefs = gql `
   type comments {
     data: [Comment!]!
     metadata: metadata!
+  }
+  
+  type Organization {
+    id: Int!
+    title: String!
+    avatar_filename: String
+    nickname: String!
+    current_rate: Float!
+    user_id: Int!
   }
 
   type MyselfData {

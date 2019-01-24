@@ -10,8 +10,8 @@ import PostsGenerator = require('../../../generators/posts-generator');
 import CommentsGenerator = require('../../../generators/comments-generator');
 import UsersHelper = require('../../helpers/users-helper');
 import PostsHelper = require('../../helpers/posts-helper');
-import OrganizationsGenerator = require("../../../generators/organizations-generator");
-import OrganizationsHelper = require("../../helpers/organizations-helper");
+import OrganizationsGenerator = require('../../../generators/organizations-generator');
+import OrganizationsHelper = require('../../helpers/organizations-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -22,7 +22,7 @@ describe('Get One media post #graphql', () => {
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
 
-    await GraphqlHelper.beforeAllWithAuthToken(userVlad);
+    await GraphqlHelper.beforeAll();
   });
 
   afterEach(async () => {

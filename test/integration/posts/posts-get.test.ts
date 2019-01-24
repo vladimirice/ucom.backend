@@ -2,7 +2,6 @@ export {};
 
 const request = require('supertest');
 const server = require('../../../app');
-const expect = require('expect');
 
 const helpers = require('../helpers');
 
@@ -78,7 +77,7 @@ describe('Posts API', () => {
       });
     });
 
-    describe('Test pagination', async () => {
+    describe('Test pagination', () => {
       it('Fix bug about has more', async () => {
         const postsOwner = userVlad;
         const directPostAuthor = userJane;
@@ -90,7 +89,6 @@ describe('Posts API', () => {
         const response = await helpers.Posts.requestToGetManyPostsAsGuest(queryString, false);
 
         helpers.Res.checkMetadata(response, 2, 20, 54, true);
-
       }, 10000);
 
       it('Every request should contain correct metadata', async () => {
@@ -99,7 +97,7 @@ describe('Posts API', () => {
 
         const response = await postHelper.requestAllPostsWithPagination(page, perPage);
 
-        const metadata = response['metadata'];
+        const { metadata } = response;
 
         const totalAmount = await postsRepository.countAllPosts();
 
@@ -152,7 +150,6 @@ describe('Posts API', () => {
         secondPage.forEach((post, i) => {
           expect(post.id).toBe(expectedIdsOfSecondPage[i]);
         });
-
       });
 
       it('Page 0 and page 1 behavior must be the same', async () => {
@@ -165,7 +162,7 @@ describe('Posts API', () => {
       });
     });
 
-    describe('Test sorting', async () => {
+    describe('Test sorting', () => {
       it('Smoke test. Nothing is found', async () => {
         const queryString = '?post_type_id=100500&created_at=24_hours&sort_by=-current_rate';
         const url = `${requestHelper.getPostsUrl()}${queryString}`;
@@ -384,6 +381,7 @@ describe('Posts API', () => {
         const options = {
           myselfData    : false,
           postProcessing: 'full',
+          commentsV1: true, // legacy
         };
 
         helpers.Common.checkOnePostForPage(post, options);
@@ -398,6 +396,7 @@ describe('Posts API', () => {
         const options = {
           myselfData    : true,
           postProcessing: 'full',
+          commentsV1: true, // legacy
         };
 
         helpers.Common.checkOnePostForPage(post, options);
@@ -416,9 +415,9 @@ describe('Posts API', () => {
     ;
 
     responseHelper.expectStatusOk(res);
-    const body = res.body;
+    const { body } = res;
 
-    const author = body['User'];
+    const author = body.User;
 
     expect(author).toBeDefined();
     expect(+author.current_rate).toBeGreaterThan(0);

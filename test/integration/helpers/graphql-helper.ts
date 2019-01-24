@@ -1,6 +1,7 @@
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import {PostModelMyselfResponse, PostModelResponse} from '../../../lib/posts/interfaces/model-interfaces';
+import { PostModelMyselfResponse, PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
@@ -26,6 +27,70 @@ export class GraphqlHelper {
   ): Promise<PostModelMyselfResponse> {
     const query: string = GraphQLSchema.getOnePostQueryAsMyself(postId);
     const key: string = 'one_post';
+
+    return this.makeRequestAsMyself(myself, query, key, false);
+  }
+
+  public static async getUserWallFeedQueryAsMyself(
+    myself: UserModel,
+    userId: number,
+    page: number = 1,
+    perPage: number = 10,
+    commentsPage: number = 1,
+    commentsPerPage: number = 10,
+  ): Promise<PostModelMyselfResponse> {
+    const query: string = GraphQLSchema.getUserWallFeedQuery(
+      userId,
+      page,
+      perPage,
+      commentsPage,
+      commentsPerPage,
+    );
+
+    const key: string = 'user_wall_feed';
+
+    return this.makeRequestAsMyself(myself, query, key, false);
+  }
+
+  public static async getPostCommentsAsMyself(
+    myself: UserModel,
+    commentableId: number,
+    page: number,
+    perPage: number,
+  ): Promise<CommentsListResponse> {
+    const query: string = GraphQLSchema.getPostCommentsQuery(commentableId, page, perPage);
+    const key: string = 'feed_comments';
+
+    return this.makeRequestAsMyself(myself, query, key, false);
+  }
+
+  public static async getCommentsOnCommentAsMyself(
+    myself: UserModel,
+    postId: number,
+    parentId: number,
+    parentDepth: number,
+    page: number,
+    perPage: number,
+  ): Promise<any> {
+    // check depth for one commentZeroDepth
+    const query = GraphQLSchema.getCommentsOnCommentQuery(
+      postId,
+      parentId,
+      parentDepth,
+      page,
+      perPage,
+    );
+
+    const key: string = 'comments_on_comment';
+
+    return this.makeRequestAsMyself(myself, query, key, false);
+  }
+
+  public static async getUserNewsFeed(
+    myself: UserModel,
+  ): Promise<PostModelMyselfResponse> {
+    const query: string = GraphQLSchema.getUserNewsFeed(1, 10, 1, 10);
+    const key: string = 'user_news_feed';
 
     return this.makeRequestAsMyself(myself, query, key, false);
   }
@@ -84,12 +149,8 @@ export class GraphqlHelper {
     return response;
   }
 
-  public static async beforeAllWithAuthToken(
-    user: UserModel,
-  ): Promise<void> {
+  public static async beforeAll(): Promise<void> {
     serverApp = await app.listen({ port: PORT });
-
-    client = this.getClientWithToken(user);
   }
 
   private static getClientWithToken(user: UserModel) {

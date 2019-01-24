@@ -231,7 +231,7 @@ class CommentsHelper {
     }
 
     if (options && options.postProcessing !== 'notification'
-    && options.postProcessing !== 'notificationWithOrg') {
+    && options.postProcessing !== 'notificationWithOrg' && !options.commentsV1) {
       fieldsFromRelations.push('metadata');
 
       expect(model.metadata).toBeDefined();

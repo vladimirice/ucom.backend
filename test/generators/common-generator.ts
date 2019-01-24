@@ -48,33 +48,33 @@ class CommonGenerator {
       // ======= Vlad wall ========
 
       // User himself creates posts
-      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      PostsGenerator.createMediaPostByUserHimself(userVlad), // 0
       // somebody creates post in users wall
-      PostsGenerator.createUserDirectPostForOtherUser(userJane, userVlad),
+      PostsGenerator.createUserDirectPostForOtherUser(userJane, userVlad), // 1
 
       // ======= Jane wall =========
 
       // User himself creates posts
-      PostsGenerator.createMediaPostByUserHimself(userJane),
+      PostsGenerator.createMediaPostByUserHimself(userJane), // 2
       // somebody creates post in users wall
-      PostsGenerator.createUserDirectPostForOtherUser(userVlad, userJane),
+      PostsGenerator.createUserDirectPostForOtherUser(userVlad, userJane), // 3
 
       // ======= Peter wall =========
 
       // User himself creates posts
-      PostsGenerator.createMediaPostByUserHimself(userPetr),
+      PostsGenerator.createMediaPostByUserHimself(userPetr), // 4
       // somebody creates post in users wall
-      PostsGenerator.createUserDirectPostForOtherUser(userRokky, userPetr),
+      PostsGenerator.createUserDirectPostForOtherUser(userRokky, userPetr), // 5
 
       // ======= Rokky wall ============
       // User himself creates posts
-      PostsGenerator.createMediaPostByUserHimself(userRokky),
+      PostsGenerator.createMediaPostByUserHimself(userRokky), // 6
       // somebody creates post in users wall
-      PostsGenerator.createUserDirectPostForOtherUser(userPetr, userRokky),
+      PostsGenerator.createUserDirectPostForOtherUser(userPetr, userRokky), // 7
 
       // ======== Jane Org wall ==========
-      PostsGenerator.createMediaPostOfOrganization(userJane, janeOrgIdOne),
-      PostsGenerator.createDirectPostForOrganization(userVlad, janeOrgIdTwo),
+      PostsGenerator.createMediaPostOfOrganization(userJane, janeOrgIdOne), // 8
+      PostsGenerator.createDirectPostForOrganization(userVlad, janeOrgIdTwo), // 9
     ];
 
     const usersToFollow: UserModel[] = [
@@ -98,6 +98,13 @@ class CommonGenerator {
 
     const posts = await Promise.all(promisesToCreatePosts);
 
+    const responsePosts = {
+      org: {
+        [janeOrgIdOne]: posts[8],
+      },
+      raw: posts,
+    };
+
     const orgs = {
       [userJane.id]: [
         janeOrgIdOne,
@@ -106,7 +113,7 @@ class CommonGenerator {
     };
 
     return {
-      posts,
+      posts: responsePosts,
       orgs,
     };
   }

@@ -1,6 +1,7 @@
 /* tslint:disable:max-line-length */
+import { CommentsCreatorService } from '../../../lib/comments/service/comments-creator-service';
+
 const userActivityService = require('../../../lib/users/user-activity-service');
-const commentsService = require('../../../lib/comments/comments-service');
 const organizationService = require('../../../lib/organizations/service/organization-service');
 const usersToOrgActivity = require('../../../lib/users/activity/user-to-organization-activity');
 const postsService = require('../../../lib/posts/post-service');
@@ -12,7 +13,6 @@ let orgCounter = 1;
 let postCreationCounter = 1;
 
 class MockHelper {
-
   static mockAllTransactionSigning() {
     orgCounter = 1;
     postCreationCounter = 1;
@@ -58,7 +58,7 @@ class MockHelper {
   static mockCommentTransactionSigning() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
-    commentsService.addTransactionDataToBody = async function (
+    CommentsCreatorService.addTransactionDataToBody = async function (
       body,
       // @ts-ignore
       currentUser,

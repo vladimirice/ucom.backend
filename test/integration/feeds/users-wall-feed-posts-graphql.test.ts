@@ -1,9 +1,5 @@
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
-export {};
-
-const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
-
 const mockHelper = require('../helpers/mock-helper.ts');
 
 const postsGenerator = require('../../generators/posts-generator.ts');
@@ -25,8 +21,7 @@ const JEST_TIMEOUT = 20000 * 10;
 describe('#Feeds #GraphQL', () => {
   beforeAll(async () => {
     [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
-
-    await GraphqlHelper.beforeAllWithAuthToken(userVlad);
+    await GraphqlHelper.beforeAll();
   });
 
   afterAll(async () => {
@@ -42,13 +37,13 @@ describe('#Feeds #GraphQL', () => {
 
   describe('Positive', () => {
     it('#smoke - should get repost information', async () => {
-      const graphQlKey = 'user_wall_feed';
-
       const { repostId }: { repostId: number } =
         await postsGenerator.createUserPostAndRepost(userVlad, userJane);
 
-      const query = GraphQLSchema.getUserWallFeedQuery(userJane.id, 1, 10, 1, 10);
-      const data = await GraphqlHelper.makeRequest(query, graphQlKey);
+      const response =
+        await GraphqlHelper.getUserWallFeedQueryAsMyself(userVlad, userJane.id, 1, 10);
+
+      const { data } = response;
 
       const repost = data.find(item => item.id === repostId);
 
@@ -82,8 +77,7 @@ describe('#Feeds #GraphQL', () => {
 
       const [postOneId, postTwo] = await Promise.all(promisesToCreatePosts);
 
-      // @ts-ignore
-      const [commentOne, commentTwo, commentThree] = await Promise.all([
+      const [commentOne, commentTwo] = await Promise.all([
         commentsGenerator.createCommentForPost(
           postOneId,
           userJane,
@@ -109,11 +103,9 @@ describe('#Feeds #GraphQL', () => {
       const feedPage = 1;
       const feedPerPage = 3;
 
-      const queryAsString = GraphQLSchema.getUserWallFeedQuery(
-        userVlad.id, feedPage, feedPerPage, commentsPage, commentsPerPage,
+      const response = await GraphqlHelper.getUserWallFeedQueryAsMyself(
+        userVlad, userVlad.id, feedPage, feedPerPage, commentsPage, commentsPerPage,
       );
-
-      const response = await GraphqlHelper.makeRequest(queryAsString);
       const { data } = response;
 
       const options = {
@@ -124,7 +116,7 @@ describe('#Feeds #GraphQL', () => {
         commentItselfMetadata: true,
       };
 
-      const postOne = data.user_wall_feed.data.find(item => item.id === postOneId);
+      const postOne = data.find(item => item.id === postOneId);
 
       // Only first level comments (depth = 0)
       const commentOnCommentExistence = postOne.comments.data.some(
@@ -153,10 +145,12 @@ describe('#Feeds #GraphQL', () => {
       expect(commentWithoutComment.metadata.next_depth_total_amount).toBe(0);
 
       await commonHelper.checkPostsListFromApi(
-        data.user_wall_feed.data,
+        data,
         promisesToCreatePosts.length,
         options,
       );
     }, JEST_TIMEOUT);
   });
 });
+
+export {};

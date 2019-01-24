@@ -50,7 +50,7 @@ class CommentsGenerator {
     postId: number,
     user: UserModel,
     description: string = 'comment description',
-  ): Promise<CommentModel> {
+  ): Promise<CommentModelResponse> {
     const req = request(server)
       .post(requestHelper.getCommentsUrl(postId))
       .field('description', description);

@@ -1,7 +1,9 @@
-import ResponseHelper = require("./response-helper");
-import {CommentModelResponse} from "../../../lib/comments/interfaces/model-interfaces";
-import CommentsHelper = require("./comments-helper");
-import {ListResponse} from "../../../lib/common/interfaces/lists-interfaces";
+import { CommentModelResponse, CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
+import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
+
+import ResponseHelper = require('./response-helper');
+import CommentsHelper = require('./comments-helper');
 
 const usersHelper         = require('./users-helper');
 const orgHelper           = require('./organizations-helper');
@@ -11,8 +13,6 @@ const notificationsHelper = require('./notifications-helper');
 const eventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
 
 import _ = require('lodash');
-import {PostModelResponse} from "../../../lib/posts/interfaces/model-interfaces";
-import {CheckerOptions} from "../../generators/interfaces/dto-interfaces";
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -31,8 +31,13 @@ class CommonHelper {
     });
   }
 
-  public static checkManyIncludedCommentsV2(model, options: CheckerOptions) {
-    const { comments }: {comments: ListResponse} = model;
+  public static checkManyIncludedCommentsV2(model, options: CheckerOptions): void {
+    const { comments }: {comments: CommentsListResponse} = model;
+
+    this.checkManyCommentsV2(comments, options);
+  }
+
+  public static checkManyCommentsV2(comments: CommentsListResponse, options: CheckerOptions): void {
     ResponseHelper.expectValidListResponseStructure(comments);
 
     if (options.comments.isEmpty) {
@@ -424,6 +429,7 @@ class CommonHelper {
 
     usersHelper.checkIncludedUserPreview(model.target_entity.post);
   }
+
   /**
    *
    * @param {Object} model

@@ -1,15 +1,11 @@
+import { GraphqlHelper } from '../helpers/graphql-helper';
+
 import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 
 import CommonGenerator = require('../../generators/common-generator');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 
-const ApolloClient = require('apollo-boost').default;
-const { gql } = require('apollo-boost');
-const { InMemoryCache } = require('apollo-cache-inmemory');
-const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 const mockHelper = require('../helpers/mock-helper.ts');
-
-const { app, server } = require('../../../graphql-app');
 const seedsHelper = require('../helpers/seeds-helper.ts');
 
 require('cross-fetch/polyfill');
@@ -24,34 +20,15 @@ let userRokky;
 const JEST_TIMEOUT = 20000;
 
 describe('#feeds myself news feed. #graphql', () => {
-  let serverApp;
-  // @ts-ignore
-  let client;
-
   beforeAll(async () => {
     [userVlad, userJane, userPetr, userRokky] = await seedsHelper.beforeAllRoutine();
-
-    serverApp = await app.listen({ port: 4002 });
-
-    client = new ApolloClient({
-      request: async (operation) => {
-        operation.setContext({
-          headers: {
-            Authorization: `Bearer ${userVlad.token}`,
-          },
-        });
-      },
-      uri: `http://127.0.0.1:4002${server.graphqlPath}`,
-      cache: new InMemoryCache({
-        addTypename: false,
-      }),
-    });
+    await GraphqlHelper.beforeAll();
   });
 
   afterAll(async () => {
     await Promise.all([
       seedsHelper.doAfterAll(),
-      serverApp.close(),
+      GraphqlHelper.afterAll(),
     ]);
   });
 
@@ -72,19 +49,11 @@ describe('#feeds myself news feed. #graphql', () => {
         vladMediaPost, vladDirectPost,
         janeMediaPost, janeDirectPost,
         petrMediaPost, petrDirectPost,
+      ] = seeds.posts.raw;
 
-        // @ts-ignore
-        rokkyMediaPost, rokkyDirectPost,
+      const response = await GraphqlHelper.getUserNewsFeed(userVlad);
 
-        janeMediaPostOrgId, janeDirectPostOrg,
-      ] = seeds.posts;
-
-      const query = gql(GraphQLSchema.getUserNewsFeed(1, 10, 1, 10));
-
-      const response = await client.query({ query });
-      const { data } = response;
-
-      const posts = data.user_news_feed.data;
+      const posts = response.data;
 
       expect(posts.some(post => post.id === vladMediaPost)).toBeTruthy();
       expect(posts.some(post => post.id === vladDirectPost.id)).toBeTruthy();
@@ -95,15 +64,18 @@ describe('#feeds myself news feed. #graphql', () => {
       expect(posts.some(post => post.id === petrMediaPost)).toBeTruthy();
       expect(posts.some(post => post.id === petrDirectPost.id)).toBeTruthy();
 
-      expect(posts.some(post => post.id === janeDirectPostOrg.id)).toBeTruthy();
+      // Check organization post
 
-      const janeMediaPostOrgModel: PostModelResponse =
-        posts.find(post => post.id === janeMediaPostOrgId);
-      expect(janeMediaPostOrgModel).toBeTruthy();
 
-      expect(janeMediaPostOrgModel.organization_id).toBe(seeds.orgs[userJane.id][0]);
-      OrganizationsHelper.checkOneOrganizationPreviewFields(janeMediaPostOrgModel.organization);
+      const orgPosts = seeds.posts.org;
+      // eslint-disable-next-line guard-for-in
+      for (const orgId in orgPosts) {
+        const model: PostModelResponse = posts.find(orgPost => orgPost.id === orgPosts[orgId]);
+        expect(model).toBeDefined();
 
+        expect(model.organization_id).toBe(+orgId);
+        OrganizationsHelper.checkOneOrganizationPreviewFields(model.organization);
+      }
     }, JEST_TIMEOUT);
   });
 });
