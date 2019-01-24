@@ -1,3 +1,5 @@
+import {UserModel} from "../../../lib/users/interfaces/model-interfaces";
+
 const request = require('supertest');
 const server = require('../../../app');
 const requestHelper = require('./request-helper');
@@ -620,7 +622,11 @@ class PostsHelper {
    * @param {number} expectedStatus
    * @returns {Promise<Object>}
    */
-  static async requestToGetOnePostAsMyself(postId, user, expectedStatus = 200) {
+  static async requestToGetOnePostAsMyself(
+    postId: number,
+    user: UserModel,
+    expectedStatus: number = 200,
+  ) {
     const res = await request(server)
       .get(requestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)

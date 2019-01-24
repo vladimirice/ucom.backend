@@ -25,9 +25,7 @@ class ActivityApiMiddleware {
       }
 
       const lockKey = `user_activity_${currentUserId}`;
-      console.log(`Lock key is: ${lockKey}`);
       const lock = await redisClient.actionRedlockLock(lockKey, ACTIVITY_REDLOCK_TTL_SEC);
-      console.log(`Lock is set for the key: ${lockKey}`);
 
       res.on('finish', async () => {
         await ActivityApiMiddleware.redlockAfterActivity(lock);

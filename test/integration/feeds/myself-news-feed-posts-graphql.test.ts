@@ -3,13 +3,9 @@ import CommonGenerator = require('../../generators/common-generator');
 export {};
 
 const ApolloClient = require('apollo-boost').default;
-// @ts-ignore
 const { gql } = require('apollo-boost');
 const { InMemoryCache } = require('apollo-cache-inmemory');
-
-// @ts-ignore
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
-
 const mockHelper = require('../helpers/mock-helper.ts');
 
 const { app, server } = require('../../../graphql-app');

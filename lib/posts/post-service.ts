@@ -1,4 +1,7 @@
 /* tslint:disable:max-line-length no-parameter-reassignment */
+import PostsFetchService = require("./service/posts-fetch-service");
+import {PostModelResponse} from "./interfaces/model-interfaces";
+
 const status = require('statuses');
 const _ = require('lodash');
 
@@ -55,7 +58,7 @@ class PostService {
   async userUpvotesPost(modelIdTo, body) {
     const userFrom = this.currentUser.user;
 
-    return await postActivityService.userUpvotesPost(userFrom, modelIdTo, body);
+    return postActivityService.userUpvotesPost(userFrom, modelIdTo, body);
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -480,39 +483,12 @@ class PostService {
     }
   }
 
-  /**
-   *
-   * @param {number} postId
-   * @returns {Promise<Object>}
-   */
-  async findOnePostByIdAndProcess(postId) {
-    const userId = this.currentUser.id;
+  public async findOnePostByIdAndProcess(
+    postId: number,
+  ): Promise<PostModelResponse | null> {
+    const userId: number = this.currentUser.id;
 
-    const post = await postsRepository.findOneById(postId, userId, true);
-
-    if (!post) {
-      return null;
-    }
-
-    let userToUserActivity = null;
-    let currentUserPostActivity: any = null;
-
-    if (userId) {
-      userToUserActivity =
-        await usersActivityRepository.findOneUserActivityWithInvolvedUsersData(post.user_id);
-
-      const postsActivity = await usersActivityRepository.findOneUserToPostsVotingAndRepostActivity(userId, [postId]);
-      currentUserPostActivity = {
-        posts: postsActivity,
-      };
-    }
-
-    let orgTeamMembers = [];
-    if (post.organization_id) {
-      orgTeamMembers = await organizationRepositories.Main.findAllTeamMembersIds(post.organization_id);
-    }
-
-    return apiPostProcessor.processOnePostFully(post, userId, currentUserPostActivity, userToUserActivity, orgTeamMembers);
+    return PostsFetchService.findOnePostByIdAndProcess(postId, userId);
   }
 
   /**

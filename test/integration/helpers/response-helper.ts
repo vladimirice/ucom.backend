@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
+
 require('jest-expect-message');
 
 class ResponseHelper {
@@ -6,6 +8,7 @@ class ResponseHelper {
     // @ts-ignore
     expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(200);
   }
+
   static expectStatusCreated(res) {
     // @ts-ignore
     expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(201);
@@ -58,7 +61,6 @@ class ResponseHelper {
       expect(target.message).toBeDefined();
       expect(target.message).toMatch(field);
     });
-
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -181,7 +183,7 @@ class ResponseHelper {
       expect(data.length).toBeGreaterThan(0);
     }
 
-    this.expectValidMetadataStructure(metadata, allowEmpty);
+    this.expectValidMetadataStructure(metadata);
 
     // #task
     // if (metadata.has_more === false) {
@@ -190,12 +192,7 @@ class ResponseHelper {
     // }
   }
 
-  /**
-   *
-   * @param {Object} metadata
-   * @param {boolean} allowEmpty
-   */
-  static expectValidMetadataStructure(metadata, allowEmpty = false) {
+  public static expectValidMetadataStructure(metadata: ListMetadata): void {
     expect(metadata).toBeDefined();
     expect(metadata).not.toBeNull();
     expect(typeof metadata).toBe('object');
@@ -203,11 +200,7 @@ class ResponseHelper {
     expect(metadata.total_amount).toBeDefined();
     expect(typeof metadata.total_amount).toBe('number');
 
-    if (allowEmpty) {
-      expect(metadata.total_amount).toBeGreaterThanOrEqual(0);
-    } else {
-      expect(metadata.total_amount).toBeGreaterThan(0);
-    }
+    expect(metadata.total_amount).toBeGreaterThanOrEqual(0);
 
     expect(metadata.page).toBeDefined();
     // expect(typeof metadata.page).toBe('number'); // #task
@@ -220,8 +213,18 @@ class ResponseHelper {
     expect(typeof metadata.has_more).toBe('boolean');
   }
 
+  static expectValidListResponseStructure(
+    response: ListResponse,
+  ): void {
+    expect(response.data).toBeDefined();
+    expect(Array.isArray(response.data)).toBeTruthy();
+    expect(response.metadata).toBeDefined();
+
+    this.expectValidMetadataStructure(response.metadata);
+  }
+
   static checkMetadata(response, page, perPage, totalAmount, hasMore) {
-    const metadata = response.metadata;
+    const { metadata } = response;
 
     expect(metadata).toBeDefined();
     expect(metadata.has_more).toBe(hasMore);

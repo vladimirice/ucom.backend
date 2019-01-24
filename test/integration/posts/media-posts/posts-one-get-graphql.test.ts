@@ -1,0 +1,150 @@
+import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+import { PostModelMyselfResponse, PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
+import { CheckerOptions } from '../../../generators/interfaces/dto-interfaces';
+import { GraphqlHelper } from '../../helpers/graphql-helper';
+
+import SeedsHelper = require('../../helpers/seeds-helper');
+import CommonHelper = require('../../helpers/common-helper');
+import PostsGenerator = require('../../../generators/posts-generator');
+
+import CommentsGenerator = require('../../../generators/comments-generator');
+import UsersHelper = require('../../helpers/users-helper');
+import PostsHelper = require('../../helpers/posts-helper');
+
+let userVlad: UserModel;
+let userJane: UserModel;
+
+const JEST_TIMEOUT = 10000;
+
+describe('Get One media post #graphql', () => {
+  beforeEach(async () => {
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
+
+    await GraphqlHelper.beforeAllWithAuthToken(userVlad);
+  });
+
+  afterEach(async () => {
+    await Promise.all([
+      GraphqlHelper.afterAll(),
+    ]);
+  });
+
+  afterAll(async () => {
+    await Promise.all([
+      SeedsHelper.doAfterAll(),
+      GraphqlHelper.afterAll(),
+    ]);
+  });
+
+  describe('Positive', () => {
+    it('Get one media post WITHOUT comments as myself. #smoke #myself #media-post', async () => {
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+
+      const post: PostModelResponse = await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
+
+      const options: CheckerOptions = {
+        myselfData    : true,
+        postProcessing: 'full',
+        comments: {
+          isEmpty: true,
+        },
+      };
+
+      CommonHelper.checkOnePostV2(post, options);
+    }, JEST_TIMEOUT);
+
+    it('Get one media post WITH comments as myself. #smoke #myself #media-post #comments', async () => {
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+
+      const [commentOne, commentTwo] =
+        await CommentsGenerator.createManyCommentsForPost(postId, userJane, 2);
+
+      const post: PostModelResponse = await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
+
+      const { comments } = post;
+
+      expect(comments.data.length).toBe(2);
+      expect(comments.data.some(item => item.id === commentOne.id)).toBeTruthy();
+      expect(comments.data.some(item => item.id === commentTwo.id)).toBeTruthy();
+
+      const options: CheckerOptions = {
+        myselfData    : true,
+        postProcessing: 'full',
+        comments: {
+          isEmpty: false,
+        },
+      };
+
+      CommonHelper.checkOnePostV2(post, options);
+    }, JEST_TIMEOUT);
+
+    it('Get one media post WITHOUT comments as GUEST. #smoke #guest #media-post', async () => {
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+
+      const post: PostModelResponse = await GraphqlHelper.getOnePostAsGuest(postId);
+
+      const options: CheckerOptions = {
+        myselfData    : false,
+        postProcessing: 'full',
+        comments: {
+          isEmpty: true,
+        },
+      };
+
+      CommonHelper.checkOnePostV2(post, options);
+    }, JEST_TIMEOUT);
+
+    it('Get one media post WITH comments as GUEST. #smoke #guest #media-post #comments', async () => {
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+
+      const [commentOne, commentTwo] =
+        await CommentsGenerator.createManyCommentsForPost(postId, userJane, 2);
+
+      const post: PostModelResponse = await GraphqlHelper.getOnePostAsGuest(postId);
+
+      const { comments } = post;
+
+      expect(comments.data.length).toBe(2);
+      expect(comments.data.some(item => item.id === commentOne.id)).toBeTruthy();
+      expect(comments.data.some(item => item.id === commentTwo.id)).toBeTruthy();
+
+      const options: CheckerOptions = {
+        myselfData    : false,
+        postProcessing: 'full',
+        comments: {
+          isEmpty: false,
+        },
+      };
+
+      CommonHelper.checkOnePostV2(post, options);
+    }, JEST_TIMEOUT);
+  });
+
+  describe('Related checks', () => {
+    it('User data inside post is normalized', async () => {
+      await UsersHelper.setSampleRateToUser(userVlad);
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+
+      const post: PostModelResponse = await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
+
+      const author = post.User;
+
+      expect(+author.current_rate).toBeGreaterThan(0);
+    });
+
+    it('Upvote/downvote data inside post', async () => {
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userJane);
+
+      await PostsHelper.requestToUpvotePost(userVlad, postId);
+
+      const post: PostModelMyselfResponse =
+        await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
+
+      expect(post.current_vote).toBe(1);
+
+      expect(post.myselfData.myselfVote).toBe('upvote');
+    });
+  });
+});
+
+export {};

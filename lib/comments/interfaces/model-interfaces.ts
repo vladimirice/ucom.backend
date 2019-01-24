@@ -1,3 +1,5 @@
+import { ListResponse } from '../../common/interfaces/lists-interfaces';
+
 interface CommentModel {
   readonly id: number;
   readonly commentable_id: number;
@@ -8,9 +10,12 @@ interface CommentModel {
 }
 
 interface CommentModelResponse extends CommentModel {
-  readonly metadata: CommentMetadataResponse
+  readonly metadata: CommentMetadataResponse;
 }
 
+interface CommentsListResponse extends ListResponse {
+  data: CommentModelResponse[];
+}
 
 interface CommentMetadataResponse {
   readonly next_depth_total_amount: number;
@@ -19,4 +24,5 @@ interface CommentMetadataResponse {
 export {
   CommentModel,
   CommentModelResponse,
+  CommentsListResponse,
 };

@@ -1,21 +1,22 @@
+/* eslint-disable max-len */
 /* tslint:disable:max-line-length */
-const request = require('supertest');
-const server = require('../../../app');
-const _ = require('lodash');
+import { CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
 
-const requestHelper = require('./request-helper');
-const responseHelper = require('./response-helper');
+import CommentsModelProvider = require('../../../lib/comments/service/comments-model-provider');
+import ResponseHelper = require('./response-helper');
+import RequestHelper = require('./request-helper');
+
+const request = require('supertest');
+const _ = require('lodash');
+const server = require('../../../app');
+
 const models = require('../../../models');
 
 const commentsRepositories = require('../../../lib/comments/repository');
+
 const commentsRepository = commentsRepositories.Main;
 
 class CommentsHelper {
-
-  static getCommentsRepository() {
-    return commentsRepository;
-  }
-
   /**
    *
    * @param {Object} myself
@@ -30,13 +31,13 @@ class CommentsHelper {
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
       expect(Array.isArray(res.body.data)).toBeTruthy();
     }
 
-    res.body.data = _.filter(res.body.data);
+    res.body.data = Array.prototype.filter(res.body.data);
 
     if (dataOnly) {
       return res.body.data;
@@ -44,6 +45,8 @@ class CommentsHelper {
 
     return res.body;
   }
+
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {number} postId
@@ -56,13 +59,13 @@ class CommentsHelper {
       .get(`/api/v1/posts/${postId}/comments`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
       expect(Array.isArray(res.body.data)).toBeTruthy();
     }
 
-    res.body.data = _.filter(res.body.data);
+    res.body.data = Array.prototype.filter(res.body.data);
 
     if (dataOnly) {
       return res.body.data;
@@ -84,7 +87,7 @@ class CommentsHelper {
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return res.body;
   }
@@ -102,7 +105,7 @@ class CommentsHelper {
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return res.body;
   }
@@ -112,7 +115,7 @@ class CommentsHelper {
    * @param {Object} actual
    */
   static checkCommentResponseBody(actual) {
-    models['comments'].apiResponseFields().forEach((field) => {
+    models.comments.apiResponseFields().forEach((field) => {
       expect(actual[field]).toBeDefined();
     });
   }
@@ -126,19 +129,19 @@ class CommentsHelper {
    */
   static async requestToCreateComment(postId, user) {
     const res = await request(server)
-      .post(requestHelper.getCommentsUrl(postId))
+      .post(RequestHelper.getCommentsUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('description', 'comment description')
     ;
 
-    responseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return res.body;
   }
 
   /**
    * @deprecated
-   * @see CommentsGenerator#createCommentOnComment
+   * @see generator
    *
    * @param {number} postId
    * @param {number} parentCommentId
@@ -147,14 +150,46 @@ class CommentsHelper {
    */
   static async requestToCreateCommentOnComment(postId, parentCommentId, user) {
     const res = await request(server)
-      .post(requestHelper.getCommentOnCommentUrl(postId, parentCommentId))
+      .post(RequestHelper.getCommentOnCommentUrl(postId, parentCommentId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('description', 'comment description')
     ;
 
-    responseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return res.body;
+  }
+
+  public static checkOneCommentItself(model: CommentModelResponse, options: any) {
+    expect(_.isEmpty(model)).toBeFalsy();
+
+    // @ts-ignore
+    expect(Array.isArray(model.path), 'Probably you did not post-process comment').toBeTruthy();
+
+    const expected = CommentsModelProvider.getCommentsFieldsForPreview();
+    const fieldsFromRelations: string[] = [
+      'User',
+      'activity_user_comment',
+      'organization',
+      'metadata',
+    ];
+
+    if (options && options.myselfData) {
+      fieldsFromRelations.push('myselfData');
+    }
+
+    this.checkOneCommentMetadataStructure(model);
+
+    ResponseHelper.expectAllFieldsExistence(
+      model,
+      Array.prototype.concat(expected, fieldsFromRelations),
+    );
+  }
+
+  private static checkOneCommentMetadataStructure(model: CommentModelResponse): void {
+    expect(model.metadata).toBeDefined();
+    expect(typeof model.metadata.next_depth_total_amount).toBe('number');
+    expect(model.metadata.next_depth_total_amount).toBeGreaterThanOrEqual(0);
   }
 
   /**
@@ -204,7 +239,7 @@ class CommentsHelper {
       expect(model.metadata.next_depth_total_amount).toBeGreaterThanOrEqual(0);
     }
 
-    responseHelper.expectAllFieldsExistence(
+    ResponseHelper.expectAllFieldsExistence(
       model,
       Array.prototype.concat(expected, fieldsFromRelations),
     );

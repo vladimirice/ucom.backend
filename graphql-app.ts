@@ -1,6 +1,8 @@
 import { RequestQueryComments, RequestQueryDto } from './lib/api/filters/interfaces/query-filter-interfaces';
 import { AppError } from './lib/api/errors';
 
+import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
+
 const express = require('express');
 
 // const {
@@ -24,6 +26,7 @@ const typeDefs = gql`
 
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
     comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
+    one_post(id: Int!, comments_query: comments_query!): Post
   }
 
   scalar JSON
@@ -40,6 +43,8 @@ const typeDefs = gql`
 
     main_image_filename: String
     entity_images: JSON
+    
+    entity_tags: JSON
 
     user_id: Int!
     post_type_id: Int!
@@ -68,6 +73,10 @@ const typeDefs = gql`
     nickname: String
     avatar_filename: String
     current_rate: Float!
+    
+    I_follow: JSON, 
+    followed_by: JSON,
+    myselfData: MyselfData,
   }
 
   type Comment {
@@ -121,6 +130,7 @@ const typeDefs = gql`
     page: Int!,
     per_page: Int!,
     has_more: Boolean!
+    total_amount: Int!
   }
 
   type comment_metadata {
@@ -137,6 +147,15 @@ const resolvers = {
   JSON: graphQLJSON,
 
   Query: {
+    // @ts-ignore
+    async one_post(parent, args, ctx) {
+      const currentUserId: number = authService.extractCurrentUserByToken(ctx.req);
+
+      const commentsQuery: RequestQueryComments = args.comments_query;
+      commentsQuery.depth = 0;
+
+      return PostsFetchService.findOnePostByIdAndProcessV2(args.id, currentUserId, commentsQuery);
+    },
     // @ts-ignore
     async comments_on_comment(parent, args, ctx) {
       const commentsQuery: RequestQueryComments = {

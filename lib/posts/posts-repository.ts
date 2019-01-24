@@ -1,14 +1,16 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 
-const models = require('../../models');
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const moment = require('moment');
+const _ = require('lodash');
+
+const models = require('../../models');
 
 const ENTITY_STATS_CURRENT_TABLE_NAME = 'entity_stats_current';
-const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
 
+const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
 const db = models.sequelize;
-const Op = db.Op;
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+const { Op } = db;
 
 const orgModelProvider    = require('../organizations/service/organizations-model-provider');
 const postsModelProvider  = require('./service/posts-model-provider');
@@ -24,12 +26,9 @@ const TABLE_NAME = 'posts';
 
 const model = postsModelProvider.getModel();
 
-const _ = require('lodash');
-
 const knex = require('../../config/knex');
 
 class PostsRepository {
-
   /**
    *
    * @param {number} id
@@ -39,7 +38,7 @@ class PostsRepository {
    */
   static async updatePostEntityTagsById(id, entityTags, trx) {
     // noinspection JSCheckFunctionSignatures
-    return await trx(postsModelProvider.getTableName())
+    return trx(postsModelProvider.getTableName())
       .update({ entity_tags: entityTags })
       .where('id', '=', id)
       .returning('*')
@@ -68,12 +67,13 @@ class PostsRepository {
     return res;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @returns {Function}
    */
   static getWhereProcessor() {
-    return function (query, params) {
+    return (query, params) => {
       if (query.post_type_id) {
         params.where.post_type_id = +query.post_type_id;
       }
@@ -95,6 +95,7 @@ class PostsRepository {
     };
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @returns {Object}
@@ -112,6 +113,7 @@ class PostsRepository {
     };
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {string[]}
@@ -128,6 +130,7 @@ class PostsRepository {
     ];
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {number} id
@@ -148,8 +151,10 @@ class PostsRepository {
     return !!res;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   static async incrementCurrentVoteCounter(id, by = 1) {
-    return await this.getModel().increment('current_vote', {
+    // noinspection TypeScriptValidateJSTypes
+    return this.getModel().increment('current_vote', {
       by,
       where: {
         id,
@@ -157,6 +162,7 @@ class PostsRepository {
     });
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {number} id
@@ -164,7 +170,8 @@ class PostsRepository {
    * @returns {Promise<*>}
    */
   static async decrementCurrentVoteCounter(id, by = 1) {
-    return await this.getModel().decrement('current_vote', {
+    // noinspection TypeScriptValidateJSTypes
+    return this.getModel().decrement('current_vote', {
       by,
       where: {
         id,
@@ -203,6 +210,7 @@ class PostsRepository {
 
     return data ? data.id : null;
   }
+
   /**
    *
    * @param {number} userId
@@ -225,6 +233,7 @@ class PostsRepository {
     return data ? data.id : null;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   static async findLast(isRaw = true) {
     const data = await this.getModel().findOne({
       where: {
@@ -245,7 +254,7 @@ class PostsRepository {
    * @returns {Promise<Object>}
    */
   static async findAllMediaPosts(raw = true) {
-    return await this.getModel().findAll({
+    return this.getModel().findAll({
       raw,
       where: {
         post_type_id: POST_TYPE__MEDIA_POST,
@@ -258,7 +267,7 @@ class PostsRepository {
    * @param {Object | null} queryParameters
    * @returns {Promise<number>}
    */
-  static async countAllPosts(queryParameters: Object | null = null) {
+  static async countAllPosts(queryParameters: any | null = null) {
     const include = [
       {
         attributes: [],
@@ -267,9 +276,9 @@ class PostsRepository {
       },
     ];
 
-    const where = queryParameters !== null ? queryParameters['where'] : {};
+    const where = queryParameters !== null ? queryParameters.where : {};
 
-    return await PostsRepository.getModel().count({
+    return PostsRepository.getModel().count({
       where,
       include,
     });
@@ -295,7 +304,7 @@ class PostsRepository {
       raw: true,
     });
 
-    return result ? result['id'] : null;
+    return result ? result.id : null;
   }
 
   /**
@@ -318,7 +327,7 @@ class PostsRepository {
       raw: true,
     });
 
-    return result ? result['id'] : null;
+    return result ? result.id : null;
   }
 
   /**
@@ -343,38 +352,36 @@ class PostsRepository {
       },
     ];
 
-    const models = await postsModelProvider.getModel().findAll({
+    const data = await postsModelProvider.getModel().findAll({
       attributes,
       include,
       ...params,
     });
 
-    return models.map((model) => {
-      return model.toJSON();
-    });
+    return data.map(item => item.toJSON());
   }
 
   // noinspection JSUnusedGlobalSymbols
   static async findOneForIpfs(id, postTypeId) {
-    const postOfferAttributes = models['post_offer'].getPostOfferAttributesForIpfs();
+    const postOfferAttributes = models.post_offer.getPostOfferAttributesForIpfs();
 
     const include = [
       {
         attributes: ['account_name'],
-        model: models['Users'],
+        model: models.Users,
       },
     ];
 
     if (postTypeId === ContentTypeDictionary.getTypeOffer()) {
       include.push({
         attributes: postOfferAttributes,
-        model: models['post_offer'],
+        model: models.post_offer,
       });
     }
 
     const postAttributes = this.getModel().getMediaPostAttributesForIpfs();
 
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       include,
       attributes: postAttributes,
       where: {
@@ -403,7 +410,54 @@ class PostsRepository {
     return res ? res.toJSON() : null;
   }
 
-  static async findOneById(id, currentUserId = null, isRaw = false) {
+  public static async findOneByIdV2(
+    id: number,
+    isRaw: boolean = false,
+  ) {
+    const include = [
+      usersModelProvider.getIncludeAuthorForPreview(),
+
+      postsModelProvider.getPostOfferItselfInclude(),
+      postsModelProvider.getPostsStatsInclude(),
+
+      orgModelProvider.getIncludeForPreview(),
+      {
+        model: models.posts,
+        as: 'post',
+        required: false,
+        include: [
+          usersModelProvider.getIncludeAuthorForPreview(),
+          postsModelProvider.getPostsStatsInclude(),
+
+          orgModelProvider.getIncludeForPreview(),
+        ],
+      },
+      {
+        model: models.post_users_team,
+        as: 'post_users_team',
+        required: false,
+        include: [
+          usersModelProvider.getIncludeAuthorForPreview(),
+        ],
+      },
+    ];
+
+    // #performance - make include optional
+    const data = await PostsRepository.getModel().findOne({
+      include,
+      where: {
+        id,
+      },
+    });
+
+    if (!data) {
+      return null;
+    }
+
+    return isRaw ? data.toJSON() : data;
+  }
+
+  static async findOneById(id, currentUserId: number | null = null, isRaw = false) {
     const include = [
       usersModelProvider.getIncludeAuthorForPreview(),
 
@@ -414,12 +468,12 @@ class PostsRepository {
 
       {
         attributes: models.comments.getFieldsForPreview(),
-        model: models['comments'],
+        model: models.comments,
         as: 'comments',
         required: false,
         include: [
           {
-            model: models['Users'],
+            model: models.Users,
             attributes: userPreviewAttributes,
             as: 'User',
           },
@@ -443,7 +497,7 @@ class PostsRepository {
         ],
       },
       {
-        model: models['post_users_team'],
+        model: models.post_users_team,
         as: 'post_users_team',
         required: false,
         include: [
@@ -454,13 +508,13 @@ class PostsRepository {
 
     if (currentUserId) {
       include.push({
-        model: models['activity_user_post'],
+        model: models.activity_user_post,
         required: false,
         where: { user_id_from: currentUserId },
       });
     }
 
-    // TODO #performance - make include optional
+    // #performance - make include optional
     const data = await PostsRepository.getModel().findOne({
       include,
       where: {
@@ -475,8 +529,9 @@ class PostsRepository {
     return isRaw ? data.toJSON() : data;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   static async findOneByIdAndAuthor(id, userId, raw = true) {
-    return await PostsRepository.getModel().findOne({
+    return PostsRepository.getModel().findOne({
       raw,
       where: {
         id,
@@ -485,6 +540,7 @@ class PostsRepository {
     });
   }
 
+  // noinspection JSUnusedGlobalSymbols
   static async findAllWithRates() {
     const rows = await PostsRepository.getModel().findAll({
       where: {
@@ -493,7 +549,7 @@ class PostsRepository {
         },
       },
       include: [{
-        model: models['Users'],
+        model: models.Users,
       }],
       order: [
         ['current_rate', 'DESC'],
@@ -501,14 +557,12 @@ class PostsRepository {
       ],
     });
 
-    return rows.map((row) => {
-      return row.toJSON();
-    });
+    return rows.map(row => row.toJSON());
   }
 
   // noinspection JSUnusedGlobalSymbols
   static async findOneByBlockchainId(blockchainId) {
-    return await PostsRepository.getModel().findOne({
+    return PostsRepository.getModel().findOne({
       where: {
         blockchain_id: blockchainId,
       },
@@ -522,7 +576,7 @@ class PostsRepository {
    * @returns {Promise<Object>}
    */
   static async findLastMediaPostByAuthor(userId) {
-    return await PostsRepository.getModel().findOne({
+    return PostsRepository.getModel().findOne({
       where: {
         user_id: userId,
         post_type_id: POST_TYPE__MEDIA_POST,
@@ -554,7 +608,7 @@ class PostsRepository {
       ],
     });
 
-    return result ? result['id'] : null;
+    return result ? result.id : null;
   }
 
   /**
@@ -572,7 +626,7 @@ class PostsRepository {
       ],
     };
 
-    return await this.findAllPosts(queryParameters);
+    return this.findAllPosts(queryParameters);
   }
 
   /**
@@ -599,11 +653,11 @@ class PostsRepository {
    * @returns {Promise<Object>}
    */
   static async createNewPost(data, userId, transaction) {
-    data['user_id'] = userId;
-    data['current_rate'] = 0;
-    data['current_vote'] = 0;
+    data.user_id = userId;
+    data.current_rate = 0;
+    data.current_vote = 0;
 
-    delete data['id'];
+    delete data.id;
 
     const newPost = await PostsRepository.getModel().create(data, { transaction });
     await postStatsRepository.createNew(newPost.id, transaction);
@@ -617,7 +671,7 @@ class PostsRepository {
    * @return {Promise<Object>}
    */
   static async findOnlyPostItselfById(id) {
-    return await model.findOne({
+    return model.findOne({
       where: { id },
       raw: true,
     });
@@ -660,7 +714,7 @@ class PostsRepository {
       raw: true,
     });
 
-    return result ? +result['current_vote'] : null;
+    return result ? +result.current_vote : null;
   }
 
   /**

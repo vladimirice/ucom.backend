@@ -1,4 +1,7 @@
 import ResponseHelper = require("./response-helper");
+import {CommentModelResponse} from "../../../lib/comments/interfaces/model-interfaces";
+import CommentsHelper = require("./comments-helper");
+import {ListResponse} from "../../../lib/common/interfaces/lists-interfaces";
 
 const usersHelper         = require('./users-helper');
 const orgHelper           = require('./organizations-helper');
@@ -7,7 +10,9 @@ const postsHelper         = require('./posts-helper');
 const notificationsHelper = require('./notifications-helper');
 const eventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
 
-const _ = require('lodash');
+import _ = require('lodash');
+import {PostModelResponse} from "../../../lib/posts/interfaces/model-interfaces";
+import {CheckerOptions} from "../../generators/interfaces/dto-interfaces";
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -15,7 +20,8 @@ require('jest-expect-message');
 
 class CommonHelper {
   /**
-   *
+   * @deprecated
+   * @link checkManyIncludedCommentsV2 - for new APIs
    * @param {Object[]} comments
    * @param {Object} options
    */
@@ -23,6 +29,19 @@ class CommonHelper {
     comments.forEach((comment) => {
       this.checkOneCommentPreviewWithRelations(comment, options);
     });
+  }
+
+  public static checkManyIncludedCommentsV2(model, options: CheckerOptions) {
+    const { comments }: {comments: ListResponse} = model;
+    ResponseHelper.expectValidListResponseStructure(comments);
+
+    if (options.comments.isEmpty) {
+      expect(comments.data.length).toBe(0);
+    } else {
+      comments.data.forEach((comment: CommentModelResponse) => {
+        this.checkOneCommentV2(comment, options);
+      });
+    }
   }
 
   /**
@@ -66,6 +85,20 @@ class CommonHelper {
    */
   static checkOneCommentPreviewWithRelations(comment, options) {
     commentsHelper.checkOneCommentPreviewFields(comment, options);
+    usersHelper.checkIncludedUserPreview(comment);
+
+    this.checkCreatedAtUpdatedAtFormat(comment);
+
+    if (comment.organization_id) {
+      orgHelper.checkOneOrganizationPreviewFields(comment.organization);
+    }
+  }
+
+  private static checkOneCommentV2(
+    comment: CommentModelResponse,
+    options,
+  ): void {
+    CommentsHelper.checkOneCommentItself(comment, options);
     usersHelper.checkIncludedUserPreview(comment);
 
     this.checkCreatedAtUpdatedAtFormat(comment);
@@ -519,7 +552,7 @@ class CommonHelper {
    * @param {Object} post
    * @param {Object} options
    */
-  static checkOnePostForPage(post, options) {
+  public static checkOnePostForPage(post, options) {
     expect(_.isEmpty(post)).toBeFalsy();
 
     postsHelper.checkPostItselfCommonFields(post, options);
@@ -532,6 +565,23 @@ class CommonHelper {
       expect(post.comments).toBeDefined();
 
       this.checkManyCommentsPreviewWithRelations(post.comments, options);
+    }
+  }
+
+  public static checkOnePostV2(
+    post: PostModelResponse,
+    options: CheckerOptions,
+  ): void {
+    expect(_.isEmpty(post)).toBeFalsy();
+
+    postsHelper.checkPostItselfCommonFields(post, options);
+    usersHelper.checkIncludedUserForEntityPage(post, options);
+    orgHelper.checkOneOrgPreviewFieldsIfExists(post);
+
+    this.checkMyselfData(post, options);
+
+    if (options.comments) {
+      this.checkManyIncludedCommentsV2(post, options);
     }
   }
 
@@ -553,10 +603,7 @@ class CommonHelper {
       expect(post.comments).toBeDefined();
       expect(post.comments.data).toBeDefined();
 
-      ResponseHelper.expectValidMetadataStructure(
-        post.comments.metadata,
-        options.allowEmptyComments,
-      );
+      ResponseHelper.expectValidMetadataStructure(post.comments.metadata);
 
       this.checkManyCommentsPreviewWithRelations(post.comments.data, options);
     }

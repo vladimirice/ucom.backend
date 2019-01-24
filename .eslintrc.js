@@ -49,6 +49,7 @@ module.exports = {
         "sonarjs/no-duplicate-string": "off",
         "jest/no-disabled-tests": "off",
         "semi-style": "off",
+        "jest/valid-expect": "off",
       }
     }
   ]

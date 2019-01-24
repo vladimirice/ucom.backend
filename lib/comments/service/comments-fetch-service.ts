@@ -2,7 +2,8 @@ import { DbParamsDto, RequestQueryComments }
   from '../../api/filters/interfaces/query-filter-interfaces';
 import { StringToNumberCollection } from '../../common/interfaces/common-types';
 import { BadRequestError } from '../../api/errors';
-import {DbCommentParamsDto} from "../interfaces/query-filter-interfaces";
+import { DbCommentParamsDto } from '../interfaces/query-filter-interfaces';
+import { CommentsListResponse } from '../interfaces/model-interfaces';
 
 const commentsRepository = require('./../comments-repository');
 const apiPostProcessor = require('../../common/service/api-post-processor');
@@ -13,9 +14,9 @@ const queryFilterService = require('../../api/filters/query-filter-service');
 class CommentsFetchService {
   public static async findAndProcessCommentsByPostId(
     postId: number,
-    currentUserId: number,
+    currentUserId: number | null,
     query: RequestQueryComments,
-  ) {
+  ): Promise<CommentsListResponse> {
     const params: DbParamsDto =
       queryFilterService.getQueryParametersWithRepository(query, commentsRepository);
 

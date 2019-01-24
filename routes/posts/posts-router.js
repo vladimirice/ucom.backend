@@ -1,4 +1,5 @@
 "use strict";
+/* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 const config = require('config');
 const postsRouter = require('./comments-router');
@@ -10,6 +11,13 @@ const postService = require('../../lib/posts/post-service');
 const postRepository = require('../../lib/posts/posts-repository');
 const activityApiMiddleware = require('../../lib/activity/middleware/activity-api-middleware');
 require('express-async-errors');
+/**
+ * @param {Object} req
+ * @returns {postService}
+ */
+function getPostService(req) {
+    return req.container.get('post-service');
+}
 const activityMiddlewareSet = [
     authTokenMiddleWare,
     cpUpload,
@@ -23,9 +31,9 @@ postsRouter.get('/', async (req, res) => {
 });
 /* Get one post by ID */
 postsRouter.get('/:post_id', async (req, res) => {
-    const postService = getPostService(req);
+    const service = getPostService(req);
     const postId = req.post_id;
-    const post = await postService.findOnePostByIdAndProcess(postId);
+    const post = await service.findOnePostByIdAndProcess(postId);
     res.send(post);
 });
 postsRouter.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (
@@ -34,11 +42,11 @@ req, res) => {
     res.status(404).send('Action is disabled');
 });
 postsRouter.post('/:post_id/upvote', activityMiddlewareSet, async (req, res) => {
-    const result = await getPostService(req).userUpvotesPost(req['post_id'], req.body);
+    const result = await getPostService(req).userUpvotesPost(req.post_id, req.body);
     return res.status(201).send(result);
 });
 postsRouter.post('/:post_id/downvote', activityMiddlewareSet, async (req, res) => {
-    const result = await getPostService(req).userDownvotesPost(req['post_id'], req.body);
+    const result = await getPostService(req).userDownvotesPost(req.post_id, req.body);
     return res.status(201).send(result);
 });
 postsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req, res) => {
@@ -48,8 +56,8 @@ postsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req
 });
 /* Upload post picture (for description) */
 postsRouter.post('/image', [descriptionParser], async (req, res) => {
-    const filename = req['files']['image'][0].filename;
-    const rootUrl = config.get('host')['root_url'];
+    const { filename } = req.files.image[0];
+    const rootUrl = config.get('host').root_url;
     res.send({
         files: [
             {
@@ -69,13 +77,13 @@ postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 /* Update Post */
 // noinspection TypeScriptValidateJSTypes
 postsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
-    const userId = req['user'].id;
-    const postId = req['post_id'];
+    const userId = req.user.id;
+    const postId = req.post_id;
     // Lets change file
-    const files = req['files'];
+    const { files } = req;
     // noinspection OverlyComplexBooleanExpressionJS
-    if (files && files['main_image_filename'] && files['main_image_filename'][0] && files['main_image_filename'][0].filename) {
-        req.body['main_image_filename'] = files['main_image_filename'][0].filename;
+    if (files && files.main_image_filename && files.main_image_filename[0] && files.main_image_filename[0].filename) {
+        req.body.main_image_filename = files.main_image_filename[0].filename;
     }
     else {
         // Not required to update main_image_filename if there is not uploaded file
@@ -106,18 +114,14 @@ res, next, postId) => {
             id: value,
         },
     }).then((count) => {
+        // eslint-disable-next-line promise/always-return
         if (count === 0) {
             throw new AppError(`There is no post with ID ${value}`, 404);
         }
-        req['post_id'] = value;
+        req.post_id = value;
+        // eslint-disable-next-line promise/no-callback-in-promise
         next();
+        // eslint-disable-next-line promise/no-callback-in-promise
     }).catch(next);
 });
-/**
- * @param {Object} req
- * @returns {postService}
- */
-function getPostService(req) {
-    return req['container'].get('post-service');
-}
 module.exports = postsRouter;

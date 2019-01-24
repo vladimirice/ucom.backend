@@ -109,7 +109,6 @@ class PostActivityService {
   static async userVotesPost(userFrom, modelTo, activityTypeId, signedTransaction) {
     const eventId = this.getEventId(activityTypeId, modelTo);
 
-    // but also lets write in new table
     const activity = await usersActivityService.createForUserVotesPost(
       activityTypeId,
       signedTransaction,

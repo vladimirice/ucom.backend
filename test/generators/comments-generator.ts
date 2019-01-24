@@ -1,5 +1,5 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
-import { CommentModel } from '../../lib/comments/interfaces/model-interfaces';
+import { CommentModel, CommentModelResponse } from '../../lib/comments/interfaces/model-interfaces';
 
 const request = require('supertest');
 
@@ -12,7 +12,7 @@ class CommentsGenerator {
     postId: number,
     user: UserModel,
     amount: number,
-  ): Promise<CommentModel[]> {
+  ): Promise<CommentModelResponse[]> {
     const promises: any = [];
 
     for (let i = 0; i < amount; i += 1) {

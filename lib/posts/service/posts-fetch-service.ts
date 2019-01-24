@@ -1,5 +1,10 @@
+/* eslint-disable max-len */
 /* tslint:disable:max-line-length */
-import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import { PostModelResponse } from '../interfaces/model-interfaces';
+
+import PostsRepository = require('../posts-repository');
+import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 
 const queryFilterService  = require('../../api/filters/query-filter-service');
 const apiPostProcessor    = require('../../common/service').PostProcessor;
@@ -10,13 +15,89 @@ const commentsFetchService = require('../../comments/service/comments-fetch-serv
 
 class PostsFetchService {
   /**
+   * deprecated - only for old APIs
+   * @param postId
+   * @param currentUserId
+   */
+  public static async findOnePostByIdAndProcess(
+    postId: number,
+    currentUserId: number | null,
+  ): Promise<PostModelResponse | null> {
+    const post = await PostsRepository.findOneById(postId, currentUserId, true);
+
+    if (!post) {
+      return null;
+    }
+
+    let userToUserActivity = null;
+    let currentUserPostActivity: any = null;
+
+    if (currentUserId) {
+      userToUserActivity =
+        await usersActivityRepository.findOneUserActivityWithInvolvedUsersData(post.user_id);
+
+      const postsActivity = await usersActivityRepository.findOneUserToPostsVotingAndRepostActivity(currentUserId, [postId]);
+      currentUserPostActivity = {
+        posts: postsActivity,
+      };
+    }
+
+    let orgTeamMembers = [];
+    if (post.organization_id) {
+      orgTeamMembers = await OrganizationsRepository.findAllTeamMembersIds(post.organization_id);
+    }
+
+    return apiPostProcessor.processOnePostFully(post, currentUserId, currentUserPostActivity, userToUserActivity, orgTeamMembers);
+  }
+
+  public static async findOnePostByIdAndProcessV2(
+    postId: number,
+    currentUserId: number | null,
+    commentsQuery: RequestQueryComments,
+  ): Promise<PostModelResponse | null> {
+    const post = await PostsRepository.findOneByIdV2(postId, true);
+
+    if (!post) {
+      return null;
+    }
+
+    let userToUserActivity = null;
+    let currentUserPostActivity: any = null;
+
+    if (currentUserId) {
+      userToUserActivity =
+        await usersActivityRepository.findOneUserActivityWithInvolvedUsersData(post.user_id);
+
+      const postsActivity = await usersActivityRepository.findOneUserToPostsVotingAndRepostActivity(currentUserId, [postId]);
+      currentUserPostActivity = {
+        posts: postsActivity,
+      };
+    }
+
+    let orgTeamMembers = [];
+    if (post.organization_id) {
+      orgTeamMembers = await OrganizationsRepository.findAllTeamMembersIds(post.organization_id);
+    }
+
+    apiPostProcessor.processOnePostFully(post, currentUserId, currentUserPostActivity, userToUserActivity, orgTeamMembers);
+
+    post.comments = await commentsFetchService.findAndProcessCommentsByPostId(
+      postId,
+      currentUserId,
+      commentsQuery,
+    );
+
+    return post;
+  }
+
+  /**
    *
    * @param {number} userId
    * @param {number|null} currentUserId
    * @param {Object} query
    * @return {Promise<any>}
    */
-  static async findAndProcessAllForUserWallFeed(
+  public static async findAndProcessAllForUserWallFeed(
     userId: number,
     currentUserId: number | null,
     query: RequestQueryDto | null = null,
@@ -40,7 +121,7 @@ class PostsFetchService {
    * @param {number} currentUserId
    * @return {Promise<any>}
    */
-  static async findAndProcessAllForMyselfNewsFeed(
+  public static async findAndProcessAllForMyselfNewsFeed(
     query: RequestQueryDto,
     currentUserId: number,
   ) {
@@ -67,7 +148,7 @@ class PostsFetchService {
    * @param {number} currentUserId
    * @return {Promise<any>}
    */
-  static async findAndProcessAllForOrgWallFeed(orgId, query, currentUserId) {
+  public static async findAndProcessAllForOrgWallFeed(orgId, query, currentUserId) {
     const params = queryFilterService.getQueryParameters(query);
 
     const findCountPromises = [
@@ -85,7 +166,7 @@ class PostsFetchService {
    * @param query
    * @returns {Promise<any>}
    */
-  static async findAndProcessAllForTagWallFeed(tagTitle, currentUserId, query) {
+  public static async findAndProcessAllForTagWallFeed(tagTitle, currentUserId, query) {
     const params = queryFilterService.getQueryParameters(query, {}, []);
 
     const findCountPromises = [
@@ -138,10 +219,8 @@ class PostsFetchService {
       // #task - prototype realization for demo, N+1 issue
       for (const id of postsIds) {
         // #task - should be defined as default parameters for comments pagination
-        const commentsQuery = {
-          depth: 0,
-          ...query.included_query.comments,
-        };
+        const commentsQuery = query.included_query.comments;
+        commentsQuery.depth = 0;
 
         idToPost[id].comments = await commentsFetchService.findAndProcessCommentsByPostId(
           id,

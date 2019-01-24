@@ -13,7 +13,7 @@ interface RequestQueryDto {
 }
 
 interface RequestQueryComments extends RequestQueryDto {
-  readonly depth?: number;
+  depth?: number;
   readonly parent_id?: number;
   readonly commentable_id?: number;
 }
