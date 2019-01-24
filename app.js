@@ -54,6 +54,7 @@ app.use('/api/v1/blockchain', blockchainRouter);
 app.use('/api/v1/community', communityRouter);
 app.use('/api/v1/partnership', partnershipRouter);
 app.use('/api/v1/tags', tagsRouter);
+// V2 for post
 app.use('/api/v2/posts', postsV2Router);
 require('./lib/auth/passport');
 ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
