@@ -1,6 +1,10 @@
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { PostModelMyselfResponse, PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import {
+  PostModelMyselfResponse,
+  PostModelResponse,
+  PostsListResponse,
+} from '../../../lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 
 const ApolloClient = require('apollo-boost').default;
@@ -59,7 +63,7 @@ export class GraphqlHelper {
     perPage: number = 10,
     commentsPage: number = 1,
     commentsPerPage: number = 10,
-  ): Promise<PostModelMyselfResponse> {
+  ): Promise<PostsListResponse> {
     const query: string = GraphQLSchema.getOrganizationWallFeedQuery(
       orgId,
       page,

@@ -1,13 +1,15 @@
 import { GraphqlHelper } from '../helpers/graphql-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
+import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import PostsGenerator = require('../../generators/posts-generator');
 import CommentsGenerator = require('../../generators/comments-generator');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import CommonHelper = require('../helpers/common-helper');
-import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
+
+import ResponseHelper = require('../helpers/response-helper');
 
 require('cross-fetch/polyfill');
 
@@ -61,15 +63,21 @@ describe('#organizations #feed #graphql', () => {
       const commentsPage = 1;
       const commentsPerPage = 10;
 
-      // @ts-ignore
       const response = await GraphqlHelper.getOrgWallFeedAsMyself(
         userVlad, orgId, feedPage, feedPerPage, commentsPage, commentsPerPage,
       );
-      const { data } = response;
 
-      expect(data.length).toBe(2);
-      const mediaPostModel = data.find(item => item.id === orgMediaPostId);
+      ResponseHelper.expectValidListResponseStructure(response);
+
+      const posts = response.data;
+
+      expect(posts.length).toBe(2);
+      const mediaPostModel = posts.find(item => item.id === orgMediaPostId);
       expect(mediaPostModel).toBeDefined();
+
+      orgMediaComments.forEach((comment: CommentModelResponse) => {
+        expect(mediaPostModel!.comments.data.some(item => item.id === comment.id)).toBeTruthy();
+      });
 
       const mediaPostOptions: CheckerOptions = {
         model: {
@@ -100,44 +108,17 @@ describe('#organizations #feed #graphql', () => {
         },
       };
 
-      CommonHelper.checkOnePostV2(mediaPostModel, mediaPostOptions);
+      CommonHelper.checkOnePostV2(mediaPostModel!, mediaPostOptions);
 
-      const directPostModel = data.find(item => item.id === orgDirectPost.id);
+
+      const directPostModel = posts.find(item => item.id === orgDirectPost.id);
       expect(directPostModel).toBeDefined();
 
-      CommonHelper.checkOnePostV2(directPostModel, directPostOptions);
+      directPostComments.forEach((comment: CommentModelResponse) => {
+        expect(directPostModel!.comments.data.some(item => item.id === comment.id)).toBeTruthy();
+      });
 
-      // Only first level comments (depth = 0)
-      // const commentOnCommentExistence = postOne.comments.data.some(
-      //   item => item.id === commentOnComment.id,
-      // );
-      // expect(commentOnCommentExistence).toBeFalsy();
-      // expect(postOne.comments.data.length).toBe(3);
-      //
-      // const expectedPostOneLastCommentId = 1;
-      // expect(postOne.comments.data[0].id).toBe(expectedPostOneLastCommentId);
-      //
-      // const postOneCommentsMetadata = postOne.comments.metadata;
-      // expect(postOneCommentsMetadata).toBeDefined();
-      //
-      // expect(postOneCommentsMetadata.page).toBe(commentsPage);
-      // expect(postOneCommentsMetadata.per_page).toBe(commentsPerPage);
-      // expect(postOneCommentsMetadata.has_more).toBeFalsy();
-      //
-      // const commentWithComment = postOne.comments.data.find(item => item.id === commentOne.id);
-      // const commentWithoutComment = postOne.comments.data.find(item => item.id === commentTwo.id);
-      //
-      // expect(commentWithComment.metadata).toBeDefined();
-      // expect(commentWithComment.metadata.next_depth_total_amount).toBe(1);
-      //
-      // expect(commentWithoutComment.metadata).toBeDefined();
-      // expect(commentWithoutComment.metadata.next_depth_total_amount).toBe(0);
-      //
-      // await CommonHelper.checkPostsListFromApi(
-      //   data,
-      //   promisesToCreatePosts.length,
-      //   options,
-      // );
+      CommonHelper.checkOnePostV2(directPostModel!, directPostOptions);
     }, JEST_TIMEOUT);
   });
 
