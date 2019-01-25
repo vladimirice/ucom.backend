@@ -1,4 +1,5 @@
 import {MyselfDataDto} from "../../common/interfaces/post-processing-dto";
+import { CommentsListResponse } from '../../comments/interfaces/model-interfaces';
 
 interface PostModel {
   readonly id: number;
@@ -10,6 +11,8 @@ interface PostModel {
 
 interface PostModelResponse extends PostModel {
   [index: string]: any;
+
+  comments: CommentsListResponse;
 }
 
 interface PostModelMyselfResponse extends PostModelResponse {

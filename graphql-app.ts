@@ -93,7 +93,7 @@ const typeDefs = gql`
     created_at: String!
 
     activity_user_comment: JSON
-    organization: JSON
+    organization: Organization
 
     depth: Int!
     myselfData: MyselfData

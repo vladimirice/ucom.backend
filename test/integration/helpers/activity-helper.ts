@@ -10,7 +10,11 @@ const delay = require('delay');
 const usersActivityRepository = require('../../../lib/users/repository').Activity;
 
 class ActivityHelper {
-  static async requestToCreateFollow(whoActs, targetUser, expectedStatus = 201) {
+  static async requestToCreateFollow(
+    whoActs: UserModel,
+    targetUser: UserModel,
+    expectedStatus: number = 201,
+  ): Promise<any> {
     const res = await request(server)
       .post(requestHelper.getFollowUrl(targetUser.id))
       .set('Authorization', `Bearer ${whoActs.token}`)
@@ -130,7 +134,11 @@ class ActivityHelper {
     await this.requestToUnfollowOrganization(targetOrgId, whoActs);
   }
 
-  static async requestToFollowOrganization(orgId, user, expectedStatus = 201) {
+  static async requestToFollowOrganization(
+    orgId: number,
+    user: UserModel,
+    expectedStatus: number = 201,
+  ): Promise<any> {
     const res = await request(server)
       .post(requestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)

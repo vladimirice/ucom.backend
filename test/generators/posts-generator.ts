@@ -1,11 +1,13 @@
-const requestHelper = require('../integration/helpers').Req;
-const responseHelper = require('../integration/helpers').Res;
+import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 
-const ContentTypeDictionary = require('ucom-libs-social-transactions').ContentTypeDictionary;
+import RequestHelper = require('../integration/helpers/request-helper');
+import ResponseHelper = require('../integration/helpers/response-helper');
 
+const _ = require('lodash');
+
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
 const server = require('../../app');
-const _ = require('lodash');
 
 class PostsGenerator {
   /**
@@ -63,7 +65,11 @@ class PostsGenerator {
    * @param {Object} values
    * @return {Promise<number>}
    */
-  static async createMediaPostOfOrganization(user, orgId, values = {}) {
+  static async createMediaPostOfOrganization(
+    user: UserModel,
+    orgId: number,
+    values: any = {},
+  ): Promise<number> {
     const defaultValues = {
       title: 'Extremely new post',
       description: 'Our super post description',
@@ -74,14 +80,14 @@ class PostsGenerator {
     const newPostFields = _.defaults(values, defaultValues);
 
     const res = await request(server)
-      .post(requestHelper.getPostsUrl())
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
       .field('description', newPostFields.description)
       .field('post_type_id', newPostFields.post_type_id)
       .field('leading_text', newPostFields.leading_text)
       .field('organization_id', orgId);
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -106,7 +112,7 @@ class PostsGenerator {
     };
 
     const res = await request(server)
-      .post(requestHelper.getPostsUrl())
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
       .field('description', newPostFields.description)
@@ -117,7 +123,7 @@ class PostsGenerator {
       .field('current_vote', newPostFields.current_vote)
       .field('action_button_title', newPostFields.action_button_title)
       .field('organization_id', newPostFields.organization_id);
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -131,10 +137,10 @@ class PostsGenerator {
    */
   static async createRepostOfUserPost(repostAuthor, postId, expectedStatus = 201) {
     const res = await request(server)
-      .post(requestHelper.getCreateRepostUrl(postId))
+      .post(RequestHelper.getCreateRepostUrl(postId))
       .set('Authorization', `Bearer ${repostAuthor.token}`)
       .field('description', 'hello from such strange one');
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return +res.body.id;
   }
@@ -222,7 +228,7 @@ class PostsGenerator {
     const newPostFields = _.defaults(values, defaultValues);
 
     const res = await request(server)
-      .post(requestHelper.getPostsUrl())
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
       .field('description', newPostFields.description)
@@ -231,7 +237,7 @@ class PostsGenerator {
       .field('user_id', newPostFields.user_id)
       .field('current_rate', newPostFields.current_rate)
       .field('current_vote', newPostFields.current_vote);
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -254,7 +260,7 @@ class PostsGenerator {
     };
 
     const res = await request(server)
-      .post(requestHelper.getPostsUrl())
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
       .field('description', newPostFields.description)
@@ -264,7 +270,7 @@ class PostsGenerator {
       .field('current_rate', newPostFields.current_rate)
       .field('current_vote', newPostFields.current_vote)
       .field('action_button_title', newPostFields.action_button_title);
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -283,7 +289,7 @@ class PostsGenerator {
     givenDescription = null,
     withImage = false,
   ) {
-    const url = requestHelper.getUserDirectPostUrl(wallOwner);
+    const url = RequestHelper.getUserDirectPostUrl(wallOwner);
 
     return this.createDirectPost(url, myself, givenDescription, withImage);
   }
@@ -302,7 +308,7 @@ class PostsGenerator {
     givenDescription = null,
     withImage = false,
   ) {
-    const url = requestHelper.getUserDirectPostUrlV2(wallOwner);
+    const url = RequestHelper.getUserDirectPostUrlV2(wallOwner);
 
     return this.createDirectPost(url, myself, givenDescription, withImage);
   }
@@ -323,7 +329,7 @@ class PostsGenerator {
     withImage = false,
     idOnly = false,
   ) {
-    const url = requestHelper.getOrgDirectPostUrl(targetOrgId);
+    const url = RequestHelper.getOrgDirectPostUrl(targetOrgId);
 
     return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
   }
@@ -335,7 +341,7 @@ class PostsGenerator {
     withImage = false,
     idOnly = false,
   ) {
-    const url = requestHelper.getOrgDirectPostV2UrlV(targetOrgId);
+    const url = RequestHelper.getOrgDirectPostV2UrlV(targetOrgId);
 
     return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
   }
@@ -357,16 +363,16 @@ class PostsGenerator {
       post_type_id: postTypeId,
     };
 
-    requestHelper.addAuthToken(req, myself);
-    requestHelper.addFieldsToRequest(req, fields);
+    RequestHelper.addAuthToken(req, myself);
+    RequestHelper.addFieldsToRequest(req, fields);
 
     if (withImage) {
-      requestHelper.addSampleMainImageFilename(req);
+      RequestHelper.addSampleMainImageFilename(req);
     }
 
     const res = await req;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     if (idOnly) {
       return res.body.id;

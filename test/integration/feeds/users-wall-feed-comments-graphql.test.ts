@@ -1,20 +1,22 @@
-import { CommentModel, CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
+import {
+  CommentModel,
+  CommentModelResponse,
+} from '../../../lib/comments/interfaces/model-interfaces';
 import { GraphqlHelper } from '../helpers/graphql-helper';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import CommonHelper = require('../helpers/common-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import PostsGenerator = require('../../generators/posts-generator');
+import CommentsGenerator = require('../../generators/comments-generator');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import ActivityHelper = require('../helpers/activity-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
 
-const mockHelper = require('../helpers/mock-helper.ts');
-const postsGenerator = require('../../generators/posts-generator.ts');
-const commentsGenerator = require('../../generators/comments-generator.ts');
-
-const seedsHelper = require('../helpers/seeds-helper.ts');
-const commonHelper = require('../helpers/common-helper.ts');
-
-mockHelper.mockAllBlockchainPart();
-
-let userVlad;
-let userJane;
+let userVlad: UserModel;
+let userJane: UserModel;
 
 const JEST_TIMEOUT = 20000;
 
@@ -25,13 +27,47 @@ describe('#feeds #graphql', () => {
 
   afterAll(async () => {
     await Promise.all([
-      seedsHelper.doAfterAll(),
+      SeedsHelper.doAfterAll(),
       GraphqlHelper.afterAll(),
     ]);
   });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await seedsHelper.beforeAllRoutine(true);
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
+  });
+
+  it('#smoke Comment on comment should contain organization data', async () => {
+    const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+    const postId: number = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
+    const parentComment: CommentModelResponse =
+      await CommentsGenerator.createCommentForPost(postId, userJane);
+
+    const commentOnComment: CommentModelResponse =
+      await CommentsGenerator.createCommentOnComment(postId, parentComment.id, userVlad);
+
+    await ActivityHelper.requestToFollowOrganization(orgId, userJane);
+
+    const page = 1;
+    const perPage = 10;
+
+    const response = await GraphqlHelper.getCommentsOnCommentAsMyself(
+      userVlad,
+      postId,
+      parentComment.id,
+      parentComment.depth,
+      page,
+      perPage,
+    );
+
+    expect(response).toBeDefined();
+    const commentsList: CommentModelResponse[] = response.data;
+
+    expect(commentsList.length).toBe(1);
+    const comment: CommentModelResponse = commentsList[0];
+    expect(comment.id).toBe(commentOnComment.id);
+    expect(comment.organization_id).toBe(orgId);
+
+    OrganizationsHelper.checkOneOrganizationPreviewFields(comment.organization);
   });
 
   describe('Positive', () => {
@@ -39,23 +75,23 @@ describe('#feeds #graphql', () => {
       const commentsOfDepthZeroResponses: number = 4;
       const commentsOfDepthOneResponses: number = 5;
 
-      const postId: number = await postsGenerator.createMediaPostByUserHimself(userVlad);
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-      const comments: CommentModel[] = await commentsGenerator.createManyCommentsForPost(
+      const comments: CommentModel[] = await CommentsGenerator.createManyCommentsForPost(
         postId,
         userVlad,
         3,
       );
 
       const commentsOfDepthOne: CommentModel[] =
-          await commentsGenerator.createManyCommentsForManyComments(
+          await CommentsGenerator.createManyCommentsForManyComments(
             postId,
             comments,
             userJane,
             commentsOfDepthZeroResponses,
           );
 
-      await commentsGenerator.createManyCommentsForManyComments(
+      await CommentsGenerator.createManyCommentsForManyComments(
         postId,
         commentsOfDepthOne,
         userVlad,
@@ -103,23 +139,23 @@ describe('#feeds #graphql', () => {
       const commentsOfDepthZeroResponses: number = 4;
       const commentsOfDepthOneResponses: number = 5;
 
-      const postId: number = await postsGenerator.createMediaPostByUserHimself(userVlad);
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-      const comments: CommentModel[] = await commentsGenerator.createManyCommentsForPost(
+      const comments: CommentModel[] = await CommentsGenerator.createManyCommentsForPost(
         postId,
         userVlad,
         3,
       );
 
       const commentsOfDepthOne: CommentModel[] =
-          await commentsGenerator.createManyCommentsForManyComments(
+          await CommentsGenerator.createManyCommentsForManyComments(
             postId,
             comments,
             userJane,
             commentsOfDepthZeroResponses,
           );
 
-      await commentsGenerator.createManyCommentsForManyComments(
+      await CommentsGenerator.createManyCommentsForManyComments(
         postId,
         commentsOfDepthOne,
         userVlad,
@@ -164,7 +200,7 @@ describe('#feeds #graphql', () => {
         },
       };
 
-      await commonHelper.checkManyCommentsV2(response, options);
+      await CommonHelper.checkManyCommentsV2(response, options);
     }, JEST_TIMEOUT);
 
     it('#smoke - should get all depth = 0 comments', async () => {
@@ -172,24 +208,24 @@ describe('#feeds #graphql', () => {
       const directPostAuthor = userJane;
 
       const promisesToCreatePosts = [
-        postsGenerator.createMediaPostByUserHimself(targetUser),
-        postsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
+        PostsGenerator.createMediaPostByUserHimself(targetUser),
+        PostsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
       ];
 
       const [postOneId, postTwo] = await Promise.all(promisesToCreatePosts);
 
       const [commentOne] = await Promise.all([
-        commentsGenerator.createCommentForPost(postOneId, userJane),
-        commentsGenerator.createCommentForPost(postOneId, userJane),
-        commentsGenerator.createCommentForPost(postOneId, userJane),
+        CommentsGenerator.createCommentForPost(postOneId, userJane),
+        CommentsGenerator.createCommentForPost(postOneId, userJane),
+        CommentsGenerator.createCommentForPost(postOneId, userJane),
 
         // disturbance
-        commentsGenerator.createCommentForPost(postTwo.id, userJane),
+        CommentsGenerator.createCommentForPost(postTwo.id, userJane),
       ]);
 
       await Promise.all([
-        commentsGenerator.createCommentOnComment(postOneId, commentOne.id, userJane),
-        commentsGenerator.createCommentOnComment(postOneId, commentOne.id, userJane),
+        CommentsGenerator.createCommentOnComment(postOneId, commentOne.id, userJane),
+        CommentsGenerator.createCommentOnComment(postOneId, commentOne.id, userJane),
       ]);
 
       const page: number = 1;

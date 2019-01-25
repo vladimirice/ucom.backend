@@ -68,7 +68,7 @@ class CommentsGenerator {
     parentCommentId: number,
     user: Object,
     description: string = 'comment description',
-  ): Promise<CommentModel> {
+  ): Promise<CommentModelResponse> {
     const req = request(server)
       .post(requestHelper.getCommentOnCommentUrl(postId, parentCommentId))
       .field('description', description);

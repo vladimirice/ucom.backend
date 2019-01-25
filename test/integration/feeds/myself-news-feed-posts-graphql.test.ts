@@ -1,9 +1,14 @@
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { CommentModelResponse, CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 
 import CommonGenerator = require('../../generators/common-generator');
 import OrganizationsHelper = require('../helpers/organizations-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import PostsGenerator = require('../../generators/posts-generator');
+import CommentsGenerator = require('../../generators/comments-generator');
+import ActivityHelper = require('../helpers/activity-helper');
 
 const mockHelper = require('../helpers/mock-helper.ts');
 const seedsHelper = require('../helpers/seeds-helper.ts');
@@ -34,6 +39,25 @@ describe('#feeds myself news feed. #graphql', () => {
 
   beforeEach(async () => {
     [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
+  });
+
+  it('#smoke - comment should contain organization data', async () => {
+    const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+    const postId: number = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
+    await CommentsGenerator.createCommentForPost(postId, userVlad);
+
+    await ActivityHelper.requestToFollowOrganization(orgId, userJane);
+
+    const response = await GraphqlHelper.getUserNewsFeed(userJane);
+    const post: PostModelResponse = response.data.find(item => item.id === postId);
+    expect(post).toBeDefined();
+
+    const commentsList: CommentsListResponse = post.comments;
+    expect(commentsList.data.length).toBe(1);
+    const comment: CommentModelResponse = commentsList.data[0];
+    expect(comment.organization_id).toBe(orgId);
+
+    OrganizationsHelper.checkOneOrganizationPreviewFields(comment.organization);
   });
 
   describe('Positive', () => {

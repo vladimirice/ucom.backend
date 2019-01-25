@@ -1,3 +1,5 @@
+import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+
 const request = require('supertest');
 const faker   = require('faker');
 
@@ -25,8 +27,8 @@ class OrganizationsGenerator {
    * @param {Object} author
    * @return {Promise<Object>}
    */
-  static async createOrgWithoutTeam(author) {
-    return await this.createOrgWithTeam(author);
+  static async createOrgWithoutTeam(author: UserModel) {
+    return this.createOrgWithTeam(author);
   }
 
   /**
@@ -35,7 +37,10 @@ class OrganizationsGenerator {
    * @param {Object[]} teamMembers
    * @return {Promise<Object>}
    */
-  static async createOrgWithTeam(author, teamMembers: any[] = []) {
+  static async createOrgWithTeam(
+    author: UserModel,
+    teamMembers: UserModel[] = [],
+  ): Promise<number> {
     // noinspection JSUnresolvedFunction
     const title = faker.company.companyName();
     // noinspection JSCheckFunctionSignatures

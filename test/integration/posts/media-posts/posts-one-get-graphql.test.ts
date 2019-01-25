@@ -12,6 +12,7 @@ import UsersHelper = require('../../helpers/users-helper');
 import PostsHelper = require('../../helpers/posts-helper');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import OrganizationsHelper = require('../../helpers/organizations-helper');
+import ActivityHelper = require('../../helpers/activity-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -159,6 +160,23 @@ describe('Get One media post #graphql', () => {
     expect(post.organization_id).toBe(orgId);
 
     OrganizationsHelper.checkOneOrganizationPreviewFields(post.organization);
+  });
+
+  it('should contain myself member data if is got by org author', async () => {
+    const orgId: number = await OrganizationsGenerator.createOrgWithTeam(userJane, [userVlad]);
+
+    await UsersHelper.directlySetUserConfirmsInvitation(orgId, userVlad);
+    const postId: number = await PostsGenerator.createMediaPostOfOrganization(userJane, orgId);
+
+    await ActivityHelper.requestToFollowOrganization(orgId, userVlad);
+
+    const post: PostModelMyselfResponse = await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
+
+    const { myselfData } = post;
+    expect(myselfData).toBeDefined();
+
+    expect(myselfData.organization_member).toBeDefined();
+    expect(myselfData.organization_member).toBeTruthy();
   });
 });
 

@@ -5,6 +5,8 @@ interface CommentModel {
   readonly commentable_id: number;
   readonly depth: number;
   readonly parent_id: number | null;
+  readonly organization_id: number | null;
+  readonly organization: any;
 
   [index: string]: any;
 }
