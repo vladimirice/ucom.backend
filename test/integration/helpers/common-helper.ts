@@ -583,6 +583,7 @@ class CommonHelper {
     UsersHelper.checkIncludedUserForEntityPage(post, options);
 
     this.checkMyselfData(post, options);
+    this.checkCreatedAtUpdatedAtFormat(post);
 
     if (options.comments) {
       this.checkManyIncludedCommentsV2(post, options);

@@ -1,6 +1,9 @@
+/* eslint-disable max-len */
 /* tslint:disable:max-line-length no-parameter-reassignment */
-import PostsFetchService = require("./service/posts-fetch-service");
-import {PostModelResponse} from "./interfaces/model-interfaces";
+import { PostModelResponse } from './interfaces/model-interfaces';
+import { RequestQueryDto } from '../api/filters/interfaces/query-filter-interfaces';
+
+import PostsFetchService = require('./service/posts-fetch-service');
 
 const status = require('statuses');
 const _ = require('lodash');
@@ -42,7 +45,6 @@ const postsFetchService   = require('./service/posts-fetch-service');
  * Post Creation functions should be placed in PostCreatorService
  */
 class PostService {
-
   private currentUser;
 
   constructor(currentUser) {
@@ -93,20 +95,20 @@ class PostService {
    * @returns {Promise<void>}
    */
   static async updatePostUsersTeam(postId, params, transaction) {
-    params['post_users_team'] = _.filter(params['post_users_team']);
+    params.post_users_team = _.filter(params.post_users_team);
 
-    if (!params['post_users_team'] || _.isEmpty(params['post_users_team'])) {
+    if (!params.post_users_team || _.isEmpty(params.post_users_team)) {
       return;
     }
 
-    const sourceModel = await models['post_users_team'].findAll({
+    const sourceModel = await models.post_users_team.findAll({
       where: {
         post_id: postId,
       },
       raw: true,
     });
 
-    const deltas = this.getDelta(sourceModel, params['post_users_team']);
+    const deltas = this.getDelta(sourceModel, params.post_users_team);
 
     await this.updateRelations(postId, deltas, 'post_users_team', transaction);
   }
@@ -123,17 +125,17 @@ class PostService {
     const currentUserId = this.currentUser.id;
 
     // #task #refactor - use pick and wrap into transaction
-    delete params['id'];
-    delete params['user_id'];
-    delete params['current_rate'];
-    delete params['current_vote'];
+    delete params.id;
+    delete params.user_id;
+    delete params.current_rate;
+    delete params.current_vote;
 
     // noinspection JSDeprecatedSymbols
     postSanitizer.sanitisePost(params);
     postCreatorService.processEntityImagesWhileUpdating(params);
 
     // #task #optimization
-    const postToUpdate = await models['posts'].findOne({
+    const postToUpdate = await models.posts.findOne({
       where: {
         id: postId,
       },
@@ -149,12 +151,11 @@ class PostService {
 
     const { updatedPost, newActivity } = await db
       .transaction(async (transaction) => {
-
-        if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeOffer() && params['post_users_team']) {
+        if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeOffer() && params.post_users_team) {
           await PostService.updatePostUsersTeam(postId, params, transaction);
         }
 
-        const [updatedCount, updatedPosts] = await models['posts'].update(params, {
+        const [updatedCount, updatedPosts] = await models.posts.update(params, {
           transaction,
           where: {
             id: postId,
@@ -171,7 +172,7 @@ class PostService {
         const updatedPost = updatedPosts[0];
 
         if (updatedPost.post_type_id === ContentTypeDictionary.getTypeOffer()) {
-          await models['post_offer'].update(params, {
+          await models.post_offer.update(params, {
             transaction,
             where: {
               post_id: postId,
@@ -180,10 +181,10 @@ class PostService {
         }
 
         const newActivity = await usersActivityService.processPostIsUpdated(
-        updatedPost,
-        currentUserId,
-        transaction,
-      );
+          updatedPost,
+          currentUserId,
+          transaction,
+        );
 
         return {
           updatedPost,
@@ -312,7 +313,7 @@ class PostService {
       throw new BadRequestError({ leading_text: 'Leading_text is too long. Size must be up to 255 symbols.' });
     }
 
-    const postTypeId = +req.body['post_type_id'];
+    const postTypeId = +req.body.post_type_id;
     if (!postTypeId) {
       throw new BadRequestError({
         post_type_id: 'Post Type ID must be a valid natural number',
@@ -337,8 +338,8 @@ class PostService {
     postSanitizer.sanitisePost(body);
 
     // noinspection OverlyComplexBooleanExpressionJS
-    if (files && files['main_image_filename'] && files['main_image_filename'][0] && files['main_image_filename'][0].filename) {
-      body['main_image_filename'] = files['main_image_filename'][0].filename;
+    if (files && files.main_image_filename && files.main_image_filename[0] && files.main_image_filename[0].filename) {
+      body.main_image_filename = files.main_image_filename[0].filename;
     }
 
     postCreatorService.processEntityImagesWhileCreation(body);
@@ -508,9 +509,7 @@ class PostService {
     ]);
     // end of future universal part
 
-    const postsIds = models.map((post) => {
-      return post.id;
-    });
+    const postsIds = models.map(post => post.id);
 
     let currentUserActivity;
     if (userId) {
@@ -573,22 +572,25 @@ class PostService {
    * @param {Object} query
    * @return {Promise<{data, metadata}>}
    */
-  async findAndProcessAllForOrgWallFeed(orgId, query) {
-    const userId = this.currentUser.id;
+  async findAndProcessAllForOrgWallFeed(
+    orgId: number,
+    query: RequestQueryDto,
+  ) {
+    const userId: number = this.currentUser.id;
 
-    return postsFetchService.findAndProcessAllForOrgWallFeed(orgId, query, userId);
+    return postsFetchService.findAndProcessAllForOrgWallFeed(orgId, userId, query);
   }
 
-  static async findLastPostOfferByAuthor(userId) {
-    return await postsOffersRepository.findLastByAuthor(userId);
+  static async findLastPostOfferByAuthor(userId: number) {
+    return postsOffersRepository.findLastByAuthor(userId);
   }
 
-  static async findLastMediaPostByAuthor(userId) {
-    return await postsRepository.findLastByAuthor(userId);
+  static async findLastMediaPostByAuthor(userId: number) {
+    return postsRepository.findLastByAuthor(userId);
   }
 
   static async findLastPostOffer() {
-    return await postsOffersRepository.findLast();
+    return postsOffersRepository.findLast();
   }
 
   // @ts-ignore
@@ -624,9 +626,9 @@ class PostService {
 
     deltaData.added.forEach((data) => {
       // #task do this beforehand
-      data['post_id'] = postId;
-      data['user_id'] = data['id'];
-      delete data['id'];
+      data.post_id = postId;
+      data.user_id = data.id;
+      delete data.id;
 
       const promise = models[modelName].create(data, { transaction });
 
@@ -637,9 +639,7 @@ class PostService {
   }
 
   static getDelta(source, updated) {
-    const added = updated.filter((updatedItem) => {
-      return source.find(sourceItem => sourceItem.id === updatedItem.id) === undefined;
-    });
+    const added = updated.filter(updatedItem => source.find(sourceItem => sourceItem.id === updatedItem.id) === undefined);
 
     const deleted = source.filter(
       sourceItem => updated.find(updatedItem => updatedItem.id === sourceItem.id) === undefined,
@@ -740,7 +740,6 @@ class PostService {
       });
     }
   }
-
 }
 
 export = PostService;

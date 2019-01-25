@@ -15,6 +15,8 @@ const authService = require('./lib/auth/authService');
 const typeDefs = gql `
   type Query {
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
@@ -214,6 +216,36 @@ const resolvers = {
             let res;
             try {
                 res = await postsFetchService.findAndProcessAllForUserWallFeed(args.user_id, currentUserId, postsQuery);
+            }
+            catch (err) {
+                ApiLogger.error(err);
+                throw new errors_1.AppError('Internal server error', 500);
+            }
+            return res;
+        },
+        async org_wall_feed(
+        // @ts-ignore
+        parent, 
+        // @ts-ignore
+        args, 
+        // @ts-ignore
+        ctx, 
+        // @ts-ignore
+        info) {
+            const currentUserId = authService.extractCurrentUserByToken(ctx.req);
+            const postsQuery = {
+                page: args.page,
+                per_page: args.per_page,
+                include: [
+                    'comments',
+                ],
+                included_query: {
+                    comments: args.comments_query,
+                },
+            };
+            let res;
+            try {
+                res = await postsFetchService.findAndProcessAllForOrgWallFeed(args.organization_id, currentUserId, postsQuery);
             }
             catch (err) {
                 ApiLogger.error(err);

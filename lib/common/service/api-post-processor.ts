@@ -1,8 +1,8 @@
 import { MyselfDataDto } from '../interfaces/post-processing-dto';
-import {ListMetadata, ListResponse} from '../interfaces/lists-interfaces';
+import { ListMetadata, ListResponse } from '../interfaces/lists-interfaces';
+import { AppError } from '../../api/errors';
 
 import CommentsPostProcessor = require('../../comments/service/comments-post-processor');
-import {AppError} from "../../api/errors";
 
 const PAGE_FOR_EMPTY_METADATA = 1;
 const PER_PAGE_FOR_EMPTY_METADATA = 10;
@@ -208,6 +208,7 @@ class ApiPostProcessor {
    *
    * @param {Object} model
    */
+  // eslint-disable-next-line
   static processUserMentionsYouInsidePost(model) {
     this.processOnePostForList(model.data.post); // This also process User
 
@@ -293,8 +294,6 @@ class ApiPostProcessor {
       if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
         this.processOnePostForList(post.post);
       }
-
-      this.formatModelDateTime(post);
     }
 
     return posts;
@@ -323,6 +322,8 @@ class ApiPostProcessor {
       orgPostProcessor.processOneOrgWithoutActivity(post.organization);
     }
     postsPostProcessor.processPostInCommon(post);
+
+    this.normalizeModelInCommon(post);
 
     // #task - return is not required here
     return post;
@@ -373,6 +374,8 @@ class ApiPostProcessor {
     if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
       this.processOnePostForList(post.post);
     }
+
+    this.normalizeModelInCommon(post);
 
     return post;
   }
@@ -559,6 +562,10 @@ class ApiPostProcessor {
     return true;
   }
 
+  private static normalizeModelInCommon(model): void {
+    this.formatModelDateTime(model);
+  }
+
   private static makeNumerical(model): void {
     const set: string[] = [
       'entity_id_for',
@@ -578,11 +585,9 @@ class ApiPostProcessor {
     ];
 
     for (const field of fields) {
-      if (!model[field]) {
-        continue;
+      if (model[field]) {
+        model[field] = moment(model[field]).utc().format();
       }
-
-      model[field] = moment(model[field]).utc().format();
     }
   }
 }
