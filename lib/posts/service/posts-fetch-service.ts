@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
-import { PostModelResponse } from '../interfaces/model-interfaces';
+import { PostModelResponse, PostsListResponse } from '../interfaces/model-interfaces';
 
 import PostsRepository = require('../posts-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
@@ -90,18 +90,11 @@ class PostsFetchService {
     return post;
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @param {number|null} currentUserId
-   * @param {Object} query
-   * @return {Promise<any>}
-   */
   public static async findAndProcessAllForUserWallFeed(
     userId: number,
     currentUserId: number | null,
     query: RequestQueryDto | null = null,
-  ) {
+  ): Promise<PostsListResponse> {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
     const includeProcessor = usersFeedRepository.getIncludeProcessor();
@@ -113,6 +106,29 @@ class PostsFetchService {
     ];
 
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
+  }
+
+  public static async findAndProcessAllForOrgWallFeed(
+    orgId: number,
+    currentUserId: number | null,
+    query: RequestQueryDto,
+  ): Promise<PostsListResponse> {
+    const params: DbParamsDto = queryFilterService.getQueryParameters(query);
+    queryFilterService.processWithIncludeProcessor(usersFeedRepository, query, params);
+
+    const findCountPromises: Promise<any>[] = this.getFindCountPromisesForOrg(orgId, params);
+
+    return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
+  }
+
+  private static getFindCountPromisesForOrg(
+    orgId: number,
+    params: DbParamsDto,
+  ): Promise<any>[] {
+    return [
+      usersFeedRepository.findAllForOrgWallFeed(orgId, params),
+      usersFeedRepository.countAllForOrgWallFeed(orgId),
+    ];
   }
 
   /**
@@ -136,24 +152,6 @@ class PostsFetchService {
     const findCountPromises = [
       usersFeedRepository.findAllForUserNewsFeed(currentUserId, usersIds, orgIds, params),
       usersFeedRepository.countAllForUserNewsFeed(currentUserId, usersIds, orgIds),
-    ];
-
-    return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
-  }
-
-  /**
-   *
-   * @param {number} orgId
-   * @param {Object} query
-   * @param {number} currentUserId
-   * @return {Promise<any>}
-   */
-  public static async findAndProcessAllForOrgWallFeed(orgId, query, currentUserId) {
-    const params = queryFilterService.getQueryParameters(query);
-
-    const findCountPromises = [
-      usersFeedRepository.findAllForOrgWallFeed(orgId, params),
-      usersFeedRepository.countAllForOrgWallFeed(orgId),
     ];
 
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
@@ -190,8 +188,8 @@ class PostsFetchService {
     query,
     params,
     currentUserId,
-    findCountPromises,
-  ) {
+    findCountPromises: Promise<any>[],
+  ): Promise<PostsListResponse> {
     const [posts, totalAmount] = await Promise.all(findCountPromises);
 
     const idToPost = {};

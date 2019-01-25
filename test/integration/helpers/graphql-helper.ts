@@ -52,6 +52,27 @@ export class GraphqlHelper {
     return this.makeRequestAsMyself(myself, query, key, false);
   }
 
+  public static async getOrgWallFeedAsMyself(
+    myself: UserModel,
+    orgId: number,
+    page: number = 1,
+    perPage: number = 10,
+    commentsPage: number = 1,
+    commentsPerPage: number = 10,
+  ): Promise<PostModelMyselfResponse> {
+    const query: string = GraphQLSchema.getOrganizationWallFeedQuery(
+      orgId,
+      page,
+      perPage,
+      commentsPage,
+      commentsPerPage,
+    );
+
+    const key: string = 'org_wall_feed';
+
+    return this.makeRequestAsMyself(myself, query, key, false);
+  }
+
   public static async getPostCommentsAsMyself(
     myself: UserModel,
     commentableId: number,

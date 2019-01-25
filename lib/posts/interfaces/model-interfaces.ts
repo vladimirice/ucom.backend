@@ -1,5 +1,6 @@
-import {MyselfDataDto} from "../../common/interfaces/post-processing-dto";
+import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
 import { CommentsListResponse } from '../../comments/interfaces/model-interfaces';
+import { ListResponse } from '../../common/interfaces/lists-interfaces';
 
 interface PostModel {
   readonly id: number;
@@ -7,6 +8,10 @@ interface PostModel {
   readonly organization_id: number | null;
 
   [index: string]: any;
+}
+
+interface PostsListResponse extends ListResponse {
+  data: PostModelResponse[];
 }
 
 interface PostModelResponse extends PostModel {
@@ -23,4 +28,5 @@ export {
   PostModel,
   PostModelResponse,
   PostModelMyselfResponse,
+  PostsListResponse,
 };

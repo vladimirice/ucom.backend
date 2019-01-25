@@ -87,6 +87,15 @@ class QueryFilterService {
     return params;
   }
 
+  public static processWithIncludeProcessor(
+    repository,
+    query: RequestQueryDto,
+    params: DbParamsDto,
+  ): void {
+    const includeProcessor = repository.getIncludeProcessor();
+    includeProcessor(query, params);
+  }
+
   public static getMetadata(
     totalAmount: number,
     query: RequestQueryDto,

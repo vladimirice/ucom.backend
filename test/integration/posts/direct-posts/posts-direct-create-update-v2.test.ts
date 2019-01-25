@@ -44,7 +44,7 @@ describe('Direct posts create-update v2', () => {
         allowEmptyComments: true,
       };
 
-      await CommonHelper.checkOnePostForPageV2(post, options);
+      await CommonHelper.checkOnePostV2(post, options);
 
       await CommonHelper.checkDirectPostInDb(post, {
         ...expected,
@@ -78,7 +78,7 @@ describe('Direct posts create-update v2', () => {
         allowEmptyComments: true,
       };
 
-      await CommonHelper.checkOnePostForPageV2(post, options);
+      await CommonHelper.checkOnePostV2(post, options);
 
       await CommonHelper.checkDirectPostInDb(post, {
         ...expected,

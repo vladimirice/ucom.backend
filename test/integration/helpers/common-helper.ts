@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { CommentModelResponse, CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
@@ -5,14 +6,12 @@ import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 import ResponseHelper = require('./response-helper');
 import CommentsHelper = require('./comments-helper');
 
-const usersHelper         = require('./users-helper');
-const orgHelper           = require('./organizations-helper');
-const commentsHelper      = require('./comments-helper');
-const postsHelper         = require('./posts-helper');
-const notificationsHelper = require('./notifications-helper');
-const eventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
-
 import _ = require('lodash');
+import OrganizationsHelper = require('./organizations-helper');
+import UsersHelper = require('./users-helper');
+import NotificationsHelper = require('./notifications-helper');
+import NotificationsEventIdDictionary = require('../../../lib/entities/dictionary/notifications-event-id-dictionary');
+import PostsHelper = require('./posts-helper');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -20,7 +19,7 @@ require('jest-expect-message');
 
 class CommonHelper {
   /**
-   * @deprecated
+   * deprecated
    * @link checkManyIncludedCommentsV2 - for new APIs
    * @param {Object[]} comments
    * @param {Object} options
@@ -89,13 +88,13 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkOneCommentPreviewWithRelations(comment, options) {
-    commentsHelper.checkOneCommentPreviewFields(comment, options);
-    usersHelper.checkIncludedUserPreview(comment);
+    CommentsHelper.checkOneCommentPreviewFields(comment, options);
+    UsersHelper.checkIncludedUserPreview(comment);
 
     this.checkCreatedAtUpdatedAtFormat(comment);
 
     if (comment.organization_id) {
-      orgHelper.checkOneOrganizationPreviewFields(comment.organization);
+      OrganizationsHelper.checkOneOrganizationPreviewFields(comment.organization);
     }
   }
 
@@ -104,12 +103,12 @@ class CommonHelper {
     options,
   ): void {
     CommentsHelper.checkOneCommentItself(comment, options);
-    usersHelper.checkIncludedUserPreview(comment);
+    UsersHelper.checkIncludedUserPreview(comment);
 
     this.checkCreatedAtUpdatedAtFormat(comment);
 
     if (comment.organization_id) {
-      orgHelper.checkOneOrganizationPreviewFields(comment.organization);
+      OrganizationsHelper.checkOneOrganizationPreviewFields(comment.organization);
     }
   }
 
@@ -135,7 +134,7 @@ class CommonHelper {
    */
   static checkOneNotificationsFromList(model, options: any = {}) {
     expect(_.isEmpty(model)).toBeFalsy();
-    notificationsHelper.checkNotificationItselfCommonFields(model);
+    NotificationsHelper.checkNotificationItselfCommonFields(model);
     // UsersHelper.checkIncludedUserPreview(model);
 
     expect(model.data).toBeDefined();
@@ -150,31 +149,31 @@ class CommonHelper {
     }
 
     switch (model.event_id) {
-      case eventIdDictionary.getOrgUsersTeamInvitation():
+      case NotificationsEventIdDictionary.getOrgUsersTeamInvitation():
         this.checkOrgUsersTeamInvitationNotification(model);
         break;
-      case eventIdDictionary.getUserFollowsYou():
+      case NotificationsEventIdDictionary.getUserFollowsYou():
         this.checkUserFollowsYouNotification(model);
         break;
-      case eventIdDictionary.getUserFollowsOrg():
+      case NotificationsEventIdDictionary.getUserFollowsOrg():
         this.checkUserFollowsOrgNotification(model);
         break;
-      case eventIdDictionary.getUserCommentsPost():
+      case NotificationsEventIdDictionary.getUserCommentsPost():
         this.checkUserCommentsPostNotification(model, options);
         break;
-      case eventIdDictionary.getUserCommentsComment():
+      case NotificationsEventIdDictionary.getUserCommentsComment():
         this.checkUserCommentsOtherCommentNotification(model, options);
         break;
-      case eventIdDictionary.getUserCommentsOrgPost():
+      case NotificationsEventIdDictionary.getUserCommentsOrgPost():
         this.checkUserCommentsOrgPostNotification(model, options);
         break;
-      case eventIdDictionary.getUserCommentsOrgComment():
+      case NotificationsEventIdDictionary.getUserCommentsOrgComment():
         this.checkUserCommentsOrgCommentNotification(model);
         break;
-      case eventIdDictionary.getUserCreatesDirectPostForOtherUser():
+      case NotificationsEventIdDictionary.getUserCreatesDirectPostForOtherUser():
         this.checkUserCreatesDirectPostForOtherUser(model, options);
         break;
-      case eventIdDictionary.getUserCreatesDirectPostForOrg():
+      case NotificationsEventIdDictionary.getUserCreatesDirectPostForOrg():
         this.checkUserCreatesDirectPostForOrg(model, options);
         break;
       default:
@@ -195,12 +194,12 @@ class CommonHelper {
     expectedDataPostId,
     expectedTargetEntityPostId,
   ): void {
-    expect(model.event_id).toBe(eventIdDictionary.getUserRepostsOtherUserPost());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserRepostsOtherUserPost());
 
     this.checkOneRepostForNotification(model.data.post, false);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.post);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
 
     expect(model.data.post.id).toBe(expectedDataPostId);
     expect(model.target_entity.post.id).toBe(expectedTargetEntityPostId);
@@ -221,15 +220,15 @@ class CommonHelper {
     expectedUserIdFrom,
     expectedUserIdTo,
   ): void {
-    expect(model.event_id).toBe(eventIdDictionary.getUserHasMentionedYouInPost());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserHasMentionedYouInPost());
 
     expect(model.data.post.id).toBe(expectedPostId);
     expect(model.data.post.User.id).toBe(expectedUserIdFrom);
-    postsHelper.checkPostItselfCommonFields(model.data.post, options);
-    usersHelper.checkIncludedUserPreview(model.data.post);
+    PostsHelper.checkPostItselfCommonFields(model.data.post, options);
+    UsersHelper.checkIncludedUserPreview(model.data.post);
 
     expect(model.target_entity.User.id).toBe(expectedUserIdTo);
-    usersHelper.checkIncludedUserPreview(model.target_entity);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
   static checkUserMentionsYouInsideComment(
@@ -239,17 +238,17 @@ class CommonHelper {
     expectedUserIdFrom: number,
     expectedUserIdTo: number,
   ): void {
-    expect(model.event_id).toBe(eventIdDictionary.getUserHasMentionedYouInComment());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserHasMentionedYouInComment());
 
     expect(model.data.comment.id).toBe(expectedCommentId);
-    commentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
-    postsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+    PostsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
 
     expect(model.data.comment.User.id).toBe(expectedUserIdFrom);
-    usersHelper.checkIncludedUserPreview(model.data.comment);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
 
     expect(model.target_entity.User.id).toBe(expectedUserIdTo);
-    usersHelper.checkIncludedUserPreview(model.target_entity);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
   /**
@@ -260,13 +259,13 @@ class CommonHelper {
    * @param {number} expectedTargetEntityPostId
    */
   static checkUserRepostsOrgPost(model, options, expectedDataPostId, expectedTargetEntityPostId) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserRepostsOrgPost());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserRepostsOrgPost());
 
     this.checkOneRepostForNotification(model.data.post, false);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.post);
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
 
     expect(model.data.post.id).toBe(expectedDataPostId);
     expect(model.target_entity.post.id).toBe(expectedTargetEntityPostId);
@@ -276,12 +275,12 @@ class CommonHelper {
    * @param {Object} model
    */
   static checkOrgUsersTeamInvitationNotification(model) {
-    expect(model.event_id).toBe(eventIdDictionary.getOrgUsersTeamInvitation());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getOrgUsersTeamInvitation());
 
-    orgHelper.checkOneOrganizationPreviewFields(model.data.organization);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.data.organization);
 
-    usersHelper.checkIncludedUserPreview(model.data);
-    usersHelper.checkIncludedUserPreview(model.target_entity);
+    UsersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
   /**
@@ -289,10 +288,10 @@ class CommonHelper {
    * @param {Object} model
    */
   static checkUserFollowsYouNotification(model) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserFollowsYou());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserFollowsYou());
 
-    usersHelper.checkIncludedUserPreview(model.data);
-    usersHelper.checkIncludedUserPreview(model.target_entity);
+    UsersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
   /**
@@ -300,10 +299,10 @@ class CommonHelper {
    * @param {Object} model
    */
   static checkUserFollowsOrgNotification(model) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserFollowsOrg());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserFollowsOrg());
 
-    usersHelper.checkIncludedUserPreview(model.data);
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
+    UsersHelper.checkIncludedUserPreview(model.data);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
   }
 
   /**
@@ -312,43 +311,43 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkUserUpvotesPostOfOtherUser(model, options = {}) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserUpvotesPostOfOtherUser());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser());
 
-    usersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.data);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.post);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
   }
 
   static checkUserDownvotesPostOfOtherUser(model, options = {}) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserDownvotesPostOfOtherUser());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesPostOfOtherUser());
 
-    usersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.data);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.post);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
   }
 
   static checkUserUpvotesCommentOfOtherUser(model, options = {}) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserUpvotesCommentOfOtherUser());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesCommentOfOtherUser());
 
-    usersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.data);
 
-    commentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.comment);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
   }
 
   static checkUserDownvotesCommentOfOtherUser(model, options = {}) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserDownvotesCommentOfOtherUser());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesCommentOfOtherUser());
 
-    usersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.data);
 
-    commentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.comment);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
   }
 
   /**
@@ -357,25 +356,25 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkUserUpvotesPostOfOrg(model, options = {}) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserUpvotesPostOfOrg());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesPostOfOrg());
 
-    usersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.data);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.post);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
 
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
   }
 
   static checkUserDownvotesPostOfOrg(model, options = {}) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserDownvotesPostOfOrg());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesPostOfOrg());
 
-    usersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.data);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.post);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
 
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
   }
 
   /**
@@ -384,16 +383,16 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkUserUpvotesCommentOfOrg(model, options = {}) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserUpvotesCommentOfOrg());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesCommentOfOrg());
 
-    usersHelper.checkIncludedUserPreview(model.data);
-    commentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
+    UsersHelper.checkIncludedUserPreview(model.data);
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
       postProcessing: 'notificationWithOrg',
     });
-    usersHelper.checkIncludedUserPreview(model.target_entity.comment);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
   }
 
   /**
@@ -402,16 +401,16 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkUserDownvotesCommentOfOrg(model, options = {}) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserDownvotesCommentOfOrg());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesCommentOfOrg());
 
-    usersHelper.checkIncludedUserPreview(model.data);
-    commentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
+    UsersHelper.checkIncludedUserPreview(model.data);
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
       postProcessing: 'notificationWithOrg',
     });
-    usersHelper.checkIncludedUserPreview(model.target_entity.comment);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
   }
 
   /**
@@ -421,13 +420,13 @@ class CommonHelper {
    * @private
    */
   static checkUserCommentsPostNotification(model, options) {
-    commentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
-    usersHelper.checkIncludedUserPreview(model.data.comment);
-    postsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
+    PostsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
 
-    usersHelper.checkIncludedUserPreview(model.target_entity.post);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
   }
 
   /**
@@ -437,47 +436,47 @@ class CommonHelper {
    * @private
    */
   static checkUserCommentsOrgPostNotification(model, options) {
-    commentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
-    usersHelper.checkIncludedUserPreview(model.data.comment);
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
 
-    postsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
+    PostsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.post);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.post, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.post);
 
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.post.organization);
   }
 
   static checkUserCommentsOrgCommentNotification(model) {
-    expect(model.event_id).toBe(eventIdDictionary.getUserCommentsOrgComment());
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserCommentsOrgComment());
 
-    commentsHelper.checkOneCommentPreviewFields(model.data.comment, {
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, {
       postProcessing: 'notification',
     });
 
-    usersHelper.checkIncludedUserPreview(model.data.comment);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
 
-    commentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
       postProcessing: 'notificationWithOrg',
     });
 
-    usersHelper.checkIncludedUserPreview(model.target_entity.comment);
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.comment.organization);
   }
 
   static checkUserCreatesDirectPostForOtherUser(model, options) {
-    postsHelper.checkPostItselfCommonFields(model.data.post, options);
-    usersHelper.checkIncludedUserPreview(model.data.post);
+    PostsHelper.checkPostItselfCommonFields(model.data.post, options);
+    UsersHelper.checkIncludedUserPreview(model.data.post);
 
-    usersHelper.checkIncludedUserPreview(model.target_entity);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
   }
 
   static checkUserCreatesDirectPostForOrg(model, options) {
-    postsHelper.checkPostItselfCommonFields(model.data.post, options);
-    usersHelper.checkIncludedUserPreview(model.data.post);
+    PostsHelper.checkPostItselfCommonFields(model.data.post, options);
+    UsersHelper.checkIncludedUserPreview(model.data.post);
 
-    orgHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
-    usersHelper.checkIncludedUserPreview(model.target_entity.organization);
+    OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.organization);
   }
 
   /**
@@ -487,15 +486,15 @@ class CommonHelper {
    * @private
    */
   static checkUserCommentsOtherCommentNotification(model, options) {
-    commentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
-    usersHelper.checkIncludedUserPreview(model.data.comment);
+    CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.data.comment);
 
-    postsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
+    PostsHelper.checkPostItselfCommonFields(model.data.comment.post, options);
 
-    commentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
-    usersHelper.checkIncludedUserPreview(model.target_entity.comment);
+    CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, options);
+    UsersHelper.checkIncludedUserPreview(model.target_entity.comment);
 
-    postsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
+    PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
   }
 
   /**
@@ -546,9 +545,9 @@ class CommonHelper {
 
     expect(_.isEmpty(post)).toBeFalsy();
 
-    postsHelper.checkPostItselfCommonFields(post, options);
-    usersHelper.checkIncludedUserPreview(post);
-    orgHelper.checkOneOrgPreviewFieldsIfExists(post);
+    PostsHelper.checkPostItselfCommonFields(post, options);
+    UsersHelper.checkIncludedUserPreview(post);
+    OrganizationsHelper.checkOneOrgPreviewFieldsIfExists(post);
 
     this.checkMyselfData(post, options);
   }
@@ -561,9 +560,9 @@ class CommonHelper {
   public static checkOnePostForPage(post, options) {
     expect(_.isEmpty(post)).toBeFalsy();
 
-    postsHelper.checkPostItselfCommonFields(post, options);
-    usersHelper.checkIncludedUserForEntityPage(post, options);
-    orgHelper.checkOneOrgPreviewFieldsIfExists(post);
+    PostsHelper.checkPostItselfCommonFields(post, options);
+    UsersHelper.checkIncludedUserForEntityPage(post, options);
+    OrganizationsHelper.checkOneOrgPreviewFieldsIfExists(post);
 
     this.checkMyselfData(post, options);
 
@@ -580,38 +579,20 @@ class CommonHelper {
   ): void {
     expect(_.isEmpty(post)).toBeFalsy();
 
-    postsHelper.checkPostItselfCommonFields(post, options);
-    usersHelper.checkIncludedUserForEntityPage(post, options);
-    orgHelper.checkOneOrgPreviewFieldsIfExists(post);
+    PostsHelper.checkPostItselfCommonFields(post, options);
+    UsersHelper.checkIncludedUserForEntityPage(post, options);
 
     this.checkMyselfData(post, options);
 
     if (options.comments) {
       this.checkManyIncludedCommentsV2(post, options);
     }
-  }
 
-  /**
-   *
-   * @param {Object} post
-   * @param {Object} options
-   */
-  public static checkOnePostForPageV2(post, options) {
-    expect(_.isEmpty(post)).toBeFalsy();
+    if (options.organization && options.organization.required) {
+      expect(post.organization_id).toBeTruthy();
+      expect(post.organization_id).toBe(options.organization.expectedId);
 
-    postsHelper.checkPostItselfCommonFields(post, options);
-    usersHelper.checkIncludedUserForEntityPage(post, options);
-    orgHelper.checkOneOrgPreviewFieldsIfExists(post);
-
-    this.checkMyselfData(post, options);
-
-    if (options.postProcessing === 'full') {
-      expect(post.comments).toBeDefined();
-      expect(post.comments.data).toBeDefined();
-
-      ResponseHelper.expectValidMetadataStructure(post.comments.metadata);
-
-      this.checkManyCommentsPreviewWithRelations(post.comments.data, options);
+      OrganizationsHelper.checkOneOrganizationPreviewFields(post.organization);
     }
   }
 
@@ -625,13 +606,13 @@ class CommonHelper {
     expect(_.isEmpty(post)).toBeFalsy();
     expect(_.isEmpty(post.post)).toBeFalsy();
 
-    postsHelper.checkPostItselfCommonFields(post.post, options);
+    PostsHelper.checkPostItselfCommonFields(post.post, options);
 
-    usersHelper.checkIncludedUserPreview(post);
-    usersHelper.checkIncludedUserPreview(post.post);
+    UsersHelper.checkIncludedUserPreview(post);
+    UsersHelper.checkIncludedUserPreview(post.post);
 
     if (isOrg) {
-      orgHelper.checkOneOrganizationPreviewFields(post.post.organization);
+      OrganizationsHelper.checkOneOrganizationPreviewFields(post.post.organization);
     } else {
       expect(post.post.organization).toBeFalsy();
     }
@@ -651,10 +632,10 @@ class CommonHelper {
     expect(post.id).toBeDefined();
 
     expect(post.post_type_id).toBe(ContentTypeDictionary.getTypeRepost());
-    usersHelper.checkIncludedUserPreview(post);
+    UsersHelper.checkIncludedUserPreview(post);
 
     if (isOrg) {
-      orgHelper.checkOneOrganizationPreviewFields(post.post.organization);
+      OrganizationsHelper.checkOneOrganizationPreviewFields(post.post.organization);
     } else {
       expect(post.organization).toBeFalsy();
     }
@@ -667,7 +648,7 @@ class CommonHelper {
    * @param {Object} author
    */
   static async checkDirectPostInDb(post, expectedValues = {}, author) {
-    await postsHelper.expectPostDbValues(post, {
+    await PostsHelper.expectPostDbValues(post, {
       post_type_id: ContentTypeDictionary.getTypeDirectPost(),
       user_id: author.id,
       ...expectedValues,
@@ -680,7 +661,7 @@ class CommonHelper {
   }
 
   private static checkMyselfData(post, options) {
-    if (options.myselfData) {
+    if (options.myselfData || (options.model && options.model.myselfData)) {
       expect(post.myselfData).toBeDefined();
 
       expect(post.myselfData.myselfVote).toBeDefined();

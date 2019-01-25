@@ -9,7 +9,8 @@ const orgModelProvider    = require('../../organizations/service').ModelProvider
 const sequelizeIncludes = require('./sequelize-includes');
 
 const models = require('../../../models');
-const Op = models.sequelize.Op;
+
+const { Op } = models.sequelize;
 const db = models.sequelize;
 
 /**
@@ -34,7 +35,7 @@ class UsersFeedRepository {
    * @returns {Promise<number>}
    */
   static async countAllPostsForWallFeedByTag(tagTitle) {
-    return await postsModelProvider.getModel().count({
+    return postsModelProvider.getModel().count({
       where: this.whereEntityTagsContain([tagTitle]),
     });
   }
@@ -75,12 +76,9 @@ class UsersFeedRepository {
   }
 
   static getIncludeProcessor() {
-    return function (query, params) {
+    // @ts-ignore
+    return (query, params) => {
       params.include = sequelizeIncludes.getIncludeForPostList();
-
-      if (!query || !query.include) {
-        return;
-      }
     };
   }
 
@@ -132,7 +130,7 @@ class UsersFeedRepository {
     const where = {
       [Op.or]: [
         {
-          entity_id_for:   _.concat(usersIds, userId),
+          entity_id_for:   Array.prototype.concat(usersIds, userId),
           entity_name_for: usersModelProvider.getEntityName(),
         },
         {
@@ -142,7 +140,7 @@ class UsersFeedRepository {
       ],
     };
 
-    return await postsModelProvider.getModel().count({
+    return postsModelProvider.getModel().count({
       where,
     });
   }
@@ -155,7 +153,7 @@ class UsersFeedRepository {
   static async countAllForOrgWallFeed(entityId) {
     const entityNameFor = orgModelProvider.getEntityName();
 
-    return await this.countAllForWallFeed(entityId, entityNameFor);
+    return this.countAllForWallFeed(entityId, entityNameFor);
   }
 
   /**
@@ -166,7 +164,7 @@ class UsersFeedRepository {
   static async countAllForUserWallFeed(wallOwnerId: number) {
     const entityNameFor = usersModelProvider.getEntityName();
 
-    return await this.countAllForWallFeed(wallOwnerId, entityNameFor);
+    return this.countAllForWallFeed(wallOwnerId, entityNameFor);
   }
 
   /**
@@ -185,13 +183,9 @@ class UsersFeedRepository {
       entity_id_for:    entityId,
     };
 
-    params.include = sequelizeIncludes.getIncludeForPostList();
+    const data = await postsModelProvider.getModel().findAll(params);
 
-    const models = await postsModelProvider.getModel().findAll(params);
-
-    return models.map((model) => {
-      return model.toJSON();
-    });
+    return data.map(model => model.toJSON());
   }
 
   /**
@@ -206,11 +200,9 @@ class UsersFeedRepository {
     params.attributes = postsModelProvider.getPostsFieldsForPreview();
     params.include = sequelizeIncludes.getIncludeForPostList();
 
-    const models = await postsModelProvider.getModel().findAll(params);
+    const data = await postsModelProvider.getModel().findAll(params);
 
-    return models.map((model) => {
-      return model.toJSON();
-    });
+    return data.map(model => model.toJSON());
   }
 
   /**

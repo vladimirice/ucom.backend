@@ -174,7 +174,7 @@ class CommentsHelper {
       'metadata',
     ];
 
-    if (options && options.myselfData) {
+    if (options && (options.myselfData || (options.comments && options.comments.myselfData))) {
       fieldsFromRelations.push('myselfData');
     }
 
