@@ -19,10 +19,8 @@ const PORT = 4007;
 const GRAPHQL_URI = `http://127.0.0.1:${PORT}${server.graphqlPath}`;
 
 let serverApp;
-let client;
 
 require('cross-fetch/polyfill');
-
 
 export class GraphqlHelper {
   public static async getOnePostAsMyself(
@@ -73,6 +71,27 @@ export class GraphqlHelper {
     );
 
     const key: string = 'org_wall_feed';
+
+    return this.makeRequestAsMyself(myself, query, key, false);
+  }
+
+  public static async getTagWallFeedAsMyself(
+    myself: UserModel,
+    tagTitle: string,
+    page: number = 1,
+    perPage: number = 10,
+    commentsPage: number = 1,
+    commentsPerPage: number = 10,
+  ): Promise<PostsListResponse> {
+    const query: string = GraphQLSchema.getTagWallFeedQuery(
+      tagTitle,
+      page,
+      perPage,
+      commentsPage,
+      commentsPerPage,
+    );
+
+    const key: string = 'tag_wall_feed';
 
     return this.makeRequestAsMyself(myself, query, key, false);
   }
@@ -152,20 +171,6 @@ export class GraphqlHelper {
     const myselfClient = this.getClient();
 
     const response = await myselfClient.query({ query: gql(query) });
-
-    if (keyToReturn) {
-      return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];
-    }
-
-    return response;
-  }
-
-  public static async makeRequest(
-    query: string,
-    keyToReturn: string | null = null,
-    dataOnly = true,
-  ): Promise<any> {
-    const response = await client.query({ query: gql(query) });
 
     if (keyToReturn) {
       return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];

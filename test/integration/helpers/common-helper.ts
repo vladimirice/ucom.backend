@@ -503,7 +503,11 @@ class CommonHelper {
    * @param {number|null} expectedLength
    * @param {Object} options
    */
-  static checkPostsListFromApi(posts, expectedLength = null, options: any = {}) {
+  static checkPostsListFromApi(
+    posts,
+    expectedLength: number | null = null,
+    options: any = {},
+  ) {
     if (expectedLength) {
       expect(posts.length).toBe(expectedLength);
     } else {
@@ -571,6 +575,13 @@ class CommonHelper {
 
       this.checkManyCommentsPreviewWithRelations(post.comments, options);
     }
+  }
+
+  public static checkManyPostsV2(
+    posts: PostModelResponse[],
+    options: CheckerOptions,
+  ): void {
+    posts.forEach(post => this.checkOnePostV2(post, options));
   }
 
   public static checkOnePostV2(

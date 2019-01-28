@@ -63,6 +63,16 @@ class CommentsGenerator {
     return res.body;
   }
 
+  public static async createCommentForPostAndGetId(
+    postId: number,
+    user: UserModel,
+    description: string = 'comment description',
+  ): Promise<number> {
+    const body: CommentModelResponse = await this.createCommentForPost(postId, user, description);
+
+    return body.id;
+  }
+
   static async createCommentOnComment(
     postId: number,
     parentCommentId: number,

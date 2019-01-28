@@ -1,6 +1,8 @@
 /* tslint:disable:max-line-length */
 import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
 
+const _ = require('lodash');
+
 require('jest-expect-message');
 
 class ResponseHelper {
@@ -172,11 +174,9 @@ class ResponseHelper {
    * @param {boolean} allowEmpty
    */
   static expectValidListBody(body, allowEmpty = false) {
-    const data      = body.data;
-    const metadata  = body.metadata;
+    const { data, metadata } = body;
+    expect(_.isEmpty(data)).toBeFalsy();
 
-    expect(data).toBeDefined();
-    expect(data).not.toBeNull();
     expect(Array.isArray(data)).toBeTruthy();
 
     if (!allowEmpty) {

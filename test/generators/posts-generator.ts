@@ -284,10 +284,10 @@ class PostsGenerator {
    *
    */
   static async createUserDirectPostForOtherUser(
-    myself,
-    wallOwner,
-    givenDescription = null,
-    withImage = false,
+    myself: UserModel,
+    wallOwner: UserModel,
+    givenDescription: string | null = null,
+    withImage: boolean = false,
   ) {
     const url = RequestHelper.getUserDirectPostUrl(wallOwner);
 
@@ -347,11 +347,11 @@ class PostsGenerator {
   }
 
   static async createDirectPost(
-    url,
-    myself,
-    givenDescription = null,
-    withImage = false,
-    idOnly = false,
+    url: string,
+    myself: UserModel,
+    givenDescription: string | null = null,
+    withImage: boolean = false,
+    idOnly: boolean = false,
   ) {
     const postTypeId = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';

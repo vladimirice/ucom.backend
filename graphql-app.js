@@ -1,6 +1,8 @@
 "use strict";
 const errors_1 = require("./lib/api/errors");
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
+const AuthService = require("./lib/auth/authService");
+const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
 const express = require('express');
 // const {
 //   parseResolveInfo,
@@ -8,14 +10,12 @@ const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
 const { ApiLogger } = require('./config/winston');
-const postsFetchService = require('./lib/posts/service/posts-fetch-service');
-const commentsFetchService = require('./lib/comments/service/comments-fetch-service');
-const authService = require('./lib/auth/authService');
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql `
   type Query {
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
@@ -154,7 +154,7 @@ const resolvers = {
     Query: {
         // @ts-ignore
         async one_post(parent, args, ctx) {
-            const currentUserId = authService.extractCurrentUserByToken(ctx.req);
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const commentsQuery = args.comments_query;
             commentsQuery.depth = 0;
             return PostsFetchService.findOnePostByIdAndProcessV2(args.id, currentUserId, commentsQuery);
@@ -170,8 +170,8 @@ const resolvers = {
             };
             let res;
             try {
-                const currentUserId = authService.extractCurrentUserByToken(ctx.req);
-                res = await commentsFetchService.findAndProcessCommentsOfComment(commentsQuery, currentUserId);
+                const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+                res = await CommentsFetchService.findAndProcessCommentsOfComment(commentsQuery, currentUserId);
             }
             catch (err) {
                 ApiLogger.error(err);
@@ -186,8 +186,8 @@ const resolvers = {
                 page: args.page,
                 per_page: args.per_page,
             };
-            const currentUserId = authService.extractCurrentUserByToken(ctx.req);
-            return commentsFetchService.findAndProcessCommentsByPostId(args.commentable_id, currentUserId, commentsQuery);
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            return CommentsFetchService.findAndProcessCommentsByPostId(args.commentable_id, currentUserId, commentsQuery);
         },
         async user_wall_feed(
         // @ts-ignore
@@ -198,7 +198,7 @@ const resolvers = {
         ctx, 
         // @ts-ignore
         info) {
-            const currentUserId = authService.extractCurrentUserByToken(ctx.req);
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const postsQuery = {
                 page: args.page,
                 per_page: args.per_page,
@@ -215,7 +215,7 @@ const resolvers = {
             // parsedResolveInfoFragment.fieldsByTypeName.posts.data.fieldsByTypeName.Post.comments.args;
             let res;
             try {
-                res = await postsFetchService.findAndProcessAllForUserWallFeed(args.user_id, currentUserId, postsQuery);
+                res = await PostsFetchService.findAndProcessAllForUserWallFeed(args.user_id, currentUserId, postsQuery);
             }
             catch (err) {
                 ApiLogger.error(err);
@@ -232,7 +232,7 @@ const resolvers = {
         ctx, 
         // @ts-ignore
         info) {
-            const currentUserId = authService.extractCurrentUserByToken(ctx.req);
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const postsQuery = {
                 page: args.page,
                 per_page: args.per_page,
@@ -245,7 +245,7 @@ const resolvers = {
             };
             let res;
             try {
-                res = await postsFetchService.findAndProcessAllForOrgWallFeed(args.organization_id, currentUserId, postsQuery);
+                res = await PostsFetchService.findAndProcessAllForOrgWallFeed(args.organization_id, currentUserId, postsQuery);
             }
             catch (err) {
                 ApiLogger.error(err);
@@ -253,16 +253,33 @@ const resolvers = {
             }
             return res;
         },
-        async user_news_feed(
         // @ts-ignore
-        parent, 
+        async tag_wall_feed(parent, args, ctx, info) {
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            const postsQuery = {
+                page: args.page,
+                per_page: args.per_page,
+                include: [
+                    'comments',
+                ],
+                included_query: {
+                    comments: args.comments_query,
+                },
+            };
+            let res;
+            const tagIdentity = args.tag_identity;
+            try {
+                res = await PostsFetchService.findAndProcessAllForTagWallFeed(tagIdentity, currentUserId, postsQuery);
+            }
+            catch (err) {
+                ApiLogger.error(err);
+                throw new errors_1.AppError('Internal server error', 500);
+            }
+            return res;
+        },
         // @ts-ignore
-        args, 
-        // @ts-ignoreuser_wall_feed
-        ctx, 
-        // @ts-ignore
-        info) {
-            const currentUserId = authService.extractCurrentUserByToken(ctx.req);
+        async user_news_feed(parent, args, ctx, info) {
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const postsQuery = {
                 page: args.page,
                 per_page: args.per_page,
@@ -279,7 +296,7 @@ const resolvers = {
             // parsedResolveInfoFragment.fieldsByTypeName.posts.data.fieldsByTypeName.Post.comments.args;
             let res;
             try {
-                res = await postsFetchService.findAndProcessAllForMyselfNewsFeed(postsQuery, currentUserId);
+                res = await PostsFetchService.findAndProcessAllForMyselfNewsFeed(postsQuery, currentUserId);
             }
             catch (err) {
                 ApiLogger.error(err);

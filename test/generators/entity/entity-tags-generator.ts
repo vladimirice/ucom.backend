@@ -1,10 +1,10 @@
-const postsGenerator  = require('../posts-generator');
-const orgsGenerator   = require('../organizations-generator');
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-const tagHelper   = require('../../integration/helpers/tags-helper');
+import OrganizationsGenerator = require('../organizations-generator');
+import PostsGenerator = require('../posts-generator');
+import TagsHelper = require('../../integration/helpers/tags-helper');
 
 class EntityTagsGenerator {
-
   public static async createPostsWithTagsForOrgs(userVlad, userJane) {
     const [
       orgOneId,
@@ -12,10 +12,10 @@ class EntityTagsGenerator {
       orgThreeId,
       orgFourId,
     ] = await Promise.all([
-      orgsGenerator.createOrgWithoutTeam(userVlad),
-      orgsGenerator.createOrgWithoutTeam(userJane),
-      orgsGenerator.createOrgWithoutTeam(userVlad),
-      orgsGenerator.createOrgWithoutTeam(userVlad),
+      OrganizationsGenerator.createOrgWithoutTeam(userVlad),
+      OrganizationsGenerator.createOrgWithoutTeam(userJane),
+      OrganizationsGenerator.createOrgWithoutTeam(userVlad),
+      OrganizationsGenerator.createOrgWithoutTeam(userVlad),
     ]);
 
     const postTags = [
@@ -30,29 +30,29 @@ class EntityTagsGenerator {
       vladPostFourId,
       janePostIdOne,
     ] = await Promise.all([
-      postsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
+      PostsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
         description: `Hi everyone! #${postTags[0]} is so close`,
       }),
-      postsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
+      PostsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
         description: `Hi everyone! #${postTags[0]} is so close close close ${postTags[1]}`,
       }),
-      postsGenerator.createMediaPostOfOrganization(userVlad, orgThreeId, {
+      PostsGenerator.createMediaPostOfOrganization(userVlad, orgThreeId, {
         description: `Hi everyone! #${postTags[1]} is so close`,
       }),
-      postsGenerator.createMediaPostOfOrganization(userVlad, orgFourId, {
+      PostsGenerator.createMediaPostOfOrganization(userVlad, orgFourId, {
         description: `Hi everyone! #${postTags[0]} is so close ha`,
       }),
-      postsGenerator.createMediaPostOfOrganization(userJane, orgTwoId, {
+      PostsGenerator.createMediaPostOfOrganization(userJane, orgTwoId, {
         description: `Hi everyone! #${postTags[0]} is so close ha`,
       }),
     ]);
 
     await Promise.all([
-      tagHelper.getPostWhenTagsAreProcessed(vladPostOneId),
-      tagHelper.getPostWhenTagsAreProcessed(vladPostTwoId),
-      tagHelper.getPostWhenTagsAreProcessed(vladPostThreeId),
-      tagHelper.getPostWhenTagsAreProcessed(vladPostFourId),
-      tagHelper.getPostWhenTagsAreProcessed(janePostIdOne),
+      TagsHelper.getPostWhenTagsAreProcessed(vladPostOneId),
+      TagsHelper.getPostWhenTagsAreProcessed(vladPostTwoId),
+      TagsHelper.getPostWhenTagsAreProcessed(vladPostThreeId),
+      TagsHelper.getPostWhenTagsAreProcessed(vladPostFourId),
+      TagsHelper.getPostWhenTagsAreProcessed(janePostIdOne),
     ]);
 
     return {
@@ -72,12 +72,11 @@ class EntityTagsGenerator {
       ],
     };
   }
-  /**
-   *
-   * @param {Object} userVlad
-   * @param {Object} userJane
-   */
-  public static async createPostsWithTags(userVlad: Object, userJane: Object) {
+
+  public static async createPostsWithTags(
+    userVlad: UserModel,
+    userJane: UserModel,
+  ): Promise<any> {
     const tagsSet = [
       'summer', 'party', 'openair', 'eos', 'ether',
     ];
@@ -99,23 +98,23 @@ class EntityTagsGenerator {
       tagsSet[4], // new tag
     ];
 
-    const vladPostOneId = await postsGenerator.createMediaPostByUserHimself(userVlad, {
+    const vladPostOneId = await PostsGenerator.createMediaPostByUserHimself(userVlad, {
       description: `Hi everyone! #${postOneTags[0]} #${postOneTags[0]} is so close.
       Lets organize a #${postOneTags[1]}`,
     });
 
-    const vladPostTwoId = await postsGenerator.createMediaPostByUserHimself(userVlad, {
+    const vladPostTwoId = await PostsGenerator.createMediaPostByUserHimself(userVlad, {
       description: `Hi everyone again! #${postTwoTags[0]} is so close.
       Lets organize #${postTwoTags[1]} #${postTwoTags[2]}`,
     });
 
-    const janePostOneId = await postsGenerator.createMediaPostByUserHimself(userJane, {
+    const janePostOneId = await PostsGenerator.createMediaPostByUserHimself(userJane, {
       description: `Hi everyone! #${janePostOneTags[0]} is so close.
       Lets buy some #${janePostOneTags[1]} and #${janePostOneTags[2]} and #${janePostOneTags[1]}`,
     });
 
-    const orgOneId = await orgsGenerator.createOrgWithoutTeam(userVlad);
-    const vladOrgPostId = await postsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
+    const orgOneId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+    const vladOrgPostId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
       description: `Hi everyone! #${tagsSet[0]} is so close`,
     });
 
@@ -123,11 +122,11 @@ class EntityTagsGenerator {
       await this.createDirectPostForUserWithTags(userVlad, userJane, tagsSet[0], tagsSet[1]);
 
     await Promise.all([
-      tagHelper.getPostWhenTagsAreProcessed(janePostOneId),
-      tagHelper.getPostWhenTagsAreProcessed(vladOrgPostId),
-      tagHelper.getPostWhenTagsAreProcessed(directPost.id),
-      tagHelper.getPostWhenTagsAreProcessed(vladPostOneId),
-      tagHelper.getPostWhenTagsAreProcessed(vladPostTwoId),
+      TagsHelper.getPostWhenTagsAreProcessed(janePostOneId),
+      TagsHelper.getPostWhenTagsAreProcessed(vladOrgPostId),
+      TagsHelper.getPostWhenTagsAreProcessed(directPost.id),
+      TagsHelper.getPostWhenTagsAreProcessed(vladPostOneId),
+      TagsHelper.getPostWhenTagsAreProcessed(vladPostTwoId),
     ]);
 
     const postsPreview = {
@@ -160,6 +159,14 @@ class EntityTagsGenerator {
 
     return {
       postsPreview,
+      tagNameToPostsIds: {
+        [tagsSet[0]]: [
+          vladPostOneId,
+          vladPostTwoId,
+          vladOrgPostId,
+          directPost.id,
+        ],
+      },
       tagsTitles: tagsSet,
       postsIds: [
         vladPostOneId,
@@ -179,8 +186,8 @@ class EntityTagsGenerator {
   }
 
   public static async createDirectPostForUserWithTags(
-    userVlad: Object,
-    userJane: Object,
+    userVlad: UserModel,
+    userJane: UserModel,
     firstTag: string,
     secondTag: string = '',
     thirdTag: string = '',
@@ -194,13 +201,13 @@ class EntityTagsGenerator {
       description += `  #${thirdTag}`;
     }
 
-    const directPost = await postsGenerator.createUserDirectPostForOtherUser(
+    const directPost = await PostsGenerator.createUserDirectPostForOtherUser(
       userVlad,
       userJane,
       description,
     );
 
-    return tagHelper.getPostWhenTagsAreProcessed(directPost.id);
+    return TagsHelper.getPostWhenTagsAreProcessed(directPost.id);
   }
 }
 

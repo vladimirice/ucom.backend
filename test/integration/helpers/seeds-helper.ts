@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import MockHelper = require("./mock-helper");
+import MockHelper = require('./mock-helper');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -75,7 +75,6 @@ const majorTables = [
 ];
 
 class SeedsHelper {
-
   static async bulkCreateComments() {
     await this.bulkCreate('comments', commentsSeeds);
   }
@@ -98,7 +97,7 @@ class SeedsHelper {
       blockchain_id: 'sample_post_blockchain_id',
     };
 
-    const model = await models['posts'].create(data);
+    const model = await models.posts.create(data);
 
     return model.toJSON();
   }
@@ -120,7 +119,7 @@ class SeedsHelper {
       depth: 0,
     };
 
-    const model = await models['comments'].create(data);
+    const model = await models.comments.create(data);
 
     return model.toJSON();
   }
@@ -198,7 +197,6 @@ class SeedsHelper {
   }
 
   static async destroyTables() {
-
     // noinspection SqlResolve
     const allSequences = await models.sequelize.query('SELECT sequence_name FROM information_schema.sequences;');
 
@@ -321,7 +319,7 @@ class SeedsHelper {
     // noinspection JSUnresolvedFunction
     usersSeeds.forEach(() => {
       // tslint:disable-next-line
-      models.sequelize.query(`SELECT nextval('"Users_id_seq"')`).then(() => {
+      models.sequelize.query('SELECT nextval(\'"Users_id_seq"\')').then(() => {
       });
     });
   }
@@ -344,7 +342,6 @@ class SeedsHelper {
    * @private
    */
   static async initTablesByList(syncInit) {
-
     for (let i = 0; i < syncInit.length; i += 1) {
       const table = syncInit[i];
       const seeds = tableToSeeds[table];

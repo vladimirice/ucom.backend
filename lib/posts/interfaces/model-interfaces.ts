@@ -6,6 +6,7 @@ interface PostModel {
   readonly id: number;
   readonly current_vote: number;
   readonly organization_id: number | null;
+  readonly entity_tags: any;
 
   [index: string]: any;
 }

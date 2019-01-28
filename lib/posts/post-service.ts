@@ -554,20 +554,6 @@ class PostService {
 
   /**
    *
-   * @param {string} tagTitle
-   * @param {Object} query
-   * @returns {Promise<{data: Array, metadata: {total_amount: *, page: number, per_page: number, has_more: boolean}}>}
-   */
-  async findAndProcessAllForTagWallFeed(tagTitle, query) {
-    queryFilterService.checkLastIdExistence(query);
-
-    const currentUserId = this.currentUser.id;
-
-    return postsFetchService.findAndProcessAllForTagWallFeed(tagTitle, currentUserId, query);
-  }
-
-  /**
-   *
    * @param {number} orgId
    * @param {Object} query
    * @return {Promise<{data, metadata}>}

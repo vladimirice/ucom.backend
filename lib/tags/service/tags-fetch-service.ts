@@ -1,5 +1,7 @@
 import { DbTag } from '../interfaces/dto-interfaces';
 
+const moment = require('moment');
+
 const postsFetchService         = require('../../posts/service/posts-fetch-service');
 const usersFetchService         = require('../../users/service/users-fetch-service');
 const organizationsFetchService =
@@ -7,10 +9,7 @@ const organizationsFetchService =
 
 const apiPostProcessor = require('../../common/service/api-post-processor');
 
-const moment = require('moment');
-
 class TagsFetchService {
-
   static async findAndProcessOneTagById(
     dbTag: DbTag,
     tagTitle: string,
@@ -53,4 +52,4 @@ class TagsFetchService {
   }
 }
 
-module.exports = TagsFetchService;
+export = TagsFetchService;

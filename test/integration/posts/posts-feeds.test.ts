@@ -1,50 +1,52 @@
-export {};
+/* eslint-disable max-len */
+import MockHelper = require('../helpers/mock-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import PostsGenerator = require('../../generators/posts-generator');
+import RequestHelper = require('../helpers/request-helper');
+import UsersHelper = require('../helpers/users-helper');
+import ResponseHelper = require('../helpers/response-helper');
+import CommonHelper = require('../helpers/common-helper');
+import PostsHelper = require('../helpers/posts-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import TagsHelper = require('../helpers/tags-helper');
 
-const helpers = require('../helpers');
-const gen = require('../../generators');
-
-const mockHelper = require('../helpers/mock-helper');
 const usersFeedRepository = require('../../../lib/common/repository').UsersFeed;
 
-const tagsHelper = require('../helpers/tags-helper');
-
-mockHelper.mockAllTransactionSigning();
-mockHelper.mockBlockchainPart();
+MockHelper.mockAllTransactionSigning();
+MockHelper.mockBlockchainPart();
 
 let userVlad;
 let userJane;
 
-const requestHelper = require('../helpers/request-helper');
 
 const JEST_TIMEOUT = 10000;
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    await SeedsHelper.initUsersOnly();
   });
 
   describe('Users wall feed', () => {
     describe('Positive', () => {
-      describe('Test pagination', async () => {
-
+      describe('Test pagination', () => {
         it('Myself. smoke test', async () => {
           const wallOwner = userVlad;
-          await gen.Posts.generateUsersPostsForUserWall(wallOwner, userJane, 3);
+          await PostsGenerator.generateUsersPostsForUserWall(wallOwner, userJane, 3);
 
           const page    = 1;
           const perPage = 2;
 
-          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+          const queryString = RequestHelper.getPaginationQueryString(page, perPage);
           const response =
-            await helpers.Users.requestToGetWallFeedAsMyself(
+            await UsersHelper.requestToGetWallFeedAsMyself(
               userJane,
               wallOwner,
               queryString,
@@ -52,7 +54,7 @@ describe('Organizations. Get requests', () => {
             );
           const totalAmount = await usersFeedRepository.countAllForUserWallFeed(wallOwner.id);
 
-          helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
+          ResponseHelper.checkMetadata(response, page, perPage, totalAmount, true);
 
           response.data.forEach((post) => {
             expect(post.description).toBeDefined();
@@ -60,38 +62,37 @@ describe('Organizations. Get requests', () => {
         });
 
         it('Metadata', async () => {
-
           const wallOwner = userVlad;
-          await gen.Posts.generateUsersPostsForUserWall(wallOwner, userJane, 3);
+          await PostsGenerator.generateUsersPostsForUserWall(wallOwner, userJane, 3);
 
           const page    = 1;
           let perPage = 2;
 
-          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+          const queryString = RequestHelper.getPaginationQueryString(page, perPage);
 
           const response =
-            await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryString, false);
+            await UsersHelper.requestToGetWallFeedAsGuest(wallOwner, queryString, false);
           const totalAmount = await usersFeedRepository.countAllForUserWallFeed(wallOwner.id);
 
-          helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
+          ResponseHelper.checkMetadata(response, page, perPage, totalAmount, true);
 
           perPage = 3;
-          const lastPage = helpers.Req.getLastPage(totalAmount, perPage);
+          const lastPage = RequestHelper.getLastPage(totalAmount, perPage);
 
-          const queryStringLast = helpers.Req.getPaginationQueryString(
+          const queryStringLast = RequestHelper.getPaginationQueryString(
             lastPage,
             perPage,
           );
 
           const lastResponse =
-            await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryStringLast, false);
+            await UsersHelper.requestToGetWallFeedAsGuest(wallOwner, queryStringLast, false);
 
-          helpers.Res.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
+          ResponseHelper.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
         });
 
         it('Get two post pages', async () => {
           const wallOwner = userVlad;
-          await gen.Posts.generateUsersPostsForUserWall(wallOwner, userJane, 3);
+          await PostsGenerator.generateUsersPostsForUserWall(wallOwner, userJane, 3);
 
           const perPage = 2;
           let page = 1;
@@ -102,8 +103,8 @@ describe('Organizations. Get requests', () => {
             posts[page].id,
           ];
 
-          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
-          const firstPage = await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryString);
+          const queryString = RequestHelper.getPaginationQueryString(page, perPage);
+          const firstPage = await UsersHelper.requestToGetWallFeedAsGuest(wallOwner, queryString);
 
           expect(firstPage.length).toBe(perPage);
 
@@ -112,9 +113,9 @@ describe('Organizations. Get requests', () => {
           });
 
           page = 2;
-          const queryStringSecondPage = helpers.Req.getPaginationQueryString(page, perPage);
+          const queryStringSecondPage = RequestHelper.getPaginationQueryString(page, perPage);
           const secondPage =
-            await helpers.Users.requestToGetWallFeedAsGuest(wallOwner, queryStringSecondPage);
+            await UsersHelper.requestToGetWallFeedAsGuest(wallOwner, queryStringSecondPage);
 
           const expectedIdsOfSecondPage = [
             posts[page].id,
@@ -133,47 +134,49 @@ describe('Organizations. Get requests', () => {
         const targetUser = userVlad;
         const directPostAuthor = userJane;
 
-        const promisesToCreatePosts = [
-          gen.Posts.createMediaPostByUserHimself(targetUser),
-          gen.Posts.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
+        const promisesToCreatePosts: any = [
+          PostsGenerator.createMediaPostByUserHimself(targetUser),
+          PostsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
         ];
 
         await Promise.all(promisesToCreatePosts);
 
-        const posts = await helpers.Users.requestToGetWallFeedAsGuest(targetUser);
+        const posts = await UsersHelper.requestToGetWallFeedAsGuest(targetUser);
 
         const options = {
           myselfData: false,
           postProcessing: 'list',
         };
 
-        await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
+        await CommonHelper.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
       });
 
       it('should get all user-related posts as Myself but not user itself', async () => {
         const targetUser = userVlad;
         const directPostAuthor = userJane;
 
-        const promisesToCreatePosts = [
-          gen.Posts.createMediaPostByUserHimself(targetUser),
-          gen.Posts.createPostOfferByUserHimself(targetUser),
-          gen.Posts.createUserDirectPostForOtherUser(directPostAuthor, targetUser),
+        const promisesToCreatePosts: any = [
+          PostsGenerator.createMediaPostByUserHimself(targetUser),
+          PostsGenerator.createPostOfferByUserHimself(targetUser),
+          PostsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser),
         ];
 
-        const [newMediaPostId, newPostOfferId] = await Promise.all(promisesToCreatePosts);
+        const [newMediaPostId, newPostOfferId] =
+          await Promise.all(promisesToCreatePosts);
 
-        await helpers.Posts.requestToUpvotePost(userJane, newMediaPostId);
-        await helpers.Posts.requestToDownvotePost(userJane, newPostOfferId);
+        // @ts-ignore
+        await PostsHelper.requestToUpvotePost(userJane, newMediaPostId);
+        await PostsHelper.requestToDownvotePost(userJane, newPostOfferId);
 
         // userJane upvotes userVlad posts
-        const posts = await helpers.Users.requestToGetWallFeedAsMyself(userJane, targetUser);
+        const posts = await UsersHelper.requestToGetWallFeedAsMyself(userJane, targetUser);
 
         const options = {
           myselfData: true,
           postProcessing: 'list',
         };
 
-        await helpers.Common.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
+        await CommonHelper.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
       }, JEST_TIMEOUT);
     });
   });
@@ -189,33 +192,33 @@ describe('Organizations. Get requests', () => {
       `Hi everyone! #${otherTagName} is so close`,
     ];
 
-    const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+    const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
     const promisesToCreatePosts = [
-      gen.Posts.createMediaPostByUserHimself(userVlad, { description: descriptions[0] }),
-      gen.Posts.createMediaPostOfOrganization(userVlad, orgId, { description: descriptions[1] }),
+      PostsGenerator.createMediaPostByUserHimself(userVlad, { description: descriptions[0] }),
+      PostsGenerator.createMediaPostOfOrganization(userVlad, orgId, { description: descriptions[1] }),
 
-      gen.Posts.createMediaPostByUserHimself(userJane, { description: descriptions[2] }),
-      gen.Posts.createMediaPostByUserHimself(userJane, { description: descriptions[3] }),
+      PostsGenerator.createMediaPostByUserHimself(userJane, { description: descriptions[2] }),
+      PostsGenerator.createMediaPostByUserHimself(userJane, { description: descriptions[3] }),
     ];
 
-    const expectedLength = promisesToCreatePosts.length - 1;
+    const expectedLength: number = promisesToCreatePosts.length - 1;
 
     const [vladHimselfPostId, vladOrgPostId, janeHerselfPostId, janeHerselfNotRelatedPostId] =
       await Promise.all(promisesToCreatePosts);
 
-    await gen.Posts.createMediaPostByUserHimself(userVlad);
+    await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
     await Promise.all([
-      tagsHelper.getPostWhenTagsAreProcessed(vladHimselfPostId),
-      tagsHelper.getPostWhenTagsAreProcessed(vladOrgPostId),
-      tagsHelper.getPostWhenTagsAreProcessed(janeHerselfPostId),
-      tagsHelper.getPostWhenTagsAreProcessed(janeHerselfNotRelatedPostId),
+      TagsHelper.getPostWhenTagsAreProcessed(vladHimselfPostId),
+      TagsHelper.getPostWhenTagsAreProcessed(vladOrgPostId),
+      TagsHelper.getPostWhenTagsAreProcessed(janeHerselfPostId),
+      TagsHelper.getPostWhenTagsAreProcessed(janeHerselfNotRelatedPostId),
     ]);
 
-    const url = helpers.Req.getTagsWallFeedUrl(tagName);
+    const url = RequestHelper.getTagsWallFeedUrl(tagName);
 
-    const models = await requestHelper.makeGetRequestForList(url);
+    const models = await RequestHelper.makeGetRequestForList(url);
 
     expect(models.some((item): any => item.id === vladHimselfPostId)).toBeTruthy();
     expect(models.some((item): any => item.id === vladOrgPostId)).toBeTruthy();
@@ -227,11 +230,12 @@ describe('Organizations. Get requests', () => {
       postProcessing: 'list',
     };
 
-    await helpers.Common.checkPostsListFromApi(models, expectedLength, options);
+    await CommonHelper.checkPostsListFromApi(models, expectedLength, options);
   });
 
   describe('Posts feeds skipped tests - implement them in future', () => {
     it.skip('Should not show posts not related to user', async () => {});
   });
-
 });
+
+export {};

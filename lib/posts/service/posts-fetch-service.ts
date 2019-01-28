@@ -5,10 +5,10 @@ import { PostModelResponse, PostsListResponse } from '../interfaces/model-interf
 
 import PostsRepository = require('../posts-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
+import UsersFeedRepository = require('../../common/repository/users-feed-repository');
+import ApiPostProcessor = require('../../common/service/api-post-processor');
 
 const queryFilterService  = require('../../api/filters/query-filter-service');
-const apiPostProcessor    = require('../../common/service').PostProcessor;
-const usersFeedRepository = require('../../common/repository').UsersFeed;
 
 const usersActivityRepository    = require('../../users/repository/users-activity-repository');
 const commentsFetchService = require('../../comments/service/comments-fetch-service');
@@ -47,7 +47,7 @@ class PostsFetchService {
       orgTeamMembers = await OrganizationsRepository.findAllTeamMembersIds(post.organization_id);
     }
 
-    return apiPostProcessor.processOnePostFully(post, currentUserId, currentUserPostActivity, userToUserActivity, orgTeamMembers);
+    return ApiPostProcessor.processOnePostFully(post, currentUserId, currentUserPostActivity, userToUserActivity, orgTeamMembers);
   }
 
   public static async findOnePostByIdAndProcessV2(
@@ -79,7 +79,7 @@ class PostsFetchService {
       orgTeamMembers = await OrganizationsRepository.findAllTeamMembersIds(post.organization_id);
     }
 
-    apiPostProcessor.processOnePostFully(post, currentUserId, currentUserPostActivity, userToUserActivity, orgTeamMembers);
+    ApiPostProcessor.processOnePostFully(post, currentUserId, currentUserPostActivity, userToUserActivity, orgTeamMembers);
 
     post.comments = await commentsFetchService.findAndProcessCommentsByPostId(
       postId,
@@ -97,12 +97,12 @@ class PostsFetchService {
   ): Promise<PostsListResponse> {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
-    const includeProcessor = usersFeedRepository.getIncludeProcessor();
+    const includeProcessor = UsersFeedRepository.getIncludeProcessor();
     includeProcessor(query, params);
 
     const findCountPromises: Promise<any>[] = [
-      usersFeedRepository.findAllForUserWallFeed(userId, params),
-      usersFeedRepository.countAllForUserWallFeed(userId),
+      UsersFeedRepository.findAllForUserWallFeed(userId, params),
+      UsersFeedRepository.countAllForUserWallFeed(userId),
     ];
 
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
@@ -114,21 +114,11 @@ class PostsFetchService {
     query: RequestQueryDto,
   ): Promise<PostsListResponse> {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
-    queryFilterService.processWithIncludeProcessor(usersFeedRepository, query, params);
+    queryFilterService.processWithIncludeProcessor(UsersFeedRepository, query, params);
 
     const findCountPromises: Promise<any>[] = this.getFindCountPromisesForOrg(orgId, params);
 
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
-  }
-
-  private static getFindCountPromisesForOrg(
-    orgId: number,
-    params: DbParamsDto,
-  ): Promise<any>[] {
-    return [
-      usersFeedRepository.findAllForOrgWallFeed(orgId, params),
-      usersFeedRepository.countAllForOrgWallFeed(orgId),
-    ];
   }
 
   /**
@@ -143,36 +133,51 @@ class PostsFetchService {
   ) {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
-    const includeProcessor = usersFeedRepository.getIncludeProcessor();
+    const includeProcessor = UsersFeedRepository.getIncludeProcessor();
     includeProcessor(query, params);
 
     const { orgIds, usersIds }: { orgIds: number[], usersIds: number[] } =
       await usersActivityRepository.findOneUserFollowActivity(currentUserId);
 
     const findCountPromises = [
-      usersFeedRepository.findAllForUserNewsFeed(currentUserId, usersIds, orgIds, params),
-      usersFeedRepository.countAllForUserNewsFeed(currentUserId, usersIds, orgIds),
+      UsersFeedRepository.findAllForUserNewsFeed(currentUserId, usersIds, orgIds, params),
+      UsersFeedRepository.countAllForUserNewsFeed(currentUserId, usersIds, orgIds),
     ];
 
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
   }
 
-  /**
-   *
-   * @param tagTitle
-   * @param currentUserId
-   * @param query
-   * @returns {Promise<any>}
-   */
-  public static async findAndProcessAllForTagWallFeed(tagTitle, currentUserId, query) {
-    const params = queryFilterService.getQueryParameters(query, {}, []);
+  public static async findAndProcessAllForTagWallFeed(
+    tagTitle: string,
+    currentUserId: number,
+    query: RequestQueryDto,
+  ): Promise<PostsListResponse> {
+    const params: DbParamsDto = queryFilterService.getQueryParameters(query);
+    queryFilterService.processWithIncludeProcessor(UsersFeedRepository, query, params);
 
-    const findCountPromises = [
-      usersFeedRepository.findAllPostsForWallFeedByTag(tagTitle, params),
-      usersFeedRepository.countAllPostsForWallFeedByTag(tagTitle),
-    ];
+    const findCountPromises: Promise<any>[] = this.getFindCountPromisesForTag(tagTitle, params);
 
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
+  }
+
+  private static getFindCountPromisesForOrg(
+    orgId: number,
+    params: DbParamsDto,
+  ): Promise<any>[] {
+    return [
+      UsersFeedRepository.findAllForOrgWallFeed(orgId, params),
+      UsersFeedRepository.countAllForOrgWallFeed(orgId),
+    ];
+  }
+
+  private static getFindCountPromisesForTag(
+    tagTitle: string,
+    params: DbParamsDto,
+  ): Promise<any>[] {
+    return [
+      UsersFeedRepository.findAllPostsForWallFeedByTag(tagTitle, params),
+      UsersFeedRepository.countAllPostsForWallFeedByTag(tagTitle),
+    ];
   }
 
   /**
@@ -228,7 +233,7 @@ class PostsFetchService {
       }
     }
 
-    const data      = apiPostProcessor.processManyPosts(posts, currentUserId, userActivity);
+    const data      = ApiPostProcessor.processManyPosts(posts, currentUserId, userActivity);
     const metadata  = queryFilterService.getMetadata(totalAmount, query, params);
 
     return {

@@ -50,6 +50,7 @@ module.exports = {
         "jest/no-disabled-tests": "off",
         "semi-style": "off",
         "jest/valid-expect": "off",
+        "no-bitwise": "off",
       }
     }
   ]
