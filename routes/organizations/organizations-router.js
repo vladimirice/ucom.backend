@@ -47,12 +47,6 @@ orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
         id: model.id,
     });
 });
-/* GET one organization posts */
-orgRouter.get('/:organization_id/posts', async (req, res) => {
-    const orgId = req.organization_id;
-    const response = await getPostService(req).findAndProcessAllForOrgWallFeed(orgId, req.query);
-    res.send(response);
-});
 /* Update organization */
 orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     await getOrganizationService(req).updateOrganization(req);

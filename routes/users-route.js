@@ -40,12 +40,6 @@ usersRouter.get('/:user_id', async (req, res) => {
     const user = await getUserService(req).getUserByIdAndProcess(req.user_id);
     res.send(user);
 });
-/* GET all user posts */
-usersRouter.get('/:user_id/posts', async (req, res) => {
-    const userId = req.user_id;
-    const posts = await getPostService(req).findAndProcessAllForUserWallFeed(userId);
-    res.send(posts);
-});
 /* Create post for this user */
 usersRouter.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const response = await getPostService(req).processNewDirectPostCreationForUser(req);
