@@ -17,14 +17,20 @@ interface ImportanceData {
 }
 
 class EosImportance {
-  public static async updateRatesByBlockchain(): Promise<void> {
+  public static async updateRatesByBlockchain(
+    doWriteEventType: number,
+  ): Promise<void> {
     let lowerBound: number = 0;
     const batchSize: number = 1000;
 
     let importanceData: ImportanceData[] =
       await TransactionSender.getImportanceTableRows(lowerBound, batchSize);
 
-    const doWriteEvent: boolean = !(await this.isHourlyEventWritten());
+    const doWriteEvent: boolean = doWriteEventType === 2
+      ? !(await this.isHourlyEventWritten())
+      : !!doWriteEventType
+    ;
+    console.log(`doWriteEvent value is: ${doWriteEvent}`);
 
     let totalAmount: number = 0;
     while (importanceData.length !== 0) {
