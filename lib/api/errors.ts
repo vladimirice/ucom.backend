@@ -1,6 +1,5 @@
 class AppError extends Error {
-  // @ts-ignore
-  private status;
+  public status;
 
   constructor(message, status) {
     // noinspection JSCheckFunctionSignatures
@@ -14,8 +13,7 @@ class AppError extends Error {
 }
 
 class BadRequestError extends Error {
-  // @ts-ignore
-  private status;
+  public status;
 
   constructor(fieldsAndMessages, status = 400) {
     const message = {
@@ -33,8 +31,7 @@ class BadRequestError extends Error {
 }
 
 class JoiBadRequestError extends Error {
-  // @ts-ignore
-  private status;
+  public status;
 
   constructor(error) {
     const message = {
@@ -53,8 +50,7 @@ class JoiBadRequestError extends Error {
 }
 
 class HttpForbiddenError extends Error {
-  // @ts-ignore
-  private status;
+  public status;
 
   constructor(message) {
     // noinspection JSCheckFunctionSignatures

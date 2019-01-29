@@ -1,34 +1,40 @@
-
-
-Object.defineProperty(exports, '__esModule', { value: true });
 const appRoot = require('app-root-path');
 const Sentry = require('winston-sentry-raven-transport');
+
 const winston = require('winston');
 const { format } = require('winston');
+
 const util = require('util');
 
 const {
   combine, timestamp, label, printf,
 } = format;
+
 const MAX_FILE_SIZE = 104857600; // 100 MB;
 const MAX_FILES = 30;
+
 const LOGGER__API = 'api';
 const LOGGER_CONSUMER = 'consumer';
 const LOGGER_WORKER = 'worker';
+
 const LOGGERS_ALL = [
   LOGGER__API,
   LOGGER_CONSUMER,
   LOGGER_WORKER,
 ];
-const myFormat = printf((info) => {
-  const nodeEnv = process.env.NODE_ENV || 'not-determined';
-  const basic = `${info.timestamp}.[${nodeEnv}].[${info.label}].[${info.level}]: ${JSON.stringify(info.message)}`;
+
+const myFormat = printf((info: any) => {
+  const nodeEnv: string = process.env.NODE_ENV || 'not-determined';
+  const basic: string = `${info.timestamp}.[${nodeEnv}].[${info.label}].[${info.level}]: ${JSON.stringify(info.message)}`;
+
   if (info.level === 'error') {
-    const full = util.inspect(info, false, null, false);
+    const full: string = util.inspect(info, false, null, false);
     return `${basic}. Full: ${full}`;
   }
+
   return basic;
 });
+
 const options = {
   file_error: {
     level: 'error',
@@ -57,37 +63,55 @@ const options = {
     level: 'error',
   },
 };
+
 // noinspection JSValidateTypes
 const transports = [
   new winston.transports.File(options.file_error),
   new winston.transports.File(options.file_combined),
 ];
+
 if (process.env.NODE_ENV === 'production') {
-  transports.push(new Sentry(options.sentry));
+  transports.push(
+    new Sentry(options.sentry),
+  );
 }
+
 function getFormat(labelToSet) {
-  return combine(label({ label: labelToSet }), timestamp(), myFormat);
+  return combine(
+    label({ label: labelToSet }),
+    timestamp(),
+    myFormat,
+  );
 }
+
 for (let i = 0; i < LOGGERS_ALL.length; i += 1) {
   // eslint-disable-next-line security/detect-object-injection
   const loggerName = LOGGERS_ALL[i];
+
   winston.loggers.add(loggerName, {
     format: getFormat(loggerName),
     transports,
   });
+
   if (process.env.NODE_ENV === 'test') {
     winston.loggers.get(loggerName).add(new winston.transports.Console(options.test_console));
   }
 }
+
 const ApiLoggerStream = {
   write(message) {
     winston.loggers.get(LOGGER__API).info(message);
   },
 };
-exports.ApiLoggerStream = ApiLoggerStream;
+
 const ApiLogger = winston.loggers.get(LOGGER__API);
-exports.ApiLogger = ApiLogger;
 const ConsumerLogger = winston.loggers.get(LOGGER_CONSUMER);
-exports.ConsumerLogger = ConsumerLogger;
 const WorkerLogger = winston.loggers.get(LOGGER_WORKER);
-exports.WorkerLogger = WorkerLogger;
+
+export {
+  ApiLogger,
+  ConsumerLogger,
+  WorkerLogger,
+
+  ApiLoggerStream,
+};

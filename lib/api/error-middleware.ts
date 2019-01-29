@@ -1,3 +1,5 @@
+import { AppError } from './errors';
+
 const { ApiLogger } = require('../../config/winston');
 const { BadRequestError } = require('../../lib/api/errors');
 
@@ -25,7 +27,7 @@ export = function (err, req, res, next) {
  * @return {Object}
  * @private
  */
-function processError(err) {
+function processError(err: AppError) {
   if (err instanceof BadRequestError) {
     return {
       status: err.status,

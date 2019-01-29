@@ -1,13 +1,9 @@
 "use strict";
-const errors_1 = require("./lib/api/errors");
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
 const express = require('express');
-// const {
-//   parseResolveInfo,
-// } = require('graphql-parse-resolve-info');
-const { ApolloServer, gql } = require('apollo-server-express');
+const { ApolloServer, gql, AuthenticationError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
 const { ApiLogger } = require('./config/winston');
 // #task - generate field list from model and represent as object, not string
@@ -168,16 +164,8 @@ const resolvers = {
                 page: args.page,
                 per_page: args.per_page,
             };
-            let res;
-            try {
-                const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
-                res = await CommentsFetchService.findAndProcessCommentsOfComment(commentsQuery, currentUserId);
-            }
-            catch (err) {
-                ApiLogger.error(err);
-                throw new errors_1.AppError('Internal server error', 500);
-            }
-            return res;
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            return CommentsFetchService.findAndProcessCommentsOfComment(commentsQuery, currentUserId);
         },
         // @ts-ignore
         async feed_comments(parent, args, ctx, info) {
@@ -189,15 +177,8 @@ const resolvers = {
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             return CommentsFetchService.findAndProcessCommentsByPostId(args.commentable_id, currentUserId, commentsQuery);
         },
-        async user_wall_feed(
         // @ts-ignore
-        parent, 
-        // @ts-ignore
-        args, 
-        // @ts-ignoreuser_wall_feed
-        ctx, 
-        // @ts-ignore
-        info) {
+        async user_wall_feed(parent, args, ctx, info) {
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const postsQuery = {
                 page: args.page,
@@ -209,29 +190,10 @@ const resolvers = {
                     comments: args.comments_query,
                 },
             };
-            // const parsedResolveInfoFragment = parseResolveInfo(info);
-            // @ts-ignore
-            // const commentsArgs =
-            // parsedResolveInfoFragment.fieldsByTypeName.posts.data.fieldsByTypeName.Post.comments.args;
-            let res;
-            try {
-                res = await PostsFetchService.findAndProcessAllForUserWallFeed(args.user_id, currentUserId, postsQuery);
-            }
-            catch (err) {
-                ApiLogger.error(err);
-                throw new errors_1.AppError('Internal server error', 500);
-            }
-            return res;
+            return PostsFetchService.findAndProcessAllForUserWallFeed(args.user_id, currentUserId, postsQuery);
         },
-        async org_wall_feed(
         // @ts-ignore
-        parent, 
-        // @ts-ignore
-        args, 
-        // @ts-ignore
-        ctx, 
-        // @ts-ignore
-        info) {
+        async org_wall_feed(parent, args, ctx, info) {
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const postsQuery = {
                 page: args.page,
@@ -243,15 +205,7 @@ const resolvers = {
                     comments: args.comments_query,
                 },
             };
-            let res;
-            try {
-                res = await PostsFetchService.findAndProcessAllForOrgWallFeed(args.organization_id, currentUserId, postsQuery);
-            }
-            catch (err) {
-                ApiLogger.error(err);
-                throw new errors_1.AppError('Internal server error', 500);
-            }
-            return res;
+            return PostsFetchService.findAndProcessAllForOrgWallFeed(args.organization_id, currentUserId, postsQuery);
         },
         // @ts-ignore
         async tag_wall_feed(parent, args, ctx, info) {
@@ -266,16 +220,8 @@ const resolvers = {
                     comments: args.comments_query,
                 },
             };
-            let res;
             const tagIdentity = args.tag_identity;
-            try {
-                res = await PostsFetchService.findAndProcessAllForTagWallFeed(tagIdentity, currentUserId, postsQuery);
-            }
-            catch (err) {
-                ApiLogger.error(err);
-                throw new errors_1.AppError('Internal server error', 500);
-            }
-            return res;
+            return PostsFetchService.findAndProcessAllForTagWallFeed(tagIdentity, currentUserId, postsQuery);
         },
         // @ts-ignore
         async user_news_feed(parent, args, ctx, info) {
@@ -290,19 +236,7 @@ const resolvers = {
                     comments: args.comments_query,
                 },
             };
-            // const parsedResolveInfoFragment = parseResolveInfo(info);
-            // @ts-ignore
-            // const commentsArgs =
-            // parsedResolveInfoFragment.fieldsByTypeName.posts.data.fieldsByTypeName.Post.comments.args;
-            let res;
-            try {
-                res = await PostsFetchService.findAndProcessAllForMyselfNewsFeed(postsQuery, currentUserId);
-            }
-            catch (err) {
-                ApiLogger.error(err);
-                throw new errors_1.AppError('Internal server error', 500);
-            }
-            return res;
+            return PostsFetchService.findAndProcessAllForMyselfNewsFeed(postsQuery, currentUserId);
         },
     },
 };
@@ -312,6 +246,32 @@ const server = new ApolloServer({
     resolvers,
     cors: false,
     context: ({ req }) => ({ req }),
+    formatError: (error) => {
+        const { originalError } = error;
+        const toLog = {
+            message: error.message,
+            graphqlError: error,
+            source: error.source,
+            originalError,
+        };
+        if (originalError && originalError.name === 'JsonWebTokenError') {
+            error = new AuthenticationError('Invalid token', 401);
+        }
+        else if (!originalError
+            // @ts-ignore
+            || (originalError.status && originalError.status === 500)
+            || originalError instanceof Error) {
+            ApiLogger.error(toLog);
+            error.message = 'Internal server error';
+        }
+        else {
+            ApiLogger.warn(toLog);
+        }
+        if (error.extensions) {
+            delete error.extensions.exception;
+        }
+        return error;
+    },
 });
 server.applyMiddleware({ app });
 module.exports = {
