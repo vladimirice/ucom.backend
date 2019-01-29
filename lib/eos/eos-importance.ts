@@ -17,7 +17,7 @@ interface ImportanceData {
 }
 
 class EosImportance {
-  static async updateRatesByBlockchain(): Promise<void> {
+  public static async updateRatesByBlockchain(): Promise<void> {
     let lowerBound: number = 0;
     const batchSize: number = 1000;
 
@@ -37,6 +37,10 @@ class EosImportance {
     }
 
     console.log(`Total amount is: ${totalAmount}`);
+  }
+
+  public static getImportanceMultiplier(): number {
+    return 10000;
   }
 
   private static async processBatchResult(
@@ -123,10 +127,6 @@ class EosImportance {
     console.log('Lets run all inserts for rate events...');
     await models.sequelize.query(entityEventSql);
     console.log('Done');
-  }
-
-  static getImportanceMultiplier(): number {
-    return 10000;
   }
 }
 
