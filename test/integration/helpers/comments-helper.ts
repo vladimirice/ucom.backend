@@ -37,7 +37,7 @@ class CommentsHelper {
       expect(Array.isArray(res.body.data)).toBeTruthy();
     }
 
-    res.body.data = Array.prototype.filter(res.body.data);
+    res.body.data = res.body.data.filter(Boolean);
 
     if (dataOnly) {
       return res.body.data;

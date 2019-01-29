@@ -152,7 +152,7 @@ class CommentsRepository {
     const res: any = {};
 
     data.forEach((item) => {
-      res[item.parent_id] = item.amount;
+      res[item.parent_id] = +item.amount;
     });
 
     return res;

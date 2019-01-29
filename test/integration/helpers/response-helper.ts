@@ -1,8 +1,6 @@
 /* tslint:disable:max-line-length */
 import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
 
-const _ = require('lodash');
-
 require('jest-expect-message');
 
 class ResponseHelper {
@@ -148,12 +146,14 @@ class ResponseHelper {
   static expectValuesAreExpected(expected, actual) {
     expect(actual).toBeDefined();
     for (const field in expected) {
-      // noinspection JSUnfilteredForInLoop
-      // @ts-ignore
-      expect(actual.hasOwnProperty(field), `There is no property in actual: ${field}`).toBeTruthy();
-      // noinspection JSUnfilteredForInLoop
-      // @ts-ignore
-      expect(actual[field], `${field} does not match expected value`).toEqual(expected[field]);
+      if (expected.hasOwnProperty(field)) {
+        // noinspection JSUnfilteredForInLoop
+        // @ts-ignore
+        expect(actual.hasOwnProperty(field), `There is no property in actual: ${field}`).toBeTruthy();
+        // noinspection JSUnfilteredForInLoop
+        // @ts-ignore
+        expect(actual[field], `${field} does not match expected value`).toEqual(expected[field]);
+      }
     }
   }
 
@@ -175,7 +175,7 @@ class ResponseHelper {
    */
   static expectValidListBody(body, allowEmpty = false) {
     const { data, metadata } = body;
-    expect(_.isEmpty(data)).toBeFalsy();
+    expect(data).toBeTruthy();
 
     expect(Array.isArray(data)).toBeTruthy();
 
@@ -184,12 +184,6 @@ class ResponseHelper {
     }
 
     this.expectValidMetadataStructure(metadata);
-
-    // #task
-    // if (metadata.has_more === false) {
-    //   expect(data.length, 'It seems that you use different WHERE conditions to fetch data and calc total amount')
-    //     .toBe(metadata.total_amount);
-    // }
   }
 
   public static expectValidMetadataStructure(metadata: ListMetadata): void {

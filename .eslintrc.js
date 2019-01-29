@@ -51,6 +51,7 @@ module.exports = {
         "semi-style": "off",
         "jest/valid-expect": "off",
         "no-bitwise": "off",
+        "no-prototype-builtins": "off",
       }
     }
   ]
