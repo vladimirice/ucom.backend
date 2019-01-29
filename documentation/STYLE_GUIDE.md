@@ -31,4 +31,4 @@ Because of this some of conventions are not satisfied by "old code", only for ne
 `organizaton_tags`, `post_tags`) 
 
 
-TODO - This section is ready yet. Here will be placed links to files that represent project conventions
+TODO - This section is not ready yet. Here will be placed links to files that represent project conventions
