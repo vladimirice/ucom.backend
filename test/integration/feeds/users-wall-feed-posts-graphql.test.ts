@@ -116,7 +116,7 @@ describe('#Feeds #GraphQL', () => {
         commentItselfMetadata: true,
       };
 
-      const postOne = data.find(item => item.id === postOneId);
+      const postOne = data.find(item => item.id === postOneId)!;
 
       // Only first level comments (depth = 0)
       const commentOnCommentExistence = postOne.comments.data.some(
@@ -135,8 +135,8 @@ describe('#Feeds #GraphQL', () => {
       expect(postOneCommentsMetadata.per_page).toBe(commentsPerPage);
       expect(postOneCommentsMetadata.has_more).toBeFalsy();
 
-      const commentWithComment = postOne.comments.data.find(item => item.id === commentOne.id);
-      const commentWithoutComment = postOne.comments.data.find(item => item.id === commentTwo.id);
+      const commentWithComment = postOne.comments.data.find(item => item.id === commentOne.id)!;
+      const commentWithoutComment = postOne.comments.data.find(item => item.id === commentTwo.id)!;
 
       expect(commentWithComment.metadata).toBeDefined();
       expect(commentWithComment.metadata.next_depth_total_amount).toBe(1);

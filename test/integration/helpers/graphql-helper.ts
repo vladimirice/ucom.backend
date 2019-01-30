@@ -264,7 +264,13 @@ export class GraphqlHelper {
   ): Promise<any> {
     const myselfClient = this.getClientWithToken(myself);
 
+    // let response;
+    // try {
     const response = await myselfClient.query({ query: gql(query) });
+    // } catch (err) {
+    // @ts-ignore
+    // const a = 0;
+    // }
 
     if (keyToReturn) {
       return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];
