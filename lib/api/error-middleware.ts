@@ -28,6 +28,14 @@ export = function (err, req, res, next) {
  * @private
  */
 function processError(err: AppError) {
+  // #task - this is because of registration error. err is got as string
+  if (typeof err === 'string') {
+    return {
+      status: 500,
+      payload: 'Internal server error',
+    };
+  }
+
   if (err instanceof BadRequestError) {
     return {
       status: err.status,
