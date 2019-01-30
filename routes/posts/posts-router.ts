@@ -1,5 +1,8 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
+import { PostsListResponse } from '../../lib/posts/interfaces/model-interfaces';
+
 const config = require('config');
 
 const postsRouter = require('./comments-router');
@@ -24,6 +27,17 @@ function getPostService(req) {
   return req.container.get('post-service');
 }
 
+function getUserService(req) {
+  return req.container.get('current-user');
+}
+
+function getCurrentUserId(req): number | null {
+  const CurrentUserService = getUserService(req);
+
+  return CurrentUserService.getCurrentUserId();
+}
+
+
 const activityMiddlewareSet: any = [
   authTokenMiddleWare,
   cpUpload,
@@ -32,8 +46,9 @@ const activityMiddlewareSet: any = [
 
 /* Get all posts */
 postsRouter.get('/', async (req, res) => {
-  // noinspection JSDeprecatedSymbols
-  const result = await getPostService(req).findAll(req.query);
+  const currentUserId: number | null = getCurrentUserId(req);
+  const result: PostsListResponse =
+    await PostsFetchService.findManyPosts(req.query, currentUserId);
 
   res.send(result);
 });

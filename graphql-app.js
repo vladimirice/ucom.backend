@@ -3,7 +3,7 @@ const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
 const express = require('express');
-const { ApolloServer, gql, AuthenticationError, } = require('apollo-server-express');
+const { ApolloServer, gql, AuthenticationError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
 const { ApiLogger } = require('./config/winston');
 // #task - generate field list from model and represent as object, not string
@@ -12,6 +12,8 @@ const typeDefs = gql `
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    
+    posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
@@ -144,10 +146,25 @@ const typeDefs = gql `
     page: Int!
     per_page: Int!
   }
+
+  input post_filtering {
+    post_type_id: Int!
+    created_at: String
+  }
 `;
 const resolvers = {
     JSON: graphQLJSON,
     Query: {
+        // @ts-ignore
+        async posts(parent, args, ctx) {
+            const postsQuery = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters, { include: [
+                    'comments',
+                ], included_query: {
+                    comments: args.comments_query,
+                } });
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            return PostsFetchService.findManyPosts(postsQuery, currentUserId);
+        },
         // @ts-ignore
         async one_post(parent, args, ctx) {
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
@@ -226,6 +243,9 @@ const resolvers = {
         // @ts-ignore
         async user_news_feed(parent, args, ctx, info) {
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            if (!currentUserId) {
+                throw new ForbiddenError('Auth token is required', 403);
+            }
             const postsQuery = {
                 page: args.page,
                 per_page: args.per_page,

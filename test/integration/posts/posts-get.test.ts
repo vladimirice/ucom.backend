@@ -1,58 +1,56 @@
-export {};
+import RequestHelper = require('../helpers/request-helper');
+import MockHelper = require('../helpers/mock-helper');
+import UsersHelper = require('../helpers/users-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import ResponseHelper = require('../helpers/response-helper');
+import PostsGenerator = require('../../generators/posts-generator');
+import PostsHelper = require('../helpers/posts-helper');
+import CommonHelper = require('../helpers/common-helper');
+
 
 const request = require('supertest');
-const server = require('../../../app');
-
-const helpers = require('../helpers');
-
-const usersHelper     = helpers.Users;
-const seedsHelper     = helpers.Seeds;
-const postHelper      = helpers.Posts;
-const requestHelper   = helpers.Req;
-const responseHelper  = helpers.Res;
-
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+
+const server = require('../../../app');
 
 const postsService = require('./../../../lib/posts/post-service');
 const postsRepository = require('./../../../lib/posts/posts-repository');
 const postOfferRepository = require('./../../../lib/posts/repository').PostOffer;
 
-const postsUrl = helpers.Req.getPostsUrl();
-
-const postsGen = require('../../generators').Posts;
+const postsUrl = RequestHelper.getPostsUrl();
 
 require('jest-expect-message');
 
 let userVlad;
 let userJane;
 
-helpers.Mock.mockAllBlockchainPart();
+MockHelper.mockAllBlockchainPart();
 
 describe('Posts API', () => {
   beforeAll(async () => {
-    userVlad = await usersHelper.getUserVlad();
-    userJane = await usersHelper.getUserJane();
+    userVlad = await UsersHelper.getUserVlad();
+    userJane = await UsersHelper.getUserJane();
   });
 
   beforeEach(async () => {
-    await seedsHelper.initSeeds();
+    await SeedsHelper.initSeeds();
   });
 
   afterAll(async () => {
-    await seedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   describe('GET posts', () => {
     describe('Test filtering', () => {
       it('GET only media posts', async () => {
-        let url = requestHelper.getPostsUrl();
+        let url = RequestHelper.getPostsUrl();
         url += `?post_type_id=${ContentTypeDictionary.getTypeMediaPost()}`;
 
         const res = await request(server)
           .get(url)
         ;
 
-        responseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
         const mediaPosts = res.body.data;
 
         const mediaPostsFromDb = await postsRepository.findAllMediaPosts(true);
@@ -61,14 +59,14 @@ describe('Posts API', () => {
       });
 
       it('GET only post-offers', async () => {
-        let url = requestHelper.getPostsUrl();
+        let url = RequestHelper.getPostsUrl();
         url += `?post_type_id=${ContentTypeDictionary.getTypeOffer()}`;
 
         const res = await request(server)
           .get(url)
         ;
 
-        responseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
         const fromRequest = res.body.data;
 
         const fromDb = await postOfferRepository.findAllPostOffers(true);
@@ -82,20 +80,20 @@ describe('Posts API', () => {
         const postsOwner = userVlad;
         const directPostAuthor = userJane;
 
-        await postsGen.generateUsersPostsForUserWall(postsOwner, directPostAuthor, 50);
+        await PostsGenerator.generateUsersPostsForUserWall(postsOwner, directPostAuthor, 50);
 
         const queryString = 'page=2&post_type_id=1&sort_by=-current_rate&per_page=20';
 
-        const response = await helpers.Posts.requestToGetManyPostsAsGuest(queryString, false);
+        const response = await PostsHelper.requestToGetManyPostsAsGuest(queryString, false);
 
-        helpers.Res.checkMetadata(response, 2, 20, 54, true);
+        ResponseHelper.checkMetadata(response, 2, 20, 54, true);
       }, 10000);
 
       it('Every request should contain correct metadata', async () => {
         const perPage = 2;
         const page = 1;
 
-        const response = await postHelper.requestAllPostsWithPagination(page, perPage);
+        const response = await PostsHelper.requestAllPostsWithPagination(page, perPage);
 
         const { metadata } = response;
 
@@ -109,7 +107,7 @@ describe('Posts API', () => {
 
         const lastPage = totalAmount - perPage;
 
-        const lastResponse = await postHelper.requestAllPostsWithPagination(lastPage, perPage);
+        const lastResponse = await PostsHelper.requestAllPostsWithPagination(lastPage, perPage);
 
         expect(lastResponse.metadata.has_more).toBeFalsy();
       });
@@ -124,7 +122,7 @@ describe('Posts API', () => {
             ['id', 'DESC'],
           ],
         });
-        const firstPage = await postHelper.requestAllPostsWithPagination(page, perPage, true);
+        const firstPage = await PostsHelper.requestAllPostsWithPagination(page, perPage, true);
 
         const expectedIdsOfFirstPage = [
           posts[page - 1].id,
@@ -138,7 +136,7 @@ describe('Posts API', () => {
         });
 
         page = 2;
-        const secondPage = await postHelper.requestAllPostsWithPagination(page, perPage, true);
+        const secondPage = await PostsHelper.requestAllPostsWithPagination(page, perPage, true);
 
         const expectedIdsOfSecondPage = [
           posts[page].id,
@@ -155,8 +153,9 @@ describe('Posts API', () => {
       it('Page 0 and page 1 behavior must be the same', async () => {
         const perPage = 2;
 
-        const pageIsZeroResponse = await postHelper.requestAllPostsWithPagination(1, perPage, true);
-        const pageIsOneResponse = await postHelper.requestAllPostsWithPagination(1, perPage, true);
+        const pageIsZeroResponse =
+          await PostsHelper.requestAllPostsWithPagination(1, perPage, true);
+        const pageIsOneResponse = await PostsHelper.requestAllPostsWithPagination(1, perPage, true);
 
         expect(JSON.stringify(pageIsZeroResponse)).toBe(JSON.stringify(pageIsOneResponse));
       });
@@ -165,43 +164,43 @@ describe('Posts API', () => {
     describe('Test sorting', () => {
       it('Smoke test. Nothing is found', async () => {
         const queryString = '?post_type_id=100500&created_at=24_hours&sort_by=-current_rate';
-        const url = `${requestHelper.getPostsUrl()}${queryString}`;
+        const url = `${RequestHelper.getPostsUrl()}${queryString}`;
         const res = await request(server)
           .get(url)
         ;
 
-        responseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
         expect(res.body.data.length).toBe(0);
       });
 
       it('Smoke test. Sort by current rate but only daily', async () => {
         const queryString = '?post_type_id=1&created_at=24_hours&sort_by=-current_rate';
-        const url = `${requestHelper.getPostsUrl()}${queryString}`;
+        const url = `${RequestHelper.getPostsUrl()}${queryString}`;
         const res = await request(server)
           .get(url)
         ;
 
-        responseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
       });
 
       it('sort by current_rate_daily_delta - smoke test', async () => {
-        const url = `${requestHelper.getPostsUrl()}?sort_by=-current_rate_delta_daily`;
+        const url = `${RequestHelper.getPostsUrl()}?sort_by=-current_rate_delta_daily`;
         const res = await request(server)
           .get(url)
         ;
 
-        responseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
       });
 
       it('Sort by current_rate DESC', async () => {
-        const url = `${requestHelper.getPostsUrl()}?sort_by=-current_rate,-id`;
+        const url = `${RequestHelper.getPostsUrl()}?sort_by=-current_rate,-id`;
 
         const res = await request(server)
           .get(url)
         ;
 
-        responseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
         const minPostId = await postsRepository.findMinPostIdByParameter('current_rate');
         const maxPostId = await postsRepository.findMaxPostIdByParameter('current_rate');
@@ -212,13 +211,13 @@ describe('Posts API', () => {
         expect(posts[0].id).toBe(maxPostId);
       });
       it('Sort by current_rate ASC', async () => {
-        const url = `${requestHelper.getPostsUrl()}?sort_by=current_rate,-id`;
+        const url = `${RequestHelper.getPostsUrl()}?sort_by=current_rate,-id`;
 
         const res = await request(server)
           .get(url)
         ;
 
-        responseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
         const minPostId = await postsRepository.findMinPostIdByParameter('current_rate');
         const maxPostId = await postsRepository.findMaxPostIdByParameter('current_rate');
@@ -230,13 +229,13 @@ describe('Posts API', () => {
       });
 
       it('Sort by title DESC', async () => {
-        const url = `${requestHelper.getPostsUrl()}?sort_by=title,-id`;
+        const url = `${RequestHelper.getPostsUrl()}?sort_by=title,-id`;
 
         const res = await request(server)
           .get(url)
         ;
 
-        responseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
         const minPostId = await postsRepository.findMinPostIdByParameter('title');
         const maxPostId = await postsRepository.findMaxPostIdByParameter('title');
@@ -266,12 +265,12 @@ describe('Posts API', () => {
         const setComments: any = [];
         postToComments.forEach((data) => {
           setComments.push(
-            postHelper.setCommentCountDirectly(data.post_id, data.comments_count),
+            PostsHelper.setCommentCountDirectly(data.post_id, data.comments_count),
           );
         });
         await Promise.all(setComments);
 
-        const posts = await postHelper.requestToGetManyPostsAsGuest('sort_by=-comments_count');
+        const posts = await PostsHelper.requestToGetManyPostsAsGuest('sort_by=-comments_count');
 
         postToComments.forEach((data, index) => {
           expect(posts[index].id).toBe(data.post_id);
@@ -304,14 +303,15 @@ describe('Posts API', () => {
         ];
 
         const setComments: any = [];
+        // eslint-disable-next-line sonarjs/no-identical-functions
         postToComments.forEach((data) => {
           setComments.push(
-            postHelper.setCommentCountDirectly(data.post_id, data.comments_count),
+            PostsHelper.setCommentCountDirectly(data.post_id, data.comments_count),
           );
         });
         await Promise.all(setComments);
 
-        const posts = await postHelper.requestToGetManyPostsAsGuest('sort_by=comments_count');
+        const posts = await PostsHelper.requestToGetManyPostsAsGuest('sort_by=comments_count');
 
         postToComments.forEach((data, index) => {
           expect(posts[index].id).toBe(data.post_id);
@@ -320,7 +320,7 @@ describe('Posts API', () => {
     });
 
     it('All posts. Guest. No filters', async () => {
-      const posts = await helpers.Posts.requestToGetManyPostsAsGuest();
+      const posts = await PostsHelper.requestToGetManyPostsAsGuest();
 
       const postsFromDb = await postsRepository.findAllPosts();
 
@@ -329,11 +329,11 @@ describe('Posts API', () => {
         postProcessing: 'list',
       };
 
-      helpers.Common.checkPostsListFromApi(posts, postsFromDb.length, options);
+      CommonHelper.checkPostsListFromApi(posts, postsFromDb.length, options);
     });
 
     it('All posts. Myself. No filters', async () => {
-      const posts = await helpers.Posts.requestToGetManyPostsAsMyself(userVlad);
+      const posts = await PostsHelper.requestToGetManyPostsAsMyself(userVlad);
       const postsFromDb = await postsRepository.findAllPosts();
 
       const options = {
@@ -341,7 +341,7 @@ describe('Posts API', () => {
         postProcessing: 'list',
       };
 
-      helpers.Common.checkPostsListFromApi(posts, postsFromDb.length, options);
+      CommonHelper.checkPostsListFromApi(posts, postsFromDb.length, options);
     });
 
     it('Must be 404 response if post id is not correct', async () => {
@@ -349,20 +349,19 @@ describe('Posts API', () => {
         .get(`${postsUrl}/100500`)
       ;
 
-      responseHelper.expectStatusNotFound(res);
+      ResponseHelper.expectStatusNotFound(res);
     });
   });
 
   it('List of post does not contain myself statuses', async () => {
     const postToUpvote = await postsService.findLastMediaPostByAuthor(userJane.id);
 
-    await helpers.PostHelper.requestToUpvotePost(userVlad, postToUpvote.id);
+    await PostsHelper.requestToUpvotePost(userVlad, postToUpvote.id);
 
     const res = await request(server)
-      .get(requestHelper.getPostsUrl())
+      .get(RequestHelper.getPostsUrl())
     ;
-
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     res.body.data.forEach((post) => {
       expect(post.title).toBeDefined();
@@ -376,7 +375,7 @@ describe('Posts API', () => {
         // #task check different post types
         const postId = 1; // media post
 
-        const post = await helpers.Posts.requestToGetOnePostAsGuest(postId);
+        const post = await PostsHelper.requestToGetOnePostAsGuest(postId);
 
         const options = {
           myselfData    : false,
@@ -384,14 +383,14 @@ describe('Posts API', () => {
           commentsV1: true, // legacy
         };
 
-        helpers.Common.checkOnePostForPage(post, options);
+        CommonHelper.checkOnePostForPage(post, options);
       });
 
       it('Get one post. Myself', async () => {
         // #task check different post types
         const postId = 1; // media post
 
-        const post = await helpers.Posts.requestToGetOnePostAsMyself(postId, userVlad);
+        const post = await PostsHelper.requestToGetOnePostAsMyself(postId, userVlad);
 
         const options = {
           myselfData    : true,
@@ -399,22 +398,22 @@ describe('Posts API', () => {
           commentsV1: true, // legacy
         };
 
-        helpers.Common.checkOnePostForPage(post, options);
+        CommonHelper.checkOnePostForPage(post, options);
       });
     });
   });
 
   it('User data inside post is normalized', async () => {
-    await usersHelper.setSampleRateToUser(userVlad);
+    await UsersHelper.setSampleRateToUser(userVlad);
 
     const post = await postsService.findLastMediaPostByAuthor(userVlad.id);
 
     const res = await request(server)
-      .get(`${requestHelper.getPostsUrl()}/${post.id}`)
+      .get(`${RequestHelper.getPostsUrl()}/${post.id}`)
       .set('Authorization', `Bearer ${userVlad.token}`)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
     const { body } = res;
 
     const author = body.User;
@@ -423,3 +422,5 @@ describe('Posts API', () => {
     expect(+author.current_rate).toBeGreaterThan(0);
   });
 });
+
+export {};

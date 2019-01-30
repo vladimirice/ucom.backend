@@ -44,7 +44,7 @@ class CommentsFetchService {
 
   public static async findAndProcessCommentsOfComment(
     query: RequestQueryComments,
-    currentUserId: number,
+    currentUserId: number | null,
   ) {
     if (query.depth === undefined) {
       throw new BadRequestError({ depth: 'Depth parameter is required' });

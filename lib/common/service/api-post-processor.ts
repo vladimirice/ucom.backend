@@ -1,6 +1,7 @@
 import { MyselfDataDto } from '../interfaces/post-processing-dto';
 import { ListMetadata, ListResponse } from '../interfaces/lists-interfaces';
 import { AppError } from '../../api/errors';
+import { PostModelResponse } from '../../posts/interfaces/model-interfaces';
 
 import CommentsPostProcessor = require('../../comments/service/comments-post-processor');
 
@@ -286,13 +287,17 @@ class ApiPostProcessor {
    * @param {Object} userActivity
    * @return {Array}
    */
-  static processManyPosts(posts, currentUserId, userActivity) {
+  static processManyPosts(
+    posts: PostModelResponse[],
+    currentUserId: number | null,
+    userActivity: any,
+  ) {
     for (let i = 0; i < posts.length; i += 1) {
       const post = posts[i];
       this.processOnePostForList(post, currentUserId, userActivity);
 
       if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
-        this.processOnePostForList(post.post);
+        this.processOnePostForList(post.post!);
       }
     }
 
@@ -306,7 +311,11 @@ class ApiPostProcessor {
    * @param {Object} userActivity
    * @return {*}
    */
-  static processOnePostForList(post, currentUserId = null, userActivity = null) {
+  static processOnePostForList(
+    post: PostModelResponse,
+    currentUserId: number | null = null,
+    userActivity: any = null,
+  ) {
     this.normalizeMultiplier(post);
     this.makeNumerical(post);
 

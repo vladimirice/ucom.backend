@@ -177,7 +177,7 @@ class PostsGenerator {
   static async createManyDefaultMediaPostsByUserHimself(
     user: any,
     amount: number,
-  ) {
+  ): Promise<number[]> {
     const promises: any = [];
 
     for (let i = 0; i < amount; i += 1) {
@@ -186,6 +186,7 @@ class PostsGenerator {
       );
     }
 
+    // @ts-ignore
     return Promise.all(promises);
   }
 

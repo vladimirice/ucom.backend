@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { CommentModelResponse, CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
-import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 
 import ResponseHelper = require('./response-helper');
@@ -575,6 +575,48 @@ class CommonHelper {
 
       this.checkManyCommentsPreviewWithRelations(post.comments, options);
     }
+  }
+
+  public static expectModelsExistence(
+    actualModels: any[],
+    expectedModelIds: number[],
+  ): void {
+    expect(actualModels.length).toBe(expectedModelIds.length);
+
+    expectedModelIds.forEach((expectedId) => {
+      expect(actualModels.some(actual => actual.id === expectedId)).toBeTruthy();
+    });
+  }
+
+  public static expectPostListResponseWithoutOrg(
+    response: PostsListResponse,
+    isMyself: boolean,
+    isCommentsEmpty: boolean,
+  ) {
+    const options: CheckerOptions = {
+      model: {
+        myselfData: isMyself,
+      },
+      postProcessing: 'list',
+      comments: {
+        myselfData: isMyself,
+        isEmpty: isCommentsEmpty,
+      },
+      organization: {
+        required: false,
+      },
+    };
+
+    this.expectPostListResponse(response, options);
+  }
+
+  public static expectPostListResponse(
+    response: PostsListResponse,
+    options: CheckerOptions,
+  ): void {
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    this.checkManyPostsV2(response.data, options);
   }
 
   public static checkManyPostsV2(

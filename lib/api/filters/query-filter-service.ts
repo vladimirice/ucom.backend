@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 import { DbParamsDto, RequestQueryDto } from './interfaces/query-filter-interfaces';
+import { ListMetadata } from '../../common/interfaces/lists-interfaces';
 
 const _ = require('lodash');
 
@@ -100,7 +101,7 @@ class QueryFilterService {
     totalAmount: number,
     query: RequestQueryDto,
     params: DbParamsDto,
-  ) {
+  ): ListMetadata {
     return {
       total_amount: totalAmount,
       page: +query.page,

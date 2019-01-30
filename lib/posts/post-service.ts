@@ -8,6 +8,7 @@ import PostsFetchService = require('./service/posts-fetch-service');
 const status = require('statuses');
 const _ = require('lodash');
 
+const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const postsRepository = require('./posts-repository');
 const postStatsRepository = require('./stats/post-stats-repository');
 
@@ -16,18 +17,15 @@ const models = require('../../models');
 
 const db = models.sequelize;
 const { AppError, BadRequestError } = require('../../lib/api/errors');
-const queryFilterService = require('../api/filters/query-filter-service');
 
-const usersActivityRepository = require('../users/repository').Activity;
 const postSanitizer = require('./post-sanitizer');
 const usersRepositories = require('../users/repository');
 
 const organizationsModelProvider = require('../organizations/service/organizations-model-provider');
-const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
+
 const eosBlockchainUniqid = require('../eos/eos-blockchain-uniqid');
 
 const usersActivityService = require('../users/user-activity-service');
-const apiPostProcessor = require('../common/service').PostProcessor;
 
 const postRepositories = require('./repository');
 const organizationRepositories = require('../organizations/repository');
@@ -73,7 +71,7 @@ class PostService {
   async userDownvotesPost(modelIdTo, body) {
     const userFrom = this.currentUser.user;
 
-    return await postActivityService.userDownvotesPost(userFrom, modelIdTo, body);
+    return postActivityService.userDownvotesPost(userFrom, modelIdTo, body);
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -84,7 +82,7 @@ class PostService {
    * @returns {Promise<Object>}
    */
   static async findPostStatsById(postId, raw = true) {
-    return await postStatsRepository.findOneByPostId(postId, raw);
+    return postStatsRepository.findOneByPostId(postId, raw);
   }
 
   /**
@@ -195,7 +193,7 @@ class PostService {
     await usersActivityService.sendContentUpdatingPayloadToRabbit(newActivity);
 
     if (PostService.isDirectPost(updatedPost)) {
-      return await this.findOnePostByIdAndProcess(updatedPost.id);
+      return this.findOnePostByIdAndProcess(updatedPost.id);
     }
 
     return updatedPost;
@@ -218,7 +216,7 @@ class PostService {
    * @return {Promise<Object>}
    */
   async processRepostCreation(givenBody, postId) {
-    const user = this.currentUser.user;
+    const { user } = this.currentUser;
 
     return postCreatorService.processRepostCreation(givenBody, postId, user);
   }
@@ -289,7 +287,7 @@ class PostService {
       orgBlockchainId,
     );
 
-    return await this.processNewPostCreation(req, eventId);
+    return this.processNewPostCreation(req, eventId);
   }
 
   /**
@@ -301,8 +299,8 @@ class PostService {
   async processNewPostCreation(req, eventId = null) {
     // #task - wrap in database transaction
 
-    const files = req.files;
-    const body  = req.body;
+    const { files } = req;
+    const { body }  = req;
 
     // #task - provide Joi validation
     if (body && body.title && body.title.length > 255) {
@@ -366,7 +364,7 @@ class PostService {
 
     if (PostService.isDirectPost(newPost)) {
       // Direct Post creation = full post content, not only ID
-      return await this.findOnePostByIdAndProcess(newPost.id);
+      return this.findOnePostByIdAndProcess(newPost.id);
     }
 
     return newPost;
@@ -490,43 +488,6 @@ class PostService {
     const userId: number = this.currentUser.id;
 
     return PostsFetchService.findOnePostByIdAndProcess(postId, userId);
-  }
-
-  /**
-   *
-   * @param {Object} query
-   * @returns {Promise<Object>}
-   */
-  async findAll(query) {
-    // preparation for universal class-fetching processor
-    const userId      = this.currentUser.id;
-    const repository  = postsRepository;
-    const params        = queryFilterService.getQueryParametersWithRepository(query, repository);
-
-    const [models, totalAmount] = await Promise.all([
-      repository.findAllPosts(params),
-      repository.countAllPosts(params),
-    ]);
-    // end of future universal part
-
-    const postsIds = models.map(post => post.id);
-
-    let currentUserActivity;
-    if (userId) {
-      const postsActivity = await usersActivityRepository.findOneUserToPostsVotingAndRepostActivity(userId, postsIds);
-      currentUserActivity = {
-        posts: postsActivity,
-      };
-    }
-
-    const data = apiPostProcessor.processManyPosts(models, userId, currentUserActivity);
-
-    const metadata = queryFilterService.getMetadata(totalAmount, query, params);
-
-    return {
-      data,
-      metadata,
-    };
   }
 
   /**

@@ -1,4 +1,5 @@
 import {UserModel} from "../../../lib/users/interfaces/model-interfaces";
+import { PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 
 const request = require('supertest');
 const server = require('../../../app');
@@ -519,8 +520,10 @@ class PostsHelper {
    * @param {boolean} dataOnly
    * @returns {Promise<Object[]>}
    */
-  static async requestToGetManyPostsAsGuest(queryString = null, dataOnly = true) {
-
+  static async requestToGetManyPostsAsGuest(
+    queryString: string | null = null,
+    dataOnly: boolean = true,
+  ): Promise<PostsListResponse> {
     let url = requestHelper.getPostsUrl();
 
     if (queryString) {

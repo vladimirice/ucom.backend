@@ -35,11 +35,7 @@ class CurrentUser {
     return this.id;
   }
 
-  /**
-   *
-   * @return {number}
-   */
-  getCurrentUserId() {
+  getCurrentUserId(): number | null {
     return this.id;
   }
 }

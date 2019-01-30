@@ -1,5 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { RequestQueryComments, RequestQueryDto } from './lib/api/filters/interfaces/query-filter-interfaces';
+import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from './lib/posts/interfaces/model-interfaces';
+import { CommentsListResponse } from './lib/comments/interfaces/model-interfaces';
 
 import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
 import AuthService = require('./lib/auth/authService');
@@ -8,7 +10,7 @@ import CommentsFetchService = require('./lib/comments/service/comments-fetch-ser
 const express = require('express');
 
 const {
-  ApolloServer, gql, AuthenticationError,
+  ApolloServer, gql, AuthenticationError, ForbiddenError,
 } = require('apollo-server-express');
 
 const graphQLJSON = require('graphql-type-json');
@@ -20,6 +22,8 @@ const typeDefs = gql`
     user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    
+    posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
@@ -152,6 +156,11 @@ const typeDefs = gql`
     page: Int!
     per_page: Int!
   }
+
+  input post_filtering {
+    post_type_id: Int!
+    created_at: String
+  }
 `;
 
 const resolvers = {
@@ -159,8 +168,27 @@ const resolvers = {
 
   Query: {
     // @ts-ignore
-    async one_post(parent, args, ctx) {
-      const currentUserId: number = AuthService.extractCurrentUserByToken(ctx.req);
+    async posts(parent, args, ctx): PostsListResponse {
+      const postsQuery: PostRequestQueryDto = {
+        page: args.page,
+        per_page: args.per_page,
+        sort_by: args.order_by,
+        ...args.filters,
+        include: [
+          'comments',
+        ],
+        included_query: {
+          comments: args.comments_query,
+        },
+      };
+
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+
+      return PostsFetchService.findManyPosts(postsQuery, currentUserId);
+    },
+    // @ts-ignore
+    async one_post(parent, args, ctx): PostModelResponse {
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
       const commentsQuery: RequestQueryComments = args.comments_query;
       commentsQuery.depth = 0;
@@ -168,7 +196,7 @@ const resolvers = {
       return PostsFetchService.findOnePostByIdAndProcessV2(args.id, currentUserId, commentsQuery);
     },
     // @ts-ignore
-    async comments_on_comment(parent, args, ctx) {
+    async comments_on_comment(parent, args, ctx): CommentsListResponse {
       const commentsQuery: RequestQueryComments = {
         commentable_id: args.commentable_id,
         parent_id: args.parent_id,
@@ -178,18 +206,18 @@ const resolvers = {
         per_page: args.per_page,
       };
 
-      const currentUserId: number = AuthService.extractCurrentUserByToken(ctx.req);
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
       return CommentsFetchService.findAndProcessCommentsOfComment(commentsQuery, currentUserId);
     },
     // @ts-ignore
-    async feed_comments(parent, args, ctx, info) {
+    async feed_comments(parent, args, ctx, info): CommentsListResponse {
       const commentsQuery = {
         depth: 0, // always for first level comments
         page: args.page,
         per_page: args.per_page,
       };
 
-      const currentUserId: number = AuthService.extractCurrentUserByToken(ctx.req);
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
       return CommentsFetchService.findAndProcessCommentsByPostId(
         args.commentable_id,
@@ -198,8 +226,8 @@ const resolvers = {
       );
     },
     // @ts-ignore
-    async user_wall_feed(parent, args, ctx, info) {
-      const currentUserId: number = AuthService.extractCurrentUserByToken(ctx.req);
+    async user_wall_feed(parent, args, ctx, info): PostsListResponse {
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
       const postsQuery: RequestQueryDto = {
         page: args.page,
@@ -219,8 +247,8 @@ const resolvers = {
       );
     },
     // @ts-ignore
-    async org_wall_feed(parent, args, ctx, info) {
-      const currentUserId: number = AuthService.extractCurrentUserByToken(ctx.req);
+    async org_wall_feed(parent, args, ctx, info): PostsListResponse {
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
       const postsQuery: RequestQueryDto = {
         page: args.page,
@@ -240,8 +268,8 @@ const resolvers = {
       );
     },
     // @ts-ignore
-    async tag_wall_feed(parent, args, ctx, info) {
-      const currentUserId: number = AuthService.extractCurrentUserByToken(ctx.req);
+    async tag_wall_feed(parent, args, ctx, info): PostsListResponse {
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
       const postsQuery: RequestQueryDto = {
         page: args.page,
@@ -262,8 +290,12 @@ const resolvers = {
       );
     },
     // @ts-ignore
-    async user_news_feed(parent, args, ctx, info) {
-      const currentUserId: number = AuthService.extractCurrentUserByToken(ctx.req);
+    async user_news_feed(parent, args, ctx, info): PostsListResponse {
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+
+      if (!currentUserId) {
+        throw new ForbiddenError('Auth token is required', 403);
+      }
 
       const postsQuery: RequestQueryDto = {
         page: args.page,

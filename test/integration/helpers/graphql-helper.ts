@@ -33,6 +33,53 @@ export class GraphqlHelper {
     return this.makeRequestAsMyself(myself, query, key, false);
   }
 
+  public static async getManyPostsAsMyself(
+    myself: UserModel,
+    postFiltering: any,
+    postOrdering: string = '-id',
+    postPage: number = 1,
+    postPerPage: number = 10,
+    commentsPage: number = 1,
+    commentsPerPage: number = 10,
+  ): Promise<PostsListResponse> {
+    const query: string = GraphQLSchema.getPostsQuery(
+      postFiltering,
+      postOrdering,
+      postPage,
+      postPerPage,
+      commentsPage,
+      commentsPerPage,
+      true,
+    );
+
+    const key: string = 'posts';
+
+    return this.makeRequestAsMyself(myself, query, key, false);
+  }
+
+  public static async getManyPostsAsGuest(
+    postFiltering: any,
+    postOrdering: string = '-id',
+    postPage: number = 1,
+    postPerPage: number = 10,
+    commentsPage: number = 1,
+    commentsPerPage: number = 10,
+  ): Promise<PostsListResponse> {
+    const query: string = GraphQLSchema.getPostsQuery(
+      postFiltering,
+      postOrdering,
+      postPage,
+      postPerPage,
+      commentsPage,
+      commentsPerPage,
+      false,
+    );
+
+    const key: string = 'posts';
+
+    return this.makeRequestAsGuest(query, key, false);
+  }
+
   public static async getUserWallFeedQueryAsMyself(
     myself: UserModel,
     userId: number,

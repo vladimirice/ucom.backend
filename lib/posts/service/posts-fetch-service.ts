@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
-import { PostModelResponse, PostsListResponse } from '../interfaces/model-interfaces';
+import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from '../interfaces/model-interfaces';
 
 import PostsRepository = require('../posts-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
@@ -13,6 +13,9 @@ const queryFilterService  = require('../../api/filters/query-filter-service');
 const usersActivityRepository    = require('../../users/repository/users-activity-repository');
 const commentsFetchService = require('../../comments/service/comments-fetch-service');
 
+/**
+ * This service never changes any persistent data (ex. object properties in DB)
+ */
 class PostsFetchService {
   /**
    * deprecated - only for old APIs
@@ -90,6 +93,20 @@ class PostsFetchService {
     return post;
   }
 
+  public static async findManyPosts(
+    query: PostRequestQueryDto,
+    currentUserId: number | null,
+  ): Promise<PostsListResponse> {
+    const repository = PostsRepository;
+
+    const params: DbParamsDto = queryFilterService.getQueryParametersWithRepository(query, repository);
+    queryFilterService.processWithIncludeProcessor(repository, query, params);
+
+    const findCountPromises: Promise<any>[] = this.getFindCountPromisesForAllPosts(params);
+
+    return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
+  }
+
   public static async findAndProcessAllForUserWallFeed(
     userId: number,
     currentUserId: number | null,
@@ -149,7 +166,7 @@ class PostsFetchService {
 
   public static async findAndProcessAllForTagWallFeed(
     tagTitle: string,
-    currentUserId: number,
+    currentUserId: number | null,
     query: RequestQueryDto,
   ): Promise<PostsListResponse> {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
@@ -177,6 +194,15 @@ class PostsFetchService {
     return [
       UsersFeedRepository.findAllPostsForWallFeedByTag(tagTitle, params),
       UsersFeedRepository.countAllPostsForWallFeedByTag(tagTitle),
+    ];
+  }
+
+  private static getFindCountPromisesForAllPosts(
+    params: DbParamsDto,
+  ): Promise<any>[] {
+    return [
+      PostsRepository.findAllPosts(params),
+      PostsRepository.countAllPosts(params),
     ];
   }
 

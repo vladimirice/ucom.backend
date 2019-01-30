@@ -1,6 +1,7 @@
 "use strict";
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
 const config = require('config');
 const postsRouter = require('./comments-router');
 const { AppError, BadRequestError } = require('../../lib/api/errors');
@@ -18,6 +19,13 @@ require('express-async-errors');
 function getPostService(req) {
     return req.container.get('post-service');
 }
+function getUserService(req) {
+    return req.container.get('current-user');
+}
+function getCurrentUserId(req) {
+    const CurrentUserService = getUserService(req);
+    return CurrentUserService.getCurrentUserId();
+}
 const activityMiddlewareSet = [
     authTokenMiddleWare,
     cpUpload,
@@ -25,8 +33,8 @@ const activityMiddlewareSet = [
 ];
 /* Get all posts */
 postsRouter.get('/', async (req, res) => {
-    // noinspection JSDeprecatedSymbols
-    const result = await getPostService(req).findAll(req.query);
+    const currentUserId = getCurrentUserId(req);
+    const result = await PostsFetchService.findManyPosts(req.query, currentUserId);
     res.send(result);
 });
 /* Get one post by ID */

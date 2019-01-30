@@ -1,5 +1,7 @@
 /* tslint:disable:max-line-length */
+const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const models = require('../../../models');
+
 const db = models.sequelize;
 
 const activityGroupDictionary = require('../../activity/activity-group-dictionary');
@@ -11,8 +13,6 @@ const usersModelProvider  = require('../../users/service').ModelProvider;
 const orgModelProvider    = require('../../organizations/service').ModelProvider;
 const postsModelProvider  = require('../../posts/service').ModelProvider;
 const commentsModelProvider  = require('../../comments/service/comments-model-provider');
-
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const TABLE_NAME = 'users_activity';
 
@@ -104,7 +104,10 @@ class UsersActivityRepository {
    * @param {number[]} postsIds
    * @return {Promise<Object[]>}
    */
-  static async findOneUserToPostsVotingAndRepostActivity(userId, postsIds) {
+  static async findOneUserToPostsVotingAndRepostActivity(
+    userId: number,
+    postsIds: number[],
+  ) {
     if (postsIds.length === 0) {
       return {};
     }
@@ -217,9 +220,7 @@ class UsersActivityRepository {
 
     const data = await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
 
-    return data.map((item) => {
-      return +item.entity_id_to;
-    });
+    return data.map(item => +item.entity_id_to);
   }
 
   /**
@@ -253,8 +254,9 @@ class UsersActivityRepository {
 
     `;
 
-    return await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    return models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
   }
+
   /**
    *
    * @return {Promise<Object>}
@@ -286,7 +288,7 @@ class UsersActivityRepository {
 
     `;
 
-    return await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    return models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
   }
 
   static async setIsSentToBlockchainAndResponse(id, blockchainResponse) {
@@ -344,7 +346,7 @@ class UsersActivityRepository {
       limit: 1,
     });
 
-    return result ? result['activity_type_id'] : null;
+    return result ? result.activity_type_id : null;
   }
 
   /**
@@ -380,7 +382,7 @@ class UsersActivityRepository {
   static async findLastWithBlockchainIsSentStatus(userIdFrom) {
     const blockchainStatus = blockchainStatusDictionary.getStatusIsSent();
 
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       where: {
         user_id_from: userIdFrom,
         blockchain_status: blockchainStatus,
@@ -394,7 +396,7 @@ class UsersActivityRepository {
   }
 
   static async findLastByUserIdAndEntityId(userIdFrom, entityIdTo) {
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       where: {
         user_id_from: userIdFrom,
         entity_id_to: entityIdTo,
@@ -485,14 +487,14 @@ class UsersActivityRepository {
    * @return {Promise<Object>}
    */
   static async findOnlyItselfById(id) {
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       where: { id },
       raw: true,
     });
   }
 
   static async findLastByUserId(userIdFrom) {
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       where: {
         user_id_from: userIdFrom,
       },
@@ -580,7 +582,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
       ORDER BY current_rate DESC;
     `;
 
-    return await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    return models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
   }
 
   /**
@@ -589,7 +591,6 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @return {Promise<{orgIds: Array, usersIds: Array}>}
    */
   static async findOneUserFollowActivity(userId) {
-
     const activityTypeFollow  =  InteractionTypeDictionary.getFollowId();
     const activityTypeUnfollow = InteractionTypeDictionary.getUnfollowId();
 
@@ -672,12 +673,12 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
                 `
     ;
 
-    return await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    return models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
   }
 
   // noinspection JSUnusedGlobalSymbols
   static async getLastFollowActivityForUser(userIdFrom, userIdTo) {
-    return await this.getModel()
+    return this.getModel()
       .findOne({
         where: {
           user_id_from:       userIdFrom,
@@ -701,7 +702,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @returns {Promise<Object>}
    */
   static async getLastUnfollowActivityForUser(userIdFrom, userIdTo) {
-    return await this.getModel()
+    return this.getModel()
       .findOne({
         where: {
           user_id_from:       userIdFrom,
@@ -725,7 +726,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @return {Promise<Object>}
    */
   static async getLastFollowOrUnfollowActivityForUser(userIdFrom, userIdTo) {
-    return await this.getModel()
+    return this.getModel()
       .findOne({
         where: {
           user_id_from:       userIdFrom,

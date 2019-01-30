@@ -336,29 +336,29 @@ class PostsRepository {
    * @return {Promise<any[]>}
    */
   static async findAllPosts(queryParameters = {}) {
-    const attributes  = this.getModel().getFieldsForPreview();
-
     const params = _.defaults(queryParameters, this.getDefaultListParams());
+    params.attributes = this.getModel().getFieldsForPreview();
 
-    const include = [
-      orgModelProvider.getIncludeForPreview(),
-      usersModelProvider.getIncludeAuthorForPreview(),
-      postsModelProvider.getPostsStatsInclude(),
-      postsModelProvider.getPostOfferItselfInclude(),
-      {
-        attributes: ['upvote_delta', 'importance_delta'],
-        model: entityStatsCurrentModel,
-        required: false,
-      },
-    ];
-
-    const data = await postsModelProvider.getModel().findAll({
-      attributes,
-      include,
-      ...params,
-    });
+    const data = await postsModelProvider.getModel().findAll(params);
 
     return data.map(item => item.toJSON());
+  }
+
+  public static getIncludeProcessor(): Function {
+    // @ts-ignore
+    return (query, params) => {
+      params.include = [
+        orgModelProvider.getIncludeForPreview(),
+        usersModelProvider.getIncludeAuthorForPreview(),
+        postsModelProvider.getPostsStatsInclude(),
+        postsModelProvider.getPostOfferItselfInclude(),
+        {
+          attributes: ['upvote_delta', 'importance_delta'],
+          model: entityStatsCurrentModel,
+          required: false,
+        },
+      ];
+    };
   }
 
   // noinspection JSUnusedGlobalSymbols

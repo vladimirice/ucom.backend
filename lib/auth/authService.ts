@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 
 const passportJWT = require('passport-jwt');
+
 const extractJWT = passportJWT.ExtractJwt;
 
 const { AppError } = require('../api/errors');
@@ -18,7 +19,7 @@ class AuthService {
    * @return {number}
    */
   static extractCurrentUserIdByTokenOrError(jwtToken) {
-    const secretOrKey = config.get('auth')['jwt_secret_key'];
+    const secretOrKey = config.get('auth').jwt_secret_key;
 
     try {
       const jwtData = jwt.verify(jwtToken, secretOrKey);
@@ -32,17 +33,18 @@ class AuthService {
     }
   }
 
-  static extractCurrentUserByToken(req) {
+  static extractCurrentUserByToken(req): number | null {
     const jwtToken = extractJWT.fromAuthHeaderAsBearerToken()(req);
 
     if (!jwtToken) {
-      return;
+      return null;
     }
 
-    const secretOrKey = config.get('auth')['jwt_secret_key'];
+    const secretOrKey = config.get('auth').jwt_secret_key;
 
     try {
       const jwtData = jwt.verify(jwtToken, secretOrKey);
+
       return jwtData.id;
     } catch (err) {
       if (err.message === 'invalid signature') {
