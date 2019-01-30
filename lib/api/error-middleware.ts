@@ -10,8 +10,11 @@ export = function (err, req, res, next) {
   // eslint-disable-next-line no-use-before-define
   const { status, payload } = processError(err);
 
-  // eslint-disable-next-line no-param-reassign
-  err.message += ` Request body is: ${JSON.stringify(req.body)}`;
+  if (typeof err !== 'string') {
+    // eslint-disable-next-line no-param-reassign
+    err.message += ` Request body is: ${JSON.stringify(req.body)}`;
+  }
+
   if (status === 500) {
     ApiLogger.error(err);
   } else {
