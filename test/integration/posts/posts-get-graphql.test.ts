@@ -1,19 +1,23 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../helpers/graphql-helper';
-import { PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import {
+  PostModelResponse,
+  PostRequestQueryDto,
+  PostsListResponse,
+} from '../../../lib/posts/interfaces/model-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import PostsGenerator = require('../../generators/posts-generator');
 
 import CommonHelper = require('../helpers/common-helper');
+import CommentsGenerator = require('../../generators/comments-generator');
 
 let userVlad: UserModel;
-// @ts-ignore
 let userJane: UserModel;
 
-const JEST_TIMEOUT = 20000;
+const JEST_TIMEOUT = 10000;
 
-describe('GET posts via graphql #smoke #posts #graphql', () => {
+describe('GET posts via graphql', () => {
   beforeAll(async () => {
     await GraphqlHelper.beforeAll();
   });
@@ -30,11 +34,92 @@ describe('GET posts via graphql #smoke #posts #graphql', () => {
   });
 
   describe('Positive', () => {
-    it('There is no direct post/repost inside posts list because of filter', async () => {
-      // TODO
+    it('Sort by current rate but only daily. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const vladMediaPostsAmount: number = 3;
+      const userVladMediaPostsIds: number[] =
+        await PostsGenerator.createManyDefaultMediaPostsByUserHimself(
+          userVlad,
+          vladMediaPostsAmount,
+        );
+
+      const postFiltering: PostRequestQueryDto = {
+        post_type_id: 1,
+        created_at: '24_hours',
+      };
+
+      const postOrdering: string = '-current_rate';
+      const response: PostsListResponse = await GraphqlHelper.getManyPostsAsMyself(
+        userVlad,
+        postFiltering,
+        postOrdering,
+      );
+
+      CommonHelper.expectPostListResponseWithoutOrg(response, true, true);
+
+      CommonHelper.expectModelsExistence(response.data, userVladMediaPostsIds);
+    }, JEST_TIMEOUT);
+
+    it('sort by current_rate_daily_delta. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const vladMediaPostsAmount: number = 3;
+      await PostsGenerator.createManyDefaultMediaPostsByUserHimself(
+        userVlad,
+        vladMediaPostsAmount,
+      );
+
+      const postOrdering: string = '-current_rate_delta_daily';
+      const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(
+        userVlad,
+        postOrdering,
+      );
+
+      CommonHelper.expectEmptyPostListResponse(response);
     });
 
-    it('Should work for request from guest #smoke #guest', async () => {
+    it('Sort by current_rate DESC, ID DESC. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const vladMediaPostsAmount: number = 3;
+      const userVladMediaPostsIds: number[] =
+        await PostsGenerator.createManyDefaultMediaPostsByUserHimself(
+          userVlad,
+          vladMediaPostsAmount,
+        );
+
+      const postOrdering: string = '-current_rate,-id';
+      const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(
+        userVlad,
+        postOrdering,
+      );
+
+      CommonHelper.expectPostListResponseWithoutOrg(response, true, true);
+      CommonHelper.expectModelsExistence(response.data, userVladMediaPostsIds);
+    }, JEST_TIMEOUT);
+
+    it('Sort by current_rate ASC, ID DESC. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const vladMediaPostsAmount: number = 3;
+      const userVladMediaPostsIds: number[] =
+        await PostsGenerator.createManyDefaultMediaPostsByUserHimself(
+          userVlad,
+          vladMediaPostsAmount,
+        );
+
+      const postOrdering: string = 'current_rate,-id';
+      const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(
+        userVlad,
+        postOrdering,
+      );
+
+      CommonHelper.expectPostListResponseWithoutOrg(response, true, true);
+      CommonHelper.expectModelsExistence(response.data, userVladMediaPostsIds);
+    }, JEST_TIMEOUT);
+
+    it('Should work for request from guest #smoke #guest #posts', async () => {
       const vladMediaPostsAmount: number = 3;
       const isMyself: boolean = false;
       const isCommentsEmpty: boolean = true;
@@ -53,9 +138,9 @@ describe('GET posts via graphql #smoke #posts #graphql', () => {
       CommonHelper.expectPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
 
       CommonHelper.expectModelsExistence(response.data, userVladMediaPosts);
-    });
+    }, JEST_TIMEOUT);
 
-    it('Check getManyPostsAsMyself endpoint #smoke', async () => {
+    it('Check get many posts as myself endpoint #smoke #myself #posts', async () => {
       const vladMediaPostsAmount: number = 3;
       const isMyself: boolean = true;
       const isCommentsEmpty: boolean = true;
@@ -65,13 +150,8 @@ describe('GET posts via graphql #smoke #posts #graphql', () => {
           vladMediaPostsAmount,
         );
 
-      const postFiltering = {
-        post_type_id: 1,
-      };
-
-      const response: PostsListResponse = await GraphqlHelper.getManyPostsAsMyself(
+      const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(
         userVlad,
-        postFiltering,
       );
 
       CommonHelper.expectPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
@@ -79,80 +159,60 @@ describe('GET posts via graphql #smoke #posts #graphql', () => {
       CommonHelper.expectModelsExistence(response.data, userVladMediaPosts);
     }, JEST_TIMEOUT);
 
-    it('Should work with post comments', async () => {
-      // TODO
+    it('Should work with post comments. #smoke #posts #comments', async () => {
+      const isMyself: boolean = true;
+      const isCommentsEmpty: boolean = false;
+
+      const [postOneId, postTwoId] =
+        await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 2);
+
+      const [postOneCommentId, postTwoCommentId]: [number, number] = await Promise.all([
+        CommentsGenerator.createCommentForPostAndGetId(postOneId, userJane),
+        CommentsGenerator.createCommentForPostAndGetId(postTwoId, userJane),
+      ]);
+
+      const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(userVlad);
+
+      CommonHelper.expectPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
+
+      CommonHelper.expectModelsExistence(response.data, [postOneId, postTwoId]);
+
+      const postOneResponse: PostModelResponse = response.data.find(item => item.id === postOneId)!;
+      CommonHelper.expectModelsExistence(postOneResponse.comments.data, [postOneCommentId]);
+
+      const postTwoResponse: PostModelResponse = response.data.find(item => item.id === postTwoId)!;
+      CommonHelper.expectModelsExistence(postTwoResponse.comments.data, [postTwoCommentId]);
+    }, JEST_TIMEOUT);
+  });
+
+  describe('Negative', () => {
+    describe('Test sorting', () => {
+      it('Nothing is found - check by non-existing post_type_id. #smoke #posts', async () => {
+        const postFiltering: PostRequestQueryDto = {
+          post_type_id: 100500,
+        };
+
+        const response: PostsListResponse =
+          await GraphqlHelper.getManyPostsAsMyself(userVlad, postFiltering);
+
+        CommonHelper.expectEmptyPostListResponse(response);
+      });
     });
 
-    describe('Test sorting', () => {
-      it('Smoke test. Nothing is found', async () => {
-        // const queryString = '?post_type_id=100500&created_at=24_hours&sort_by=-current_rate';
-        // const url = `${RequestHelper.getPostsUrl()}${queryString}`;
-        // const res = await request(server)
-        //   .get(url)
-        // ;
-        //
-        // ResponseHelper.expectStatusOk(res);
-        //
-        // expect(res.body.data.length).toBe(0);
-      });
+    it('There is no direct post/repost inside posts list because of filter. #smoke #posts', async () => {
+      const { postId, repostId } = await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
 
-      it('Smoke test. Sort by current rate but only daily', async () => {
-        // TODO check query manually or create mocks in DB
-        // const queryString = '?post_type_id=1&created_at=24_hours&sort_by=-current_rate';
-        // const url = `${RequestHelper.getPostsUrl()}${queryString}`;
-        // const res = await request(server)
-        //   .get(url)
-        // ;
-        //
-        // ResponseHelper.expectStatusOk(res);
-      });
+      const directPostId: number =
+        await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
 
-      it('sort by current_rate_daily_delta - smoke test', async () => {
-        // TODO check query manually or create mocks in DB
-        // const url = `${RequestHelper.getPostsUrl()}?sort_by=-current_rate_delta_daily`;
-        // const res = await request(server)
-        //   .get(url)
-        // ;
-        //
-        // ResponseHelper.expectStatusOk(res);
-      });
+      const postFiltering: PostRequestQueryDto = {
+        post_type_id: 1,
+      };
 
-      it('Sort by current_rate DESC', async () => {
-        // TODO check query manually or create mocks in DB
-        // const url = `${RequestHelper.getPostsUrl()}?sort_by=-current_rate,-id`;
-        //
-        // const res = await request(server)
-        //   .get(url)
-        // ;
-        //
-        // ResponseHelper.expectStatusOk(res);
-        //
-        // const minPostId = await postsRepository.findMinPostIdByParameter('current_rate');
-        // const maxPostId = await postsRepository.findMaxPostIdByParameter('current_rate');
-        //
-        // const posts = res.body.data;
-        //
-        // expect(posts[posts.length - 1].id).toBe(minPostId);
-        // expect(posts[0].id).toBe(maxPostId);
-      });
-      it('Sort by current_rate ASC', async () => {
-        // TODO check query manually or create mocks in DB
-        // const url = `${RequestHelper.getPostsUrl()}?sort_by=current_rate,-id`;
-        //
-        // const res = await request(server)
-        //   .get(url)
-        // ;
-        //
-        // ResponseHelper.expectStatusOk(res);
-        //
-        // const minPostId = await postsRepository.findMinPostIdByParameter('current_rate');
-        // const maxPostId = await postsRepository.findMaxPostIdByParameter('current_rate');
-        //
-        // const posts = res.body.data;
-        //
-        // expect(posts[posts.length - 1].id).toBe(maxPostId);
-        // expect(posts[0].id).toBe(minPostId);
-      });
+      const response: PostsListResponse = await GraphqlHelper.getManyPostsAsGuest(postFiltering);
+
+      CommonHelper.expectModelsExistence(response.data, [postId]);
+      CommonHelper.expectModelsDoNotExist(response.data, [repostId, directPostId]);
     });
   });
 });

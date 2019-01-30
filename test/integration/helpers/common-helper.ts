@@ -588,6 +588,15 @@ class CommonHelper {
     });
   }
 
+  public static expectModelsDoNotExist(
+    actualModels: any[],
+    expectedModelIds: number[],
+  ): void {
+    expectedModelIds.forEach((expectedId) => {
+      expect(actualModels.some(actual => actual.id === expectedId)).toBeFalsy();
+    });
+  }
+
   public static expectPostListResponseWithoutOrg(
     response: PostsListResponse,
     isMyself: boolean,
@@ -617,6 +626,12 @@ class CommonHelper {
     ResponseHelper.expectValidListResponseStructure(response);
 
     this.checkManyPostsV2(response.data, options);
+  }
+
+  public static expectEmptyPostListResponse(response: PostsListResponse): void {
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    expect(response.data.length).toBe(0);
   }
 
   public static checkManyPostsV2(

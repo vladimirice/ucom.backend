@@ -1,5 +1,5 @@
-import { gql } from 'apollo-boost';
 import responseHelper from './response-helper';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 const request = require('supertest');
 const server = require('../../../app');
@@ -29,62 +29,9 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
-  public static getCommentOnCommentGraphQlQuery(
-    postId: number,
-    parentId: number,
-    parentDepth: number,
-    page: number,
-    perPage: number,
-  ): any {
-    return gql`
-query {
-  comments_on_comment(commentable_id: ${postId}, parent_id: ${parentId}, parent_depth: ${parentDepth}, page: ${page}, per_page: ${perPage}) {
-    data {
-      id
-      description
-      current_vote
-      blockchain_id
-      commentable_id
-      created_at
-      activity_user_comment
-      organization
-      depth
-      organization_id
-      parent_id
-      path
-      updated_at
-      user_id
-
-      metadata {
-        next_depth_total_amount
-      }
-
-      User {
-        id
-        account_name
-        first_name
-        last_name
-        nickname
-        avatar_filename
-        current_rate
-      }
-
-      myselfData {
-        myselfVote
-      }
-    }
-    metadata {
-      page
-      per_page
-      has_more
-    }
-  }
-}
-    `;
-  }
-
   public static makeRandomString(length) {
     let text = '';
+    // noinspection SpellCheckingInspection
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     for (let i = 0; i < length; i += 1) {
@@ -452,20 +399,6 @@ query {
   }
 
   /**
-   * @deprecated
-   * @see requestUserByIdAsGuest
-   * @param {number} userId
-   * @returns {Promise<Object>}
-   */
-  static async requestUserById(userId) {
-    const res = await request(server)
-      .get(this.getUserUrl(userId));
-    responseHelper.expectStatusOk(res);
-
-    return res.body;
-  }
-
-  /**
    *
    * @param {Object} user
    * @returns {Promise<Object>}
@@ -530,12 +463,7 @@ query {
     return `${usersUrl}/${user.id}/posts`;
   }
 
-  /**
-   *
-   * @param {Object} user
-   * @return {string}
-   */
-  static getUserDirectPostUrlV2(user) {
+  static getUserDirectPostUrlV2(user: UserModel): string {
     return `${usersUrlV2}/${user.id}/posts`;
   }
 
@@ -580,10 +508,6 @@ query {
    */
   static getCommentsUrl(postId) {
     return `/api/v1/posts/${postId}/comments`;
-  }
-
-  static getCommentsV2Url(postId: number): string {
-    return `${apiV2Prefix}/posts/${postId}/comments`;
   }
 
   /**

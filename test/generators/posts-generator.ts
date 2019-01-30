@@ -1,4 +1,5 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { PostModelResponse } from '../../lib/posts/interfaces/model-interfaces';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
@@ -128,14 +129,11 @@ class PostsGenerator {
     return +res.body.id;
   }
 
-  /**
-   * @param {Object} repostAuthor
-   * @param {number} postId
-   * @param {number} expectedStatus
-   * @return {Promise<void>}
-   *
-   */
-  static async createRepostOfUserPost(repostAuthor, postId, expectedStatus = 201) {
+  static async createRepostOfUserPost(
+    repostAuthor: UserModel,
+    postId: number,
+    expectedStatus: number = 201,
+  ): Promise<number> {
     const res = await request(server)
       .post(RequestHelper.getCreateRepostUrl(postId))
       .set('Authorization', `Bearer ${repostAuthor.token}`)
@@ -146,8 +144,8 @@ class PostsGenerator {
   }
 
   static async createUserPostAndRepost(
-    postAuthor,
-    repostAuthor,
+    postAuthor: UserModel,
+    repostAuthor: UserModel,
   ): Promise<{postId: number, repostId: number}> {
     const postId = await this.createMediaPostByUserHimself(postAuthor);
     const repostId = await this.createRepostOfUserPost(repostAuthor, postId);
@@ -312,6 +310,20 @@ class PostsGenerator {
     const url = RequestHelper.getUserDirectPostUrlV2(wallOwner);
 
     return this.createDirectPost(url, myself, givenDescription, withImage);
+  }
+
+  static async createDirectPostForUserAndGetId(
+    myself: UserModel,
+    wallOwner: UserModel,
+    givenDescription: string | null = null,
+    withImage: boolean = false,
+  ): Promise<number> {
+    const url: string = RequestHelper.getUserDirectPostUrlV2(wallOwner);
+
+    const body: PostModelResponse =
+      await this.createDirectPost(url, myself, givenDescription, withImage);
+
+    return body.id;
   }
 
   /**

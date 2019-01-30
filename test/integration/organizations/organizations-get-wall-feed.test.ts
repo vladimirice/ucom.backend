@@ -1,47 +1,54 @@
-export {};
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-const helpers = require('../helpers');
-const gen = require('../../generators');
+import SeedsHelper = require('../helpers/seeds-helper');
+
+import PostsGenerator = require('../../generators/posts-generator');
+import RequestHelper = require('../helpers/request-helper');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import ResponseHelper = require('../helpers/response-helper');
+import CommonHelper = require('../helpers/common-helper');
 
 const usersFeedRepository = require('../../../lib/common/repository').UsersFeed;
 
-helpers.Mock.mockAllBlockchainPart();
+let userVlad: UserModel;
+let userJane: UserModel;
 
-let userVlad;
-let userJane;
-
-const orgId = 1;
+const orgId: number = 1;
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
   });
 
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
-    await helpers.Seeds.seedOrganizations(); // deprecated. Use generator
+    await SeedsHelper.initUsersOnly();
+    await SeedsHelper.seedOrganizations(); // deprecated. Use generator
   });
 
   describe('Organizations wall feed', () => {
     describe('Positive', () => {
-      describe('Test pagination', async () => {
-
+      describe('Test pagination', () => {
         it('Myself. smoke test', async () => {
-          await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane, 3);
+          await PostsGenerator.generateOrgPostsForWall(orgId, userVlad, userJane, 3);
 
           const page    = 1;
           const perPage = 2;
 
-          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+          const queryString = RequestHelper.getPaginationQueryString(page, perPage);
           const response =
-            await helpers.Org.requestToGetOrgWallFeedAsMyself(userVlad, orgId, queryString, false);
+            await OrganizationsHelper.requestToGetOrgWallFeedAsMyself(
+              userVlad,
+              orgId,
+              queryString,
+              false,
+            );
           const totalAmount = await usersFeedRepository.countAllForOrgWallFeed(orgId);
 
-          helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
+          ResponseHelper.checkMetadata(response, page, perPage, totalAmount, true);
 
           response.data.forEach((post) => {
             expect(post.description).toBeDefined();
@@ -49,44 +56,45 @@ describe('Organizations. Get requests', () => {
         });
 
         it('Metadata', async () => {
-          await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane, 3);
+          await PostsGenerator.generateOrgPostsForWall(orgId, userVlad, userJane, 3);
 
           const page    = 1;
           let perPage = 2;
 
-          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+          const queryString = RequestHelper.getPaginationQueryString(page, perPage);
           const response =
-            await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId, queryString, false);
+            await OrganizationsHelper.requestToGetOrgWallFeedAsGuest(orgId, queryString, false);
 
           const totalAmount = await usersFeedRepository.countAllForOrgWallFeed(orgId);
 
-          helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
+          ResponseHelper.checkMetadata(response, page, perPage, totalAmount, true);
 
           perPage = 3;
-          const lastPage = helpers.Req.getLastPage(totalAmount, perPage);
+          const lastPage = RequestHelper.getLastPage(totalAmount, perPage);
 
-          const queryStringLast = helpers.Req.getPaginationQueryString(
+          const queryStringLast = RequestHelper.getPaginationQueryString(
             lastPage,
             perPage,
           );
 
           const lastResponse =
-            await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId, queryStringLast, false);
+            await OrganizationsHelper.requestToGetOrgWallFeedAsGuest(orgId, queryStringLast, false);
 
-          helpers.Res.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
+          ResponseHelper.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
         });
 
         it('Get two post pages', async () => {
-          await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane, 3);
+          await PostsGenerator.generateOrgPostsForWall(orgId, userVlad, userJane, 3);
 
           const perPage = 2;
           let page = 1;
 
-          const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+          const queryString = RequestHelper.getPaginationQueryString(page, perPage);
           const posts     = await usersFeedRepository.findAllForOrgWallFeed(orgId, {
             limit: 20,
           });
-          const firstPage = await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId, queryString);
+          const firstPage =
+            await OrganizationsHelper.requestToGetOrgWallFeedAsGuest(orgId, queryString);
 
           const expectedIdsOfFirstPage = [
             posts[page - 1].id,
@@ -100,9 +108,9 @@ describe('Organizations. Get requests', () => {
           });
 
           page = 2;
-          const queryStringSecondPage = helpers.Req.getPaginationQueryString(page, perPage);
+          const queryStringSecondPage = RequestHelper.getPaginationQueryString(page, perPage);
           const secondPage =
-            await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId, queryStringSecondPage);
+            await OrganizationsHelper.requestToGetOrgWallFeedAsGuest(orgId, queryStringSecondPage);
 
           const expectedIdsOfSecondPage = [
             posts[page].id,
@@ -118,15 +126,14 @@ describe('Organizations. Get requests', () => {
       });
 
       it('should get all org-related posts as Guest', async () => {
-        const orgId = 1;
         const otherOrgId = 4;
 
         const [otherPosts, generatedPosts] = await Promise.all([
-          gen.Posts.generateOrgPostsForWall(otherOrgId, userJane, userVlad),
-          gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane),
+          PostsGenerator.generateOrgPostsForWall(otherOrgId, userJane, userVlad),
+          PostsGenerator.generateOrgPostsForWall(orgId, userVlad, userJane),
         ]);
 
-        const posts = await helpers.Org.requestToGetOrgWallFeedAsGuest(orgId);
+        const posts = await OrganizationsHelper.requestToGetOrgWallFeedAsGuest(orgId);
 
         // @ts-ignore
         const postsIdsValues = Object.values(generatedPosts);
@@ -140,23 +147,26 @@ describe('Organizations. Get requests', () => {
           expect(posts.some(post => post.id === id)).toBeFalsy();
         });
 
-        await helpers.Common.checkPostsListFromApi(
+        await CommonHelper.checkPostsListFromApi(
           posts,
           Object.keys(generatedPosts).length,
-          helpers.Common.getOptionsForListAndGuest(),
+          CommonHelper.getOptionsForListAndGuest(),
         );
       });
 
       it('should get all org-related posts as Myself', async () => {
-        const orgId = 1;
         const otherOrgId = 4;
 
         // disturbance
         const otherPosts    =
-          await gen.Posts.generateOrgPostsForWall(otherOrgId, userJane, userVlad);
-        const generatedPosts = await gen.Posts.generateOrgPostsForWall(orgId, userVlad, userJane);
+          await PostsGenerator.generateOrgPostsForWall(otherOrgId, userJane, userVlad);
+        const generatedPosts = await PostsGenerator.generateOrgPostsForWall(
+          orgId,
+          userVlad,
+          userJane,
+        );
 
-        const posts = await helpers.Org.requestToGetOrgWallFeedAsMyself(userVlad, orgId);
+        const posts = await OrganizationsHelper.requestToGetOrgWallFeedAsMyself(userVlad, orgId);
 
         // @ts-ignore
         const postsIdsValues = Object.values(generatedPosts);
@@ -170,12 +180,14 @@ describe('Organizations. Get requests', () => {
           expect(posts.some(post => post.id === id)).toBeFalsy();
         });
 
-        await helpers.Common.checkPostsListFromApi(
+        await CommonHelper.checkPostsListFromApi(
           posts,
           Object.keys(generatedPosts).length,
-          helpers.Common.getOptionsForListAndMyself(),
+          CommonHelper.getOptionsForListAndMyself(),
         );
       });
     });
   });
 });
+
+export {};

@@ -2,10 +2,12 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import {
   PostModelMyselfResponse,
-  PostModelResponse,
+  PostModelResponse, PostRequestQueryDto,
   PostsListResponse,
 } from '../../../lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
+
+import ResponseHelper = require('./response-helper');
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
@@ -23,6 +25,14 @@ let serverApp;
 require('cross-fetch/polyfill');
 
 export class GraphqlHelper {
+  public static async beforeAll(): Promise<void> {
+    serverApp = await app.listen({ port: PORT });
+  }
+
+  public static async afterAll(): Promise<void> {
+    await serverApp.close();
+  }
+
   public static async getOnePostAsMyself(
     myself: UserModel,
     postId: number,
@@ -33,9 +43,32 @@ export class GraphqlHelper {
     return this.makeRequestAsMyself(myself, query, key, false);
   }
 
+  public static async getManyMediaPostsAsMyself(
+    myself: UserModel,
+    postOrdering: string = '-id',
+    postPage: number = 1,
+    postPerPage: number = 10,
+    commentsPage: number = 1,
+    commentsPerPage: number = 10,
+  ): Promise<PostsListResponse> {
+    const postFiltering: PostRequestQueryDto = {
+      post_type_id: 1,
+    };
+
+    return this.getManyPostsAsMyself(
+      myself,
+      postFiltering,
+      postOrdering,
+      postPage,
+      postPerPage,
+      commentsPage,
+      commentsPerPage,
+    );
+  }
+
   public static async getManyPostsAsMyself(
     myself: UserModel,
-    postFiltering: any,
+    postFiltering: PostRequestQueryDto,
     postOrdering: string = '-id',
     postPage: number = 1,
     postPerPage: number = 10,
@@ -54,7 +87,10 @@ export class GraphqlHelper {
 
     const key: string = 'posts';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getManyPostsAsGuest(
@@ -77,7 +113,10 @@ export class GraphqlHelper {
 
     const key: string = 'posts';
 
-    return this.makeRequestAsGuest(query, key, false);
+    const response: PostsListResponse = await this.makeRequestAsGuest(query, key, false);
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getUserWallFeedQueryAsMyself(
@@ -87,7 +126,7 @@ export class GraphqlHelper {
     perPage: number = 10,
     commentsPage: number = 1,
     commentsPerPage: number = 10,
-  ): Promise<PostModelMyselfResponse> {
+  ): Promise<PostsListResponse> {
     const query: string = GraphQLSchema.getUserWallFeedQuery(
       userId,
       page,
@@ -98,7 +137,10 @@ export class GraphqlHelper {
 
     const key: string = 'user_wall_feed';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getOrgWallFeedAsMyself(
@@ -119,7 +161,10 @@ export class GraphqlHelper {
 
     const key: string = 'org_wall_feed';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getTagWallFeedAsMyself(
@@ -140,7 +185,10 @@ export class GraphqlHelper {
 
     const key: string = 'tag_wall_feed';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getPostCommentsAsMyself(
@@ -152,7 +200,15 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getPostCommentsQuery(commentableId, page, perPage);
     const key: string = 'feed_comments';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    const response: CommentsListResponse = await this.makeRequestAsMyself(
+      myself,
+      query,
+      key,
+      false,
+    );
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getCommentsOnCommentAsMyself(
@@ -162,7 +218,7 @@ export class GraphqlHelper {
     parentDepth: number,
     page: number,
     perPage: number,
-  ): Promise<any> {
+  ): Promise<CommentsListResponse> {
     // check depth for one commentZeroDepth
     const query = GraphQLSchema.getCommentsOnCommentQuery(
       postId,
@@ -174,16 +230,23 @@ export class GraphqlHelper {
 
     const key: string = 'comments_on_comment';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    const response: CommentsListResponse =
+      await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getUserNewsFeed(
     myself: UserModel,
-  ): Promise<PostModelMyselfResponse> {
+  ): Promise<PostsListResponse> {
     const query: string = GraphQLSchema.getUserNewsFeed(1, 10, 1, 10);
     const key: string = 'user_news_feed';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getOnePostAsGuest(postId: number): Promise<PostModelResponse> {
@@ -226,10 +289,6 @@ export class GraphqlHelper {
     return response;
   }
 
-  public static async beforeAll(): Promise<void> {
-    serverApp = await app.listen({ port: PORT });
-  }
-
   private static getClientWithToken(user: UserModel) {
     return new ApolloClient({
       request: async (operation) => {
@@ -253,9 +312,5 @@ export class GraphqlHelper {
         addTypename: false,
       }),
     });
-  }
-
-  public static async afterAll(): Promise<void> {
-    await serverApp.close();
   }
 }
