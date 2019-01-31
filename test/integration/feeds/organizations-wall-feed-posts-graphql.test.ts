@@ -44,6 +44,7 @@ describe('#organizations #feed #graphql', () => {
         PostsGenerator.createDirectPostForOrganization(userJane, orgId),
       ];
 
+      // @ts-ignore
       const [orgMediaPostId, orgDirectPost] = await Promise.all(promisesToCreatePosts);
       // @ts-ignore
       const orgMediaComments: CommentModelResponse[] =

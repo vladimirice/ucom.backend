@@ -597,7 +597,7 @@ class CommonHelper {
     });
   }
 
-  public static expectPostListResponseWithoutOrg(
+  public static checkPostListResponseWithoutOrg(
     response: PostsListResponse,
     isMyself: boolean,
     isCommentsEmpty: boolean,
@@ -736,6 +736,7 @@ class CommonHelper {
       expect(post.myselfData.myselfVote).toBeDefined();
       expect(post.myselfData.join).toBeDefined();
       expect(post.myselfData.organization_member).toBeDefined();
+      expect(post.myselfData.repost_available).toBeDefined();
     } else {
       expect(post.myselfData).not.toBeDefined();
     }

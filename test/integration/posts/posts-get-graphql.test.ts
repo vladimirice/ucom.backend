@@ -44,6 +44,7 @@ describe('GET posts via graphql', () => {
           vladMediaPostsAmount,
         );
 
+      // @ts-ignore
       const postFiltering: PostRequestQueryDto = {
         post_type_id: 1,
         created_at: '24_hours',
@@ -56,7 +57,7 @@ describe('GET posts via graphql', () => {
         postOrdering,
       );
 
-      CommonHelper.expectPostListResponseWithoutOrg(response, true, true);
+      CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
 
       CommonHelper.expectModelsExistence(response.data, userVladMediaPostsIds);
     }, JEST_TIMEOUT);
@@ -95,7 +96,7 @@ describe('GET posts via graphql', () => {
         postOrdering,
       );
 
-      CommonHelper.expectPostListResponseWithoutOrg(response, true, true);
+      CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
       CommonHelper.expectModelsExistence(response.data, userVladMediaPostsIds);
     }, JEST_TIMEOUT);
 
@@ -115,7 +116,7 @@ describe('GET posts via graphql', () => {
         postOrdering,
       );
 
-      CommonHelper.expectPostListResponseWithoutOrg(response, true, true);
+      CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
       CommonHelper.expectModelsExistence(response.data, userVladMediaPostsIds);
     }, JEST_TIMEOUT);
 
@@ -135,7 +136,7 @@ describe('GET posts via graphql', () => {
 
       const response: PostsListResponse = await GraphqlHelper.getManyPostsAsGuest(postFiltering);
 
-      CommonHelper.expectPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
+      CommonHelper.checkPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
 
       CommonHelper.expectModelsExistence(response.data, userVladMediaPosts);
     }, JEST_TIMEOUT);
@@ -154,7 +155,7 @@ describe('GET posts via graphql', () => {
         userVlad,
       );
 
-      CommonHelper.expectPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
+      CommonHelper.checkPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
 
       CommonHelper.expectModelsExistence(response.data, userVladMediaPosts);
     }, JEST_TIMEOUT);
@@ -173,7 +174,7 @@ describe('GET posts via graphql', () => {
 
       const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(userVlad);
 
-      CommonHelper.expectPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
+      CommonHelper.checkPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
 
       CommonHelper.expectModelsExistence(response.data, [postOneId, postTwoId]);
 
@@ -188,6 +189,7 @@ describe('GET posts via graphql', () => {
   describe('Negative', () => {
     describe('Test sorting', () => {
       it('Nothing is found - check by non-existing post_type_id. #smoke #posts', async () => {
+        // @ts-ignore
         const postFiltering: PostRequestQueryDto = {
           post_type_id: 100500,
         };
@@ -205,6 +207,7 @@ describe('GET posts via graphql', () => {
       const directPostId: number =
         await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
 
+      // @ts-ignore
       const postFiltering: PostRequestQueryDto = {
         post_type_id: 1,
       };

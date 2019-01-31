@@ -212,6 +212,7 @@ describe('#feeds #graphql', () => {
         PostsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
       ];
 
+      // @ts-ignore
       const [postOneId, postTwo] = await Promise.all(promisesToCreatePosts);
 
       const [commentOne] = await Promise.all([
