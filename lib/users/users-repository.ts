@@ -1,9 +1,12 @@
-const models = require('../../models');
-const userModelProvider = require('./users-model-provider');
-const Op = models.sequelize.Op;
-const db = models.sequelize;
+import { UserModel } from './interfaces/model-interfaces';
 
 const _ = require('lodash');
+
+const models = require('../../models');
+const userModelProvider = require('./users-model-provider');
+
+const { Op } = models.sequelize;
+const db = models.sequelize;
 
 const model = userModelProvider.getUsersModel();
 
@@ -12,7 +15,6 @@ const TABLE_NAME = 'Users';
 const taggableRepository = require('../common/repository/taggable-repository');
 
 class UsersRepository {
-
   /**
    *
    * @param {string[]} accountNames
@@ -65,9 +67,9 @@ class UsersRepository {
       }
     }
 
-    const attributes = _.concat(Object.keys(fieldsValues), ['id']);
+    const attributes = Array.prototype.concat(Object.keys(fieldsValues), ['id']);
 
-    return await model.findAll({
+    return model.findAll({
       attributes,
       where: {
         [Op.or]: opOrConditions,
@@ -104,7 +106,7 @@ class UsersRepository {
       raw: true,
     });
 
-    return result ? result['account_name'] : null;
+    return result ? result.account_name : null;
   }
 
   /**
@@ -148,7 +150,7 @@ class UsersRepository {
       },
     ];
 
-    return await models.Users.findOne({
+    return models.Users.findOne({
       include,
       where: {
         id: userId,
@@ -167,7 +169,7 @@ class UsersRepository {
    * @return {Promise<Object>}
    */
   static async findOnlyItselfById(id) {
-    return await userModelProvider.getUsersModel().findOne({
+    return userModelProvider.getUsersModel().findOne({
       where: { id },
       raw: true,
     });
@@ -194,7 +196,7 @@ class UsersRepository {
    */
   static async findByNameFields(query) {
     // noinspection JSUnusedGlobalSymbols
-    return await this.getModel().findAll({
+    return this.getModel().findAll({
       attributes: this.getModel().getFieldsForPreview(),
       where: {
         $or: {
@@ -217,17 +219,25 @@ class UsersRepository {
   }
 
   static async findOneById(userId) {
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       where: {
         id: userId,
       },
     });
   }
 
+  static async findOneByIdForPreview(id: number): Promise<UserModel | null> {
+    return this.getModel().findOne({
+      attributes: this.getModel().getFieldsForPreview(),
+      where: { id },
+      raw: true,
+    });
+  }
+
   static async findOneByIdAsObject(
     userId: number,
   ): Promise<any> {
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       where: {
         id: userId,
       },
@@ -238,7 +248,7 @@ class UsersRepository {
   static async findOneByAccountNameAsObject(
     accountName: string,
   ): Promise<any> {
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       where: {
         account_name: accountName,
       },
@@ -284,7 +294,7 @@ class UsersRepository {
     const params = _.defaults(queryParameters, this.getDefaultListParams());
     params.attributes = this.getModel().getFieldsForPreview();
 
-    return await model.findAll(params);
+    return model.findAll(params);
   }
 
   /**
@@ -336,7 +346,7 @@ class UsersRepository {
   }
 
   static getWhereProcessor(): Function {
-    return function (query, params) {
+    return (query, params) => {
       params.where = {};
 
       if (query.user_name) {
@@ -365,7 +375,7 @@ class UsersRepository {
   static async countAll(params) {
     const where = params ? params.where : {};
 
-    return await UsersRepository.getModel().count({
+    return UsersRepository.getModel().count({
       where,
     });
   }
@@ -375,9 +385,8 @@ class UsersRepository {
    * @return {Promise<*>}
    */
   static async findAll(isRaw = false) {
-
     const attributes = this.getModel().getFieldsForPreview();
-    const modelResult = await models['Users'].findAll({
+    const modelResult = await models.Users.findAll({
       attributes,
       order: [
         ['current_rate', 'DESC'],
@@ -385,27 +394,25 @@ class UsersRepository {
     });
 
     if (isRaw) {
-      return modelResult.map((data) => {
-        return data.toJSON();
-      });
+      return modelResult.map(data => data.toJSON());
     }
 
     return modelResult;
   }
 
   static async getUserByAccountName(accountName) {
-    return await models['Users'].findOne({
+    return models.Users.findOne({
       where: {
         account_name: accountName,
       },
       include: [{
-        model: models['users_education'],
+        model: models.users_education,
         as: 'users_education',
       }, {
-        model: models['users_jobs'],
+        model: models.users_jobs,
         as: 'users_jobs',
       }, {
-        model: models['users_sources'],
+        model: models.users_sources,
         as: 'users_sources',
       }],
       order: [
@@ -417,7 +424,7 @@ class UsersRepository {
   }
 
   static async findAllWithRates() {
-    const rows = await models['Users'].findAll({
+    const rows = await models.Users.findAll({
       where: {
         current_rate: {
           [Op.gt]: 0,
@@ -429,9 +436,7 @@ class UsersRepository {
       ],
     });
 
-    return rows.map((row) => {
-      return row.toJSON();
-    });
+    return rows.map(row => row.toJSON());
   }
 
   /**
@@ -465,7 +470,7 @@ class UsersRepository {
   }
 
   static getModel() {
-    return models['Users'];
+    return models.Users;
   }
 }
 

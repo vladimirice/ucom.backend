@@ -1,3 +1,9 @@
+import { UserModel } from '../interfaces/model-interfaces';
+
+import UsersRepository = require('../users-repository');
+
+import UserPostProcessor = require('../user-post-processor');
+
 const usersRepository       = require('../users-repository');
 const queryFilterService    = require('../../api/filters/query-filter-service');
 const usersActivityService  = require('../user-activity-service');
@@ -5,6 +11,20 @@ const userPostProcessor     = require('../user-post-processor');
 const apiPostProcessor      = require('../../common/service').PostProcessor;
 
 class UsersFetchService {
+  static async findOneAndProcessForCard(
+    userId: number,
+  ): Promise<UserModel | null> {
+    const model: UserModel | null = await UsersRepository.findOneByIdForPreview(userId);
+
+    if (!model) {
+      return null;
+    }
+
+    UserPostProcessor.processOnlyUserItself(model);
+
+    return model;
+  }
+
   /**
    *
    * @param {Object} query

@@ -297,6 +297,7 @@ class ApiPostProcessor {
       this.processOnePostForList(post, currentUserId, userActivity);
 
       if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
+        // @ts-ignore #task - should create new object, not processing existing one
         this.processOnePostForList(post.post!);
       }
     }

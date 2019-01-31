@@ -12,6 +12,10 @@ interface ListResponse {
   metadata: ListMetadata,
 }
 
+interface ModelPreview {
+  [index: string]: any;
+}
+
 interface EmptyListResponse extends ListResponse {
   data: [],
 }
@@ -20,4 +24,5 @@ export {
   ListResponse,
   ListMetadata,
   EmptyListResponse,
+  ModelPreview,
 };

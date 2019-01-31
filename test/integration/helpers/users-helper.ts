@@ -272,7 +272,7 @@ class UsersHelper {
    *
    * @param {Object} user
    */
-  static checkUserPreview(user) {
+  public static checkUserPreview(user): void {
     this.checkIncludedUserPreview({
       User: user,
     });

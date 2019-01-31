@@ -1,4 +1,5 @@
 import { MyselfDataDto } from '../common/interfaces/post-processing-dto';
+import { UserModel } from './interfaces/model-interfaces';
 
 const eosImportance = require('../eos/eos-importance');
 const _ = require('lodash');
@@ -82,9 +83,13 @@ class UserPostProcessor {
       this.addMyselfDataToSingleUser(user, activityData, currentUserId);
     }
 
+    this.processOnlyUserItself(user);
+    this.processFollowers(user);
+  }
+
+  public static processOnlyUserItself(user: UserModel): void {
     this.normalizeMultiplier(user);
     this.deleteSensitiveData(user);
-    this.processFollowers(user);
   }
 
   /**

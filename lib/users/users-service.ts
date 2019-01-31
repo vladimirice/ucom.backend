@@ -1,4 +1,8 @@
+/* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+const joi = require('joi');
+const _ = require('lodash');
+
 const usersRepository = require('./users-repository');
 const blockchainStatusDictionary = require('../eos/eos-blockchain-status-dictionary');
 const models = require('../../models');
@@ -12,11 +16,10 @@ const usersModelProvider = require('./users-model-provider');
 
 const usersFetchService = require('./service/users-fetch-service');
 
-const UpdateManyToMany = require('../../lib/api/helpers').UpdateManyToMany;
+const { UpdateManyToMany } = require('../../lib/api/helpers');
 
-const joi = require('joi');
+
 const { JoiBadRequestError } = require('../api/errors');
-const _ = require('lodash');
 
 const organizationRepository = require('../organizations/repository').Main;
 const entityNotificationRepository = require('../entities/repository').Notifications;
@@ -35,7 +38,7 @@ class UsersService {
    * @returns {Promise<Array<Object>>}
    */
   static async findByNameFields(query) {
-    return await usersRepository.findByNameFields(query);
+    return usersRepository.findByNameFields(query);
   }
 
   /**
@@ -44,8 +47,8 @@ class UsersService {
    * @return {Promise<void>}
    */
   async processUserUpdating(req) {
-    const body  = req.body;
-    const files = req.files;
+    const { body }  = req;
+    const { files } = req;
 
     const userId = this.currentUser.id;
     const user = await usersRepository.getUserById(userId);
@@ -69,22 +72,22 @@ class UsersService {
       }
     }
 
-    await this.checkUniqueFields(requestData, userId);
+    await UsersService.checkUniqueFields(requestData, userId);
 
     // #task #refactor
     // noinspection OverlyComplexBooleanExpressionJS
-    if (files && files['avatar_filename'] && files['avatar_filename'][0] && files['avatar_filename'][0].filename) {
-      requestData['avatar_filename'] = files['avatar_filename'][0].filename;
+    if (files && files.avatar_filename && files.avatar_filename[0] && files.avatar_filename[0].filename) {
+      requestData.avatar_filename = files.avatar_filename[0].filename;
     }
 
     // noinspection OverlyComplexBooleanExpressionJS
-    if (files && files['achievements_filename'] && files['achievements_filename'][0] && files['achievements_filename'][0].filename) {
-      requestData['achievements_filename'] = files['achievements_filename'][0].filename;
+    if (files && files.achievements_filename && files.achievements_filename[0] && files.achievements_filename[0].filename) {
+      requestData.achievements_filename = files.achievements_filename[0].filename;
     }
 
     await models.sequelize
       .transaction(async (transaction) => {
-        await this.processArrayFields(user, requestData, transaction);
+        await UsersService.processArrayFields(user, requestData, transaction);
         await usersRepository.updateUserById(userId, requestData, transaction);
       });
 
@@ -110,14 +113,15 @@ class UsersService {
     organizationPostProcessor.processManyOrganizations(userJson.organizations);
 
     if (userId === this.currentUser.id) {
-      userJson.unread_messages_count = await entityNotificationRepository.countUnreadMessages(userId);
+      userJson.unread_messages_count =
+        await entityNotificationRepository.countUnreadMessages(userId);
     }
 
     return userJson;
   }
 
   static async findOneByAccountName(accountName: string) {
-    const user = await models['Users'].findOne({ where: { account_name: accountName } });
+    const user = await models.Users.findOne({ where: { account_name: accountName } });
 
     userPostProcessor.processUser(user);
 
@@ -167,7 +171,7 @@ class UsersService {
    * @return {Promise<void>}
    * @private
    */
-  private async processArrayFields(user, requestData, transaction) {
+  private static async processArrayFields(user, requestData, transaction) {
     const arrayFields = [
       'users_education',
       'users_jobs',
@@ -193,7 +197,7 @@ class UsersService {
 
       const deltaData = UpdateManyToMany.getCreateUpdateDeleteDelta(user[field], set);
 
-      await this.updateRelations(user, deltaData, field, transaction);
+      await UsersService.updateRelations(user, deltaData, field, transaction);
     }
   }
 
@@ -205,7 +209,7 @@ class UsersService {
    * @param {Object} transaction
    * @return {Promise<boolean>}
    */
-  async updateRelations(user, deltaData, modelName, transaction) {
+  static async updateRelations(user, deltaData, modelName, transaction) {
     // Update addresses
     await Promise.all([
       deltaData.deleted.map(async (data) => {
@@ -213,8 +217,7 @@ class UsersService {
       }),
 
       deltaData.added.map(async (data) => {
-
-        data['user_id'] = user.id;
+        data.user_id = user.id;
         data.is_official = !!data.is_official;
 
         const newModel = models[modelName].build(data);
@@ -239,7 +242,7 @@ class UsersService {
    * @return  {Promise<void>}
    * @private
    */
-  private async checkUniqueFields(values, currentUserId) {
+  private static async checkUniqueFields(values, currentUserId) {
     const uniqueFields = usersModelProvider.getUsersModel().getUsersUniqueFields();
 
     const toFind = {};

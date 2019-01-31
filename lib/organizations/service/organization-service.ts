@@ -1,7 +1,10 @@
+/* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 const status  = require('statuses');
 const _       = require('lodash');
 const joi     = require('joi');
+
+const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const usersActivity = require('../../users/user-activity-service');
 
@@ -16,13 +19,14 @@ const { CreateOrUpdateOrganizationSchema } =
   require('../validator/organization-create-update-schema');
 const authValidator = require('../../auth/validators');
 
+
 const eosBlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 const usersTeamService = require('../../users/users-team-service');
 const entitySourceService = require('../../entities/service').Sources;
 const organizationsModelProvider = require('./organizations-model-provider');
 const usersActivityRepository = require('../../users/repository').Activity;
 const activityGroupDictionary = require('../../activity/activity-group-dictionary');
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
+
 
 const apiPostProcessor = require('../../common/service').PostProcessor;
 const organizationsFetchService = require('./organizations-fetch-service');
@@ -68,6 +72,7 @@ class OrganizationService {
 
         const usersTeamIds = usersTeamService.getUsersTeamIds(usersTeam);
 
+        // eslint-disable-next-line no-shadow
         const newUserActivity = await usersActivity.processNewOrganization(
           req.signed_transaction,
           this.currentUser.id,
@@ -75,6 +80,7 @@ class OrganizationService {
           transaction,
         );
 
+        // eslint-disable-next-line no-shadow
         const boardInvitationActivity: any = [];
         for (let i = 0; i < usersTeamIds.length; i += 1) {
           const res = await usersActivity.processUsersBoardInvitation(
@@ -103,8 +109,8 @@ class OrganizationService {
         };
       });
 
-    await this.sendOrgCreationActivityToRabbit(newUserActivity);
-    await this.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
+    await OrganizationService.sendOrgCreationActivityToRabbit(newUserActivity);
+    await OrganizationService.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
 
     return newOrganization;
   }
@@ -115,7 +121,7 @@ class OrganizationService {
    * @return {Promise<void>}
    * @private
    */
-  private async sendOrgCreationActivityToRabbit(newUserActivity) {
+  private static async sendOrgCreationActivityToRabbit(newUserActivity) {
     await usersActivity.sendPayloadToRabbit(newUserActivity);
   }
 
@@ -125,7 +131,7 @@ class OrganizationService {
    * @return {Promise<void>}
    * @private
    */
-  private async sendOrgTeamInvitationsToRabbit(boardInvitationActivity) {
+  private static async sendOrgTeamInvitationsToRabbit(boardInvitationActivity) {
     for (let i = 0; i < boardInvitationActivity.length; i += 1) {
       await usersActivity.sendPayloadToRabbit(boardInvitationActivity[i]);
     }
@@ -146,7 +152,7 @@ class OrganizationService {
     const orgId = req.organization_id;
     const userId = this.currentUser.id;
 
-    await this.checkUpdatePermissions(orgId, userId);
+    await OrganizationService.checkUpdatePermissions(orgId, userId);
     const body = await this.processUserRequest(req);
 
     const { updatedModel, boardInvitationActivity } = await db
@@ -180,6 +186,7 @@ class OrganizationService {
           transaction,
         );
 
+        // eslint-disable-next-line no-shadow
         let boardInvitationActivity = [];
         if (deltaData) {
           boardInvitationActivity = await this.processUsersTeamInvitations(deltaData.added, orgId, transaction);
@@ -193,7 +200,7 @@ class OrganizationService {
 
     // Send to rabbit
 
-    await this.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
+    await OrganizationService.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
 
     // try {
     //   await this._processNotifications(deltaData.added);
@@ -238,18 +245,8 @@ class OrganizationService {
    * @param {Object} query
    * @return {Promise<Object>}
    */
-  async getAllForPreview(query) {
+  public static async getAllForPreview(query) {
     return organizationsFetchService.findAndProcessAll(query);
-  }
-
-  /**
-   *
-   * @param {string} tagTitle
-   * @param {Object} query
-   * @returns {Promise<void>}
-   */
-  async findAllByTagTitle(tagTitle, query) {
-    return organizationsFetchService.findAndProcessAllByTagTitle(tagTitle, query);
   }
 
   /**
@@ -275,18 +272,18 @@ class OrganizationService {
     );
 
     const activityData = await usersActivityRepository.findEntityRelatedActivityWithInvolvedUsersData(
-          modelId,
-          organizationsModelProvider.getEntityName(),
-          InteractionTypeDictionary.getFollowId(),
-          activityGroupDictionary.getGroupContentInteraction(),
-        );
+      modelId,
+      organizationsModelProvider.getEntityName(),
+      InteractionTypeDictionary.getFollowId(),
+      activityGroupDictionary.getGroupContentInteraction(),
+    );
 
     apiPostProcessor.processOneOrgFully(model, this.currentUser.id, activityData);
 
     // #refactor. Add to the model inside EntitySourceService
-    model['social_networks']      = entitySources['social_networks'];
-    model['community_sources']    = entitySources['community_sources'];
-    model['partnership_sources']  = entitySources['partnership_sources'];
+    model.social_networks      = entitySources.social_networks;
+    model.community_sources    = entitySources.community_sources;
+    model.partnership_sources  = entitySources.partnership_sources;
 
     return {
       data: model,
@@ -300,12 +297,12 @@ class OrganizationService {
    * @private
    * @return {Object}
    */
-  private getRequestBodyWithFilenames(req) {
-    const body = req.body;
+  private static getRequestBodyWithFilenames(req) {
+    const { body } = req;
     // Lets change file
-    const files = req.files;
+    const { files } = req;
 
-    this.parseSourceFiles(files);
+    OrganizationService.parseSourceFiles(files);
 
     // // noinspection OverlyComplexBooleanExpressionJS
     // if (files && files.avatar_filename && files.avatar_filename[0] && files.avatar_filename[0].filename) {
@@ -316,7 +313,7 @@ class OrganizationService {
 
     files.forEach((file) => {
       if (file.fieldname !== 'avatar_filename') {
-        this.addSourceAvatarFilenameToBody(file, body);
+        OrganizationService.addSourceAvatarFilenameToBody(file, body);
       } else {
         body.avatar_filename = file.filename;
         body.avatar_filename_from_file = true;
@@ -330,7 +327,7 @@ class OrganizationService {
     return body;
   }
 
-  private addSourceAvatarFilenameToBody(file, body) {
+  private static addSourceAvatarFilenameToBody(file, body) {
     const bodySources = body[file.modelSourceKey];
     if (!bodySources) {
       return;
@@ -345,11 +342,14 @@ class OrganizationService {
     bodySource.avatar_filename_from_file = true; // in order to avoid avatar filename changing by only name - without file
   }
 
-  private parseSourceFiles(files) {
+  private static parseSourceFiles(files) {
     files.forEach((file) => {
       if (file.fieldname !== 'avatar_filename') {
         const sourceKey = file.filename.substr(0, file.filename.indexOf('-'));
-        const sourcePosition = +file.filename.substring(this.getPosition(file.filename, '-', 1) + 1, this.getPosition(file.filename, '-', 2));
+        const sourcePosition = +file.filename.substring(
+          OrganizationService.getPosition(file.filename, '-', 1) + 1,
+          OrganizationService.getPosition(file.filename, '-', 2),
+        );
 
         file.modelSourceKey = sourceKey;
         file.modelSourcePosition = sourcePosition;
@@ -357,7 +357,7 @@ class OrganizationService {
     });
   }
 
-  private getPosition(string, subString, index) {
+  private static getPosition(string, subString, index) {
     return string.split(subString, index).join(subString).length;
   }
 
@@ -368,7 +368,7 @@ class OrganizationService {
    * @private
    */
   private async  processUserRequest(req) {
-    const body = this.getRequestBodyWithFilenames(req);
+    const body = OrganizationService.getRequestBodyWithFilenames(req);
 
     const simpleTextFields = organizationsRepositories.Main.getModelSimpleTextFields();
     userInputSanitizer.sanitizeRequestBody(body, simpleTextFields);
@@ -385,9 +385,9 @@ class OrganizationService {
       );
     }
 
-    this.makeEmptyStringUniqueFieldsNull(value);
+    OrganizationService.makeEmptyStringUniqueFieldsNull(value);
 
-    await this.checkUniqueFields(value, req.organization_id);
+    await OrganizationService.checkUniqueFields(value, req.organization_id);
 
     value.user_id = this.currentUser.id;
 
@@ -401,7 +401,7 @@ class OrganizationService {
    * @return  {Promise<void>}
    * @private
    */
-  private async checkUniqueFields(values, organizationId = null) {
+  private static async checkUniqueFields(values, organizationId = null) {
     const uniqueFields = organizationsRepositories.Main.getOrganizationModel().getUniqueFields();
 
     const toFind = {};
@@ -443,7 +443,7 @@ class OrganizationService {
    * @param {Object} body
    * @private
    */
-  private makeEmptyStringUniqueFieldsNull(body) {
+  private static makeEmptyStringUniqueFieldsNull(body) {
     const uniqueFields = organizationsRepositories.Main.getOrganizationModel().getUniqueFields();
 
     uniqueFields.forEach((field) => {
@@ -458,7 +458,7 @@ class OrganizationService {
    * @param {number} orgId
    * @param {number} userId
    */
-  private async checkUpdatePermissions(orgId, userId) {
+  private static async checkUpdatePermissions(orgId, userId) {
     const doesExist = await organizationsRepositories.Main.doesExistWithUserId(orgId, userId);
 
     if (!doesExist) {

@@ -51,6 +51,7 @@ export class GraphqlHelper {
     commentsPage: number = 1,
     commentsPerPage: number = 10,
   ): Promise<PostsListResponse> {
+    // @ts-ignore
     const postFiltering: PostRequestQueryDto = {
       post_type_id: 1,
     };

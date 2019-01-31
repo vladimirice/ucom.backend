@@ -61,6 +61,7 @@ const typeDefs = gql`
 
     entity_id_for: Int
     entity_name_for: String
+    entity_for_card: JSON
 
     User: User!
 

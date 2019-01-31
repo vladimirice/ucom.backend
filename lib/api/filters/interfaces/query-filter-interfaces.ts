@@ -18,6 +18,12 @@ interface RequestQueryComments extends RequestQueryDto {
   readonly commentable_id?: number;
 }
 
+interface DbParamOneEntityDto {
+  attributes: string[];
+  where: {[index: string]: any }
+  include?: any[]
+}
+
 interface DbParamsDto {
   attributes: string[];
   where: {[index: string]: any };
@@ -31,4 +37,5 @@ export {
   RequestQueryDto,
   DbParamsDto,
   RequestQueryComments,
+  DbParamOneEntityDto,
 };

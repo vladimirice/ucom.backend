@@ -1,13 +1,22 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
-import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from '../interfaces/model-interfaces';
+import { PostModel, PostModelResponse, PostRequestQueryDto, PostsListResponse } from '../interfaces/model-interfaces';
 import { ApiLogger } from '../../../config/winston';
+
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 import PostsRepository = require('../posts-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import UsersFeedRepository = require('../../common/repository/users-feed-repository');
 import ApiPostProcessor = require('../../common/service/api-post-processor');
+import UsersModelProvider = require('../../users/users-model-provider');
+import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
+import { AppError } from '../../api/errors';
+import OrganizationsFetchService = require('../../organizations/service/organizations-fetch-service');
+import { OrgModelCard } from '../../organizations/interfaces/model-interfaces';
+import UsersFetchService = require('../../users/service/users-fetch-service');
+import { UserModel } from '../../users/interfaces/model-interfaces';
 
 const queryFilterService  = require('../../api/filters/query-filter-service');
 
@@ -19,7 +28,6 @@ const commentsFetchService = require('../../comments/service/comments-fetch-serv
  */
 class PostsFetchService {
   /**
-   * deprecated - only for old APIs
    * @param postId
    * @param currentUserId
    */
@@ -31,6 +39,11 @@ class PostsFetchService {
 
     if (!post) {
       return null;
+    }
+
+    const entityFor = await this.getEntityFor(post);
+    if (entityFor) {
+      post.entity_for_card = await this.getEntityFor(post);
     }
 
     let userToUserActivity = null;
@@ -63,6 +76,11 @@ class PostsFetchService {
 
     if (!post) {
       return null;
+    }
+
+    const entityFor = await this.getEntityFor(post);
+    if (entityFor) {
+      post.entity_for_card = await this.getEntityFor(post);
     }
 
     let userToUserActivity = null;
@@ -176,6 +194,23 @@ class PostsFetchService {
     const findCountPromises: Promise<any>[] = this.getFindCountPromisesForTag(tagTitle, params);
 
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
+  }
+
+  private static async getEntityFor(
+    post: PostModel,
+  ): Promise<OrgModelCard | UserModel | null> {
+    if (post.post_type_id !== ContentTypeDictionary.getTypeDirectPost()) {
+      return null;
+    }
+
+    switch (post.entity_name_for) {
+      case UsersModelProvider.getEntityName():
+        return UsersFetchService.findOneAndProcessForCard(post.entity_id_for);
+      case OrganizationsModelProvider.getEntityName():
+        return OrganizationsFetchService.findOneAndProcessForCard(post.entity_id_for);
+      default:
+        throw new AppError(`Unsupported entity_name_for: ${post.entity_name_for}`, 500);
+    }
   }
 
   private static getFindCountPromisesForOrg(

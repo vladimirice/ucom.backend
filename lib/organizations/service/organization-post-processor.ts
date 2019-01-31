@@ -1,4 +1,5 @@
 import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
+import { OrgModel } from '../interfaces/model-interfaces';
 
 const eosImportance = require('../../eos/eos-importance');
 
@@ -34,12 +35,10 @@ class OrganizationPostProcessor {
     });
   }
 
-  /**
-   *
-   * @param {Object} model
-   * @param {Object[]} activityData
-   */
-  static processOneOrg(model, activityData = []) {
+  public static processOneOrg(
+    model: OrgModel,
+    activityData: any = [],
+  ): void {
     if (!model) {
       return;
     }
@@ -48,11 +47,7 @@ class OrganizationPostProcessor {
     this.addFollowedBy(model, activityData);
   }
 
-  /**
-   *
-   * @param {Object} model
-   */
-  static processOneOrgWithoutActivity(model) {
+  public static processOneOrgWithoutActivity(model: OrgModel): void {
     this.addPrefixToAvatarFilename(model);
     this.normalizeMultiplier(model);
   }

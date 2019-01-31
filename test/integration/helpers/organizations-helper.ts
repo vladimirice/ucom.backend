@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 import OrganizationsRepository = require("../../../lib/organizations/repository/organizations-repository");
+import { OrgModelCard } from '../../../lib/organizations/interfaces/model-interfaces';
 
 const request = require('supertest');
 const server = require('../../../app');
@@ -239,6 +240,18 @@ class OrganizationsHelper {
     }
 
     this.checkOneOrganizationPreviewFields(model.organization);
+  }
+
+  public static checkOneOrganizationCardStructure(model: OrgModelCard): void {
+    expect(_.isEmpty(model)).toBeFalsy();
+    const expected = OrganizationsRepository.getFieldsForPreview();
+
+    this.checkIsPostProcessedSmell(model);
+
+    expected.forEach((field) => {
+      // @ts-ignore
+      expect(model.hasOwnProperty(field), `There is no field: ${field}`).toBeTruthy();
+    });
   }
 
   /**

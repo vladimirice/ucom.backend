@@ -348,15 +348,29 @@ class PostsGenerator {
   }
 
   static async createDirectPostForOrganizationV2(
+    myself: UserModel,
+    targetOrgId: number,
+    givenDescription: string | null = null,
+    withImage: boolean = false,
+    idOnly: boolean = false,
+  ): Promise<PostModelResponse> {
+    const url = RequestHelper.getOrgDirectPostV2UrlV(targetOrgId);
+
+    return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
+  }
+
+  public static async createDirectPostForOrganizationV2AndGetId(
     myself,
     targetOrgId,
     givenDescription = null,
     withImage = false,
     idOnly = false,
-  ) {
+  ): Promise<number> {
     const url = RequestHelper.getOrgDirectPostV2UrlV(targetOrgId);
 
-    return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
+    const data = await this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
+
+    return data.id;
   }
 
   static async createDirectPost(
@@ -365,7 +379,7 @@ class PostsGenerator {
     givenDescription: string | null = null,
     withImage: boolean = false,
     idOnly: boolean = false,
-  ) {
+  ): Promise<PostModelResponse> {
     const postTypeId = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 

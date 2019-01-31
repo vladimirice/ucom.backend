@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import OrganizationsFetchService = require('../../lib/organizations/service/organizations-fetch-service');
+
 const express = require('express');
 const status  = require('statuses');
 require('express-async-errors');
@@ -29,7 +31,7 @@ function getPostService(req) {
 
 /* Get all organizations */
 orgRouter.get('/', async (req, res) => {
-  const response = await getOrganizationService(req).getAllForPreview(req.query);
+  const response = await OrganizationsFetchService.findAndProcessAll(req.query);
 
   res.send(response);
 });

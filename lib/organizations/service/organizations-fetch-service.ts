@@ -1,9 +1,14 @@
+import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import { OrgModel, OrgModelCard } from '../interfaces/model-interfaces';
+
+import OrganizationsRepository = require('../repository/organizations-repository');
+import OrganizationPostProcessor = require('./organization-post-processor');
+
 const queryFilterService      = require('../../api/filters/query-filter-service');
 const organizationsRepository = require('../repository/organizations-repository.js');
 const orgPostProcessor        = require('./organization-post-processor');
 
 class OrganizationsFetchService {
-
   /**
    * @param {string} tagTitle
    * @param {Object} query
@@ -25,8 +30,8 @@ class OrganizationsFetchService {
    * @param {Object} query
    * @returns {Promise<Object>}
    */
-  static async findAndProcessAll(query) {
-    const params = queryFilterService.getQueryParameters(query);
+  static async findAndProcessAll(query: RequestQueryDto) {
+    const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
     const data = await organizationsRepository.findAllOrgForList(params);
     orgPostProcessor.processManyOrganizations(data);
@@ -38,6 +43,20 @@ class OrganizationsFetchService {
       data,
       metadata,
     };
+  }
+
+  public static async findOneAndProcessForCard(
+    modelId: number,
+  ): Promise<OrgModelCard | null> {
+    const model: OrgModel | null = await OrganizationsRepository.findOneByIdForPreview(modelId);
+
+    if (!model) {
+      return null;
+    }
+
+    OrganizationPostProcessor.processOneOrgWithoutActivity(model);
+
+    return model;
   }
 
   private static async findAndProcessAllByParams(

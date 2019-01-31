@@ -1,6 +1,6 @@
 import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
 import { CommentsListResponse } from '../../comments/interfaces/model-interfaces';
-import { ListResponse } from '../../common/interfaces/lists-interfaces';
+import { ListResponse, ModelPreview } from '../../common/interfaces/lists-interfaces';
 import { RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 
 interface PostModel {
@@ -8,8 +8,11 @@ interface PostModel {
   readonly current_vote: number;
   readonly organization_id: number | null;
   readonly entity_tags: any;
+  readonly entity_name_for: string;
+  readonly entity_id_for: number;
+  readonly post_type_id: number;
 
-  readonly post?: PostModelResponse;
+  readonly post?: PostModel; // for repost. Repost includes reposted post
 
   [index: string]: any;
 }
@@ -20,6 +23,8 @@ interface PostsListResponse extends ListResponse {
 
 interface PostModelResponse extends PostModel {
   [index: string]: any;
+
+  entity_for_card: ModelPreview;
 
   comments: CommentsListResponse;
 }

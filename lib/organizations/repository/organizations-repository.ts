@@ -1,4 +1,9 @@
 /* tslint:disable:max-line-length */
+
+import { OrgModel } from '../interfaces/model-interfaces';
+
+const _ = require('lodash');
+
 const orgModelProvider = require('../../organizations/service/organizations-model-provider');
 const usersModelProvider = require('../../users/users-model-provider');
 const usersTeamStatusDictionary = require('../../users/dictionary/users-team-status-dictionary');
@@ -8,15 +13,12 @@ const model = orgModelProvider.getModel();
 
 const models = require('../../../models');
 
-const _ = require('lodash');
-
 const db = models.sequelize;
-const Op = db.Op;
+const { Op } = db;
 
 const taggableRepository = require('../../common/repository/taggable-repository');
 
 class OrganizationsRepository {
-
   /**
    *
    * @param {Object} data
@@ -24,7 +26,7 @@ class OrganizationsRepository {
    * @returns {Promise<Object>}
    */
   static async createNewOrganization(data, transaction) {
-    return await this.getOrganizationModel().create(data, { transaction });
+    return this.getOrganizationModel().create(data, { transaction });
   }
 
   /**
@@ -64,9 +66,7 @@ class OrganizationsRepository {
 
     const data = await db.query(sql, { type: db.QueryTypes.SELECT });
 
-    return data.map((row) => {
-      return row.user_id;
-    });
+    return data.map(row => row.user_id);
   }
 
   /**
@@ -89,7 +89,7 @@ class OrganizationsRepository {
 
     const sql = `SELECT ${attributes.join(',')} FROM ${TABLE_NAME} WHERE ${search}`;
 
-    return await db.query(sql, {
+    return db.query(sql, {
       bind: {
         query: `%${query}%`,
       },
@@ -103,7 +103,7 @@ class OrganizationsRepository {
    * @returns {Promise<number>}
    */
   static async countAllOrganizations(queryParameters: any = null) {
-    return await this.getOrganizationModel().count({
+    return this.getOrganizationModel().count({
       where: queryParameters ? queryParameters.where : {},
     });
   }
@@ -127,7 +127,7 @@ class OrganizationsRepository {
       limit: 1,
     });
 
-    return result ? result['id'] : null;
+    return result ? result.id : null;
   }
 
   /**
@@ -148,7 +148,7 @@ class OrganizationsRepository {
       raw: true,
     });
 
-    return result ? result['id'] : null;
+    return result ? result.id : null;
   }
 
   static async isUserAuthor(id, userId) {
@@ -233,7 +233,7 @@ class OrganizationsRepository {
    * @return {Promise<Object>}
    */
   static async findOnlyItselfById(id) {
-    return await orgModelProvider.getModel().findOne({
+    return orgModelProvider.getModel().findOne({
       where: { id },
       raw: true,
     });
@@ -246,7 +246,8 @@ class OrganizationsRepository {
    * @return {Promise<Object>}
    */
   static async findOneById(id, teamStatus = null) {
-    const usersTeamStatus = teamStatus === null ? usersTeamStatusDictionary.getStatusConfirmed() : teamStatus;
+    const usersTeamStatus = teamStatus === null ?
+      usersTeamStatusDictionary.getStatusConfirmed() : teamStatus;
 
     const result = await this.getOrganizationModel().findOne({
       include: [
@@ -260,17 +261,10 @@ class OrganizationsRepository {
     return result ? result.toJSON() : null;
   }
 
-  /**
-   *
-   * @param {number} id
-   * @return {Promise<Object>}
-   */
-  static async findOneByIdForPreview(id) {
-    return await this.getOrganizationModel().findOne({
+  static async findOneByIdForPreview(id: number): Promise<OrgModel | null> {
+    return this.getOrganizationModel().findOne({
       attributes: orgModelProvider.getModel().getFieldsForPreview(),
-      where: {
-        id,
-      },
+      where: { id },
       raw: true,
     });
   }
@@ -307,9 +301,10 @@ class OrganizationsRepository {
       }
     }
 
-    const attributes = _.concat(Object.keys(fieldsValues), ['id']);
+    const attributes = Array.prototype.concat(Object.keys(fieldsValues), ['id']);
 
-    return await this.getOrganizationModel().findAll({
+    // noinspection TypeScriptValidateJSTypes
+    return this.getOrganizationModel().findAll({
       attributes,
       where: {
         [Op.or]: opOrConditions,
@@ -389,7 +384,7 @@ class OrganizationsRepository {
   }
 
   static async findFirstByAuthor(userId) {
-    return await this.getOrganizationModel().findOne({
+    return this.getOrganizationModel().findOne({
       where: { user_id: userId },
       order: [
         ['id', 'ASC'],
@@ -402,7 +397,7 @@ class OrganizationsRepository {
   static async findAllForPreviewByUserId(userId) {
     const mainPreviewAttributes = models[TABLE_NAME].getFieldsForPreview();
 
-    return await models[TABLE_NAME].findAll({
+    return models[TABLE_NAME].findAll({
       attributes: mainPreviewAttributes,
       where: {
         user_id: userId,
@@ -430,7 +425,7 @@ class OrganizationsRepository {
       );
     `;
 
-    return await models.sequelize.query(sql, { type: db.QueryTypes.SELECT });
+    return models.sequelize.query(sql, { type: db.QueryTypes.SELECT });
   }
 
   /**
@@ -443,7 +438,7 @@ class OrganizationsRepository {
     params.attributes = model.getFieldsForPreview();
     params.raw = true;
 
-    return await model.findAll(params);
+    return model.findAll(params);
   }
 
   /**

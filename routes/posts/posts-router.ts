@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
-import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 import { PostsListResponse } from '../../lib/posts/interfaces/model-interfaces';
+
+import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 
 const config = require('config');
 

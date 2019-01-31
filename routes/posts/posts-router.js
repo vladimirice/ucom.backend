@@ -1,6 +1,4 @@
 "use strict";
-/* eslint-disable max-len */
-/* tslint:disable:max-line-length */
 const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
 const config = require('config');
 const postsRouter = require('./comments-router');
