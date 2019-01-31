@@ -67,15 +67,6 @@ describe('#Feeds #GraphQL', () => {
     }, 20000);
 
     it('#smoke - should get all user-related posts', async () => {
-
-      const str =  '{"code":500,"message":"Internal Service Error","error":{"code":3080006,"name":"deadline_exception","what":"Transaction took too long","details":[]}}';
-
-      if (typeof str === 'string') {
-
-        // @ts-ignore
-        const a = 0;
-      }
-
       const targetUser = userVlad;
       const directPostAuthor = userJane;
 

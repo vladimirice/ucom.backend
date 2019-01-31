@@ -2,6 +2,7 @@
 /* tslint:disable:max-line-length */
 import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from '../interfaces/model-interfaces';
+import { ApiLogger } from '../../../config/winston';
 
 import PostsRepository = require('../posts-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
@@ -110,7 +111,7 @@ class PostsFetchService {
   public static async findAndProcessAllForUserWallFeed(
     userId: number,
     currentUserId: number | null,
-    query: RequestQueryDto | null = null,
+    query: RequestQueryDto,
   ): Promise<PostsListResponse> {
     const params: DbParamsDto = queryFilterService.getQueryParameters(query);
 
@@ -216,9 +217,9 @@ class PostsFetchService {
    * @private
    */
   private static async findAndProcessAllForWallFeed(
-    query,
-    params,
-    currentUserId,
+    query: RequestQueryDto,
+    params: DbParamsDto,
+    currentUserId: number | null,
     findCountPromises: Promise<any>[],
   ): Promise<PostsListResponse> {
     const [posts, totalAmount] = await Promise.all(findCountPromises);
@@ -245,18 +246,12 @@ class PostsFetchService {
 
     // #task - use included query
     if (query && query.included_query && query.included_query.comments) {
-      // #task - prototype realization for demo, N+1 issue
-      for (const id of postsIds) {
-        // #task - should be defined as default parameters for comments pagination
-        const commentsQuery = query.included_query.comments;
-        commentsQuery.depth = 0;
-
-        idToPost[id].comments = await commentsFetchService.findAndProcessCommentsByPostId(
-          id,
-          currentUserId,
-          commentsQuery,
-        );
-      }
+      await this.addCommentsToPosts(
+        posts,
+        postsIds,
+        query.included_query.comments,
+        currentUserId,
+      );
     }
 
     const data      = ApiPostProcessor.processManyPosts(posts, currentUserId, userActivity);
@@ -266,6 +261,30 @@ class PostsFetchService {
       data,
       metadata,
     };
+  }
+
+  private static async addCommentsToPosts(
+    posts: PostModelResponse,
+    postsIds: number[],
+    commentsQuery: RequestQueryComments,
+    currentUserId: number | null,
+  ): Promise<void> {
+    commentsQuery.depth = 0;
+
+    const idToComments = await commentsFetchService.findAndProcessCommentsByPostsIds(
+      postsIds,
+      currentUserId,
+      commentsQuery,
+    );
+
+    posts.forEach((post) => {
+      if (!idToComments[post.id]) {
+        ApiLogger.error(`There are no comments for post with ID ${post.id} but should be. Filled or empty. Let's set empty and continue`);
+        post.comments = ApiPostProcessor.getEmptyListOfModels();
+      } else {
+        post.comments = idToComments[post.id];
+      }
+    });
   }
 }
 

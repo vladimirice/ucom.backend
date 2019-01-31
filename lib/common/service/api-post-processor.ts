@@ -1,5 +1,5 @@
 import { MyselfDataDto } from '../interfaces/post-processing-dto';
-import { ListMetadata, ListResponse } from '../interfaces/lists-interfaces';
+import { EmptyListResponse, ListMetadata } from '../interfaces/lists-interfaces';
 import { AppError } from '../../api/errors';
 import { PostModelResponse } from '../../posts/interfaces/model-interfaces';
 
@@ -457,17 +457,23 @@ class ApiPostProcessor {
     model.comments = this.getEmptyListOfModels();
   }
 
-  private static getEmptyListOfModels(): ListResponse {
+  public static getEmptyListOfModels(
+    page: number = PAGE_FOR_EMPTY_METADATA,
+    perPage: number = PER_PAGE_FOR_EMPTY_METADATA,
+  ): EmptyListResponse {
     return {
       data: [],
-      metadata: this.getEmptyMetadata(),
+      metadata: this.getEmptyMetadata(page, perPage),
     };
   }
 
-  private static getEmptyMetadata(): ListMetadata {
+  private static getEmptyMetadata(
+    page: number,
+    perPage: number,
+  ): ListMetadata {
     return {
-      page: PAGE_FOR_EMPTY_METADATA,
-      per_page: PER_PAGE_FOR_EMPTY_METADATA,
+      page,
+      per_page: perPage,
       total_amount: 0,
       has_more: false,
     };

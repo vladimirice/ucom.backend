@@ -2,8 +2,6 @@
 import { DbParamsDto, RequestQueryDto } from './interfaces/query-filter-interfaces';
 import { ListMetadata } from '../../common/interfaces/lists-interfaces';
 
-const _ = require('lodash');
-
 const { BadRequestError } = require('../../api/errors');
 
 const PER_PAGE_LIMIT = 50;
@@ -29,7 +27,7 @@ class QueryFilterService {
     }
 
     const lastId = +query.last_id;
-    if (isNaN(lastId) || lastId <= 0 || query.last_id.includes('.')) {
+    if (Number.isNaN(lastId) || lastId <= 0 || query.last_id.includes('.')) {
       throw new BadRequestError(errorObj);
     }
   }
@@ -73,7 +71,12 @@ class QueryFilterService {
    * @param {Function|null} whereProcessor
    * @returns {Object}
    */
-  static getQueryParameters(query: RequestQueryDto | null, orderByRelationMap = {}, allowedSortBy = null, whereProcessor = null) {
+  static getQueryParameters(
+    query: RequestQueryDto | null,
+    orderByRelationMap = {},
+    allowedSortBy = null,
+    whereProcessor = null,
+  ) {
     const params: any = {};
 
     params.where = {};
@@ -174,7 +177,7 @@ class QueryFilterService {
       let toPush: string[] = [];
 
       if (orderByRelationMap[valueToSort]) {
-        toPush = _.concat(orderByRelationMap[valueToSort], sortOrder);
+        toPush = Array.prototype.concat(orderByRelationMap[valueToSort], sortOrder);
       } else {
         toPush = [
           valueToSort,

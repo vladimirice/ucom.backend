@@ -52,6 +52,7 @@ module.exports = {
         "jest/valid-expect": "off",
         "no-bitwise": "off",
         "no-prototype-builtins": "off",
+        "no-continue": "off",
       }
     }
   ]

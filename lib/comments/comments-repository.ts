@@ -1,12 +1,16 @@
 import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
-import { StringToNumberCollection } from '../common/interfaces/common-types';
+import {
+  NumberToNumberCollection,
+} from '../common/interfaces/common-types';
 import { DbCommentParamsDto } from './interfaces/query-filter-interfaces';
+import { CommentModel, ParentIdToDbCommentCollection } from './interfaces/model-interfaces';
 
 const _ = require('lodash');
 
 const models = require('../../models');
 
 const db = models.sequelize;
+const { Op } = db;
 
 const orgModelProvider = require('../organizations/service').ModelProvider;
 const commentsModelProvider = require('./service').ModelProvider;
@@ -134,22 +138,26 @@ class CommentsRepository {
     return model.count({ where });
   }
 
-  public static async countNextDepthTotalAmount(
+  public static async countNextDepthTotalAmounts(
+    commentableIds: number[],
     depth: number,
-    commentableId: number,
-  ): Promise<StringToNumberCollection> {
+  ): Promise<NumberToNumberCollection> {
+    if (commentableIds.length === 0) {
+      return {};
+    }
+
     const sql: string = `
     SELECT parent_id, COUNT(1) as amount FROM comments
     WHERE
       depth = ${+depth} -- next depth level
-      AND parent_id IS NOT NULL -- for reference, for depth = 1 parent_id must always be NOT NULL
-      AND commentable_id = ${+commentableId}
+      AND parent_id IS NOT NULL -- for reference, for depth >= 1 parent_id must always be NOT NULL
+      AND commentable_id IN (${commentableIds.join(', ')})
     GROUP BY parent_id;
     `;
 
     const data = await db.query(sql, { type: db.QueryTypes.SELECT });
 
-    const res: any = {};
+    const res: NumberToNumberCollection = {};
 
     data.forEach((item) => {
       res[item.parent_id] = +item.amount;
@@ -165,6 +173,37 @@ class CommentsRepository {
     params.where.commentable_id = commentableId;
 
     return model.count({ where: params.where });
+  }
+
+  public static async countAllByCommentableIdsAndDepth(
+    commentableIds: number[],
+    params: DbCommentParamsDto,
+  ): Promise<NumberToNumberCollection> {
+    const where = {
+      ...params.where,
+      commentable_id: {
+        [Op.in]: commentableIds,
+      },
+    };
+
+    // #task IDE collision
+    // noinspection TypeScriptValidateJSTypes
+    const data: {commentable_id: number, comments_amount: string}[] = await model.findAll({
+      where,
+      raw: true,
+      group: ['commentable_id'],
+      attributes: [
+        'commentable_id',
+        [db.fn('COUNT', 'id'), 'comments_amount'],
+      ],
+    });
+
+    const res: NumberToNumberCollection = {};
+    data.forEach((item) => {
+      res[item.commentable_id] = +item.comments_amount;
+    });
+
+    return res;
   }
 
   public static async countAllByDbParamsDto(
@@ -189,6 +228,37 @@ class CommentsRepository {
     const result = await model.findAll(params);
 
     return result.map(data => data.toJSON());
+  }
+
+  // #task - it is supposed that commentable ID is always Post
+  public static async findAllByManyCommentableIds(
+    commentableIds: number[],
+    queryParameters: DbParamsDto,
+  ): Promise<ParentIdToDbCommentCollection> {
+    // #task - move to separateQueryService
+    const params = _.defaults(queryParameters, this.getDefaultListParams());
+
+    params.where.commentable_id = {
+      [Op.in]: commentableIds,
+    };
+
+    // #task - exclude user related activity to separate request, as for posts
+    params.include = this.getCommentIncludedModels();
+
+    const data = await model.findAll(params);
+
+    const res: ParentIdToDbCommentCollection = {};
+    data.forEach((row) => {
+      const jsonRow: CommentModel = row.toJSON();
+      const commentableId: number = jsonRow.commentable_id;
+      if (res[commentableId]) {
+        res[commentableId].push(jsonRow);
+      } else {
+        res[commentableId] = [jsonRow];
+      }
+    });
+
+    return res;
   }
 
   public static async findAllByDbParamsDto(
@@ -304,6 +374,7 @@ class CommentsRepository {
     };
   }
 
+  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @returns {Object}
@@ -312,6 +383,7 @@ class CommentsRepository {
     return {};
   }
 
+  // noinspection JSUnusedGlobalSymbols
   static getAllowedOrderBy(): string[] {
     return [];
   }

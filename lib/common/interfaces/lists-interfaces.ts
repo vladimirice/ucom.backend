@@ -12,7 +12,12 @@ interface ListResponse {
   metadata: ListMetadata,
 }
 
+interface EmptyListResponse extends ListResponse {
+  data: [],
+}
+
 export {
   ListResponse,
   ListMetadata,
+  EmptyListResponse,
 };

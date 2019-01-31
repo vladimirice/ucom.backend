@@ -8,7 +8,7 @@ interface RequestQueryDto {
   readonly include?: string[];
 
   readonly included_query?: {
-    [index: string]: RequestQueryDto,
+    [index: string]: any,
   }
 }
 

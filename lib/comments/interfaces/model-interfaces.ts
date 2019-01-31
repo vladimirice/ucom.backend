@@ -11,12 +11,20 @@ interface CommentModel {
   [index: string]: any;
 }
 
+interface ParentIdToDbCommentCollection {
+  [index: number]: CommentModel[];
+}
+
 interface CommentModelResponse extends CommentModel {
   readonly metadata: CommentMetadataResponse;
 }
 
 interface CommentsListResponse extends ListResponse {
   data: CommentModelResponse[];
+}
+
+interface CommentableIdToCommentsResponse {
+  [index: number]: CommentsListResponse,
 }
 
 interface CommentMetadataResponse {
@@ -27,4 +35,6 @@ export {
   CommentModel,
   CommentModelResponse,
   CommentsListResponse,
+  ParentIdToDbCommentCollection,
+  CommentableIdToCommentsResponse,
 };

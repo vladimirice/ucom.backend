@@ -1,7 +1,8 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
-import { StringToNumberCollection } from '../../common/interfaces/common-types';
+import { NumberToNumberCollection } from '../../common/interfaces/common-types';
+import { CommentModel } from '../interfaces/model-interfaces';
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -32,8 +33,8 @@ class CommentsPostProcessor {
   }
 
   public static processManyCommentMetadata(
-    comments: any,
-    collection: StringToNumberCollection,
+    comments: CommentModel[],
+    collection: NumberToNumberCollection,
   ) {
     for (const comment of comments) {
       this.setOneCommentMetadata(comment, collection[comment.id] || 0);

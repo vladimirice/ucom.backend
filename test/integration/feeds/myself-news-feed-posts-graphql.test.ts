@@ -49,7 +49,7 @@ describe('#feeds myself news feed. #graphql', () => {
     await ActivityHelper.requestToFollowOrganization(orgId, userJane);
 
     const response = await GraphqlHelper.getUserNewsFeed(userJane);
-    const post: PostModelResponse = response.data.find(item => item.id === postId);
+    const post: PostModelResponse = response.data.find(item => item.id === postId)!;
     expect(post).toBeDefined();
 
     const commentsList: CommentsListResponse = post.comments;
@@ -94,7 +94,7 @@ describe('#feeds myself news feed. #graphql', () => {
       const orgPosts = seeds.posts.org;
       // eslint-disable-next-line guard-for-in
       for (const orgId in orgPosts) {
-        const model: PostModelResponse = posts.find(orgPost => orgPost.id === orgPosts[orgId]);
+        const model: PostModelResponse = posts.find(orgPost => orgPost.id === orgPosts[orgId])!;
         expect(model).toBeDefined();
 
         expect(model.organization_id).toBe(+orgId);

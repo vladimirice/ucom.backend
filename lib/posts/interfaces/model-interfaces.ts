@@ -1,6 +1,7 @@
 import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
 import { CommentsListResponse } from '../../comments/interfaces/model-interfaces';
 import { ListResponse } from '../../common/interfaces/lists-interfaces';
+import { RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 
 interface PostModel {
   readonly id: number;
@@ -27,7 +28,7 @@ interface PostModelMyselfResponse extends PostModelResponse {
   myselfData: MyselfDataDto,
 }
 
-interface PostRequestQueryDto {
+interface PostRequestQueryDto extends RequestQueryDto {
   readonly post_type_id?: number;
   readonly created_at?: string;
 }
