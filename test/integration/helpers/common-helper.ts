@@ -12,6 +12,8 @@ import UsersHelper = require('./users-helper');
 import NotificationsHelper = require('./notifications-helper');
 import NotificationsEventIdDictionary = require('../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import PostsHelper = require('./posts-helper');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -597,24 +599,36 @@ class CommonHelper {
     });
   }
 
-  public static checkPostListResponseWithoutOrg(
-    response: PostsListResponse,
+  private static getCheckerOptionsWithoutOrg(
     isMyself: boolean,
-    isCommentsEmpty: boolean,
-  ) {
-    const options: CheckerOptions = {
+    areCommentsEmpty: boolean,
+    isAuthorMyselfData: boolean,
+  ): CheckerOptions {
+    return {
       model: {
         myselfData: isMyself,
       },
       postProcessing: 'list',
       comments: {
         myselfData: isMyself,
-        isEmpty: isCommentsEmpty,
+        isEmpty: areCommentsEmpty,
+      },
+      author: {
+        myselfData: isAuthorMyselfData,
       },
       organization: {
         required: false,
       },
     };
+  }
+
+  public static checkPostListResponseWithoutOrg(
+    response: PostsListResponse,
+    isMyself: boolean,
+    isCommentsEmpty: boolean,
+    isAuthorMyselfData: boolean = false,
+  ) {
+    const options: CheckerOptions = this.getCheckerOptionsWithoutOrg(isMyself, isCommentsEmpty, isAuthorMyselfData);
 
     this.expectPostListResponse(response, options);
   }
@@ -634,6 +648,17 @@ class CommonHelper {
     expect(response.data.length).toBe(0);
   }
 
+  public static checkOnePostV2WithoutOrg(
+    post: PostModelResponse,
+    isMyselfData: boolean,
+    isCommentsEmpty: boolean,
+    isAuthorMyselfData: boolean = false,
+  ): void {
+    const options = this.getCheckerOptionsWithoutOrg(isMyselfData, isCommentsEmpty, isAuthorMyselfData);
+
+    this.checkOnePostV2(post, options);
+  }
+
   public static checkManyPostsV2(
     posts: PostModelResponse[],
     options: CheckerOptions,
@@ -650,6 +675,8 @@ class CommonHelper {
     PostsHelper.checkPostItselfCommonFields(post, options);
     UsersHelper.checkIncludedUserForEntityPage(post, options);
 
+    this.checkOnePostEntityForCard(post);
+
     this.checkMyselfData(post, options);
     this.checkCreatedAtUpdatedAtFormat(post);
 
@@ -662,6 +689,24 @@ class CommonHelper {
       expect(post.organization_id).toBe(options.organization.expectedId);
 
       OrganizationsHelper.checkOneOrganizationPreviewFields(post.organization);
+    }
+  }
+
+  private static checkOnePostEntityForCard(post: PostModelResponse): void {
+    expect(typeof post.entity_id_for).toBe('number');
+    expect(post.entity_id_for).toBeGreaterThan(0);
+    expect(_.isEmpty(post.entity_name_for)).toBeFalsy();
+    expect(_.isEmpty(post.entity_for_card)).toBeFalsy();
+
+    switch (post.entity_name_for) {
+      case OrganizationsModelProvider.getEntityName():
+        OrganizationsHelper.checkOneOrganizationCardStructure(post.entity_for_card);
+        break;
+      case UsersModelProvider.getEntityName():
+        UsersHelper.checkUserPreview(post.entity_for_card);
+        break;
+      default:
+        throw new Error(`Unsupported entity_name_for: ${post.entity_name_for}`);
     }
   }
 

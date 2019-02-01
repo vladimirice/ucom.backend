@@ -111,7 +111,6 @@ describe('#organizations #feed #graphql', () => {
 
       CommonHelper.checkOnePostV2(mediaPostModel!, mediaPostOptions);
 
-
       const directPostModel = posts.find(item => item.id === orgDirectPost.id);
       expect(directPostModel).toBeDefined();
 

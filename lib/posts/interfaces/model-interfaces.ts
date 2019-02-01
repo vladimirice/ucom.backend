@@ -1,7 +1,9 @@
 import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
 import { CommentsListResponse } from '../../comments/interfaces/model-interfaces';
-import { ListResponse, ModelPreview } from '../../common/interfaces/lists-interfaces';
+import { ListResponse } from '../../common/interfaces/lists-interfaces';
 import { RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import { OrgModelCard } from '../../organizations/interfaces/model-interfaces';
+import { UserModelCard } from '../../users/interfaces/model-interfaces';
 
 interface PostModel {
   readonly id: number;
@@ -24,7 +26,7 @@ interface PostsListResponse extends ListResponse {
 interface PostModelResponse extends PostModel {
   [index: string]: any;
 
-  entity_for_card: ModelPreview;
+  entity_for_card: OrgModelCard | UserModelCard;
 
   comments: CommentsListResponse;
 }

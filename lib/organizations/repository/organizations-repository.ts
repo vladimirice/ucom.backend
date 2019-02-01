@@ -1,6 +1,6 @@
 /* tslint:disable:max-line-length */
 
-import { OrgModel } from '../interfaces/model-interfaces';
+import { OrgIdToOrgModelCard, OrgModel } from '../interfaces/model-interfaces';
 
 const _ = require('lodash');
 
@@ -267,6 +267,28 @@ class OrganizationsRepository {
       where: { id },
       raw: true,
     });
+  }
+
+  static async findManyOrgsByIdForCard(ids: number[]): Promise<OrgIdToOrgModelCard> {
+    // noinspection TypeScriptValidateJSTypes
+    const data: OrgModel[] = await this.getOrganizationModel().findAll({
+      attributes: orgModelProvider.getModel().getFieldsForPreview(),
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      raw: true,
+    });
+
+    const res: OrgIdToOrgModelCard = {};
+
+    data.forEach((item) => {
+      // @ts-ignore
+      res[item.id] = item;
+    });
+
+    return res;
   }
 
   static async findFirstIdByAuthorId(userId) {

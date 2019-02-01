@@ -1,5 +1,5 @@
 import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
-import { OrgModel } from '../interfaces/model-interfaces';
+import { OrgIdToOrgModelCard, OrgModel, OrgModelCard } from '../interfaces/model-interfaces';
 
 const eosImportance = require('../../eos/eos-importance');
 
@@ -21,7 +21,7 @@ class OrganizationPostProcessor {
    */
   static processOneOrganizationInManyModelsWithoutActivity(models) {
     models.forEach((model) => {
-      this.processOneOrgWithoutActivity(model.organization);
+      this.processOneOrgModelCard(model.organization);
     });
   }
 
@@ -43,11 +43,21 @@ class OrganizationPostProcessor {
       return;
     }
 
-    this.processOneOrgWithoutActivity(model);
+    this.processOneOrgModelCard(model);
     this.addFollowedBy(model, activityData);
   }
 
-  public static processOneOrgWithoutActivity(model: OrgModel): void {
+
+  public static processOrgIdToOrgModelCard(modelsSet: OrgIdToOrgModelCard): void {
+    for (const orgId in modelsSet) {
+      if (modelsSet.hasOwnProperty(orgId)) {
+        const model = modelsSet[orgId];
+        this.processOneOrgModelCard(model);
+      }
+    }
+  }
+
+  public static processOneOrgModelCard(model: OrgModelCard): void {
     this.addPrefixToAvatarFilename(model);
     this.normalizeMultiplier(model);
   }

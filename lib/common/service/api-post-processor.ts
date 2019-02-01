@@ -58,7 +58,7 @@ class ApiPostProcessor {
    * @param {Object} model
    */
   static processOneOrgUsersTeamInvitation(model) {
-    orgPostProcessor.processOneOrgWithoutActivity(model.data.organization);
+    orgPostProcessor.processOneOrgModelCard(model.data.organization);
     usersPostProcessor.processModelAuthorForListEntity(model.data.User);
     usersPostProcessor.processModelAuthorForListEntity(model.target_entity.User);
   }
@@ -69,7 +69,7 @@ class ApiPostProcessor {
    */
   static processOneUserFollowsOrgNotification(model) {
     usersPostProcessor.processModelAuthorForListEntity(model.data.User);
-    orgPostProcessor.processOneOrgWithoutActivity(model.target_entity.organization);
+    orgPostProcessor.processOneOrgModelCard(model.target_entity.organization);
   }
 
   /**
@@ -115,7 +115,7 @@ class ApiPostProcessor {
     usersPostProcessor.processModelAuthorForListEntity(model.target_entity.comment.User);
     this.processOnePostItselfForList(model.target_entity.comment.post);
 
-    orgPostProcessor.processOneOrgWithoutActivity(model.target_entity.comment.organization);
+    orgPostProcessor.processOneOrgModelCard(model.target_entity.comment.organization);
   }
 
   /**
@@ -140,7 +140,7 @@ class ApiPostProcessor {
 
     this.processOnePostItselfForList(model.target_entity.post);
     usersPostProcessor.processModelAuthorForListEntity(model.target_entity.post.User);
-    orgPostProcessor.processOneOrgWithoutActivity(model.target_entity.post.organization);
+    orgPostProcessor.processOneOrgModelCard(model.target_entity.post.organization);
   }
 
   /**
@@ -153,7 +153,7 @@ class ApiPostProcessor {
     this.processOnePostItselfForList(model.target_entity.post);
     usersPostProcessor.processModelAuthorForListEntity(model.target_entity.post.User);
 
-    orgPostProcessor.processOneOrgWithoutActivity(model.target_entity.post.organization);
+    orgPostProcessor.processOneOrgModelCard(model.target_entity.post.organization);
   }
 
   /**
@@ -179,7 +179,7 @@ class ApiPostProcessor {
     this.processOnePostItselfForList(model.data.comment.post);
 
     this.processOnePostForList(model.target_entity.post); // This also process User
-    orgPostProcessor.processOneOrgWithoutActivity(model.target_entity.post.organization);
+    orgPostProcessor.processOneOrgModelCard(model.target_entity.post.organization);
   }
 
   /**
@@ -192,7 +192,7 @@ class ApiPostProcessor {
 
     commentsPostProcessor.processManyComments([model.target_entity.comment]);
     usersPostProcessor.processModelAuthorForListEntity(model.target_entity.comment.User);
-    orgPostProcessor.processOneOrgWithoutActivity(model.target_entity.comment.organization);
+    orgPostProcessor.processOneOrgModelCard(model.target_entity.comment.organization);
   }
 
   /**
@@ -235,7 +235,7 @@ class ApiPostProcessor {
   static processUserCreatesDirectPostForOrg(model) {
     this.processOnePostForList(model.data.post); // This also process User
 
-    orgPostProcessor.processOneOrgWithoutActivity(model.target_entity.organization);
+    orgPostProcessor.processOneOrgModelCard(model.target_entity.organization);
     usersPostProcessor.processModelAuthorForListEntity(model.target_entity.organization.User);
   }
 
@@ -291,7 +291,7 @@ class ApiPostProcessor {
     posts: PostModelResponse[],
     currentUserId: number | null,
     userActivity: any,
-  ) {
+  ): PostModelResponse[] {
     for (let i = 0; i < posts.length; i += 1) {
       const post = posts[i];
       this.processOnePostForList(post, currentUserId, userActivity);
@@ -329,7 +329,7 @@ class ApiPostProcessor {
     }
 
     if (post.organization) {
-      orgPostProcessor.processOneOrgWithoutActivity(post.organization);
+      orgPostProcessor.processOneOrgModelCard(post.organization);
     }
     postsPostProcessor.processPostInCommon(post);
 
@@ -425,7 +425,7 @@ class ApiPostProcessor {
       usersPostProcessor.processModelAuthorForListEntity(comment.User);
 
       if (comment.organization) {
-        orgPostProcessor.processOneOrgWithoutActivity(comment.organization);
+        orgPostProcessor.processOneOrgModelCard(comment.organization);
       }
     });
 

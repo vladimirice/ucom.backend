@@ -9,6 +9,7 @@ import OrganizationsGenerator = require('../../generators/organizations-generato
 import PostsGenerator = require('../../generators/posts-generator');
 import CommentsGenerator = require('../../generators/comments-generator');
 import ActivityHelper = require('../helpers/activity-helper');
+import CommonHelper = require('../helpers/common-helper');
 
 const mockHelper = require('../helpers/mock-helper.ts');
 const seedsHelper = require('../helpers/seeds-helper.ts');
@@ -100,6 +101,8 @@ describe('#feeds myself news feed. #graphql', () => {
         expect(model.organization_id).toBe(+orgId);
         OrganizationsHelper.checkOneOrganizationPreviewFields(model.organization);
       }
+
+      CommonHelper.checkPostListResponseWithoutOrg(response, true, false);
     }, JEST_TIMEOUT);
   });
 });

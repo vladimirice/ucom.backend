@@ -1,5 +1,5 @@
 import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
-import { OrgModel, OrgModelCard } from '../interfaces/model-interfaces';
+import { OrgIdToOrgModelCard, OrgModel, OrgModelCard } from '../interfaces/model-interfaces';
 
 import OrganizationsRepository = require('../repository/organizations-repository');
 import OrganizationPostProcessor = require('./organization-post-processor');
@@ -54,9 +54,20 @@ class OrganizationsFetchService {
       return null;
     }
 
-    OrganizationPostProcessor.processOneOrgWithoutActivity(model);
+    OrganizationPostProcessor.processOneOrgModelCard(model);
 
     return model;
+  }
+
+  public static async findManyAndProcessForCard(
+    modelsIds: number[],
+  ): Promise<OrgIdToOrgModelCard> {
+    const modelsSet: OrgIdToOrgModelCard =
+      await OrganizationsRepository.findManyOrgsByIdForCard(modelsIds);
+
+    OrganizationPostProcessor.processOrgIdToOrgModelCard(modelsSet);
+
+    return modelsSet;
   }
 
   private static async findAndProcessAllByParams(

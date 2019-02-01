@@ -1,27 +1,25 @@
+import RequestHelper = require('./request-helper');
+import ResponseHelper = require('./response-helper');
+
+const eosJsEcc = require('eosjs-ecc');
+
+const request = require('supertest');
 const usersSeeds = require('../../../seeders/users/users');
 const accountsData = require('../../../config/accounts-data');
 
 const authService = require('../../../lib/auth/authService');
 const usersRepository = require('../../../lib/users/users-repository');
-const requestHelper = require('../helpers/request-helper');
-const responseHelper = require('../helpers/response-helper');
 const eosImportance = require('../../../lib/eos/eos-importance');
-const request = require('supertest');
 const server = require('../../../app');
 
 const usersTeamRepository = require('../../../lib/users/repository').UsersTeam;
 const orgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
 
-const eosJsEcc = require('eosjs-ecc');
-
 const eosApi = require('../../../lib/eos/eosApi');
-
-const _ = require('lodash');
 
 require('jest-expect-message');
 
 class UsersHelper {
-
   /**
    *
    * @param {number} orgId
@@ -48,7 +46,7 @@ class UsersHelper {
 
     const sign = eosJsEcc.sign(accountName, privateActiveKey);
 
-    const url = requestHelper.getRegistrationRoute();
+    const url = RequestHelper.getRegistrationRoute();
 
     const fields = {
       sign,
@@ -57,7 +55,7 @@ class UsersHelper {
       brainkey: brainKey,
     };
 
-    const res = await requestHelper.makePostGuestRequestWithFields(url, fields);
+    const res = await RequestHelper.makePostGuestRequestWithFields(url, fields);
 
     if (res.status !== 201) {
       throw new Error(`There is an error during request. Body is: ${JSON.stringify(res.body)}`);
@@ -88,18 +86,18 @@ class UsersHelper {
    *
    */
   static async requestToUpdateMyself(myself, fieldsToChange, expectedStatus = 200) {
-    const url = requestHelper.getMyselfUrl();
+    const url = RequestHelper.getMyselfUrl();
 
     const req = request(server)
       .patch(url)
     ;
 
-    requestHelper.addAuthToken(req, myself);
-    requestHelper.addFieldsToRequest(req, fieldsToChange);
+    RequestHelper.addAuthToken(req, myself);
+    RequestHelper.addFieldsToRequest(req, fieldsToChange);
 
     const res = await req;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -121,16 +119,16 @@ class UsersHelper {
     expectedStatus = 200,
     allowEmpty = false,
   ) {
-    const url = requestHelper.getOneUserWallFeed(wallOwner.id) + query;
+    const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
 
     const res = await request(server)
       .get(url)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
-      responseHelper.expectValidListResponse(res, allowEmpty);
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
     }
 
     if (dataOnly) {
@@ -156,17 +154,17 @@ class UsersHelper {
     expectedStatus = 200,
     allowEmpty = false,
   ) {
-    const url = `${requestHelper.getMyselfNewsFeedUrl()}/${queryString}`;
+    const url = `${RequestHelper.getMyselfNewsFeedUrl()}/${queryString}`;
 
     const res = await request(server)
       .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
-      responseHelper.expectValidListResponse(res, allowEmpty);
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
     }
 
     if (dataOnly) {
@@ -195,17 +193,17 @@ class UsersHelper {
     expectedStatus = 200,
     allowEmpty = false,
   ) {
-    const url = requestHelper.getOneUserWallFeed(wallOwner.id) + query;
+    const url = RequestHelper.getOneUserWallFeed(wallOwner.id) + query;
 
     const res = await request(server)
       .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
-      responseHelper.expectValidListResponse(res, allowEmpty);
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
     }
 
     if (dataOnly) {
@@ -228,9 +226,8 @@ class UsersHelper {
     expect(typeof model.User.current_rate, 'It seems user is not post-processed')
       .not.toBe('string');
 
-    const expected = givenExpected ?
-      givenExpected : usersRepository.getModel().getFieldsForPreview().sort();
-    responseHelper.expectAllFieldsExistence(model.User, expected);
+    const expected = givenExpected || usersRepository.getModel().getFieldsForPreview().sort();
+    ResponseHelper.expectAllFieldsExistence(model.User, expected);
   }
 
   /**
@@ -247,15 +244,15 @@ class UsersHelper {
       .not.toBe('string');
     let expected = usersRepository.getModel().getFieldsForPreview().sort();
 
-    if (options.myselfData) {
-      expected = _.concat(expected, [
+    if ((options.myselfData && !options.author) || (options.author && options.author.myselfData)) {
+      expected = Array.prototype.concat(expected, [
         'I_follow', // #task not required for entity page if not user himself
         'followed_by', // #task not required for entity page if not user himself
         'myselfData',
       ]);
     }
 
-    responseHelper.expectAllFieldsExistence(model.User, expected);
+    ResponseHelper.expectAllFieldsExistence(model.User, expected);
   }
 
   /**
@@ -285,7 +282,6 @@ class UsersHelper {
    * @returns {Promise<number>}
    */
   static async setSampleRateToUser(user, rateToSet = 0.1235) {
-
     await usersRepository.getModel().update(
       {
         current_rate: rateToSet,
@@ -310,10 +306,10 @@ class UsersHelper {
    */
   static async requestToGetUserAsGuest(userId) {
     const res = await request(server)
-      .get(requestHelper.getUserUrl(userId))
+      .get(RequestHelper.getUserUrl(userId))
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -328,13 +324,12 @@ class UsersHelper {
       .get(`/api/v1/users/${userId}`)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
 
   static validateUserJson(body, expectedUser, userFromDb) {
-
     expect(body.hasOwnProperty('account_name')).toBeTruthy();
     expect(body.account_name).toBe(expectedUser.account_name);
 
@@ -389,11 +384,11 @@ class UsersHelper {
    */
   static async requestUserListByMyself(user) {
     const res = await request(server)
-      .get(requestHelper.getUsersUrl())
+      .get(RequestHelper.getUsersUrl())
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -402,14 +397,14 @@ class UsersHelper {
    * @returns {Promise<Object[]>}
    */
   static async requestUserListAsGuest(queryString = '', allowEmpty = false) {
-    const url = requestHelper.getUsersUrl() + queryString;
+    const url = RequestHelper.getUsersUrl() + queryString;
 
     const res = await request(server)
       .get(url)
     ;
 
-    responseHelper.expectStatusOk(res);
-    responseHelper.expectValidListResponse(res, allowEmpty);
+    ResponseHelper.expectStatusOk(res);
+    ResponseHelper.expectValidListResponse(res, allowEmpty);
 
     return res.body.data;
   }
@@ -495,6 +490,7 @@ class UsersHelper {
   static getUserJaneSeed() {
     return usersSeeds[1];
   }
+
   static getUserPetrSeed() {
     return usersSeeds[2];
   }

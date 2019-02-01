@@ -1,5 +1,6 @@
-import {UserModel} from "../../../lib/users/interfaces/model-interfaces";
-import { PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 
 const request = require('supertest');
 const server = require('../../../app');
@@ -15,7 +16,6 @@ const postsModelProvider = require('../../../lib/posts/service/posts-model-provi
 require('jest-expect-message');
 
 class PostsHelper {
-
   /**
    *
    * @param {number} postId
@@ -49,7 +49,6 @@ class PostsHelper {
     fieldsToChange: any = null,
     expectedStatus = 200,
   ) {
-
     const toChange = fieldsToChange || {
       title: 'This is title to change',
       description: 'Also necessary to change description',
@@ -92,10 +91,10 @@ class PostsHelper {
     const res = await request(server)
       .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title', newPostFields['title'])
-      .field('description', newPostFields['description'])
-      .field('post_type_id', newPostFields['post_type_id'])
-      .field('leading_text', newPostFields['leading_text'])
+      .field('title', newPostFields.title)
+      .field('description', newPostFields.description)
+      .field('post_type_id', newPostFields.post_type_id)
+      .field('leading_text', newPostFields.leading_text)
       .field('organization_id', orgId)
     ;
 
@@ -104,12 +103,10 @@ class PostsHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {Object} post
-   * @param {Object} options
-   */
-  static checkPostItselfCommonFields(post, options) {
+  static checkPostItselfCommonFields(
+    post: PostModelResponse,
+    options: CheckerOptions,
+  ): void {
     this.checkWrongPostProcessingSmell(post);
 
     expect(post.post_type_id).toBeTruthy();
@@ -139,7 +136,6 @@ class PostsHelper {
     expect(model.entity_images).toBeDefined();
 
     if (model.main_image_filename === null && model.entity_images === null) {
-
       return;
     }
 
@@ -345,6 +341,7 @@ class PostsHelper {
 
     return res.body;
   }
+
   /**
    * @deprecated
    * @see PostsGenerator
@@ -365,13 +362,13 @@ class PostsHelper {
     const res = await request(server)
       .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title',         newPostFields['title'])
-      .field('description',   newPostFields['description'])
-      .field('leading_text',  newPostFields['leading_text'])
-      .field('post_type_id',  newPostFields['post_type_id'])
-      .field('user_id',       newPostFields['user_id'])
-      .field('current_rate',  newPostFields['current_rate'])
-      .field('current_vote',  newPostFields['current_vote'])
+      .field('title',         newPostFields.title)
+      .field('description',   newPostFields.description)
+      .field('leading_text',  newPostFields.leading_text)
+      .field('post_type_id',  newPostFields.post_type_id)
+      .field('user_id',       newPostFields.user_id)
+      .field('current_rate',  newPostFields.current_rate)
+      .field('current_vote',  newPostFields.current_vote)
     ;
 
     responseHelper.expectStatusOk(res);
@@ -400,20 +397,21 @@ class PostsHelper {
     const res = await request(server)
       .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title',               newPostFields['title'])
-      .field('description',         newPostFields['description'])
-      .field('leading_text',        newPostFields['leading_text'])
-      .field('user_id',             newPostFields['user_id'])
-      .field('post_type_id',        newPostFields['post_type_id'])
-      .field('current_rate',        newPostFields['current_rate'])
-      .field('current_vote',        newPostFields['current_vote'])
-      .field('action_button_title', newPostFields['action_button_title'])
+      .field('title',               newPostFields.title)
+      .field('description',         newPostFields.description)
+      .field('leading_text',        newPostFields.leading_text)
+      .field('user_id',             newPostFields.user_id)
+      .field('post_type_id',        newPostFields.post_type_id)
+      .field('current_rate',        newPostFields.current_rate)
+      .field('current_vote',        newPostFields.current_vote)
+      .field('action_button_title', newPostFields.action_button_title)
     ;
 
     responseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
+
   /**
    * @deprecated
    * @see PostsGenerator
@@ -438,15 +436,15 @@ class PostsHelper {
     const res = await request(server)
       .post(requestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
-      .field('title',               newPostFields['title'])
-      .field('description',         newPostFields['description'])
-      .field('leading_text',        newPostFields['leading_text'])
-      .field('user_id',             newPostFields['user_id'])
-      .field('post_type_id',        newPostFields['post_type_id'])
-      .field('current_rate',        newPostFields['current_rate'])
-      .field('current_vote',        newPostFields['current_vote'])
-      .field('action_button_title', newPostFields['action_button_title'])
-      .field('organization_id',     newPostFields['organization_id'])
+      .field('title',               newPostFields.title)
+      .field('description',         newPostFields.description)
+      .field('leading_text',        newPostFields.leading_text)
+      .field('user_id',             newPostFields.user_id)
+      .field('post_type_id',        newPostFields.post_type_id)
+      .field('current_rate',        newPostFields.current_rate)
+      .field('current_vote',        newPostFields.current_vote)
+      .field('action_button_title', newPostFields.action_button_title)
+      .field('organization_id',     newPostFields.organization_id)
     ;
 
     responseHelper.expectStatusOk(res);
@@ -465,8 +463,7 @@ class PostsHelper {
     toUpdate[fieldToBeNull] = null;
 
     await postRepository.getModel().update(toUpdate,
-                                           { where: { id: postId } },
-    );
+      { where: { id: postId } });
   }
 
   static validateDbEntity(expected, actual) {
@@ -491,7 +488,7 @@ class PostsHelper {
   }
 
   static validatePatchResponse(res, expected) {
-    const body = res.body;
+    const { body } = res;
 
     expect(body.post_id).toBeDefined();
     expect(body.post_id).toBe(expected.id);
@@ -511,7 +508,6 @@ class PostsHelper {
         post_id: postId,
       },
     });
-
   }
 
   /**
@@ -569,7 +565,6 @@ class PostsHelper {
    * @returns {Promise<Object[]>}
    */
   static async requestToGetManyPostsAsMyself(myself, queryString = null) {
-
     let url = requestHelper.getPostsUrl();
 
     if (queryString) {
@@ -653,17 +648,15 @@ class PostsHelper {
    * @returns {Promise<Object>}
    */
   static async requestToSetPostTeam(postId, user, teamUsers) {
-    const boardToChange = teamUsers.map((user) => {
-      return {
-        user_id: user.id,
-      };
-    });
+    const boardToChange = teamUsers.map(user => ({
+      user_id: user.id,
+    }));
 
     const res = await request(server)
       .patch(requestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
-      .field('post_users_team[0][id]', boardToChange[0]['user_id'])
-      .field('post_users_team[1][id]', boardToChange[1]['user_id'])
+      .field('post_users_team[0][id]', boardToChange[0].user_id)
+      .field('post_users_team[1][id]', boardToChange[1].user_id)
     ;
 
     responseHelper.expectStatusOk(res);
@@ -758,7 +751,6 @@ class PostsHelper {
 
   // noinspection JSUnusedGlobalSymbols
   static validateResponseJson(actual, expected) {
-
     expect(actual.hasOwnProperty('title')).toBeTruthy();
     expect(actual.title).toBe(expected.title);
 

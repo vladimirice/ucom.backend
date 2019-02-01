@@ -1,5 +1,7 @@
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
+import CommonHelper = require('../helpers/common-helper');
+
 const mockHelper = require('../helpers/mock-helper.ts');
 
 const postsGenerator = require('../../generators/posts-generator.ts');
@@ -108,14 +110,6 @@ describe('#Feeds #GraphQL', () => {
       );
       const { data } = response;
 
-      const options = {
-        myselfData: true,
-        postProcessing: 'list',
-        comments: true,
-        commentsMetadataExistence: true,
-        commentItselfMetadata: true,
-      };
-
       const postOne = data.find(item => item.id === postOneId)!;
 
       // Only first level comments (depth = 0)
@@ -144,11 +138,7 @@ describe('#Feeds #GraphQL', () => {
       expect(commentWithoutComment.metadata).toBeDefined();
       expect(commentWithoutComment.metadata.next_depth_total_amount).toBe(0);
 
-      await commonHelper.checkPostsListFromApi(
-        data,
-        promisesToCreatePosts.length,
-        options,
-      );
+      CommonHelper.checkPostListResponseWithoutOrg(response, true, false);
     }, JEST_TIMEOUT);
   });
 });

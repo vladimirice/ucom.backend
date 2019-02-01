@@ -1,4 +1,5 @@
-import { UserModel } from './interfaces/model-interfaces';
+import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
+import { OrgModel } from '../organizations/interfaces/model-interfaces';
 
 const _ = require('lodash');
 
@@ -224,6 +225,28 @@ class UsersRepository {
         id: userId,
       },
     });
+  }
+
+  static async findManyUsersByIdForCard(ids: number[]): Promise<UserIdToUserModelCard> {
+    // noinspection TypeScriptValidateJSTypes
+    const data: OrgModel[] = await this.getModel().findAll({
+      attributes: this.getModel().getFieldsForPreview(),
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      raw: true,
+    });
+
+    const res: UserIdToUserModelCard = {};
+
+    data.forEach((item) => {
+      // @ts-ignore
+      res[item.id] = item;
+    });
+
+    return res;
   }
 
   static async findOneByIdForPreview(id: number): Promise<UserModel | null> {

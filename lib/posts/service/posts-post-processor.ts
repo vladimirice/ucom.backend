@@ -1,5 +1,7 @@
+import { PostModelResponse } from '../interfaces/model-interfaces';
+
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const postsModelProvider = require('./posts-model-provider');
-const ContentTypeDictionary = require('ucom-libs-social-transactions').ContentTypeDictionary;
 
 class PostsPostProcessor {
   /**
@@ -8,6 +10,7 @@ class PostsPostProcessor {
    */
   static processPostInCommon(post) {
     this.flattenPostStats(post);
+    this.makeFieldsNumeric(post);
 
     switch (post.post_type_id) {
       case ContentTypeDictionary.getTypeDirectPost():
@@ -21,6 +24,16 @@ class PostsPostProcessor {
     }
   }
 
+  private static makeFieldsNumeric(post: PostModelResponse): void {
+    const arr = [
+      'entity_id_for',
+    ];
+
+    arr.forEach((item) => {
+      post[item] = +post[item];
+    });
+  }
+
   /**
    *
    * @param {Object} post
@@ -29,6 +42,7 @@ class PostsPostProcessor {
   private static flattenPostStats(post) {
     const postStats = post.post_stats;
 
+    // eslint-disable-next-line guard-for-in
     for (const field in postStats) {
       if (post.hasOwnProperty(field)) {
         throw new Error(`Post itself has field ${field} but it must be taken from postStats`);

@@ -1,10 +1,14 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
-import { PostModel, PostModelResponse, PostRequestQueryDto, PostsListResponse } from '../interfaces/model-interfaces';
+import {
+  PostModel, PostModelResponse, PostRequestQueryDto, PostsListResponse,
+} from '../interfaces/model-interfaces';
 import { ApiLogger } from '../../../config/winston';
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+import { AppError } from '../../api/errors';
+import { OrgModelCard } from '../../organizations/interfaces/model-interfaces';
+import { UserIdToUserModelCard, UserModel } from '../../users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
 import PostsRepository = require('../posts-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
@@ -12,11 +16,8 @@ import UsersFeedRepository = require('../../common/repository/users-feed-reposit
 import ApiPostProcessor = require('../../common/service/api-post-processor');
 import UsersModelProvider = require('../../users/users-model-provider');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
-import { AppError } from '../../api/errors';
 import OrganizationsFetchService = require('../../organizations/service/organizations-fetch-service');
-import { OrgModelCard } from '../../organizations/interfaces/model-interfaces';
 import UsersFetchService = require('../../users/service/users-fetch-service');
-import { UserModel } from '../../users/interfaces/model-interfaces';
 
 const queryFilterService  = require('../../api/filters/query-filter-service');
 
@@ -199,10 +200,6 @@ class PostsFetchService {
   private static async getEntityFor(
     post: PostModel,
   ): Promise<OrgModelCard | UserModel | null> {
-    if (post.post_type_id !== ContentTypeDictionary.getTypeDirectPost()) {
-      return null;
-    }
-
     switch (post.entity_name_for) {
       case UsersModelProvider.getEntityName():
         return UsersFetchService.findOneAndProcessForCard(post.entity_id_for);
@@ -289,13 +286,102 @@ class PostsFetchService {
       );
     }
 
-    const data      = ApiPostProcessor.processManyPosts(posts, currentUserId, userActivity);
+    const data = ApiPostProcessor.processManyPosts(posts, currentUserId, userActivity);
+
+    // #task - maybe use JOIN instead (knex and good hydration is required) or provide Card REDIS caching
+    const postIdToEntityForCard = await this.getPostIdToEntityForCard(posts);
+    data.forEach((post) => {
+      if (postIdToEntityForCard[post.id]) {
+        post.entity_for_card = postIdToEntityForCard[post.id];
+      } else {
+        ApiLogger.error(`there is no entityForCard record for post: ${JSON.stringify(post)}. Skipped...`);
+      }
+    });
+
     const metadata  = queryFilterService.getMetadata(totalAmount, query, params);
 
     return {
       data,
       metadata,
     };
+  }
+
+  private static async getPostIdToEntityForCard(
+    posts: PostModelResponse[],
+  ): Promise<{[index: number]: OrgModelCard | UserModel}> {
+    const entityIdForParams =  this.getEntityIdForParams(posts);
+
+    const orgIds = entityIdForParams[OrganizationsModelProvider.getEntityName()].ids;
+    delete entityIdForParams[OrganizationsModelProvider.getEntityName()].ids;
+
+    const usersIds = entityIdForParams[UsersModelProvider.getEntityName()].ids;
+    delete entityIdForParams[OrganizationsModelProvider.getEntityName()].ids;
+
+    const postIdToEntityCard = {};
+
+    if (usersIds.length > 0) {
+      const users: UserIdToUserModelCard =
+        await UsersFetchService.findManyAndProcessForCard(usersIds);
+      for (const postId in entityIdForParams[UsersModelProvider.getEntityName()]) {
+        if (!entityIdForParams[UsersModelProvider.getEntityName()].hasOwnProperty(postId)) {
+          continue;
+        }
+
+        const userId: number = entityIdForParams[UsersModelProvider.getEntityName()][postId];
+        postIdToEntityCard[postId] = users[userId];
+      }
+    }
+
+    if (orgIds.length > 0) {
+      const orgs = await OrganizationsFetchService.findManyAndProcessForCard(orgIds);
+      for (const postId in entityIdForParams[OrganizationsModelProvider.getEntityName()]) {
+        if (!entityIdForParams[OrganizationsModelProvider.getEntityName()].hasOwnProperty(postId)) {
+          continue;
+        }
+
+        const orgId: number = entityIdForParams[OrganizationsModelProvider.getEntityName()][postId];
+        postIdToEntityCard[postId] = orgs[orgId];
+      }
+    }
+
+    return postIdToEntityCard;
+  }
+
+  private static getEntityIdForParams(
+    posts: PostModelResponse[],
+  ): StringToAnyCollection {
+    const expectedEntityNameFor = [
+      OrganizationsModelProvider.getEntityName(),
+      UsersModelProvider.getEntityName(),
+    ];
+
+    const res = {
+      [OrganizationsModelProvider.getEntityName()]: {
+        ids: [],
+      },
+      [UsersModelProvider.getEntityName()]: {
+        ids: [],
+      },
+    };
+
+    posts.forEach((post) => {
+      if (!post.entity_name_for || !(~expectedEntityNameFor.indexOf(post.entity_name_for))) {
+        throw new AppError(`Unsupported entity_name_for: ${post.entity_name_for}. Processed post body: ${JSON.stringify(post)}`, 500);
+      }
+
+      const entityNameFor: string = post.entity_name_for;
+      res[entityNameFor][post.id] = +post.entity_id_for;
+      // @ts-ignore
+      res[entityNameFor].ids.push(+post.entity_id_for);
+    });
+
+    res[OrganizationsModelProvider.getEntityName()].ids =
+      [...new Set(res[OrganizationsModelProvider.getEntityName()].ids)];
+
+    res[UsersModelProvider.getEntityName()].ids =
+      [...new Set(res[UsersModelProvider.getEntityName()].ids)];
+
+    return res;
   }
 
   private static async addCommentsToPosts(

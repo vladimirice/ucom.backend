@@ -1,14 +1,14 @@
-import { UserModel } from '../interfaces/model-interfaces';
+import { UserIdToUserModelCard, UserModel } from '../interfaces/model-interfaces';
 
 import UsersRepository = require('../users-repository');
 
 import UserPostProcessor = require('../user-post-processor');
+import ApiPostProcessor = require('../../common/service/api-post-processor');
 
 const usersRepository       = require('../users-repository');
 const queryFilterService    = require('../../api/filters/query-filter-service');
 const usersActivityService  = require('../user-activity-service');
 const userPostProcessor     = require('../user-post-processor');
-const apiPostProcessor      = require('../../common/service').PostProcessor;
 
 class UsersFetchService {
   static async findOneAndProcessForCard(
@@ -23,6 +23,17 @@ class UsersFetchService {
     UserPostProcessor.processOnlyUserItself(model);
 
     return model;
+  }
+
+  public static async findManyAndProcessForCard(
+    usersIds: number[],
+  ): Promise<UserIdToUserModelCard> {
+    const modelsSet: UserIdToUserModelCard =
+      await UsersRepository.findManyUsersByIdForCard(usersIds);
+
+    UserPostProcessor.processUserIdToUserModelCard(modelsSet);
+
+    return modelsSet;
   }
 
   /**
@@ -47,7 +58,7 @@ class UsersFetchService {
       userPostProcessor.addMyselfDataByActivityArrays(models, activityData);
     }
 
-    apiPostProcessor.processUsersAfterQuery(models);
+    ApiPostProcessor.processUsersAfterQuery(models);
     const metadata = queryFilterService.getMetadata(totalAmount, query, params);
 
     if (query.v2) {
@@ -83,7 +94,7 @@ class UsersFetchService {
       userPostProcessor.addMyselfDataByActivityArrays(models, activityData);
     }
 
-    apiPostProcessor.processUsersAfterQuery(models);
+    ApiPostProcessor.processUsersAfterQuery(models);
     const metadata = queryFilterService.getMetadata(totalAmount, query, params);
 
     if (query.v2) {

@@ -1,8 +1,8 @@
 import { MyselfDataDto } from '../common/interfaces/post-processing-dto';
-import { UserModel } from './interfaces/model-interfaces';
+import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
 
-const eosImportance = require('../eos/eos-importance');
 const _ = require('lodash');
+const eosImportance = require('../eos/eos-importance');
 
 const usersRepository = require('./users-repository');
 
@@ -87,6 +87,16 @@ class UserPostProcessor {
     this.processFollowers(user);
   }
 
+
+  public static processUserIdToUserModelCard(modelsSet: UserIdToUserModelCard): void {
+    for (const userId in modelsSet) {
+      if (modelsSet.hasOwnProperty(userId)) {
+        const model = modelsSet[userId];
+        this.processOnlyUserItself(model);
+      }
+    }
+  }
+
   public static processOnlyUserItself(user: UserModel): void {
     this.normalizeMultiplier(user);
     this.deleteSensitiveData(user);
@@ -101,8 +111,8 @@ class UserPostProcessor {
   private static addIFollowAndMyFollowers(user, activityData) {
     const attributesToPick = usersRepository.getModel().getFieldsForPreview();
 
-    user['I_follow'] = [];
-    user['followed_by'] = [];
+    user.I_follow = [];
+    user.followed_by = [];
 
     activityData.forEach((activity) => {
       const data = _.pick(activity, attributesToPick);
@@ -169,14 +179,14 @@ class UserPostProcessor {
    * @private
    */
   private static processFollowers(user) {
-    if (user['I_follow']) {
-      user['I_follow'].forEach((follower) => {
+    if (user.I_follow) {
+      user.I_follow.forEach((follower) => {
         this.normalizeMultiplier(follower);
       });
     }
 
-    if (user['followed_by']) {
-      user['followed_by'].forEach((follower) => {
+    if (user.followed_by) {
+      user.followed_by.forEach((follower) => {
         this.normalizeMultiplier(follower);
       });
     }
@@ -216,7 +226,7 @@ class UserPostProcessor {
 
     const multiplier = eosImportance.getImportanceMultiplier();
 
-    user.current_rate = (user.current_rate * multiplier);
+    user.current_rate *= multiplier;
 
     user.current_rate = +user.current_rate.toFixed();
   }

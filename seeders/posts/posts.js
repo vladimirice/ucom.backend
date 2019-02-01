@@ -16,10 +16,12 @@ const seeds = [
     entity_images: {
       article_title: [
         {
-          url: 'http://localhost:3000/upload/sample_filename_1.jpg'
-        }
-      ]
-    }
+          url: 'http://localhost:3000/upload/sample_filename_1.jpg',
+        },
+      ],
+    },
+    entity_id_for: 1,
+    entity_name_for: 'org       ',
   },
   {
     // id: 2
@@ -38,10 +40,12 @@ const seeds = [
     entity_images: {
       article_title: [
         {
-          url: 'http://localhost:3000/upload/sample_filename_2.jpg'
-        }
-      ]
-    }
+          url: 'http://localhost:3000/upload/sample_filename_2.jpg',
+        },
+      ],
+    },
+    entity_id_for: 1,
+    entity_name_for: 'org       ',
   },
   {
     // id: 3
@@ -59,10 +63,12 @@ const seeds = [
     entity_images: {
       article_title: [
         {
-          url: 'http://localhost:3000/upload/sample_filename_3.jpg'
-        }
-      ]
-    }
+          url: 'http://localhost:3000/upload/sample_filename_3.jpg',
+        },
+      ],
+    },
+    entity_id_for: 2,
+    entity_name_for: 'users     ',
   },
   {
     // id: 4
@@ -80,10 +86,12 @@ const seeds = [
     entity_images: {
       article_title: [
         {
-          url: 'http://localhost:3000/upload/sample_filename_4.jpg'
-        }
-      ]
-    }
+          url: 'http://localhost:3000/upload/sample_filename_4.jpg',
+        },
+      ],
+    },
+    entity_id_for: 2,
+    entity_name_for: 'users     ',
   },
   {
     // id: 5
@@ -101,11 +109,13 @@ const seeds = [
     entity_images: {
       article_title: [
         {
-          url: 'http://localhost:3000/upload/sample_filename_5.jpg'
-        }
-      ]
-    }
-  }
+          url: 'http://localhost:3000/upload/sample_filename_5.jpg',
+        },
+      ],
+    },
+    entity_id_for: 1,
+    entity_name_for: 'users     ',
+  },
 ];
 
 module.exports = seeds;

@@ -8,6 +8,10 @@ interface OrgModel {
   [index: string]: any;
 }
 
+interface OrgIdToOrgModelCard {
+  [index: number]: OrgModelCard;
+}
+
 interface OrgModelCard {
   [index: string]: any;
 }
@@ -30,4 +34,5 @@ export {
   OrgModelResponse,
   OrgModelMyselfResponse,
   OrgModelCard,
+  OrgIdToOrgModelCard,
 };
