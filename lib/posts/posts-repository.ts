@@ -352,6 +352,7 @@ class PostsRepository {
         usersModelProvider.getIncludeAuthorForPreview(),
         postsModelProvider.getPostsStatsInclude(),
         postsModelProvider.getPostOfferItselfInclude(),
+        postsModelProvider.getParentPostInclude(),
         {
           attributes: ['upvote_delta', 'importance_delta'],
           model: entityStatsCurrentModel,

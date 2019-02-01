@@ -122,6 +122,7 @@ class PostsHelper {
         this.checkDirectPostItself(post, options);
         break;
       case contentTypeDictionary.getTypeRepost():
+        // #task - check repost itself fields
         break;
       default:
         throw new Error(`Unsupported post_type_id ${post.post_type_id}`);

@@ -40,13 +40,6 @@ describe('Get One media post #graphql', () => {
   });
 
   describe('Positive', () => {
-    it('Get one direct post as myself. #smoke #posts #direct-post', async () => {
-      const { repostId } = await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
-      const post: PostModelResponse = await GraphqlHelper.getOnePostAsMyself(userVlad, repostId);
-
-      CommonHelper.checkOnePostV2WithoutOrg(post, true, false, true);
-    });
-
     it('Get one media post WITHOUT comments as myself. #smoke #myself #media-post', async () => {
       const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 

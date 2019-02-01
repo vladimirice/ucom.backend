@@ -1,7 +1,7 @@
 export {};
 
-const helpers = require('../helpers');
 const delay = require('delay');
+const helpers = require('../helpers');
 const gen     = require('../../generators');
 
 const usersActivityRepository = require('../../../lib/users/repository').Activity;
@@ -49,9 +49,9 @@ describe('Posts related blockchain transactions.', () => {
         helpers.EosTransaction.getPartOfSignedUserCreatesRepost(repostAuthor.account_name);
       const expectedBlockchainResponse  =
         helpers.EosTransaction.getPartOfBlockchainResponseOnUserCreatesRepost(
-        repostAuthor.account_name,
-        parentPost.blockchain_id,
-      );
+          repostAuthor.account_name,
+          parentPost.blockchain_id,
+        );
 
       expect(JSON.parse(activity.signed_transaction)).toMatchObject(expectedSignedTransaction);
       expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedBlockchainResponse);
@@ -99,7 +99,6 @@ describe('Posts related blockchain transactions.', () => {
   describe('Organization posting related transactions', () => {
     describe('Positive scenarios', () => {
       it('should create and process new organization media post transaction', async () => {
-
         const user = userVlad;
         const orgId = 1;
         let activity: any = null;
@@ -123,7 +122,6 @@ describe('Posts related blockchain transactions.', () => {
   });
 
   describe('Posts activity transactions', () => {
-
     describe('Votes related transactions', () => {
       it('Jane upvotes Vlad posts', async () => {
         const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);

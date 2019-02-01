@@ -675,6 +675,8 @@ class CommonHelper {
     PostsHelper.checkPostItselfCommonFields(post, options);
     UsersHelper.checkIncludedUserForEntityPage(post, options);
 
+    this.checkPostTypeRelatedStructure(post, options);
+
     this.checkOnePostEntityForCard(post);
 
     this.checkMyselfData(post, options);
@@ -692,31 +694,13 @@ class CommonHelper {
     }
   }
 
-  private static checkOnePostEntityForCard(post: PostModelResponse): void {
-    expect(typeof post.entity_id_for).toBe('number');
-    expect(post.entity_id_for).toBeGreaterThan(0);
-    expect(_.isEmpty(post.entity_name_for)).toBeFalsy();
-    expect(_.isEmpty(post.entity_for_card)).toBeFalsy();
-
-    switch (post.entity_name_for) {
-      case OrganizationsModelProvider.getEntityName():
-        OrganizationsHelper.checkOneOrganizationCardStructure(post.entity_for_card);
-        break;
-      case UsersModelProvider.getEntityName():
-        UsersHelper.checkUserPreview(post.entity_for_card);
-        break;
-      default:
-        throw new Error(`Unsupported entity_name_for: ${post.entity_name_for}`);
-    }
-  }
-
   /**
    *
    * @param {Object} post
    * @param {Object} options
    * @param {boolean} isOrg
    */
-  static checkOneRepostForList(post, options, isOrg) {
+  public static checkOneRepostForList(post, options, isOrg) {
     expect(_.isEmpty(post)).toBeFalsy();
     expect(_.isEmpty(post.post)).toBeFalsy();
 
@@ -739,7 +723,7 @@ class CommonHelper {
    * @param {Object} post
    * @param {boolean} isOrg
    */
-  static checkOneRepostForNotification(post, isOrg) {
+  public static checkOneRepostForNotification(post, isOrg) {
     expect(_.isEmpty(post)).toBeFalsy();
 
     expect(post.user_id).toBeDefined();
@@ -761,7 +745,7 @@ class CommonHelper {
    * @param {Object} expectedValues
    * @param {Object} author
    */
-  static async checkDirectPostInDb(post, expectedValues = {}, author) {
+  public static async checkDirectPostInDb(post, expectedValues = {}, author) {
     await PostsHelper.expectPostDbValues(post, {
       post_type_id: ContentTypeDictionary.getTypeDirectPost(),
       user_id: author.id,
@@ -784,6 +768,37 @@ class CommonHelper {
       expect(post.myselfData.repost_available).toBeDefined();
     } else {
       expect(post.myselfData).not.toBeDefined();
+    }
+  }
+
+  private static checkPostTypeRelatedStructure(post: PostModelResponse, options) {
+    if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
+      expect(_.isEmpty(post.post)).toBeFalsy();
+
+      const postPostOptions = _.cloneDeep(options);
+      postPostOptions.model.myselfData = false;
+      postPostOptions.author.myselfData = false;
+      delete postPostOptions.comments;
+
+      this.checkOnePostV2(<PostModelResponse>post.post, postPostOptions);
+    }
+  }
+
+  private static checkOnePostEntityForCard(post: PostModelResponse): void {
+    expect(typeof post.entity_id_for).toBe('number');
+    expect(post.entity_id_for).toBeGreaterThan(0);
+    expect(_.isEmpty(post.entity_name_for)).toBeFalsy();
+    expect(_.isEmpty(post.entity_for_card)).toBeFalsy();
+
+    switch (post.entity_name_for) {
+      case OrganizationsModelProvider.getEntityName():
+        OrganizationsHelper.checkOneOrganizationCardStructure(post.entity_for_card);
+        break;
+      case UsersModelProvider.getEntityName():
+        UsersHelper.checkUserPreview(post.entity_for_card);
+        break;
+      default:
+        throw new Error(`Unsupported entity_name_for: ${post.entity_name_for}`);
     }
   }
 }

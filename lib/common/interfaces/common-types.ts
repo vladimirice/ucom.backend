@@ -14,9 +14,14 @@ interface NumberToAnyCollection {
   [index: number]: any;
 }
 
+interface IdOnlyDto {
+  readonly id: number;
+}
+
 export {
   StringToNumberCollection,
   StringToAnyCollection,
   NumberToNumberCollection,
   NumberToAnyCollection,
+  IdOnlyDto,
 };

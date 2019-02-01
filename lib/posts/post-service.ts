@@ -2,6 +2,7 @@
 /* tslint:disable:max-line-length no-parameter-reassignment */
 import { PostModelResponse } from './interfaces/model-interfaces';
 import { RequestQueryDto } from '../api/filters/interfaces/query-filter-interfaces';
+import { IdOnlyDto } from '../common/interfaces/common-types';
 
 import PostsFetchService = require('./service/posts-fetch-service');
 
@@ -215,7 +216,7 @@ class PostService {
    * @param {number} postId
    * @return {Promise<Object>}
    */
-  async processRepostCreation(givenBody, postId) {
+  async processRepostCreation(givenBody, postId): Promise<IdOnlyDto> {
     const { user } = this.currentUser;
 
     return postCreatorService.processRepostCreation(givenBody, postId, user);

@@ -19,6 +19,8 @@ import OrganizationsModelProvider = require('../../organizations/service/organiz
 import OrganizationsFetchService = require('../../organizations/service/organizations-fetch-service');
 import UsersFetchService = require('../../users/service/users-fetch-service');
 
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+
 const queryFilterService  = require('../../api/filters/query-filter-service');
 
 const usersActivityRepository    = require('../../users/repository/users-activity-repository');
@@ -46,6 +48,8 @@ class PostsFetchService {
     if (entityFor) {
       post.entity_for_card = await this.getEntityFor(post);
     }
+
+    await this.processEntityForCardForRepost(post);
 
     let userToUserActivity = null;
     let currentUserPostActivity: any = null;
@@ -83,6 +87,8 @@ class PostsFetchService {
     if (entityFor) {
       post.entity_for_card = await this.getEntityFor(post);
     }
+
+    await this.processEntityForCardForRepost(post);
 
     let userToUserActivity = null;
     let currentUserPostActivity: any = null;
@@ -197,6 +203,15 @@ class PostsFetchService {
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
   }
 
+  private static async processEntityForCardForRepost(post: PostModelResponse): Promise<void> {
+    // #task - it is not optimal. Here is N+1 problem. it is required to use JOIN or REDIS cache
+    if (post.post_type_id !== ContentTypeDictionary.getTypeRepost()) {
+      return;
+    }
+
+    post.post!.entity_for_card = await this.getEntityFor(post.post!);
+  }
+
   private static async getEntityFor(
     post: PostModel,
   ): Promise<OrgModelCard | UserModel | null> {
@@ -297,6 +312,10 @@ class PostsFetchService {
         ApiLogger.error(`there is no entityForCard record for post: ${JSON.stringify(post)}. Skipped...`);
       }
     });
+
+    for (const post of posts) {
+      await this.processEntityForCardForRepost(post);
+    }
 
     const metadata  = queryFilterService.getMetadata(totalAmount, query, params);
 

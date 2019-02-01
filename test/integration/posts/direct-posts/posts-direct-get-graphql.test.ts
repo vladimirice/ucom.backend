@@ -12,6 +12,7 @@ import _ = require('lodash');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import OrganizationsModelProvider = require('../../../../lib/organizations/service/organizations-model-provider');
 import OrganizationsHelper = require('../../helpers/organizations-helper');
+import CommonHelper = require('../../helpers/common-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -52,6 +53,8 @@ describe('#posts #direct #get #graphql', () => {
       expect(post.entity_for_card.id).toBe(userVlad.id);
 
       UsersHelper.checkUserPreview(post.entity_for_card);
+
+      CommonHelper.checkOnePostV2WithoutOrg(post, true, true, true);
     }, JEST_TIMEOUT);
 
     it('direct post should contain related wall entity info. #smoke #posts #organizations', async () => {

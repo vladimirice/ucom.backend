@@ -3,6 +3,7 @@
 import { PostsListResponse } from '../../lib/posts/interfaces/model-interfaces';
 
 import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
+import { IdOnlyDto } from '../../lib/common/interfaces/common-types';
 
 const config = require('config');
 
@@ -86,7 +87,7 @@ postsRouter.post('/:post_id/downvote', activityMiddlewareSet, async (req, res) =
 
 postsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const service = getPostService(req);
-  const response = await service.processRepostCreation(req.body, req.post_id);
+  const response: IdOnlyDto = await service.processRepostCreation(req.body, req.post_id);
 
   res.status(201).send(response);
 });

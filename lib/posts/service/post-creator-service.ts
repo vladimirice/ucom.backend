@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import { IdOnlyDto } from '../../common/interfaces/common-types';
+
 const _ = require('lodash');
 const db = require('../../../models').sequelize;
 const { BadRequestError } = require('../../../lib/api/errors');
@@ -119,7 +121,7 @@ class PostCreatorService {
    * @param {Object} user
    * @return {Promise<{id: *}>}
    */
-  static async processRepostCreation(givenBody, postId, user) {
+  static async processRepostCreation(givenBody, postId, user): Promise<IdOnlyDto> {
     const parentPost = await this.checkParentPostOfRepost(postId, user.id);
 
     const body = _.pick(givenBody, ['signed_transaction', 'blockchain_id']);
