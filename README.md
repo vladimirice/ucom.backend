@@ -1,5 +1,7 @@
 # U°Community Backend API Service
 
+[![dependencies Status](https://david-dm.org/UOSnetwork/ucom.backend/status.svg)](https://david-dm.org/UOSnetwork/ucom.backend)
+
 ## Content
 * [Installation](documentation/INSTALLATION.md)
 * [Architecture](documentation/ARCHITECTURE.md)
