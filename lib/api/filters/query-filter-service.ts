@@ -1,6 +1,9 @@
 /* tslint:disable:max-line-length */
-import { DbParamsDto, RequestQueryDto } from './interfaces/query-filter-interfaces';
+import { QueryBuilder } from 'knex';
+import { DbParamsDto, QueryFilteredRepository, RequestQueryDto } from './interfaces/query-filter-interfaces';
 import { ListMetadata } from '../../common/interfaces/lists-interfaces';
+
+const _ = require('lodash');
 
 const { BadRequestError } = require('../../api/errors');
 
@@ -51,16 +54,47 @@ class QueryFilterService {
     return arraysSet.join(', ');
   }
 
-  /**
-   * #task use TypeScript interfaces
-   *
-   */
-  public static getQueryParametersWithRepository(query, repository) {
+  public static addParamsToKnexQuery(
+    query: QueryBuilder,
+    params: DbParamsDto,
+  ): void {
+    if (!params.orderByRaw && params.order) {
+      params.orderByRaw = this.sequelizeOrderByToKnexRaw(params.order);
+    }
+
+    if (params.orderByRaw) {
+      query.orderByRaw(params.orderByRaw);
+    }
+
+    query
+      .select(params.attributes)
+      .limit(params.limit || PER_PAGE_LIMIT)
+      .offset(params.offset || 0)
+    ;
+  }
+
+  public static getQueryParametersWithRepository(
+    query,
+    repository: QueryFilteredRepository,
+    processAttributes = false, // hardcoded variable in order to reduce refactoring at the beginning
+  ): DbParamsDto {
     const orderByRelationMap = repository.getOrderByRelationMap();
     const allowedOrderBy = repository.getAllowedOrderBy();
     const whereProcessor = repository.getWhereProcessor();
 
-    return this.getQueryParameters(query, orderByRelationMap, allowedOrderBy, whereProcessor);
+    const givenParams = this.getQueryParameters(
+      query,
+      orderByRelationMap,
+      allowedOrderBy,
+      whereProcessor,
+    );
+
+    if (!processAttributes) {
+      return givenParams;
+    }
+
+    const defaultParams = repository.getDefaultListParams();
+    return _.defaults(givenParams, defaultParams);
   }
 
   /**

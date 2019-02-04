@@ -394,7 +394,7 @@ class CommentsRepository {
     ];
   }
 
-  private static getDefaultListParams() {
+  public static getDefaultListParams() {
     return {
       attributes: model.getFieldsForPreview(),
       where: {},

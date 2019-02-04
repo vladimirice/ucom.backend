@@ -229,12 +229,7 @@ class UsersFeedRepository {
     return +res[0].count;
   }
 
-  /**
-   *
-   * @return {Object}
-   * @private
-   */
-  private static getDefaultListParams() {
+  public static getDefaultListParams() {
     return {
       offset: 0,
       limit: 10,

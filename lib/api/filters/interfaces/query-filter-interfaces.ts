@@ -27,10 +27,19 @@ interface DbParamOneEntityDto {
 interface DbParamsDto {
   attributes: string[];
   where: {[index: string]: any };
-  include: any[];
+  include?: any[];
 
   limit: number;
   offset: number;
+
+  orderByRaw?: string; // knex orderBy
+  order?: string[][]; // sequelize orderBy
+}
+
+interface QueryFilteredRepository {
+  [index: string]: any
+
+  getDefaultListParams: Function;
 }
 
 export {
@@ -38,4 +47,5 @@ export {
   DbParamsDto,
   RequestQueryComments,
   DbParamOneEntityDto,
+  QueryFilteredRepository,
 };

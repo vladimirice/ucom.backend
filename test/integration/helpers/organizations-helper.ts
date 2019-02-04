@@ -353,8 +353,9 @@ class OrganizationsHelper {
    * @param {string | null } queryString
    * @returns {Promise<Object[]>}
    */
-  static async requestToGetManyOrganizationsAsGuest(queryString = null) {
-
+  static async requestToGetManyOrganizationsAsGuest(
+    queryString: string | null = null,
+  ) {
     let url = requestHelper.getOrganizationsUrl();
 
     if (queryString) {

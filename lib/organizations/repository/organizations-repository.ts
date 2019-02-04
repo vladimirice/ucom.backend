@@ -1,8 +1,11 @@
 /* tslint:disable:max-line-length */
 
-import { OrgIdToOrgModelCard, OrgModel } from '../interfaces/model-interfaces';
+import { OrgIdToOrgModelCard, OrgModel, OrgModelResponse } from '../interfaces/model-interfaces';
+import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 
 const _ = require('lodash');
+
+const { orgDbModel } = require('../models/organizations-model');
 
 const orgModelProvider = require('../../organizations/service/organizations-model-provider');
 const usersModelProvider = require('../../users/users-model-provider');
@@ -18,7 +21,12 @@ const { Op } = db;
 
 const taggableRepository = require('../../common/repository/taggable-repository');
 
-class OrganizationsRepository {
+class OrganizationsRepository implements QueryFilteredRepository {
+  // eslint-disable-next-line class-methods-use-this
+  getDefaultListParams() {
+    return OrganizationsRepository.getDefaultListParams();
+  }
+
   /**
    *
    * @param {Object} data
@@ -450,17 +458,12 @@ class OrganizationsRepository {
     return models.sequelize.query(sql, { type: db.QueryTypes.SELECT });
   }
 
-  /**
-   *
-   * @return {Promise<Object[]>}
-   */
-  static async findAllOrgForList(givenParams = {}) {
-    const params = _.defaults(givenParams, this.getDefaultListParams());
+  public static async findAllOrgForList(
+    params: DbParamsDto,
+  ): Promise<OrgModelResponse[]> {
+    const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
 
-    params.attributes = model.getFieldsForPreview();
-    params.raw = true;
-
-    return model.findAll(params);
+    return res.toJSON();
   }
 
   /**
@@ -489,8 +492,9 @@ class OrganizationsRepository {
     return taggableRepository.countAllByTagTitle(TABLE_NAME, tagTitle, joinColumn);
   }
 
-  private static getDefaultListParams() {
+  public static getDefaultListParams(): DbParamsDto {
     return {
+      attributes: model.getFieldsForPreview(),
       where: {},
       limit: 10,
       offset: 0,
@@ -498,11 +502,31 @@ class OrganizationsRepository {
     };
   }
 
-  private static getDefaultOrderBy() {
+  private static getDefaultOrderBy(): string[][] {
     return [
       ['current_rate', 'DESC'],
       ['id', 'DESC'],
     ];
+  }
+
+  public static getOrderByRelationMap() {
+    return {};
+  }
+
+  static getAllowedOrderBy(): string[] {
+    return [
+      'id',
+      'title',
+      'current_rate',
+      'created_at',
+    ];
+  }
+
+  static getWhereProcessor(): Function {
+    // @ts-ignore
+    return (query, params) => {
+      params.where = {};
+    };
   }
 
   static async doesExistWithUserId(id, userId) {

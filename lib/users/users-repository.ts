@@ -462,12 +462,7 @@ class UsersRepository {
     return rows.map(row => row.toJSON());
   }
 
-  /**
-   *
-   * @returns {Object}
-   * @private
-   */
-  static getDefaultListParams() {
+  public static getDefaultListParams() {
     return {
       where: {},
       offset: 0,

@@ -34,11 +34,7 @@ class OrganizationsModelProvider {
     return TABLE_NAME;
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static getTableName() {
+  static getTableName(): string {
     return TABLE_NAME;
   }
 

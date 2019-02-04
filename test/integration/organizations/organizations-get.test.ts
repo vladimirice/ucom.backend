@@ -1,28 +1,35 @@
-export {};
+/* eslint-disable max-len */
+import { DbParamsDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-const _   = require('lodash');
-const gen = require('../../generators');
+import MockHelper = require('../helpers/mock-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import UsersHelper = require('../helpers/users-helper');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import PostsHelper = require('../helpers/posts-helper');
+import ActivityHelper = require('../helpers/activity-helper');
+import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 
-const helpers                   = require('../helpers');
 const organizationsRepositories = require('../../../lib/organizations/repository');
 const orgRepository             = require('../../../lib/organizations/repository').Main;
 
-let userVlad;
-let userJane;
-let userPetr;
-let userRokky;
+let userVlad: UserModel;
+let userJane: UserModel;
+let userPetr: UserModel;
+let userRokky: UserModel;
 
 const JEST_TIMEOUT = 10000;
 
-helpers.Mock.mockAllBlockchainPart();
+MockHelper.mockAllBlockchainPart();
 
 describe('Organizations. Get requests', () => {
   beforeAll(async ()  => {
-    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
   });
-  afterAll(async ()   => { await helpers.SeedsHelper.sequelizeAfterAll(); });
+  afterAll(async ()   => { await SeedsHelper.sequelizeAfterAll(); });
   beforeEach(async () => {
-    await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
+    await SeedsHelper.resetOrganizationRelatedSeeds();
   });
 
   describe('Users with organizations data', () => {
@@ -30,8 +37,8 @@ describe('Organizations. Get requests', () => {
       it('should contain organizations list for GET one user by ID', async () => {
         const userId = userJane.id;
 
-        const model = await helpers.Users.requestToGetUserAsGuest(userId);
-        const organizations = model.organizations;
+        const model = await UsersHelper.requestToGetUserAsGuest(userId);
+        const { organizations } = model;
 
         expect(organizations).toBeDefined();
 
@@ -46,11 +53,11 @@ describe('Organizations. Get requests', () => {
           delete org.followed_by;
         });
 
-        expectedModels.forEach((model) => {
-          expect(organizations.some(org => org.id === model.id)).toBeTruthy();
+        expectedModels.forEach((expected) => {
+          expect(organizations.some(org => org.id === expected.id)).toBeTruthy();
         });
 
-        helpers.Organizations.checkIncludedOrganizationPreview(model);
+        OrganizationsHelper.checkIncludedOrganizationPreview(model);
       });
     });
 
@@ -61,10 +68,10 @@ describe('Organizations. Get requests', () => {
           userPetr,
         ];
 
-        const orgId = await gen.Org.createOrgWithTeam(userJane, team);
+        const orgId = await OrganizationsGenerator.createOrgWithTeam(userJane, team);
 
-        const model = await helpers.Users.requestToGetUserAsGuest(userVlad.id);
-        const organizations = model.organizations;
+        const model = await UsersHelper.requestToGetUserAsGuest(userVlad.id);
+        const { organizations } = model;
 
         expect(organizations.some(org => org.id === orgId)).toBeFalsy();
       });
@@ -73,7 +80,7 @@ describe('Organizations. Get requests', () => {
       });
 
       it('should not contain empty organizations array', async () => {
-        const model = await helpers.Users.requestToGetUserAsGuest(userRokky.id);
+        const model = await UsersHelper.requestToGetUserAsGuest(userRokky.id);
 
         expect(model.organizations).toBeDefined();
         expect(model.organizations.length).toBe(0);
@@ -85,21 +92,21 @@ describe('Organizations. Get requests', () => {
       it('should contain organization data', async () => {
         const postId = 1;
 
-        const post = await helpers.Post.requestToGetOnePostAsGuest(postId);
+        const post = await PostsHelper.requestToGetOnePostAsGuest(postId);
         expect(post.organization_id).toBe(1);
 
         delete post.organization.followed_by;
 
-        helpers.Org.checkOneOrganizationPreviewFields(post.organization);
+        OrganizationsHelper.checkOneOrganizationPreviewFields(post.organization);
       });
     });
   });
 
   describe('Organization lists', () => {
-    describe('Test sorting', async () => {
+    describe('Test sorting', () => {
       it('Sort by current_rate DESC', async () => {
         const queryString = 'sort_by=-current_rate,-id';
-        const orgs = await helpers.Org.requestToGetManyOrganizationsAsGuest(queryString);
+        const orgs = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest(queryString);
 
         const minOrgId = await orgRepository.findMinOrgIdByParameter('current_rate');
         const maxOrgId = await orgRepository.findMaxOrgIdByParameter('current_rate');
@@ -109,7 +116,7 @@ describe('Organizations. Get requests', () => {
       });
       it('Sort by current_rate ASC', async () => {
         const queryString = 'sort_by=current_rate,-id';
-        const orgs = await helpers.Org.requestToGetManyOrganizationsAsGuest(queryString);
+        const orgs = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest(queryString);
 
         const minPostId = await orgRepository.findMinOrgIdByParameter('current_rate');
         const maxOrgId = await orgRepository.findMaxOrgIdByParameter('current_rate');
@@ -120,7 +127,7 @@ describe('Organizations. Get requests', () => {
 
       it('Sort by title ASC', async () => {
         const queryString = 'sort_by=title,-id';
-        const models = await helpers.Org.requestToGetManyOrganizationsAsGuest(queryString);
+        const models = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest(queryString);
 
         const minId = await orgRepository.findMinOrgIdByParameter('title');
         const maxId = await orgRepository.findMaxOrgIdByParameter('title');
@@ -131,7 +138,7 @@ describe('Organizations. Get requests', () => {
 
       it('Sort by title DESC', async () => {
         const queryString = 'sort_by=-title,-id';
-        const models = await helpers.Org.requestToGetManyOrganizationsAsGuest(queryString);
+        const models = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest(queryString);
 
         const minId = await orgRepository.findMinOrgIdByParameter('title');
         const maxId = await orgRepository.findMaxOrgIdByParameter('title');
@@ -140,14 +147,14 @@ describe('Organizations. Get requests', () => {
         expect(models[0].id).toBe(maxId);
       });
     });
-    describe('Test pagination', async () => {
+    describe('Test pagination', () => {
       it('Every request should contain correct metadata', async () => {
         const page    = 1;
         const perPage = 2;
         // noinspection JSDeprecatedSymbols
-        const response = await helpers.Org.requestAllOrgsWithPagination(page, perPage);
+        const response = await OrganizationsHelper.requestAllOrgsWithPagination(page, perPage);
 
-        const metadata = response.metadata;
+        const { metadata } = response;
 
         const totalAmount = await orgRepository.countAllOrganizations();
 
@@ -160,7 +167,7 @@ describe('Organizations. Get requests', () => {
         const lastPage = totalAmount - perPage;
 
         // noinspection JSDeprecatedSymbols
-        const lastResponse = await helpers.Org.requestAllOrgsWithPagination(lastPage, perPage);
+        const lastResponse = await OrganizationsHelper.requestAllOrgsWithPagination(lastPage, perPage);
 
         expect(lastResponse.metadata.has_more).toBeFalsy();
       });
@@ -169,14 +176,17 @@ describe('Organizations. Get requests', () => {
         const perPage = 2;
         let page = 1;
 
-        const posts = await orgRepository.findAllOrgForList({
+        // @ts-ignore
+        const params: DbParamsDto = {
           order: [
             ['current_rate', 'DESC'],
             ['id', 'DESC'],
           ],
-        });
+        };
+
+        const posts = await OrganizationsRepository.findAllOrgForList(params);
         // noinspection JSDeprecatedSymbols
-        const firstPage = await helpers.Org.requestAllOrgsWithPagination(page, perPage, true);
+        const firstPage = await OrganizationsHelper.requestAllOrgsWithPagination(page, perPage, true);
 
         const expectedIdsOfFirstPage = [
           posts[page - 1].id,
@@ -191,7 +201,7 @@ describe('Organizations. Get requests', () => {
 
         page = 2;
         // noinspection JSDeprecatedSymbols
-        const secondPage = await helpers.Org.requestAllOrgsWithPagination(page, perPage, true);
+        const secondPage = await OrganizationsHelper.requestAllOrgsWithPagination(page, perPage, true);
 
         const expectedIdsOfSecondPage = [
           posts[page].id,
@@ -209,9 +219,9 @@ describe('Organizations. Get requests', () => {
         const perPage = 2;
 
         // noinspection JSDeprecatedSymbols
-        const pageIsZeroResponse = await helpers.Org.requestAllOrgsWithPagination(1, perPage, true);
+        const pageIsZeroResponse = await OrganizationsHelper.requestAllOrgsWithPagination(1, perPage, true);
         // noinspection JSDeprecatedSymbols
-        const pageIsOneResponse = await helpers.Org.requestAllOrgsWithPagination(1, perPage, true);
+        const pageIsOneResponse = await OrganizationsHelper.requestAllOrgsWithPagination(1, perPage, true);
 
         expect(JSON.stringify(pageIsZeroResponse)).toBe(JSON.stringify(pageIsOneResponse));
       });
@@ -219,7 +229,7 @@ describe('Organizations. Get requests', () => {
 
     it('Get organization lists without query string', async () => {
       const totalCount = await organizationsRepositories.Main.countAllOrganizations();
-      const organizations = await helpers.Organizations.requestToGetManyOrganizationsAsGuest();
+      const organizations = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest();
 
       expect(organizations).toBeDefined();
       expect(organizations instanceof Array).toBeTruthy();
@@ -229,39 +239,38 @@ describe('Organizations. Get requests', () => {
         delete org.followed_by;
       });
 
-      helpers.Organizations.checkOrganizationsPreviewFields(organizations);
+      OrganizationsHelper.checkOrganizationsPreviewFields(organizations);
     });
   });
 
   describe('One organization', () => {
-
     it('followed_by users inside one org should be normalized', async () => {
-      const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+      const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
-      await helpers.Activity.requestToFollowOrganization(orgId, userJane);
+      await ActivityHelper.requestToFollowOrganization(orgId, userJane);
 
-      const org = await helpers.Organizations.requestToGetOneOrganizationAsGuest(orgId);
+      const org = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
 
       org.followed_by.forEach((user) => {
-        helpers.Users.checkIncludedUserPreview({
+        UsersHelper.checkIncludedUserPreview({
           User: user,
         });
       });
     }, JEST_TIMEOUT);
 
     it('Get one organization by ID as guest', async () => {
-      const modelId = await gen.Org.createOrgWithTeam(userVlad, [userJane, userPetr]);
+      const modelId = await OrganizationsGenerator.createOrgWithTeam(userVlad, [userJane, userPetr]);
 
-      await helpers.Users.directlySetUserConfirmsInvitation(modelId, userJane);
+      await UsersHelper.directlySetUserConfirmsInvitation(modelId, userJane);
 
-      await helpers.Org.createSocialNetworksDirectly(modelId);
+      await OrganizationsHelper.createSocialNetworksDirectly(modelId);
 
-      const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(modelId);
+      const model = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(modelId);
 
       expect(model).toBeDefined();
       expect(model.id).toBe(modelId);
 
-      helpers.UserHelper.checkIncludedUserPreview(model);
+      UsersHelper.checkIncludedUserPreview(model);
 
       expect(model.users_team).toBeDefined();
       expect(model.users_team.length).toBeGreaterThan(0);
@@ -275,13 +284,13 @@ describe('Organizations. Get requests', () => {
     it('should return communities and partnerships', async () => {
       const orgId = 1;
 
-      await helpers.Org.createSampleSourcesForOrganization(orgId);
+      await OrganizationsHelper.createSampleSourcesForOrganization(orgId);
 
-      const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(orgId);
+      const model = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
 
       const communitySources = model.community_sources;
 
-      expect(_.isArray(communitySources)).toBeTruthy();
+      expect(Array.isArray(communitySources)).toBeTruthy();
       expect(communitySources.length).toBe(6);
 
       communitySources.forEach((source) => {
@@ -295,10 +304,10 @@ describe('Organizations. Get requests', () => {
         }
       });
 
-      expect(_.isArray(model.partnership_sources)).toBeTruthy();
+      expect(Array.isArray(model.partnership_sources)).toBeTruthy();
       expect(model.partnership_sources.length).toBe(6);
 
-      expect(_.isArray(model.social_networks)).toBeTruthy();
+      expect(Array.isArray(model.social_networks)).toBeTruthy();
       expect(model.social_networks.length).toBe(0);
 
       // #task check response structure based on field external internal
@@ -307,7 +316,7 @@ describe('Organizations. Get requests', () => {
     it('should not contain myself data if requesting as guest', async () => {
       const modelId = 1;
 
-      const model = await helpers.Organizations.requestToGetOneOrganizationAsGuest(modelId);
+      const model = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(modelId);
       expect(model.myselfData).not.toBeDefined();
     });
 
@@ -315,8 +324,8 @@ describe('Organizations. Get requests', () => {
       const modelId = 1;
 
       const model =
-        await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, modelId);
-      const myselfData = model.myselfData;
+        await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, modelId);
+      const { myselfData } = model;
 
       expect(myselfData).toBeDefined();
 
@@ -330,7 +339,7 @@ describe('Organizations. Get requests', () => {
       const user = userVlad;
 
       const modelId = await organizationsRepositories.Main.findLastIdByAuthor(user.id);
-      const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(user, modelId);
+      const model = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(user, modelId);
 
       expect(model.myselfData.editable).toBeTruthy();
       expect(model.myselfData.member).toBeTruthy();
@@ -338,28 +347,29 @@ describe('Organizations. Get requests', () => {
 
     // tslint:disable-next-line:max-line-length
     it('should contain myselfData member true if user is not author but organization team member', async () => {
-      const orgId = await gen.Org.createOrgWithTeam(userJane, [
+      const orgId = await OrganizationsGenerator.createOrgWithTeam(userJane, [
         userVlad, userPetr,
       ]);
 
-      await helpers.Users.directlySetUserConfirmsInvitation(orgId, userVlad);
+      await UsersHelper.directlySetUserConfirmsInvitation(orgId, userVlad);
 
       // tslint:disable-next-line:max-line-length
-      const model = await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+      const model =
+        await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, orgId);
       expect(model.myselfData.editable).toBeFalsy();
       expect(model.myselfData.member).toBeTruthy();
     });
 
     describe('Negative', () => {
       it('should NOT contain user in board if invitation status is not confirmed', async () => {
-        const orgId = await gen.Org.createOrgWithTeam(userJane, [
+        const orgId = await OrganizationsGenerator.createOrgWithTeam(userJane, [
           userVlad, userPetr,
         ]);
 
-        await helpers.Users.directlySetUserConfirmsInvitation(orgId, userPetr);
+        await UsersHelper.directlySetUserConfirmsInvitation(orgId, userPetr);
 
         const model =
-          await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+          await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, orgId);
 
         const usersTeam = model.users_team;
         expect(usersTeam.some(user => user.id === userVlad.id
@@ -369,21 +379,21 @@ describe('Organizations. Get requests', () => {
 
       // tslint:disable-next-line:max-line-length
       it('should not contain myselfData member true if user invitation request is not confirmed', async () => {
-        const orgId = await gen.Org.createOrgWithTeam(userJane, [
+        const orgId = await OrganizationsGenerator.createOrgWithTeam(userJane, [
           userVlad, userPetr,
         ]);
 
-        await helpers.Users.directlySetUserConfirmsInvitation(orgId, userPetr);
+        await UsersHelper.directlySetUserConfirmsInvitation(orgId, userPetr);
 
         const model =
-          await helpers.Organizations.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+          await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, orgId);
 
         expect(model.myselfData.editable).toBeFalsy();
         expect(model.myselfData.member).toBeFalsy();
 
         // Smoke test
         const modelByPetr =
-          await helpers.Organizations.requestToGetOneOrganizationAsMyself(userPetr, orgId);
+          await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userPetr, orgId);
         expect(modelByPetr.myselfData.editable).toBeFalsy();
         expect(modelByPetr.myselfData.member).toBeTruthy();
       });
@@ -391,7 +401,7 @@ describe('Organizations. Get requests', () => {
       it('should contain myselfData editable false if request not from author', async () => {
         const modelId = await organizationsRepositories.Main.findLastIdByAuthor(userVlad.id);
         const model =
-          await helpers.Organizations.requestToGetOneOrganizationAsMyself(userJane, modelId);
+          await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userJane, modelId);
 
         expect(model.myselfData.editable).toBeFalsy();
         expect(model.myselfData.member).toBeFalsy();
@@ -399,3 +409,5 @@ describe('Organizations. Get requests', () => {
     });
   });
 });
+
+export {};

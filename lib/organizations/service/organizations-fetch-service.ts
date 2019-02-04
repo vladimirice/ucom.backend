@@ -1,4 +1,8 @@
-import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import {
+  DbParamsDto,
+  QueryFilteredRepository,
+  RequestQueryDto,
+} from '../../api/filters/interfaces/query-filter-interfaces';
 import { OrgIdToOrgModelCard, OrgModel, OrgModelCard } from '../interfaces/model-interfaces';
 
 import OrganizationsRepository = require('../repository/organizations-repository');
@@ -31,13 +35,18 @@ class OrganizationsFetchService {
    * @returns {Promise<Object>}
    */
   static async findAndProcessAll(query: RequestQueryDto) {
-    const params: DbParamsDto = queryFilterService.getQueryParameters(query);
+    const repository: QueryFilteredRepository = OrganizationsRepository;
 
-    const data = await organizationsRepository.findAllOrgForList(params);
+    const params: DbParamsDto =
+      queryFilterService.getQueryParametersWithRepository(query, repository, true);
+
+    const [data, totalAmount] = await Promise.all([
+      OrganizationsRepository.findAllOrgForList(params),
+      organizationsRepository.countAllOrganizations(),
+    ]);
+
     orgPostProcessor.processManyOrganizations(data);
-
-    const totalAmount = await organizationsRepository.countAllOrganizations();
-    const metadata    =  queryFilterService.getMetadata(totalAmount, query, params);
+    const metadata = queryFilterService.getMetadata(totalAmount, query, params);
 
     return {
       data,
