@@ -2,6 +2,8 @@
 import { CommentModelResponse, CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
+import { ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 import ResponseHelper = require('./response-helper');
 import CommentsHelper = require('./comments-helper');
@@ -579,8 +581,15 @@ class CommonHelper {
     }
   }
 
+  public static expectModelIdsExistenceInResponseList(
+    response: ListResponse,
+    expectedModelIds: number[],
+  ) {
+    this.expectModelsExistence(response.data, expectedModelIds);
+  }
+
   public static expectModelsExistence(
-    actualModels: any[],
+    actualModels: StringToAnyCollection,
     expectedModelIds: number[],
   ): void {
     expect(actualModels.length).toBe(expectedModelIds.length);

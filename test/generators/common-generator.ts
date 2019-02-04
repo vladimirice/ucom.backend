@@ -96,6 +96,7 @@ class CommonGenerator {
       [janeOrgIdOne, janeOrgIdTwo],
     );
 
+    // @ts-ignore
     const posts = await Promise.all(promisesToCreatePosts);
 
     const responsePosts = {

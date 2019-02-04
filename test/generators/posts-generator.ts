@@ -172,7 +172,7 @@ class PostsGenerator {
     };
   }
 
-  static async createManyDefaultMediaPostsByUserHimself(
+  public static async createManyDefaultMediaPostsByUserHimself(
     user: any,
     amount: number,
   ): Promise<number[]> {
@@ -312,7 +312,22 @@ class PostsGenerator {
     return this.createDirectPost(url, myself, givenDescription, withImage);
   }
 
-  static async createDirectPostForUserAndGetId(
+  public static async createManyDirectPostsForUserAndGetIds(
+    myself: UserModel,
+    wallOwner: UserModel,
+    amount: number,
+  ): Promise<number[]> {
+    const promises: any[] = [];
+    for (let i = 0; i < amount; i += 1) {
+      promises.push(
+        this.createDirectPostForUserAndGetId(myself, wallOwner, null),
+      );
+    }
+
+    return Promise.all(promises);
+  }
+
+  public static async createDirectPostForUserAndGetId(
     myself: UserModel,
     wallOwner: UserModel,
     givenDescription: string | null = null,

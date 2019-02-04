@@ -13,6 +13,7 @@ const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { app, server } = require('../../../graphql-app');
 
@@ -53,7 +54,31 @@ export class GraphqlHelper {
   ): Promise<PostsListResponse> {
     // @ts-ignore
     const postFiltering: PostRequestQueryDto = {
-      post_type_id: 1,
+      post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+    };
+
+    return this.getManyPostsAsMyself(
+      myself,
+      postFiltering,
+      postOrdering,
+      postPage,
+      postPerPage,
+      commentsPage,
+      commentsPerPage,
+    );
+  }
+
+  public static async getManyDirectPostsAsMyself(
+    myself: UserModel,
+    postOrdering: string = '-id',
+    postPage: number = 1,
+    postPerPage: number = 10,
+    commentsPage: number = 1,
+    commentsPerPage: number = 10,
+  ): Promise<PostsListResponse> {
+    // @ts-ignore
+    const postFiltering: PostRequestQueryDto = {
+      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
     };
 
     return this.getManyPostsAsMyself(

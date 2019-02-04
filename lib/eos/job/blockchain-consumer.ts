@@ -11,7 +11,6 @@ class BlockchainConsumer {
     const queueName = rabbitMqService.getBlockchainQueueName();
 
     channel.consume(queueName, async (message) => {
-
       let messageContent;
       let parsedMessageContent;
 

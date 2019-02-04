@@ -141,7 +141,7 @@ describe('GET posts via graphql', () => {
       CommonHelper.expectModelsExistence(response.data, userVladMediaPosts);
     }, JEST_TIMEOUT);
 
-    it('Check get many posts as myself endpoint #smoke #myself #posts', async () => {
+    it('Get many posts as myself endpoint #smoke #myself #posts', async () => {
       const vladMediaPostsAmount: number = 3;
       const isMyself: boolean = true;
       const isCommentsEmpty: boolean = true;
