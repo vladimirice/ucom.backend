@@ -238,6 +238,10 @@ class CommentsRepository {
     // #task - move to separateQueryService
     const params = _.defaults(queryParameters, this.getDefaultListParams());
 
+    // #task - select first X comments for every post - separate request
+    const { limit } = params;
+    delete params.limit;
+
     params.where.commentable_id = {
       [Op.in]: commentableIds,
     };
@@ -251,7 +255,8 @@ class CommentsRepository {
     data.forEach((row) => {
       const jsonRow: CommentModel = row.toJSON();
       const commentableId: number = jsonRow.commentable_id;
-      if (res[commentableId]) {
+      // #task - exclude user related activity to separate request, as for posts
+      if (res[commentableId] && res[commentableId].length <= limit) {
         res[commentableId].push(jsonRow);
       } else {
         res[commentableId] = [jsonRow];

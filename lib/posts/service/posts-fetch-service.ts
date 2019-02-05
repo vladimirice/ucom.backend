@@ -419,7 +419,7 @@ class PostsFetchService {
       commentsQuery,
     );
 
-    console.log(`idToComments are ${JSON.stringify(idToComments, null, 2)}`);
+    console.log(`idToComments after are ${JSON.stringify(idToComments, null, 2)}`);
 
     posts.forEach((post) => {
       console.log(`processing post of id: ${post.id}`);

@@ -68,6 +68,8 @@ class CommentsFetchService {
         commentsRepository.countNextDepthTotalAmounts(postIds, NEXT_COMMENTS_DEPTH_FROM_TOP),
       ]);
 
+    console.log(`idToComments before are ${JSON.stringify(idToComments, null, 2)}`);
+
     const idToCommentsList: CommentableIdToCommentsResponse = {};
 
     for (const postId in idToComments) {
