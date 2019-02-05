@@ -3,6 +3,7 @@ const TagsFetchService = require("../../lib/tags/service/tags-fetch-service");
 const TagApiMiddleware = require("../../lib/tags/api/tag-api-middleware");
 const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
 const QueryFilterService = require("../../lib/api/filters/query-filter-service");
+const OrganizationsFetchService = require("../../lib/organizations/service/organizations-fetch-service");
 const express = require('express');
 const tagsRouter = express.Router();
 /**
@@ -16,9 +17,6 @@ function getCurrentUserId(req) {
 }
 function getUserService(req) {
     return req.container.get('user-service');
-}
-function getOrganizationService(req) {
-    return req.container.get('organizations-service');
 }
 tagsRouter.get('/:tag_identity', async (req, res) => {
     const tagTitle = req.tag_identity;
@@ -38,7 +36,7 @@ tagsRouter.get('/:tag_identity/wall-feed', async (req, res) => {
 tagsRouter.get('/:tag_identity/organizations', async (req, res) => {
     const { query } = req;
     const tagTitle = req.tag_identity;
-    const response = await getOrganizationService(req).findAllByTagTitle(tagTitle, query);
+    const response = await OrganizationsFetchService.findAndProcessAllByTagTitle(tagTitle, query);
     res.send(response);
 });
 tagsRouter.get('/:tag_identity/users', async (req, res) => {

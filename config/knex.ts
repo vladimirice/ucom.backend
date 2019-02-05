@@ -8,9 +8,4 @@ const knex = require('knex')({
   connection,
 });
 
-const bookshelf = require('bookshelf')(knex);
-
-export {
-  knex,
-  bookshelf,
-};
+export = knex;

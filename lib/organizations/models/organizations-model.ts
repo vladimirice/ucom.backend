@@ -3,7 +3,10 @@ import { DbParamsDto } from '../../api/filters/interfaces/query-filter-interface
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
 
-const { bookshelf } = require('../../../config/knex');
+const bookshelfLib = require('bookshelf');
+const knex = require('../../../config/knex');
+
+const bookshelf = bookshelfLib(knex);
 
 const TABLE_NAME = OrganizationsModelProvider.getTableName();
 

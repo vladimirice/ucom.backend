@@ -143,7 +143,6 @@ describe('GET Tags', () => {
   });
 
   it('Get tag related organizations', async () => {
-
     const { postTags, orgIds } = await tagsGenerator.createPostsWithTagsForOrgs(userVlad, userJane);
 
     const url = helpers.Req.getTagsOrgUrl(postTags[0]);
@@ -212,7 +211,6 @@ describe('GET Tags', () => {
   });
 
   describe('Negative', () => {
-
     it('404 error if no tag with given title', async () => {
       const tagTitle: string = 'summer100500';
 

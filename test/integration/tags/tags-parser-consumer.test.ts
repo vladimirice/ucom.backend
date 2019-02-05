@@ -43,7 +43,7 @@ describe('Tags parsing by consumer', () => {
         'party',
       ];
 
-      const user = userVlad;
+      const user = userVlad; //
       const targetUser = userJane;
 
       const newPostFields = {
@@ -73,14 +73,12 @@ describe('Tags parsing by consumer', () => {
         userVlad.id,
         userPetr.id,
       );
-
-    });
+    }, JEST_TIMEOUT);
   });
 
   describe('Creating - tags for new posts', () => {
     describe('direct posts', () => {
       it('should create tags for direct post of user himself', async () => {
-
         const expectedTags = [
           'summer',
           'party',
@@ -100,7 +98,7 @@ describe('Tags parsing by consumer', () => {
         );
 
         await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
-      });
+      }, JEST_TIMEOUT);
 
       it('should create tags for direct post of org', async () => {
         const user = userVlad;
@@ -123,7 +121,7 @@ describe('Tags parsing by consumer', () => {
         );
 
         await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
-      });
+      }, JEST_TIMEOUT);
     });
 
     it('Should create org post and have an appropriate org_id in entity_tags', async () => {
@@ -141,7 +139,7 @@ describe('Tags parsing by consumer', () => {
       const processedModel = await tagsHelper.getPostWhenTagsAreProcessed(postId);
 
       await tagsHelper.checkRelatedPostModels(postTags, processedModel);
-    });
+    }, JEST_TIMEOUT);
 
     it('Three posts are created. Without orgs. Some tags are duplicated', async () => {
       // lets create some posts with tags
@@ -234,7 +232,6 @@ describe('Tags parsing by consumer', () => {
       const processedModel = await helpers.Tags.getPostWhenTagsAreProcessed(modelId);
 
       await helpers.Tags.checkRelatedPostModels(expectedTags, processedModel);
-
     }, JEST_TIMEOUT);
   });
 
@@ -370,7 +367,6 @@ describe('Tags parsing by consumer', () => {
       });
 
       it('should remove one tag from post and remain the other', async () => {
-
         const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
 
         const expectedTags = [
@@ -390,11 +386,8 @@ describe('Tags parsing by consumer', () => {
 
     describe('update current tag set', () => {
       it('should remove all old tags and add NEW ones - special description', async () => {
-
         const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
-        const expectedTags = currentPost.entity_tags.map((title) => {
-          return `${title}predator`;
-        });
+        const expectedTags = currentPost.entity_tags.map(title => `${title}predator`);
 
         await postsHelper.requestToUpdatePostDescription(
           existingVladPostId,
@@ -428,9 +421,7 @@ describe('Tags parsing by consumer', () => {
       it('should add two more NEW tags', async () => {
         const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
 
-        const tagsToAdd = currentPost.entity_tags.map((title) => {
-          return `${title}predator`;
-        });
+        const tagsToAdd = currentPost.entity_tags.map(title => `${title}predator`);
 
         const expectedTags = currentPost.entity_tags.concat(tagsToAdd);
 
