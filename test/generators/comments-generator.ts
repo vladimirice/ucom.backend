@@ -13,16 +13,14 @@ class CommentsGenerator {
     user: UserModel,
     amount: number,
   ): Promise<CommentModelResponse[]> {
-    const promises: any = [];
+    const res: any[] = [];
 
     for (let i = 0; i < amount; i += 1) {
-      promises.push(
-        this.createCommentForPost(postId, user),
-      );
+      const data = await this.createCommentForPost(postId, user);
+      res.push(data);
     }
 
-    // @ts-ignore
-    return Promise.all(promises);
+    return res;
   }
 
   static async createManyCommentsForManyComments(

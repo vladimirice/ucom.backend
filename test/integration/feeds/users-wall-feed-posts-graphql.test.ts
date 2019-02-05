@@ -1,6 +1,8 @@
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import CommonHelper = require('../helpers/common-helper');
+import PostsGenerator = require('../../generators/posts-generator');
+import CommentsGenerator = require('../../generators/comments-generator');
 // import CommentsGenerator = require('../../generators/comments-generator');
 // import PostsGenerator = require('../../generators/posts-generator');
 
@@ -40,25 +42,26 @@ describe('#Feeds #GraphQL', () => {
   });
 
   describe('Positive', () => {
-    // it('Mixed types of posts - comments for all', async () => {
-    //   // const { postId, repostId }: { postId: number, repostId: number } =
-    //   //   await postsGenerator.createUserPostAndRepost(userVlad, userJane);
-    //
-    //   const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
-    //   const directPostId = await PostsGenerator.createDirectPostForUserAndGetId(userJane, userVlad);
-    //
-    //   await CommentsGenerator.createCommentForPost(postId, userJane);
-    //   await CommentsGenerator.createCommentForPost(directPostId, userVlad);
-    //
-    //
-    //   // @ts-ignore
-    //   const response =
-    //     await GraphqlHelper.getUserWallFeedQueryAsMyself(userJane, userVlad.id, 1, 10);
-    //
-    //   // @ts-ignore
-    //   const a = 0;
-    //
-    // }, 100000);
+    it('Mixed types of posts - comments for all', async () => {
+      const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      const directPostId = await PostsGenerator.createDirectPostForUserAndGetId(userJane, userVlad);
+
+      await CommentsGenerator.createManyCommentsForPost(postId, userJane, 20);
+      await CommentsGenerator.createManyCommentsForPost(directPostId, userVlad, 20);
+
+      const commentsPerPage = 3;
+      const response = await GraphqlHelper.getUserWallFeedQueryAsMyself(
+        userJane,
+        userVlad.id,
+        1,
+        10,
+        1,
+        commentsPerPage,
+      );
+
+      expect(response.data[0].comments.data.length).toBe(commentsPerPage);
+      expect(response.data[1].comments.data.length).toBe(commentsPerPage);
+    }, 100000);
 
 
     it('#smoke - should get repost information', async () => {
