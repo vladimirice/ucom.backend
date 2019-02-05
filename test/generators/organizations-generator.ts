@@ -1,14 +1,14 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 
+import RequestHelper = require('../integration/helpers/request-helper');
+import ResponseHelper = require('../integration/helpers/response-helper');
+
 const request = require('supertest');
 const faker   = require('faker');
 
-const requestHelper   = require('../integration/helpers').Req;
-const responseHelper  = require('../integration/helpers').Res;
 const server          = require('../../app');
 
 class OrganizationsGenerator {
-
   /**
    *
    * @param {Object} author
@@ -22,12 +22,24 @@ class OrganizationsGenerator {
     }
   }
 
+  public static async createManyOrgWithoutTeam(
+    author: UserModel,
+    amount: number,
+  ): Promise<number[]> {
+    const promises: Promise<any>[] = [];
+    for (let i = 0; i < amount; i += 1) {
+      promises.push(this.createOrgWithoutTeam(author));
+    }
+
+    return Promise.all(promises);
+  }
+
   /**
    *
    * @param {Object} author
    * @return {Promise<Object>}
    */
-  static async createOrgWithoutTeam(author: UserModel) {
+  static async createOrgWithoutTeam(author: UserModel): Promise<number> {
     return this.createOrgWithTeam(author);
   }
 
@@ -47,7 +59,7 @@ class OrganizationsGenerator {
     const nickname = faker.name.firstName();
 
     const req = request(server)
-      .post(requestHelper.getOrganizationsUrl())
+      .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${author.token}`)
       .field('title',             title)
       .field('nickname',          nickname)
@@ -60,7 +72,7 @@ class OrganizationsGenerator {
     }
 
     const res = await req;
-    responseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return +res.body.id;
   }
@@ -79,7 +91,7 @@ class OrganizationsGenerator {
     const nickname = faker.name.firstName();
 
     const req = request(server)
-      .patch(requestHelper.getOneOrganizationUrl(orgId))
+      .patch(RequestHelper.getOneOrganizationUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', title)
       .field('nickname', nickname)
@@ -88,7 +100,7 @@ class OrganizationsGenerator {
     this.addUsersTeamToRequest(req, usersTeam);
 
     const res = await req;
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }

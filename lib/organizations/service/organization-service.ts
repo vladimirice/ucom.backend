@@ -27,9 +27,7 @@ const organizationsModelProvider = require('./organizations-model-provider');
 const usersActivityRepository = require('../../users/repository').Activity;
 const activityGroupDictionary = require('../../activity/activity-group-dictionary');
 
-
 const apiPostProcessor = require('../../common/service').PostProcessor;
-const organizationsFetchService = require('./organizations-fetch-service');
 
 class OrganizationService {
   private currentUser;
@@ -239,14 +237,6 @@ class OrganizationService {
     }
 
     return boardInvitationActivity;
-  }
-
-  /**
-   * @param {Object} query
-   * @return {Promise<Object>}
-   */
-  public static async getAllForPreview(query) {
-    return organizationsFetchService.findAndProcessAll(query);
   }
 
   /**

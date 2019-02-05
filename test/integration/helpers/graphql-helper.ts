@@ -6,6 +6,7 @@ import {
   PostsListResponse,
 } from '../../../lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
+import { OrgListResponse, OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 
 import ResponseHelper = require('./response-helper');
 
@@ -66,6 +67,38 @@ export class GraphqlHelper {
       commentsPage,
       commentsPerPage,
     );
+  }
+
+  public static async getManyOrgsDataOnlyAsMyself(
+    myself: UserModel,
+    ordering: string = '-id',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgModelResponse[]> {
+    const response: OrgListResponse =
+      await this.getManyOrgsAsMyself(myself, ordering, page, perPage);
+
+    return response.data;
+  }
+
+  public static async getManyOrgsAsMyself(
+    myself: UserModel,
+    ordering: string = '-id',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getOrganizationsQuery(
+      ordering,
+      page,
+      perPage,
+    );
+
+    const key: string = 'organizations';
+
+    const response: OrgListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.expectValidListResponseStructure(response);
+
+    return response;
   }
 
   public static async getManyDirectPostsAsMyself(

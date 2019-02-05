@@ -3,13 +3,14 @@ import {
   QueryFilteredRepository,
   RequestQueryDto,
 } from '../../api/filters/interfaces/query-filter-interfaces';
-import { OrgIdToOrgModelCard, OrgModel, OrgModelCard } from '../interfaces/model-interfaces';
+import {
+  OrgIdToOrgModelCard, OrgListResponse, OrgModel, OrgModelCard,
+} from '../interfaces/model-interfaces';
 
-import OrganizationsRepository = require('../repository/organizations-repository');
 import OrganizationPostProcessor = require('./organization-post-processor');
 
-const queryFilterService      = require('../../api/filters/query-filter-service');
-const organizationsRepository = require('../repository/organizations-repository.js');
+const QueryFilterService      = require('../../api/filters/query-filter-service');
+const OrganizationsRepository = require('../repository/organizations-repository');
 const orgPostProcessor        = require('./organization-post-processor');
 
 class OrganizationsFetchService {
@@ -17,41 +18,30 @@ class OrganizationsFetchService {
    * @param {string} tagTitle
    * @param {Object} query
    */
-  static async findAndProcessAllByTagTitle(tagTitle, query) {
-    queryFilterService.checkLastIdExistence(query);
-    const params = queryFilterService.getQueryParameters(query);
+  public static async findAndProcessAllByTagTitle(tagTitle, query) {
+    QueryFilterService.checkLastIdExistence(query);
+    const params = QueryFilterService.getQueryParameters(query);
 
     const promises = [
-      organizationsRepository.findAllByTagTitle(tagTitle, params),
-      organizationsRepository.countAllByTagTitle(tagTitle),
+      OrganizationsRepository.findAllByTagTitle(tagTitle, params),
+      OrganizationsRepository.countAllByTagTitle(tagTitle),
     ];
 
     return this.findAndProcessAllByParams(promises, query, params);
   }
 
-  /**
-   *
-   * @param {Object} query
-   * @returns {Promise<Object>}
-   */
-  static async findAndProcessAll(query: RequestQueryDto) {
+  public static async findAndProcessAll(query: RequestQueryDto): Promise<OrgListResponse> {
     const repository: QueryFilteredRepository = OrganizationsRepository;
 
     const params: DbParamsDto =
-      queryFilterService.getQueryParametersWithRepository(query, repository, true);
+      QueryFilterService.getQueryParametersWithRepository(query, repository, true);
 
-    const [data, totalAmount] = await Promise.all([
+    const promises: Promise<any>[] = [
       OrganizationsRepository.findAllOrgForList(params),
-      organizationsRepository.countAllOrganizations(),
-    ]);
+      OrganizationsRepository.countAllOrganizations(),
+    ];
 
-    orgPostProcessor.processManyOrganizations(data);
-    const metadata = queryFilterService.getMetadata(totalAmount, query, params);
-
-    return {
-      data,
-      metadata,
-    };
+    return this.findAndProcessAllByParams(promises, query, params);
   }
 
   public static async findOneAndProcessForCard(
@@ -80,14 +70,14 @@ class OrganizationsFetchService {
   }
 
   private static async findAndProcessAllByParams(
-    promises: Object[],
-    query: Object,
-    params: Object,
-  ): Promise<Object> {
+    promises: Promise<any>[],
+    query: RequestQueryDto,
+    params: DbParamsDto,
+  ): Promise<OrgListResponse> {
     const [data, totalAmount] = await Promise.all(promises);
 
     orgPostProcessor.processManyOrganizations(data);
-    const metadata =  queryFilterService.getMetadata(totalAmount, query, params);
+    const metadata =  QueryFilterService.getMetadata(totalAmount, query, params);
 
     return {
       data,

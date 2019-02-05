@@ -1,14 +1,22 @@
+/* eslint-disable guard-for-in */
 /* tslint:disable:max-line-length */
-import OrganizationsRepository = require("../../../lib/organizations/repository/organizations-repository");
-import { OrgModelCard } from '../../../lib/organizations/interfaces/model-interfaces';
+import {
+  OrgListResponse,
+  OrgModelCard,
+  OrgModelResponse,
+} from '../../../lib/organizations/interfaces/model-interfaces';
+
+import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import EosImportance = require('../../../lib/eos/eos-importance');
+import RequestHelper = require('./request-helper');
+import ResponseHelper = require('./response-helper');
+import FileToUploadHelper = require('./file-to-upload-helper');
 
 const request = require('supertest');
-const server = require('../../../app');
-const requestHelper = require('./request-helper');
-const responseHelper = require('./response-helper');
-const fileToUploadHelper = require('./file-to-upload-helper');
 const _ = require('lodash');
 const faker = require('faker');
+const server = require('../../../app');
 
 const { orgImageStoragePath } =
   require('../../../lib/organizations/middleware/organization-create-edit-middleware');
@@ -19,7 +27,24 @@ const orgModelProvider    = require('../../../lib/organizations/service').ModelP
 const entityModelProvider = require('../../../lib/entities/service').ModelProvider;
 
 require('jest-expect-message');
+
 class OrganizationsHelper {
+  public static async setSampleRateToOrg(id: number, rateToSet = 0.1235) {
+    await OrganizationsModelProvider.getModel().update(
+      {
+        current_rate: rateToSet,
+      },
+      {
+        where: {
+          id,
+        },
+      },
+    );
+
+    const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
+
+    return +rateNormalized.toFixed();
+  }
 
   /**
    * @param {number} targetOrgId
@@ -29,18 +54,17 @@ class OrganizationsHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    *
-   * See {@link PostsService#findAndProcessAllForOrgWallFeed}
    */
   static async requestToGetOrgWallFeedAsGuest(targetOrgId, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
-    const url = requestHelper.getOneOrgWallFeed(targetOrgId) + query;
+    const url = RequestHelper.getOneOrgWallFeed(targetOrgId) + query;
 
     const res = await request(server)
       .get(url)
     ;
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
-      responseHelper.expectValidListResponse(res, allowEmpty);
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
     }
 
     if (dataOnly) {
@@ -60,19 +84,18 @@ class OrganizationsHelper {
    * @param {boolean} allowEmpty
    * @return {Promise<Object>}
    *
-   * @link postsFetchService#findAndProcessAllForOrgWallFeed
    */
   static async requestToGetOrgWallFeedAsMyself(myself, targetOrgId, query = '', dataOnly = true, expectedStatus = 200, allowEmpty = false) {
-    const url = requestHelper.getOneOrgWallFeed(targetOrgId) + query;
+    const url = RequestHelper.getOneOrgWallFeed(targetOrgId) + query;
 
     const res = await request(server)
       .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
-      responseHelper.expectValidListResponse(res, allowEmpty);
+      ResponseHelper.expectValidListResponse(res, allowEmpty);
     }
 
     if (dataOnly) {
@@ -91,11 +114,11 @@ class OrganizationsHelper {
    */
   static async requestToFollowOrganization(orgId, user, expectedStatus = 201) {
     const res = await request(server)
-      .post(requestHelper.getOrgFollowUrl(orgId))
+      .post(RequestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -109,11 +132,11 @@ class OrganizationsHelper {
    */
   static async requestToUnfollowOrganization(orgId, user, expectedStatus = 201) {
     const res = await request(server)
-      .post(requestHelper.getOrgUnfollowUrl(orgId))
+      .post(RequestHelper.getOrgUnfollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -138,11 +161,11 @@ class OrganizationsHelper {
    */
   static async requestToSearchCommunity(query) {
     const res = await request(server)
-      .get(requestHelper.getCommunitySearchUrl(query))
+      .get(RequestHelper.getCommunitySearchUrl(query))
     ;
 
-    responseHelper.expectStatusOk(res);
-    expect(_.isArray(res.body)).toBeTruthy();
+    ResponseHelper.expectStatusOk(res);
+    expect(Array.isArray(res.body)).toBeTruthy();
 
     return res.body;
   }
@@ -154,11 +177,11 @@ class OrganizationsHelper {
    */
   static async requestToSearchPartnership(query) {
     const res = await request(server)
-      .get(requestHelper.getPartnershipSearchUrl(query))
+      .get(RequestHelper.getPartnershipSearchUrl(query))
     ;
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
-    expect(_.isArray(res.body)).toBeTruthy();
+    expect(Array.isArray(res.body)).toBeTruthy();
 
     return res.body;
   }
@@ -194,22 +217,7 @@ class OrganizationsHelper {
       },
     ];
 
-    return await entitySourcesRepository.bulkCreate(entities);
-  }
-
-  /**
-   *
-   * @param {number} orgId
-   * @param {number} expectedStatus
-   * @return {Promise<void>}
-   */
-  static async requestToGetOrgPosts(orgId, expectedStatus = 200) {
-    const res = await request(server)
-      .get(requestHelper.getOrganizationsPostsUrl(orgId))
-    ;
-    responseHelper.expectStatusToBe(res, expectedStatus);
-
-    return res.body;
+    return entitySourcesRepository.bulkCreate(entities);
   }
 
   /**
@@ -217,17 +225,19 @@ class OrganizationsHelper {
    * @param {string} filename
    */
   static async isAvatarImageUploaded(filename) {
-    await fileToUploadHelper.isFileUploadedToPath(filename, orgImageStoragePath);
+    await FileToUploadHelper.isFileUploadedToPath(filename, orgImageStoragePath);
   }
 
-  /**
-   *
-   * @param {Object[]}models
-   */
-  static checkOrganizationsPreviewFields(models) {
+  static checkOrganizationsPreviewFields(models: OrgModelResponse[]) {
     models.forEach((model) => {
       this.checkOneOrganizationPreviewFields(model);
     });
+  }
+
+  public static checkOrgListResponseStructure(response: OrgListResponse): void {
+    const { data } = response;
+
+    this.checkOrganizationsPreviewFields(data);
   }
 
   /**
@@ -259,10 +269,13 @@ class OrganizationsHelper {
    * @param {Object} model - model with included user
    * @param {string[]|null} givenExpected - model with included user
    */
-  static checkOneOrganizationPreviewFields(model, givenExpected = null) {
+  static checkOneOrganizationPreviewFields(
+    model: OrgModelResponse,
+    givenExpected = null,
+  ): void {
     expect(model).toBeDefined();
     expect(model).not.toBeNull();
-    const expected = givenExpected ? givenExpected : OrganizationsRepository.getFieldsForPreview();
+    const expected = givenExpected || OrganizationsRepository.getFieldsForPreview();
 
     this.checkIsPostProcessedSmell(model);
 
@@ -293,28 +306,6 @@ class OrganizationsHelper {
   }
 
   /**
-   * @deprecated - renaming
-   * @param {string | null } queryString
-   * @returns {Promise<Object[]>}
-   */
-  static async requestToGetOrganizationsAsGuest(queryString = null) {
-
-    let url = requestHelper.getOrganizationsUrl();
-
-    if (queryString) {
-      url += `?${queryString}`;
-    }
-
-    const res = await request(server)
-      .get(url)
-    ;
-
-    responseHelper.expectStatusOk(res);
-
-    return res.body.data;
-  }
-
-  /**
    * @deprecated - not required
    * @param {number} page
    * @param {number} perPage
@@ -322,7 +313,7 @@ class OrganizationsHelper {
    * @returns {Promise<Object>}
    */
   static async requestAllOrgsWithPagination(page, perPage, dataOnly = false) {
-    let url = `${requestHelper.getOrganizationsUrl()}?`;
+    let url = `${RequestHelper.getOrganizationsUrl()}?`;
 
     const params: string[] = [];
 
@@ -339,7 +330,7 @@ class OrganizationsHelper {
       .get(url)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     if (dataOnly) {
       return res.body.data;
@@ -353,10 +344,11 @@ class OrganizationsHelper {
    * @param {string | null } queryString
    * @returns {Promise<Object[]>}
    */
+  // eslint-disable-next-line sonarjs/no-identical-functions
   static async requestToGetManyOrganizationsAsGuest(
     queryString: string | null = null,
   ) {
-    let url = requestHelper.getOrganizationsUrl();
+    let url = RequestHelper.getOrganizationsUrl();
 
     if (queryString) {
       url += `?${queryString}`;
@@ -366,7 +358,7 @@ class OrganizationsHelper {
       .get(url)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body.data;
   }
@@ -382,6 +374,7 @@ class OrganizationsHelper {
       expect(existed).toEqual(source);
     });
 
+    // eslint-disable-next-line sonarjs/no-identical-functions
     sourceSet.external.to_check.forEach((source) => {
       const existed = sourceAfter.find(data => data.id === source.id);
       expect(existed).toBeDefined();
@@ -399,7 +392,7 @@ class OrganizationsHelper {
     const actualAddedExternal = sourceAfter.find(data => data.source_url === expectedAddedExternal.source_url && data.source_type === 'external');
     expect(actualAddedExternal).toBeDefined();
 
-    await fileToUploadHelper.isFileUploaded(actualAddedExternal.avatar_filename);
+    await FileToUploadHelper.isFileUploaded(actualAddedExternal.avatar_filename);
     delete expectedAddedExternal.avatar_filename;
 
     expect(actualAddedExternal).toMatchObject(expectedAddedExternal);
@@ -439,7 +432,7 @@ class OrganizationsHelper {
       description:      'This is a cool description about cool external community',
 
       source_type:      'external',
-      avatar_filename:  fileToUploadHelper.getSampleFilePathToUpload(),
+      avatar_filename:  FileToUploadHelper.getSampleFilePathToUpload(),
     };
 
     // External source should be changed
@@ -453,7 +446,7 @@ class OrganizationsHelper {
     ];
 
     return {
-      for_request: _.concat(internalSourcesForRequest, externalSourcesForRequest),
+      for_request: Array.prototype.concat(internalSourcesForRequest, externalSourcesForRequest),
 
       internal: {
         to_add:     internalSourceToAdd,
@@ -553,7 +546,7 @@ class OrganizationsHelper {
         ...addToEverySource,
       },
 
-      ///////// Partnership-internal
+      // /////// Partnership-internal
       {
         source_url: '',
         is_official: false,
@@ -591,7 +584,7 @@ class OrganizationsHelper {
         text_data: '',
       },
 
-      ///////// Partnership-external
+      // /////// Partnership-external
       {
         source_url: 'https://coolpartnership.com',
         is_official: false,
@@ -640,16 +633,15 @@ class OrganizationsHelper {
    *
    * @param {number} orgId
    * @return {Promise<Object>}
-   * @link OrganizationService#findOneOrgByIdAndProcess
    */
   static async requestToGetOneOrganizationAsGuest(orgId) {
-    const url = requestHelper.getOneOrganizationUrl(orgId);
+    const url = RequestHelper.getOneOrganizationUrl(orgId);
 
     const res = await request(server)
       .get(url)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body.data;
   }
@@ -675,10 +667,11 @@ class OrganizationsHelper {
 
     expect(targetModels).toBeDefined();
 
-    const expected = givenExpected ? givenExpected : organizationsRepositories.Main.getOrganizationModel().getFieldsForPreview().sort();
+    const expected = givenExpected
+      || organizationsRepositories.Main.getOrganizationModel().getFieldsForPreview().sort();
 
-    targetModels.forEach((model) => {
-      responseHelper.expectAllFieldsExistence(model, expected);
+    targetModels.forEach((item) => {
+      ResponseHelper.expectAllFieldsExistence(item, expected);
     });
   }
 
@@ -688,17 +681,16 @@ class OrganizationsHelper {
    * @param {number} orgId
    * @return {Promise<Object>}
    *
-   * @link OrganizationService#findOneOrgByIdAndProcess
    */
   static async requestToGetOneOrganizationAsMyself(user, orgId) {
-    const url = requestHelper.getOneOrganizationUrl(orgId);
+    const url = RequestHelper.getOneOrganizationUrl(orgId);
 
     const res = await request(server)
       .get(url)
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body.data;
   }
@@ -720,7 +712,7 @@ class OrganizationsHelper {
       city: 'LA',
       address: 'La alley, 18',
       personal_website_url: 'https://extreme.com',
-      avatar_filename: fileToUploadHelper.getSampleFilePathToUpload(),
+      avatar_filename: FileToUploadHelper.getSampleFilePathToUpload(),
     };
   }
 
@@ -732,13 +724,13 @@ class OrganizationsHelper {
    */
   static async requestToCreateOrgWithMinimumFields(user) {
     const res = await request(server)
-      .post(requestHelper.getOrganizationsUrl())
+      .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', 'Title12345')
       .field('nickname', '123nickname123')
     ;
 
-    responseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return res.body;
   }
@@ -751,12 +743,10 @@ class OrganizationsHelper {
    * @param {Object[]} usersTeam
    * @return {Promise<Object>}
    *
-   * @link OrganizationsService#updateOrganization
    */
   static async requestToUpdateOrganization(orgId, user, newModelFields, usersTeam) {
-
     const res = await request(server)
-      .patch(requestHelper.getOneOrganizationUrl(orgId))
+      .patch(RequestHelper.getOneOrganizationUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newModelFields.title)
       .field('currency_to_show', newModelFields.currency_to_show)
@@ -770,14 +760,14 @@ class OrganizationsHelper {
       .field('address', newModelFields.address)
       .field('personal_website_url', newModelFields.personal_website_url)
 
-      .field('users_team[0][id]', usersTeam[0]['user_id'])
-      .field('users_team[1][id]', usersTeam[1]['user_id'])
-      .field('users_team[2][id]', usersTeam[2]['user_id'])
+      .field('users_team[0][id]', usersTeam[0].user_id)
+      .field('users_team[1][id]', usersTeam[1].user_id)
+      .field('users_team[2][id]', usersTeam[2].user_id)
 
       .attach('avatar_filename', newModelFields.avatar_filename)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -806,7 +796,7 @@ class OrganizationsHelper {
    */
   static async requestToCreateNew(user, fields = {}, sources = {}, expectedStatus = 201) {
     const req = request(server)
-      .post(requestHelper.getOrganizationsUrl())
+      .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
@@ -820,7 +810,7 @@ class OrganizationsHelper {
       req.field(field, fields[field]);
     }
 
-    req.attach('avatar_filename', fileToUploadHelper.getSampleFilePathToUpload());
+    req.attach('avatar_filename', FileToUploadHelper.getSampleFilePathToUpload());
 
     for (const sourceSet in sources) {
       sources[sourceSet].forEach((source, i) => {
@@ -840,7 +830,7 @@ class OrganizationsHelper {
     }
 
     const res = await req;
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -848,6 +838,7 @@ class OrganizationsHelper {
   static addSourcesToReq(req, sources) {
     for (const sourceSet in sources) {
       // noinspection JSUnfilteredForInLoop
+      // eslint-disable-next-line no-loop-func
       sources[sourceSet].forEach((source, i) => {
         for (const field in source) {
           // noinspection JSUnfilteredForInLoop
@@ -856,14 +847,12 @@ class OrganizationsHelper {
           if (field !== 'avatar_filename') {
             // noinspection JSUnfilteredForInLoop
             req.field(fieldName, source[field]);
-          } else {
-            if (source[field] === fileToUploadHelper.getSampleFilePathToUpload()) {
-              // noinspection JSUnfilteredForInLoop
-              req.attach(fieldName, source[field]);
-            } else if (source[field]) {
-              // noinspection JSUnfilteredForInLoop
-              req.field(fieldName, source[field]);
-            }
+          } else if (source[field] === FileToUploadHelper.getSampleFilePathToUpload()) {
+            // noinspection JSUnfilteredForInLoop
+            req.attach(fieldName, source[field]);
+          } else if (source[field]) {
+            // noinspection JSUnfilteredForInLoop
+            req.field(fieldName, source[field]);
           }
         }
       });
@@ -881,9 +870,16 @@ class OrganizationsHelper {
    * @param {number} expectedStatus
    * @return {Promise<Object>}
    */
-  static async requestToUpdateExisting(orgId, user, fields, sources = null, socialNetworks = [], expectedStatus = 200) {
+  static async requestToUpdateExisting(
+    orgId,
+    user,
+    fields,
+    sources = null,
+    socialNetworks = [],
+    expectedStatus = 200,
+  ) {
     const req = request(server)
-      .patch(requestHelper.getOneOrganizationUrl(orgId))
+      .patch(RequestHelper.getOneOrganizationUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
@@ -913,7 +909,7 @@ class OrganizationsHelper {
     });
 
     const res = await req;
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -925,7 +921,6 @@ class OrganizationsHelper {
    * @param {Object} requiredFields
    * @return {Promise<Object>}
    *
-   * @link OrganizationService#processNewOrganizationCreation
    */
   static async requestToCreateNewOrganization(user, requiredFields = null) {
     let newModelFields;
@@ -937,7 +932,7 @@ class OrganizationsHelper {
     }
 
     const res = await request(server)
-      .post(requestHelper.getOrganizationsUrl())
+      .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newModelFields.title)
       .field('currency_to_show', newModelFields.currency_to_show)
@@ -954,7 +949,7 @@ class OrganizationsHelper {
       .attach('avatar_filename', newModelFields.avatar_filename)
     ;
 
-    responseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return res.body;
   }

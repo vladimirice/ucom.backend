@@ -2,6 +2,7 @@
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
+const OrganizationsFetchService = require("./lib/organizations/service/organizations-fetch-service");
 const express = require('express');
 const { ApolloServer, gql, AuthenticationError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
@@ -14,6 +15,7 @@ const typeDefs = gql `
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     
     posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    organizations(order_by: String!, page: Int!, per_page: Int!): organizations!
 
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
@@ -109,6 +111,11 @@ const typeDefs = gql `
     data: [Comment!]!
     metadata: metadata!
   }
+
+  type organizations {
+    data: [Organization!]!
+    metadata: metadata!
+  }
   
   type Organization {
     id: Int!
@@ -165,6 +172,15 @@ const resolvers = {
                 } });
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             return PostsFetchService.findManyPosts(postsQuery, currentUserId);
+        },
+        // @ts-ignore
+        async organizations(parent, args, ctx) {
+            const query = {
+                page: args.page,
+                per_page: args.per_page,
+                sort_by: args.order_by,
+            };
+            return OrganizationsFetchService.findAndProcessAll(query);
         },
         // @ts-ignore
         async one_post(parent, args, ctx) {
