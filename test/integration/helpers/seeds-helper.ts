@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 import MockHelper = require('./mock-helper');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -75,12 +76,15 @@ const majorTables = [
 ];
 
 class SeedsHelper {
+  /**
+   * @deprecated
+   */
   static async bulkCreateComments() {
     await this.bulkCreate('comments', commentsSeeds);
   }
 
   /**
-   *
+   * @deprecated
    * @param {Object} user
    * @return {Promise<Object>}
    */
@@ -95,6 +99,8 @@ class SeedsHelper {
       created_at: new Date(),
       updated_at: new Date(),
       blockchain_id: 'sample_post_blockchain_id',
+      entity_id_for: user.id,
+      entity_name_for: UsersModelProvider.getEntityName(),
     };
 
     const model = await models.posts.create(data);
@@ -103,7 +109,8 @@ class SeedsHelper {
   }
 
   /**
-   *
+   * @deprecated
+   * @see genetrators
    * @param {Object} user
    * @param {number} postId
    * @return {Promise<Object>}

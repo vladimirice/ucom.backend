@@ -68,6 +68,7 @@ class UsersActivityRepository {
    * @return {Promise<Object>}
    */
   static async bulkCreateNewActivity(data, transaction) {
+    // noinspection TypeScriptValidateJSTypes
     return this.getModel().bulkCreate(data, { transaction });
   }
 
@@ -506,7 +507,12 @@ class UsersActivityRepository {
     });
   }
 
-  static async findEntityRelatedActivityWithInvolvedUsersData(entityId, entityName, activityTypeId, activityGroupId) {
+  static async findEntityRelatedActivityWithInvolvedUsersData(
+    entityId,
+    entityName,
+    activityTypeId,
+    activityGroupId,
+  ) {
     const sql = `
       SELECT
        "Users".id as id,

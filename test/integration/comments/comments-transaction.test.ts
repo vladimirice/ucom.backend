@@ -1,35 +1,38 @@
+import SeedsHelper = require('../helpers/seeds-helper');
+import CommentsHelper = require('../helpers/comments-helper');
+import CommentsGenerator = require('../../generators/comments-generator');
+import PostsGenerator = require('../../generators/posts-generator');
+import EosTransactionHelper = require('../helpers/eos-transaction-helpers');
+
 export {};
 
-const helpers = require('../helpers');
 const delay   = require('delay');
-const gen     = require('../../generators');
+const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const rabbitMqService         = require('../../../lib/jobs/rabbitmq-service');
 const usersActivityRepository = require('../../../lib/users/repository').Activity;
 
 const commentsRepository = require('../../../lib/comments/repository').Main;
 
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 let userVlad;
 let userJane;
 
 describe('Comment related blockchain transactions.', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
+    await SeedsHelper.resetOrganizationRelatedSeeds();
   });
 
   describe('Organization comments.', () => {
     it('Org. Should create and process valid direct comment creation transaction', async () => {
-
       await rabbitMqService.purgeBlockchainQueue();
       const user = userVlad;
       const postId = 1; // post_id = 1 is belong to organization of author vlad
@@ -59,7 +62,7 @@ describe('Comment related blockchain transactions.', () => {
         },
       };
 
-      await helpers.Comments.requestToCreateComment(postId, user);
+      await CommentsGenerator.createCommentForPost(postId, user);
 
       let activity: any = null;
       while (!activity) {
@@ -77,7 +80,7 @@ describe('Comment related blockchain transactions.', () => {
       const postId = 1; // post_id = 1 is belong to organization of author vlad
       const parentCommentId = 1;
 
-      await helpers.Seeds.bulkCreateComments();
+      await SeedsHelper.bulkCreateComments();
 
       const expectedBlockchainResponse = {
         processed: {
@@ -104,7 +107,7 @@ describe('Comment related blockchain transactions.', () => {
         },
       };
 
-      await helpers.Comments.requestToCreateCommentOnComment(postId, parentCommentId, user);
+      await CommentsGenerator.createCommentOnComment(postId, parentCommentId, user);
 
       let activity: any = null;
       while (!activity) {
@@ -121,6 +124,10 @@ describe('Comment related blockchain transactions.', () => {
     it('Comment on post without org ID. Should create and process valid transaction.', async () => {
       await rabbitMqService.purgeBlockchainQueue();
       const user = userVlad;
+
+      const post = await SeedsHelper.createMediaPostWithoutOrg(user);
+
+      await CommentsGenerator.createCommentForPost(post.id, user);
 
       const expectedBlockchainResponse = {
         processed: {
@@ -145,10 +152,6 @@ describe('Comment related blockchain transactions.', () => {
           ],
         },
       };
-
-      const post = await helpers.Seeds.createMediaPostWithoutOrg(user);
-
-      await helpers.Comments.requestToCreateComment(post.id, user);
 
       let activity: any = null;
       while (!activity) {
@@ -189,10 +192,10 @@ describe('Comment related blockchain transactions.', () => {
         },
       };
 
-      const post = await helpers.Seeds.createMediaPostWithoutOrg(user);
-      const comment = await helpers.Seeds.createCommentOnPostWithoutOrg(user, post.id);
+      const post = await SeedsHelper.createMediaPostWithoutOrg(user);
+      const comment = await SeedsHelper.createCommentOnPostWithoutOrg(user, post.id);
 
-      await helpers.Comments.requestToCreateCommentOnComment(post.id, comment.id, user);
+      await CommentsGenerator.createCommentOnComment(post.id, comment.id, user);
 
       let activity: any = null;
       while (!activity) {
@@ -208,10 +211,10 @@ describe('Comment related blockchain transactions.', () => {
   describe('Comments activity transactions', () => {
     describe('Votes related transactions', () => {
       it('Jane upvotes Vlad posts', async () => {
-        const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
-        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+        const postId  = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+        const comment = await CommentsGenerator.createCommentForPost(postId, userVlad);
 
-        await helpers.Comments.requestToUpvoteComment(postId, comment.id, userJane);
+        await CommentsHelper.requestToUpvoteComment(postId, comment.id, userJane);
         const blockchainId = await commentsRepository.findBlockchainIdById(comment.id);
 
         let activity;
@@ -221,22 +224,22 @@ describe('Comment related blockchain transactions.', () => {
         }
 
         const expectedPushResult =
-          helpers.EosTransaction.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
+          EosTransactionHelper.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
             userJane.account_name,
             blockchainId,
             InteractionTypeDictionary.getUpvoteId(),
           );
 
         expect(JSON.parse(activity.signed_transaction))
-          .toMatchObject(helpers.EosTransaction.getPartOfSignedUserVotesPostOfOtherUser());
+          .toMatchObject(EosTransactionHelper.getPartOfSignedUserVotesPostOfOtherUser());
         expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedPushResult);
       }, 20000);
 
       it('Jane DOWNVOTES Vlad posts', async () => {
-        const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
-        const comment = await gen.Comments.createCommentForPost(postId, userVlad);
+        const postId  = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+        const comment = await CommentsGenerator.createCommentForPost(postId, userVlad);
 
-        await helpers.Comments.requestToDownvoteComment(postId, comment.id, userJane);
+        await CommentsHelper.requestToDownvoteComment(postId, comment.id, userJane);
         const blockchainId = await commentsRepository.findBlockchainIdById(comment.id);
 
         let activity;
@@ -246,14 +249,14 @@ describe('Comment related blockchain transactions.', () => {
         }
 
         const expectedPushResult =
-          helpers.EosTransaction.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
+          EosTransactionHelper.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
             userJane.account_name,
             blockchainId,
             InteractionTypeDictionary.getDownvoteId(),
           );
 
         expect(JSON.parse(activity.signed_transaction))
-          .toMatchObject(helpers.EosTransaction.getPartOfSignedUserVotesPostOfOtherUser());
+          .toMatchObject(EosTransactionHelper.getPartOfSignedUserVotesPostOfOtherUser());
         expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedPushResult);
       }, 20000);
     });
