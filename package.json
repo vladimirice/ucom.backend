@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "check-by-eslint": "eslint **/*.ts config/*.js",
+    "check-by-eslint": "eslint **/*.ts config/*.js --fix",
     "test-all": "jest --verbose --runInBand",
     "compile-ts": "tsc",
     "compile-ts-watch": "tsc --watch"

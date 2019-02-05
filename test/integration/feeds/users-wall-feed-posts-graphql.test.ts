@@ -1,6 +1,8 @@
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import CommonHelper = require('../helpers/common-helper');
+// import CommentsGenerator = require('../../generators/comments-generator');
+// import PostsGenerator = require('../../generators/posts-generator');
 
 const mockHelper = require('../helpers/mock-helper.ts');
 
@@ -38,6 +40,27 @@ describe('#Feeds #GraphQL', () => {
   });
 
   describe('Positive', () => {
+    // it('Mixed types of posts - comments for all', async () => {
+    //   // const { postId, repostId }: { postId: number, repostId: number } =
+    //   //   await postsGenerator.createUserPostAndRepost(userVlad, userJane);
+    //
+    //   const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+    //   const directPostId = await PostsGenerator.createDirectPostForUserAndGetId(userJane, userVlad);
+    //
+    //   await CommentsGenerator.createCommentForPost(postId, userJane);
+    //   await CommentsGenerator.createCommentForPost(directPostId, userVlad);
+    //
+    //
+    //   // @ts-ignore
+    //   const response =
+    //     await GraphqlHelper.getUserWallFeedQueryAsMyself(userJane, userVlad.id, 1, 10);
+    //
+    //   // @ts-ignore
+    //   const a = 0;
+    //
+    // }, 100000);
+
+
     it('#smoke - should get repost information', async () => {
       const { repostId }: { repostId: number } =
         await postsGenerator.createUserPostAndRepost(userVlad, userJane);
