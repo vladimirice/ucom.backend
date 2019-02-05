@@ -4,6 +4,7 @@
 * [Installation](documentation/INSTALLATION.md)
 * [Architecture](documentation/ARCHITECTURE.md)
 * [Style guide](documentation/STYLE_GUIDE.md)
+* [Technical debt](documentation/TECHNICAL_DEBT.md)
 * [For reference](documentation/FOR_REFERENCE.md)
 
 ## Main goals

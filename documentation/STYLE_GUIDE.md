@@ -22,13 +22,15 @@ Because of this some of conventions are not satisfied by "old code", only for ne
 ### Autotests
 * **Do** write autotests for new functions. TDD style is preferable.
 
-* **Don't** use `pre-defined seeds`. Some old-written autotests are still using them
-* **Do** use `generators`. [Example](../test/integration/tags/tags-get.test.ts)
+* **Don't** use `pre-defined seeds`. Some old-written autotests are still using them.
+* **Do** use `generators` - [generators folder](../test/generators), [usage example](../test/integration/tags/tags-get.test.ts)
 
 ### Naming
 * **Do** use `entity` prefix for objects like `team`, `tags`, etc. which are might be used for several entities
 (for example, both `organization` and `post` might have `tags`, so proper table name should be `entity_tags`, not
 `organizaton_tags`, `post_tags`) 
+* **Don't** use `getSinglePost`, `getPosts`.
+* **Do** use `One/Many`, for ex. `getOnePost`, `getManyPosts`.
 
 
 TODO - This section is not ready yet. Here will be placed links to files that represent project conventions
