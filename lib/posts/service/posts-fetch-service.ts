@@ -409,7 +409,6 @@ class PostsFetchService {
     commentsQuery: RequestQueryComments,
     currentUserId: number | null,
   ): Promise<void> {
-    console.log(`PostIds are ${JSON.stringify(postsIds, null, 2)}`);
 
     commentsQuery.depth = 0;
 
@@ -419,10 +418,8 @@ class PostsFetchService {
       commentsQuery,
     );
 
-    console.log(`idToComments after are ${JSON.stringify(idToComments, null, 2)}`);
 
     posts.forEach((post) => {
-      console.log(`processing post of id: ${post.id}`);
       if (!idToComments[post.id]) {
         ApiLogger.error(`There are no comments for post with ID ${post.id} but should be. Filled or empty. Let's set empty and continue`);
         post.comments = ApiPostProcessor.getEmptyListOfModels();

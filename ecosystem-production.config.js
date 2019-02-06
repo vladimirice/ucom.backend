@@ -1,6 +1,7 @@
 const NODE_ENV              = 'production';
 const HTTP_SERVER_PORT      = 3000;
 const WEBSOCKET_SERVER_PORT = 5000;
+const GRAPHQL_SERVER_PORT   = 4000;
 
 module.exports = {
   apps : [
@@ -16,6 +17,19 @@ module.exports = {
       env: {
         PORT:         HTTP_SERVER_PORT,
         NODE_ENV:     NODE_ENV,
+      },
+    },
+    {
+      name: `${NODE_ENV}_app_graphql`,
+      instance_var: 'INSTANCE_ID',
+      script: 'bin/app-graphql.js',
+      instances: 'max',
+      exec_mode: 'cluster',
+      watch: false,
+      autorestart: true,
+      env: {
+        PORT: GRAPHQL_SERVER_PORT,
+        NODE_ENV: NODE_ENV,
       },
     },
     {
