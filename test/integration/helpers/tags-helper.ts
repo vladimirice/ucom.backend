@@ -86,7 +86,7 @@ class TagsHelper {
    * @param {number} modelId
    * @returns {Promise<Object>}
    */
-  static async getPostWhenTagsAreProcessed(modelId) {
+  public static async getPostWhenTagsAreProcessed(modelId: number): Promise<any> {
     let model;
 
     while (true) {

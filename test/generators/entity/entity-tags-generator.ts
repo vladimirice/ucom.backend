@@ -73,6 +73,45 @@ class EntityTagsGenerator {
     };
   }
 
+  public static async createTagsViaNewPostsByAmount(
+    myself: UserModel,
+    tagsAmount: number,
+  ): Promise<number[]> {
+    const tagPrefix = 'party';
+    const tagsTitles: string[] = [];
+    for (let i = 0; i < tagsAmount; i += 1) {
+      tagsTitles.push(`${tagPrefix}_${i}`);
+    }
+
+    return this.createManyTagsViaManyNewPosts(myself, tagsTitles);
+  }
+
+  public static async createManyTagsViaManyNewPosts(
+    myself: UserModel,
+    tagsTitles: string[],
+  ): Promise<number[]> {
+    const promises: Promise<any>[] = [];
+
+    tagsTitles.forEach((title: string) => {
+      promises.push(this.createTagViaNewPost(myself, title));
+    });
+
+    return Promise.all(promises);
+  }
+
+  public static async createTagViaNewPost(
+    myself: UserModel,
+    tagTitle: string,
+  ): Promise<number> {
+    const postId: number = await PostsGenerator.createMediaPostByUserHimself(myself, {
+      description: `Hi everyone! #${tagTitle} is so close.`,
+    });
+
+    await TagsHelper.getPostWhenTagsAreProcessed(postId);
+
+    return postId;
+  }
+
   public static async createPostsWithTags(
     userVlad: UserModel,
     userJane: UserModel,

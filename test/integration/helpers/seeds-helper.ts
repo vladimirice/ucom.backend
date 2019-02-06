@@ -1,6 +1,7 @@
 /* tslint:disable:max-line-length */
 import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import { GraphqlHelper } from './graphql-helper';
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -139,12 +140,30 @@ class SeedsHelper {
     await rabbitMqService.purgeAllQueues();
   }
 
+  public static async beforeAllSetting(options) {
+    if (options.isGraphQl) {
+      await GraphqlHelper.beforeAll();
+    }
+
+    switch (options.workersMocking) {
+      case 'blockchainOnly':
+        MockHelper.mockAllTransactionSigning();
+        MockHelper.mockAllBlockchainJobProducers();
+        break;
+      case 'all':
+        MockHelper.mockAllBlockchainPart();
+        break;
+      default:
+        // do nothing
+    }
+  }
+
   /**
    *
    * @returns {Promise<*>}
    */
   static async beforeAllRoutine(
-    mockAllBlockchain: boolean = false,
+    mockAllBlockchain: boolean = false, // deprecated
   ) {
     if (mockAllBlockchain) {
       MockHelper.mockAllBlockchainPart();
@@ -331,11 +350,18 @@ class SeedsHelper {
     });
   }
 
-  static async doAfterAll() {
-    await Promise.all([
-      // rabbitMqService.closeAll(),
+  public static async doAfterAll(
+    options,
+  ): Promise<void> {
+    const promises = [
       models.sequelize.close(),
-    ]);
+    ];
+
+    if (options.isGraphQl) {
+      promises.push(GraphqlHelper.afterAll());
+    }
+
+    await Promise.all(promises);
   }
 
   static async sequelizeAfterAll() {
