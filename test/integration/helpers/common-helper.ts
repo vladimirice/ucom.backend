@@ -95,7 +95,7 @@ class CommonHelper {
     CommentsHelper.checkOneCommentPreviewFields(comment, options);
     UsersHelper.checkIncludedUserPreview(comment);
 
-    this.checkCreatedAtUpdatedAtFormat(comment);
+    ResponseHelper.checkCreatedAtUpdatedAtFormat(comment);
 
     if (comment.organization_id) {
       OrganizationsHelper.checkOneOrganizationPreviewFields(comment.organization);
@@ -109,7 +109,7 @@ class CommonHelper {
     CommentsHelper.checkOneCommentItself(comment, options);
     UsersHelper.checkIncludedUserPreview(comment);
 
-    this.checkCreatedAtUpdatedAtFormat(comment);
+    ResponseHelper.checkCreatedAtUpdatedAtFormat(comment);
 
     if (comment.organization_id) {
       OrganizationsHelper.checkOneOrganizationPreviewFields(comment.organization);
@@ -520,7 +520,7 @@ class CommonHelper {
 
     posts.forEach((post) => {
       this.checkOneListPostFromApi(post, options);
-      this.checkCreatedAtUpdatedAtFormat(post);
+      ResponseHelper.checkCreatedAtUpdatedAtFormat(post);
 
       if (options.comments) {
         expect(post.comments).toBeDefined();
@@ -529,14 +529,6 @@ class CommonHelper {
         this.checkManyCommentsPreviewWithRelations(post.comments.data, options);
       }
     });
-  }
-
-  private static checkCreatedAtUpdatedAtFormat(model) {
-    expect(model.created_at).toMatch('Z');
-    expect(model.created_at).toMatch('T');
-
-    expect(model.updated_at).toMatch('Z');
-    expect(model.updated_at).toMatch('T');
   }
 
   /**
@@ -689,7 +681,7 @@ class CommonHelper {
     this.checkOnePostEntityForCard(post);
 
     this.checkMyselfData(post, options);
-    this.checkCreatedAtUpdatedAtFormat(post);
+    ResponseHelper.checkCreatedAtUpdatedAtFormat(post);
 
     if (options.comments) {
       this.checkManyIncludedCommentsV2(post, options);

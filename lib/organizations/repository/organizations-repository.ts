@@ -21,6 +21,7 @@ const { Op } = db;
 
 const taggableRepository = require('../../common/repository/taggable-repository');
 
+// @ts-ignore
 class OrganizationsRepository implements QueryFilteredRepository {
   // eslint-disable-next-line class-methods-use-this
   getDefaultListParams() {

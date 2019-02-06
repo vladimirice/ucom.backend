@@ -79,7 +79,7 @@ class EntityTagsGenerator {
   ): Promise<number[]> {
     const tagPrefix = 'party';
     const tagsTitles: string[] = [];
-    for (let i = 0; i < tagsAmount; i += 1) {
+    for (let i = 1; i <= tagsAmount; i += 1) {
       tagsTitles.push(`${tagPrefix}_${i}`);
     }
 

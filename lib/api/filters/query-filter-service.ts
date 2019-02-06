@@ -74,7 +74,7 @@ class QueryFilterService {
   }
 
   public static getQueryParametersWithRepository(
-    query,
+    query: RequestQueryDto,
     repository: QueryFilteredRepository,
     processAttributes = false, // hardcoded variable in order to reduce refactoring at the beginning
   ): DbParamsDto {

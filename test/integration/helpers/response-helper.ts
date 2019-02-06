@@ -4,6 +4,14 @@ import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists
 require('jest-expect-message');
 
 class ResponseHelper {
+  public static checkCreatedAtUpdatedAtFormat(model) {
+    expect(model.created_at).toMatch('Z');
+    expect(model.created_at).toMatch('T');
+
+    expect(model.updated_at).toMatch('Z');
+    expect(model.updated_at).toMatch('T');
+  }
+
   static expectStatusOk(res) {
     // @ts-ignore
     expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(200);

@@ -1,9 +1,15 @@
+import { TagsModelResponse, TagsListResponse } from '../../../lib/tags/interfaces/dto-interfaces';
+
+import ResponseHelper = require('./response-helper');
+import TagsRepository = require('../../../lib/tags/repository/tags-repository');
+import RequestHelper = require('./request-helper');
+import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 const delay = require('delay');
 
 const request = require('supertest');
 const server = require('../../../app');
-const requestHelper = require('./request-helper');
-const responseHelper = require('./response-helper');
 
 const postsRepository = require('../../../lib/posts/posts-repository');
 const tagsRepository = require('../../../lib/tags/repository/tags-repository.js');
@@ -16,46 +22,26 @@ const postsModelProvider = require('../../../lib/posts/service/posts-model-provi
 require('jest-expect-message');
 
 class TagsHelper {
-
-  /**
-   * [Legacy]
-   * @param {int} tagId
-   * @param {number} expectedResponseStatus
-   * @returns {Promise<*>}
-   */
-  static async requestToGetOneTagPageByIdAsGuest(tagId, expectedResponseStatus = 200) {
-    const url = `${requestHelper.getTagsRootUrl()}/${tagId}`;
-
-    const res = await request(server)
-      .get(url)
-    ;
-
-    responseHelper.expectStatusToBe(res, expectedResponseStatus);
-
-    return res.body;
+  public static checkTagsListResponseStructure(response: TagsListResponse): void {
+    ResponseHelper.expectValidListResponseStructure(response);
+    this.checkManyTags(response.data);
   }
 
-  /**
-   * @param {string} tagTitle
-   * @param {Object} myself
-   * @param {number} expectedResponseStatus
-   * @returns {Promise<*>}
-   */
-  static async requestToGetOneTagPageByTitleAsMyself(
+  public static async requestToGetOneTagPageByTitleAsMyself(
     tagTitle: string,
-    myself: Object,
+    myself: UserModel,
     expectedResponseStatus: number = 200,
-  ) {
-    const url = requestHelper.getOneTagUrl(tagTitle);
+  ): Promise<void> {
+    const url = RequestHelper.getOneTagUrl(tagTitle);
     const req = request(server)
       .get(url)
     ;
 
-    requestHelper.addAuthToken(req, myself);
+    RequestHelper.addAuthToken(req, myself);
 
     const res = await req;
 
-    responseHelper.expectStatusToBe(res, expectedResponseStatus);
+    ResponseHelper.expectStatusToBe(res, expectedResponseStatus);
 
     return res.body;
   }
@@ -66,17 +52,17 @@ class TagsHelper {
    * @param {number} expectedResponseStatus
    * @returns {Promise<Object>}
    */
-  static async requestToGetOneTagPageByTitleAsGuest(
+  public static async requestToGetOneTagPageByTitleAsGuest(
     tagTitle: string,
     expectedResponseStatus: number = 200,
   ): Promise<Object> {
-    const url = `${requestHelper.getTagsRootUrl()}/${tagTitle}`;
+    const url = `${RequestHelper.getTagsRootUrl()}/${tagTitle}`;
 
     const res = await request(server)
       .get(url)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedResponseStatus);
+    ResponseHelper.expectStatusToBe(res, expectedResponseStatus);
 
     return res.body;
   }
@@ -89,6 +75,7 @@ class TagsHelper {
   public static async getPostWhenTagsAreProcessed(modelId: number): Promise<any> {
     let model;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       model = await postsRepository.findOnlyPostItselfById(modelId);
 
@@ -111,6 +98,7 @@ class TagsHelper {
   static async getPostWhenTagsAreUpdated(modelId: number, expectedTags: string[]) {
     let model;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       model = await postsRepository.findOnlyPostItselfById(modelId);
 
@@ -248,6 +236,21 @@ class TagsHelper {
       entityTags,
       entityStateLog,
     };
+  }
+
+  private static checkManyTags(data: TagsModelResponse[]): void {
+    data.forEach((item) => {
+      this.checkOneTag(item);
+    });
+  }
+
+  private static checkOneTag(model: TagsModelResponse): void {
+    const expected = TagsRepository.getTagPreviewFields();
+    ResponseHelper.expectFieldsAreExist(model, expected);
+
+    expect(model.entity_name).toBe(TagsModelProvider.getEntityName());
+
+    ResponseHelper.checkCreatedAtUpdatedAtFormat(model);
   }
 }
 
