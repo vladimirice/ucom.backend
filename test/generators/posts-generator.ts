@@ -351,11 +351,11 @@ class PostsGenerator {
    *
    */
   static async createDirectPostForOrganization(
-    myself,
-    targetOrgId,
-    givenDescription = null,
-    withImage = false,
-    idOnly = false,
+    myself: UserModel,
+    targetOrgId: number,
+    givenDescription: string | null = null,
+    withImage: boolean = false,
+    idOnly: boolean = false,
   ) {
     const url = RequestHelper.getOrgDirectPostUrl(targetOrgId);
 

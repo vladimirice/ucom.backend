@@ -48,7 +48,7 @@ describe('Organizations. Get requests', () => {
             );
           const totalAmount = await usersFeedRepository.countAllForOrgWallFeed(orgId);
 
-          ResponseHelper.checkMetadata(response, page, perPage, totalAmount, true);
+          ResponseHelper.checkMetadataByValues(response, page, perPage, totalAmount, true);
 
           response.data.forEach((post) => {
             expect(post.description).toBeDefined();
@@ -67,7 +67,7 @@ describe('Organizations. Get requests', () => {
 
           const totalAmount = await usersFeedRepository.countAllForOrgWallFeed(orgId);
 
-          ResponseHelper.checkMetadata(response, page, perPage, totalAmount, true);
+          ResponseHelper.checkMetadataByValues(response, page, perPage, totalAmount, true);
 
           perPage = 3;
           const lastPage = RequestHelper.getLastPage(totalAmount, perPage);
@@ -80,7 +80,7 @@ describe('Organizations. Get requests', () => {
           const lastResponse =
             await OrganizationsHelper.requestToGetOrgWallFeedAsGuest(orgId, queryStringLast, false);
 
-          ResponseHelper.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
+          ResponseHelper.checkMetadataByValues(lastResponse, lastPage, perPage, totalAmount, false);
         });
 
         it('Get two post pages', async () => {

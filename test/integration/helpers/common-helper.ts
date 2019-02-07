@@ -41,7 +41,7 @@ class CommonHelper {
   }
 
   public static checkManyCommentsV2(comments: CommentsListResponse, options: CheckerOptions): void {
-    ResponseHelper.expectValidListResponseStructure(comments);
+    ResponseHelper.checkListResponseStructure(comments);
 
     if (options.comments.isEmpty) {
       expect(comments.data.length).toBe(0);
@@ -638,15 +638,9 @@ class CommonHelper {
     response: PostsListResponse,
     options: CheckerOptions,
   ): void {
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     this.checkManyPostsV2(response.data, options);
-  }
-
-  public static expectEmptyPostListResponse(response: PostsListResponse): void {
-    ResponseHelper.expectValidListResponseStructure(response);
-
-    expect(response.data.length).toBe(0);
   }
 
   public static checkOnePostV2WithoutOrg(

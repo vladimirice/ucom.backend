@@ -11,6 +11,7 @@ import PostsGenerator = require('../../generators/posts-generator');
 
 import CommonHelper = require('../helpers/common-helper');
 import CommentsGenerator = require('../../generators/comments-generator');
+import ResponseHelper = require('../helpers/response-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -77,7 +78,7 @@ describe('GET posts via graphql', () => {
         postOrdering,
       );
 
-      CommonHelper.expectEmptyPostListResponse(response);
+      ResponseHelper.checkEmptyResponseList(response);
     });
 
     it('Sort by current_rate DESC, ID DESC. #smoke #posts', async () => {
@@ -197,7 +198,7 @@ describe('GET posts via graphql', () => {
         const response: PostsListResponse =
           await GraphqlHelper.getManyPostsAsMyself(userVlad, postFiltering);
 
-        CommonHelper.expectEmptyPostListResponse(response);
+        ResponseHelper.checkEmptyResponseList(response);
       });
     });
 

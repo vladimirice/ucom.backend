@@ -1,7 +1,10 @@
+/* eslint-disable import/no-dynamic-require */
 /* tslint:disable:max-line-length */
+import { GraphqlHelper } from './graphql-helper';
+
 import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
-import { GraphqlHelper } from './graphql-helper';
+import UsersHelper = require('./users-helper');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -14,7 +17,6 @@ const postStatsSeeds = require('../../../seeders/posts/post-stats-seeds');
 const postUsersTeamSeeds = require('../../../seeders/posts/posts-users-team');
 const commentsSeeds = require('../../../seeders/comments/comments-seeds');
 const organizationsSeeds = require('../../../seeders/organizations/organizations-seeds');
-const usersHelper = require('../helpers/users-helper');
 
 const organizationsRepositories = require('../../../lib/organizations/repository');
 const usersRepositories = require('../../../lib/users/repository');
@@ -24,13 +26,14 @@ const entityModelProvider = require('../../../lib/entities/service').ModelProvid
 
 const rabbitMqService     = require('../../../lib/jobs/rabbitmq-service.js');
 
-const seedsDir = '../../../seeders';
+const orgSeeds = require('../../../seeders/organizations/organizations-seeds');
+const usersTeamSeeds = require('../../../seeders/organizations/organizations-seeds');
 
 const tableToSeeds = {
-  [organizationsRepositories.Main.getOrganizationsModelName()]: require(`${seedsDir}/organizations/organizations-seeds`),
-  [usersRepositories.Main.getUsersModelName()]:                 require(`${seedsDir}/users/users`),
-  [usersModelProvider.getUsersTeamTableName()]:                 require(`${seedsDir}/users/users-team-seeds`),
-  [postRepositories.MediaPosts.getModelName()]:                 require(`${seedsDir}/posts/posts`),
+  [organizationsRepositories.Main.getOrganizationsModelName()]: orgSeeds,
+  [usersRepositories.Main.getUsersModelName()]:                 usersSeeds,
+  [usersModelProvider.getUsersTeamTableName()]:                 usersTeamSeeds,
+  [postRepositories.MediaPosts.getModelName()]:                 postsSeeds,
 };
 
 // Truncated async
@@ -111,7 +114,7 @@ class SeedsHelper {
 
   /**
    * @deprecated
-   * @see genetrators
+   * @see generators
    * @param {Object} user
    * @param {number} postId
    * @return {Promise<Object>}
@@ -178,7 +181,6 @@ class SeedsHelper {
 
     // init users
     const usersSequence = this.getSequenceNameByModelName(usersModel);
-    const usersSeeds    = tableToSeeds[usersModel];
 
     await this.resetSequence(usersSequence);
     await this.bulkCreate(usersModel, usersSeeds);
@@ -190,15 +192,11 @@ class SeedsHelper {
     ]);
 
     return Promise.all([
-      usersHelper.getUserVlad(),
-      usersHelper.getUserJane(),
-      usersHelper.getUserPetr(),
-      usersHelper.getUserRokky(),
+      UsersHelper.getUserVlad(),
+      UsersHelper.getUserJane(),
+      UsersHelper.getUserPetr(),
+      UsersHelper.getUserRokky(),
     ]);
-  }
-
-  public async seedOrganizations() {
-    await models.organizations.bulkCreate(organizationsSeeds);
   }
 
   /**
@@ -341,23 +339,16 @@ class SeedsHelper {
     await models.posts.bulkCreate(postsSeeds);
     await models.post_offer.bulkCreate(postsOffersSeeds);
     await models.post_users_team.bulkCreate(postUsersTeamSeeds);
-
-    // noinspection JSUnresolvedFunction
-    usersSeeds.forEach(() => {
-      // tslint:disable-next-line
-      models.sequelize.query('SELECT nextval(\'"Users_id_seq"\')').then(() => {
-      });
-    });
   }
 
   public static async doAfterAll(
-    options,
+    options: any = null,
   ): Promise<void> {
     const promises = [
       models.sequelize.close(),
     ];
 
-    if (options.isGraphQl) {
+    if (options && options.isGraphQl) {
       promises.push(GraphqlHelper.afterAll());
     }
 

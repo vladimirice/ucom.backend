@@ -1,22 +1,15 @@
-export {};
+import PostsHelper = require('../helpers/posts-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import PostsGenerator = require('../../generators/posts-generator');
+import TagsHelper = require('../helpers/tags-helper');
+import NotificationsHelper = require('../helpers/notifications-helper');
+import CommonHelper = require('../helpers/common-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import EntityEntityTagsGenerator = require('../../generators/entity/entity-tags-generator');
+import EntityTagsGenerator = require('../../generators/entity/entity-tags-generator');
 
 const _     = require('lodash');
 const delay = require('delay');
-
-const helpers = require('../helpers');
-const gen     = require('../../generators');
-
-const mockHelper = require('../helpers/mock-helper');
-const seedsHelper = require('../helpers/seeds-helper');
-const notificationsHelper = require('../helpers/notifications-helper');
-const commonHelper = require('../helpers/common-helper');
-
-const tagsGenerator   = require('../../generators/entity/entity-tags-generator');
-const postsGenerator  = require('../../generators/posts-generator');
-const orgGenerator    = require('../../generators/organizations-generator');
-
-const tagsHelper = require('../helpers/tags-helper');
-const postsHelper = require('../helpers/posts-helper');
 
 let userVlad;
 let userJane;
@@ -24,16 +17,16 @@ let userPetr;
 
 const JEST_TIMEOUT = 10000;
 
+const beforeOptions = {
+  isGraphQl: false,
+  workersMocking: 'blockchainOnly',
+};
+
 describe('Tags parsing by consumer', () => {
-  beforeAll(async () => {
-    mockHelper.mockAllTransactionSigning();
-    mockHelper.mockAllBlockchainJobProducers();
-  });
-  afterAll(async () => {
-    await seedsHelper.doAfterAll();
-  });
+  beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeOptions); });
+  afterAll(async () => { await SeedsHelper.doAfterAll(beforeOptions); });
   beforeEach(async () => {
-    [userVlad, userJane, userPetr] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Creating - both tags and mentions', () => {
@@ -51,22 +44,22 @@ describe('Tags parsing by consumer', () => {
         post #${expectedTags[1]} @${userPetr.account_name} description`,
       };
 
-      const directPost = await postsGenerator.createUserDirectPostForOtherUser(
+      const directPost = await PostsGenerator.createUserDirectPostForOtherUser(
         user,
         targetUser,
         newPostFields.description,
       );
 
-      await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
+      await TagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
 
       const mentionNotification =
-        await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
+        await NotificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
 
       const options = {
         postProcessing: 'notification',
       };
 
-      commonHelper.checkUserMentionsYouInsidePost(
+      CommonHelper.checkUserMentionsYouInsidePost(
         mentionNotification[0],
         options,
         directPost.id,
@@ -91,13 +84,13 @@ describe('Tags parsing by consumer', () => {
           description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
         };
 
-        const directPost = await postsGenerator.createUserDirectPostForOtherUser(
+        const directPost = await PostsGenerator.createUserDirectPostForOtherUser(
           user,
           targetUser,
           newPostFields.description,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
       }, JEST_TIMEOUT);
 
       it('should create tags for direct post of org', async () => {
@@ -108,37 +101,37 @@ describe('Tags parsing by consumer', () => {
           'party',
         ];
 
-        const orgId = await orgGenerator.createOrgWithoutTeam(user);
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
 
         const newPostFields = {
           description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
         };
 
-        const directPost = await helpers.Posts.requestToCreateDirectPostForOrganization(
+        const directPost = await PostsGenerator.createDirectPostForOrganization(
           user,
           orgId,
           newPostFields.description,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(directPost.id, expectedTags);
       }, JEST_TIMEOUT);
     });
 
     it('Should create org post and have an appropriate org_id in entity_tags', async () => {
-      const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
+      const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
       const postTags = [
         'summer',
         'undefined',
       ];
 
-      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId, {
+      const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId, {
         description: `Hi everyone! #${postTags[0]} is so close. Lets organize a #${postTags[1]}`,
       });
 
-      const processedModel = await tagsHelper.getPostWhenTagsAreProcessed(postId);
+      const processedModel = await TagsHelper.getPostWhenTagsAreProcessed(postId);
 
-      await tagsHelper.checkRelatedPostModels(postTags, processedModel);
+      await TagsHelper.checkRelatedPostModels(postTags, processedModel);
     }, JEST_TIMEOUT);
 
     it('Three posts are created. Without orgs. Some tags are duplicated', async () => {
@@ -165,26 +158,28 @@ describe('Tags parsing by consumer', () => {
         tagsSet[4], // new tag
       ];
 
-      const vladPostOneId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
+      const vladPostOneId = await PostsGenerator.createMediaPostByUserHimself(userVlad, {
         description: `Hi everyone! #${postOneTags[0]} #${postOneTags[0]} is so close.
         Lets organize a #${postOneTags[1]}`,
       });
 
-      const vladPostOneModel = await helpers.Tags.getPostWhenTagsAreProcessed(vladPostOneId);
+      const vladPostOneModel = await TagsHelper.getPostWhenTagsAreProcessed(vladPostOneId);
+      // @ts-ignore
       const { dbTags:vladPostOneDbTags } =
-        await helpers.Tags.checkRelatedPostModels(postOneTags, vladPostOneModel);
+        await TagsHelper.checkRelatedPostModels(postOneTags, vladPostOneModel);
 
       delay(500);
 
-      const vladPostTwoId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
+      const vladPostTwoId = await PostsGenerator.createMediaPostByUserHimself(userVlad, {
         description: `Hi everyone again! #${postTwoTags[0]} is so close.
         Lets organize #${postTwoTags[1]} #${postTwoTags[2]}`,
       });
 
-      const vladPostTwoModel = await helpers.Tags.getPostWhenTagsAreProcessed(vladPostTwoId);
+      const vladPostTwoModel = await TagsHelper.getPostWhenTagsAreProcessed(vladPostTwoId);
+      // @ts-ignore
       const { dbTags: vladPostTwoDbTags } =
-        await helpers.Tags.checkRelatedPostModels(
-          _.uniq(postOneTags.concat(postTwoTags)),
+        await TagsHelper.checkRelatedPostModels(
+          [...new Set(postOneTags.concat(postTwoTags))],
           vladPostTwoModel,
         );
 
@@ -200,13 +195,14 @@ describe('Tags parsing by consumer', () => {
 
       delay(500);
 
-      const janePostOneId = await gen.Posts.createMediaPostByUserHimself(userJane, {
+      const janePostOneId = await PostsGenerator.createMediaPostByUserHimself(userJane, {
         description: `Hi everyone! #${janePostOneTags[0]} is so close.
         Lets buy some #${janePostOneTags[1]} and #${janePostOneTags[2]} and #${janePostOneTags[1]}`,
       });
 
-      const janePostOneModel = await helpers.Tags.getPostWhenTagsAreProcessed(janePostOneId);
-      const { dbTags: janePostOneDbTags } = await helpers.Tags.checkRelatedPostModels(
+      const janePostOneModel = await TagsHelper.getPostWhenTagsAreProcessed(janePostOneId);
+      // @ts-ignore
+      const { dbTags: janePostOneDbTags } = await TagsHelper.checkRelatedPostModels(
         janePostOneTags,
         janePostOneModel,
       );
@@ -228,10 +224,10 @@ describe('Tags parsing by consumer', () => {
         description: `#${expectedTags[0]} there! I am #${expectedTags[1]}`,
       };
 
-      const modelId = await gen.Posts.createMediaPostByUserHimself(user, values);
-      const processedModel = await helpers.Tags.getPostWhenTagsAreProcessed(modelId);
+      const modelId = await PostsGenerator.createMediaPostByUserHimself(user, values);
+      const processedModel = await TagsHelper.getPostWhenTagsAreProcessed(modelId);
 
-      await helpers.Tags.checkRelatedPostModels(expectedTags, processedModel);
+      await TagsHelper.checkRelatedPostModels(expectedTags, processedModel);
     }, JEST_TIMEOUT);
   });
 
@@ -243,7 +239,8 @@ describe('Tags parsing by consumer', () => {
     beforeEach(async () => {
       // lets create some disturbance
       ({ posts: existingPosts, tagsTitles:existingTitles } =
-        await tagsGenerator.createPostsWithTags(userVlad, userJane));
+        await EntityEntityTagsGenerator.createPostsWithTags(userVlad, userJane));
+      // eslint-disable-next-line prefer-destructuring
       existingVladPostId = existingPosts.vlad[0];
     });
 
@@ -254,7 +251,7 @@ describe('Tags parsing by consumer', () => {
           'party',
         ];
 
-        const postBefore = await tagsGenerator.createDirectPostForUserWithTags(
+        const postBefore = await EntityTagsGenerator.createDirectPostForUserWithTags(
           userVlad,
           userJane,
           initialTags[0],
@@ -266,14 +263,14 @@ describe('Tags parsing by consumer', () => {
           initialTags[0],
         ];
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           postBefore.id,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(postBefore.id, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(postBefore.id, expectedTags);
       });
 
       it('Update direct post for org', async () => {
@@ -284,14 +281,13 @@ describe('Tags parsing by consumer', () => {
           'party',
         ];
 
-        const orgId = await orgGenerator.createOrgWithoutTeam(user);
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
 
         const newPostFields = {
           description: `Our super #${initialTags[0]} post #${initialTags[1]} description`,
         };
 
-        // noinspection JSDeprecatedSymbols//////////////
-        const postBefore = await helpers.Posts.requestToCreateDirectPostForOrganization(
+        const postBefore = await PostsGenerator.createDirectPostForOrganization(
           user,
           orgId,
           newPostFields.description,
@@ -302,14 +298,14 @@ describe('Tags parsing by consumer', () => {
           initialTags[0],
         ];
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           postBefore.id,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(postBefore.id, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(postBefore.id, expectedTags);
       });
     });
 
@@ -317,7 +313,7 @@ describe('Tags parsing by consumer', () => {
       let postId;
 
       beforeEach(async () => {
-        postId = await postsGenerator.createMediaPostByUserHimself(userVlad);
+        postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
       });
 
       it('should add two new tags for post without any tags', async () => {
@@ -326,9 +322,9 @@ describe('Tags parsing by consumer', () => {
           `${existingTitles[1]}predator`,
         ];
 
-        await postsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
+        await PostsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
 
-        await tagsHelper.checkRelatedPostModelsByPostId(postId, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(postId, expectedTags);
       });
 
       it('should add two existing tags for post without any tags', async () => {
@@ -337,8 +333,8 @@ describe('Tags parsing by consumer', () => {
           existingTitles[3],
         ];
 
-        await postsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
-        await tagsHelper.checkRelatedPostModelsByPostId(postId, expectedTags);
+        await PostsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(postId, expectedTags);
       }, JEST_TIMEOUT);
 
       it('should add one new tag and one existing tag for post without any tags', async () => {
@@ -347,8 +343,8 @@ describe('Tags parsing by consumer', () => {
           `${existingTitles[0]}animal`,
         ];
 
-        await postsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
-        await tagsHelper.checkRelatedPostModelsByPostId(postId, expectedTags);
+        await PostsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(postId, expectedTags);
       });
     });
 
@@ -356,51 +352,51 @@ describe('Tags parsing by consumer', () => {
       it('should remove all tags from post if no tags in description', async () => {
         const expectedTags = [];
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           existingVladPostId,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
       });
 
       it('should remove one tag from post and remain the other', async () => {
-        const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
+        const currentPost = await PostsHelper.requestToGetOnePostAsGuest(existingVladPostId);
 
-        const expectedTags = [
+        const expectedTags: string[] = [
           currentPost.entity_tags[1],
         ];
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           existingVladPostId,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
       });
     });
 
     describe('update current tag set', () => {
       it('should remove all old tags and add NEW ones - special description', async () => {
-        const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
+        const currentPost = await PostsHelper.requestToGetOnePostAsGuest(existingVladPostId);
         const expectedTags = currentPost.entity_tags.map(title => `${title}predator`);
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           existingVladPostId,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
       });
 
       it('should update one of the tags by already existing one', async () => {
-        const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
+        const currentPost = await PostsHelper.requestToGetOnePostAsGuest(existingVladPostId);
 
         const existingCandidates = _.difference(existingTitles, currentPost.entity_tags);
         const expectedTags = [
@@ -408,35 +404,35 @@ describe('Tags parsing by consumer', () => {
           existingCandidates[0],
         ];
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           existingVladPostId,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
       });
 
       it('should add two more NEW tags', async () => {
-        const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
+        const currentPost = await PostsHelper.requestToGetOnePostAsGuest(existingVladPostId);
 
         const tagsToAdd = currentPost.entity_tags.map(title => `${title}predator`);
 
         const expectedTags = currentPost.entity_tags.concat(tagsToAdd);
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           existingVladPostId,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
       });
 
       it('should add two more EXISTING tags', async () => {
-        const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
+        const currentPost = await PostsHelper.requestToGetOnePostAsGuest(existingVladPostId);
 
         const existingCandidates = _.difference(existingTitles, currentPost.entity_tags);
 
@@ -447,18 +443,18 @@ describe('Tags parsing by consumer', () => {
 
         const expectedTags = currentPost.entity_tags.concat(tagsToAdd);
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           existingVladPostId,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
       });
 
       it('should add one NEW tag and one EXISTING tag', async () => {
-        const currentPost = await postsHelper.requestToGetOnePostAsGuest(existingVladPostId);
+        const currentPost = await PostsHelper.requestToGetOnePostAsGuest(existingVladPostId);
 
         const existingCandidates = _.difference(existingTitles, currentPost.entity_tags);
 
@@ -469,22 +465,22 @@ describe('Tags parsing by consumer', () => {
 
         const expectedTags = currentPost.entity_tags.concat(tagsToAdd);
 
-        await postsHelper.requestToUpdatePostDescription(
+        await PostsHelper.requestToUpdatePostDescription(
           existingVladPostId,
           userVlad,
           null,
           expectedTags,
         );
 
-        await tagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
+        await TagsHelper.checkRelatedPostModelsByPostId(existingVladPostId, expectedTags);
       });
 
       it('should update one of the tags by new one', async () => {
-        const { posts } = await tagsGenerator.createPostsWithTags(userVlad, userJane);
+        const { posts } = await EntityTagsGenerator.createPostsWithTags(userVlad, userJane);
 
         const vladPosts: number[] = posts.vlad;
 
-        const post: any = await helpers.Posts.requestToGetOnePostAsGuest(vladPosts[0]);
+        const post: any = await PostsHelper.requestToGetOnePostAsGuest(vladPosts[0]);
 
         const expectedTags = [
           post.entity_tags[0],
@@ -494,37 +490,39 @@ describe('Tags parsing by consumer', () => {
         const newDescription: string =
           `#${expectedTags[0]}  is remained but lets introduce new tag #${expectedTags[1]}`;
 
-        await helpers.Posts.requestToUpdatePostDescription(vladPosts[0], userVlad, newDescription);
+        await PostsHelper.requestToUpdatePostDescription(vladPosts[0], userVlad, newDescription);
 
         const postAfter: any =
-          await tagsHelper.getPostWhenTagsAreUpdated(vladPosts[0], expectedTags);
+          await TagsHelper.getPostWhenTagsAreUpdated(vladPosts[0], expectedTags);
 
-        await tagsHelper.checkRelatedPostModels(expectedTags, postAfter);
+        await TagsHelper.checkRelatedPostModels(expectedTags, postAfter);
       }, JEST_TIMEOUT);
 
       it('If no new tags - create nothing new in tags model', async () => {
         const postId = existingVladPostId;
 
-        const post: any = await helpers.Posts.requestToGetOnePostAsGuest(postId);
+        const post: any = await PostsHelper.requestToGetOnePostAsGuest(postId);
 
-        const entityTagsBefore = await tagsHelper.getRelatedPostEntityTags(postId);
+        const entityTagsBefore = await TagsHelper.getRelatedPostEntityTags(postId);
 
         const expectedTags = [
           post.entity_tags[0],
           post.entity_tags[1],
         ];
 
-        await postsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
+        await PostsHelper.requestToUpdatePostDescription(postId, userVlad, null, expectedTags);
 
         const postAfter: any =
-          await tagsHelper.getPostWhenTagsAreUpdated(postId, expectedTags);
+          await TagsHelper.getPostWhenTagsAreUpdated(postId, expectedTags);
 
-        await tagsHelper.checkRelatedPostModels(expectedTags, postAfter);
+        await TagsHelper.checkRelatedPostModels(expectedTags, postAfter);
 
-        const entityTagsAfter = await tagsHelper.getRelatedPostEntityTags(postId);
+        const entityTagsAfter = await TagsHelper.getRelatedPostEntityTags(postId);
 
         expect(entityTagsAfter).toEqual(entityTagsBefore);
       });
     });
   });
 });
+
+export {};

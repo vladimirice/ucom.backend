@@ -1,15 +1,15 @@
-export {};
+import EntityTagsGenerator = require('../../generators/entity/entity-tags-generator');
+import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
+import TagsRepository = require('../../../lib/tags/repository/tags-repository');
+import MockHelper = require('../helpers/mock-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import PostsGenerator = require('../../generators/posts-generator');
+import PostsHelper = require('../helpers/posts-helper');
+import TagsHelper = require('../helpers/tags-helper');
 
 const _ = require('lodash');
-const tagsGenerator   = require('../../generators/entity/entity-tags-generator');
-const postsGenerator  = require('../../generators/posts-generator');
-
-const mockHelper = require('../helpers/mock-helper');
-const seedsHelper = require('../helpers/seeds-helper');
 
 const tagsParser = require('../../../lib/tags/service/tags-parser-service.js');
-
-const tagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
 
 const postsRepository = require('../../../lib/posts/posts-repository');
 const tagsRepository  = require('../../../lib/tags/repository/tags-repository');
@@ -20,22 +20,110 @@ let userJane;
 // #task - these are is unit tests
 describe('Tags services', () => {
   beforeAll(async () => {
-    mockHelper.mockAllTransactionSigning();
-    mockHelper.mockAllBlockchainJobProducers();
+    MockHelper.mockAllTransactionSigning();
+    MockHelper.mockAllBlockchainJobProducers();
   });
   afterAll(async () => {
-    await seedsHelper.doAfterAll();
+    await SeedsHelper.doAfterAll();
   });
   beforeEach(async () => {
-    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Tags current rate processor', () => {
+    it('Check current_posts_amount', async () => {
+      const tagOneTitle = 'summer';
+      const tagTwoTitle = 'autumn';
+
+      await Promise.all([
+        EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle),
+        EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle),
+
+        EntityTagsGenerator.createTagViaNewPost(userVlad, tagTwoTitle),
+        EntityTagsGenerator.createTagViaNewPost(userVlad, tagTwoTitle),
+      ]);
+
+      await TagsCurrentRateProcessor.process();
+
+      const tagOneModel = await TagsRepository.findOneByTitle(tagOneTitle);
+      const tagTwoModel = await TagsRepository.findOneByTitle(tagTwoTitle);
+
+      expect(tagOneModel!.current_posts_amount).toBe(2);
+      expect(tagTwoModel!.current_posts_amount).toBe(2);
+
+      await EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle);
+      await TagsCurrentRateProcessor.process();
+      const tagOneModelAfterEvent = await TagsRepository.findOneByTitle(tagOneTitle);
+      expect(tagOneModelAfterEvent!.current_posts_amount).toBe(3);
+    });
+
+    it('Posts amount and current_rate should become 0 if no post remained', async () => {
+      const tagOneTitle = 'summer';
+      const tagTwoTitle = 'autumn';
+
+      const postId = await EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle);
+      const postTwoId = await EntityTagsGenerator.createTagViaNewPost(userVlad, tagTwoTitle);
+
+      const tagOneRate = 0.432;
+      const tagTwoRate = 0.23213;
+      await PostsHelper.setSampleRateToPost(postId, tagOneRate);
+      await PostsHelper.setSampleRateToPost(postTwoId, tagTwoRate);
+      await TagsCurrentRateProcessor.process();
+
+      const tagModelBefore = await TagsRepository.findOneByTitle(tagOneTitle);
+      expect(tagModelBefore!.current_posts_amount).toBe(1);
+      expect(tagModelBefore!.current_rate).toBe(tagOneRate);
+
+      await PostsHelper.requestToUpdatePostDescriptionV2(
+        postId,
+        userVlad,
+        'desc without tags',
+      );
+      await TagsHelper.getPostWhenTagsAreUpdated(postId, []);
+
+      await TagsCurrentRateProcessor.process();
+
+      const tagModelAfter = await TagsRepository.findOneByTitle(tagOneTitle);
+      expect(tagModelAfter!.current_posts_amount).toBe(0);
+      expect(tagModelAfter!.current_rate).toBe(0);
+
+      const tagTwoModelAfter = await TagsRepository.findOneByTitle(tagTwoTitle);
+      expect(tagTwoModelAfter!.current_posts_amount).toBe(1);
+      expect(tagTwoModelAfter!.current_rate).toBe(tagTwoRate);
+    });
+
+    it('should decrease stats from some value to zero', async () => {
+      const tagOneTitle = 'summer';
+
+      const postId = await EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle);
+
+      const tagOneRate = 0.432;
+      await PostsHelper.setSampleRateToPost(postId, tagOneRate);
+      await TagsCurrentRateProcessor.process();
+
+      const tagModelBefore = await TagsRepository.findOneByTitle(tagOneTitle);
+      expect(tagModelBefore!.current_posts_amount).toBe(1);
+      expect(tagModelBefore!.current_rate).toBe(tagOneRate);
+
+      await PostsHelper.requestToUpdatePostDescriptionV2(
+        postId,
+        userVlad,
+        'desc without tags',
+      );
+      await TagsHelper.getPostWhenTagsAreUpdated(postId, []);
+
+      await TagsCurrentRateProcessor.process();
+
+      const tagModelAfter = await TagsRepository.findOneByTitle(tagOneTitle);
+      expect(tagModelAfter!.current_posts_amount).toBe(0);
+      expect(tagModelAfter!.current_rate).toBe(0);
+    });
+
     it('If only one post and tag is only in this post - post_rate = tag_rate', async () => {
       const firstTag = 'summer';
       // const secondTag = 'autumn';
 
-      const post = await tagsGenerator.createDirectPostForUserWithTags(
+      const post = await EntityTagsGenerator.createDirectPostForUserWithTags(
         userVlad,
         userJane,
         firstTag,
@@ -45,7 +133,7 @@ describe('Tags services', () => {
 
       await postsRepository.setCurrentRateToPost(post.id, postRate);
 
-      await tagsCurrentRateProcessor.process();
+      await TagsCurrentRateProcessor.process();
 
       const tag = await tagsRepository.findOneByTitle(firstTag);
 
@@ -56,7 +144,7 @@ describe('Tags services', () => {
       const firstTag = 'summer';
       const secondTag = 'autumn';
 
-      const post = await tagsGenerator.createDirectPostForUserWithTags(
+      const post = await EntityTagsGenerator.createDirectPostForUserWithTags(
         userVlad,
         userJane,
         firstTag,
@@ -67,7 +155,7 @@ describe('Tags services', () => {
 
       await postsRepository.setCurrentRateToPost(post.id, postRate);
 
-      await tagsCurrentRateProcessor.process();
+      await TagsCurrentRateProcessor.process();
 
       const firstTagModel = await tagsRepository.findOneByTitle(firstTag);
       expect(firstTagModel.current_rate).toBe(postRate / 2);
@@ -80,21 +168,21 @@ describe('Tags services', () => {
       const firstTag = 'summer';
       const secondTag = 'autumn';
 
-      const allTwoTagsPostOne = await tagsGenerator.createDirectPostForUserWithTags(
+      const allTwoTagsPostOne = await EntityTagsGenerator.createDirectPostForUserWithTags(
         userVlad,
         userJane,
         firstTag,
         secondTag,
       );
 
-      const allTwoTagsPostTwo = await tagsGenerator.createDirectPostForUserWithTags(
+      const allTwoTagsPostTwo = await EntityTagsGenerator.createDirectPostForUserWithTags(
         userVlad,
         userJane,
         firstTag,
         secondTag,
       );
 
-      const onlyFirstTagPost = await tagsGenerator.createDirectPostForUserWithTags(
+      const onlyFirstTagPost = await EntityTagsGenerator.createDirectPostForUserWithTags(
         userVlad,
         userJane,
         firstTag,
@@ -110,7 +198,7 @@ describe('Tags services', () => {
         postsRepository.setCurrentRateToPost(allTwoTagsPostTwo.id, allTwoTagsPostTwo.current_rate),
       ]);
 
-      await tagsCurrentRateProcessor.process();
+      await TagsCurrentRateProcessor.process();
 
       const expectedFirstTagRate =
         (onlyFirstTagPost.current_rate +
@@ -129,10 +217,14 @@ describe('Tags services', () => {
     });
 
     it('[Smoke] Process rates of given posts', async () => {
-      const genData = await tagsGenerator.createPostsWithTags(userVlad, userJane);
+      const genData = await EntityTagsGenerator.createPostsWithTags(userVlad, userJane);
 
       const promises: any = [];
       for (const postId in genData.postsPreview) {
+        if (!genData.postsPreview.hasOwnProperty(postId)) {
+          continue;
+        }
+
         const post = genData.postsPreview[postId];
         post.current_rate = _.random(100, true).toFixed(10);
 
@@ -144,25 +236,19 @@ describe('Tags services', () => {
       await Promise.all(promises);
 
       // post without any tags - should not be processed
-      await postsGenerator.createMediaPostByUserHimself(userVlad);
+      await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-      await tagsCurrentRateProcessor.process();
+      await TagsCurrentRateProcessor.process();
 
       const tags = await tagsRepository.getAllTags();
 
       tags.forEach((tag) => {
         expect(+tag.current_rate).toBeGreaterThan(0);
       });
-
     }, 10000);
 
     describe('skipped tests', () => {
-      it.skip('Tag with rate. Tag is deleted from all posts - tag rate should be 0', async () => {
-
-      });
-
       it.skip('Tag with rate. Related posts rate is 0. tag rate should be 0', async () => {
-
       });
     });
   });
@@ -186,6 +272,10 @@ describe('Tags services', () => {
       };
 
       for (const input in data) {
+        if (!data.hasOwnProperty(input)) {
+          continue;
+        }
+
         const expected = data[input];
         const actual = tagsParser.parseTags(input);
 
@@ -202,3 +292,5 @@ describe('Tags services', () => {
     });
   });
 });
+
+export {};

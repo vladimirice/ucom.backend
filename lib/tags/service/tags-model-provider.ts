@@ -6,7 +6,7 @@ class TagsModelProvider {
     return ENTITY_NAME;
   }
 
-  static getTableName(): string {
+  public static getTableName(): string {
     return TABLE_NAME;
   }
 }

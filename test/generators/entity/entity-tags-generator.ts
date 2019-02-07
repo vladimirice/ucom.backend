@@ -3,6 +3,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import OrganizationsGenerator = require('../organizations-generator');
 import PostsGenerator = require('../posts-generator');
 import TagsHelper = require('../../integration/helpers/tags-helper');
+import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
 
 class EntityTagsGenerator {
   public static async createPostsWithTagsForOrgs(userVlad, userJane) {
@@ -83,7 +84,11 @@ class EntityTagsGenerator {
       tagsTitles.push(`${tagPrefix}_${i}`);
     }
 
-    return this.createManyTagsViaManyNewPosts(myself, tagsTitles);
+    const res = await this.createManyTagsViaManyNewPosts(myself, tagsTitles);
+
+    await TagsCurrentRateProcessor.process();
+
+    return res;
   }
 
   public static async createManyTagsViaManyNewPosts(

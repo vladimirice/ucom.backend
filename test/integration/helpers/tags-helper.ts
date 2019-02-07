@@ -1,10 +1,13 @@
 import { TagsModelResponse, TagsListResponse } from '../../../lib/tags/interfaces/dto-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import ResponseHelper = require('./response-helper');
 import TagsRepository = require('../../../lib/tags/repository/tags-repository');
 import RequestHelper = require('./request-helper');
 import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
+import knex = require('../../../config/knex');
+import EosImportance = require('../../../lib/eos/eos-importance');
 
 const delay = require('delay');
 
@@ -22,8 +25,24 @@ const postsModelProvider = require('../../../lib/posts/service/posts-model-provi
 require('jest-expect-message');
 
 class TagsHelper {
+  public static async setSampleRateToTagById(
+    id: number,
+    rateToSet = 0.1235,
+  ): Promise<number> {
+    const sql = `
+      UPDATE tags
+        SET current_rate = ${rateToSet}
+        WHERE id = ${+id} 
+    `;
+
+    await knex.raw(sql);
+    const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
+
+    return +rateNormalized.toFixed();
+  }
+
   public static checkTagsListResponseStructure(response: TagsListResponse): void {
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
     this.checkManyTags(response.data);
   }
 
@@ -55,7 +74,7 @@ class TagsHelper {
   public static async requestToGetOneTagPageByTitleAsGuest(
     tagTitle: string,
     expectedResponseStatus: number = 200,
-  ): Promise<Object> {
+  ): Promise<any> {
     const url = `${RequestHelper.getTagsRootUrl()}/${tagTitle}`;
 
     const res = await request(server)
@@ -249,6 +268,11 @@ class TagsHelper {
     ResponseHelper.expectFieldsAreExist(model, expected);
 
     expect(model.entity_name).toBe(TagsModelProvider.getEntityName());
+
+    ResponseHelper.checkFieldsAreNumerical(
+      model,
+      TagsRepository.getNumericalFields(),
+    );
 
     ResponseHelper.checkCreatedAtUpdatedAtFormat(model);
   }

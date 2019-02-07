@@ -4,29 +4,63 @@ import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfac
 import { TagDbModel } from '../models/tags-model';
 
 import TagsModelProvider = require('../service/tags-model-provider');
+import QueryFilterService = require('../../api/filters/query-filter-service');
+import RepositoryHelper = require('../../common/repository/repository-helper');
 
 const knex = require('../../../config/knex');
 
+const TABLE_NAME = TagsModelProvider.getTableName();
+
 // @ts-ignore
 class TagsRepository implements QueryFilteredRepository {
-  static getWhenThenString(title: string, currentRate: number) {
-    return ` WHEN title = '${title}' THEN ${currentRate}`;
+  public static getWhenThenString(title: string, value: number) {
+    return ` WHEN title = '${title}' THEN ${value}`;
   }
 
-  static async updateTagsCurrentRates(whenThenString: string, titles: string[]): Promise<object> {
+  // #tech-debt - here will be problems if titlesNotToReset were too big
+  public static async resetTagsCurrentStats(
+    titlesNotToReset: string[],
+  ): Promise<void> {
+    let where = '';
+    const processedTitles = titlesNotToReset.map(item => `'${item}'`);
+    if (processedTitles.length > 0) {
+      where = ` WHERE title NOT IN (${processedTitles.join(', ')})`;
+    }
+
+    const sql = `
+      UPDATE ${TABLE_NAME}
+        SET 
+          current_rate = 0,
+          current_posts_amount = 0
+        ${where}
+    `;
+
+    await knex.raw(sql);
+  }
+
+  public static async updateTagsCurrentStats(
+    whenThenRateString: string,
+    whenThenPostsString: string,
+    titles: string[],
+  ): Promise<any> {
     const processedTitles = titles.map(item => `'${item}'`);
 
     const sql = `
       UPDATE tags
         SET current_rate =
           CASE
-            ${whenThenString}
+            ${whenThenRateString}
+            -- NO ELSE BECAUSE THERE IS NO DEFAULT VALUE
+          END,
+          current_posts_amount = 
+          CASE
+            ${whenThenPostsString}
             -- NO ELSE BECAUSE THERE IS NO DEFAULT VALUE
           END
         WHERE title IN (${processedTitles.join(', ')})
     `;
 
-    return knex.raw(sql);
+    await knex.raw(sql);
   }
 
   /**
@@ -34,7 +68,7 @@ class TagsRepository implements QueryFilteredRepository {
    * @param {Object} tags
    * @param {Transaction} trx
    */
-  static async createNewTags(tags: Object, trx: Transaction) {
+  public static async createNewTags(tags: Object, trx: Transaction) {
     const data =
       await trx(this.getTableName()).returning(['id', 'title']).insert(tags);
 
@@ -47,9 +81,11 @@ class TagsRepository implements QueryFilteredRepository {
     return res;
   }
 
-  static async findOneByTitle(tagTitle: string): Promise<DbTag|null> {
+  public static async findOneByTitle(tagTitle: string): Promise<DbTag|null> {
+    const select = this.getTagPreviewFields();
+
     const data = await knex(this.getTableName())
-      .select(['id', 'title', 'current_rate', 'created_at'])
+      .select(select)
       .where('title', tagTitle)
       .first()
     ;
@@ -58,8 +94,7 @@ class TagsRepository implements QueryFilteredRepository {
       return null;
     }
 
-    data.id = +data.id;
-    data.current_rate = +data.current_rate;
+    RepositoryHelper.convertStringFieldsToNumbers(data, TagsRepository);
 
     return data;
   }
@@ -67,11 +102,15 @@ class TagsRepository implements QueryFilteredRepository {
   public static async findManyTagsIdsWithOrderAndLimit(
     orderByRaw: string,
     limit: number,
+    page: number = 0,
   ): Promise<number[]> {
+    const offset = page === 0 ? 0 : QueryFilterService.getOffsetByPagePerPage(page, limit);
+
     const data = await knex(this.getTableName())
       .select('id')
       .orderByRaw(orderByRaw)
       .limit(limit)
+      .offset(offset)
     ;
 
     return data.map(item => +item.id);
@@ -81,7 +120,7 @@ class TagsRepository implements QueryFilteredRepository {
    *
    * @param {string[]} titles
    */
-  static async findAllTagsByTitles(titles: string[]): Promise<Object> {
+  public static async findAllTagsByTitles(titles: string[]): Promise<Object> {
     const data = await knex(this.getTableName())
       .select(['id', 'title'])
       .whereIn('title', titles)
@@ -96,8 +135,7 @@ class TagsRepository implements QueryFilteredRepository {
     return res;
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  static async getAllTags() {
+  public static async getAllTags() {
     return knex(this.getTableName()).select('*');
   }
 
@@ -120,17 +158,20 @@ class TagsRepository implements QueryFilteredRepository {
       'id',
       'title',
       'current_rate',
+      'current_posts_amount',
       'created_at',
       'updated_at',
+
+      'first_entity_id',
     ];
   }
 
-  /**
-   * @return string
-   * @private
-   */
-  private static getTableName(): string {
-    return 'tags';
+  public static getNumericalFields(): string[] {
+    return [
+      'id',
+      'current_posts_amount',
+      'current_rate',
+    ];
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -171,6 +212,10 @@ class TagsRepository implements QueryFilteredRepository {
     return [
       ['id', 'DESC'],
     ];
+  }
+
+  private static getTableName(): string {
+    return TagsModelProvider.getTableName();
   }
 }
 

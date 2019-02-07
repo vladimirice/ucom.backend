@@ -18,6 +18,8 @@ interface DbTag {
   readonly title: string;
   readonly current_rate: number;
   readonly created_at: string;
+  readonly current_posts_amount: string;
+  readonly first_entity_id: number;
 }
 
 // #task DbTag name breaks naming conventions

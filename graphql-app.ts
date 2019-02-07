@@ -147,6 +147,8 @@ const typeDefs = gql`
     id: Int!
     title: String!
     current_rate: Float!
+    current_posts_amount: Int!
+    first_entity_id: Int!
     
     entity_name: String!
     
