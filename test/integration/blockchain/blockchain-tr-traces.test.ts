@@ -27,7 +27,7 @@ describe('Blockchain tr traces sync tests', () => {
   });
 
   describe('check sync', () => {
-    it('Check stakeResources sync and fetch', async () => {
+    it.skip('Check stakeResources sync and fetch', async () => {
       const accountAlias = 'vlad';
 
       const netAmountSeparated = 2;

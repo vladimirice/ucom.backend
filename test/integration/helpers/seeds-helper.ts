@@ -27,7 +27,7 @@ const entityModelProvider = require('../../../lib/entities/service').ModelProvid
 const rabbitMqService     = require('../../../lib/jobs/rabbitmq-service.js');
 
 const orgSeeds = require('../../../seeders/organizations/organizations-seeds');
-const usersTeamSeeds = require('../../../seeders/organizations/organizations-seeds');
+const usersTeamSeeds = require('../../../seeders/users/users-team-seeds');
 
 const tableToSeeds = {
   [organizationsRepositories.Main.getOrganizationsModelName()]: orgSeeds,

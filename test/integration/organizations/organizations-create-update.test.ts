@@ -1,6 +1,12 @@
-export {};
+import MockHelper = require('../helpers/mock-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import RequestHelper = require('../helpers/request-helper');
+import ResponseHelper = require('../helpers/response-helper');
+import FileToUploadHelper = require('../helpers/file-to-upload-helper');
+import UsersHelper = require('../helpers/users-helper');
 
-const helpers = require('../helpers');
+const request = require('supertest');
 const _ = require('lodash');
 const faker = require('faker');
 
@@ -8,7 +14,7 @@ const organizationsRepositories = require('../../../lib/organizations/repository
 const entitySourceRepository = require('../../../lib/entities/repository').Sources;
 const orgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 
-const request = require('supertest');
+
 const server = require('../../../app');
 
 let userVlad;
@@ -16,23 +22,22 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Mock.mockAllBlockchainPart();
+MockHelper.mockAllBlockchainPart();
 
 describe('Organizations. Create-update requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
   });
 
-  afterAll(async () => { await helpers.SeedsHelper.sequelizeAfterAll(); });
+  afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
+    await SeedsHelper.resetOrganizationRelatedSeeds();
   });
 
   describe('Create organization', () => {
     describe('Positive scenarios', () => {
       it('should be possible to create one with social networks', async () => {
-
         const user = userVlad;
 
         const fields = {
@@ -59,7 +64,7 @@ describe('Organizations. Create-update requests', () => {
           social_networks: socialNetworks,
         };
 
-        const body = await helpers.Org.requestToCreateNew(user, fields, sourcesToInsert);
+        const body = await OrganizationsHelper.requestToCreateNew(user, fields, sourcesToInsert);
 
         const sources = await entitySourceRepository.findAllByEntity(body.id, 'org');
 
@@ -83,7 +88,7 @@ describe('Organizations. Create-update requests', () => {
         const user = userVlad;
 
         const res = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', 'title')
           .field('nickname', 'nickname')
@@ -91,7 +96,7 @@ describe('Organizations. Create-update requests', () => {
           .field('phone_number', '')
         ;
 
-        helpers.ResponseHelper.expectStatusCreated(res);
+        ResponseHelper.expectStatusCreated(res);
 
         const lastOrg = await organizationsRepositories.Main.findLastByAuthor(user.id);
 
@@ -112,12 +117,12 @@ describe('Organizations. Create-update requests', () => {
           city: 'LA',
           address: 'La alley, 18',
           personal_website_url: 'https://extreme.com',
-          avatar_filename: helpers.FileToUpload.getSampleFilePathToUpload(),
+          avatar_filename: FileToUploadHelper.getSampleFilePathToUpload(),
         };
 
         // noinspection JSDeprecatedSymbols
         const body =
-          await helpers.Organizations.requestToCreateNewOrganization(userPetr, newModelFields);
+          await OrganizationsHelper.requestToCreateNewOrganization(userPetr, newModelFields);
         const lastModel = await organizationsRepositories.Main.findLastByAuthor(userPetr.id);
         expect(lastModel).not.toBeNull();
 
@@ -127,15 +132,15 @@ describe('Organizations. Create-update requests', () => {
 
         newModelFields.user_id = userPetr.id;
 
-        helpers.ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
+        ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
 
-        await helpers.Organizations.isAvatarImageUploaded(lastModel.avatar_filename);
+        await OrganizationsHelper.isAvatarImageUploaded(lastModel.avatar_filename);
       });
 
       it('should be possible to create organization and provide random extra fields', async () => {
         const user = userPetr;
 
-        const sampleFields = helpers.Organizations.getSampleOrganizationsParams();
+        const sampleFields = OrganizationsHelper.getSampleOrganizationsParams();
 
         const newModelFields = {
           title   : sampleFields.title,
@@ -148,7 +153,7 @@ describe('Organizations. Create-update requests', () => {
         };
 
         const res = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', newModelFields.title)
           .field('nickname', newModelFields.nickname)
@@ -159,8 +164,8 @@ describe('Organizations. Create-update requests', () => {
         const lastModel = await organizationsRepositories.Main.findLastByAuthor(userPetr.id);
         expect(lastModel).not.toBeNull();
 
-        helpers.ResponseHelper.expectStatusCreated(res);
-        helpers.ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
+        ResponseHelper.expectStatusCreated(res);
+        ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
 
         expect(lastModel.random_field_one).not.toBeDefined();
         expect(lastModel.random_field_two).not.toBeDefined();
@@ -171,7 +176,7 @@ describe('Organizations. Create-update requests', () => {
         const countBefore = await organizationsRepositories.Main.countAllOrganizations();
 
         const requestOnePromise = request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
           .field('title', 'Title12345')
           .field('nickname', '123nickname123')
@@ -179,7 +184,7 @@ describe('Organizations. Create-update requests', () => {
           .field('currency_to_show', '')
         ;
         const requestTwoPromise = request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
           .field('title', 'Title1234567')
           .field('nickname', '123nickname123567')
@@ -192,8 +197,8 @@ describe('Organizations. Create-update requests', () => {
           requestTwoPromise,
         ]);
 
-        helpers.ResponseHelper.expectStatusCreated(resultOne);
-        helpers.ResponseHelper.expectStatusCreated(resultTwo);
+        ResponseHelper.expectStatusCreated(resultOne);
+        ResponseHelper.expectStatusCreated(resultTwo);
 
         const countAfter = await organizationsRepositories.Main.countAllOrganizations();
 
@@ -204,26 +209,24 @@ describe('Organizations. Create-update requests', () => {
         const user = userPetr;
 
         const res = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', 'Title12345')
           .field('nickname', '123nickname123')
           .field('email', '')
           .field('currency_to_show', '')
         ;
-        helpers.ResponseHelper.expectStatusCreated(res);
+        ResponseHelper.expectStatusCreated(res);
 
         const lastOrg = await organizationsRepositories.Main.findLastByAuthor(user.id);
 
         expect(lastOrg.id).toBe(res.body.id);
         expect(lastOrg.email).toBeNull();
         expect(lastOrg.currency_to_show).toBe('');
-
       });
 
       it('should sanitize user input when creation is in process', async () => {
-
-        const sampleFields = helpers.Organizations.getSampleOrganizationsParams();
+        const sampleFields = OrganizationsHelper.getSampleOrganizationsParams();
 
         const infectedFields = _.clone(sampleFields);
         const textFields = organizationsRepositories.Main.getModelSimpleTextFields();
@@ -237,12 +240,12 @@ describe('Organizations. Create-update requests', () => {
         });
 
         // noinspection JSDeprecatedSymbols
-        await helpers.Organizations.requestToCreateNewOrganization(userPetr, infectedFields);
+        await OrganizationsHelper.requestToCreateNewOrganization(userPetr, infectedFields);
         const lastModel = await organizationsRepositories.Main.findLastByAuthor(userPetr.id);
 
         delete sampleFields.avatar_filename;
 
-        helpers.ResponseHelper.expectValuesAreExpected(sampleFields, lastModel);
+        ResponseHelper.expectValuesAreExpected(sampleFields, lastModel);
       });
 
       it('should allow to add board to the organization', async () => {
@@ -257,23 +260,23 @@ describe('Organizations. Create-update requests', () => {
         ];
 
         const res = await request(server)
-          .post(helpers.Req.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${author.token}`)
           .field('title',             'sample_title')
           .field('nickname',          'sample_nickname')
-          .field('users_team[0][id]', newPostUsersTeamFields[0]['user_id'])
-          .field('users_team[1][id]', newPostUsersTeamFields[1]['user_id'])
+          .field('users_team[0][id]', newPostUsersTeamFields[0].user_id)
+          .field('users_team[1][id]', newPostUsersTeamFields[1].user_id)
           .field('users_team[2][id]', author.id)
         ;
 
-        helpers.Res.expectStatusCreated(res);
+        ResponseHelper.expectStatusCreated(res);
 
-        await helpers.Users.directlySetUserConfirmsInvitation(+res.body.id, userJane);
-        await helpers.Users.directlySetUserConfirmsInvitation(+res.body.id, userPetr);
+        await UsersHelper.directlySetUserConfirmsInvitation(+res.body.id, userJane);
+        await UsersHelper.directlySetUserConfirmsInvitation(+res.body.id, userPetr);
 
         const lastModel = await organizationsRepositories.Main.findLastByAuthor(author.id);
 
-        const usersTeam = lastModel['users_team'];
+        const usersTeam = lastModel.users_team;
         expect(usersTeam).toBeDefined();
         expect(usersTeam.length).toBe(2);
 
@@ -293,24 +296,23 @@ describe('Organizations. Create-update requests', () => {
     describe('Negative scenarios', () => {
       it('Not possible to create organization without auth token', async () => {
         const res = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .field('title', 'sample_title')
         ;
 
-        helpers.ResponseHelper.expectStatusUnauthorized(res);
+        ResponseHelper.expectStatusUnauthorized(res);
       });
 
       it('should not be possible to create organization without required fields', async () => {
-
         const res = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
           .field('email', 'email@google.com')
         ;
 
-        helpers.ResponseHelper.expectStatusBadRequest(res);
+        ResponseHelper.expectStatusBadRequest(res);
 
-        const errors = res.body.errors;
+        const { errors } = res.body;
 
         expect(errors).toBeDefined();
 
@@ -325,7 +327,7 @@ describe('Organizations. Create-update requests', () => {
 
       it('should not be possible to create organization with malformed email or url', async () => {
         const res = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
           .field('title', 'my_own_title')
           .field('nickname', 'my_own_nickname')
@@ -333,9 +335,9 @@ describe('Organizations. Create-update requests', () => {
           .field('personal_website_url', 'wrong_url')
         ;
 
-        helpers.ResponseHelper.expectStatusBadRequest(res);
+        ResponseHelper.expectStatusBadRequest(res);
 
-        const errors = res.body.errors;
+        const { errors } = res.body;
 
         expect(errors.some(data => data.field === 'email')).toBeTruthy();
         expect(errors.some(data => data.field === 'personal_website_url')).toBeTruthy();
@@ -343,7 +345,7 @@ describe('Organizations. Create-update requests', () => {
 
       it('should not be possible to set organization ID or user_id directly', async () => {
         const res = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
           .field('title', 'my_own_title')
           .field('nickname', 'my_own_nickname')
@@ -351,7 +353,7 @@ describe('Organizations. Create-update requests', () => {
           .field('user_id', userVlad.id)
         ;
 
-        helpers.ResponseHelper.expectStatusCreated(res);
+        ResponseHelper.expectStatusCreated(res);
 
         const lastOrg = await organizationsRepositories.Main.findLastByAuthor(userPetr.id);
 
@@ -366,16 +368,16 @@ describe('Organizations. Create-update requests', () => {
         const existingOrg = await organizationsRepositories.Main.findFirstByAuthor(user.id);
 
         const twoFieldsRes = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', 'somehow new title')
           .field('email', existingOrg.email)
           .field('nickname', existingOrg.nickname)
         ;
 
-        helpers.ResponseHelper.expectStatusBadRequest(twoFieldsRes);
+        ResponseHelper.expectStatusBadRequest(twoFieldsRes);
 
-        const errors = twoFieldsRes.body.errors;
+        const { errors } = twoFieldsRes.body;
         expect(errors).toBeDefined();
         expect(errors.length).toBe(2);
 
@@ -383,14 +385,14 @@ describe('Organizations. Create-update requests', () => {
         expect(errors.some(error => error.field === 'email')).toBeTruthy();
 
         const oneFieldRes = await request(server)
-          .post(helpers.RequestHelper.getOrganizationsUrl())
+          .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', 'somehow new title')
           .field('email', 'unique_email@gmail.com')
           .field('nickname', existingOrg.nickname)
         ;
 
-        helpers.ResponseHelper.expectStatusBadRequest(oneFieldRes);
+        ResponseHelper.expectStatusBadRequest(oneFieldRes);
 
         const oneFieldErrors = oneFieldRes.body.errors;
         expect(oneFieldErrors).toBeDefined();
@@ -410,7 +412,7 @@ describe('Organizations. Create-update requests', () => {
         const user = userVlad;
 
         const orgId = await organizationsRepositories.Main.findFirstIdByAuthorId(user.id);
-        await helpers.Org.createSocialNetworksDirectly(orgId);
+        await OrganizationsHelper.createSocialNetworksDirectly(orgId);
 
         const sources =
           await entitySourceRepository.findAllByEntity(orgId, orgModelProvider.getEntityName());
@@ -454,7 +456,7 @@ describe('Organizations. Create-update requests', () => {
           powered_by: 'YOC',
         };
 
-        await helpers.Org.requestToUpdateExisting(
+        await OrganizationsHelper.requestToUpdateExisting(
           orgId,
           user,
           fieldsToUpdate,
@@ -462,12 +464,12 @@ describe('Organizations. Create-update requests', () => {
           sourcesForRequest,
         );
 
-        const orgAfter = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+        const orgAfter = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
 
         // Check that regular fields are updated
-        helpers.Res.expectValuesAreExpected(fieldsToUpdate, orgAfter);
+        ResponseHelper.expectValuesAreExpected(fieldsToUpdate, orgAfter);
 
-        const socialNetworksAfter = orgAfter['social_networks'];
+        const socialNetworksAfter = orgAfter.social_networks;
 
         expect(socialNetworksAfter.length).toBe(sources.length);
 
@@ -482,7 +484,7 @@ describe('Organizations. Create-update requests', () => {
 
         // expect that value is changed
         // noinspection JSUnusedAssignment
-        helpers.Res.expectValuesAreExpected({
+        ResponseHelper.expectValuesAreExpected({
           // should be changed
           source_url:   sourceUrlToChange,
 
@@ -509,7 +511,7 @@ describe('Organizations. Create-update requests', () => {
 
         const avatarFilenameBefore = orgBefore.avatar_filename;
 
-        const sampleOrganizationFields = helpers.Organizations.getSampleOrganizationsParams();
+        const sampleOrganizationFields = OrganizationsHelper.getSampleOrganizationsParams();
         sampleOrganizationFields.title = 'New title which is changed';
 
         // remove Jane, add Rokky and preserve Petr
@@ -525,7 +527,7 @@ describe('Organizations. Create-update requests', () => {
           },
         ];
 
-        await helpers.Organizations.requestToUpdateOrganization(
+        await OrganizationsHelper.requestToUpdateOrganization(
           orgBefore.id,
           user,
           sampleOrganizationFields,
@@ -537,12 +539,12 @@ describe('Organizations. Create-update requests', () => {
 
         delete sampleOrganizationFields.avatar_filename;
 
-        helpers.ResponseHelper.expectValuesAreExpected(sampleOrganizationFields, orgAfter);
+        ResponseHelper.expectValuesAreExpected(sampleOrganizationFields, orgAfter);
 
         expect(avatarFilenameAfter).not.toBe(avatarFilenameBefore);
-        await helpers.Organizations.isAvatarImageUploaded(avatarFilenameAfter);
+        await OrganizationsHelper.isAvatarImageUploaded(avatarFilenameAfter);
 
-        const usersTeam = orgAfter['users_team'];
+        const usersTeam = orgAfter.users_team;
         expect(usersTeam).toBeDefined();
 
         expect(usersTeam.some(data => data.user_id === userJane.id)).toBeFalsy();
@@ -574,11 +576,15 @@ describe('Organizations. Create-update requests', () => {
 
         const infectedFields: any = {};
         for (const field in newModelFields) {
+          if (!newModelFields.hasOwnProperty(field)) {
+            continue;
+          }
+
           infectedFields[field] = newModelFields[field] + injection;
         }
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(orgId))
+          .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${user.token}`)
           .field('title',       infectedFields.title)
           .field('nickname',    infectedFields.nickname)
@@ -587,11 +593,11 @@ describe('Organizations. Create-update requests', () => {
           .field('country',     infectedFields.country)
         ;
 
-        helpers.ResponseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
         const lastModel = await organizationsRepositories.Main.findOneById(orgId);
 
-        helpers.ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
+        ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
       });
 
       // tslint:disable-next-line:max-line-length
@@ -609,7 +615,7 @@ describe('Organizations. Create-update requests', () => {
         };
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(orgId))
+          .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${user.token}`)
           .field('title',       newModelFields.title)
           .field('nickname',    newModelFields.nickname)
@@ -617,11 +623,11 @@ describe('Organizations. Create-update requests', () => {
           .field('about',       newModelFields.about)
         ;
 
-        helpers.ResponseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
         const lastModel = await organizationsRepositories.Main.findOneById(orgId);
 
-        helpers.ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
+        ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
       });
 
       it('should be possible to update organization with random extra fields', async () => {
@@ -641,7 +647,7 @@ describe('Organizations. Create-update requests', () => {
         };
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(orgId))
+          .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', fieldsToChange.title)
           .field('nickname', fieldsToChange.nickname)
@@ -649,11 +655,11 @@ describe('Organizations. Create-update requests', () => {
           .field('random_field_two', extraFields.random_field_two)
         ;
 
-        helpers.ResponseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
         const orgAfter = await organizationsRepositories.Main.findOneById(orgId);
 
-        helpers.ResponseHelper.expectValuesAreExpected(fieldsToChange, orgAfter);
+        ResponseHelper.expectValuesAreExpected(fieldsToChange, orgAfter);
 
         expect(orgAfter.random_field_one).not.toBeDefined();
         expect(orgAfter.random_field_two).not.toBeDefined();
@@ -664,13 +670,13 @@ describe('Organizations. Create-update requests', () => {
         const orgId = 1;
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(orgId))
+          .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${userRokky.token}`)
           .field('title',       'sample_title100500')
           .field('nickname',    'sample_nickname100500')
         ;
 
-        helpers.ResponseHelper.expectStatusForbidden(res);
+        ResponseHelper.expectStatusForbidden(res);
       });
 
       it('should not be possible to change avatar filename without attaching a file', async () => {
@@ -679,14 +685,14 @@ describe('Organizations. Create-update requests', () => {
         const orgBefore = await organizationsRepositories.Main.findOneById(orgId);
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(orgId))
+          .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',       'sample_title100500')
           .field('nickname',    'sample_nickname100500')
           .field('avatar_filename', 'avatar_is_changed.jpg')
         ;
 
-        helpers.ResponseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
         const orgAfter = await organizationsRepositories.Main.findOneById(orgId);
 
@@ -699,26 +705,26 @@ describe('Organizations. Create-update requests', () => {
 
         // noinspection JSCheckFunctionSignatures
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(currentOrgId))
+          .patch(RequestHelper.getOneOrganizationUrl(currentOrgId))
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',     'new_title')
           .field('nickname',  'new_nickname')
         ;
 
-        helpers.ResponseHelper.expectStatusBadRequest(res);
+        ResponseHelper.expectStatusBadRequest(res);
       });
 
       it('should not be possible to update org using not existed organization ID', async () => {
         const currentOrgId = 100500;
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(currentOrgId))
+          .patch(RequestHelper.getOneOrganizationUrl(currentOrgId))
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',     'new_title')
           .field('nickname',  'new_nickname')
         ;
 
-        helpers.ResponseHelper.expectStatusNotFound(res);
+        ResponseHelper.expectStatusNotFound(res);
       });
 
       // tslint:disable-next-line:max-line-length
@@ -740,15 +746,15 @@ describe('Organizations. Create-update requests', () => {
         };
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(currentOrgId))
+          .patch(RequestHelper.getOneOrganizationUrl(currentOrgId))
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',     newModelFields.title)
           .field('email',     newModelFields.email)
           .field('nickname',  newModelFields.nickname)
         ;
 
-        helpers.ResponseHelper.expectStatusBadRequest(res);
-        const errors = res.body.errors;
+        ResponseHelper.expectStatusBadRequest(res);
+        const { errors } = res.body;
 
         expect(errors.length).toBe(2);
 
@@ -774,15 +780,15 @@ describe('Organizations. Create-update requests', () => {
         };
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(currentOrgId))
+          .patch(RequestHelper.getOneOrganizationUrl(currentOrgId))
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title', newModelFields.title)
           .field('email', newModelFields.email)
           .field('nickname', newModelFields.nickname)
         ;
 
-        helpers.ResponseHelper.expectStatusBadRequest(res);
-        const errors = res.body.errors;
+        ResponseHelper.expectStatusBadRequest(res);
+        const { errors } = res.body;
         expect(errors.length).toBe(1);
 
         expect(errors).toBeDefined();
@@ -794,11 +800,11 @@ describe('Organizations. Create-update requests', () => {
         const orgId = 1;
 
         const res = await request(server)
-          .patch(helpers.RequestHelper.getOneOrganizationUrl(orgId))
+          .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .field('title',  'Sample title to change')
         ;
 
-        helpers.ResponseHelper.expectStatusUnauthorized(res);
+        ResponseHelper.expectStatusUnauthorized(res);
       });
 
       it.skip('should throw correct error messages related to invalid fields', async () => {
@@ -806,3 +812,5 @@ describe('Organizations. Create-update requests', () => {
     });
   });
 });
+
+export {};

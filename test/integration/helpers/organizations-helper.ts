@@ -5,6 +5,7 @@ import {
   OrgModelCard,
   OrgModelResponse,
 } from '../../../lib/organizations/interfaces/model-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
@@ -871,12 +872,12 @@ class OrganizationsHelper {
    * @return {Promise<Object>}
    */
   static async requestToUpdateExisting(
-    orgId,
-    user,
-    fields,
-    sources = null,
-    socialNetworks = [],
-    expectedStatus = 200,
+    orgId: number,
+    user: UserModel,
+    fields: any,
+    sources: any[] | null = null,
+    socialNetworks: any[] = [],
+    expectedStatus: number = 200,
   ) {
     const req = request(server)
       .patch(RequestHelper.getOneOrganizationUrl(orgId))
