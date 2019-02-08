@@ -21,7 +21,7 @@ class EosImportance {
     doWriteEventType: number,
   ): Promise<void> {
     let lowerBound: number = 0;
-    const batchSize: number = 1000;
+    const batchSize: number = 100;
 
     let importanceData: ImportanceData[] =
       await TransactionSender.getImportanceTableRows(lowerBound, batchSize);

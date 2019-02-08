@@ -373,7 +373,7 @@ const server = new ApolloServer({
 
 server.applyMiddleware({ app });
 
-export = {
+export {
   app,
   server,
 };

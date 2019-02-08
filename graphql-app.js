@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
@@ -278,6 +279,7 @@ const resolvers = {
     },
 };
 const app = express();
+exports.app = app;
 const server = new ApolloServer({
     typeDefs,
     resolvers,
@@ -310,8 +312,5 @@ const server = new ApolloServer({
         return error;
     },
 });
+exports.server = server;
 server.applyMiddleware({ app });
-module.exports = {
-    app,
-    server,
-};
