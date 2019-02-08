@@ -86,7 +86,7 @@ describe('Posts API', () => {
 
         const response = await PostsHelper.requestToGetManyPostsAsGuest(queryString, false);
 
-        ResponseHelper.checkMetadata(response, 2, 20, 54, true);
+        ResponseHelper.checkMetadataByValues(response, 2, 20, 54, true);
       }, 10000);
 
       it('Every request should contain correct metadata', async () => {

@@ -56,7 +56,7 @@ describe('#tags #feed #graphql', () => {
       const response: PostsListResponse =
         await GraphqlHelper.getTagWallFeedAsMyself(userVlad, tagName);
 
-      ResponseHelper.expectValidListResponseStructure(response);
+      ResponseHelper.checkListResponseStructure(response);
 
       const posts: PostModelResponse[] = response.data;
       expect(posts.length).toBe(expectedPostsIds.length);

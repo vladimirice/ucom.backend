@@ -1,37 +1,37 @@
+import UsersHelper = require('../helpers/users-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import PostsHelper = require('../helpers/posts-helper');
+
 export {};
 
-const userHelper = require('../helpers/users-helper');
-const seedsHelper = require('../helpers/seeds-helper');
 const postRepository = require('./../../../lib/posts/posts-repository');
-const postHelper = require('../helpers/posts-helper');
 
 let userVlad;
 
 describe('Posts API', () => {
-
   beforeAll(async () => {
     [userVlad] = await Promise.all([
-      userHelper.getUserVlad(),
-      userHelper.getUserJane(),
+      UsersHelper.getUserVlad(),
+      UsersHelper.getUserJane(),
     ]);
   });
 
   beforeEach(async () => {
-    await seedsHelper.initSeeds();
+    await SeedsHelper.initSeeds();
   });
 
   afterAll(async () => {
-    await seedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   it('Post author must have correct rating', async () => {
-    const expectedRate = await userHelper.setSampleRateToUser(userVlad);
+    const expectedRate = await UsersHelper.setSampleRateToUser(userVlad);
 
     const post = await postRepository.findLastByAuthor(userVlad.id);
     // const postAndMyself = await PostHelper.getPostByMyself(post.id, userVlad);
-    const postWithoutMyself = await postHelper.requestToPost(post.id);
+    const postWithoutMyself = await PostsHelper.requestToGetOnePostAsGuest(post.id);
 
     // expect(postAndMyself['User']['current_rate']).toBe(expectedRate);
-    expect(postWithoutMyself['User']['current_rate']).toBe(expectedRate);
+    expect(postWithoutMyself.User.current_rate).toBe(expectedRate);
   });
 });

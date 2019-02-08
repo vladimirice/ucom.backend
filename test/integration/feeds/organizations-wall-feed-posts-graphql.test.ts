@@ -68,7 +68,7 @@ describe('#organizations #feed #graphql', () => {
         userVlad, orgId, feedPage, feedPerPage, commentsPage, commentsPerPage,
       );
 
-      ResponseHelper.expectValidListResponseStructure(response);
+      ResponseHelper.checkListResponseStructure(response);
 
       const posts = response.data;
 

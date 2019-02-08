@@ -4,6 +4,20 @@ import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists
 require('jest-expect-message');
 
 class ResponseHelper {
+  public static checkFieldsAreNumerical(model: any, fields: string[]) {
+    fields.forEach((field) => {
+      expect(typeof model[field]).toBe('number');
+    });
+  }
+
+  public static checkCreatedAtUpdatedAtFormat(model) {
+    expect(model.created_at).toMatch('Z');
+    expect(model.created_at).toMatch('T');
+
+    expect(model.updated_at).toMatch('Z');
+    expect(model.updated_at).toMatch('T');
+  }
+
   static expectStatusOk(res) {
     // @ts-ignore
     expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(200);
@@ -183,10 +197,23 @@ class ResponseHelper {
       expect(data.length).toBeGreaterThan(0);
     }
 
-    this.expectValidMetadataStructure(metadata);
+    this.checkValidMetadataStructure(metadata);
   }
 
-  public static expectValidMetadataStructure(metadata: ListMetadata): void {
+  public static checkEmptyResponseList(response: ListResponse): void {
+    this.checkListResponseStructure(response);
+    expect(response.data.length).toBe(0);
+    this.checkEmptyListResponseMetadata(response);
+  }
+
+  public static checkEmptyDataMetadata(metadata: ListMetadata): void {
+    expect(metadata.total_amount).toBe(0);
+    expect(metadata.has_more).toBeFalsy();
+    expect(typeof metadata.page).toBe('number');
+    expect(typeof metadata.per_page).toBe('number');
+  }
+
+  public static checkValidMetadataStructure(metadata: ListMetadata): void {
     expect(metadata).toBeDefined();
     expect(metadata).not.toBeNull();
     expect(typeof metadata).toBe('object');
@@ -207,17 +234,17 @@ class ResponseHelper {
     expect(typeof metadata.has_more).toBe('boolean');
   }
 
-  static expectValidListResponseStructure(
+  public static checkListResponseStructure(
     response: ListResponse,
   ): void {
     expect(response.data).toBeDefined();
     expect(Array.isArray(response.data)).toBeTruthy();
     expect(response.metadata).toBeDefined();
 
-    this.expectValidMetadataStructure(response.metadata);
+    this.checkValidMetadataStructure(response.metadata);
   }
 
-  static checkMetadata(response, page, perPage, totalAmount, hasMore) {
+  public static checkMetadataByValues(response, page, perPage, totalAmount, hasMore) {
     const { metadata } = response;
 
     expect(metadata).toBeDefined();
@@ -225,6 +252,12 @@ class ResponseHelper {
     expect(metadata.page).toBe(page);
     expect(metadata.per_page).toBe(perPage);
     expect(metadata.total_amount).toBe(totalAmount);
+  }
+
+  public static checkEmptyListResponseMetadata(response: ListResponse): void {
+    const { metadata } = response;
+    this.checkValidMetadataStructure(metadata);
+    this.checkEmptyDataMetadata(metadata);
   }
 }
 

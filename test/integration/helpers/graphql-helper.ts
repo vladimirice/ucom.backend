@@ -7,8 +7,10 @@ import {
 } from '../../../lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { OrgListResponse, OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
+import { TagsListResponse } from '../../../lib/tags/interfaces/dto-interfaces';
 
 import ResponseHelper = require('./response-helper');
+import TagsHelper = require('./tags-helper');
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
@@ -96,7 +98,46 @@ export class GraphqlHelper {
     const key: string = 'organizations';
 
     const response: OrgListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
+  }
+
+  public static async getManyTagsAsMyself(
+    myself: UserModel,
+    ordering: string = '-id',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<TagsListResponse> {
+    const query: string = GraphQLSchema.getManyTagsQuery(
+      ordering,
+      page,
+      perPage,
+    );
+    const key: string = 'many_tags';
+
+    const response: TagsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+    TagsHelper.checkTagsListResponseStructure(response);
+
+    return response;
+  }
+
+  public static async getManyTagsAsGuest(
+    ordering: string = '-id',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<TagsListResponse> {
+    const query: string = GraphQLSchema.getManyTagsQuery(
+      ordering,
+      page,
+      perPage,
+    );
+    const key: string = 'many_tags';
+
+    const response: TagsListResponse = await this.makeRequestAsGuest(query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+    TagsHelper.checkTagsListResponseStructure(response);
 
     return response;
   }
@@ -147,7 +188,7 @@ export class GraphqlHelper {
     const key: string = 'posts';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -173,7 +214,7 @@ export class GraphqlHelper {
     const key: string = 'posts';
 
     const response: PostsListResponse = await this.makeRequestAsGuest(query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -197,7 +238,7 @@ export class GraphqlHelper {
     const key: string = 'user_wall_feed';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -221,7 +262,7 @@ export class GraphqlHelper {
     const key: string = 'org_wall_feed';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -245,7 +286,7 @@ export class GraphqlHelper {
     const key: string = 'tag_wall_feed';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -265,7 +306,7 @@ export class GraphqlHelper {
       key,
       false,
     );
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -291,7 +332,7 @@ export class GraphqlHelper {
 
     const response: CommentsListResponse =
       await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -303,7 +344,7 @@ export class GraphqlHelper {
     const key: string = 'user_news_feed';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -322,14 +363,7 @@ export class GraphqlHelper {
     dataOnly = true,
   ): Promise<any> {
     const myselfClient = this.getClientWithToken(myself);
-
-    // let response;
-    // try {
     const response = await myselfClient.query({ query: gql(query) });
-    // } catch (err) {
-    // @ts-ignore
-    // const a = 0;
-    // }
 
     if (keyToReturn) {
       return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];

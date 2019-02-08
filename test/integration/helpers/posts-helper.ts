@@ -2,20 +2,36 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 
+import EosImportance = require('../../../lib/eos/eos-importance');
+import PostsRepository = require('../../../lib/posts/posts-repository');
+import RequestHelper = require('./request-helper');
+import ResponseHelper = require('./response-helper');
+
 const request = require('supertest');
+const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
+
 const server = require('../../../app');
-const requestHelper = require('./request-helper');
-const responseHelper = require('./response-helper');
 const postRepository = require('../../../lib/posts/posts-repository');
 
 const postStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
 
-const contentTypeDictionary   = require('ucom-libs-social-transactions').ContentTypeDictionary;
+
 const postsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
 require('jest-expect-message');
 
 class PostsHelper {
+  static async setSampleRateToPost(
+    postId: number,
+    rateToSet: number = 0.1235,
+  ): Promise<number> {
+    await PostsRepository.setCurrentRateToPost(postId, rateToSet);
+
+    const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
+
+    return +rateNormalized.toFixed();
+  }
+
   /**
    *
    * @param {number} postId
@@ -25,12 +41,12 @@ class PostsHelper {
    */
   static async requestToPatchPostRepost(postId, user, expectedStatus = 200) {
     const res = await request(server)
-      .patch(requestHelper.getOnePostUrl(postId))
+      .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('description', 'new repost description')
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -56,17 +72,20 @@ class PostsHelper {
     };
 
     const req = request(server)
-      .patch(requestHelper.getOnePostUrl(postId))
+      .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
     for (const field in toChange) {
+      if (!toChange.hasOwnProperty(field)) {
+        continue;
+      }
       req.field(field, toChange[field]);
     }
 
     const res = await req;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -89,7 +108,7 @@ class PostsHelper {
     };
 
     const res = await request(server)
-      .post(requestHelper.getPostsUrl())
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
       .field('description', newPostFields.description)
@@ -98,7 +117,7 @@ class PostsHelper {
       .field('organization_id', orgId)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -112,16 +131,16 @@ class PostsHelper {
     expect(post.post_type_id).toBeTruthy();
 
     switch (post.post_type_id) {
-      case contentTypeDictionary.getTypeMediaPost():
+      case ContentTypeDictionary.getTypeMediaPost():
         this.checkMediaPostFields(post, options);
         break;
-      case contentTypeDictionary.getTypeOffer():
+      case ContentTypeDictionary.getTypeOffer():
         this.checkPostOfferFields(post, options);
         break;
-      case contentTypeDictionary.getTypeDirectPost():
+      case ContentTypeDictionary.getTypeDirectPost():
         this.checkDirectPostItself(post, options);
         break;
-      case contentTypeDictionary.getTypeRepost():
+      case ContentTypeDictionary.getTypeRepost():
         // #task - check repost itself fields
         break;
       default:
@@ -168,7 +187,7 @@ class PostsHelper {
         );
     }
 
-    responseHelper.expectFieldsAreExist(post, mustExist);
+    ResponseHelper.expectFieldsAreExist(post, mustExist);
 
     this.checkEntityImages(post);
   }
@@ -195,7 +214,7 @@ class PostsHelper {
         );
     }
 
-    responseHelper.expectFieldsAreExist(post, mustExist);
+    ResponseHelper.expectFieldsAreExist(post, mustExist);
   }
 
   /**
@@ -205,7 +224,7 @@ class PostsHelper {
    */
   static checkDirectPostItself(post, options: any = {}) {
     const toExclude = postsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
-    responseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
+    ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
 
     const mustBeNotNull = postsModelProvider.getModel().getDirectPostNotNullFields();
     expect(post.main_image_filename).toBeDefined();
@@ -216,7 +235,7 @@ class PostsHelper {
       delete mustBeNotNull[commentsCountIndex];
     }
 
-    responseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
+    ResponseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
 
     this.checkWrongPostProcessingSmell(post);
   }
@@ -248,17 +267,17 @@ class PostsHelper {
    * @return {Promise<void>}
    */
   static async requestToCreateDirectPostForUser(user, targetUser, givenDescription = null) {
-    const postTypeId  = contentTypeDictionary.getTypeDirectPost();
+    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const res = await request(server)
-      .post(requestHelper.getUserDirectPostUrl(targetUser))
+      .post(RequestHelper.getUserDirectPostUrl(targetUser))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -276,17 +295,17 @@ class PostsHelper {
     targetOrgId,
     givenDescription = null,
   ) {
-    const postTypeId  = contentTypeDictionary.getTypeDirectPost();
+    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const res = await request(server)
-      .post(requestHelper.getOrgDirectPostUrl(targetOrgId))
+      .post(RequestHelper.getOrgDirectPostUrl(targetOrgId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -299,7 +318,12 @@ class PostsHelper {
    * @param {string[]} tags
    * @return {Promise<Object>}
    */
-  static async requestToUpdatePostDescription(postId, user, givenDescription, tags = []) {
+  static async requestToUpdatePostDescription(
+    postId: number,
+    user: UserModel,
+    givenDescription: string | null,
+    tags: string[] = [],
+  ): Promise<any> {
     let description = givenDescription || 'extremely updated one';
 
     tags.forEach((tag) => {
@@ -307,25 +331,22 @@ class PostsHelper {
     });
 
     const res = await request(server)
-      .patch(requestHelper.getOnePostUrl(postId))
+      .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
 
-  /**
-   *
-   * @param {number} postId
-   * @param {Object} user
-   * @param {string|null} givenDescription
-   * @param {string[]} tags
-   * @return {Promise<Object>}
-   */
-  static async requestToUpdatePostDescriptionV2(postId, user, givenDescription, tags = []) {
+  public static async requestToUpdatePostDescriptionV2(
+    postId: number,
+    user: UserModel,
+    givenDescription: string,
+    tags: string[] = [],
+  ): Promise<PostModelResponse> {
     let description = givenDescription || 'extremely updated one';
 
     tags.forEach((tag) => {
@@ -333,12 +354,12 @@ class PostsHelper {
     });
 
     const res = await request(server)
-      .patch(requestHelper.getOnePostV2Url(postId))
+      .patch(RequestHelper.getOnePostV2Url(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -354,14 +375,14 @@ class PostsHelper {
       title: 'Extremely new post',
       description: 'Our super post description',
       leading_text: 'extremely leading text',
-      post_type_id: contentTypeDictionary.getTypeMediaPost(),
+      post_type_id: ContentTypeDictionary.getTypeMediaPost(),
       user_id: user.id,
       current_rate: 0.0000000000,
       current_vote: 0,
     };
 
     const res = await request(server)
-      .post(requestHelper.getPostsUrl())
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title',         newPostFields.title)
       .field('description',   newPostFields.description)
@@ -372,7 +393,7 @@ class PostsHelper {
       .field('current_vote',  newPostFields.current_vote)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -389,14 +410,14 @@ class PostsHelper {
       description: 'Our super post description',
       leading_text: 'extremely leading text',
       user_id: user.id,
-      post_type_id: contentTypeDictionary.getTypeOffer(),
+      post_type_id: ContentTypeDictionary.getTypeOffer(),
       current_rate: '0.0000000000',
       current_vote: 0,
       action_button_title: 'TEST_BUTTON_CONTENT',
     };
 
     const res = await request(server)
-      .post(requestHelper.getPostsUrl())
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title',               newPostFields.title)
       .field('description',         newPostFields.description)
@@ -408,7 +429,7 @@ class PostsHelper {
       .field('action_button_title', newPostFields.action_button_title)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -427,7 +448,7 @@ class PostsHelper {
       description: 'Our super post description',
       leading_text: 'extremely leading text',
       user_id: user.id,
-      post_type_id: contentTypeDictionary.getTypeOffer(),
+      post_type_id: ContentTypeDictionary.getTypeOffer(),
       current_rate: '0.0000000000',
       current_vote: 0,
       action_button_title: 'TEST_BUTTON_CONTENT',
@@ -435,7 +456,7 @@ class PostsHelper {
     };
 
     const res = await request(server)
-      .post(requestHelper.getPostsUrl())
+      .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title',               newPostFields.title)
       .field('description',         newPostFields.description)
@@ -448,7 +469,7 @@ class PostsHelper {
       .field('organization_id',     newPostFields.organization_id)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
@@ -521,7 +542,7 @@ class PostsHelper {
     queryString: string | null = null,
     dataOnly: boolean = true,
   ): Promise<PostsListResponse> {
-    let url = requestHelper.getPostsUrl();
+    let url = RequestHelper.getPostsUrl();
 
     if (queryString) {
       url += `?${queryString}`;
@@ -531,7 +552,7 @@ class PostsHelper {
       .get(url)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     if (dataOnly) {
       return res.body.data;
@@ -547,14 +568,14 @@ class PostsHelper {
    * @param {number} userId
    */
   static async requestToGetManyUserPostsAsMyself(myself, userId) {
-    const url = requestHelper.getUserPostsUrl(userId);
+    const url = RequestHelper.getUserPostsUrl(userId);
 
     const res = await request(server)
       .get(url)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -566,7 +587,7 @@ class PostsHelper {
    * @returns {Promise<Object[]>}
    */
   static async requestToGetManyPostsAsMyself(myself, queryString = null) {
-    let url = requestHelper.getPostsUrl();
+    let url = RequestHelper.getPostsUrl();
 
     if (queryString) {
       url += `?${queryString}`;
@@ -577,7 +598,7 @@ class PostsHelper {
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body.data;
   }
@@ -590,26 +611,11 @@ class PostsHelper {
    */
   static async getPostByMyself(postId, myself) {
     const res = await request(server)
-      .get(`${requestHelper.getOnePostUrl(postId)}`)
+      .get(`${RequestHelper.getOnePostUrl(postId)}`)
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
     expect(res.status).toBe(200);
-
-    return res.body;
-  }
-
-  /**
-   *
-   * @param {integer} postId
-   * @returns {Promise<Object>}
-   */
-  static async requestToPost(postId) {
-    const res = await request(server)
-      .get(requestHelper.getOnePostUrl(postId))
-    ;
-
-    responseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -627,11 +633,11 @@ class PostsHelper {
     expectedStatus: number = 200,
   ) {
     const res = await request(server)
-      .get(requestHelper.getOnePostUrl(postId))
+      .get(RequestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus === 200) {
       expect(res.body).toBeDefined();
@@ -649,18 +655,18 @@ class PostsHelper {
    * @returns {Promise<Object>}
    */
   static async requestToSetPostTeam(postId, user, teamUsers) {
-    const boardToChange = teamUsers.map(user => ({
-      user_id: user.id,
+    const boardToChange = teamUsers.map(item => ({
+      user_id: item.id,
     }));
 
     const res = await request(server)
-      .patch(requestHelper.getOnePostUrl(postId))
+      .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('post_users_team[0][id]', boardToChange[0].user_id)
       .field('post_users_team[1][id]', boardToChange[1].user_id)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res;
   }
@@ -676,7 +682,7 @@ class PostsHelper {
     ;
 
     if (expectCreated) {
-      responseHelper.expectStatusCreated(res);
+      ResponseHelper.expectStatusCreated(res);
     }
 
     return res.body;
@@ -694,7 +700,7 @@ class PostsHelper {
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusCreated(res);
+    ResponseHelper.expectStatusCreated(res);
 
     return res.body;
   }
@@ -708,10 +714,10 @@ class PostsHelper {
    */
   static async requestToGetOnePostAsGuest(postId) {
     const res = await request(server)
-      .get(requestHelper.getOnePostUrl(postId))
+      .get(RequestHelper.getOnePostUrl(postId))
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     return res.body;
   }
@@ -724,7 +730,7 @@ class PostsHelper {
    * @returns {Promise<Object>}
    */
   static async requestAllPostsWithPagination(page, perPage, dataOnly = false) {
-    let url = `${requestHelper.getPostsUrl()}?`;
+    let url = `${RequestHelper.getPostsUrl()}?`;
 
     const params: string[] = [];
 
@@ -741,7 +747,7 @@ class PostsHelper {
       .get(url)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
 
     if (dataOnly) {
       return res.body.data;

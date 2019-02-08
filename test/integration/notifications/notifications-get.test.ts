@@ -81,7 +81,7 @@ describe('Get notifications', () => {
 
       const response =
         await helpers.Notifications.requestToGetNotificationsList(userVlad, queryString, false);
-      helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
+      helpers.Res.checkMetadataByValues(response, page, perPage, totalAmount, true);
 
       perPage = 3;
       const lastPage = helpers.Req.getLastPage(totalAmount, perPage);
@@ -94,7 +94,7 @@ describe('Get notifications', () => {
       const lastResponse =
         await helpers.Notifications.requestToGetNotificationsList(userVlad, queryStringLast, false);
 
-      helpers.Res.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
+      helpers.Res.checkMetadataByValues(lastResponse, lastPage, perPage, totalAmount, false);
     });
 
     it('Get two pages', async () => {

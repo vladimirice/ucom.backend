@@ -41,7 +41,7 @@ class CommonHelper {
   }
 
   public static checkManyCommentsV2(comments: CommentsListResponse, options: CheckerOptions): void {
-    ResponseHelper.expectValidListResponseStructure(comments);
+    ResponseHelper.checkListResponseStructure(comments);
 
     if (options.comments.isEmpty) {
       expect(comments.data.length).toBe(0);
@@ -95,7 +95,7 @@ class CommonHelper {
     CommentsHelper.checkOneCommentPreviewFields(comment, options);
     UsersHelper.checkIncludedUserPreview(comment);
 
-    this.checkCreatedAtUpdatedAtFormat(comment);
+    ResponseHelper.checkCreatedAtUpdatedAtFormat(comment);
 
     if (comment.organization_id) {
       OrganizationsHelper.checkOneOrganizationPreviewFields(comment.organization);
@@ -109,7 +109,7 @@ class CommonHelper {
     CommentsHelper.checkOneCommentItself(comment, options);
     UsersHelper.checkIncludedUserPreview(comment);
 
-    this.checkCreatedAtUpdatedAtFormat(comment);
+    ResponseHelper.checkCreatedAtUpdatedAtFormat(comment);
 
     if (comment.organization_id) {
       OrganizationsHelper.checkOneOrganizationPreviewFields(comment.organization);
@@ -520,7 +520,7 @@ class CommonHelper {
 
     posts.forEach((post) => {
       this.checkOneListPostFromApi(post, options);
-      this.checkCreatedAtUpdatedAtFormat(post);
+      ResponseHelper.checkCreatedAtUpdatedAtFormat(post);
 
       if (options.comments) {
         expect(post.comments).toBeDefined();
@@ -529,14 +529,6 @@ class CommonHelper {
         this.checkManyCommentsPreviewWithRelations(post.comments.data, options);
       }
     });
-  }
-
-  private static checkCreatedAtUpdatedAtFormat(model) {
-    expect(model.created_at).toMatch('Z');
-    expect(model.created_at).toMatch('T');
-
-    expect(model.updated_at).toMatch('Z');
-    expect(model.updated_at).toMatch('T');
   }
 
   /**
@@ -646,15 +638,9 @@ class CommonHelper {
     response: PostsListResponse,
     options: CheckerOptions,
   ): void {
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     this.checkManyPostsV2(response.data, options);
-  }
-
-  public static expectEmptyPostListResponse(response: PostsListResponse): void {
-    ResponseHelper.expectValidListResponseStructure(response);
-
-    expect(response.data.length).toBe(0);
   }
 
   public static checkOnePostV2WithoutOrg(
@@ -689,7 +675,7 @@ class CommonHelper {
     this.checkOnePostEntityForCard(post);
 
     this.checkMyselfData(post, options);
-    this.checkCreatedAtUpdatedAtFormat(post);
+    ResponseHelper.checkCreatedAtUpdatedAtFormat(post);
 
     if (options.comments) {
       this.checkManyIncludedCommentsV2(post, options);

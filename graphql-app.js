@@ -4,6 +4,7 @@ const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
 const OrganizationsFetchService = require("./lib/organizations/service/organizations-fetch-service");
+const TagsFetchService = require("./lib/tags/service/tags-fetch-service");
 const express = require('express');
 const { ApolloServer, gql, AuthenticationError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
@@ -17,6 +18,7 @@ const typeDefs = gql `
     
     posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     organizations(order_by: String!, page: Int!, per_page: Int!): organizations!
+    many_tags(order_by: String!, page: Int!, per_page: Int!): tags!
 
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
@@ -117,6 +119,11 @@ const typeDefs = gql `
     data: [Organization!]!
     metadata: metadata!
   }
+
+  type tags {
+    data: [Tag!]!
+    metadata: metadata!
+  }
   
   type Organization {
     id: Int!
@@ -125,6 +132,21 @@ const typeDefs = gql `
     nickname: String!
     current_rate: Float!
     user_id: Int!
+    about: String
+    powered_by: String
+  }
+  
+  type Tag {
+    id: Int!
+    title: String!
+    current_rate: Float!
+    current_posts_amount: Int!
+    first_entity_id: Int!
+    
+    entity_name: String!
+    
+    created_at: String!
+    updated_at: String!
   }
 
   type MyselfData {
@@ -182,6 +204,15 @@ const resolvers = {
                 sort_by: args.order_by,
             };
             return OrganizationsFetchService.findAndProcessAll(query);
+        },
+        // @ts-ignore
+        async many_tags(parent, args, ctx) {
+            const query = {
+                page: args.page,
+                per_page: args.per_page,
+                sort_by: args.order_by,
+            };
+            return TagsFetchService.findAndProcessManyTags(query);
         },
         // @ts-ignore
         async one_post(parent, args, ctx) {

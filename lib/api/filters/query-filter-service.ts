@@ -74,7 +74,7 @@ class QueryFilterService {
   }
 
   public static getQueryParametersWithRepository(
-    query,
+    query: RequestQueryDto,
     repository: QueryFilteredRepository,
     processAttributes = false, // hardcoded variable in order to reduce refactoring at the beginning
   ): DbParamsDto {
@@ -171,11 +171,15 @@ class QueryFilterService {
 
     let offset = 0;
     if (page > 1) {
-      offset = (page - 1) * perPage;
+      offset = this.getOffsetByPagePerPage(page, perPage);
     }
 
     params.offset = offset;
     params.limit = perPage;
+  }
+
+  public static getOffsetByPagePerPage(page: number, perPage: number): number {
+    return (page - 1) * perPage;
   }
 
   /**

@@ -1,4 +1,13 @@
-import { DbTag } from '../interfaces/dto-interfaces';
+import { DbTag, TagsListResponse, TagsModelResponse } from '../interfaces/dto-interfaces';
+import {
+  DbParamsDto,
+  QueryFilteredRepository,
+  RequestQueryDto,
+} from '../../api/filters/interfaces/query-filter-interfaces';
+
+import QueryFilterService = require('../../api/filters/query-filter-service');
+import TagsRepository = require('../repository/tags-repository');
+import ApiPostProcessor = require('../../common/service/api-post-processor');
 
 const moment = require('moment');
 
@@ -10,7 +19,21 @@ const organizationsFetchService =
 const apiPostProcessor = require('../../common/service/api-post-processor');
 
 class TagsFetchService {
-  static async findAndProcessOneTagById(
+  public static async findAndProcessManyTags(query: RequestQueryDto): Promise<TagsListResponse> {
+    const repository: QueryFilteredRepository = TagsRepository;
+
+    const params: DbParamsDto =
+      QueryFilterService.getQueryParametersWithRepository(query, repository, true);
+
+    const promises: any = [
+      TagsRepository.findManyTagsForList(params),
+      TagsRepository.countManyTagsForList(),
+    ];
+
+    return this.findAndProcessManyByParams(promises, query, params);
+  }
+
+  public static async findAndProcessOneTagById(
     dbTag: DbTag,
     tagTitle: string,
     currentUserId: number | null,
@@ -48,6 +71,23 @@ class TagsFetchService {
       title:      dbTag.title,
       created_at: moment(dbTag.created_at).utc().format('YYYY-MM-DD HH:mm:ss'),
       current_rate: dbTag.current_rate,
+    };
+  }
+
+  private static async findAndProcessManyByParams(
+    promises: Promise<any>[],
+    query: RequestQueryDto,
+    params: DbParamsDto,
+  ): Promise<TagsListResponse> {
+    // @ts-ignore
+    const [data, totalAmount]: [TagsModelResponse[], number] = await Promise.all(promises);
+
+    ApiPostProcessor.processManyTags(data);
+    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
+
+    return {
+      data,
+      metadata,
     };
   }
 }
