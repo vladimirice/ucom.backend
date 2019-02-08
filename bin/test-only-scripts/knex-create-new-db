@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+
+const config = require('config').db_knex_events;
+
+const dbName = config.connection.database;
+
+const knex = require('../../config/knex');
+
+(async () => {
+  await knex.raw(`DROP DATABASE IF EXISTS ${dbName}`);
+  await knex.raw(`CREATE DATABASE ${dbName}`);
+
+  // eslint-disable-next-line no-console
+  console.log(`Database ${dbName} has been recreated`);
+  // eslint-disable-next-line no-process-exit
+  process.exit(0);
+})();

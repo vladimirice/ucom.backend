@@ -7,6 +7,20 @@
   "db_knex": {
     "connection_string": "postgresql://uos:uos@uos-backend-postgres-test.dev:5432/uos_backend_app"
   },
+  "db_knex_events": {
+    "client": "pg",
+    "debug": false,
+    "connection": {
+      "host" : "uos-backend-postgres-test.dev",
+      "user" : "uos",
+      "password" : "uos",
+      "database" : "uos_backend_events"
+    },
+    "migrations": {
+      "tableName": "migrations",
+      "directory": "./knex_migrations"
+    }
+  },
   "db": {
     "username": "uos",
     "password": "uos",

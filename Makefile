@@ -5,12 +5,15 @@ DOCKER_B_EXEC_CMD=docker-compose exec -T --user=${DOCKER_BACKEND_APP_USER} ${DOC
 DOCKER_B_EXEC_CMD_ROOT=docker-compose exec -T --user=root ${DOCKER_BACKEND_APP_NAME}
 
 SEQ_EXEC_FILE=node_modules/.bin/sequelize
+KNEX_EXEC_FILE=node_modules/.bin/knex
 
 DB_DROP_COMMAND=${SEQ_EXEC_FILE} db:drop
 DB_CREATE_COMMAND=${SEQ_EXEC_FILE} db:create
 DB_MIGRATE_COMMAND=${SEQ_EXEC_FILE} db:migrate
 DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
 DB_GENERATE_MIGRATION=${SEQ_EXEC_FILE} migration:generate
+
+DB_KNEX_MIGRATE_EVENTS_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=events
 
 ENV_VALUE_TEST=test
 
@@ -117,7 +120,16 @@ staging-console:
 ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
 
+docker-recreate-db:
+	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
+	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
+
+docker-recreate-events-db:
+	${DOCKER_B_EXEC_CMD} bin/test-only-scripts/knex-create-new-db
+	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_EVENTS_COMMAND}
+
 docker-init-test-db ditd:
 	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
 	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
 	make docker-db-migrate
+	make docker-recreate-events-db
