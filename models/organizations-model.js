@@ -81,6 +81,8 @@ module.exports = (db, Sequelize) => {
       'nickname',
       'current_rate',
       'user_id',
+      'powered_by',
+      'about',
     ];
   };
 

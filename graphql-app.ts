@@ -141,6 +141,8 @@ const typeDefs = gql`
     nickname: String!
     current_rate: Float!
     user_id: Int!
+    about: String
+    powered_by: String
   }
   
   type Tag {
