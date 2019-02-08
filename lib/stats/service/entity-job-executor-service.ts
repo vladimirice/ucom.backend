@@ -1,11 +1,11 @@
-
 import knexEvents = require('../../../config/knex-events');
-import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
+
 import PostsModelProvider = require('../../posts/service/posts-model-provider');
+import knex = require('../../../config/knex');
 
 const ENTITY_EVENT_TABLE_NAME = 'entity_event_param';
 
-interface EntityEventParam {
+interface EntityEventParamDto {
   entity_id: number;
   entity_name: string;
   entity_blockchain_id: string;
@@ -14,28 +14,56 @@ interface EntityEventParam {
   json_value: any;
 }
 
-export class EntityJobExecutorService {
-  public static async processEntityEventParam(): Promise<void> {
-    // Fetch one posts current rate and write it like importance worker does
+interface ModelWithRateDto {
+  id: number;
+  blockchain_id: string;
+  current_rate: number;
+}
 
-    const events: EntityEventParam[] = [
-      {
-        entity_id: 1,
-        entity_name: OrganizationsModelProvider.getEntityName(),
-        entity_blockchain_id: 'sample_blockchain_id_1',
-        event_type: 2,
-        event_group: 1,
-        json_value: { key1: 'value1' },
-      },
-      {
-        entity_id: 2,
+export class EntityJobExecutorService {
+  private static getImportanceJsonData(data: number) {
+    return {
+      importance: data,
+    };
+  }
+
+  private static getStatsModelFromDbModels(dbModels: ModelWithRateDto[]): EntityEventParamDto[] {
+    const events: EntityEventParamDto[] = [];
+
+    // TODO
+    const EVENT_TYPE = 1;
+    // TODO
+    const EVENT_GROUP = 1;
+
+    dbModels.forEach((item) => {
+      events.push({
+        entity_id: item.id,
         entity_name: PostsModelProvider.getEntityName(),
-        entity_blockchain_id: 'sample_blockchain_id_2',
-        event_type: 3,
-        event_group: 1,
-        json_value: { key2: 'value2' },
-      },
-    ];
+        entity_blockchain_id: item.blockchain_id,
+        event_type: EVENT_TYPE,
+        event_group: EVENT_GROUP,
+        json_value: this.getImportanceJsonData(item.current_rate),
+      });
+    });
+
+    return events;
+  }
+
+  private static async getPostsWithRates(): Promise<ModelWithRateDto[]> {
+    // TODO - batch
+    return knex('posts')
+      .select([
+        'id',
+        'blockchain_id',
+        'current_rate',
+      ]);
+  }
+
+  public static async processEntityEventParam(): Promise<void> {
+    const data = await this.getPostsWithRates();
+
+    const events = this.getStatsModelFromDbModels(data);
+    // Fetch one posts current rate and write it like importance worker does
 
     await knexEvents(ENTITY_EVENT_TABLE_NAME).insert(events);
   }
