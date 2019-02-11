@@ -1,9 +1,9 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import { PostsListResponse } from '../../lib/posts/interfaces/model-interfaces';
+import { IdOnlyDto } from '../../lib/common/interfaces/common-types';
 
 import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
-import { IdOnlyDto } from '../../lib/common/interfaces/common-types';
 
 const config = require('config');
 

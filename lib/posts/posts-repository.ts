@@ -1,4 +1,5 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
+import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const moment = require('moment');
@@ -29,6 +30,23 @@ const model = postsModelProvider.getModel();
 const knex = require('../../config/knex');
 
 class PostsRepository {
+  public static async findManyPostsEntityEvents(
+    limit: number,
+    lastId: number | null = null,
+  ): Promise<ModelWithEventParamsDto[]> {
+    const queryBuilder = knex('posts')
+      .select(['id', 'blockchain_id', 'current_rate'])
+      .orderBy('id', 'ASC')
+      .limit(limit)
+    ;
+
+    if (lastId) {
+      queryBuilder.whereRaw(`id > ${+lastId}`);
+    }
+
+    return queryBuilder;
+  }
+
   /**
    *
    * @param {number} id

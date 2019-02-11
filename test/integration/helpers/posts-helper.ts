@@ -1,11 +1,13 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
+import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
 
 import EosImportance = require('../../../lib/eos/eos-importance');
 import PostsRepository = require('../../../lib/posts/posts-repository');
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
+import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
 
 const request = require('supertest');
 const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
@@ -21,6 +23,25 @@ const postsModelProvider = require('../../../lib/posts/service/posts-model-provi
 require('jest-expect-message');
 
 class PostsHelper {
+  public static async setRandomRateToManyPosts(
+    modelsIds: number[],
+    processTags: boolean = true,
+  ): Promise<NumberToNumberCollection> {
+    const set: NumberToNumberCollection = {};
+    for (let i = 0; i < modelsIds.length; i += 1) {
+      const modelId = modelsIds[i];
+      set[modelId] = RequestHelper.generateRandomImportance();
+
+      await PostsHelper.setSampleRateToPost(modelId, set[modelId]);
+    }
+
+    if (processTags) {
+      await TagsCurrentRateProcessor.process();
+    }
+
+    return set;
+  }
+
   static async setSampleRateToPost(
     postId: number,
     rateToSet: number = 0.1235,

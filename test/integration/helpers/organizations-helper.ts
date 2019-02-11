@@ -6,6 +6,7 @@ import {
   OrgModelResponse,
 } from '../../../lib/organizations/interfaces/model-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
 
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
@@ -30,7 +31,21 @@ const entityModelProvider = require('../../../lib/entities/service').ModelProvid
 require('jest-expect-message');
 
 class OrganizationsHelper {
-  public static async setSampleRateToOrg(id: number, rateToSet = 0.1235) {
+  public static async setRandomRateToManyOrgs(
+    modelsIds: number[],
+  ): Promise<NumberToNumberCollection> {
+    const set: NumberToNumberCollection = {};
+    for (let i = 0; i < modelsIds.length; i += 1) {
+      const modelId = modelsIds[i];
+      set[modelId] = RequestHelper.generateRandomImportance();
+
+      await this.setSampleRateToOrg(modelId, set[modelId]);
+    }
+
+    return set;
+  }
+
+  public static async setSampleRateToOrg(id: number, rateToSet: number = 0.1235) {
     await OrganizationsModelProvider.getModel().update(
       {
         current_rate: rateToSet,

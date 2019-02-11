@@ -1,3 +1,5 @@
+import TagsModelProvider = require('../tags/service/tags-model-provider');
+
 const uniqid = require('uniqid');
 const postsModelProvider = require('../posts/service/posts-model-provider');
 
@@ -9,6 +11,12 @@ const prefixByScope = {
 };
 
 class BlockchainUniqId {
+  public static getTagFakeUniqId(): string {
+    const prefix = TagsModelProvider.getBlockchainIdPrefix();
+
+    return `fake_tag_blockchain_id_${this.getUniqIdWithoutId(prefix)}`;
+  }
+
   /**
    *
    * @return {string}

@@ -5,6 +5,7 @@ import { GraphqlHelper } from './graphql-helper';
 import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UsersHelper = require('./users-helper');
+import knexEvents = require('../../../config/knex-events');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -168,6 +169,7 @@ class SeedsHelper {
   static async beforeAllRoutine(
     mockAllBlockchain: boolean = false, // deprecated
   ) {
+
     if (mockAllBlockchain) {
       MockHelper.mockAllBlockchainPart();
     }
@@ -175,6 +177,7 @@ class SeedsHelper {
     await Promise.all([
       this.destroyTables(),
       this.purgeAllQueues(),
+      this.truncateEventsDb(),
     ]);
 
     const usersModel = usersRepositories.Main.getUsersModelName();
@@ -374,6 +377,12 @@ class SeedsHelper {
         await models[table].bulkCreate(seeds);
       }
     }
+  }
+
+  private static async truncateEventsDb() {
+    const tableName = 'entity_event_param';
+
+    await knexEvents.raw(`TRUNCATE TABLE ${tableName}`);
   }
 }
 

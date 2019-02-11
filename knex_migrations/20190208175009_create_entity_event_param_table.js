@@ -12,6 +12,7 @@ exports.up = (knex) => {
         entity_blockchain_id  VARCHAR(255)  NOT NULL,
         event_type            SMALLINT      NOT NULL,
         event_group           SMALLINT      NOT NULL,
+        event_super_group     SMALLINT      NOT NULL,
         json_value            JSONB         NOT NULL,      
         created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );

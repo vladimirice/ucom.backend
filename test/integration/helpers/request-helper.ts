@@ -29,6 +29,14 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static generateRandomImportance(): number {
+    return this.generateRandomFloat(1, 10, 6);
+  }
+
+  private static generateRandomFloat(min: number, max: number, precision: number): number {
+    return +(Math.random() * (max - min) + min).toFixed(precision);
+  }
+
   public static makeRandomString(length) {
     let text = '';
     // noinspection SpellCheckingInspection

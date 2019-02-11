@@ -2,10 +2,12 @@ import { Transaction } from 'knex';
 import { DbTag, TagsModelResponse } from '../interfaces/dto-interfaces';
 import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 import { TagDbModel } from '../models/tags-model';
+import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 
 import TagsModelProvider = require('../service/tags-model-provider');
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 
 const knex = require('../../../config/knex');
 
@@ -135,8 +137,32 @@ class TagsRepository implements QueryFilteredRepository {
     return res;
   }
 
-  public static async getAllTags() {
+  public static async getAllTags(): Promise<DbTag[]> {
     return knex(this.getTableName()).select('*');
+  }
+
+  public static async findManyTagsEntityEvents(
+    limit: number,
+    lastId: number | null = null,
+  ): Promise<ModelWithEventParamsDto[]> {
+    const queryBuilder = knex(TABLE_NAME)
+      .select(['id', 'current_rate'])
+      .orderBy('id', 'ASC')
+      .limit(limit)
+    ;
+
+    if (lastId) {
+      queryBuilder.whereRaw(`id > ${+lastId}`);
+    }
+
+    const data = await queryBuilder;
+
+    data.forEach((item) => {
+      // #task - implement correct cycle of tag uniqid assigning
+      item.blockchain_id = BlockchainUniqId.getTagFakeUniqId();
+    });
+
+    return data;
   }
 
   public static async findManyTagsForList(

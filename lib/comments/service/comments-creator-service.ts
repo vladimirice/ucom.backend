@@ -121,7 +121,7 @@ export class CommentsCreatorService {
    */
   private static getEventId(entityName, newModel, commentableModel) {
     if (newModel.user_id === commentableModel.user_id) {
-      return null;
+      return null; // #task - always fill event_id but it it possible that notification processor depends on this value
     }
 
     if (PostsModelProvider.isPost(entityName)) {

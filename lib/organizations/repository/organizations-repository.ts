@@ -2,6 +2,8 @@
 
 import { OrgIdToOrgModelCard, OrgModel, OrgModelResponse } from '../interfaces/model-interfaces';
 import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
+import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
+import knex = require('../../../config/knex');
 
 const _ = require('lodash');
 
@@ -23,9 +25,21 @@ const taggableRepository = require('../../common/repository/taggable-repository'
 
 // @ts-ignore
 class OrganizationsRepository implements QueryFilteredRepository {
-  // eslint-disable-next-line class-methods-use-this
-  getDefaultListParams() {
-    return OrganizationsRepository.getDefaultListParams();
+  public static async findManyOrgsEntityEvents(
+    limit: number,
+    lastId: number | null = null,
+  ): Promise<ModelWithEventParamsDto[]> {
+    const queryBuilder = knex(TABLE_NAME)
+      .select(['id', 'blockchain_id', 'current_rate'])
+      .orderBy('id', 'ASC')
+      .limit(limit)
+    ;
+
+    if (lastId) {
+      queryBuilder.whereRaw(`id > ${+lastId}`);
+    }
+
+    return queryBuilder;
   }
 
   /**
