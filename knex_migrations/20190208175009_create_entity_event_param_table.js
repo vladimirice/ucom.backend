@@ -1,4 +1,3 @@
-
 const TABLE_NAME = 'entity_event_param';
 
 exports.up = (knex) => {
@@ -14,6 +13,7 @@ exports.up = (knex) => {
         event_group           SMALLINT      NOT NULL,
         event_super_group     SMALLINT      NOT NULL,
         json_value            JSONB         NOT NULL,      
+        result_value          NUMERIC(20,10) NOT NULL,      
         created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `;

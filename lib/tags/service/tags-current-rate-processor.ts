@@ -3,6 +3,8 @@ import { PostWithTagCurrentRateDto, TagToRate } from '../interfaces/dto-interfac
 import TagsRepository = require('../repository/tags-repository');
 import PostsRepository = require('../../posts/posts-repository');
 
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+
 interface IndexedTagToRate {
   [index: string]: TagToRate;
 }
@@ -37,6 +39,8 @@ class TagsCurrentRateProcessor {
     let counter: number = 0;
     let whenThenRateString: string = ' ';
     let whenThenPostsAmountString: string = ' ';
+    let whenThenMediaPostsAmountString: string = ' ';
+    let whenThenDirectPostsAmountString: string = ' ';
     let processedTitles: string[] = [];
 
     const promises: Promise<Object>[] = [];
@@ -52,6 +56,10 @@ class TagsCurrentRateProcessor {
         TagsRepository.getWhenThenString(current.title, current.currentRate);
       whenThenPostsAmountString +=
         TagsRepository.getWhenThenString(current.title, current.postsAmount);
+      whenThenMediaPostsAmountString +=
+        TagsRepository.getWhenThenString(current.title, current.mediaPostsAmount);
+      whenThenDirectPostsAmountString +=
+        TagsRepository.getWhenThenString(current.title, current.directPostsAmount);
       processedTitles.push(current.title);
       counter += 1;
 
@@ -60,12 +68,16 @@ class TagsCurrentRateProcessor {
           TagsRepository.updateTagsCurrentStats(
             whenThenRateString,
             whenThenPostsAmountString,
+            whenThenMediaPostsAmountString,
+            whenThenDirectPostsAmountString,
             processedTitles,
           ),
         );
         counter = 0;
         whenThenRateString = ' ';
         whenThenPostsAmountString = ' ';
+        whenThenMediaPostsAmountString = ' ';
+        whenThenDirectPostsAmountString = ' ';
         processedTitles = [];
       }
     }
@@ -75,6 +87,8 @@ class TagsCurrentRateProcessor {
         TagsRepository.updateTagsCurrentStats(
           whenThenRateString,
           whenThenPostsAmountString,
+          whenThenMediaPostsAmountString,
+          whenThenDirectPostsAmountString,
           processedTitles,
         ),
       );
@@ -96,8 +110,21 @@ class TagsCurrentRateProcessor {
             title,
             ratePerPost: 0,
             postsAmount: 0,
+            mediaPostsAmount: 0,
+            directPostsAmount: 0,
             currentRate: 0,
           };
+        }
+
+        switch (post.post_type_id) {
+          case ContentTypeDictionary.getTypeMediaPost():
+            tagToRate[title].mediaPostsAmount += 1;
+            break;
+          case ContentTypeDictionary.getTypeDirectPost():
+            tagToRate[title].directPostsAmount += 1;
+            break;
+          default:
+            // do nothing
         }
 
         tagToRate[title].ratePerPost += oneTagRatePerPost;

@@ -8,21 +8,22 @@ import TagsModelProvider = require('../../tags/service/tags-model-provider');
 const TABLE_NAME = 'entity_event_param';
 
 export class EntityEventRepository {
-  public static async findManyEventsWithTagEntityName(): Promise<EntityEventParamDto[]> {
-    return this.findManyEventsByEntityName(TagsModelProvider.getEntityName());
+  public static async findManyEventsWithTagEntityName(
+    eventType: number | null = null,
+  ): Promise<EntityEventParamDto[]> {
+    return this.findManyEventsByEntityName(TagsModelProvider.getEntityName(), eventType);
   }
 
-  public static async findManyEventsWithOrgEntityName(): Promise<EntityEventParamDto[]> {
-    return this.findManyEventsByEntityName(OrganizationsModelProvider.getEntityName());
+  public static async findManyEventsWithOrgEntityName(
+    eventType: number | null = null,
+  ): Promise<EntityEventParamDto[]> {
+    return this.findManyEventsByEntityName(OrganizationsModelProvider.getEntityName(), eventType);
   }
 
   public static async findManyEventsWithPostEntityName(
     eventType: number | null = null,
   ): Promise<EntityEventParamDto[]> {
-    return this.findManyEventsByEntityName(
-      PostsModelProvider.getEntityName(),
-      eventType,
-    );
+    return this.findManyEventsByEntityName(PostsModelProvider.getEntityName(), eventType);
   }
 
   public static async insertManyEvents(events: EntityEventParamDto[]): Promise<void> {

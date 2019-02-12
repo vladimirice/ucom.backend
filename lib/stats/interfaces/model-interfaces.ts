@@ -6,6 +6,8 @@ interface EntityEventParamDto {
   event_group:          number;
   event_super_group:    number;
   json_value:           JsonValue;
+  result_value:         number;
+  created_at?:          string;
 }
 
 interface JsonValue {

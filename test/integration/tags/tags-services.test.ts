@@ -31,6 +31,40 @@ describe('Tags services', () => {
   });
 
   describe('Tags current rate processor', () => {
+    it('check post types amounts', async () => {
+      const tagOneTitle   = 'summer';
+      const tagTwoTitle   = 'autumn';
+      const tagThreeTitle = 'winter';
+
+      await Promise.all([
+        EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle),
+        EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle),
+        EntityTagsGenerator.createTagViaNewDirectPost(userVlad, userJane, tagOneTitle),
+
+        EntityTagsGenerator.createTagViaNewPost(userVlad, tagTwoTitle),
+
+        EntityTagsGenerator.createTagViaNewDirectPost(userJane, userVlad, tagThreeTitle),
+      ]);
+
+      await TagsCurrentRateProcessor.process();
+
+      const tagOneModel   = await TagsRepository.findOneByTitle(tagOneTitle);
+      const tagTwoModel   = await TagsRepository.findOneByTitle(tagTwoTitle);
+      const tagThreeModel = await TagsRepository.findOneByTitle(tagThreeTitle);
+
+      expect(+tagOneModel!.current_media_posts_amount).toBe(2);
+      expect(+tagOneModel!.current_direct_posts_amount).toBe(1);
+      expect(+tagOneModel!.current_posts_amount).toBe(3);
+
+      expect(+tagTwoModel!.current_media_posts_amount).toBe(1);
+      expect(+tagTwoModel!.current_direct_posts_amount).toBe(0);
+      expect(+tagTwoModel!.current_posts_amount).toBe(1);
+
+      expect(+tagThreeModel!.current_media_posts_amount).toBe(0);
+      expect(+tagThreeModel!.current_direct_posts_amount).toBe(1);
+      expect(+tagTwoModel!.current_posts_amount).toBe(1);
+    });
+
     it('Check current_posts_amount', async () => {
       const tagOneTitle = 'summer';
       const tagTwoTitle = 'autumn';

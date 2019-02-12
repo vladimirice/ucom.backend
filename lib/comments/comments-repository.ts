@@ -4,6 +4,7 @@ import {
 } from '../common/interfaces/common-types';
 import { DbCommentParamsDto } from './interfaces/query-filter-interfaces';
 import { CommentModel, ParentIdToDbCommentCollection } from './interfaces/model-interfaces';
+import knex = require('../../config/knex');
 
 const _ = require('lodash');
 
@@ -21,6 +22,19 @@ const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
 const model = commentsModelProvider.getModel();
 
 class CommentsRepository {
+  public static async getManyPostsCommentsAmount() {
+    const sql = `
+      SELECT COUNT(1) as amount, commentable_id FROM comments
+      GROUP BY commentable_id;
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows.map(item => ({
+      entityId:         +item.commentable_id,
+      commentsAmount:   +item.amount,
+    }));
+  }
   /**
    *
    * @return {Object[]}

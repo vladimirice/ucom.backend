@@ -21,6 +21,20 @@
       "directory": "./knex_migrations"
     }
   },
+  "db_knex_monolith": {
+    "client": "pg",
+    "debug": false,
+    "connection": {
+      "host" : "uos-backend-postgres-test.dev",
+      "user" : "uos",
+      "password" : "uos",
+      "database" : "uos_backend_app"
+    },
+    "migrations": {
+      "tableName": "migrations",
+      "directory": "./knex_migrations_monolith"
+    }
+  },
   "db": {
     "username": "uos",
     "password": "uos",

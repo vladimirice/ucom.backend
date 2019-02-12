@@ -117,6 +117,24 @@ class EntityTagsGenerator {
     return postId;
   }
 
+  public static async createTagViaNewDirectPost(
+    myself: UserModel,
+    wallOwner: UserModel,
+    tagTitle: string,
+  ): Promise<number> {
+    const description = `Hi everyone! #${tagTitle} is so close.`;
+
+    const postId: number = await PostsGenerator.createDirectPostForUserAndGetId(
+      myself,
+      wallOwner,
+      description,
+    );
+
+    await TagsHelper.getPostWhenTagsAreProcessed(postId);
+
+    return postId;
+  }
+
   public static async createPostsWithTags(
     userVlad: UserModel,
     userJane: UserModel,

@@ -14,6 +14,7 @@ DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
 DB_GENERATE_MIGRATION=${SEQ_EXEC_FILE} migration:generate
 
 DB_KNEX_MIGRATE_EVENTS_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=events
+DB_KNEX_MIGRATE_MONOLITH_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=monolith
 
 ENV_VALUE_TEST=test
 
@@ -123,10 +124,14 @@ ipfs-tunnel:
 docker-recreate-db:
 	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
 	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
+	make docker-migrate-monolith-via-knex
 
 docker-recreate-events-db:
 	${DOCKER_B_EXEC_CMD} bin/test-only-scripts/knex-create-new-db
 	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_EVENTS_COMMAND}
+
+docker-migrate-monolith-via-knex:
+	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_MONOLITH_COMMAND}
 
 docker-init-test-db ditd:
 	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}

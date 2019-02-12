@@ -5,16 +5,11 @@ const ENTITY_NAME = 'org       ';
 const TABLE_NAME = 'organizations';
 
 class OrganizationsModelProvider {
-
   static getOrgFieldsForPreview() {
     return this.getModel().getFieldsForPreview();
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static getEntityName() {
+  static getEntityName(): string {
     return ENTITY_NAME;
   }
 
@@ -38,10 +33,7 @@ class OrganizationsModelProvider {
     return TABLE_NAME;
   }
 
-  /**
-   *
-   * @return {string}
-   */
+  // noinspection JSUnusedGlobalSymbols
   static getBlockchainIdFieldName() {
     return 'blockchain_id';
   }

@@ -15,8 +15,10 @@ import EventParamTypeDictionary = require('../../../lib/stats/dictionary/event-p
 import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
 
 let userVlad: UserModel;
+let userJane: UserModel;
 
 const beforeAfterOptions = {
   isGraphQl: false,
@@ -28,7 +30,60 @@ describe('Stats services', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
   beforeEach(async () => {
-    [userVlad] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+  });
+
+  it('check post types amounts for tags', async () => {
+    const batchSize = 2;
+
+    const tagOneTitle   = 'summer';
+    const tagTwoTitle   = 'autumn';
+    const tagThreeTitle = 'winter';
+
+    await Promise.all([
+      EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle),
+      EntityTagsGenerator.createTagViaNewPost(userVlad, tagOneTitle),
+      EntityTagsGenerator.createTagViaNewDirectPost(userVlad, userJane, tagOneTitle),
+
+      EntityTagsGenerator.createTagViaNewPost(userVlad, tagTwoTitle),
+
+      EntityTagsGenerator.createTagViaNewDirectPost(userJane, userVlad, tagThreeTitle),
+    ]);
+
+    await TagsCurrentRateProcessor.process();
+
+    await EntityJobExecutorService.processEntityEventParam(batchSize);
+
+    const events: EntityEventParamDto[] =
+      await EntityEventRepository.findManyEventsWithTagEntityName(
+        EventParamTypeDictionary.getTagItselfCurrentAmounts(),
+      );
+
+    expect(_.isEmpty(events)).toBeFalsy();
+
+    expect(events.length).toBe(3);
+
+    const [tagOneModel, tagTwoModel, tagThreeModel] = await Promise.all([
+      TagsRepository.findOneByTitle(tagOneTitle),
+      TagsRepository.findOneByTitle(tagTwoTitle),
+      TagsRepository.findOneByTitle(tagThreeTitle),
+    ]);
+
+    const firstEvent  = events.find(item => +item.entity_id === tagOneModel!.id)!;
+    const secondEvent = events.find(item => +item.entity_id === tagTwoModel!.id)!;
+    const thirdEvent  = events.find(item => +item.entity_id === tagThreeModel!.id)!;
+
+    expect(+firstEvent.json_value.data.current_media_posts_amount).toBe(2);
+    expect(+firstEvent.json_value.data.current_direct_posts_amount).toBe(1);
+    expect(+firstEvent.json_value.data.current_posts_amount).toBe(3);
+
+    expect(+secondEvent.json_value.data.current_media_posts_amount).toBe(1);
+    expect(+secondEvent.json_value.data.current_direct_posts_amount).toBe(0);
+    expect(+secondEvent.json_value.data.current_posts_amount).toBe(1);
+
+    expect(+thirdEvent.json_value.data.current_media_posts_amount).toBe(0);
+    expect(+thirdEvent.json_value.data.current_direct_posts_amount).toBe(1);
+    expect(+thirdEvent.json_value.data.current_posts_amount).toBe(1);
   });
 
   it('create and check two events for different entities.', async () => {
@@ -92,7 +147,7 @@ describe('Stats services', () => {
       const value = tagToImportance[+event.entity_id];
       expect(+event.json_value.data.importance).toBe(value);
       expect(event.entity_name).toBe(TagsModelProvider.getEntityName());
-      expect(event.event_type).toBe(EventParamTypeDictionary.getBackendCalculatedImportance());
+      expect(event.event_type).toBe(EventParamTypeDictionary.getTagItselfCurrentAmounts());
     });
   });
 });

@@ -1,6 +1,9 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 
+import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
+import RepositoryHelper = require('../common/repository/repository-helper');
+
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const moment = require('moment');
 const _ = require('lodash');
@@ -30,6 +33,52 @@ const model = postsModelProvider.getModel();
 const knex = require('../../config/knex');
 
 class PostsRepository {
+  public static async getManyOrgsPostsAmount() {
+    const orgEntityName: string = OrganizationsModelProvider.getEntityName();
+
+    const postTypes: number[] = [
+      ContentTypeDictionary.getTypeMediaPost(),
+      ContentTypeDictionary.getTypeDirectPost(),
+    ];
+
+    const sql = `
+      SELECT array_agg(post_type_id || '__' || amount) AS array_agg, entity_id_for FROM
+        (
+          SELECT entity_id_for, post_type_id, COUNT(1) AS amount
+          FROM posts
+          WHERE entity_name_for = '${orgEntityName}'
+          AND post_type_id IN (${postTypes.join(', ')})
+          GROUP BY entity_id_for, post_type_id
+        ) AS t
+      GROUP BY entity_id_for
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows.map(row => ({
+      aggregates: RepositoryHelper.splitAggregates(row),
+      entityId: +row.entity_id_for,
+    }));
+  }
+
+  public static async getManyPostsRepostsAmount() {
+    const postTypeId: number = ContentTypeDictionary.getTypeRepost();
+
+    const sql = `
+       SELECT parent_id, blockchain_id, COUNT(1) AS amount FROM posts
+       WHERE post_type_id = ${postTypeId}
+       GROUP BY parent_id, blockchain_id
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows.map(item => ({
+      entityId:       item.parent_id,
+      blockchainId:   item.blockchain_id,
+      repostsAmount:  +item.amount,
+    }));
+  }
+
   public static async findManyPostsEntityEvents(
     limit: number,
     lastId: number | null = null,
@@ -69,6 +118,7 @@ class PostsRepository {
    * @return {Promise<Object>}
    */
   static async findIdsByBlockchainIds(blockchainIds) {
+    // noinspection TypeScriptValidateJSTypes
     const data =  await this.getModel().findAll({
       attributes: ['id', 'blockchain_id'],
       where: {
@@ -272,6 +322,7 @@ class PostsRepository {
    * @returns {Promise<Object>}
    */
   static async findAllMediaPosts(raw = true) {
+    // noinspection TypeScriptValidateJSTypes
     return this.getModel().findAll({
       raw,
       where: {
@@ -362,6 +413,7 @@ class PostsRepository {
     return data.map(item => item.toJSON());
   }
 
+  // noinspection JSUnusedGlobalSymbols
   public static getIncludeProcessor(): Function {
     // @ts-ignore
     return (query, params) => {
@@ -561,6 +613,7 @@ class PostsRepository {
 
   // noinspection JSUnusedGlobalSymbols
   static async findAllWithRates() {
+    // noinspection TypeScriptValidateJSTypes
     const rows = await PostsRepository.getModel().findAll({
       where: {
         current_rate: {
@@ -704,7 +757,7 @@ class PostsRepository {
     // So WHERE current_rate > 0 for post is not ok for current_rate calculation
 
     return knex(TABLE_NAME)
-      .select(['current_rate', 'entity_tags'])
+      .select(['current_rate', 'entity_tags', 'post_type_id'])
       .whereRaw("entity_tags != '{}'")
       .offset(offset)
       .limit(limit)

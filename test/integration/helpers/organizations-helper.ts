@@ -121,14 +121,11 @@ class OrganizationsHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {number} orgId
-   * @param {Object} user
-   * @param {number} expectedStatus
-   * @return {Promise<Object>}
-   */
-  static async requestToFollowOrganization(orgId, user, expectedStatus = 201) {
+  public static async requestToFollowOrganization(
+    orgId: number,
+    user: UserModel,
+    expectedStatus: number = 201,
+  ) {
     const res = await request(server)
       .post(RequestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
@@ -157,13 +154,19 @@ class OrganizationsHelper {
     return res.body;
   }
 
-  static async requestToCreateOrgFollowHistory(whoActs, targetOrgId) {
+  static async requestToCreateOrgFollowHistory(
+    whoActs: UserModel,
+    targetOrgId: number,
+  ): Promise<void> {
     await this.requestToFollowOrganization(targetOrgId, whoActs);
     await this.requestToUnfollowOrganization(targetOrgId, whoActs);
     await this.requestToFollowOrganization(targetOrgId, whoActs);
   }
 
-  static async requestToCreateOrgUnfollowHistory(whoActs, targetOrgId) {
+  static async requestToCreateOrgUnfollowHistory(
+    whoActs: UserModel,
+    targetOrgId: number,
+  ): Promise<void> {
     await this.requestToFollowOrganization(targetOrgId, whoActs);
     await this.requestToUnfollowOrganization(targetOrgId, whoActs);
     await this.requestToFollowOrganization(targetOrgId, whoActs);

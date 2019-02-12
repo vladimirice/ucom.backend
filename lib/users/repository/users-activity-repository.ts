@@ -1,6 +1,9 @@
 /* tslint:disable:max-line-length */
+import { EntityParamAggregatesDto } from '../../stats/interfaces/dto-interfaces';
+
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import knex = require('../../../config/knex');
+import RepositoryHelper = require('../../common/repository/repository-helper');
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const models = require('../../../models');
@@ -44,6 +47,40 @@ class UsersActivityRepository {
     const data = await knex.raw(sql);
 
     return data.rows;
+  }
+
+  public static async getManyOrgsFollowers(): Promise<EntityParamAggregatesDto[]> {
+    const paramField = 'event_id';
+    const entityIdFields = 'entity_id_to';
+    const eventIds: number[] = [
+      NotificationsEventIdDictionary.getUserFollowsOrg(),
+      NotificationsEventIdDictionary.getUserUnfollowsOrg(),
+    ];
+
+    return this.getManyEntityParametersByEvents(paramField, entityIdFields, eventIds);
+  }
+
+  private static async getManyEntityParametersByEvents(
+    paramField: string,
+    entityIdField: string,
+    eventIds: number[],
+  ): Promise<EntityParamAggregatesDto[]> {
+    const sql = `
+      SELECT array_agg(${paramField} || '__' || amount), ${entityIdField} FROM
+        (
+          SELECT COUNT(1) as amount, ${paramField}, ${entityIdField} FROM users_activity
+          WHERE ${paramField} IN (${eventIds.join(', ')})
+          GROUP BY ${entityIdField}, ${paramField}
+        ) as t
+      GROUP BY ${entityIdField};
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows.map(row => ({
+      aggregates: RepositoryHelper.splitAggregates(row),
+      entityId: +row[entityIdField],
+    }));
   }
 
   /**
@@ -160,7 +197,7 @@ class UsersActivityRepository {
                         entity_id_to,
                         entity_id_on
         FROM
-             ${TABLE_NAME}
+             users_activity
         WHERE
             user_id_from    = ${+userId}
             AND entity_name = '${postsEntityName}'
@@ -226,8 +263,6 @@ class UsersActivityRepository {
     const eventIdUp   = eventIdDictionary.getUserVotesForBlockchainNode();
     const eventIdDown = eventIdDictionary.getUserCancelVoteForBlockchainNode();
 
-    const activityTableName   = usersModelProvider.getUsersActivityTableName();
-
     const sql = `
       SELECT entity_id_to FROM (
                   SELECT
@@ -236,7 +271,7 @@ class UsersActivityRepository {
                                   event_id,
                                   id
                   FROM
-                       ${activityTableName}
+                       users_activity
                   WHERE
                       user_id_from  = ${+userId}
                       AND event_id IN (${eventIdUp}, ${eventIdDown})
@@ -259,8 +294,6 @@ class UsersActivityRepository {
     const eventIdUp   = eventIdDictionary.getUserVotesForBlockchainNode();
     const eventIdDown = eventIdDictionary.getUserCancelVoteForBlockchainNode();
 
-    const activityTableName   = usersModelProvider.getUsersActivityTableName();
-
     const sql = `
       SELECT id, user_id_from, entity_id_to FROM (
                   SELECT
@@ -272,7 +305,7 @@ class UsersActivityRepository {
                                   user_id_from,
                                   id
                   FROM
-                       ${activityTableName}
+                       users_activity
                   WHERE
                       event_id IN (${eventIdUp}, ${eventIdDown})
                   ORDER BY user_id_from, entity_id_to, entity_name, activity_group_id, id DESC
@@ -293,8 +326,6 @@ class UsersActivityRepository {
     const eventIdUp   = eventIdDictionary.getUserVotesForBlockchainNode();
     const eventIdDown = eventIdDictionary.getUserCancelVoteForBlockchainNode();
 
-    const activityTableName   = usersModelProvider.getUsersActivityTableName();
-
     const sql = `
       SELECT id, user_id_from, entity_id_to FROM (
                   SELECT
@@ -306,7 +337,7 @@ class UsersActivityRepository {
                                   user_id_from,
                                   id
                   FROM
-                       ${activityTableName}
+                       users_activity
                   WHERE
                       event_id IN (${eventIdUp}, ${eventIdDown})
                   ORDER BY user_id_from, entity_id_to, entity_name, activity_group_id, id DESC

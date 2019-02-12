@@ -1,8 +1,7 @@
 import { Transaction } from 'knex';
-import { DbTag, TagsModelResponse } from '../interfaces/dto-interfaces';
+import { DbTag, TagsModelResponse, TagWithEventParamsDto } from '../interfaces/dto-interfaces';
 import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 import { TagDbModel } from '../models/tags-model';
-import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 
 import TagsModelProvider = require('../service/tags-model-provider');
 import QueryFilterService = require('../../api/filters/query-filter-service');
@@ -30,10 +29,13 @@ class TagsRepository implements QueryFilteredRepository {
     }
 
     const sql = `
-      UPDATE ${TABLE_NAME}
+        -- noinspection SqlWithoutWhere
+        UPDATE tags
         SET 
           current_rate = 0,
-          current_posts_amount = 0
+          current_posts_amount = 0,
+          current_media_posts_amount = 0,
+          current_direct_posts_amount = 0  
         ${where}
     `;
 
@@ -43,6 +45,8 @@ class TagsRepository implements QueryFilteredRepository {
   public static async updateTagsCurrentStats(
     whenThenRateString: string,
     whenThenPostsString: string,
+    whenThenMediaPostsString: string,
+    whenThenDirectPostsString: string,
     titles: string[],
   ): Promise<any> {
     const processedTitles = titles.map(item => `'${item}'`);
@@ -57,6 +61,16 @@ class TagsRepository implements QueryFilteredRepository {
           current_posts_amount = 
           CASE
             ${whenThenPostsString}
+            -- NO ELSE BECAUSE THERE IS NO DEFAULT VALUE
+          END,
+          current_media_posts_amount = 
+          CASE
+            ${whenThenMediaPostsString}
+            -- NO ELSE BECAUSE THERE IS NO DEFAULT VALUE
+          END,
+          current_direct_posts_amount =
+          CASE
+            ${whenThenDirectPostsString}
             -- NO ELSE BECAUSE THERE IS NO DEFAULT VALUE
           END
         WHERE title IN (${processedTitles.join(', ')})
@@ -144,9 +158,15 @@ class TagsRepository implements QueryFilteredRepository {
   public static async findManyTagsEntityEvents(
     limit: number,
     lastId: number | null = null,
-  ): Promise<ModelWithEventParamsDto[]> {
+  ): Promise<TagWithEventParamsDto[]> {
     const queryBuilder = knex(TABLE_NAME)
-      .select(['id', 'current_rate'])
+      .select([
+        'id',
+        'current_rate',
+        'current_posts_amount',
+        'current_media_posts_amount',
+        'current_direct_posts_amount',
+      ])
       .orderBy('id', 'ASC')
       .limit(limit)
     ;
@@ -185,6 +205,8 @@ class TagsRepository implements QueryFilteredRepository {
       'title',
       'current_rate',
       'current_posts_amount',
+      'current_media_posts_amount',
+      'current_direct_posts_amount',
       'created_at',
       'updated_at',
 
