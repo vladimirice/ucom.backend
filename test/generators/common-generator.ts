@@ -7,6 +7,8 @@ import activityHelper = require('../integration/helpers/activity-helper');
 import orgGen = require('./organizations-generator');
 import postGen = require('./posts-generator');
 import commentsGen = require('./comments-generator');
+import CommentsGenerator = require('./comments-generator');
+import PostsHelper = require('../integration/helpers/posts-helper');
 
 class CommonGenerator {
   static async createAllTypesOfNotifications(userVlad, userJane, userPetr, userRokky) {
@@ -117,6 +119,76 @@ class CommonGenerator {
       posts: responsePosts,
       orgs,
     };
+  }
+
+  public static async createPostRepostActivity(
+    userJane: UserModel,
+    userPetr: UserModel,
+    idForOneRepost: number,
+    idForTwoReposts: number | null = null,
+  ): Promise<void> {
+    await PostsGenerator.createRepostOfUserPost(userJane, idForOneRepost);
+
+    if (idForTwoReposts !== null) {
+      // Post one has two reposts
+      await Promise.all([
+        PostsGenerator.createRepostOfUserPost(userJane, idForTwoReposts),
+        PostsGenerator.createRepostOfUserPost(userPetr, idForTwoReposts),
+      ]);
+    }
+  }
+
+  // Three likes for first post
+  // Two likes and one dislike for second post
+  // Three dislikes, no likes for third post
+  public static async createPostVotingActivity(
+    userJane: UserModel,
+    userPetr: UserModel,
+    userRokky: UserModel,
+    threeLikesPostId,
+    twoLikesOneDislikePostId,
+    threeDislikesPostId,
+  ): Promise<void> {
+    await Promise.all([
+      PostsHelper.requestToUpvotePost(userJane, threeLikesPostId),
+      PostsHelper.requestToUpvotePost(userPetr, threeLikesPostId),
+      PostsHelper.requestToUpvotePost(userRokky, threeLikesPostId),
+    ]);
+
+    await Promise.all([
+      PostsHelper.requestToUpvotePost(userJane, twoLikesOneDislikePostId),
+      PostsHelper.requestToUpvotePost(userPetr, twoLikesOneDislikePostId),
+      PostsHelper.requestToDownvotePost(userRokky, twoLikesOneDislikePostId),
+    ]);
+
+    await Promise.all([
+      PostsHelper.requestToDownvotePost(userJane, threeDislikesPostId),
+      PostsHelper.requestToDownvotePost(userPetr, threeDislikesPostId),
+      PostsHelper.requestToDownvotePost(userRokky, threeDislikesPostId),
+    ]);
+  }
+
+  public static async createPostCommentsActivity(
+    userVlad: UserModel,
+    userJane: UserModel,
+    userPetr: UserModel,
+    userRokky: UserModel,
+    fourCommentsPostId: number,
+    oneCommentPostId: number | null = null,
+  ): Promise<void> {
+    const [postOneCommentOneId] = await Promise.all([
+      CommentsGenerator.createCommentForPostAndGetId(fourCommentsPostId, userVlad),
+      CommentsGenerator.createCommentForPostAndGetId(fourCommentsPostId, userJane),
+    ]);
+
+    await Promise.all([
+      CommentsGenerator.createCommentOnComment(fourCommentsPostId, postOneCommentOneId, userPetr),
+      CommentsGenerator.createCommentOnComment(fourCommentsPostId, postOneCommentOneId, userRokky),
+    ]);
+
+    if (oneCommentPostId !== null) {
+      await CommentsGenerator.createCommentForPost(oneCommentPostId, userPetr);
+    }
   }
 }
 

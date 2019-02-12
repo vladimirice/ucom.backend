@@ -6,6 +6,14 @@ interface NumberToNumberCollection {
   [index: number]: number;
 }
 
+interface IdToPropsCollection {
+  [index: number]: {
+    [index: string]: string | number;
+  }
+}
+
+interface IdToNumberCollection extends NumberToNumberCollection {}
+
 interface StringToAnyCollection {
   [index: string]: any;
 }
@@ -23,5 +31,7 @@ export {
   StringToAnyCollection,
   NumberToNumberCollection,
   NumberToAnyCollection,
+  IdToPropsCollection,
   IdOnlyDto,
+  IdToNumberCollection,
 };

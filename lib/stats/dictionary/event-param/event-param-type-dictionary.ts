@@ -1,11 +1,11 @@
 const CURRENT_BLOCKCHAIN_IMPORTANCE = 1;
-const BACKEND_CALCULATED_IMPORTANCE = 2;
 const POST_VOTES_CURRENT_AMOUNT     = 3;
 const POST_REPOSTS_CURRENT_AMOUNT   = 4;
 const POST_COMMENTS_CURRENT_AMOUNT  = 5;
 const ORG_POSTS_CURRENT_AMOUNT      = 6;
 const ORG_FOLLOWERS_CURRENT_AMOUNT  = 7;
 const TAG_ITSELF_CURRENT_AMOUNTS    = 8;
+const POST_CURRENT_ACTIVITY_INDEX   = 9;
 
 /** Exact event description */
 class EventParamTypeDictionary {
@@ -33,12 +33,12 @@ class EventParamTypeDictionary {
     return POST_COMMENTS_CURRENT_AMOUNT;
   }
 
-  public static getCurrentBlockchainImportance(): number {
-    return CURRENT_BLOCKCHAIN_IMPORTANCE;
+  public static getPostCurrentActivityIndex(): number {
+    return POST_CURRENT_ACTIVITY_INDEX;
   }
 
-  public static getBackendCalculatedImportance(): number {
-    return BACKEND_CALCULATED_IMPORTANCE;
+  public static getCurrentBlockchainImportance(): number {
+    return CURRENT_BLOCKCHAIN_IMPORTANCE;
   }
 }
 

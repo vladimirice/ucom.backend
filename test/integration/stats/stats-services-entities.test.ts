@@ -11,6 +11,7 @@ import _ = require('lodash');
 import CommentsGenerator = require('../../generators/comments-generator');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import OrganizationsHelper = require('../helpers/organizations-helper');
+import CommonGenerator = require('../../generators/common-generator');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -30,6 +31,94 @@ describe('Stats services', () => {
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
+  });
+
+  it('check activity index for posts', async () => {
+    const batchSize = 2;
+
+    const [firstPostId, secondPostId, thirdPostId, fourthPostId, fifthPostId] = await Promise.all([
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+    ]);
+
+    // First post
+    // activity_index = 16.5
+    // number_of_comments_with_replies = 4
+    // number_of_reposts = 1
+    // number_of_upvotes = 3
+    // number_of_downvotes = 0
+
+    // Second post
+    // activity_index = 9
+    // number_of_comments_with_replies = 1
+    // number_of_reposts = 2
+    // number_of_upvotes = 2
+    // number_of_downvotes = 1
+
+    // Third post
+    // activity_index = 3
+    // number_of_comments_with_replies = 0
+    // number_of_reposts = 0
+    // number_of_upvotes = 0
+    // number_of_downvotes = 3
+
+    // Fourth post
+    // activity_index = 1.5
+    // number_of_comments_with_replies = 0
+    // number_of_reposts = 1
+    // number_of_upvotes = 0
+    // number_of_downvotes = 0
+
+    // Fifth post
+    // activity_index = 12
+    // number_of_comments_with_replies = 4
+    // number_of_reposts = 0
+    // number_of_upvotes = 0
+    // number_of_downvotes = 0
+
+    await CommonGenerator.createPostRepostActivity(userJane, userPetr, fourthPostId);
+    await CommonGenerator.createPostCommentsActivity(
+      userVlad,
+      userJane,
+      userPetr,
+      userRokky,
+      fifthPostId,
+    );
+
+    await CommonGenerator.createPostRepostActivity(userJane, userPetr, firstPostId, secondPostId);
+    await CommonGenerator.createPostCommentsActivity(
+      userVlad,
+      userJane,
+      userPetr,
+      userRokky,
+      firstPostId,
+      secondPostId,
+    );
+
+    await CommonGenerator.createPostVotingActivity(
+      userJane,
+      userPetr,
+      userRokky,
+      firstPostId,
+      secondPostId,
+      thirdPostId,
+    );
+
+    await EntityJobExecutorService.processEntityEventParam(batchSize);
+
+    const events: EntityEventParamDto[] =
+      await EntityEventRepository.findManyEventsWithPostEntityName(
+        EventParamTypeDictionary.getPostCurrentActivityIndex(),
+      );
+
+    expect(_.isEmpty(events)).toBeFalsy();
+
+    expect(events.length).toBe(5);
+    // TODO check activity content
   });
 
   it('calculate organization followers amount', async () => {
