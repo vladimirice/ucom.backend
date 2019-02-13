@@ -409,7 +409,6 @@ class PostsFetchService {
     commentsQuery: RequestQueryComments,
     currentUserId: number | null,
   ): Promise<void> {
-
     commentsQuery.depth = 0;
 
     const idToComments = await commentsFetchService.findAndProcessCommentsByPostsIds(

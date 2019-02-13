@@ -1,5 +1,6 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
+import { QueryFilteredRepository } from '../api/filters/interfaces/query-filter-interfaces';
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
@@ -32,7 +33,8 @@ const model = postsModelProvider.getModel();
 
 const knex = require('../../config/knex');
 
-class PostsRepository {
+// @ts-ignore
+class PostsRepository implements QueryFilteredRepository {
   public static async getManyOrgsPostsAmount() {
     const orgEntityName: string = OrganizationsModelProvider.getEntityName();
 
@@ -90,6 +92,7 @@ class PostsRepository {
     ;
 
     if (lastId) {
+      // noinspection JSIgnoredPromiseFromCall
       queryBuilder.whereRaw(`id > ${+lastId}`);
     }
 

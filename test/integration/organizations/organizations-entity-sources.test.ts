@@ -1,36 +1,39 @@
-export {};
+/* eslint-disable max-len */
+import MockHelper = require('../helpers/mock-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import ResponseHelper = require('../helpers/response-helper');
+import FileToUploadHelper = require('../helpers/file-to-upload-helper');
+import EntitySourcesRepository = require('../../../lib/entities/repository/entity-sources-repository');
+import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 
-const helpers = require('../helpers');
 const orgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 const usersModelProvider = require('../../../lib/users/users-model-provider');
-const entitySourceRepository = require('../../../lib/entities/repository').Sources;
-const organizationsRepository = require('../../../lib/organizations/repository').Main;
 
 let userVlad;
 
-helpers.Mock.mockAllBlockchainPart();
+MockHelper.mockAllBlockchainPart();
 
 describe('Organizations. Entity source related creation-updating', () => {
   beforeAll(async () => {
-    [userVlad] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad] = await SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
+    await SeedsHelper.resetOrganizationRelatedSeeds();
   });
 
-  describe('Searching for existing community and partnership', async () => {
+  describe('Searching for existing community and partnership', () => {
     describe('Positive scenarios', () => {
-
       it('Find organizations as community and be case insensitive', async () => {
         const vladIncId = 1;
         const janeIncId = 3;
 
-        const body = await helpers.Org.requestToSearchCommunity('inc');
+        const body = await OrganizationsHelper.requestToSearchCommunity('inc');
         expect(body.length).toBe(2);
         expect(body.some(data => data.entity_id === vladIncId
           && data.entity_name === orgModelProvider.getEntityName())).toBeTruthy();
@@ -46,19 +49,21 @@ describe('Organizations. Entity source related creation-updating', () => {
           'nickname',
           'title',
           'user_id',
+          'about',
+          'powered_by',
         ];
 
-        helpers.Res.expectAllFieldsExistenceForArray(body, expectedFields);
+        ResponseHelper.expectAllFieldsExistenceForArray(body, expectedFields);
 
         body.forEach((model) => {
-          helpers.Org.checkIsPostProcessedSmell(model);
+          OrganizationsHelper.checkIsPostProcessedSmell(model);
         });
       });
 
       it('Find both users and organizations as partnership', async () => {
         const vladIncId = 1;
 
-        const body = await helpers.Org.requestToSearchPartnership('vlad');
+        const body = await OrganizationsHelper.requestToSearchPartnership('vlad');
 
         expect(body.length).toBe(4);
         const vladIncFromResponse = body.find(data => data.entity_id === vladIncId);
@@ -71,7 +76,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         expect(vladIncFromResponse.entity_name).toBe(orgModelProvider.getEntityName());
         expect(userVladFromResponse.entity_name).toBe(usersModelProvider.getEntityName());
 
-        helpers.Org.checkIsPostProcessedSmell(vladIncFromResponse);
+        OrganizationsHelper.checkIsPostProcessedSmell(vladIncFromResponse);
 
         const expectedFields = [
           'entity_id',
@@ -87,7 +92,7 @@ describe('Organizations. Entity source related creation-updating', () => {
           delete model.user_id;
         });
 
-        helpers.Res.expectAllFieldsExistenceForArray(body, expectedFields);
+        ResponseHelper.expectAllFieldsExistenceForArray(body, expectedFields);
       });
     });
 
@@ -100,7 +105,7 @@ describe('Organizations. Entity source related creation-updating', () => {
     });
   });
 
-  describe('Community and partnership sources', async () => {
+  describe('Community and partnership sources', () => {
     // tslint:disable-next-line:max-line-length
     it('should create organization with community and partnership - different kinds of links.', async () => {
       // #task - provide avatar uploading for external links only
@@ -113,7 +118,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         source_type:  'internal',
       };
 
-      const sampleAvatarFile = helpers.FileToUpload.getSampleFilePathToUpload();
+      const sampleAvatarFile = FileToUploadHelper.getSampleFilePathToUpload();
 
       // external link example
       const communitySourceExternal = {
@@ -161,19 +166,17 @@ describe('Organizations. Entity source related creation-updating', () => {
         ],
       };
 
-      const body = await helpers.Org.requestToCreateNew(user, {}, sourcesToInsert);
+      const body = await OrganizationsHelper.requestToCreateNew(user, {}, sourcesToInsert);
 
       const sources =
-        await entitySourceRepository.findAllByEntity(body.id, orgModelProvider.getEntityName());
+        await EntitySourcesRepository.findAllByEntity(body.id, orgModelProvider.getEntityName());
       expect(sources.length).toBe(5);
 
-      const communitySourceOrgActual = sources.find((data) => {
-        return data.source_group_id === 2
+      const communitySourceOrgActual = sources.find(data => data.source_group_id === 2
           && +data.source_entity_id === +communitySourceOrg.entity_id
-          && data.source_entity_name === communitySourceOrg.entity_name;
-      });
+          && data.source_entity_name === communitySourceOrg.entity_name);
 
-      helpers.Res.expectValuesAreExpected({
+      ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
         entity_name:        orgModelProvider.getEntityName(),
 
@@ -187,14 +190,12 @@ describe('Organizations. Entity source related creation-updating', () => {
         text_data:          '',
       },                                  communitySourceOrgActual);
 
-      const communitySourceExternalActual = sources.find((data) => {
-        return data.source_group_id === 2
-          && data.source_url === communitySourceExternal.source_url;
-      });
+      const communitySourceExternalActual = sources.find(data => data.source_group_id === 2
+          && data.source_url === communitySourceExternal.source_url);
 
       expect(communitySourceExternalActual.avatar_filename).toBeDefined();
       expect(communitySourceExternalActual.avatar_filename).not.toBeNull();
-      await helpers.Org.isAvatarImageUploaded(communitySourceExternalActual.avatar_filename);
+      await OrganizationsHelper.isAvatarImageUploaded(communitySourceExternalActual.avatar_filename);
 
       // #task check if uploaded
 
@@ -202,7 +203,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         { title: communitySourceExternal.title, description: communitySourceExternal.description },
       );
 
-      helpers.Res.expectValuesAreExpected({
+      ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
         entity_name:        orgModelProvider.getEntityName(),
 
@@ -217,13 +218,11 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       },                                  communitySourceExternalActual);
 
-      const partnershipSourceInternalActual = sources.find((data) => {
-        return data.source_group_id === 3
+      const partnershipSourceInternalActual = sources.find(data => data.source_group_id === 3
           && +data.source_entity_id === +partnershipSourceOrg.entity_id
-          && data.source_entity_name === partnershipSourceOrg.entity_name;
-      });
+          && data.source_entity_name === partnershipSourceOrg.entity_name);
 
-      helpers.Res.expectValuesAreExpected({
+      ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
         entity_name:        orgModelProvider.getEntityName(),
 
@@ -237,10 +236,8 @@ describe('Organizations. Entity source related creation-updating', () => {
         text_data:          '',
       },                                  partnershipSourceInternalActual);
 
-      const partnershipSourceExternalActual = sources.find((data) => {
-        return data.source_group_id === 3
-          && data.source_url === partnershipSourceExternal.source_url;
-      });
+      const partnershipSourceExternalActual = sources.find(data => data.source_group_id === 3
+          && data.source_url === partnershipSourceExternal.source_url);
 
       const textDataTwo = JSON.stringify(
         {
@@ -249,7 +246,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         },
       );
 
-      helpers.Res.expectValuesAreExpected({
+      ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
         entity_name:        orgModelProvider.getEntityName(),
 
@@ -265,15 +262,13 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       expect(partnershipSourceExternalActual.avatar_filename).toBeDefined();
       expect(partnershipSourceExternalActual.avatar_filename).not.toBeNull();
-      await helpers.Org.isAvatarImageUploaded(partnershipSourceExternalActual.avatar_filename);
+      await OrganizationsHelper.isAvatarImageUploaded(partnershipSourceExternalActual.avatar_filename);
 
-      const partnershipSourceUserInternalActual = sources.find((data) => {
-        return data.source_group_id === 3
+      const partnershipSourceUserInternalActual = sources.find(data => data.source_group_id === 3
           && +data.source_entity_id === +partnershipSourceUsers.entity_id
-          && data.source_entity_name === partnershipSourceUsers.entity_name;
-      });
+          && data.source_entity_name === partnershipSourceUsers.entity_name);
 
-      helpers.Res.expectValuesAreExpected({
+      ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
         entity_name:        orgModelProvider.getEntityName(),
 
@@ -287,16 +282,16 @@ describe('Organizations. Entity source related creation-updating', () => {
         text_data:          '',
       },                                  partnershipSourceUserInternalActual);
 
-      const org = await helpers.Org.requestToGetOneOrganizationAsGuest(body.id);
+      const org = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(body.id);
 
       org.partnership_sources.forEach((model) => {
         if (model.entity_name === orgModelProvider.getEntityName()) {
-          helpers.Org.checkIsPostProcessedSmell(model);
+          OrganizationsHelper.checkIsPostProcessedSmell(model);
         }
       });
 
       org.community_sources.forEach((model) => {
-        helpers.Org.checkIsPostProcessedSmell(model);
+        OrganizationsHelper.checkIsPostProcessedSmell(model);
       });
     });
 
@@ -305,19 +300,19 @@ describe('Organizations. Entity source related creation-updating', () => {
 
     it('should add more and delete some organization communities and partnerships', async () => {
       const user = userVlad;
-      const orgId = await organizationsRepository.findFirstIdByAuthorId(user.id);
-      await helpers.Org.createSampleSourcesForOrganization(orgId);
+      const orgId = await OrganizationsRepository.findFirstIdByAuthorId(user.id);
+      await OrganizationsHelper.createSampleSourcesForOrganization(orgId);
 
-      const sources = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+      const sources = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
 
-      const partnershipSourcesSet = helpers.Org.prepareSourceForUpdating(
+      const partnershipSourcesSet = OrganizationsHelper.prepareSourceForUpdating(
         sources.partnership_sources,
       );
-      const communitySourcesSet = helpers.Org.prepareSourceForUpdating(
+      const communitySourcesSet = OrganizationsHelper.prepareSourceForUpdating(
         sources.community_sources,
       );
 
-      const sourceForRequest = {
+      const sourceForRequest: any = {
         community_sources:    communitySourcesSet.for_request,
         partnership_sources: partnershipSourcesSet.for_request,
       };
@@ -328,14 +323,14 @@ describe('Organizations. Entity source related creation-updating', () => {
         nickname: 'new_nick_nick_name',
       };
 
-      await helpers.Org.requestToUpdateExisting(orgId, user, fieldsToUpdate, sourceForRequest);
-      const orgAfter = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+      await OrganizationsHelper.requestToUpdateExisting(orgId, user, fieldsToUpdate, sourceForRequest);
+      const orgAfter = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
 
-      await helpers.Org.checkSourcesAfterUpdating(
+      await OrganizationsHelper.checkSourcesAfterUpdating(
         orgAfter.partnership_sources,
         partnershipSourcesSet,
       );
-      await helpers.Org.checkSourcesAfterUpdating(
+      await OrganizationsHelper.checkSourcesAfterUpdating(
         orgAfter.community_sources,
         communitySourcesSet,
       );
@@ -354,3 +349,5 @@ describe('Organizations. Entity source related creation-updating', () => {
     });
   });
 });
+
+export {};

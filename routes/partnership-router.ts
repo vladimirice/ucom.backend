@@ -12,6 +12,7 @@ const orgPostProcessor = require('../lib/organizations/service/organization-post
 
 router.get('/search', async (req, res) => {
   const query = req.query.q;
+  // #task - fetch only fields required for search instead of deleting them
   const orgs = await orgRepository.findByNameFields(query);
   const users = await usersRepository.findByNameFields(query);
 
@@ -27,6 +28,8 @@ router.get('/search', async (req, res) => {
     delete model.id;
     // eslint-disable-next-line no-param-reassign
     delete model.followed_by;
+    delete model.about;
+    delete model.powered_by;
   });
 
   users.forEach((model) => {

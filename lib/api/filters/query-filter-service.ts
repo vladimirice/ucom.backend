@@ -63,9 +63,11 @@ class QueryFilterService {
     }
 
     if (params.orderByRaw) {
+      // noinspection JSIgnoredPromiseFromCall
       query.orderByRaw(params.orderByRaw);
     }
 
+    // noinspection JSIgnoredPromiseFromCall
     query
       .select(params.attributes)
       .limit(params.limit || PER_PAGE_LIMIT)
