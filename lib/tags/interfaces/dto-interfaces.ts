@@ -12,6 +12,7 @@ interface TagWithEventParamsDto extends ModelWithEventParamsDto {
   readonly current_posts_amount: number;
   readonly current_media_posts_amount: number;
   readonly current_direct_posts_amount: number;
+  readonly current_followers_amount: number;
 }
 
 interface TagToRate {

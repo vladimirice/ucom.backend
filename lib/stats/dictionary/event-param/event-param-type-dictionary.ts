@@ -6,6 +6,8 @@ const ORG_POSTS_CURRENT_AMOUNT      = 6;
 const ORG_FOLLOWERS_CURRENT_AMOUNT  = 7;
 const TAG_ITSELF_CURRENT_AMOUNTS    = 8;
 const POST_CURRENT_ACTIVITY_INDEX   = 9;
+const ORG_CURRENT_ACTIVITY_INDEX    = 10;
+const TAG_CURRENT_ACTIVITY_INDEX    = 11;
 
 /** Exact event description */
 class EventParamTypeDictionary {
@@ -35,6 +37,14 @@ class EventParamTypeDictionary {
 
   public static getPostCurrentActivityIndex(): number {
     return POST_CURRENT_ACTIVITY_INDEX;
+  }
+
+  public static getOrgCurrentActivityIndex(): number {
+    return ORG_CURRENT_ACTIVITY_INDEX;
+  }
+
+  public static getTagCurrentActivityIndex(): number {
+    return TAG_CURRENT_ACTIVITY_INDEX;
   }
 
   public static getCurrentBlockchainImportance(): number {

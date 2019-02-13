@@ -37,11 +37,6 @@ const fetchSet: FetchItem[] = [
     entityName: OrganizationsModelProvider.getEntityName(),
     eventType: EventParamTypeDictionary.getCurrentBlockchainImportance(),
   },
-  // {
-  //   func: TagsRepository.findManyTagsEntityEvents,
-  //   entityName: TagsModelProvider.getEntityName(),
-  //   eventType: EventParamTypeDictionary.getBackendCalculatedImportance(),
-  // },
 ];
 
 export class EntityJobExecutorService {

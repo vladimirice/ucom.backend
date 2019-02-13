@@ -5,6 +5,7 @@ import {
   IdToNumberCollection,
   IdToPropsCollection,
 } from '../../common/interfaces/common-types';
+import { PostIdToStats } from '../interfaces/dto-interfaces';
 
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import EventParamGroupDictionary = require('../dictionary/event-param/event-param-group-dictionary');
@@ -14,6 +15,7 @@ import PostsModelProvider = require('../../posts/service/posts-model-provider');
 import JsonValueService = require('../service/json-value-service');
 import PostsRepository = require('../../posts/posts-repository');
 import CommentsRepository = require('../../comments/comments-repository');
+import ActivityIndexFormulas = require('../formulas/activity-index-formulas');
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -33,18 +35,9 @@ interface PostCommentsStatsDto {
   readonly commentsAmount:  number;
 }
 
-interface PostIdToStats {
-  [index: number]: {
-    comments: number;
-    reposts: number;
-    upvotes: number;
-    downvotes: number;
-  }
-}
 
 class PostsStatsJob {
   public static async processPostsCurrentValues(): Promise<void> {
-    // @ts-ignore
     const [postIdToComment, postIdToReposts, postIdToVotes]:
       [IdToNumberCollection, IdToNumberCollection, IdToPropsCollection]
       = await Promise.all([
@@ -53,7 +46,11 @@ class PostsStatsJob {
         this.calculatePostsVotes(),
       ]);
 
-    const postIdToStats = this.collectAllMetricsInOne(postIdToComment, postIdToReposts, postIdToVotes);
+    const postIdToStats = this.collectAllMetricsInOne(
+      postIdToComment,
+      postIdToReposts,
+      postIdToVotes,
+    );
 
     await this.calculateActivityIndex(postIdToStats);
   }
@@ -98,13 +95,6 @@ class PostsStatsJob {
   }
 
   private static async calculateActivityIndex(postIdToStats: PostIdToStats): Promise<void> {
-    const commentsCoeff = 3;
-    const repostsCoeff = 1.5;
-    const upvotesCoeff = 1;
-    const downvotesCoeff = 1;
-
-    const description = `${commentsCoeff}*(number_of_comments_with_replies) + ${repostsCoeff}*(number_of_reposts) + ${upvotesCoeff}*(number_of_upvotes) + ${downvotesCoeff}*(number_of_downvotes)`;
-
     const eventType       = EventParamTypeDictionary.getPostCurrentActivityIndex();
     const eventGroup      = EventParamGroupDictionary.getNotDetermined();
     const eventSuperGroup = EventParamGroupDictionary.getNotDetermined();
@@ -112,13 +102,15 @@ class PostsStatsJob {
     const events: EntityEventParamDto[] = [];
 
     for (const postId in postIdToStats) {
-      const resultValue = 0;
+      const stats = postIdToStats[postId];
+
+      const { resultValue, description } = ActivityIndexFormulas.getPostActivityIndex(stats);
       const payload = {
-        activity_index: 0,
-        number_of_comments_with_replies: 0,
-        number_of_reposts: 0,
-        number_of_upvotes: 0,
-        number_of_downvotes: 0,
+        activity_index: resultValue,
+        number_of_comments_with_replies: stats.comments,
+        number_of_reposts: stats.reposts,
+        number_of_upvotes: stats.upvotes,
+        number_of_downvotes: stats.downvotes,
       };
 
       events.push({

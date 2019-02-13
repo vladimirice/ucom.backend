@@ -14,20 +14,16 @@ import CommonHelper = require('../helpers/common-helper');
 const mockHelper = require('../helpers/mock-helper.ts');
 const seedsHelper = require('../helpers/seeds-helper.ts');
 
-require('cross-fetch/polyfill');
-
 mockHelper.mockAllBlockchainPart();
 
 let userVlad;
 let userJane;
-let userPetr;
-let userRokky;
 
 const JEST_TIMEOUT = 20000;
 
 describe('#feeds myself news feed. #graphql', () => {
   beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
     await GraphqlHelper.beforeAll();
   });
 
@@ -63,12 +59,7 @@ describe('#feeds myself news feed. #graphql', () => {
 
   describe('Positive', () => {
     it('#smoke - myself news feed', async () => {
-      const seeds = await CommonGenerator.createFeedsForAllUsers(
-        userVlad,
-        userJane,
-        userPetr,
-        userRokky,
-      );
+      const seeds = await CommonGenerator.createFeedsForAllUsers();
 
       const [
         vladMediaPost, vladDirectPost,

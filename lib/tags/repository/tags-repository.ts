@@ -6,11 +6,11 @@ import { TagDbModel } from '../models/tags-model';
 import TagsModelProvider = require('../service/tags-model-provider');
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import RepositoryHelper = require('../../common/repository/repository-helper');
-import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 
 const knex = require('../../../config/knex');
 
 const TABLE_NAME = TagsModelProvider.getTableName();
+const NOT_DETERMINED_BLOCKCHAIN_ID = 'not-determined-id';
 
 // @ts-ignore
 class TagsRepository implements QueryFilteredRepository {
@@ -166,6 +166,7 @@ class TagsRepository implements QueryFilteredRepository {
         'current_posts_amount',
         'current_media_posts_amount',
         'current_direct_posts_amount',
+        'current_followers_amount',
       ])
       .orderBy('id', 'ASC')
       .limit(limit)
@@ -177,12 +178,16 @@ class TagsRepository implements QueryFilteredRepository {
 
     const data = await queryBuilder;
 
-    data.forEach((item) => {
+    return data.map(item => ({
       // #task - implement correct cycle of tag uniqid assigning
-      item.blockchain_id = BlockchainUniqId.getTagFakeUniqId();
-    });
-
-    return data;
+      blockchain_id:                NOT_DETERMINED_BLOCKCHAIN_ID,
+      id:                           +item.id,
+      current_rate:                 +item.current_rate,
+      current_posts_amount:         +item.current_posts_amount,
+      current_media_posts_amount:   +item.current_media_posts_amount,
+      current_direct_posts_amount:  +item.current_direct_posts_amount,
+      current_followers_amount:     +item.current_followers_amount,
+    }));
   }
 
   public static async findManyTagsForList(

@@ -61,7 +61,7 @@ docker-compile-typescript-watch:
 docker-chown:
 	${DOCKER_B_EXEC_CMD_ROOT} chgrp -R docker: /var/www/ucom.backend
 
-docker-db-migrate dm:
+docker-db-migrate-sequelize dm:
 	${DOCKER_B_EXEC_CMD} ${DB_MIGRATE_COMMAND}
 
 docker-db-create-migration dmg:
@@ -128,13 +128,20 @@ docker-recreate-db:
 
 docker-recreate-events-db:
 	${DOCKER_B_EXEC_CMD} bin/test-only-scripts/knex-create-new-db
-	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_EVENTS_COMMAND}
+	make docker-migrate-events-via-knex
+
+docker-recreate-monolith-db:
+	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
+	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
+	make docker-db-migrate-sequelize
+	make docker-migrate-monolith-via-knex
 
 docker-migrate-monolith-via-knex:
 	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_MONOLITH_COMMAND}
 
+docker-migrate-events-via-knex:
+	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_EVENTS_COMMAND}
+
 docker-init-test-db ditd:
-	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
-	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
-	make docker-db-migrate
+	make docker-recreate-monolith-db
 	make docker-recreate-events-db

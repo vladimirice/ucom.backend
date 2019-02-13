@@ -17,8 +17,8 @@
       "database" : "uos_backend_events"
     },
     "migrations": {
-      "tableName": "migrations",
-      "directory": "./knex_migrations"
+      "tableName": "migrations_knex",
+      "directory": "./migrations_knex_events"
     }
   },
   "db_knex_monolith": {
@@ -31,8 +31,8 @@
       "database" : "uos_backend_app"
     },
     "migrations": {
-      "tableName": "migrations",
-      "directory": "./knex_migrations_monolith"
+      "tableName": "migrations_knex",
+      "directory": "./migrations_knex_monolith"
     }
   },
   "db": {

@@ -176,7 +176,7 @@ class PostsGenerator {
     user: any,
     amount: number,
   ): Promise<number[]> {
-    const promises: any = [];
+    const promises: Promise<number>[] = [];
 
     for (let i = 0; i < amount; i += 1) {
       promises.push(
@@ -184,7 +184,6 @@ class PostsGenerator {
       );
     }
 
-    // @ts-ignore
     return Promise.all(promises);
   }
 
@@ -192,8 +191,8 @@ class PostsGenerator {
     user: any,
     orgId: number,
     amount: number,
-  ) {
-    const promises: any = [];
+  ): Promise<number[]> {
+    const promises: Promise<number>[] = [];
 
     for (let i = 0; i < amount; i += 1) {
       promises.push(

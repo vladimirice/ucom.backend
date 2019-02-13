@@ -169,7 +169,6 @@ class SeedsHelper {
   static async beforeAllRoutine(
     mockAllBlockchain: boolean = false, // deprecated
   ) {
-
     if (mockAllBlockchain) {
       MockHelper.mockAllBlockchainPart();
     }
@@ -215,6 +214,7 @@ class SeedsHelper {
     return `${name}_id_seq`;
   }
 
+  // @deprecated. It is required because of deprecated seeding without generators
   static async resetSequence(name) {
     return models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`);
   }
