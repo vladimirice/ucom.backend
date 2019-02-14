@@ -11,6 +11,7 @@ let userVlad;
 
 helpers.Mock.mockAllBlockchainPart();
 
+// @deprecated
 describe('UOS Importance', () => {
   beforeAll(async () => {
     [userVlad] = await helpers.SeedsHelper.beforeAllRoutine();

@@ -8,6 +8,9 @@ const TAG_ITSELF_CURRENT_AMOUNTS    = 8;
 const POST_CURRENT_ACTIVITY_INDEX   = 9;
 const ORG_CURRENT_ACTIVITY_INDEX    = 10;
 const TAG_CURRENT_ACTIVITY_INDEX    = 11;
+const BLOCKCHAIN_IMPORTANCE_DELTA   = 12;
+const POST_UPVOTES_DELTA            = 13;
+const POST_ACTIVITY_INDEX_DELTA     = 14;
 
 /** Exact event description */
 class EventParamTypeDictionary {
@@ -49,6 +52,18 @@ class EventParamTypeDictionary {
 
   public static getCurrentBlockchainImportance(): number {
     return CURRENT_BLOCKCHAIN_IMPORTANCE;
+  }
+
+  public static getBlockchainImportanceDelta(): number {
+    return BLOCKCHAIN_IMPORTANCE_DELTA;
+  }
+
+  public static getPostUpvotesDelta(): number {
+    return POST_UPVOTES_DELTA;
+  }
+
+  public static getPostActivityIndexDelta(): number {
+    return POST_ACTIVITY_INDEX_DELTA;
   }
 }
 

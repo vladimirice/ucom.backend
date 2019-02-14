@@ -5,6 +5,7 @@ import _ = require('lodash');
 import EventParamTypeDictionary = require('../../../lib/stats/dictionary/event-param/event-param-type-dictionary');
 import ResponseHelper = require('./response-helper');
 
+// #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
   [EventParamTypeDictionary.getTagItselfCurrentAmounts()]: [
     'current_media_posts_amount',
@@ -12,6 +13,15 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
     'current_posts_amount',
     'current_followers_amount',
     'importance',
+  ],
+  [EventParamTypeDictionary.getBlockchainImportanceDelta()]: [
+    'importance_delta',
+  ],
+  [EventParamTypeDictionary.getPostActivityIndexDelta()]: [
+    'activity_index_delta',
+  ],
+  [EventParamTypeDictionary.getPostUpvotesDelta()]: [
+    'upvotes_delta',
   ],
   [EventParamTypeDictionary.getOrgFollowersCurrentAmount()]: [
     'followers',
