@@ -185,7 +185,7 @@ class PostsStatsJob {
       events.push({
         entity_id: +item.entityId,
         entity_name: ENTITY_NAME,
-        entity_blockchain_id: NOT_DETERMINED_BLOCKCHAIN_ID,
+        entity_blockchain_id: item.blockchainId,
         event_type: eventType,
         event_group: eventGroup,
         event_super_group: eventSuperGroup,
