@@ -145,3 +145,6 @@ docker-migrate-events-via-knex:
 docker-init-test-db ditd:
 	make docker-recreate-monolith-db
 	make docker-recreate-events-db
+
+copy-staging-config:
+	scp ./config/staging.json gt:/var/www/ucom.backend.staging/config/staging.json
