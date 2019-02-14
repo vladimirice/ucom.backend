@@ -3,21 +3,24 @@
 . ~/.bashrc
 
 SERVER_ENV=production
+WORKING_DIR=/var/www/ucom.backend
+GIT_BRANCH=master
 
 echo "!!!!!!!! Let's deploy on production !!!!!!!!"
-cd /var/www/ucom.backend
+cd ${WORKING_DIR}
 pwd
+git checkout ${GIT_BRANCH}
 echo "Making git pull..."
 git pull
 echo "Let's make npm ci and install only non-dev dependencies"
 npm ci --only=production
-echo "Applying migrations..."
+echo "Applying sequelize monolith migrations"
 NODE_ENV=production node_modules/.bin/sequelize db:migrate
 echo "Applying knex monolith migrations"
 NODE_ENV=${SERVER_ENV} node_modules/.bin/knex migrate:latest --env=monolith
 echo "Applying knex events migrations"
 NODE_ENV=${SERVER_ENV} node_modules/.bin/knex migrate:latest --env=events
 echo "Lets restart pm2 with update env and saving new configuration"
-/home/dev/.nvm/versions/node/v10.9.0/bin/pm2 reload ecosystem-production.config.js --update-env
+/home/dev/.nvm/versions/node/v10.9.0/bin/pm2 reload ecosystem-${SERVER_ENV}.config.js --update-env
 /home/dev/.nvm/versions/node/v10.9.0/bin/pm2 save
 echo "!!!!!!!! Deploy on production is finished !!!!!!!!"
