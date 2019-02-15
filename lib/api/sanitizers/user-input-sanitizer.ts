@@ -1,5 +1,4 @@
 const sanitizeHtml = require('sanitize-html');
-const _ = require('lodash');
 
 class UserInputSanitizer {
   /**
@@ -38,6 +37,7 @@ class UserInputSanitizer {
       'class',
       'style',
       'contenteditable',
+      'data-poll',
     ];
 
     return {
@@ -59,11 +59,11 @@ class UserInputSanitizer {
       strike: commonAllowedAttributes,
 
       figure: commonAllowedAttributes,
-      iframe: _.concat(commonAllowedAttributes, ['src', 'allowfullscreen', 'scrolling']),
-      img: _.concat(commonAllowedAttributes, ['src']),
-      a: _.concat(commonAllowedAttributes, ['href']),
+      iframe: Array.prototype.concat(commonAllowedAttributes, ['src', 'allowfullscreen', 'scrolling']),
+      img: Array.prototype.concat(commonAllowedAttributes, ['src']),
+      a: Array.prototype.concat(commonAllowedAttributes, ['href']),
     };
   }
 }
 
-module.exports = UserInputSanitizer;
+export = UserInputSanitizer;

@@ -27,6 +27,7 @@ const allowedAttributes = [
   'scrolling',
   'href',
   'contenteditable',
+  'data-poll',
 ];
 
 /**
@@ -65,14 +66,14 @@ class PostSanitizer {
   }
 
   private static sanitizePostOfferFields(params) {
-    if (params['action_button_title']) {
-      params['action_button_title'] = sanitizeHtml(params['action_button_title'], {
+    if (params.action_button_title) {
+      params.action_button_title = sanitizeHtml(params.action_button_title, {
         allowedTags: [],
       });
     }
 
-    if (params['action_button_url']) {
-      params['action_button_url'] = sanitizeHtml(params['action_button_url'], {
+    if (params.action_button_url) {
+      params.action_button_url = sanitizeHtml(params.action_button_url, {
         allowedTags: ['a'],
       });
     }
