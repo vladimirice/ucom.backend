@@ -123,7 +123,7 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_save_current_params`,
+      name: `${NODE_ENV}_worker_stats_calculate_event_params`,
       script: 'bin/worker-stats-calculate-event-params.js',
       watch: false,
       cron_restart: '30 */1 * * *',
