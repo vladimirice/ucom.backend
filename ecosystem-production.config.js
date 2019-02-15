@@ -112,6 +112,15 @@ module.exports = {
     },
     {
       name: `${NODE_ENV}_worker_save_current_params`,
+      script: 'bin/worker-save-current-params.js',
+      watch: false,
+      cron_restart: '0 */1 * * *',
+      env: {
+        NODE_ENV,
+      },
+    },
+    {
+      name: `${NODE_ENV}_worker_stats_calculate_event_params`,
       script: 'bin/worker-stats-calculate-event-params.js',
       watch: false,
       cron_restart: '30 */1 * * *',
