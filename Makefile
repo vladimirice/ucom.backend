@@ -11,7 +11,7 @@ DB_DROP_COMMAND=${SEQ_EXEC_FILE} db:drop
 DB_CREATE_COMMAND=${SEQ_EXEC_FILE} db:create
 DB_MIGRATE_COMMAND=${SEQ_EXEC_FILE} db:migrate
 DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
-DB_GENERATE_MIGRATION=${SEQ_EXEC_FILE} migration:generate
+DB_GENERATE_MIGRATION=${KNEX_EXEC_FILE} migrate:make
 
 DB_KNEX_MIGRATE_EVENTS_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=events
 DB_KNEX_MIGRATE_MONOLITH_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=monolith
@@ -64,8 +64,8 @@ docker-chown:
 docker-db-migrate-sequelize dm:
 	${DOCKER_B_EXEC_CMD} ${DB_MIGRATE_COMMAND}
 
-docker-db-create-migration dmg:
-	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} --name ${NAME}
+docker-db-create-migration-monolith dmg:
+	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} ${NAME} --env=monolith
 
 docker-up-build:
 	docker-compose up -d --build
