@@ -1,87 +1,301 @@
+/* eslint-disable guard-for-in */
 import { EntityEventParamDto } from '../../../lib/stats/interfaces/model-interfaces';
 import { EntityEventRepository } from '../../../lib/stats/repository/entity-event-repository';
+import { StatsEventsOptions } from '../../interfaces/options-interfaces';
 
 import JsonValueService = require('../../../lib/stats/service/json-value-service');
 import EventParamTypeDictionary = require('../../../lib/stats/dictionary/event-param/event-param-type-dictionary');
 import EventParamGroupDictionary = require('../../../lib/stats/dictionary/event-param/event-param-group-dictionary');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+import RequestHelper = require('../../integration/helpers/request-helper');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
 
 const moment = require('moment');
 
 const NOT_DETERMINED_BLOCKCHAIN_ID = 'not-determined';
 
 class EntityEventParamGeneratorV2 {
-  public static async createEventsAndGetSampleDataSet(
+  public static async createManyEventsForRandomPostIds(): Promise<void> {
+    const firstPostId   = RequestHelper.generateRandomNumber(0, 1000, 0);
+    const secondPostId  = RequestHelper.generateRandomNumber(0, 1000, 0) + 1;
+
+    const options: StatsEventsOptions = {
+      posts: {
+        importance:     true,
+        upvotes:        true,
+        activityIndex:  true,
+      },
+    };
+
+    return EntityEventParamGeneratorV2.createDifferentEventsForPosts(
+      firstPostId,
+      secondPostId,
+      options,
+    );
+  }
+
+  public static async createManyEventsForRandomOrgsIds(): Promise<any> {
+    const firstId   = RequestHelper.generateRandomNumber(0, 1000, 0);
+    const secondId  = RequestHelper.generateRandomNumber(0, 1000, 0) + 1;
+
+    const options = {
+      importance:       true,
+      postsTotalDelta:  true,
+      activityIndex:    true,
+    };
+
+    return EntityEventParamGeneratorV2.createDifferentEventsForOrgs(
+      firstId,
+      secondId,
+      options,
+    );
+  }
+
+  public static async createManyEventsForRandomTagsIds(): Promise<any> {
+    const firstId   = RequestHelper.generateRandomNumber(0, 1000, 0);
+    const secondId  = RequestHelper.generateRandomNumber(0, 1000, 0) + 1;
+
+    return this.createDifferentEventsForTags(firstId, secondId);
+  }
+
+  public static async createDifferentEventsForPosts(
     firstPostId: number,
     secondPostId: number,
-  ): Promise<any> {
-    const createdAtSet = {
-      before: '2018-11-21 00:00:00.999275',
-      after: moment().utc().format('YYYY-MM-DD HH:mm:ss'),
-    };
+    options: StatsEventsOptions,
+  ) {
+    const postsOptions = options.posts!;
 
-    const sampleData = {
-      [firstPostId]: {
-        importance: {
-          before: 7.721208926,
-          after: 10.211208926,
-          delta: 10.211208926 - 7.721208926,
-        },
-        createdAt: createdAtSet,
-      },
-      [secondPostId]: {
-        importance: {
-          before: 4.721208926,
-          after: 2.211208926,
-          delta: 2.211208926 - 4.721208926,
-        },
-        createdAt: createdAtSet,
-      },
-    };
+    const entityName = PostsModelProvider.getEntityName();
 
-    await EntityEventParamGeneratorV2.createImportanceEventsByPostsData(
-      sampleData,
-      PostsModelProvider.getEntityName(),
+    const sampleData: any = {};
+
+    if (postsOptions.importance) {
+      const fieldName: string = 'importance';
+
+      sampleData[fieldName] = await EntityEventParamGeneratorV2.createEventsAndGetExpectedDataSet(
+        firstPostId,
+        secondPostId,
+        entityName,
+        EventParamTypeDictionary.getCurrentBlockchainImportance(),
+        fieldName,
+      );
+    }
+
+    if (postsOptions.upvotes) {
+      sampleData.upvotes = await EntityEventParamGeneratorV2.createPostUpvotesEventsAndGetSampleData(
+        firstPostId,
+        secondPostId,
+      );
+    }
+
+    if (postsOptions.activityIndex) {
+      sampleData.activity_index = await EntityEventParamGeneratorV2.createPostActivityIndexEventsAndGetSampleData(
+        firstPostId,
+        secondPostId,
+      );
+    }
+
+    return sampleData;
+  }
+
+  private static async createDifferentEventsForOrgs(
+    firstEntityId: number,
+    secondEntityId: number,
+    options: any,
+  ) {
+    const entityName = OrganizationsModelProvider.getEntityName();
+
+    const sampleData: any = {};
+
+    if (options.importance) {
+      const eventType = EventParamTypeDictionary.getCurrentBlockchainImportance();
+      const fieldName: string = 'importance';
+
+      sampleData[fieldName] = await EntityEventParamGeneratorV2.createEventsAndGetExpectedDataSet(
+        firstEntityId,
+        secondEntityId,
+        entityName,
+        eventType,
+        fieldName,
+      );
+    }
+
+    if (options.postsTotalDelta) {
+      const eventTypeInitial  = EventParamTypeDictionary.getOrgPostsCurrentAmount();
+
+      const fieldNameInitial  = 'total';
+      sampleData[fieldNameInitial] = await EntityEventParamGeneratorV2.createEventsAndGetExpectedDataSet(
+        firstEntityId,
+        secondEntityId,
+        entityName,
+        eventTypeInitial,
+        fieldNameInitial,
+        false,
+      );
+    }
+
+    if (options.activityIndex) {
+      const eventTypeInitial  = EventParamTypeDictionary.getOrgCurrentActivityIndex();
+
+      const fieldNameInitial  = 'activity_index';
+      const isFloat           = true;
+
+      sampleData[fieldNameInitial] = await EntityEventParamGeneratorV2.createEventsAndGetExpectedDataSet(
+        firstEntityId,
+        secondEntityId,
+        entityName,
+        eventTypeInitial,
+        fieldNameInitial,
+        isFloat,
+      );
+    }
+
+    return sampleData;
+  }
+
+  private static async createDifferentEventsForTags(
+    firstEntityId: number,
+    secondEntityId: number,
+  ) {
+    const entityName = TagsModelProvider.getEntityName();
+    const tagItselfEventType = EventParamTypeDictionary.getTagItselfCurrentAmounts();
+    const sampleData: any = {};
+
+    const tagItselfSampleData = await this.createTagItselfCurrentEventsAndGetExpectedDataSet(
+      firstEntityId,
+      secondEntityId,
+      entityName,
+      tagItselfEventType,
+    );
+
+    sampleData.importance           = tagItselfSampleData;
+    sampleData.current_posts_amount = tagItselfSampleData;
+
+    const eventTypeInitial  = EventParamTypeDictionary.getTagCurrentActivityIndex();
+
+    const fieldNameInitial  = 'activity_index';
+    const isFloat           = true;
+
+    sampleData[fieldNameInitial] = await EntityEventParamGeneratorV2.createEventsAndGetExpectedDataSet(
+      firstEntityId,
+      secondEntityId,
+      entityName,
+      eventTypeInitial,
+      fieldNameInitial,
+      isFloat,
     );
 
     return sampleData;
+  }
 
-    // return [
-    //   // disturbance
-    //   {
-    //     blockchain_id: 'sample_anything', // this structure is generated inside mock function
-    //     entity_name: 'org       ',
-    //     event_type: 1,
-    //     importance: {
-    //       before: 4.721208926,
-    //       after: 2.211208926,
-    //     },
-    //     created_at: createdAtSet,
-    //   },
-    //
-    //   // disturbance
-    //   {
-    //     blockchain_id: 'other_sample_anything',
-    //     // this structure is generated inside mock function
-    //     entity_name: 'users     ',
-    //     event_type: 10,
-    //     importance: {
-    //       before: 4.721208926,
-    //       after: 2.211208926,
-    //     },
-    //     created_at: createdAtSet,
-    //   },
-    // ];
+  public static async createEventsAndGetExpectedDataSet(
+    firstEntityId: number,
+    secondEntityId: number,
+    entityName: string,
+    eventType: number,
+    fieldName: string,
+    isFloat: boolean = true,
+  ): Promise<any> {
+    const floatPrecision = isFloat ? 10 : 0;
+
+    const positiveDeltaSet  = this.getBeforeAfterDeltaSet(floatPrecision, true);
+    const negativeDeltaSet  = this.getBeforeAfterDeltaSet(floatPrecision, false);
+
+    const sampleData = {
+      [firstEntityId]: {
+        [fieldName]: positiveDeltaSet,
+        jsonData: {
+          before: {
+            [fieldName]: positiveDeltaSet.before,
+          },
+          after: {
+            [fieldName]: positiveDeltaSet.after,
+          },
+        },
+      },
+      [secondEntityId]: {
+        [fieldName]: negativeDeltaSet,
+        jsonData: {
+          before: {
+            [fieldName]: negativeDeltaSet.before,
+          },
+          after: {
+            [fieldName]: negativeDeltaSet.after,
+          },
+        },
+      },
+    };
+
+    await EntityEventParamGeneratorV2.createEventsEntitiesData(
+      sampleData,
+      entityName,
+      eventType,
+    );
+
+    return sampleData;
+  }
+
+  public static async createTagItselfCurrentEventsAndGetExpectedDataSet(
+    firstEntityId: number,
+    secondEntityId: number,
+    entityName: string,
+    eventType: number,
+  ): Promise<any> {
+    const firstIdImportanceSet  = this.getBeforeAfterDeltaSet(10, true);
+    const secondIdImportanceSet = this.getBeforeAfterDeltaSet(10, false);
+
+    const firstIdPostsTotalAmountSet  = this.getBeforeAfterDeltaSet(0, true);
+    const secondIdPostsTotalAmountSet = this.getBeforeAfterDeltaSet(0, true);
+
+    const sampleData = {
+      [firstEntityId]: {
+        importance: firstIdImportanceSet,
+        current_posts_amount: firstIdPostsTotalAmountSet,
+        jsonData: {
+          before: {
+            importance:           firstIdImportanceSet.before,
+            current_posts_amount: firstIdPostsTotalAmountSet.before,
+          },
+          after: {
+            importance:           firstIdImportanceSet.after,
+            current_posts_amount: firstIdPostsTotalAmountSet.after,
+          },
+        },
+      },
+      [secondEntityId]: {
+        importance: secondIdImportanceSet,
+        current_posts_amount: secondIdPostsTotalAmountSet,
+        jsonData: {
+          before: {
+            importance:           secondIdImportanceSet.before,
+            current_posts_amount: secondIdPostsTotalAmountSet.before,
+          },
+          after: {
+            importance:           secondIdImportanceSet.after,
+            current_posts_amount: secondIdPostsTotalAmountSet.after,
+          },
+        },
+      },
+    };
+
+    await EntityEventParamGeneratorV2.createEventsEntitiesData(
+      sampleData,
+      entityName,
+      eventType,
+    );
+
+    return sampleData;
   }
 
   public static async createEventsAndGetSampleDataSetForFirstOnlyAfter(
     firstPostId: number,
     secondPostId: number,
   ): Promise<any> {
-    const createdAtSet = {
-      before: '2018-11-21 00:00:00.999275',
-      after: moment().utc().format('YYYY-MM-DD HH:mm:ss'),
-    };
+    const createdAtSet = this.getCreatedAtSet();
+    const eventType = EventParamTypeDictionary.getCurrentBlockchainImportance();
+
+    const negativeDeltaSet  = this.getBeforeAfterDeltaSet(10, false);
 
     const sampleData = {
       [firstPostId]: {
@@ -89,21 +303,31 @@ class EntityEventParamGeneratorV2 {
           after: 10.211208926,
           delta: 10.211208926,
         },
+        jsonData: {
+          after: {
+            importance: 10.211208926,
+          },
+        },
         createdAt: createdAtSet,
       },
       [secondPostId]: {
-        importance: {
-          before: 4.721208926,
-          after: 2.211208926,
-          delta: 2.211208926 - 4.721208926,
+        importance: negativeDeltaSet,
+        jsonData: {
+          before: {
+            importance: negativeDeltaSet.before,
+          },
+          after: {
+            importance: negativeDeltaSet.after,
+          },
         },
         createdAt: createdAtSet,
       },
     };
 
-    await EntityEventParamGeneratorV2.createImportanceEventsByPostsData(
+    await EntityEventParamGeneratorV2.createEventsEntitiesData(
       sampleData,
       PostsModelProvider.getEntityName(),
+      eventType,
     );
 
     return sampleData;
@@ -205,38 +429,49 @@ class EntityEventParamGeneratorV2 {
     firstPostId: number,
     secondPostId: number,
   ) {
-    const createdAtSet = {
-      before: '2018-11-21 00:00:00.999275',
-      after: moment().utc().format('YYYY-MM-DD HH:mm:ss'),
-    };
+    const eventType = EventParamTypeDictionary.getCurrentBlockchainImportance();
+
+    const negativeDeltaSet  = this.getBeforeAfterDeltaSet(10, false);
 
     const sampleData = {
       [firstPostId]: {
-        importance: {
-          before: 4.721208926,
-          after: 2.211208926,
-          delta: 2.211208926 - 4.721208926,
+        importance: negativeDeltaSet,
+        jsonData: {
+          before: {
+            importance: negativeDeltaSet.before,
+          },
+          after: {
+            importance: negativeDeltaSet.after,
+          },
         },
-        createdAt: createdAtSet,
       },
       [secondPostId]: {
+        jsonData: {
+          before: {
+            importance: 10.211208926,
+          },
+        },
         importance: {
           before: 10.211208926,
           delta: 0,
         },
-        createdAt: createdAtSet,
       },
     };
 
-    await EntityEventParamGeneratorV2.createImportanceEventsByPostsData(
+    await EntityEventParamGeneratorV2.createEventsEntitiesData(
       sampleData,
       PostsModelProvider.getEntityName(),
+      eventType,
     );
 
     return sampleData;
   }
 
-  private static async createImportanceEventsByPostsData(entitiesData, entityName) {
+  private static async createEventsEntitiesData(
+    entitiesData: any,
+    entityName: string,
+    eventType: number,
+  ) {
     for (const entityId in entitiesData) {
       if (!entitiesData.hasOwnProperty(entityId)) {
         continue;
@@ -246,35 +481,35 @@ class EntityEventParamGeneratorV2 {
 
       const events: EntityEventParamDto[] = [];
 
-      if (data.importance.before) {
+      const createdAtSet = this.getCreatedAtSet();
+
+      if (data.jsonData.before) {
         events.push({
-          entity_id: +entityId,
-          entity_name: entityName,
+          entity_id:    +entityId,
+          entity_name:  entityName,
+          event_type:   eventType,
+          json_value:   JsonValueService.getJsonValueParameter('sample description', data.jsonData.before),
+          created_at:   createdAtSet.before,
+
+          result_value: 0,
           entity_blockchain_id: NOT_DETERMINED_BLOCKCHAIN_ID,
-          event_type: EventParamTypeDictionary.getCurrentBlockchainImportance(),
-          event_group: EventParamGroupDictionary.getNotDetermined(),
-          event_super_group: EventParamGroupDictionary.getNotDetermined(),
-          json_value: JsonValueService.getJsonValueParameter('sample description', {
-            importance: entitiesData[entityId].importance.before,
-          }),
-          result_value: entitiesData[entityId].importance.before,
-          created_at: entitiesData[entityId].createdAt.before,
+          event_group:          EventParamGroupDictionary.getNotDetermined(),
+          event_super_group:    EventParamGroupDictionary.getNotDetermined(),
         });
       }
 
-      if (data.importance.after) {
+      if (data.jsonData.after) {
         events.push({
-          entity_id: +entityId,
-          entity_name: entityName,
+          entity_id:    +entityId,
+          entity_name:  entityName,
+          event_type:   eventType,
+          json_value:   JsonValueService.getJsonValueParameter('sample description', data.jsonData.after),
+          created_at:   createdAtSet.after,
+
+          result_value: 0,
           entity_blockchain_id: NOT_DETERMINED_BLOCKCHAIN_ID,
-          event_type: EventParamTypeDictionary.getCurrentBlockchainImportance(),
-          event_group: EventParamGroupDictionary.getNotDetermined(),
-          event_super_group: EventParamGroupDictionary.getNotDetermined(),
-          json_value: JsonValueService.getJsonValueParameter('sample description', {
-            importance: entitiesData[entityId].importance.after,
-          }),
-          result_value: entitiesData[entityId].importance.after,
-          created_at: entitiesData[entityId].createdAt.after,
+          event_group:          EventParamGroupDictionary.getNotDetermined(),
+          event_super_group:    EventParamGroupDictionary.getNotDetermined(),
         });
       }
 
@@ -376,6 +611,40 @@ class EntityEventParamGeneratorV2 {
 
       await EntityEventRepository.insertManyEvents(events);
     }
+  }
+
+  private static getBeforeAfterDeltaSet(
+    floatPrecision: number,
+    isDeltaPositive: boolean,
+    min: number = 1,
+    max: number = 20,
+  ): { before: number, after: number, delta: number } {
+    const data = {
+      before: 0,
+      after: 0,
+      delta: 0,
+    };
+
+    data.before = RequestHelper.generateRandomNumber(min, max, floatPrecision);
+
+    const mutator = RequestHelper.generateRandomNumber(1, 5, floatPrecision);
+
+    if (isDeltaPositive) {
+      data.after = data.before + mutator;
+    } else {
+      data.after = data.before - mutator;
+    }
+
+    data.delta = data.after - data.before;
+
+    return data;
+  }
+
+  private static getCreatedAtSet(): { before: string, after: string } {
+    return {
+      before: '2018-11-21 00:00:00.999275',
+      after: moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+    };
   }
 }
 

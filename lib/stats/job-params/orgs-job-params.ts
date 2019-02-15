@@ -1,15 +1,15 @@
 import { DeltaParams } from '../interfaces/dto-interfaces';
 
-import PostsModelProvider = require('../../posts/service/posts-model-provider');
 import EventParamTypeDictionary = require('../dictionary/event-param/event-param-type-dictionary');
 import EventParamGroupDictionary = require('../dictionary/event-param/event-param-group-dictionary');
 import EventParamSuperGroupDictionary = require('../dictionary/event-param/event-param-super-group-dictionary');
+import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 
-const ENTITY_NAME = PostsModelProvider.getEntityName();
+const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
 
 const paramsSet: DeltaParams[] = [
   {
-    entityName:       PostsModelProvider.getEntityName(),
+    entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getCurrentBlockchainImportance(),
     resultEventType:  EventParamTypeDictionary.getBlockchainImportanceDelta(),
@@ -22,37 +22,37 @@ const paramsSet: DeltaParams[] = [
     description:      `Importance delta for ${ENTITY_NAME}`,
   },
   {
-    entityName:       PostsModelProvider.getEntityName(),
+    entityName:       ENTITY_NAME,
 
-    initialEventType: EventParamTypeDictionary.getPostVotesCurrentAmount(),
-    resultEventType:  EventParamTypeDictionary.getPostUpvotesDelta(),
+    initialEventType: EventParamTypeDictionary.getOrgPostsCurrentAmount(),
+    resultEventType:  EventParamTypeDictionary.getOrgPostsTotalAmountDelta(),
+    paramField:       'total',
+    paramFieldDelta:  'total_delta',
+    description:      `Posts total amount delta for ${ENTITY_NAME}`,
+
+    isFloat:          false,
     eventGroup:       EventParamGroupDictionary.getNotDetermined(),
     eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
-
-    paramField:       'upvotes',
-    paramFieldDelta:  'upvotes_delta',
-    isFloat:          false,
-    description:      `Upvotes delta for ${ENTITY_NAME}`,
   },
   {
-    entityName:       PostsModelProvider.getEntityName(),
+    entityName:       ENTITY_NAME,
 
-    initialEventType: EventParamTypeDictionary.getPostCurrentActivityIndex(),
-    resultEventType:  EventParamTypeDictionary.getPostActivityIndexDelta(),
-    eventGroup:       EventParamGroupDictionary.getNotDetermined(),
-    eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
-
+    initialEventType: EventParamTypeDictionary.getOrgCurrentActivityIndex(),
+    resultEventType:  EventParamTypeDictionary.getOrgsActivityIndexDelta(),
     paramField:       'activity_index',
     paramFieldDelta:  'activity_index_delta',
-    isFloat:          false,
-    description:      `Activity index delta for ${ENTITY_NAME}`,
+    description:      `activity_index delta for ${ENTITY_NAME}`,
+
+    isFloat:          true,
+    eventGroup:       EventParamGroupDictionary.getNotDetermined(),
+    eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
   },
 ];
 
-class PostsJobParams {
+class OrgsJobParams {
   public static getParamsSet(): DeltaParams[] {
     return paramsSet;
   }
 }
 
-export = PostsJobParams;
+export = OrgsJobParams;

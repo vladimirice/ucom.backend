@@ -53,6 +53,7 @@ module.exports = {
         "no-bitwise": "off",
         "no-prototype-builtins": "off",
         "no-continue": "off",
+        "max-len": "off",
       }
     }
   ]

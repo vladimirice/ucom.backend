@@ -59,6 +59,8 @@ interface DeltaParams {
   readonly eventSuperGroup: number;
 
   readonly paramFieldDelta: string;
+
+  readonly description: string;
 }
 
 interface PostStats {

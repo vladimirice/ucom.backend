@@ -30,10 +30,10 @@ const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
   public static generateRandomImportance(): number {
-    return this.generateRandomFloat(1, 10, 6);
+    return this.generateRandomNumber(1, 10, 6);
   }
 
-  private static generateRandomFloat(min: number, max: number, precision: number): number {
+  public static generateRandomNumber(min: number, max: number, precision: number): number {
     return +(Math.random() * (max - min) + min).toFixed(precision);
   }
 
@@ -346,15 +346,6 @@ class RequestHelper {
    */
   static getPartnershipSearchUrl(query) {
     return `${partnershipUrl}/search?q=${query}`;
-  }
-
-  /**
-   *
-   * @param {number} orgId
-   * @return {string}
-   */
-  static getOrganizationsPostsUrl(orgId) {
-    return `${apiV1Prefix}/organizations/${orgId}/posts`;
   }
 
   /**

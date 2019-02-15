@@ -1,3 +1,4 @@
+/* eslint-disable guard-for-in */
 import { EntityEventParamDto } from '../../../lib/stats/interfaces/model-interfaces';
 import { IdToPropsCollection } from '../../../lib/common/interfaces/common-types';
 
@@ -14,7 +15,22 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
     'current_followers_amount',
     'importance',
   ],
+  [EventParamTypeDictionary.getOrgPostsTotalAmountDelta()]: [
+    'total_delta',
+  ],
+  [EventParamTypeDictionary.getTagPostsTotalAmountDelta()]: [
+    'current_posts_amount_delta',
+  ],
+  [EventParamTypeDictionary.getTagsActivityIndexDelta()]: [
+    'activity_index_delta',
+  ],
+  [EventParamTypeDictionary.getOrgsActivityIndexDelta()]: [
+    'activity_index_delta',
+  ],
   [EventParamTypeDictionary.getBlockchainImportanceDelta()]: [
+    'importance_delta',
+  ],
+  [EventParamTypeDictionary.getTagsImportanceDelta()]: [
     'importance_delta',
   ],
   [EventParamTypeDictionary.getPostActivityIndexDelta()]: [
@@ -67,6 +83,37 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
 };
 
 class StatsHelper {
+  public static checkManyEventsJsonValuesBySampleData(
+    events: EntityEventParamDto[],
+    sampleData: any,
+    fieldNameInitial: string,
+    fieldNameRes: string,
+    isFloat: boolean = false,
+  ) {
+    this.checkManyEventsStructure(events);
+
+    const expectedSet: any = {};
+    for (const sampleId in sampleData) {
+      if (isFloat) {
+        expectedSet[sampleId] = {
+          [fieldNameRes]: +sampleData[sampleId][fieldNameInitial].delta.toFixed(2),
+        };
+      } else {
+        expectedSet[sampleId] = {
+          [fieldNameRes]: sampleData[sampleId][fieldNameInitial].delta,
+        };
+      }
+    }
+
+    if (isFloat) {
+      events.forEach((event) => {
+        event.json_value.data[fieldNameRes] = +event.json_value.data[fieldNameRes].toFixed(2);
+      });
+    }
+
+    this.checkManyEventsJsonValuesByExpectedSet(events, expectedSet);
+  }
+
   public static checkManyEventsJsonValuesByExpectedSet(
     events: EntityEventParamDto[],
     expectedSet: IdToPropsCollection,

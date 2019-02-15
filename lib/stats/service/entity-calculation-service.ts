@@ -10,19 +10,27 @@ import { EntityEventParamDto } from '../interfaces/model-interfaces';
 
 import JsonValueService = require('./json-value-service');
 import PostsJobParams = require('../job-params/posts-job-params');
+import OrgsJobParams = require('../job-params/orgs-job-params');
+import TagsJobParams = require('../job-params/tags-job-params');
 
 const moment = require('moment');
 
-const RATE_DELTA_HOURS_INTERVAL = 2;
+const RATE_DELTA_HOURS_INTERVAL = 24;
 
 const profilingInfo = {};
 
 class EntityCalculationService {
   public static async updateEntitiesDeltas() {
-    const paramsSet = PostsJobParams.getParamsSet();
+    const entitiesSets = [
+      PostsJobParams.getParamsSet(),
+      OrgsJobParams.getParamsSet(),
+      TagsJobParams.getParamsSet(),
+    ];
 
-    for (const params of paramsSet) {
-      await this.updateEntitiesImportanceDeltas(params);
+    for (const set of entitiesSets) {
+      for (const params of set) {
+        await this.updateEntitiesImportanceDeltas(params);
+      }
     }
   }
 
@@ -167,7 +175,7 @@ class EntityCalculationService {
         [params.paramFieldDelta]: stats.delta_value,
       };
 
-      const description = `${params.entityName} ${params.resultEventType} with window of ${RATE_DELTA_HOURS_INTERVAL} hours`;
+      const description = `${params.description} with window of ${RATE_DELTA_HOURS_INTERVAL} hours`;
 
       events.push({
         entity_id:            +postId,
