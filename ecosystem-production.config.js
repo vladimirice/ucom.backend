@@ -3,8 +3,6 @@ const HTTP_SERVER_PORT = 3000;
 const WEBSOCKET_SERVER_PORT = 5000;
 const GRAPHQL_SERVER_PORT = 4000;
 
-const CRON_PATTERN_EVERY_HOUR = '0 */1 * * *';
-
 module.exports = {
   apps: [
     // ================ Apps (interaction with user) =============
@@ -107,7 +105,7 @@ module.exports = {
       name: `${NODE_ENV}_worker_update_stats`,
       script: 'bin/worker-update-stats.js',
       watch: false,
-      cron_restart: CRON_PATTERN_EVERY_HOUR,
+      cron_restart: '0 */1 * * *',
       env: {
         NODE_ENV,
       },
@@ -116,7 +114,16 @@ module.exports = {
       name: `${NODE_ENV}_worker_save_current_params`,
       script: 'bin/worker-save-current-params.js',
       watch: false,
-      cron_restart: CRON_PATTERN_EVERY_HOUR,
+      cron_restart: '0 */1 * * *',
+      env: {
+        NODE_ENV,
+      },
+    },
+    {
+      name: `${NODE_ENV}_worker_stats_calculate_event_params`,
+      script: 'bin/worker-stats-calculate-event-params.js',
+      watch: false,
+      cron_restart: '30 */1 * * *',
       env: {
         NODE_ENV,
       },

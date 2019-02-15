@@ -5,6 +5,9 @@ const moment = require('moment');
 
 const postsModelProvider            = require('../../../lib/posts/service/posts-model-provider');
 
+/**
+ * @deprecated - related to stats-calculator-prototype
+ */
 class EntityEventParamGenerator {
   /**
    *

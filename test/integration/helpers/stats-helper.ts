@@ -1,3 +1,4 @@
+/* eslint-disable guard-for-in */
 import { EntityEventParamDto } from '../../../lib/stats/interfaces/model-interfaces';
 import { IdToPropsCollection } from '../../../lib/common/interfaces/common-types';
 
@@ -5,6 +6,7 @@ import _ = require('lodash');
 import EventParamTypeDictionary = require('../../../lib/stats/dictionary/event-param/event-param-type-dictionary');
 import ResponseHelper = require('./response-helper');
 
+// #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
   [EventParamTypeDictionary.getTagItselfCurrentAmounts()]: [
     'current_media_posts_amount',
@@ -12,6 +14,30 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
     'current_posts_amount',
     'current_followers_amount',
     'importance',
+  ],
+  [EventParamTypeDictionary.getOrgPostsTotalAmountDelta()]: [
+    'total_delta',
+  ],
+  [EventParamTypeDictionary.getTagPostsTotalAmountDelta()]: [
+    'current_posts_amount_delta',
+  ],
+  [EventParamTypeDictionary.getTagsActivityIndexDelta()]: [
+    'activity_index_delta',
+  ],
+  [EventParamTypeDictionary.getOrgsActivityIndexDelta()]: [
+    'activity_index_delta',
+  ],
+  [EventParamTypeDictionary.getBlockchainImportanceDelta()]: [
+    'importance_delta',
+  ],
+  [EventParamTypeDictionary.getTagsImportanceDelta()]: [
+    'importance_delta',
+  ],
+  [EventParamTypeDictionary.getPostActivityIndexDelta()]: [
+    'activity_index_delta',
+  ],
+  [EventParamTypeDictionary.getPostUpvotesDelta()]: [
+    'upvotes_delta',
   ],
   [EventParamTypeDictionary.getOrgFollowersCurrentAmount()]: [
     'followers',
@@ -57,6 +83,37 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
 };
 
 class StatsHelper {
+  public static checkManyEventsJsonValuesBySampleData(
+    events: EntityEventParamDto[],
+    sampleData: any,
+    fieldNameInitial: string,
+    fieldNameRes: string,
+    isFloat: boolean = false,
+  ) {
+    this.checkManyEventsStructure(events);
+
+    const expectedSet: any = {};
+    for (const sampleId in sampleData) {
+      if (isFloat) {
+        expectedSet[sampleId] = {
+          [fieldNameRes]: +sampleData[sampleId][fieldNameInitial].delta.toFixed(2),
+        };
+      } else {
+        expectedSet[sampleId] = {
+          [fieldNameRes]: sampleData[sampleId][fieldNameInitial].delta,
+        };
+      }
+    }
+
+    if (isFloat) {
+      events.forEach((event) => {
+        event.json_value.data[fieldNameRes] = +event.json_value.data[fieldNameRes].toFixed(2);
+      });
+    }
+
+    this.checkManyEventsJsonValuesByExpectedSet(events, expectedSet);
+  }
+
   public static checkManyEventsJsonValuesByExpectedSet(
     events: EntityEventParamDto[],
     expectedSet: IdToPropsCollection,

@@ -27,7 +27,7 @@ export class EntityEventRepository {
   }
 
   public static async insertManyEvents(events: EntityEventParamDto[]): Promise<void> {
-    await knexEvents(TABLE_NAME).insert(events);
+    await knexEvents.batchInsert(TABLE_NAME, events);
   }
 
   private static async findManyEventsByEntityName(
@@ -44,5 +44,21 @@ export class EntityEventRepository {
 
     return knexEvents(TABLE_NAME)
       .where(where);
+  }
+
+  /**
+   *
+   * @param {string} where
+   * @return {Promise<Object[]>}
+   */
+  static async findLastRowsGroupedByEntity(where) {
+    return knexEvents(TABLE_NAME).distinct(knexEvents.raw(
+      'ON (entity_id, event_type) entity_id, json_value, entity_name, entity_blockchain_id',
+    ))
+      .whereRaw(where)
+      .orderBy('entity_id')
+      .orderBy('event_type')
+      .orderBy('id', 'DESC')
+    ;
   }
 }
