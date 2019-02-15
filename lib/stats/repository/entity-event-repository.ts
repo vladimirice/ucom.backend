@@ -27,7 +27,7 @@ export class EntityEventRepository {
   }
 
   public static async insertManyEvents(events: EntityEventParamDto[]): Promise<void> {
-    await knexEvents(TABLE_NAME).insert(events);
+    await knexEvents.batchInsert(TABLE_NAME, events);
   }
 
   private static async findManyEventsByEntityName(
