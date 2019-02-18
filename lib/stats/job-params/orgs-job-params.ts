@@ -7,7 +7,7 @@ import OrganizationsModelProvider = require('../../organizations/service/organiz
 
 const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
 
-const paramsSet: DeltaParams[] = [
+const oneToOneSet: DeltaParams[] = [
   {
     entityName:       ENTITY_NAME,
 
@@ -50,8 +50,8 @@ const paramsSet: DeltaParams[] = [
 ];
 
 class OrgsJobParams {
-  public static getParamsSet(): DeltaParams[] {
-    return paramsSet;
+  public static getOneToOneSet(): DeltaParams[] {
+    return oneToOneSet;
   }
 }
 

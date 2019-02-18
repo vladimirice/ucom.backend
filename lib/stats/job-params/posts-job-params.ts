@@ -7,9 +7,9 @@ import EventParamSuperGroupDictionary = require('../dictionary/event-param/event
 
 const ENTITY_NAME = PostsModelProvider.getEntityName();
 
-const paramsSet: DeltaParams[] = [
+const oneToOneSet: DeltaParams[] = [
   {
-    entityName:       PostsModelProvider.getEntityName(),
+    entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getCurrentBlockchainImportance(),
     resultEventType:  EventParamTypeDictionary.getBlockchainImportanceDelta(),
@@ -22,7 +22,7 @@ const paramsSet: DeltaParams[] = [
     description:      `Importance delta for ${ENTITY_NAME}`,
   },
   {
-    entityName:       PostsModelProvider.getEntityName(),
+    entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getPostVotesCurrentAmount(),
     resultEventType:  EventParamTypeDictionary.getPostUpvotesDelta(),
@@ -35,7 +35,7 @@ const paramsSet: DeltaParams[] = [
     description:      `Upvotes delta for ${ENTITY_NAME}`,
   },
   {
-    entityName:       PostsModelProvider.getEntityName(),
+    entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getPostCurrentActivityIndex(),
     resultEventType:  EventParamTypeDictionary.getPostActivityIndexDelta(),
@@ -50,8 +50,8 @@ const paramsSet: DeltaParams[] = [
 ];
 
 class PostsJobParams {
-  public static getParamsSet(): DeltaParams[] {
-    return paramsSet;
+  public static getOneToOneSet(): DeltaParams[] {
+    return oneToOneSet;
   }
 }
 

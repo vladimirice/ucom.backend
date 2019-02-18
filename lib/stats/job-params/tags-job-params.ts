@@ -7,7 +7,7 @@ import TagsModelProvider = require('../../tags/service/tags-model-provider');
 
 const ENTITY_NAME = TagsModelProvider.getEntityName();
 
-const paramsSet: DeltaParams[] = [
+const oneToOneSet: DeltaParams[] = [
   {
     entityName:       ENTITY_NAME,
 
@@ -50,8 +50,8 @@ const paramsSet: DeltaParams[] = [
 ];
 
 class TagsJobParams {
-  public static getParamsSet(): DeltaParams[] {
-    return paramsSet;
+  public static getOneToOneSet(): DeltaParams[] {
+    return oneToOneSet;
   }
 }
 

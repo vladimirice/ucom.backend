@@ -22,19 +22,19 @@ const profilingInfo = {};
 class EntityCalculationService {
   public static async updateEntitiesDeltas() {
     const entitiesSets = [
-      PostsJobParams.getParamsSet(),
-      OrgsJobParams.getParamsSet(),
-      TagsJobParams.getParamsSet(),
+      PostsJobParams.getOneToOneSet(),
+      OrgsJobParams.getOneToOneSet(),
+      TagsJobParams.getOneToOneSet(),
     ];
 
     for (const set of entitiesSets) {
       for (const params of set) {
-        await this.updateEntitiesImportanceDeltas(params);
+        await this.processOneToOne(params);
       }
     }
   }
 
-  private static async updateEntitiesImportanceDeltas(params: DeltaParams): Promise<void> {
+  private static async processOneToOne(params: DeltaParams): Promise<void> {
     const hrstart = process.hrtime();
     this.printMemoryUsage('before_start');
 
@@ -164,11 +164,11 @@ class EntityCalculationService {
   ): Promise<void> {
     const events: EntityEventParamDto[] = [];
 
-    for (const postId in toProcess) {
-      if (!toProcess.hasOwnProperty(postId)) {
+    for (const entityId in toProcess) {
+      if (!toProcess.hasOwnProperty(entityId)) {
         continue;
       }
-      const stats = toProcess[postId];
+      const stats = toProcess[entityId];
 
       const resultValue = stats.delta_value;
       const payload = {
@@ -178,9 +178,9 @@ class EntityCalculationService {
       const description = `${params.description} with window of ${RATE_DELTA_HOURS_INTERVAL} hours`;
 
       events.push({
-        entity_id:            +postId,
-        entity_name:          params.entityName,
+        entity_id:            +entityId,
         entity_blockchain_id: stats.entity_blockchain_id,
+        entity_name:          params.entityName,
         event_type:           params.resultEventType,
         event_group:          params.eventGroup,
         event_super_group:    params.eventSuperGroup,
