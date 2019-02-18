@@ -373,6 +373,7 @@ describe('Organizations. Create-update requests', () => {
       it('should throw an error if NOT unique fields is provided', async () => {
         const user = userVlad;
 
+        await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
         const existingOrg = await organizationsRepositories.Main.findFirstByAuthor(user.id);
 
         const twoFieldsRes = await request(server)
@@ -418,6 +419,8 @@ describe('Organizations. Create-update requests', () => {
     describe('Positive scenarios', () => {
       it('should be possible to update social networks of organization', async () => {
         const user = userVlad;
+
+        await OrganizationsGenerator.createOrgWithoutTeam(user);
 
         const orgId = await organizationsRepositories.Main.findFirstIdByAuthorId(user.id);
         await OrganizationsHelper.createSocialNetworksDirectly(orgId);
@@ -511,8 +514,8 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should be possible to update organization with users team updating', async () => {
-        const orgId = 1;
         const user = userVlad;
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
         const orgBefore = await organizationsRepositories.Main.findOneById(orgId, 0);
 
         const userPetrBefore = orgBefore.users_team.find(data => data.user_id === userPetr.id);
@@ -569,8 +572,8 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should sanitize org updating input', async () => {
-        const orgId = 1;
         const user = userVlad;
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
 
         const injection = '<script>alert("Hello");</script><img src="https://hacked.url"/>';
 
@@ -610,8 +613,8 @@ describe('Organizations. Create-update requests', () => {
 
       // tslint:disable-next-line:max-line-length
       it('should be possible to update organization itself without changing unique fields - no unique error', async () => {
-        const orgId = 1;
         const user = userVlad;
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
 
         const org = await organizationsRepositories.Main.findOneById(orgId);
 
@@ -641,6 +644,7 @@ describe('Organizations. Create-update requests', () => {
       it('should be possible to update organization with random extra fields', async () => {
         // Required because frontend will send fields which are not been implemented in backend
         const user = userJane;
+        await OrganizationsGenerator.createOrgWithoutTeam(user);
         const orgBefore = await organizationsRepositories.Main.findLastByAuthor(user.id);
         const orgId = orgBefore.id;
 
@@ -675,7 +679,7 @@ describe('Organizations. Create-update requests', () => {
     });
     describe('Negative scenarios', () => {
       it('should not be possible to update organizations by user who is not author', async () => {
-        const orgId = 1;
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
         const res = await request(server)
           .patch(RequestHelper.getOneOrganizationUrl(orgId))
@@ -688,7 +692,7 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should not be possible to change avatar filename without attaching a file', async () => {
-        const orgId = 1;
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
         const orgBefore = await organizationsRepositories.Main.findOneById(orgId);
 
@@ -773,8 +777,8 @@ describe('Organizations. Create-update requests', () => {
 
       // tslint:disable-next-line:max-line-length
       it('should not be possible to update with given nickname, if email is same as given org but nickname is same as in other org', async () => {
-        const currentOrgId = 1;
-        const otherOrgId = 2;
+        const currentOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const otherOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
 
         const [currentOrg, otherOrg] = await Promise.all([
           organizationsRepositories.Main.findOneById(currentOrgId),
@@ -805,7 +809,7 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should not be possible to update org without auth token', async () => {
-        const orgId = 1;
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
         const res = await request(server)
           .patch(RequestHelper.getOneOrganizationUrl(orgId))

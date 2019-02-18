@@ -6,6 +6,7 @@ import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UsersHelper = require('./users-helper');
 import knexEvents = require('../../../config/knex-events');
+import knex = require('../../../config/knex');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -365,6 +366,14 @@ class SeedsHelper {
 
   static async sequelizeAfterAll() {
     models.sequelize.close();
+    await this.closeKnexConnections();
+  }
+
+  private static async closeKnexConnections() {
+    await Promise.all([
+      knex.destroy(),
+      knexEvents.destroy(),
+    ]);
   }
 
   /**

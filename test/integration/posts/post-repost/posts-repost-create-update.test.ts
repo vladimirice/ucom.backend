@@ -45,8 +45,21 @@ describe('Post repost API', () => {
 
   describe('Create post-repost', () => {
     describe('Positive', () => {
-      it('Post current params row should be created during post creation', async () => {
+      it('Post of user himself - current params row should be created during post creation', async () => {
         const { postId, repostId } = await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
+
+        const postData = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
+        const repostData = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(repostId);
+
+        PostsHelper.checkOneNewPostCurrentParams(postData, true);
+        PostsHelper.checkOneNewPostCurrentParams(repostData, true);
+      });
+
+      it('Post of org - current params row should be created during post creation', async () => {
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
+
+        const repostId = await PostsGenerator.createRepostOfUserPost(userJane, postId);
 
         const postData = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
         const repostData = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(repostId);

@@ -67,6 +67,7 @@ class OrganizationsGenerator {
       .field('nickname',          nickname)
       .field('about',          about)
       .field('powered_by',          poweredBy)
+      .field('email',          faker.internet.email())
     ;
 
     for (let i = 0; i < teamMembers.length; i += 1) {

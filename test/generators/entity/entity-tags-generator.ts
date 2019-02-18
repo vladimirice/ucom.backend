@@ -1,9 +1,12 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
+import { StringToNumberCollection } from '../../../lib/common/interfaces/common-types';
+
 import OrganizationsGenerator = require('../organizations-generator');
 import PostsGenerator = require('../posts-generator');
 import TagsHelper = require('../../integration/helpers/tags-helper');
 import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
+import TagsRepository = require('../../../lib/tags/repository/tags-repository');
 
 class EntityTagsGenerator {
   public static async createPostsWithTagsForOrgs(userVlad, userJane) {
@@ -115,6 +118,24 @@ class EntityTagsGenerator {
     await TagsHelper.getPostWhenTagsAreProcessed(postId);
 
     return postId;
+  }
+
+  public static async createManyTagsViaNewPostAndGetTagsIds(
+    myself: UserModel,
+    tagsTitles: string[],
+  ): Promise<StringToNumberCollection> {
+    let description = 'Hi everyone! So close.';
+    for (const title of tagsTitles) {
+      description += `#${title} `;
+    }
+
+    const postId: number = await PostsGenerator.createMediaPostByUserHimself(myself, {
+      description,
+    });
+
+    await TagsHelper.getPostWhenTagsAreProcessed(postId);
+
+    return TagsRepository.findAllTagsByTitles(tagsTitles);
   }
 
   public static async createTagViaNewDirectPost(

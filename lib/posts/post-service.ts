@@ -91,7 +91,8 @@ class PostService {
    * @returns {Promise<void>}
    */
   static async updatePostUsersTeam(postId, params, transaction) {
-    params.post_users_team = Array.prototype.filter(params.post_users_team);
+    // eslint-disable-next-line you-dont-need-lodash-underscore/filter
+    params.post_users_team = _.filter(params.post_users_team);
 
     if (!params.post_users_team || _.isEmpty(params.post_users_team)) {
       return;

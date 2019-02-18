@@ -2,6 +2,7 @@ import { Transaction } from 'knex';
 import { DbTag, TagsModelResponse, TagWithEventParamsDto } from '../interfaces/dto-interfaces';
 import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 import { TagDbModel } from '../models/tags-model';
+import { StringToNumberCollection } from '../../common/interfaces/common-types';
 
 import TagsModelProvider = require('../service/tags-model-provider');
 import QueryFilterService = require('../../api/filters/query-filter-service');
@@ -84,11 +85,11 @@ class TagsRepository implements QueryFilteredRepository {
    * @param {Object} tags
    * @param {Transaction} trx
    */
-  public static async createNewTags(tags: Object, trx: Transaction) {
+  public static async createNewTags(tags: Object, trx: Transaction): Promise<StringToNumberCollection> {
     const data =
       await trx(this.getTableName()).returning(['id', 'title']).insert(tags);
 
-    const res: Object = {};
+    const res: StringToNumberCollection = {};
 
     data.forEach((item) => {
       res[item.title] = +item.id;
@@ -132,17 +133,13 @@ class TagsRepository implements QueryFilteredRepository {
     return data.map(item => +item.id);
   }
 
-  /**
-   *
-   * @param {string[]} titles
-   */
-  public static async findAllTagsByTitles(titles: string[]): Promise<Object> {
+  public static async findAllTagsByTitles(titles: string[]): Promise<StringToNumberCollection> {
     const data = await knex(this.getTableName())
       .select(['id', 'title'])
       .whereIn('title', titles)
     ;
 
-    const res: Object = {};
+    const res: StringToNumberCollection = {};
 
     data.forEach((item) => {
       res[item.title] = +item.id;

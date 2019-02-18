@@ -8,6 +8,8 @@ import TagsModelProvider = require('../../../lib/tags/service/tags-model-provide
 
 import knex = require('../../../config/knex');
 import EosImportance = require('../../../lib/eos/eos-importance');
+import _ = require('lodash');
+import TagsCurrentParamsRepository = require('../../../lib/tags/repository/tags-current-params-repository');
 
 const delay = require('delay');
 
@@ -25,6 +27,51 @@ const postsModelProvider = require('../../../lib/posts/service/posts-model-provi
 require('jest-expect-message');
 
 class TagsHelper {
+  public static async checkManyNewEntitiesCurrentParams(entitiesIds: number[]) {
+    for (const entityId of entitiesIds) {
+      const paramsData = await TagsCurrentParamsRepository.getCurrentStatsByEntityId(entityId);
+
+      this.checkOneNewEntityCurrentParams(paramsData);
+    }
+  }
+
+  private static checkOneNewEntityCurrentParams(data, isEmpty = false) {
+    expect(_.isEmpty(data)).toBeFalsy();
+    this.checkOneCurrentParamsRowStructure(data);
+    if (isEmpty) {
+      this.checkOneCurrentParamsRowFreshness(data);
+    }
+  }
+
+  private static checkOneCurrentParamsRowStructure(data) {
+    const expectedFields: string[] = [
+      'created_at',
+      'updated_at',
+      'id',
+      'tag_id',
+      'importance_delta',
+      'activity_index_delta',
+      'posts_total_amount_delta',
+    ];
+
+    ResponseHelper.expectAllFieldsExistence(data, expectedFields);
+
+    expect(typeof data.tag_id).toBe('number');
+    expect(typeof data.importance_delta).toBe('number');
+    expect(typeof data.activity_index_delta).toBe('number');
+    expect(typeof data.posts_total_amount_delta).toBe('number');
+
+    // #task
+    // expect(typeof data.created_at).toBe('string');
+    // expect(typeof data.updated_at).toBe('string');
+  }
+
+  private static checkOneCurrentParamsRowFreshness(data) {
+    expect(data.importance_delta).toBe(0);
+    expect(data.activity_index_delta).toBe(0);
+    expect(data.posts_total_amount_delta).toBe(0);
+  }
+
   public static async setSampleRateToTagById(
     id: number,
     rateToSet = 0.1235,

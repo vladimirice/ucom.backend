@@ -1,3 +1,5 @@
+import { StringToNumberCollection } from '../../../lib/common/interfaces/common-types';
+
 import EntityTagsGenerator = require('../../generators/entity/entity-tags-generator');
 import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
 import TagsRepository = require('../../../lib/tags/repository/tags-repository');
@@ -28,6 +30,15 @@ describe('Tags services', () => {
   });
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+  });
+
+  describe('Events related to tag creation', () => {
+    it('Post of user himself - current params row should be created during post creation', async () => {
+      const entitiesIds: StringToNumberCollection =
+        await EntityTagsGenerator.createManyTagsViaNewPostAndGetTagsIds(userVlad, ['summer', 'autumn']);
+
+      await TagsHelper.checkManyNewEntitiesCurrentParams(Object.values(entitiesIds));
+    });
   });
 
   describe('Tags current rate processor', () => {
