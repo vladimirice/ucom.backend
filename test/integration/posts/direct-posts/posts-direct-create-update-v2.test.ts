@@ -33,7 +33,7 @@ describe('Direct posts create-update v2', () => {
     it('Post current params row should be created during direct post creation', async () => {
       const postId = await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
 
-      const data = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
+      const data = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(postId);
 
       PostsHelper.checkOneNewPostCurrentParams(data, true);
     });
@@ -42,7 +42,7 @@ describe('Direct posts create-update v2', () => {
       const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
       const postId = await PostsGenerator.createDirectPostForOrganizationV2AndGetId(userVlad, orgId);
 
-      const data = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
+      const data = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(postId);
 
       PostsHelper.checkOneNewPostCurrentParams(data, true);
     });

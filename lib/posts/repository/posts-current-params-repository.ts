@@ -6,7 +6,7 @@ import RepositoryHelper = require('../../common/repository/repository-helper');
 const TABLE_NAME = 'posts_current_params';
 
 class PostsCurrentParamsRepository {
-  public static async getPostCurrentStatsByPostId(
+  public static async getCurrentStatsByEntityId(
     postId: number,
   ) {
     const data = await knex(TABLE_NAME).where('post_id', postId).first();
@@ -22,7 +22,7 @@ class PostsCurrentParamsRepository {
     return data;
   }
 
-  public static async insertRowForNewPost(postId: number): Promise<void> {
+  public static async insertRowForNewEntity(postId: number): Promise<void> {
     const data = {
       post_id: postId,
     };

@@ -105,7 +105,7 @@ class PostCreatorService {
       });
 
     // #task - create new post via knex only and provide related transaction
-    await PostsCurrentParamsRepository.insertRowForNewPost(newPost.id);
+    await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
     await usersActivityService.sendContentCreationPayloadToRabbit(newActivity);
 
     if (PostsFetchService.isDirectPost(newPost)) {
@@ -184,7 +184,7 @@ class PostCreatorService {
       });
 
     // #task - create new post via knex only and provide related transaction
-    await PostsCurrentParamsRepository.insertRowForNewPost(newPost.id);
+    await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
     await usersActivityService.sendContentCreationPayloadToRabbit(newActivity);
 
     return {

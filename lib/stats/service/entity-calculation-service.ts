@@ -63,6 +63,7 @@ class EntityCalculationService {
       params.isFloat,
     );
 
+    // Here we have required delta parameter for every entity
     await this.createImportanceDeltaEvents(params, toProcess);
 
     this.printMemoryUsage('after_to_process_filling', false);

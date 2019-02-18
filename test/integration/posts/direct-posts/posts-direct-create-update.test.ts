@@ -41,7 +41,7 @@ describe('Direct posts create-update', () => {
         it('Post current params row should be created during post creation', async () => {
           const postId = await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
 
-          const data = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
+          const data = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(postId);
 
           PostsHelper.checkOneNewPostCurrentParams(data, true);
         });

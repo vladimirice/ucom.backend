@@ -48,8 +48,8 @@ describe('Post repost API', () => {
       it('Post of user himself - current params row should be created during post creation', async () => {
         const { postId, repostId } = await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
 
-        const postData = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
-        const repostData = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(repostId);
+        const postData = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(postId);
+        const repostData = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(repostId);
 
         PostsHelper.checkOneNewPostCurrentParams(postData, true);
         PostsHelper.checkOneNewPostCurrentParams(repostData, true);
@@ -61,8 +61,8 @@ describe('Post repost API', () => {
 
         const repostId = await PostsGenerator.createRepostOfUserPost(userJane, postId);
 
-        const postData = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
-        const repostData = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(repostId);
+        const postData = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(postId);
+        const repostData = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(repostId);
 
         PostsHelper.checkOneNewPostCurrentParams(postData, true);
         PostsHelper.checkOneNewPostCurrentParams(repostData, true);

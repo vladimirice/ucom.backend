@@ -29,7 +29,7 @@ let userJane: UserModel;
 let userPetr: UserModel;
 let userRokky: UserModel;
 
-describe('Stats delta related to posts', () => {
+describe('Posts stats', () => {
   let sampleDataSet;
 
   beforeAll(async () => {
@@ -351,17 +351,17 @@ describe('Stats delta related to posts', () => {
         sampleDataSet = await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
       });
 
-      it('posts only workflow - fresh stats table', async () => {
+      it('posts upvotes delta', async () => {
         const fieldNameInitial = 'upvotes';
         const fieldNameRes = 'upvotes_delta';
+        const entityName = PostsModelProvider.getEntityName();
         const sampleData = sampleDataSet[fieldNameInitial];
 
         await EntityCalculationService.updateEntitiesDeltas();
 
-        const events: EntityEventParamDto[] =
-      await EntityEventRepository.findManyEventsWithPostEntityName(
-        EventParamTypeDictionary.getPostUpvotesDelta(),
-      );
+        const events: EntityEventParamDto[] = await EntityEventRepository.findManyEventsWithPostEntityName(
+          EventParamTypeDictionary.getPostUpvotesDelta(),
+        );
         StatsHelper.checkManyEventsStructure(events);
 
         StatsHelper.checkManyEventsJsonValuesBySampleData(
@@ -370,6 +370,8 @@ describe('Stats delta related to posts', () => {
           fieldNameInitial,
           fieldNameRes,
         );
+
+        await StatsHelper.checkEntitiesCurrentValues(sampleData, entityName, fieldNameInitial, fieldNameRes);
       });
 
       it('posts stats activity index delta', async () => {

@@ -5,6 +5,10 @@ import { IdToPropsCollection } from '../../../lib/common/interfaces/common-types
 import _ = require('lodash');
 import EventParamTypeDictionary = require('../../../lib/stats/dictionary/event-param/event-param-type-dictionary');
 import ResponseHelper = require('./response-helper');
+import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+import PostsCurrentParamsRepository = require('../../../lib/posts/repository/posts-current-params-repository');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 
 // #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
@@ -83,6 +87,40 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
 };
 
 class StatsHelper {
+  public static async checkEntitiesCurrentValues(
+    sampleData: any,
+    entityName: string,
+    fieldNameInitial: string,
+    fieldNameRes: string,
+  ) {
+    for (const entityId in sampleData) {
+      const expected = sampleData[entityId][fieldNameInitial].delta;
+
+      await this.checkEntityCurrentValue(+entityId, entityName, fieldNameRes, expected);
+    }
+  }
+
+  public static async checkEntityCurrentValue(
+    entityId: number,
+    entityName: string,
+    fieldName: string,
+    expectedValue: number,
+  ) {
+    const entityNameToRepo = {
+      [PostsModelProvider.getEntityName()]:         PostsCurrentParamsRepository,
+      [OrganizationsModelProvider.getEntityName()]: OrgsCurrentParamsRepository,
+    };
+
+    if (!entityNameToRepo[entityName]) {
+      throw new Error(`Unsupported entity_name: ${entityName}`);
+    }
+
+    const repository = entityNameToRepo[entityName];
+    const stats = await repository.getCurrentStatsByEntityId(entityId);
+
+    expect(stats[fieldName]).toBe(expectedValue);
+  }
+
   public static checkManyEventsJsonValuesBySampleData(
     events: EntityEventParamDto[],
     sampleData: any,
