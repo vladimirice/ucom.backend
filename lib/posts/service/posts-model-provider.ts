@@ -53,6 +53,10 @@ class PostsModelProvider {
     return ENTITY_NAME;
   }
 
+  public static getCurrentParamsTableName(): string {
+    return 'posts_current_params';
+  }
+
   /**
    *
    * @return {string}

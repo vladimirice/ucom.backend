@@ -13,7 +13,6 @@ import StatsHelper = require('../helpers/stats-helper');
 import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
-import RequestHelper = require('../helpers/request-helper');
 import PostsGenerator = require('../../generators/posts-generator');
 import CommentsGenerator = require('../../generators/comments-generator');
 import PostsHelper = require('../helpers/posts-helper');
@@ -21,13 +20,15 @@ import OrganizationsGenerator = require('../../generators/organizations-generato
 
 const beforeAfterOptions = {
   isGraphQl: false,
-  workersMocking: 'all',
+  workersMocking: 'blockchainOnly',
 };
 
 let userVlad: UserModel;
 let userJane: UserModel;
 let userPetr: UserModel;
 let userRokky: UserModel;
+
+const ENTITY_NAME = PostsModelProvider.getEntityName();
 
 describe('Posts stats', () => {
   let sampleDataSet;
@@ -354,7 +355,6 @@ describe('Posts stats', () => {
       it('posts upvotes delta', async () => {
         const fieldNameInitial = 'upvotes';
         const fieldNameRes = 'upvotes_delta';
-        const entityName = PostsModelProvider.getEntityName();
         const sampleData = sampleDataSet[fieldNameInitial];
 
         await EntityCalculationService.updateEntitiesDeltas();
@@ -371,14 +371,14 @@ describe('Posts stats', () => {
           fieldNameRes,
         );
 
-        await StatsHelper.checkEntitiesCurrentValues(sampleData, entityName, fieldNameInitial, fieldNameRes);
+        await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes);
       });
 
       it('posts stats activity index delta', async () => {
-        const fieldNameInitial = 'activity_index';
-        const fieldNameRes = 'activity_index_delta';
-        const eventType = EventParamTypeDictionary.getPostActivityIndexDelta();
-        const sampleData = sampleDataSet[fieldNameInitial];
+        const fieldNameInitial  = 'activity_index';
+        const fieldNameRes      = 'activity_index_delta';
+        const eventType         = EventParamTypeDictionary.getPostActivityIndexDelta();
+        const sampleData        = sampleDataSet[fieldNameInitial];
 
         await EntityCalculationService.updateEntitiesDeltas();
 
@@ -391,6 +391,8 @@ describe('Posts stats', () => {
           fieldNameInitial,
           fieldNameRes,
         );
+
+        await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes);
       });
     });
 
@@ -402,8 +404,10 @@ describe('Posts stats', () => {
         await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
         await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
 
-        firstPostId   = RequestHelper.generateRandomNumber(0, 1000, 0);
-        secondPostId  = RequestHelper.generateRandomNumber(0, 1000, 0) + 1;
+        [firstPostId, secondPostId] = await Promise.all([
+          PostsGenerator.createMediaPostByUserHimself(userVlad),
+          PostsGenerator.createMediaPostByUserHimself(userJane),
+        ]);
 
         const options: StatsEventsOptions = {
           posts: {
@@ -423,14 +427,15 @@ describe('Posts stats', () => {
       it('posts only workflow - fresh stats table', async () => {
         const entityName = PostsModelProvider.getEntityName();
 
-        const initialFieldName = 'importance';
+        const fieldNameInitial  = 'importance';
+        const fieldNameRes      = 'importance_delta';
 
         const postsData = await EntityEventParamGeneratorV2.createEventsAndGetExpectedDataSet(
           firstPostId,
           secondPostId,
           entityName,
           EventParamTypeDictionary.getCurrentBlockchainImportance(),
-          initialFieldName,
+          fieldNameInitial,
         );
 
         await EntityCalculationService.updateEntitiesDeltas();
@@ -456,6 +461,12 @@ describe('Posts stats', () => {
           postEvents,
           expectedSet,
         );
+
+        for (const entityId in expectedSet) {
+          const expected = expectedSet[entityId][fieldNameRes];
+
+          await StatsHelper.checkEntityCurrentValue(+entityId, ENTITY_NAME, fieldNameRes, expected);
+        }
       });
 
       it('Check situation - no before records (no rating yet) - entity is newcomer-star', async () => {

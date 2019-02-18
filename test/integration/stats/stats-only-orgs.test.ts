@@ -17,7 +17,7 @@ import PostsGenerator = require('../../generators/posts-generator');
 
 const beforeAfterOptions = {
   isGraphQl: false,
-  workersMocking: 'all',
+  workersMocking: 'blockchainOnly',
 };
 
 let userVlad: UserModel;

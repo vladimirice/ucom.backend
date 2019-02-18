@@ -60,7 +60,19 @@ interface DeltaParams {
 
   readonly paramFieldDelta: string;
 
-  readonly description: string;
+  readonly description:     string;
+
+  readonly currentParams?: {
+    tableName: string;
+    fieldNameToSet: string;
+  }
+}
+
+interface CurrentParams {
+  readonly tableName:               string;
+  readonly fieldNameToSet:          string;
+  readonly whenFieldName:           string;
+  readonly thenFieldNameFromSet:    string;
 }
 
 interface PostStats {
@@ -91,4 +103,5 @@ export {
   EntitiesWithImportanceDelta,
   EntitiesWithDeltaFields,
   DeltaParams,
+  CurrentParams,
 };

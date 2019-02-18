@@ -10,15 +10,28 @@ import PostsModelProvider = require('../../../lib/posts/service/posts-model-prov
 import RequestHelper = require('../../integration/helpers/request-helper');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
+import OrganizationsGenerator = require('../organizations-generator');
+import UsersHelper = require('../../integration/helpers/users-helper');
+import EntityTagsGenerator = require('./entity-tags-generator');
+import PostsGenerator = require('../posts-generator');
 
 const moment = require('moment');
 
 const NOT_DETERMINED_BLOCKCHAIN_ID = 'not-determined';
 
+let userVlad;
+let userJane;
+let userPetr;
+let userRokky;
+
 class EntityEventParamGeneratorV2 {
   public static async createManyEventsForRandomPostIds(): Promise<void> {
-    const firstPostId   = RequestHelper.generateRandomNumber(0, 1000, 0);
-    const secondPostId  = RequestHelper.generateRandomNumber(0, 1000, 0) + 1;
+    await this.fetchUsers();
+
+    const [firstPostId, secondPostId] = await Promise.all([
+      PostsGenerator.createMediaPostByUserHimself(userPetr),
+      PostsGenerator.createMediaPostByUserHimself(userRokky),
+    ]);
 
     const options: StatsEventsOptions = {
       posts: {
@@ -36,8 +49,12 @@ class EntityEventParamGeneratorV2 {
   }
 
   public static async createManyEventsForRandomOrgsIds(): Promise<any> {
-    const firstId   = RequestHelper.generateRandomNumber(0, 1000, 0);
-    const secondId  = RequestHelper.generateRandomNumber(0, 1000, 0) + 1;
+    await this.fetchUsers();
+
+    const [firstId, secondId] = await Promise.all([
+      OrganizationsGenerator.createOrgWithoutTeam(userVlad),
+      OrganizationsGenerator.createOrgWithoutTeam(userJane),
+    ]);
 
     const options = {
       importance:       true,
@@ -53,10 +70,16 @@ class EntityEventParamGeneratorV2 {
   }
 
   public static async createManyEventsForRandomTagsIds(): Promise<any> {
-    const firstId   = RequestHelper.generateRandomNumber(0, 1000, 0);
-    const secondId  = RequestHelper.generateRandomNumber(0, 1000, 0) + 1;
+    await this.fetchUsers();
 
-    return this.createDifferentEventsForTags(firstId, secondId);
+    const titleToId = await EntityTagsGenerator.createManyTagsViaNewPostAndGetTagsIds(
+      userVlad,
+      ['summer', 'winter'],
+    );
+
+    const ids = Object.values(titleToId);
+
+    return this.createDifferentEventsForTags(ids[0], ids[1]);
   }
 
   public static async createDifferentEventsForPosts(
@@ -645,6 +668,15 @@ class EntityEventParamGeneratorV2 {
       before: '2018-11-21 00:00:00.999275',
       after: moment().utc().format('YYYY-MM-DD HH:mm:ss'),
     };
+  }
+
+  private static async fetchUsers() {
+    [userVlad, userJane, userPetr, userRokky] = await Promise.all([
+      UsersHelper.getUserVlad(),
+      UsersHelper.getUserJane(),
+      UsersHelper.getUserPetr(),
+      UsersHelper.getUserRokky(),
+    ]);
   }
 }
 

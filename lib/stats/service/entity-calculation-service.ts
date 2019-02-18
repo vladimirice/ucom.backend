@@ -2,6 +2,7 @@
 /* tslint:disable:max-line-length */
 import { EntityEventRepository } from '../repository/entity-event-repository';
 import {
+  CurrentParams,
   DeltaParams, EntitiesWithDeltaFields,
   EventDbDataDto,
 } from '../interfaces/dto-interfaces';
@@ -12,6 +13,7 @@ import JsonValueService = require('./json-value-service');
 import PostsJobParams = require('../job-params/posts-job-params');
 import OrgsJobParams = require('../job-params/orgs-job-params');
 import TagsJobParams = require('../job-params/tags-job-params');
+import RepositoryHelper = require('../../common/repository/repository-helper');
 
 const moment = require('moment');
 
@@ -50,7 +52,7 @@ class EntityCalculationService {
     this.printMemoryUsage('after_db_fetching', false);
     this.printMemoryDiff('after_db_fetching', 'before_start');
 
-    const toProcess = this.prepareDeltaDataToProcess(
+    const toProcess: EntitiesWithDeltaFields = this.prepareDeltaDataToProcess(
       lastData,
       params.paramField,
       params.isFloat,
@@ -65,6 +67,17 @@ class EntityCalculationService {
 
     // Here we have required delta parameter for every entity
     await this.createImportanceDeltaEvents(params, toProcess);
+
+    if (params.currentParams) {
+      const updateParams: CurrentParams = {
+        tableName:      params.currentParams.tableName,
+        fieldNameToSet: params.currentParams.fieldNameToSet,
+        whenFieldName:  'id',
+        thenFieldNameFromSet:  'delta_value',
+      };
+
+      await RepositoryHelper.updateManyRowsByNumberToNumber(toProcess, updateParams);
+    }
 
     this.printMemoryUsage('after_to_process_filling', false);
     this.printMemoryDiff('after_to_process_filling', 'after_db_fetching');
@@ -90,7 +103,7 @@ class EntityCalculationService {
     lastData: EventDbDataDto[],
     paramField: string,
     isFloat: boolean,
-  ) {
+  ): EntitiesWithDeltaFields {
     if (lastData.length === 0) {
       throw new Error('LastData array is empty');
     }
