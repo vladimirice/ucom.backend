@@ -44,6 +44,11 @@ const minorTables = [
 
   'entity_tags',
   'entity_state_log',
+
+  'posts_current_params',
+  'organizations_current_params',
+  'tags_current_params',
+
   'tags',
   'entity_event_param',
   'entity_stats_current',

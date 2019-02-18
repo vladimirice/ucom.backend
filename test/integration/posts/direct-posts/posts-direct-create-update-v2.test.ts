@@ -1,4 +1,5 @@
 import { PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
+import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 const _ = require('lodash');
 
@@ -12,13 +13,14 @@ import OrganizationsModelProvider = require('../../../../lib/organizations/servi
 
 import OrganizationsHelper = require('../../helpers/organizations-helper');
 import UsersHelper = require('../../helpers/users-helper');
+import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
 
 const JEST_TIMEOUT = 5000;
 
-describe('Direct posts create-update v2', () => {
-  let userVlad;
-  let userJane;
+let userVlad: UserModel;
+let userJane: UserModel;
 
+describe('Direct posts create-update v2', () => {
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
   });
@@ -28,6 +30,23 @@ describe('Direct posts create-update v2', () => {
   });
 
   describe('Direct post creation v2', () => {
+    it('Post current params row should be created during direct post creation', async () => {
+      const postId = await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
+
+      const data = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
+
+      PostsHelper.checkOneNewPostCurrentParams(data, true);
+    });
+
+    it('Direct post of org - current params row should be created during direct post creation', async () => {
+      const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      const postId = await PostsGenerator.createDirectPostForOrganizationV2AndGetId(userVlad, orgId);
+
+      const data = await PostsCurrentParamsRepository.getPostCurrentStatsByPostId(postId);
+
+      PostsHelper.checkOneNewPostCurrentParams(data, true);
+    });
+
     it('Create direct post for user without organization', async () => {
       const user = userVlad;
       const targetUser = userJane;

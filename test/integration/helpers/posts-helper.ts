@@ -1,5 +1,5 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
 
@@ -8,6 +8,7 @@ import PostsRepository = require('../../../lib/posts/posts-repository');
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
+import _ = require('lodash');
 
 const request = require('supertest');
 const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
@@ -23,6 +24,43 @@ const postsModelProvider = require('../../../lib/posts/service/posts-model-provi
 require('jest-expect-message');
 
 class PostsHelper {
+  public static checkOneNewPostCurrentParams(data, isEmpty = false) {
+    expect(_.isEmpty(data)).toBeFalsy();
+    this.checkOneCurrentParamsRowStructure(data);
+    if (isEmpty) {
+      this.checkOneCurrentParamsRowFreshness(data);
+    }
+  }
+
+  private static checkOneCurrentParamsRowStructure(data) {
+    const expectedFields: string[] = [
+      'created_at',
+      'updated_at',
+      'id',
+      'post_id',
+      'importance_delta',
+      'activity_index_delta',
+      'upvotes_delta',
+    ];
+
+    ResponseHelper.expectAllFieldsExistence(data, expectedFields);
+
+    expect(typeof data.post_id).toBe('number');
+    expect(typeof data.importance_delta).toBe('number');
+    expect(typeof data.activity_index_delta).toBe('number');
+    expect(typeof data.upvotes_delta).toBe('number');
+
+    // #task
+    // expect(typeof data.created_at).toBe('string');
+    // expect(typeof data.updated_at).toBe('string');
+  }
+
+  private static checkOneCurrentParamsRowFreshness(data) {
+    expect(data.importance_delta).toBe(0);
+    expect(data.activity_index_delta).toBe(0);
+    expect(data.upvotes_delta).toBe(0);
+  }
+
   public static async setRandomRateToManyPosts(
     modelsIds: number[],
     processTags: boolean = true,
@@ -562,7 +600,7 @@ class PostsHelper {
   static async requestToGetManyPostsAsGuest(
     queryString: string | null = null,
     dataOnly: boolean = true,
-  ): Promise<PostsListResponse> {
+  ): Promise<any> {
     let url = RequestHelper.getPostsUrl();
 
     if (queryString) {

@@ -9,7 +9,7 @@ exports.up = (knex) => {
         created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
         updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
                               
-        post_id               INT             NOT NULL,
+        post_id               INT             NOT NULL UNIQUE,
         
         importance_delta      NUMERIC(20,10)  NOT NULL DEFAULT 0,
         activity_index_delta  NUMERIC(20,10)  NOT NULL DEFAULT 0,
@@ -29,7 +29,7 @@ exports.up = (knex) => {
         created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
         updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
                               
-        organization_id           INT             NOT NULL,
+        organization_id           INT             NOT NULL UNIQUE,
         
         importance_delta          NUMERIC(20,10)  NOT NULL DEFAULT 0,
         activity_index_delta      NUMERIC(20,10)  NOT NULL DEFAULT 0,
@@ -49,7 +49,7 @@ exports.up = (knex) => {
         created_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
         updated_at            TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
                               
-        tag_id                    BIGINT          NOT NULL,
+        tag_id                    BIGINT          NOT NULL UNIQUE,
         
         importance_delta          NUMERIC(20,10)  NOT NULL DEFAULT 0,
         activity_index_delta      NUMERIC(20,10)  NOT NULL DEFAULT 0,

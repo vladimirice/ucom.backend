@@ -374,11 +374,11 @@ class PostsGenerator {
   }
 
   public static async createDirectPostForOrganizationV2AndGetId(
-    myself,
-    targetOrgId,
-    givenDescription = null,
-    withImage = false,
-    idOnly = false,
+    myself: UserModel,
+    targetOrgId: number,
+    givenDescription: string | null = null,
+    withImage: boolean = false,
+    idOnly: boolean = false,
   ): Promise<number> {
     const url = RequestHelper.getOrgDirectPostV2UrlV(targetOrgId);
 

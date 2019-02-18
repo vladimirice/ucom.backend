@@ -14,6 +14,7 @@ import EosImportance = require('../../../lib/eos/eos-importance');
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import FileToUploadHelper = require('./file-to-upload-helper');
+import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -31,6 +32,42 @@ const entityModelProvider = require('../../../lib/entities/service').ModelProvid
 require('jest-expect-message');
 
 class OrganizationsHelper {
+  public static checkOneNewEntityCurrentParams(data, isEmpty = false) {
+    expect(_.isEmpty(data)).toBeFalsy();
+    this.checkOneCurrentParamsRowStructure(data);
+    if (isEmpty) {
+      this.checkOneCurrentParamsRowFreshness(data);
+    }
+  }
+
+  private static checkOneCurrentParamsRowStructure(data) {
+    const expectedFields: string[] = [
+      'id',
+
+      'organization_id',
+      'importance_delta',
+      'activity_index_delta',
+      'posts_total_amount_delta',
+
+      'created_at',
+      'updated_at',
+    ];
+
+    ResponseHelper.expectAllFieldsExistence(data, expectedFields);
+
+    const numFields = OrgsCurrentParamsRepository.getNumericalFields();
+
+    for (const field of numFields) {
+      expect(typeof data[field]).toBe('number');
+    }
+  }
+
+  private static checkOneCurrentParamsRowFreshness(data) {
+    expect(data.importance_delta).toBe(0);
+    expect(data.activity_index_delta).toBe(0);
+    expect(data.posts_total_amount_delta).toBe(0);
+  }
+
   public static async setRandomRateToManyOrgs(
     modelsIds: number[],
   ): Promise<NumberToNumberCollection> {

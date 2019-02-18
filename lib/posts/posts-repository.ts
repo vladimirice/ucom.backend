@@ -735,6 +735,7 @@ class PostsRepository implements QueryFilteredRepository {
     delete data.id;
 
     const newPost = await PostsRepository.getModel().create(data, { transaction });
+    // @deprecated
     await postStatsRepository.createNew(newPost.id, transaction);
 
     return newPost;

@@ -5,11 +5,13 @@ import { RequestQueryDto } from '../api/filters/interfaces/query-filter-interfac
 import { IdOnlyDto } from '../common/interfaces/common-types';
 
 import PostsFetchService = require('./service/posts-fetch-service');
+import PostCreatorService = require('./service/post-creator-service');
+import UserActivityService = require('../users/user-activity-service');
 
 const status = require('statuses');
 const _ = require('lodash');
 
-const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const postsRepository = require('./posts-repository');
 const postStatsRepository = require('./stats/post-stats-repository');
 
@@ -24,11 +26,6 @@ const usersRepositories = require('../users/repository');
 
 const organizationsModelProvider = require('../organizations/service/organizations-model-provider');
 
-const eosBlockchainUniqid = require('../eos/eos-blockchain-uniqid');
-
-const usersActivityService = require('../users/user-activity-service');
-
-const postRepositories = require('./repository');
 const organizationRepositories = require('../organizations/repository');
 const usersModelProvider = require('../users/service').ModelProvider;
 
@@ -44,7 +41,7 @@ const postsFetchService   = require('./service/posts-fetch-service');
  * Post Creation functions should be placed in PostCreatorService
  */
 class PostService {
-  private currentUser;
+  public currentUser;
 
   constructor(currentUser) {
     this.currentUser = currentUser;
@@ -94,12 +91,13 @@ class PostService {
    * @returns {Promise<void>}
    */
   static async updatePostUsersTeam(postId, params, transaction) {
-    params.post_users_team = _.filter(params.post_users_team);
+    params.post_users_team = Array.prototype.filter(params.post_users_team);
 
     if (!params.post_users_team || _.isEmpty(params.post_users_team)) {
       return;
     }
 
+    // noinspection TypeScriptValidateJSTypes
     const sourceModel = await models.post_users_team.findAll({
       where: {
         post_id: postId,
@@ -140,7 +138,7 @@ class PostService {
       },
     });
 
-    this.checkPostUpdatingConditions(postToUpdate);
+    PostService.checkPostUpdatingConditions(postToUpdate);
 
     if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeMediaPost()) {
       // noinspection AssignmentToFunctionParameterJS
@@ -168,9 +166,9 @@ class PostService {
           throw new AppError(`There is no post with ID ${postId} and author ID ${userId}`, status('not found'));
         }
 
-        const updatedPost = updatedPosts[0];
+        const updated = updatedPosts[0];
 
-        if (updatedPost.post_type_id === ContentTypeDictionary.getTypeOffer()) {
+        if (updated.post_type_id === ContentTypeDictionary.getTypeOffer()) {
           await models.post_offer.update(params, {
             transaction,
             where: {
@@ -179,19 +177,19 @@ class PostService {
           });
         }
 
-        const newActivity = await usersActivityService.processPostIsUpdated(
-          updatedPost,
+        const activity = await UserActivityService.processPostIsUpdated(
+          updated,
           currentUserId,
           transaction,
         );
 
         return {
-          updatedPost,
-          newActivity,
+          updatedPost: updated,
+          newActivity: activity,
         };
       });
 
-    await usersActivityService.sendContentUpdatingPayloadToRabbit(newActivity);
+    await UserActivityService.sendContentUpdatingPayloadToRabbit(newActivity);
 
     if (PostService.isDirectPost(updatedPost)) {
       return this.findOnePostByIdAndProcess(updatedPost.id);
@@ -298,189 +296,9 @@ class PostService {
    * @return {Promise<Object>}
    */
   async processNewPostCreation(req, eventId = null) {
-    // #task - wrap in database transaction
+    const currentUser = this.currentUser.user;
 
-    const { files } = req;
-    const { body }  = req;
-
-    // #task - provide Joi validation
-    if (body && body.title && body.title.length > 255) {
-      throw new BadRequestError({ title: 'Title is too long. Size must be up to 255 symbols.' });
-    }
-    // #task - provide Joi validation
-    if (body && body.leading_text && body.leading_text.length > 255) {
-      throw new BadRequestError({ leading_text: 'Leading_text is too long. Size must be up to 255 symbols.' });
-    }
-
-    const postTypeId = +req.body.post_type_id;
-    if (!postTypeId) {
-      throw new BadRequestError({
-        post_type_id: 'Post Type ID must be a valid natural number',
-      });
-    }
-
-    let orgBlockchainId = null;
-    if (!body.organization_id) {
-      body.organization_id = null;
-    } else {
-      orgBlockchainId = await organizationRepositories.Main.findBlockchainIdById(+body.organization_id);
-      if (!orgBlockchainId) {
-        throw new BadRequestError({ general: `There is no orgBlockchainId for org with ID ${+body.organization_id}` }, 404);
-      }
-    }
-
-    await PostService.addSignedTransactionDetailsToBody(body, this.currentUser.user, postTypeId, orgBlockchainId);
-
-    await this.makeOrganizationRelatedChecks(body, this.currentUser.user);
-    await this.addAttributesOfEntityFor(body, this.currentUser.user);
-    // noinspection JSDeprecatedSymbols
-    postSanitizer.sanitisePost(body);
-
-    // noinspection OverlyComplexBooleanExpressionJS
-    if (files && files.main_image_filename && files.main_image_filename[0] && files.main_image_filename[0].filename) {
-      body.main_image_filename = files.main_image_filename[0].filename;
-    }
-
-    postCreatorService.processEntityImagesWhileCreation(body);
-
-    const { newPost, newActivity } = await models.sequelize
-      .transaction(async (transaction) => {
-        const newPost     = await this.createPostByPostType(postTypeId, body, transaction);
-        const newActivity = await this.createNewActivity(
-          newPost,
-          body.signed_transaction,
-          this.currentUser.getId(),
-          eventId,
-          transaction,
-        );
-
-        // noinspection JSUnusedGlobalSymbols
-        return {
-          newPost,
-          newActivity,
-        };
-      });
-
-    await usersActivityService.sendContentCreationPayloadToRabbit(newActivity);
-
-    if (PostService.isDirectPost(newPost)) {
-      // Direct Post creation = full post content, not only ID
-      return this.findOnePostByIdAndProcess(newPost.id);
-    }
-
-    return newPost;
-  }
-
-  /**
-   *
-   * @param {Object} newPost
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number|null} eventId
-   * @param {Object} transaction
-   * @return {Promise<Object>}
-   * @private
-   */
-  private async createNewActivity(newPost, signedTransaction, currentUserId, eventId = null, transaction = null) {
-    let newActivity;
-
-    if (newPost.organization_id) {
-      newActivity = await usersActivityService.processOrganizationCreatesPost(
-        newPost,
-        eventId,
-        signedTransaction,
-        currentUserId,
-        transaction,
-      );
-    } else {
-      newActivity = await usersActivityService.processUserHimselfCreatesPost(
-        newPost,
-        eventId,
-        signedTransaction,
-        currentUserId,
-        transaction,
-      );
-    }
-
-    return newActivity;
-  }
-
-  /**
-   *
-   * @param {number} postTypeId
-   * @param {Object} body
-   * @param {Object} transaction
-   * @return {Promise<Object>}
-   * @private
-   */
-  private async createPostByPostType(postTypeId, body, transaction) {
-    const currentUserId = this.currentUser.getCurrentUserId();
-
-    // #task - provide body validation form via Joi
-    let newPost;
-    switch (postTypeId) {
-      case ContentTypeDictionary.getTypeMediaPost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
-        break;
-      case ContentTypeDictionary.getTypeOffer():
-        newPost = await postRepositories.PostOffer.createNewOffer(body, currentUserId, transaction);
-        break;
-      case ContentTypeDictionary.getTypeDirectPost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
-        break;
-      case ContentTypeDictionary.getTypeRepost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
-        break;
-      default:
-        throw new BadRequestError({
-          post_type_id: `Provided post type ID is not supported: ${postTypeId}`,
-        });
-    }
-
-    return newPost;
-  }
-
-  /**
-   *
-   * @param {Object} body
-   * @param {Object} user
-   * @param {number} postTypeId
-   * @param {string|null} organizationBlockchainId
-   * @return {Promise<void>}
-   * @private
-   */
-  private static async addSignedTransactionDetailsToBody(body, user, postTypeId, organizationBlockchainId = null) {
-    if (postTypeId === ContentTypeDictionary.getTypeDirectPost()) {
-      return;
-    }
-
-    // noinspection IfStatementWithTooManyBranchesJS
-    if (postTypeId === ContentTypeDictionary.getTypeMediaPost()) {
-      body.blockchain_id = eosBlockchainUniqid.getUniqidForMediaPost();
-    } else if (postTypeId === ContentTypeDictionary.getTypeOffer()) {
-      body.blockchain_id = eosBlockchainUniqid.getUniqidForPostOffer();
-    } else {
-      throw new BadRequestError({ post_type_id: `Unsupported post type id: ${postTypeId}` });
-    }
-
-    if (organizationBlockchainId) {
-      // noinspection JSAccessibilityCheck
-      body.signed_transaction = await TransactionFactory._getSignedOrganizationCreatesContent(
-        user.account_name,
-        user.private_key,
-        organizationBlockchainId,
-        body.blockchain_id,
-        postTypeId,
-      );
-    } else {
-      // noinspection JSAccessibilityCheck
-      body.signed_transaction = await TransactionFactory._userHimselfCreatesPost(
-        user.account_name,
-        user.private_key,
-        body.blockchain_id,
-        postTypeId,
-      );
-    }
+    return PostCreatorService.processNewPostCreation(req, eventId, currentUser);
   }
 
   public async findOnePostByIdAndProcess(
@@ -599,85 +417,13 @@ class PostService {
     };
   }
 
-  /**
-   *
-   * @param {Object} body
-   * @param {Object} user
-   * @return {Promise<void>}
-   * @private
-   */
-  private async makeOrganizationRelatedChecks(body, user) {
-    if (!body.organization_id) {
-      return;
-    }
-
-    const doesExist = await organizationRepositories.Main.doesExistById(body.organization_id);
-
-    if (!doesExist) {
-      throw new AppError(`There is no organization with ID ${body.organization_id}.`, 404);
-    }
-
-    await this.checkCreationBehalfPermissions(user.id, body.organization_id);
-  }
-
-  /**
-   *
-   * @param {Object} body
-   * @param {Object} user
-   * @return {Promise<void>}
-   * @private
-   */
-  private async addAttributesOfEntityFor(body, user) {
-    if (+body.post_type_id === ContentTypeDictionary.getTypeDirectPost()) {
-      // direct post entity_id_for is set beforehand. Refactor this in future
-      return;
-    }
-
-    // Repost is created only for user, not for organization
-
-    if (!body.organization_id) {
-      body.entity_id_for = user.id;
-      body.entity_name_for = usersModelProvider.getEntityName();
-
-      return;
-    }
-
-    body.entity_id_for    = body.organization_id;
-    body.entity_name_for  = organizationsModelProvider.getEntityName();
-  }
-
-  /**
-   *
-   * @param {number} userId
-   * @param {number|null} organizationId
-   * @return {Promise<void>}
-   * @private
-   */
-  private async checkCreationBehalfPermissions(userId, organizationId = null) {
-    if (organizationId === null) {
-      return;
-    }
-
-    // Check if user is an author of the organization
-    const isOrgAuthor = await organizationRepositories.Main.isUserAuthor(organizationId, userId);
-
-    const isTeamMember = await usersRepositories.UsersTeam.isTeamMember(
-      organizationsModelProvider.getEntityName(),
-      organizationId,
-      userId,
-    );
-
-    if (!isOrgAuthor && !isTeamMember) {
-      throw new AppError('It is not permitted to create post on behalf of this organization', 403);
-    }
-  }
 
   /**
    *
    * @param {Object} postToUpdate
    * @private
    */
-  private checkPostUpdatingConditions(postToUpdate) {
+  private static checkPostUpdatingConditions(postToUpdate) {
     const unableToEdit = [
       ContentTypeDictionary.getTypeRepost(),
     ];

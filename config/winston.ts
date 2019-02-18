@@ -28,7 +28,7 @@ const myFormat = printf((info: any) => {
   const basic: string = `${info.timestamp}.[${nodeEnv}].[${info.label}].[${info.level}]: ${JSON.stringify(info.message)}`;
 
   if (info.level === 'error') {
-    const full: string = util.inspect(info, false, null, false);
+    const full: string = util.inspect(info, false, 5, false);
     return `${basic}. Full: ${full}`;
   }
 

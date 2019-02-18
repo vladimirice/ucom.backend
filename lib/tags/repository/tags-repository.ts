@@ -110,7 +110,7 @@ class TagsRepository implements QueryFilteredRepository {
       return null;
     }
 
-    RepositoryHelper.convertStringFieldsToNumbers(data, TagsRepository);
+    RepositoryHelper.convertStringFieldsToNumbers(data, this.getNumericalFields());
 
     return data;
   }
@@ -173,6 +173,7 @@ class TagsRepository implements QueryFilteredRepository {
     ;
 
     if (lastId) {
+      // noinspection JSIgnoredPromiseFromCall
       queryBuilder.whereRaw(`id > ${+lastId}`);
     }
 

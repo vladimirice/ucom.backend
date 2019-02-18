@@ -30,6 +30,10 @@ const commentsFetchService = require('../../comments/service/comments-fetch-serv
  * This service never changes any persistent data (ex. object properties in DB)
  */
 class PostsFetchService {
+  public static isDirectPost(post) {
+    return post.post_type_id === ContentTypeDictionary.getTypeDirectPost();
+  }
+
   /**
    * @param postId
    * @param currentUserId

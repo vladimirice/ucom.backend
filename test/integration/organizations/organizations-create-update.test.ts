@@ -1,3 +1,5 @@
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import MockHelper = require('../helpers/mock-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
@@ -5,6 +7,8 @@ import RequestHelper = require('../helpers/request-helper');
 import ResponseHelper = require('../helpers/response-helper');
 import FileToUploadHelper = require('../helpers/file-to-upload-helper');
 import UsersHelper = require('../helpers/users-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -17,26 +21,30 @@ const orgModelProvider = require('../../../lib/organizations/service/organizatio
 
 const server = require('../../../app');
 
-let userVlad;
-let userJane;
-let userPetr;
-let userRokky;
+let userVlad: UserModel;
+let userJane: UserModel;
+let userPetr: UserModel;
+let userRokky: UserModel;
 
 MockHelper.mockAllBlockchainPart();
 
 describe('Organizations. Create-update requests', () => {
-  beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
-  });
-
-  afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
+  afterAll(async () => { await SeedsHelper.doAfterAll(); });
 
   beforeEach(async () => {
-    await SeedsHelper.resetOrganizationRelatedSeeds();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Create organization', () => {
     describe('Positive scenarios', () => {
+      it('Post current params row should be created during post creation', async () => {
+        const entityId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+
+        const data = await OrgsCurrentParamsRepository.getCurrentStatsByEntityId(entityId);
+
+        OrganizationsHelper.checkOneNewEntityCurrentParams(data, true);
+      });
+
       it('should be possible to create one with social networks', async () => {
         const user = userVlad;
 

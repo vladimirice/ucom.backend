@@ -1,9 +1,9 @@
 import { NumberToNumberCollection } from '../interfaces/common-types';
 
 class RepositoryHelper {
-  public static convertStringFieldsToNumbers(model: any, repository: any) {
-    const fields: string[] = repository.getNumericalFields();
-
+  // It is required because big int fields from Postgresql are represented as string
+  // It is supposed that js numerical limit will not be exceeded before a bigint support feature of nodejs core will be created
+  public static convertStringFieldsToNumbers(model: any, fields: string[]) {
     fields.forEach((field) => {
       model[field] = +model[field];
     });
