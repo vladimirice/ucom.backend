@@ -9,6 +9,7 @@ import FileToUploadHelper = require('../helpers/file-to-upload-helper');
 import UsersHelper = require('../helpers/users-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
+import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -515,8 +516,8 @@ describe('Organizations. Create-update requests', () => {
 
       it('should be possible to update organization with users team updating', async () => {
         const user = userVlad;
-        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
-        const orgBefore = await organizationsRepositories.Main.findOneById(orgId, 0);
+        const orgId = await OrganizationsGenerator.createOrgWithTeam(user, [userPetr]);
+        const orgBefore = await OrganizationsRepository.findOneById(orgId, 0);
 
         const userPetrBefore = orgBefore.users_team.find(data => data.user_id === userPetr.id);
 
@@ -741,9 +742,9 @@ describe('Organizations. Create-update requests', () => {
 
       // tslint:disable-next-line:max-line-length
       it('should be two errors if one org has given email, and other has given nickname', async () => {
-        const currentOrgId = 1;
-        const orgIdToTakeEmail = 2;
-        const orgIdToTakeNickname = 3;
+        const currentOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const orgIdToTakeEmail = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
+        const orgIdToTakeNickname = await OrganizationsGenerator.createOrgWithoutTeam(userPetr);
 
         const [currentOrg, orgToTakeEmail, orgToTakeNickname] = await Promise.all([
           organizationsRepositories.Main.findOneById(currentOrgId),

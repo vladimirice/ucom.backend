@@ -149,6 +149,7 @@ class PostsRepository implements QueryFilteredRepository {
         params.where.post_type_id = +query.post_type_id;
       }
 
+      // This is hot
       if (query.created_at && query.created_at === '24_hours') {
         const newData = moment().subtract(24, 'hours');
 
@@ -157,6 +158,7 @@ class PostsRepository implements QueryFilteredRepository {
         };
       }
 
+      // This is trending
       if (query.sort_by && query.sort_by.includes('current_rate_delta_daily')) {
         params.where.importance_delta =
           db.where(db.col(`${ENTITY_STATS_CURRENT_TABLE_NAME}.importance_delta`), {

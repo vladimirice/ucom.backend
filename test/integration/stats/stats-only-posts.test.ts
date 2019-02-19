@@ -447,13 +447,13 @@ describe('Posts stats', () => {
         StatsHelper.checkManyEventsStructure(postEvents);
 
         postEvents.forEach((event) => {
-          event.json_value.data.importance_delta = +event.json_value.data.importance_delta.toFixed(2);
+          event.json_value.data.importance_delta = +event.json_value.data.importance_delta.toFixed(10);
         });
 
         const expectedSet: any = {};
         for (const postId in postsData) {
           expectedSet[postId] = {
-            importance_delta: +postsData[postId].importance.delta.toFixed(2),
+            importance_delta: +postsData[postId].importance.delta.toFixed(10),
           };
         }
 

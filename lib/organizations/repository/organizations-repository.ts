@@ -268,7 +268,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
    * @param {number|null} teamStatus
    * @return {Promise<Object>}
    */
-  static async findOneById(id, teamStatus = null) {
+  static async findOneById(id: number, teamStatus: number | null = null) {
     const usersTeamStatus = teamStatus === null ?
       usersTeamStatusDictionary.getStatusConfirmed() : teamStatus;
 
