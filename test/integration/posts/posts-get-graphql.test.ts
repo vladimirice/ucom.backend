@@ -33,15 +33,10 @@ describe('GET posts via graphql', () => {
   });
 
   describe('Positive', () => {
-    it('Sort by current rate but only daily. #smoke #posts', async () => {
+    it('Hot - sort by current rate but only daily. #smoke #posts', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
-      const vladMediaPostsAmount: number = 3;
-      const userVladMediaPostsIds: number[] =
-        await PostsGenerator.createManyDefaultMediaPostsByUserHimself(
-          userVlad,
-          vladMediaPostsAmount,
-        );
+      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
 
       // @ts-ignore
       const postFiltering: PostRequestQueryDto = {
@@ -57,8 +52,6 @@ describe('GET posts via graphql', () => {
       );
 
       CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
-
-      CommonHelper.expectModelsExistence(response.data, userVladMediaPostsIds);
     }, JEST_TIMEOUT);
 
     it('Trending - sort by current_rate_daily_delta, aka trending. #smoke #posts', async () => {

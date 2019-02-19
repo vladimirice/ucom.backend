@@ -129,6 +129,13 @@ class PostsFetchService {
   ): Promise<PostsListResponse> {
     const repository = PostsRepository;
 
+    // backward compatibility
+    if (query.created_at && query.created_at === '24_hours' && query.sort_by === '-current_rate') {
+      query.isHot = true;
+      // @ts-ignore
+      query.sort_by = '-activity_index_delta';
+    }
+
     const params: DbParamsDto = queryFilterService.getQueryParametersWithRepository(query, repository);
     queryFilterService.processWithIncludeProcessor(repository, query, params);
 

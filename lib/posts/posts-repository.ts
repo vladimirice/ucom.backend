@@ -7,7 +7,6 @@ import RepositoryHelper = require('../common/repository/repository-helper');
 import PostsModelProvider = require('./service/posts-model-provider');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-const moment = require('moment');
 const _ = require('lodash');
 
 const models = require('../../models');
@@ -157,12 +156,8 @@ class PostsRepository implements QueryFilteredRepository {
       }
 
       // This is hot
-      if (query.created_at && query.created_at === '24_hours') {
-        const newData = moment().subtract(24, 'hours');
-
-        params.where.created_at = {
-          [Op.gte]: newData.format('YYYY-MM-DD HH:mm:ss'),
-        };
+      if (query.isHot) {
+        Object.assign(params.where, this.whereSequelizeHot());
       }
     };
   }
@@ -173,6 +168,14 @@ class PostsRepository implements QueryFilteredRepository {
         [Op.gt]: 0,
       }),
       upvotes_delta: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.upvotes_delta`), {
+        [Op.gt]: 0,
+      }),
+    };
+  }
+
+  public static whereSequelizeHot() {
+    return {
+      activity_index: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.activity_index_delta`), {
         [Op.gt]: 0,
       }),
     };
@@ -193,6 +196,10 @@ class PostsRepository implements QueryFilteredRepository {
         postsModelProvider.getCurrentParamsSequelizeModel(),
         'importance_delta',
       ],
+      activity_index_delta: [
+        postsModelProvider.getCurrentParamsSequelizeModel(),
+        'activity_index_delta',
+      ],
     };
   }
 
@@ -210,6 +217,7 @@ class PostsRepository implements QueryFilteredRepository {
       'current_vote',
       'created_at',
       'current_rate_delta_daily',
+      'activity_index_delta',
     ];
   }
 

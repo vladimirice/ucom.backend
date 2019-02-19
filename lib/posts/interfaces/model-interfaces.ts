@@ -38,6 +38,7 @@ interface PostModelMyselfResponse extends PostModelResponse {
 interface PostRequestQueryDto extends RequestQueryDto {
   readonly post_type_id?: number;
   readonly created_at?: string;
+  isHot?: boolean; // should be readonly in future
 }
 
 export {
