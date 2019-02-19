@@ -13,6 +13,10 @@ class OrganizationsModelProvider {
     return ENTITY_NAME;
   }
 
+  public static getCurrentParamsTableName(): string {
+    return 'organizations_current_params';
+  }
+
   /**
    *
    * @return {string}

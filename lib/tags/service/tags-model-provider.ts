@@ -8,6 +8,10 @@ class TagsModelProvider {
     return BLOCKCHAIN_ID_PREFIX;
   }
 
+  public static getCurrentParamsTableName(): string {
+    return 'tags_current_params';
+  }
+
   public static getEntityName(): string {
     return ENTITY_NAME;
   }

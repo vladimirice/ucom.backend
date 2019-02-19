@@ -5,7 +5,8 @@ import EventParamGroupDictionary = require('../dictionary/event-param/event-para
 import EventParamSuperGroupDictionary = require('../dictionary/event-param/event-param-super-group-dictionary');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 
-const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
+const ENTITY_NAME       = OrganizationsModelProvider.getEntityName();
+const currentTableName  = OrganizationsModelProvider.getCurrentParamsTableName();
 
 const oneToOneSet: DeltaParams[] = [
   {
@@ -20,6 +21,10 @@ const oneToOneSet: DeltaParams[] = [
     paramFieldDelta:  'importance_delta',
     isFloat:          true,
     description:      `Importance delta for ${ENTITY_NAME}`,
+    currentParams: {
+      tableName:      currentTableName,
+      fieldNameToSet: 'importance_delta',
+    },
   },
   {
     entityName:       ENTITY_NAME,
@@ -33,6 +38,10 @@ const oneToOneSet: DeltaParams[] = [
     isFloat:          false,
     eventGroup:       EventParamGroupDictionary.getNotDetermined(),
     eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
+    currentParams: {
+      tableName:      currentTableName,
+      fieldNameToSet: 'posts_total_amount_delta',
+    },
   },
   {
     entityName:       ENTITY_NAME,
@@ -46,6 +55,10 @@ const oneToOneSet: DeltaParams[] = [
     isFloat:          true,
     eventGroup:       EventParamGroupDictionary.getNotDetermined(),
     eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
+    currentParams: {
+      tableName:  currentTableName,
+      fieldNameToSet: 'activity_index_delta',
+    },
   },
 ];
 

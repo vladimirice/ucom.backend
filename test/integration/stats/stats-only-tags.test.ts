@@ -14,6 +14,7 @@ import EntityTagsGenerator = require('../../generators/entity/entity-tags-genera
 import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
 import TagsRepository = require('../../../lib/tags/repository/tags-repository');
 import _ = require('lodash');
+import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
 
 const beforeAfterOptions = {
   isGraphQl: false,
@@ -23,6 +24,8 @@ const beforeAfterOptions = {
 
 let userVlad: UserModel;
 let userJane: UserModel;
+
+const ENTITY_NAME = TagsModelProvider.getEntityName();
 
 describe('Stats for tags', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
@@ -109,6 +112,7 @@ describe('Stats for tags', () => {
 
       const fieldNameInitial  = 'current_posts_amount';
       const fieldNameRes      = 'current_posts_amount_delta';
+      const isFloat           = false;
       const sampleData = sampleDataSet[fieldNameInitial];
 
       await EntityCalculationService.updateEntitiesDeltas();
@@ -123,6 +127,8 @@ describe('Stats for tags', () => {
         fieldNameInitial,
         fieldNameRes,
       );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, 'posts_total_amount_delta', isFloat);
     });
 
     it('tags stats activity index delta', async () => {
@@ -147,6 +153,8 @@ describe('Stats for tags', () => {
         fieldNameRes,
         isFloat,
       );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
     });
 
     it('tags stats importance delta', async () => {
@@ -170,6 +178,8 @@ describe('Stats for tags', () => {
         fieldNameRes,
         isFloat,
       );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
     });
   });
 });

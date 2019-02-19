@@ -9,6 +9,8 @@ import PostsModelProvider = require('../../../lib/posts/service/posts-model-prov
 import PostsCurrentParamsRepository = require('../../../lib/posts/repository/posts-current-params-repository');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
+import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
+import TagsCurrentParamsRepository = require('../../../lib/tags/repository/tags-current-params-repository');
 
 // #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
@@ -92,11 +94,12 @@ class StatsHelper {
     entityName: string,
     fieldNameInitial: string,
     fieldNameRes: string,
+    isFloat: boolean = false,
   ) {
     for (const entityId in sampleData) {
       const expected = sampleData[entityId][fieldNameInitial].delta;
 
-      await this.checkEntityCurrentValue(+entityId, entityName, fieldNameRes, expected);
+      await this.checkEntityCurrentValue(+entityId, entityName, fieldNameRes, expected, isFloat);
     }
   }
 
@@ -105,10 +108,12 @@ class StatsHelper {
     entityName: string,
     fieldName: string,
     expectedValue: number,
+    isFloat: boolean = false,
   ) {
     const entityNameToRepo = {
       [PostsModelProvider.getEntityName()]:         PostsCurrentParamsRepository,
       [OrganizationsModelProvider.getEntityName()]: OrgsCurrentParamsRepository,
+      [TagsModelProvider.getEntityName()]:          TagsCurrentParamsRepository,
     };
 
     if (!entityNameToRepo[entityName]) {
@@ -118,7 +123,11 @@ class StatsHelper {
     const repository = entityNameToRepo[entityName];
     const stats = await repository.getCurrentStatsByEntityId(entityId);
 
-    expect(stats[fieldName]).toBe(expectedValue);
+    if (isFloat) {
+      expect(+stats[fieldName].toFixed(10)).toBe(+expectedValue.toFixed(10));
+    } else {
+      expect(stats[fieldName]).toBe(expectedValue);
+    }
   }
 
   public static checkManyEventsJsonValuesBySampleData(

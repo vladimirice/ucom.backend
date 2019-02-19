@@ -14,11 +14,14 @@ import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-eve
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 import PostsGenerator = require('../../generators/posts-generator');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 
 const beforeAfterOptions = {
   isGraphQl: false,
   workersMocking: 'blockchainOnly',
 };
+
+const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -170,6 +173,8 @@ describe('Stats for organizations', () => {
         fieldNameRes,
         isFloat,
       );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
     });
 
     it('Stats posts delta for orgs', async () => {
@@ -177,6 +182,7 @@ describe('Stats for organizations', () => {
 
       const fieldNameRes      = 'total_delta';
       const fieldNameInitial  = 'total';
+      const isFloat           = false;
       const sampleData = sampleDataSet[fieldNameInitial];
 
       await EntityCalculationService.updateEntitiesDeltas();
@@ -191,6 +197,8 @@ describe('Stats for organizations', () => {
         fieldNameInitial,
         fieldNameRes,
       );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, 'posts_total_amount_delta', isFloat);
     });
 
     it('smoke stats importance delta test for org', async () => {
@@ -214,6 +222,8 @@ describe('Stats for organizations', () => {
         fieldNameRes,
         isFloat,
       );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
     });
   });
 });
