@@ -17,7 +17,7 @@ const typeDefs = gql `
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     
     posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
-    organizations(order_by: String!, page: Int!, per_page: Int!): organizations!
+    organizations(filters: org_filtering, order_by: String!, page: Int!, per_page: Int!): organizations!
     many_tags(order_by: String!, page: Int!, per_page: Int!): tags!
 
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
@@ -184,6 +184,10 @@ const typeDefs = gql `
   input post_filtering {
     post_type_id: Int!
     created_at: String
+  }
+  
+  input org_filtering {
+    overview_type: String
   }
 `;
 const resolvers = {

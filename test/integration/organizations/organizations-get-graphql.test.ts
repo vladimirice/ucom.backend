@@ -49,6 +49,13 @@ describe('Organizations. Get requests', () => {
         await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
         // @ts-ignore
         const response = await GraphqlHelper.getManyOrgsForTrending(userVlad);
+        OrganizationsHelper.checkOrgListResponseStructure(response);
+      }, JEST_TIMEOUT);
+
+      it('Test hot - only test for graphql client error', async () => {
+        await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+        const response = await GraphqlHelper.getManyOrgsForHot(userVlad);
+        OrganizationsHelper.checkOrgListResponseStructure(response);
       }, JEST_TIMEOUT);
     });
 

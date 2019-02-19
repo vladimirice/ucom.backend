@@ -62,6 +62,11 @@ class QueryFilterService {
       params.orderByRaw = this.sequelizeOrderByToKnexRaw(params.order);
     }
 
+    if (params.whereRaw) {
+      // noinspection JSIgnoredPromiseFromCall
+      query.whereRaw(params.whereRaw);
+    }
+
     if (params.orderByRaw) {
       // noinspection JSIgnoredPromiseFromCall
       query.orderByRaw(params.orderByRaw);
@@ -79,10 +84,11 @@ class QueryFilterService {
     query: RequestQueryDto,
     repository: QueryFilteredRepository,
     processAttributes = false, // hardcoded variable in order to reduce refactoring at the beginning
+    processInclude = false, // hardcoded variable in order to reduce refactoring at the beginning
   ): DbParamsDto {
-    const orderByRelationMap = repository.getOrderByRelationMap();
-    const allowedOrderBy = repository.getAllowedOrderBy();
-    const whereProcessor = repository.getWhereProcessor();
+    const orderByRelationMap    = repository.getOrderByRelationMap();
+    const allowedOrderBy        = repository.getAllowedOrderBy();
+    const whereProcessor        = repository.getWhereProcessor();
 
     const givenParams = this.getQueryParameters(
       query,
@@ -91,12 +97,30 @@ class QueryFilterService {
       whereProcessor,
     );
 
-    if (!processAttributes) {
-      return givenParams;
+    let params = givenParams;
+    if (processAttributes) {
+      const defaultParams = repository.getDefaultListParams();
+      params = _.defaults(givenParams, defaultParams);
     }
 
-    const defaultParams = repository.getDefaultListParams();
-    return _.defaults(givenParams, defaultParams);
+    if (processInclude) {
+      const includeProcessor = repository.getIncludeProcessor();
+      includeProcessor(query, params);
+    }
+
+    return params;
+  }
+
+  public static processAttributes(params: DbParamsDto, mainTableName: string) {
+    if (!params.attributes) {
+      return;
+    }
+
+    for (let i = 0; i < params.attributes.length; i += 1) {
+      if (params.attributes[i] === 'id') {
+        params.attributes[i] = `${mainTableName}.id AS id`;
+      }
+    }
   }
 
   /**

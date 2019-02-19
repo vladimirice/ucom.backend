@@ -50,6 +50,12 @@ class OrganizationsModelProvider {
     return models[TABLE_NAME];
   }
 
+  public static getCurrentParamsInclude() {
+    return {
+
+    };
+  }
+
   /**
    *
    * @return {Object}

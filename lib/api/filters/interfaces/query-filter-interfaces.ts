@@ -21,6 +21,7 @@ interface RequestQueryComments extends RequestQueryDto {
 interface DbParamsDto {
   attributes: string[];
   where: {[index: string]: any };
+  whereRaw?: string;
   include?: any[];
 
   limit: number;

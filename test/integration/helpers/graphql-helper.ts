@@ -118,6 +118,21 @@ export class GraphqlHelper {
     return response;
   }
 
+  public static async getManyOrgsForHot(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getHotOrganizationsQuery(page, perPage);
+
+    const key: string = 'organizations';
+
+    const response: OrgListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
+  }
+
   public static async getManyTagsAsMyself(
     myself: UserModel,
     ordering: string = '-id',

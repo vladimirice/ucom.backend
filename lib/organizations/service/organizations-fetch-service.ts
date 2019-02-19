@@ -38,7 +38,7 @@ class OrganizationsFetchService {
 
     const promises: Promise<any>[] = [
       OrganizationsRepository.findAllOrgForList(params),
-      OrganizationsRepository.countAllOrganizations(),
+      OrganizationsRepository.countAllOrganizations(params),
     ];
 
     return this.findAndProcessAllByParams(promises, query, params);
