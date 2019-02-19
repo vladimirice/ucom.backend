@@ -7,24 +7,23 @@ import OrganizationsHelper = require('../helpers/organizations-helper');
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import CommonHelper = require('../helpers/common-helper');
+import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 
 let userVlad: UserModel;
 
 const JEST_TIMEOUT = 10000;
 
-describe('Organizations. Get requests', () => {
-  beforeAll(async () => {
-    await GraphqlHelper.beforeAll();
-  });
+const beforeAfterOptions = {
+  isGraphQl: true,
+  workersMocking: 'blockchainOnly',
+};
 
-  afterAll(async () => {
-    await Promise.all([
-      GraphqlHelper.afterAll(),
-      SeedsHelper.sequelizeAfterAll(),
-    ]);
-  });
+describe('Organizations. Get requests', () => {
+  beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
+  afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
+
   beforeEach(async () => {
-    [userVlad] = await SeedsHelper.beforeAllRoutine(true);
+    [userVlad] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Many organizations', () => {
@@ -41,6 +40,15 @@ describe('Organizations. Get requests', () => {
 
         OrganizationsHelper.checkOrgListResponseStructure(response);
         CommonHelper.expectModelIdsExistenceInResponseList(response, orgsIds);
+      }, JEST_TIMEOUT);
+    });
+
+
+    describe('Test hot and trending for orgs', () => {
+      it('Test trending - only test for graphql client error', async () => {
+        await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+        // @ts-ignore
+        const response = await GraphqlHelper.getManyOrgsForTrending(userVlad);
       }, JEST_TIMEOUT);
     });
 

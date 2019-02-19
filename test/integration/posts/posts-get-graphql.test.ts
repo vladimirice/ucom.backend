@@ -54,7 +54,7 @@ describe('GET posts via graphql', () => {
       CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
     }, JEST_TIMEOUT);
 
-    it('Trending - sort by current_rate_daily_delta, aka trending. #smoke #posts', async () => {
+    it('Trending - sort by current_rate_daily_delta. #smoke #posts', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
       await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();

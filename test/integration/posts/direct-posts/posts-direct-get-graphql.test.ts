@@ -2,7 +2,7 @@ import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import { GraphqlHelper } from '../../helpers/graphql-helper';
 import {
-  PostModelMyselfResponse, PostModelResponse,
+  PostModelMyselfResponse, PostModelResponse, PostRequestQueryDto,
   PostsListResponse,
 } from '../../../../lib/posts/interfaces/model-interfaces';
 
@@ -43,6 +43,40 @@ describe('#posts #direct #get #graphql', () => {
 
   describe('Get many direct posts', () => {
     describe('Positive', () => {
+      describe('Test trending and hot', () => {
+        it('Smoke, hot for direct posts. Check only that there is no graphql client errors. #smoke #posts', async () => {
+          // #task - very basic smoke test. It is required to check ordering
+          // @ts-ignore
+          const postFiltering: PostRequestQueryDto = {
+            post_type_id: 2,
+            created_at: '24_hours',
+          };
+
+          const postOrdering: string = '-current_rate';
+          await GraphqlHelper.getManyPostsAsMyself(
+            userVlad,
+            postFiltering,
+            postOrdering,
+          );
+        }, JEST_TIMEOUT);
+
+        it('Smoke, Trending for direct posts. Check only that there is no graphql client errors.', async () => {
+          // #task - very basic smoke test. It is required to check ordering
+          const postOrdering: string = '-current_rate_delta_daily';
+
+          // @ts-ignore
+          const postFiltering: PostRequestQueryDto = {
+            post_type_id: 2,
+          };
+
+          await GraphqlHelper.getManyPostsAsMyself(
+            userVlad,
+            postFiltering,
+            postOrdering,
+          );
+        }, JEST_TIMEOUT);
+      });
+
       it('Get many direct posts as myself #smoke #myself #posts #direct-posts', async () => {
         const directPostsAmount: number = 3;
         const isMyself: boolean = true;
@@ -160,6 +194,7 @@ describe('#posts #direct #get #graphql', () => {
 
         CommonHelper.checkOnePostV2WithoutOrg(post, true, true, true);
       }, JEST_TIMEOUT);
+
       it('direct post should contain related wall entity info. #smoke #posts #organizations', async () => {
         const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
         const postId: number =
