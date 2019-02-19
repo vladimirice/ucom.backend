@@ -14,6 +14,7 @@ import OrganizationsGenerator = require('../organizations-generator');
 import UsersHelper = require('../../integration/helpers/users-helper');
 import EntityTagsGenerator = require('./entity-tags-generator');
 import PostsGenerator = require('../posts-generator');
+import EntityCalculationService = require('../../../lib/stats/service/entity-calculation-service');
 
 const moment = require('moment');
 
@@ -25,6 +26,15 @@ let userPetr;
 let userRokky;
 
 class EntityEventParamGeneratorV2 {
+  public static async createAndProcessManyEventsForManyEntities(): Promise<void> {
+    // #task - try to use Promise.all
+    await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
+    await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
+    await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
+
+    await EntityCalculationService.updateEntitiesDeltas();
+  }
+
   public static async createManyEventsForRandomPostIds(): Promise<void> {
     await this.fetchUsers();
 

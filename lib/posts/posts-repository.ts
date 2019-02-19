@@ -4,6 +4,7 @@ import { QueryFilteredRepository } from '../api/filters/interfaces/query-filter-
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
+import PostsModelProvider = require('./service/posts-model-provider');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const moment = require('moment');
@@ -14,6 +15,7 @@ const models = require('../../models');
 const ENTITY_STATS_CURRENT_TABLE_NAME = 'entity_stats_current';
 
 const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
+
 const db = models.sequelize;
 const { Op } = db;
 
@@ -149,6 +151,11 @@ class PostsRepository implements QueryFilteredRepository {
         params.where.post_type_id = +query.post_type_id;
       }
 
+      // This is trending
+      if (query.sort_by && query.sort_by.includes('current_rate_delta_daily')) {
+        Object.assign(params.where, this.whereSequelizeTranding());
+      }
+
       // This is hot
       if (query.created_at && query.created_at === '24_hours') {
         const newData = moment().subtract(24, 'hours');
@@ -157,14 +164,17 @@ class PostsRepository implements QueryFilteredRepository {
           [Op.gte]: newData.format('YYYY-MM-DD HH:mm:ss'),
         };
       }
+    };
+  }
 
-      // This is trending
-      if (query.sort_by && query.sort_by.includes('current_rate_delta_daily')) {
-        params.where.importance_delta =
-          db.where(db.col(`${ENTITY_STATS_CURRENT_TABLE_NAME}.importance_delta`), {
-            [Op.gt]: 0,
-          });
-      }
+  public static whereSequelizeTranding() {
+    return {
+      importance_delta: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.importance_delta`), {
+        [Op.gt]: 0,
+      }),
+      upvotes_delta: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.upvotes_delta`), {
+        [Op.gt]: 0,
+      }),
     };
   }
 
@@ -180,7 +190,7 @@ class PostsRepository implements QueryFilteredRepository {
         'comments_count',
       ],
       current_rate_delta_daily: [
-        entityStatsCurrentModel,
+        postsModelProvider.getCurrentParamsSequelizeModel(),
         'importance_delta',
       ],
     };
@@ -343,9 +353,10 @@ class PostsRepository implements QueryFilteredRepository {
    */
   static async countAllPosts(queryParameters: any | null = null) {
     const include = [
+      PostsModelProvider.getCurrentParamsSequelizeInclude(),
       {
         attributes: [],
-        model: entityStatsCurrentModel,
+        model: entityStatsCurrentModel, // @deprecated
         required: false,
       },
     ];
@@ -428,11 +439,7 @@ class PostsRepository implements QueryFilteredRepository {
         postsModelProvider.getPostsStatsInclude(),
         postsModelProvider.getPostOfferItselfInclude(),
         postsModelProvider.getParentPostInclude(),
-        {
-          attributes: ['upvote_delta', 'importance_delta'],
-          model: entityStatsCurrentModel,
-          required: false,
-        },
+        postsModelProvider.getCurrentParamsSequelizeInclude(),
       ];
     };
   }

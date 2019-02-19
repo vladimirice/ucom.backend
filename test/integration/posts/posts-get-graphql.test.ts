@@ -12,26 +12,24 @@ import PostsGenerator = require('../../generators/posts-generator');
 import CommonHelper = require('../helpers/common-helper');
 import CommentsGenerator = require('../../generators/comments-generator');
 import ResponseHelper = require('../helpers/response-helper');
+import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 
 let userVlad: UserModel;
 let userJane: UserModel;
 
 const JEST_TIMEOUT = 10000;
 
-describe('GET posts via graphql', () => {
-  beforeAll(async () => {
-    await GraphqlHelper.beforeAll();
-  });
+const beforeAfterOptions = {
+  isGraphQl: true,
+  workersMocking: 'blockchainOnly',
+};
 
-  afterAll(async () => {
-    await Promise.all([
-      SeedsHelper.doAfterAll(),
-      GraphqlHelper.afterAll(),
-    ]);
-  });
+describe('GET posts via graphql', () => {
+  beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
+  afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Positive', () => {
@@ -63,14 +61,10 @@ describe('GET posts via graphql', () => {
       CommonHelper.expectModelsExistence(response.data, userVladMediaPostsIds);
     }, JEST_TIMEOUT);
 
-    it('sort by current_rate_daily_delta. #smoke #posts', async () => {
+    it('Trending - sort by current_rate_daily_delta, aka trending. #smoke #posts', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
-      const vladMediaPostsAmount: number = 3;
-      await PostsGenerator.createManyDefaultMediaPostsByUserHimself(
-        userVlad,
-        vladMediaPostsAmount,
-      );
+      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
 
       const postOrdering: string = '-current_rate_delta_daily';
       const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(
@@ -78,7 +72,7 @@ describe('GET posts via graphql', () => {
         postOrdering,
       );
 
-      ResponseHelper.checkEmptyResponseList(response);
+      CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
     });
 
     it('Sort by current_rate DESC, ID DESC. #smoke #posts', async () => {
