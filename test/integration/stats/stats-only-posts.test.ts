@@ -347,14 +347,18 @@ describe('Posts stats', () => {
   describe('Post stats delta', () => {
     describe('posts stats delta - not importance', () => {
       beforeEach(async () => {
+        // disturbance
+        await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
         await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
         await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
+
         sampleDataSet = await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
       });
 
       it('posts upvotes delta', async () => {
         const fieldNameInitial = 'upvotes';
         const fieldNameRes = 'upvotes_delta';
+        const isFloat = false;
         const sampleData = sampleDataSet[fieldNameInitial];
 
         await EntityCalculationService.updateEntitiesDeltas();
@@ -369,6 +373,7 @@ describe('Posts stats', () => {
           sampleData,
           fieldNameInitial,
           fieldNameRes,
+          isFloat,
         );
 
         await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes);

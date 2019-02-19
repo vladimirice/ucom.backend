@@ -130,6 +130,24 @@ class StatsHelper {
     }
   }
 
+  // private static getFilteredSampleData(
+  //   sampleData: any,
+  //   sampleDataToSkip: any,
+  //   fieldNameInitial: string,
+  // ) {
+  //   const filtered: any = {};
+  //
+  //   const setToSkip = sampleDataToSkip[fieldNameInitial];
+  //
+  //   for (const entityId in sampleData) {
+  //     if (!setToSkip[entityId]) {
+  //       filtered[entityId] = sampleData[entityId];
+  //     }
+  //   }
+  //
+  //   return filtered;
+  // }
+
   public static checkManyEventsJsonValuesBySampleData(
     events: EntityEventParamDto[],
     sampleData: any,
@@ -137,7 +155,14 @@ class StatsHelper {
     fieldNameRes: string,
     isFloat: boolean = false,
   ) {
-    this.checkManyEventsStructure(events);
+    const filteredEvents: EntityEventParamDto[] = [];
+    for (const event of events) {
+      if (sampleData[event.entity_id]) {
+        filteredEvents.push(event);
+      }
+    }
+
+    this.checkManyEventsStructure(filteredEvents);
 
     const expectedSet: any = {};
     for (const sampleId in sampleData) {
@@ -153,12 +178,12 @@ class StatsHelper {
     }
 
     if (isFloat) {
-      events.forEach((event) => {
+      filteredEvents.forEach((event) => {
         event.json_value.data[fieldNameRes] = +event.json_value.data[fieldNameRes].toFixed(2);
       });
     }
 
-    this.checkManyEventsJsonValuesByExpectedSet(events, expectedSet);
+    this.checkManyEventsJsonValuesByExpectedSet(filteredEvents, expectedSet);
   }
 
   public static checkManyEventsJsonValuesByExpectedSet(

@@ -7,7 +7,7 @@ import EventParamSuperGroupDictionary = require('../dictionary/event-param/event
 
 const ENTITY_NAME         = PostsModelProvider.getEntityName();
 const currentTableName    = PostsModelProvider.getCurrentParamsTableName();
-
+const whenFieldName       = 'post_id';
 
 const oneToOneSet: DeltaParams[] = [
   {
@@ -23,6 +23,7 @@ const oneToOneSet: DeltaParams[] = [
     description:      `Importance delta for ${ENTITY_NAME}`,
 
     currentParams: {
+      whenFieldName,
       tableName:      currentTableName,
       fieldNameToSet: 'importance_delta',
     },
@@ -41,6 +42,7 @@ const oneToOneSet: DeltaParams[] = [
     description:      `Upvotes delta for ${ENTITY_NAME}`,
 
     currentParams: {
+      whenFieldName,
       tableName:  currentTableName,
       fieldNameToSet: 'upvotes_delta',
     },
@@ -59,6 +61,7 @@ const oneToOneSet: DeltaParams[] = [
     description:      `Activity index delta for ${ENTITY_NAME}`,
 
     currentParams: {
+      whenFieldName,
       tableName:  currentTableName,
       fieldNameToSet: 'activity_index_delta',
     },

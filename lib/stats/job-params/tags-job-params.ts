@@ -7,6 +7,7 @@ import TagsModelProvider = require('../../tags/service/tags-model-provider');
 
 const ENTITY_NAME       = TagsModelProvider.getEntityName();
 const currentTableName  = TagsModelProvider.getCurrentParamsTableName();
+const whenFieldName     = 'tag_id';
 
 const oneToOneSet: DeltaParams[] = [
   {
@@ -22,6 +23,7 @@ const oneToOneSet: DeltaParams[] = [
     isFloat:          true,
     description:      `Activity index delta for ${ENTITY_NAME}`,
     currentParams: {
+      whenFieldName,
       tableName:  currentTableName,
       fieldNameToSet: 'activity_index_delta',
     },
@@ -39,6 +41,7 @@ const oneToOneSet: DeltaParams[] = [
     isFloat:          true,
     description:      `Importance delta for ${ENTITY_NAME}`,
     currentParams: {
+      whenFieldName,
       tableName:      currentTableName,
       fieldNameToSet: 'importance_delta',
     },
@@ -56,6 +59,7 @@ const oneToOneSet: DeltaParams[] = [
     isFloat:          false,
     description:      `current_posts_amount delta for ${ENTITY_NAME}`,
     currentParams: {
+      whenFieldName,
       tableName:      currentTableName,
       fieldNameToSet: 'posts_total_amount_delta',
     },

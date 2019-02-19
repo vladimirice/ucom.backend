@@ -38,6 +38,13 @@ const tableToSeeds = {
   [postRepositories.MediaPosts.getModelName()]:                 postsSeeds,
 };
 
+
+const minorTablesToSkipSequences = [
+  'posts_current_params_id_seq',
+  'organizations_current_params_id_seq',
+  'tags_current_params_id_seq',
+];
+
 // Truncated async
 const minorTables = [
   entityModelProvider.getNotificationsTableName(),
@@ -242,7 +249,10 @@ class SeedsHelper {
         name = '"Users_id_seq"';
       }
 
-      resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`));
+      if (!~minorTablesToSkipSequences.indexOf(name)) {
+        // @deprecated - sequence reset was required for seeds, not for generators
+        resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`));
+      }
     });
 
     await Promise.all(resetSequencePromises);

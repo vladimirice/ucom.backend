@@ -104,6 +104,8 @@ describe('Stats for tags', () => {
     beforeEach(async () => {
       await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
       await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
+      await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
+
       sampleDataSet = await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
     });
 

@@ -63,8 +63,9 @@ interface DeltaParams {
   readonly description:     string;
 
   readonly currentParams?: {
-    tableName: string;
+    tableName:      string;
     fieldNameToSet: string;
+    whenFieldName:  string;
   }
 }
 

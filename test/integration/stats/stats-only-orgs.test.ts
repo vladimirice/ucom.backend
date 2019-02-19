@@ -148,6 +148,8 @@ describe('Stats for organizations', () => {
       await SeedsHelper.beforeAllRoutine();
       await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
       await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
+      await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
+
       sampleDataSet = await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
     });
 

@@ -7,6 +7,7 @@ import OrganizationsModelProvider = require('../../organizations/service/organiz
 
 const ENTITY_NAME       = OrganizationsModelProvider.getEntityName();
 const currentTableName  = OrganizationsModelProvider.getCurrentParamsTableName();
+const whenFieldName       = 'organization_id';
 
 const oneToOneSet: DeltaParams[] = [
   {
@@ -22,6 +23,7 @@ const oneToOneSet: DeltaParams[] = [
     isFloat:          true,
     description:      `Importance delta for ${ENTITY_NAME}`,
     currentParams: {
+      whenFieldName,
       tableName:      currentTableName,
       fieldNameToSet: 'importance_delta',
     },
@@ -39,6 +41,7 @@ const oneToOneSet: DeltaParams[] = [
     eventGroup:       EventParamGroupDictionary.getNotDetermined(),
     eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
     currentParams: {
+      whenFieldName,
       tableName:      currentTableName,
       fieldNameToSet: 'posts_total_amount_delta',
     },
@@ -56,6 +59,7 @@ const oneToOneSet: DeltaParams[] = [
     eventGroup:       EventParamGroupDictionary.getNotDetermined(),
     eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
     currentParams: {
+      whenFieldName,
       tableName:  currentTableName,
       fieldNameToSet: 'activity_index_delta',
     },

@@ -72,7 +72,7 @@ class EntityCalculationService {
       const updateParams: CurrentParams = {
         tableName:      params.currentParams.tableName,
         fieldNameToSet: params.currentParams.fieldNameToSet,
-        whenFieldName:  'id',
+        whenFieldName:  params.currentParams.whenFieldName,
         thenFieldNameFromSet:  'delta_value',
       };
 
