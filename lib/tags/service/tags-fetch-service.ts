@@ -27,7 +27,7 @@ class TagsFetchService {
 
     const promises: any = [
       TagsRepository.findManyTagsForList(params),
-      TagsRepository.countManyTagsForList(),
+      TagsRepository.countManyTagsForList(params),
     ];
 
     return this.findAndProcessManyByParams(promises, query, params);
@@ -60,6 +60,7 @@ class TagsFetchService {
       organizationsFetchService.findAndProcessAllByTagTitle(tagTitle, relatedEntitiesQuery),
     ]);
 
+    // noinspection TypeScriptValidateJSTypes
     apiPostProcessor.processOneTag(dbTag);
 
     return {

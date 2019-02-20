@@ -6,6 +6,7 @@ import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 
 import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
+import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 
 const _ = require('lodash');
 
@@ -546,15 +547,15 @@ class OrganizationsRepository implements QueryFilteredRepository {
     ];
   }
 
+  // noinspection JSUnusedGlobalSymbols @see QueryFilterService
   static getWhereProcessor(): Function {
-    // @ts-ignore
     return (query, params) => {
       params.where = {};
 
-      if (query.overview_type && query.overview_type === 'trending') {
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getTrending()) {
         params.whereRaw = this.whereRawTrending();
       }
-      if (query.overview_type && query.overview_type === 'hot') {
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getHot()) {
         params.whereRaw = this.whereRawHot();
       }
     };

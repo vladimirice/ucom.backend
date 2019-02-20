@@ -8,8 +8,11 @@ import SeedsHelper = require('../helpers/seeds-helper');
 import TagsHelper = require('../helpers/tags-helper');
 import CommonHelper = require('../helpers/common-helper');
 import TagsRepository = require('../../../lib/tags/repository/tags-repository');
+import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 
 let userVlad: UserModel;
+
+const JEST_TIMEOUT = 10000;
 
 const options = {
   isGraphQl: true,
@@ -24,6 +27,21 @@ describe('GET Tags via graphql #graphql #tags', () => {
   });
 
   describe('Get many tags ', () => {
+    describe('Test hot and trending for orgs', () => {
+      it('Test trending - only test for graphql client error', async () => {
+        await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+        // @ts-ignore
+        const response = await GraphqlHelper.getManyTagsForTrending(userVlad);
+      }, JEST_TIMEOUT);
+
+      it('Test hot - only test for graphql client error', async () => {
+        await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+        // @ts-ignore
+        const response = await GraphqlHelper.getManyTagsForHot(userVlad);
+      }, JEST_TIMEOUT);
+    });
+
+
     describe('Positive', () => {
       it('Get many tags by myself order by id DESC #smoke #graphql #tags', async () => {
         const tagsAmount = 20;

@@ -7,6 +7,7 @@ import { StringToNumberCollection } from '../../common/interfaces/common-types';
 import TagsModelProvider = require('../service/tags-model-provider');
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 
 const knex = require('../../../config/knex');
 
@@ -196,8 +197,17 @@ class TagsRepository implements QueryFilteredRepository {
     return res.toJSON();
   }
 
-  public static async countManyTagsForList(): Promise<number> {
-    const res = await knex(TagsModelProvider.getTableName()).count('id AS amount');
+  public static async countManyTagsForList(params: DbParamsDto): Promise<number> {
+    const query = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
+
+    TagDbModel.prototype.addCurrentParamsInnerJoin(query);
+
+    if (params.whereRaw) {
+      // noinspection JSIgnoredPromiseFromCall
+      query.whereRaw(params.whereRaw);
+    }
+
+    const res = await query;
 
     return +res[0].amount;
   }
@@ -232,6 +242,8 @@ class TagsRepository implements QueryFilteredRepository {
       'title',
       'current_rate',
       'created_at',
+      'importance_delta',
+      'activity_index_delta',
     ];
   }
 
@@ -253,10 +265,28 @@ class TagsRepository implements QueryFilteredRepository {
 
   // noinspection JSUnusedGlobalSymbols
   public static getWhereProcessor(): Function {
-    // @ts-ignore
     return (query, params) => {
       params.where = {};
+
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getTrending()) {
+        params.whereRaw = this.whereRawTrending();
+      }
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getHot()) {
+        params.whereRaw = this.whereRawHot();
+      }
     };
+  }
+
+  public static whereRawTrending(): string {
+    const tableName = TagsModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.importance_delta > 0 AND ${tableName}.posts_total_amount_delta > 0`;
+  }
+
+  public static whereRawHot(): string {
+    const tableName = TagsModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.activity_index_delta > 0`;
   }
 
   private static getDefaultOrderBy(): string[][] {

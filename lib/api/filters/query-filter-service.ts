@@ -116,9 +116,15 @@ class QueryFilterService {
       return;
     }
 
+    const paramsToAddPrefix = [
+      'id',
+      'created_at',
+      'updated_at',
+    ];
+
     for (let i = 0; i < params.attributes.length; i += 1) {
-      if (params.attributes[i] === 'id') {
-        params.attributes[i] = `${mainTableName}.id AS id`;
+      if (~paramsToAddPrefix.indexOf(params.attributes[i])) {
+        params.attributes[i] = `${mainTableName}.${params.attributes[i]} AS ${params.attributes[i]}`;
       }
     }
   }

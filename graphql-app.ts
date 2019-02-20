@@ -27,7 +27,7 @@ const typeDefs = gql`
     
     posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     organizations(filters: org_filtering, order_by: String!, page: Int!, per_page: Int!): organizations!
-    many_tags(order_by: String!, page: Int!, per_page: Int!): tags!
+    many_tags(filters: tag_filtering, order_by: String!, page: Int!, per_page: Int!): tags!
 
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
@@ -198,6 +198,10 @@ const typeDefs = gql`
   input org_filtering {
     overview_type: String
   }
+  
+  input tag_filtering {
+    overview_type: String
+  }
 `;
 
 const resolvers = {
@@ -240,6 +244,7 @@ const resolvers = {
         page: args.page,
         per_page: args.per_page,
         sort_by: args.order_by,
+        ...args.filters,
       };
 
       return TagsFetchService.findAndProcessManyTags(query);

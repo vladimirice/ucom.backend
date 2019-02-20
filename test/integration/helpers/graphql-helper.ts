@@ -118,6 +118,36 @@ export class GraphqlHelper {
     return response;
   }
 
+  public static async getManyTagsForTrending(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<TagsListResponse> {
+    const query: string = GraphQLSchema.getManyTrendingTagsQuery(page, perPage);
+
+    const key: string = 'many_tags';
+
+    const response: TagsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
+  }
+
+  public static async getManyTagsForHot(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getManyHotTagsQuery(page, perPage);
+
+    const key: string = 'many_tags';
+
+    const response: OrgListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
+  }
+
   public static async getManyOrgsForHot(
     myself: UserModel,
     page: number = 1,
