@@ -16,6 +16,7 @@ import NotificationsEventIdDictionary = require('../../../lib/entities/dictionar
 import PostsHelper = require('./posts-helper');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import { UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -632,6 +633,17 @@ class CommonHelper {
     const options: CheckerOptions = this.getCheckerOptionsWithoutOrg(isMyself, isCommentsEmpty, isAuthorMyselfData);
 
     this.expectPostListResponse(response, options);
+  }
+
+  public static checkUsersListResponse(
+    response: UsersListResponse,
+    options,
+  ) {
+    ResponseHelper.checkListResponseStructure(response);
+
+    response.data.forEach((item) => {
+      UsersHelper.checkIncludedUserForEntityPage({ User: item }, options);
+    });
   }
 
   public static expectPostListResponse(

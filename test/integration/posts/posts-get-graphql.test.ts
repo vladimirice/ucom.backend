@@ -13,11 +13,29 @@ import CommonHelper = require('../helpers/common-helper');
 import CommentsGenerator = require('../../generators/comments-generator');
 import ResponseHelper = require('../helpers/response-helper');
 import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
+import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
+import _ = require('lodash');
+
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 let userVlad: UserModel;
 let userJane: UserModel;
 
 const JEST_TIMEOUT = 10000;
+
+function checkPostsPage(response) {
+  const options = {
+    author: {
+      myselfData: true,
+    },
+  };
+
+  expect(_.isEmpty(response.data)).toBeFalsy();
+  expect(_.isEmpty(response.data.many_posts)).toBeFalsy();
+  expect(_.isEmpty(response.data.many_users)).toBeFalsy();
+  CommonHelper.checkPostListResponseWithoutOrg(response.data.many_posts, true, true);
+  CommonHelper.checkUsersListResponse(response.data.many_users, options);
+}
 
 const beforeAfterOptions = {
   isGraphQl: true,
@@ -32,11 +50,120 @@ describe('GET posts via graphql', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
-  describe('Positive', () => {
-    it('Hot - sort by current rate but only daily. #smoke #posts', async () => {
+
+  describe('Media Posts trending', () => {
+    const overviewType = EntityListCategoryDictionary.getTrending();
+    const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
+
+    beforeEach(async () => {
+      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+    });
+
+    it('Users list for trending post', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
+      const response: any = await GraphqlHelper.getPostUsersAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      const options = {
+        author: {
+          myselfData: true,
+        },
+      };
+
+      CommonHelper.checkUsersListResponse(response, options);
+    });
+
+    it('Users list for trending post - pagination', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostUsersAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+        2,
+        2,
+      );
+
+      const options = {
+        author: {
+          myselfData: true,
+        },
+      };
+
+      CommonHelper.checkUsersListResponse(response, options);
+    });
+
+    it('Trending with side blocks. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsPageAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      checkPostsPage(response);
+    });
+
+    it('Trending legacy - sort by current_rate_daily_delta. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const postOrdering: string = '-current_rate_delta_daily';
+      const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(
+        userVlad,
+        postOrdering,
+      );
+
+      CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
+    });
+  });
+
+  describe('Media posts hot', () => {
+    const overviewType = EntityListCategoryDictionary.getHot();
+    const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
+
+    beforeEach(async () => {
       await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Hot with side blocks. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsPageAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      checkPostsPage(response);
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Users list for hot post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostUsersAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      const options = {
+        author: {
+          myselfData: true,
+        },
+      };
+
+      CommonHelper.checkUsersListResponse(response, options);
+    });
+
+    it('Hot legacy - sort by current rate but only daily. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
 
       // @ts-ignore
       const postFiltering: PostRequestQueryDto = {
@@ -53,21 +180,90 @@ describe('GET posts via graphql', () => {
 
       CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
     }, JEST_TIMEOUT);
+  });
 
-    it('Trending - sort by current_rate_daily_delta. #smoke #posts', async () => {
-      // #task - very basic smoke test. It is required to check ordering
+  describe('Fresh media posts', () => {
+    const overviewType = EntityListCategoryDictionary.getFresh();
+    const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
 
+    beforeEach(async () => {
       await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
-
-      const postOrdering: string = '-current_rate_delta_daily';
-      const response: PostsListResponse = await GraphqlHelper.getManyMediaPostsAsMyself(
-        userVlad,
-        postOrdering,
-      );
-
-      CommonHelper.checkPostListResponseWithoutOrg(response, true, true);
     });
 
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Fresh with side blocks. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsPageAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      checkPostsPage(response);
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Users list for fresh post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostUsersAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      const options = {
+        author: {
+          myselfData: true,
+        },
+      };
+
+      CommonHelper.checkUsersListResponse(response, options);
+    });
+  });
+
+  describe('top media posts', () => {
+    const overviewType = EntityListCategoryDictionary.getTop();
+    const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
+
+    beforeEach(async () => {
+      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Top with side blocks. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsPageAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      checkPostsPage(response);
+    });
+    // eslint-disable-next-line
+    it('Users list for top post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostUsersAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      const options = {
+        author: {
+          myselfData: true,
+        },
+      };
+
+      CommonHelper.checkUsersListResponse(response, options);
+    });
+  });
+
+  describe('Positive', () => {
     it('Sort by current_rate DESC, ID DESC. #smoke #posts', async () => {
       // #task - very basic smoke test. It is required to check ordering
 

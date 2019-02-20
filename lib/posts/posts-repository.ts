@@ -1,10 +1,12 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 import { QueryFilteredRepository } from '../api/filters/interfaces/query-filter-interfaces';
+import { PostRequestQueryDto } from './interfaces/model-interfaces';
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
 import PostsModelProvider = require('./service/posts-model-provider');
+import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-category-dictionary');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const _ = require('lodash');
@@ -145,18 +147,16 @@ class PostsRepository implements QueryFilteredRepository {
    * @returns {Function}
    */
   static getWhereProcessor() {
-    return (query, params) => {
+    return (query: PostRequestQueryDto, params) => {
       if (query.post_type_id) {
         params.where.post_type_id = +query.post_type_id;
       }
 
-      // This is trending
-      if (query.sort_by && query.sort_by.includes('current_rate_delta_daily')) {
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getTrending()) {
         Object.assign(params.where, this.whereSequelizeTranding());
       }
 
-      // This is hot
-      if (query.isHot) {
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getHot()) {
         Object.assign(params.where, this.whereSequelizeHot());
       }
     };
@@ -192,7 +192,7 @@ class PostsRepository implements QueryFilteredRepository {
         postsModelProvider.getPostStatsModel(),
         'comments_count',
       ],
-      current_rate_delta_daily: [
+      importance_delta: [
         postsModelProvider.getCurrentParamsSequelizeModel(),
         'importance_delta',
       ],
@@ -216,8 +216,9 @@ class PostsRepository implements QueryFilteredRepository {
       'comments_count',
       'current_vote',
       'created_at',
-      'current_rate_delta_daily',
+
       'activity_index_delta',
+      'importance_delta',
     ];
   }
 

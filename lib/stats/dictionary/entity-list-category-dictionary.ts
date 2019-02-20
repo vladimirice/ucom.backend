@@ -1,5 +1,7 @@
-const TRENDING  = 'trending';
-const HOT       = 'hot';
+const TRENDING    = 'trending';
+const HOT         = 'hot';
+const FRESH       = 'fresh';
+const TOP         = 'top';
 
 class EntityListCategoryDictionary {
   public static getTrending(): string {
@@ -8,6 +10,14 @@ class EntityListCategoryDictionary {
 
   public static getHot(): string {
     return HOT;
+  }
+
+  public static getFresh(): string {
+    return FRESH;
+  }
+
+  public static getTop(): string {
+    return TOP;
   }
 }
 

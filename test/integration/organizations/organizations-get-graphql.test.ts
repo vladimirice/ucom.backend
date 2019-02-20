@@ -8,6 +8,8 @@ import OrganizationsRepository = require('../../../lib/organizations/repository/
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import CommonHelper = require('../helpers/common-helper');
 import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
+import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
+import _ = require('lodash');
 
 let userVlad: UserModel;
 
@@ -17,6 +19,23 @@ const beforeAfterOptions = {
   isGraphQl: true,
   workersMocking: 'blockchainOnly',
 };
+
+const usersCheckOptions = {
+  author: {
+    myselfData: true,
+  },
+};
+
+function checkOrgsPage(response) {
+  expect(_.isEmpty(response.data)).toBeFalsy();
+  expect(_.isEmpty(response.data.many_organizations)).toBeFalsy();
+  expect(_.isEmpty(response.data.many_organizations.data)).toBeFalsy();
+  OrganizationsHelper.checkOrgListResponseStructure(response.data.many_organizations);
+
+  expect(_.isEmpty(response.data.many_users)).toBeFalsy();
+  expect(_.isEmpty(response.data.many_users.data)).toBeFalsy();
+  CommonHelper.checkUsersListResponse(response.data.many_users, usersCheckOptions);
+}
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
@@ -44,19 +63,99 @@ describe('Organizations. Get requests', () => {
     });
 
 
-    describe('Test hot and trending for orgs', () => {
+    describe('Trending organizations', () => {
+      // @ts-ignore
+      const overviewType = EntityListCategoryDictionary.getTrending();
+
       it('Test trending - only test for graphql client error', async () => {
         await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
-        // @ts-ignore
         const response = await GraphqlHelper.getManyOrgsForTrending(userVlad);
-        OrganizationsHelper.checkOrgListResponseStructure(response);
+
+        checkOrgsPage(response);
       }, JEST_TIMEOUT);
+
+      it('Users list for trending orgs', async () => {
+        // #task - very basic smoke test. It is required to check ordering
+
+        const response: any = await GraphqlHelper.getOrgsUsersAsMyself(
+          userVlad,
+          overviewType,
+        );
+
+        CommonHelper.checkUsersListResponse(response, usersCheckOptions);
+      });
+    });
+
+    describe('Hot orgs', () => {
+      // @ts-ignore
+      const overviewType = EntityListCategoryDictionary.getHot();
 
       it('Test hot - only test for graphql client error', async () => {
         await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
         const response = await GraphqlHelper.getManyOrgsForHot(userVlad);
-        OrganizationsHelper.checkOrgListResponseStructure(response);
+
+        checkOrgsPage(response);
       }, JEST_TIMEOUT);
+
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      it('Users list for hot orgs', async () => {
+        // #task - very basic smoke test. It is required to check ordering
+
+        const response: any = await GraphqlHelper.getOrgsUsersAsMyself(
+          userVlad,
+          overviewType,
+        );
+
+        CommonHelper.checkUsersListResponse(response, usersCheckOptions);
+      });
+    });
+
+    describe('Fresh orgs', () => {
+      // @ts-ignore
+      const overviewType = EntityListCategoryDictionary.getFresh();
+
+      it('Test fresh - only test for graphql client error', async () => {
+        await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+        const response = await GraphqlHelper.getManyOrgsForFresh(userVlad);
+
+        checkOrgsPage(response);
+      }, JEST_TIMEOUT);
+
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      it('Users list for fresh orgs', async () => {
+        // #task - very basic smoke test. It is required to check ordering
+
+        const response: any = await GraphqlHelper.getOrgsUsersAsMyself(
+          userVlad,
+          overviewType,
+        );
+
+        CommonHelper.checkUsersListResponse(response, usersCheckOptions);
+      });
+    });
+
+    describe('Top orgs', () => {
+      // @ts-ignore
+      const overviewType = EntityListCategoryDictionary.getTop();
+
+      it('Test top - only test for graphql client error', async () => {
+        await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+        const response = await GraphqlHelper.getManyOrgsForTop(userVlad);
+
+        checkOrgsPage(response);
+      }, JEST_TIMEOUT);
+
+      // eslint-disable-next-line sonarjs/no-identical-functions
+      it('Users list for top orgs', async () => {
+        // #task - very basic smoke test. It is required to check ordering
+
+        const response: any = await GraphqlHelper.getOrgsUsersAsMyself(
+          userVlad,
+          overviewType,
+        );
+
+        CommonHelper.checkUsersListResponse(response, usersCheckOptions);
+      });
     });
 
     describe('Test sorting', () => {

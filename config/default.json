@@ -4,9 +4,6 @@
     "profile_files_upload_dir": "/upload",
     "organization_files_upload_dir": "/upload/organizations"
   },
-  "db_knex": {
-    "connection_string": "postgresql://uos:uos@uos-backend-postgres-test.dev:5432/uos_backend_app"
-  },
   "db_knex_events": {
     "client": "pg",
     "debug": false,

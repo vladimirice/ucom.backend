@@ -18,6 +18,7 @@ import UsersModelProvider = require('../../users/users-model-provider');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 import OrganizationsFetchService = require('../../organizations/service/organizations-fetch-service');
 import UsersFetchService = require('../../users/service/users-fetch-service');
+import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -129,12 +130,7 @@ class PostsFetchService {
   ): Promise<PostsListResponse> {
     const repository = PostsRepository;
 
-    // backward compatibility
-    if (query.created_at && query.created_at === '24_hours' && query.sort_by === '-current_rate') {
-      query.isHot = true;
-      // @ts-ignore
-      query.sort_by = '-activity_index_delta';
-    }
+    this.processForTrendingAndHotBackwardCompatibility(query);
 
     const params: DbParamsDto = queryFilterService.getQueryParametersWithRepository(query, repository);
     queryFilterService.processWithIncludeProcessor(repository, query, params);
@@ -437,6 +433,22 @@ class PostsFetchService {
         post.comments = idToComments[post.id];
       }
     });
+  }
+
+  private static processForTrendingAndHotBackwardCompatibility(query: PostRequestQueryDto): void {
+    if (query.sort_by === '-current_rate_delta_daily') {
+      // @ts-ignore
+      query.overview_type = EntityListCategoryDictionary.getTrending();
+      // @ts-ignore
+      query.sort_by = '-importance_delta';
+    }
+
+    if (query.created_at && query.created_at === '24_hours' && query.sort_by === '-current_rate') {
+      // @ts-ignore
+      query.overview_type = EntityListCategoryDictionary.getHot();
+      // @ts-ignore
+      query.sort_by = '-activity_index_delta';
+    }
   }
 }
 
