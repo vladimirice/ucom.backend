@@ -199,10 +199,12 @@ const typeDefs = gql `
   
   input org_filtering {
     overview_type: String
+    entity_name: String
   }
   
   input tag_filtering {
     overview_type: String
+    entity_name: String
   }
 
   input users_filtering {

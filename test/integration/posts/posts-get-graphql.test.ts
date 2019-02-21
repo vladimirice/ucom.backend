@@ -31,10 +31,15 @@ function checkPostsPage(response) {
   };
 
   expect(_.isEmpty(response.data)).toBeFalsy();
+
   expect(_.isEmpty(response.data.many_posts)).toBeFalsy();
-  expect(_.isEmpty(response.data.many_users)).toBeFalsy();
   CommonHelper.checkPostListResponseWithoutOrg(response.data.many_posts, true, true);
+
+  expect(_.isEmpty(response.data.many_users)).toBeFalsy();
   CommonHelper.checkUsersListResponse(response.data.many_users, options);
+
+  expect(_.isEmpty(response.data.many_tags)).toBeFalsy();
+  expect(_.isEmpty(response.data.many_organizations)).toBeFalsy();
 }
 
 const beforeAfterOptions = {
