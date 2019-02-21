@@ -163,20 +163,24 @@ class PostsRepository implements QueryFilteredRepository {
   }
 
   public static whereSequelizeTranding() {
+    const greaterThan = process.env.NODE_ENV === 'staging' ? -100 : 0;
+
     return {
       importance_delta: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.importance_delta`), {
-        [Op.gt]: 0,
+        [Op.gt]: greaterThan,
       }),
       upvotes_delta: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.upvotes_delta`), {
-        [Op.gt]: 0,
+        [Op.gt]: greaterThan,
       }),
     };
   }
 
   public static whereSequelizeHot() {
+    const greaterThan = process.env.NODE_ENV === 'staging' ? -100 : 0;
+
     return {
       activity_index: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.activity_index_delta`), {
-        [Op.gt]: 0,
+        [Op.gt]: greaterThan,
       }),
     };
   }
