@@ -4,6 +4,7 @@ import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfa
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 import { ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
+import { UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 
 import ResponseHelper = require('./response-helper');
 import CommentsHelper = require('./comments-helper');
@@ -16,7 +17,6 @@ import NotificationsEventIdDictionary = require('../../../lib/entities/dictionar
 import PostsHelper = require('./posts-helper');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
-import { UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
