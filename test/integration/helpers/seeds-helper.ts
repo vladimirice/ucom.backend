@@ -188,7 +188,7 @@ class SeedsHelper {
 
     await Promise.all([
       this.destroyTables(),
-      this.purgeAllQueues(),
+      // this.purgeAllQueues(),
       this.truncateEventsDb(),
     ]);
 
@@ -363,19 +363,15 @@ class SeedsHelper {
   public static async doAfterAll(
     options: any = null,
   ): Promise<void> {
-    const promises = [
-      models.sequelize.close(),
-    ];
+    await this.sequelizeAfterAll();
 
     if (options && options.isGraphQl) {
-      promises.push(GraphqlHelper.afterAll());
+      await GraphqlHelper.afterAll();
     }
-
-    await Promise.all(promises);
   }
 
   static async sequelizeAfterAll() {
-    models.sequelize.close();
+    await models.sequelize.close();
     await this.closeKnexConnections();
   }
 
