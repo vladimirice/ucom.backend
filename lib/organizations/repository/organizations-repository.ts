@@ -562,15 +562,19 @@ class OrganizationsRepository implements QueryFilteredRepository {
   }
 
   public static whereRawTrending(): string {
+    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
+
     const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
 
-    return `${tableName}.importance_delta > 0 AND ${tableName}.posts_total_amount_delta > 0`;
+    return `${tableName}.importance_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
   }
 
   public static whereRawHot(): string {
+    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
+
     const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
 
-    return `${tableName}.activity_index_delta > 0`;
+    return `${tableName}.activity_index_delta > ${lowerLimit}`;
   }
 
   public static getIncludeProcessor(): Function {
