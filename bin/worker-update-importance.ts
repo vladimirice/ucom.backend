@@ -8,10 +8,8 @@ const { WorkerLogger } = require('../config/winston');
 
 eosApi.initTransactionFactory();
 
-const doWriteEventType: number = +(process.env.DO_WRITE_EVENT_TYPE || 2);
-
 // eslint-disable-next-line promise/always-return
-eosImportance.updateRatesByBlockchain(doWriteEventType).then(() => {
+eosImportance.updateRatesByBlockchain().then(() => {
   console.log('Job is finished');
 }).catch((err) => {
   WorkerLogger.error(err);

@@ -6,7 +6,6 @@ export = {
   BlockchainTr: require('./blockchain-tr-generator'),
 
   Entity: {
-    EventParam:     require('./entity/entity-event-param-generator'),
     Tags:           require('./entity/entity-tags-generator'),
   },
 };
