@@ -19,9 +19,8 @@ DB_KNEX_MIGRATE_MONOLITH_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=monolith
 ENV_VALUE_TEST=test
 
 init-project ip:
-	npm i --only dev
-	npm ci
 	make docker-rebuild
+	make docker-npm-ci
 	make docker-init-test-db
 	make docker-compile-typescript
 	make pm2-reload-test-ecosystem
