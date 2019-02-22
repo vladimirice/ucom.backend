@@ -7,6 +7,7 @@ import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UsersHelper = require('./users-helper');
 import knexEvents = require('../../../config/knex-events');
 import knex = require('../../../config/knex');
+import RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -373,6 +374,9 @@ class SeedsHelper {
   static async sequelizeAfterAll() {
     await models.sequelize.close();
     await this.closeKnexConnections();
+
+    await RabbitMqService.purgeAllQueues();
+    await RabbitMqService.closeAll();
   }
 
   private static async closeKnexConnections() {

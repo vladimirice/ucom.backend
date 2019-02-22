@@ -15,6 +15,8 @@ import ResponseHelper = require('../helpers/response-helper');
 import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
 import _ = require('lodash');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import TagsHelper = require('../helpers/tags-helper');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -64,6 +66,18 @@ describe('GET posts via graphql', () => {
       await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
     });
 
+    it('Trending with side blocks. #smoke #posts', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsPageAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      checkPostsPage(response);
+    });
+
     it('Users list for trending post', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
@@ -80,6 +94,33 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
+    });
+
+    it('Organizations list for trending post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsOrgsAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      expect(_.isEmpty(response.data)).toBeFalsy();
+
+      OrganizationsHelper.checkOrgListResponseStructure(response);
+    });
+
+    it('Tags list for trending post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsTagsAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      expect(_.isEmpty(response.data)).toBeFalsy();
+      TagsHelper.checkTagsListResponseStructure(response);
     });
 
     it('Users list for trending post - pagination', async () => {
@@ -100,18 +141,6 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
-    });
-
-    it('Trending with side blocks. #smoke #posts', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
-      const response: any = await GraphqlHelper.getPostsPageAsMyself(
-        userVlad,
-        overviewType,
-        postTypeId,
-      );
-
-      checkPostsPage(response);
     });
 
     it('Trending legacy - sort by current_rate_daily_delta. #smoke #posts', async () => {
@@ -165,6 +194,35 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Organizations list for hot post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsOrgsAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      expect(_.isEmpty(response.data)).toBeFalsy();
+
+      OrganizationsHelper.checkOrgListResponseStructure(response);
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Tags list for hot post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsTagsAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      expect(_.isEmpty(response.data)).toBeFalsy();
+      TagsHelper.checkTagsListResponseStructure(response);
     });
 
     it('Hot legacy - sort by current rate but only daily. #smoke #posts', async () => {
@@ -226,6 +284,35 @@ describe('GET posts via graphql', () => {
 
       CommonHelper.checkUsersListResponse(response, options);
     });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Organizations list for fresh post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsOrgsAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      expect(_.isEmpty(response.data)).toBeFalsy();
+
+      OrganizationsHelper.checkOrgListResponseStructure(response);
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Tags list for fresh post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsTagsAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      expect(_.isEmpty(response.data)).toBeFalsy();
+      TagsHelper.checkTagsListResponseStructure(response);
+    });
   });
 
   describe('top media posts', () => {
@@ -265,6 +352,35 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Organizations list for top post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsOrgsAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      expect(_.isEmpty(response.data)).toBeFalsy();
+
+      OrganizationsHelper.checkOrgListResponseStructure(response);
+    });
+
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Tags list for top post', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+
+      const response: any = await GraphqlHelper.getPostsTagsAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+      );
+
+      expect(_.isEmpty(response.data)).toBeFalsy();
+      TagsHelper.checkTagsListResponseStructure(response);
     });
   });
 

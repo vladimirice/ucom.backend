@@ -44,10 +44,14 @@ class EntityCalculationService {
       await this.findStatsData(params);
 
     const totalFetchedAmount = lastData.length + lastOfGivenDateData.length;
-    console.log(`Total amount: ${totalFetchedAmount}. Last data length: ${lastData.length}. lastOfGivenDateData length: ${lastOfGivenDateData.length}`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`Total amount: ${totalFetchedAmount}. Last data length: ${lastData.length}. lastOfGivenDateData length: ${lastOfGivenDateData.length}`);
+    }
 
     const hrend = process.hrtime(hrstart);
-    console.log(`Db fetch time: ${hrend[1] / 1000000} ms`);
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`Db fetch time: ${hrend[1] / 1000000} ms`);
+    }
 
     this.printMemoryUsage('after_db_fetching', false);
     this.printMemoryDiff('after_db_fetching', 'before_start');
@@ -207,6 +211,10 @@ class EntityCalculationService {
   }
 
   private static printMemoryDiff(toLabel, fromLabel) {
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
     const memoryTo    = profilingInfo[toLabel];
     const memoryFrom  = profilingInfo[fromLabel];
 
@@ -223,6 +231,10 @@ class EntityCalculationService {
   }
 
   private static printMemoryUsage(label, toPrint = true) {
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
     const usedFormatted = {};
 
     const used = process.memoryUsage();

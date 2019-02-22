@@ -385,6 +385,108 @@ export class GraphqlHelper {
     return this.makeRequestAsMyself(myself, query, keyToReturn, false);
   }
 
+  public static async getPostsOrgsAsMyself(
+    myself: UserModel,
+    overviewType: string,
+    postTypeId: number,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PostsListResponse> {
+    let query: string;
+
+    switch (overviewType) {
+      case EntityListCategoryDictionary.getTrending():
+        query = GraphQLSchema.getManyOrganizationsForTrendingPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getHot():
+        query = GraphQLSchema.getManyOrganizationsForHotPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        query = GraphQLSchema.getManyOrganizationsForFreshPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getTop():
+        query = GraphQLSchema.getManyOrganizationsForTopPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      default:
+        throw new Error(`Unsupported overview type: ${overviewType}`);
+    }
+
+    const keyToReturn = 'many_organizations';
+
+    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+  }
+
+  public static async getPostsTagsAsMyself(
+    myself: UserModel,
+    overviewType: string,
+    postTypeId: number,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PostsListResponse> {
+    let query: string;
+
+    switch (overviewType) {
+      case EntityListCategoryDictionary.getTrending():
+        query = GraphQLSchema.getManyTagsForTrendingPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getHot():
+        query = GraphQLSchema.getManyTagsForHotPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        query = GraphQLSchema.getManyTagsForFreshPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getTop():
+        query = GraphQLSchema.getManyTagsForTopPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      default:
+        throw new Error(`Unsupported overview type: ${overviewType}`);
+    }
+
+    const keyToReturn = 'many_tags';
+
+    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+  }
+
   public static async getTagsUsersAsMyself(
     myself: UserModel,
     overviewType: string,
