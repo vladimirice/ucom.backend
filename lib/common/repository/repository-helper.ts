@@ -100,7 +100,8 @@ class RepositoryHelper {
   ): Promise<any> {
     const sql = `
       UPDATE ${tableName}
-        SET ${fieldNameToSet} = CASE ${whenThenString} END
+        SET ${fieldNameToSet} = CASE ${whenThenString} END,
+        updated_at = NOW()
         WHERE ${filterFieldName} IN (${filterValues.join(', ')})
     `;
 
