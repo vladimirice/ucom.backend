@@ -1,8 +1,8 @@
 # U°Community Backend API Service
 
 [![dependencies Status](https://david-dm.org/UOSnetwork/ucom.backend/status.svg)](https://david-dm.org/UOSnetwork/ucom.backend) 
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/UOSnetwork/ucom.backend.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/UOSnetwork/ucom.backend/alerts/) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/UOSnetwork/ucom.backend.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/UOSnetwork/ucom.backend/context:javascript)
 [![Known Vulnerabilities](https://snyk.io/test/github/vladimirice/ucom.backend/badge.svg)](https://snyk.io/test/github/vladimirice/ucom.backend)
+[![Maintainability](https://api.codeclimate.com/v1/badges/a99a88d28ad37a79dbf6/maintainability)](https://codeclimate.com/github/codeclimate/codeclimate/maintainability)
 
 ## Content
 * [Installation](documentation/INSTALLATION.md)
