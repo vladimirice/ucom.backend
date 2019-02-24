@@ -2,8 +2,10 @@ import { MyselfDataDto } from '../interfaces/post-processing-dto';
 import { EmptyListResponse, ListMetadata } from '../interfaces/lists-interfaces';
 import { AppError } from '../../api/errors';
 import { PostModelResponse } from '../../posts/interfaces/model-interfaces';
+import { TagsModelResponse } from '../../tags/interfaces/dto-interfaces';
 
 import CommentsPostProcessor = require('../../comments/service/comments-post-processor');
+import TagsModelProvider = require('../../tags/service/tags-model-provider');
 
 const PAGE_FOR_EMPTY_METADATA = 1;
 const PER_PAGE_FOR_EMPTY_METADATA = 10;
@@ -24,8 +26,16 @@ const usersModelProvider = require('../../users/users-model-provider');
 const eosImportance = require('../../eos/eos-importance');
 
 class ApiPostProcessor {
-  static processOneTag(model) {
+  public static processManyTags(models: TagsModelResponse[]): void {
+    models.forEach((model) => {
+      model.entity_name = TagsModelProvider.getEntityName();
+      this.processOneTag(model);
+    });
+  }
+
+  public static processOneTag(model: TagsModelResponse): void {
     this.normalizeMultiplier(model);
+    this.formatModelDateTime(model);
   }
 
   /**

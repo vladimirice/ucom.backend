@@ -4,8 +4,33 @@
     "profile_files_upload_dir": "/upload",
     "organization_files_upload_dir": "/upload/organizations"
   },
-  "db_knex": {
-    "connection_string": "postgresql://uos:uos@uos-backend-postgres-test.dev:5432/uos_backend_app"
+  "db_knex_events": {
+    "client": "pg",
+    "debug": false,
+    "connection": {
+      "host" : "uos-backend-postgres-test.dev",
+      "user" : "uos",
+      "password" : "uos",
+      "database" : "uos_backend_events"
+    },
+    "migrations": {
+      "tableName": "migrations_knex",
+      "directory": "./migrations_knex_events"
+    }
+  },
+  "db_knex_monolith": {
+    "client": "pg",
+    "debug": false,
+    "connection": {
+      "host" : "uos-backend-postgres-test.dev",
+      "user" : "uos",
+      "password" : "uos",
+      "database" : "uos_backend_app"
+    },
+    "migrations": {
+      "tableName": "migrations_knex",
+      "directory": "./migrations_knex_monolith"
+    }
   },
   "db": {
     "username": "uos",

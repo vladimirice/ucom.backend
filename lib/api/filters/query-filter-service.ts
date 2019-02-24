@@ -62,10 +62,17 @@ class QueryFilterService {
       params.orderByRaw = this.sequelizeOrderByToKnexRaw(params.order);
     }
 
+    if (params.whereRaw) {
+      // noinspection JSIgnoredPromiseFromCall
+      query.whereRaw(params.whereRaw);
+    }
+
     if (params.orderByRaw) {
+      // noinspection JSIgnoredPromiseFromCall
       query.orderByRaw(params.orderByRaw);
     }
 
+    // noinspection JSIgnoredPromiseFromCall
     query
       .select(params.attributes)
       .limit(params.limit || PER_PAGE_LIMIT)
@@ -74,13 +81,14 @@ class QueryFilterService {
   }
 
   public static getQueryParametersWithRepository(
-    query,
+    query: RequestQueryDto,
     repository: QueryFilteredRepository,
     processAttributes = false, // hardcoded variable in order to reduce refactoring at the beginning
+    processInclude = false, // hardcoded variable in order to reduce refactoring at the beginning
   ): DbParamsDto {
-    const orderByRelationMap = repository.getOrderByRelationMap();
-    const allowedOrderBy = repository.getAllowedOrderBy();
-    const whereProcessor = repository.getWhereProcessor();
+    const orderByRelationMap    = repository.getOrderByRelationMap();
+    const allowedOrderBy        = repository.getAllowedOrderBy();
+    const whereProcessor        = repository.getWhereProcessor();
 
     const givenParams = this.getQueryParameters(
       query,
@@ -89,12 +97,36 @@ class QueryFilterService {
       whereProcessor,
     );
 
-    if (!processAttributes) {
-      return givenParams;
+    let params = givenParams;
+    if (processAttributes) {
+      const defaultParams = repository.getDefaultListParams();
+      params = _.defaults(givenParams, defaultParams);
     }
 
-    const defaultParams = repository.getDefaultListParams();
-    return _.defaults(givenParams, defaultParams);
+    if (processInclude) {
+      const includeProcessor = repository.getIncludeProcessor();
+      includeProcessor(query, params);
+    }
+
+    return params;
+  }
+
+  public static processAttributes(params: DbParamsDto, mainTableName: string) {
+    if (!params.attributes) {
+      return;
+    }
+
+    const paramsToAddPrefix = [
+      'id',
+      'created_at',
+      'updated_at',
+    ];
+
+    for (let i = 0; i < params.attributes.length; i += 1) {
+      if (~paramsToAddPrefix.indexOf(params.attributes[i])) {
+        params.attributes[i] = `${mainTableName}.${params.attributes[i]} AS ${params.attributes[i]}`;
+      }
+    }
   }
 
   /**
@@ -171,11 +203,15 @@ class QueryFilterService {
 
     let offset = 0;
     if (page > 1) {
-      offset = (page - 1) * perPage;
+      offset = this.getOffsetByPagePerPage(page, perPage);
     }
 
     params.offset = offset;
     params.limit = perPage;
+  }
+
+  public static getOffsetByPagePerPage(page: number, perPage: number): number {
+    return (page - 1) * perPage;
   }
 
   /**

@@ -1,4 +1,5 @@
 const models = require('../../../models');
+
 const ENTITY_NAME = 'posts     ';
 const TABLE_NAME = 'posts';
 
@@ -11,8 +12,8 @@ const POST_OFFER_BLOCKCHAIN_ID_PREFIX   = 'pstos';
 const DIRECT_POST_BLOCKCHAIN_ID_PREFIX  = 'pstdr';
 const REPOST_POST_BLOCKCHAIN_ID_PREFIX  = 'pstrp';
 
-class PostsModelProvider {
 
+class PostsModelProvider {
   /**
    *
    * @return {string}
@@ -51,6 +52,10 @@ class PostsModelProvider {
    */
   static getEntityName() {
     return ENTITY_NAME;
+  }
+
+  public static getCurrentParamsTableName(): string {
+    return 'posts_current_params';
   }
 
   /**
@@ -156,6 +161,19 @@ class PostsModelProvider {
   static getPostOfferItselfInclude() {
     return {
       model: this.getPostOfferModel(),
+    };
+  }
+
+  public static getCurrentParamsSequelizeModel() {
+    return models[this.getCurrentParamsTableName()];
+  }
+
+  public static getCurrentParamsSequelizeInclude() {
+    return {
+      attributes: ['importance_delta'],
+      model:      this.getCurrentParamsSequelizeModel(),
+      required:   false, // #task - should be always required
+      as:         PostsModelProvider.getCurrentParamsTableName(),
     };
   }
 

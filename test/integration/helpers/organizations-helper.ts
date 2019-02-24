@@ -5,6 +5,8 @@ import {
   OrgModelCard,
   OrgModelResponse,
 } from '../../../lib/organizations/interfaces/model-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
 
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
@@ -12,6 +14,7 @@ import EosImportance = require('../../../lib/eos/eos-importance');
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import FileToUploadHelper = require('./file-to-upload-helper');
+import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -29,7 +32,57 @@ const entityModelProvider = require('../../../lib/entities/service').ModelProvid
 require('jest-expect-message');
 
 class OrganizationsHelper {
-  public static async setSampleRateToOrg(id: number, rateToSet = 0.1235) {
+  public static checkOneNewEntityCurrentParams(data, isEmpty = false) {
+    expect(_.isEmpty(data)).toBeFalsy();
+    this.checkOneCurrentParamsRowStructure(data);
+    if (isEmpty) {
+      this.checkOneCurrentParamsRowFreshness(data);
+    }
+  }
+
+  private static checkOneCurrentParamsRowStructure(data) {
+    const expectedFields: string[] = [
+      'id',
+
+      'organization_id',
+      'importance_delta',
+      'activity_index_delta',
+      'posts_total_amount_delta',
+
+      'created_at',
+      'updated_at',
+    ];
+
+    ResponseHelper.expectAllFieldsExistence(data, expectedFields);
+
+    const numFields = OrgsCurrentParamsRepository.getNumericalFields();
+
+    for (const field of numFields) {
+      expect(typeof data[field]).toBe('number');
+    }
+  }
+
+  private static checkOneCurrentParamsRowFreshness(data) {
+    expect(data.importance_delta).toBe(0);
+    expect(data.activity_index_delta).toBe(0);
+    expect(data.posts_total_amount_delta).toBe(0);
+  }
+
+  public static async setRandomRateToManyOrgs(
+    modelsIds: number[],
+  ): Promise<NumberToNumberCollection> {
+    const set: NumberToNumberCollection = {};
+    for (let i = 0; i < modelsIds.length; i += 1) {
+      const modelId = modelsIds[i];
+      set[modelId] = RequestHelper.generateRandomImportance();
+
+      await this.setSampleRateToOrg(modelId, set[modelId]);
+    }
+
+    return set;
+  }
+
+  public static async setSampleRateToOrg(id: number, rateToSet: number = 0.1235) {
     await OrganizationsModelProvider.getModel().update(
       {
         current_rate: rateToSet,
@@ -105,14 +158,11 @@ class OrganizationsHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {number} orgId
-   * @param {Object} user
-   * @param {number} expectedStatus
-   * @return {Promise<Object>}
-   */
-  static async requestToFollowOrganization(orgId, user, expectedStatus = 201) {
+  public static async requestToFollowOrganization(
+    orgId: number,
+    user: UserModel,
+    expectedStatus: number = 201,
+  ) {
     const res = await request(server)
       .post(RequestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
@@ -141,13 +191,19 @@ class OrganizationsHelper {
     return res.body;
   }
 
-  static async requestToCreateOrgFollowHistory(whoActs, targetOrgId) {
+  static async requestToCreateOrgFollowHistory(
+    whoActs: UserModel,
+    targetOrgId: number,
+  ): Promise<void> {
     await this.requestToFollowOrganization(targetOrgId, whoActs);
     await this.requestToUnfollowOrganization(targetOrgId, whoActs);
     await this.requestToFollowOrganization(targetOrgId, whoActs);
   }
 
-  static async requestToCreateOrgUnfollowHistory(whoActs, targetOrgId) {
+  static async requestToCreateOrgUnfollowHistory(
+    whoActs: UserModel,
+    targetOrgId: number,
+  ): Promise<void> {
     await this.requestToFollowOrganization(targetOrgId, whoActs);
     await this.requestToUnfollowOrganization(targetOrgId, whoActs);
     await this.requestToFollowOrganization(targetOrgId, whoActs);
@@ -871,12 +927,12 @@ class OrganizationsHelper {
    * @return {Promise<Object>}
    */
   static async requestToUpdateExisting(
-    orgId,
-    user,
-    fields,
-    sources = null,
-    socialNetworks = [],
-    expectedStatus = 200,
+    orgId: number,
+    user: UserModel,
+    fields: any,
+    sources: any[] | null = null,
+    socialNetworks: any[] = [],
+    expectedStatus: number = 200,
   ) {
     const req = request(server)
       .patch(RequestHelper.getOneOrganizationUrl(orgId))

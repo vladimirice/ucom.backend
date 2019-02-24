@@ -5,17 +5,16 @@ const ENTITY_NAME = 'org       ';
 const TABLE_NAME = 'organizations';
 
 class OrganizationsModelProvider {
-
   static getOrgFieldsForPreview() {
     return this.getModel().getFieldsForPreview();
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static getEntityName() {
+  static getEntityName(): string {
     return ENTITY_NAME;
+  }
+
+  public static getCurrentParamsTableName(): string {
+    return 'organizations_current_params';
   }
 
   /**
@@ -38,10 +37,7 @@ class OrganizationsModelProvider {
     return TABLE_NAME;
   }
 
-  /**
-   *
-   * @return {string}
-   */
+  // noinspection JSUnusedGlobalSymbols
   static getBlockchainIdFieldName() {
     return 'blockchain_id';
   }
@@ -52,6 +48,12 @@ class OrganizationsModelProvider {
    */
   static getModel() {
     return models[TABLE_NAME];
+  }
+
+  public static getCurrentParamsInclude() {
+    return {
+
+    };
   }
 
   /**

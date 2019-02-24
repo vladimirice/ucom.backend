@@ -1,10 +1,3 @@
-const source_type_map = {
-  "1": 'Facebook',
-  "2": 'Reddit',
-  "3": 'Medium',
-  "4": 'Twitter',
-};
-
 const seeds = [{
   source_url: 'https://www.facebook.com/BillGates/',
   is_official: false,

@@ -39,8 +39,8 @@ const eventRequiresPrompt = [
   ORG_USERS_TEAM_INVITATION,
 ];
 
+// #task - it is not a notification events. Here is event_id dictionary for users_activity
 class NotificationsEventIdDictionary {
-
   /**
    *
    * @returns {number}
@@ -155,6 +155,7 @@ class NotificationsEventIdDictionary {
   static getOrgUsersTeamInvitation() {
     return ORG_USERS_TEAM_INVITATION;
   }
+
   /**
    *
    * @return {number}
@@ -162,6 +163,7 @@ class NotificationsEventIdDictionary {
   static getUserCreatesDirectPostForOtherUser() {
     return USER_CREATES_DIRECT_POST_FOR_YOU;
   }
+
   /**
    *
    * @return {number}
@@ -193,6 +195,7 @@ class NotificationsEventIdDictionary {
   static getUserCommentsPost() {
     return USER_COMMENTS_YOUR_POST;
   }
+
   /**
    *
    * @return {number}
@@ -207,14 +210,6 @@ class NotificationsEventIdDictionary {
    */
   static getUserCommentsOrgComment() {
     return USER_LEAVES_COMMENT_ON_ORG_COMMENT;
-  }
-
-  /**
-   *
-   * @return {number}
-   */
-  static isUserCommentsOrgComment(model) {
-    return model.event_id === USER_LEAVES_COMMENT_ON_ORG_COMMENT;
   }
 
   /**
@@ -239,20 +234,6 @@ class NotificationsEventIdDictionary {
    */
   static getUserUnfollowsOrg() {
     return USER_UNFOLLOWS_ORG;
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @return {boolean}
-   */
-  static isTargetEntityRecipient(model) {
-    const set = [
-      ORG_USERS_TEAM_INVITATION,
-      USER_FOLLOWS_YOU,
-    ];
-
-    return ~set.indexOf(model.event_id);
   }
 
   /**

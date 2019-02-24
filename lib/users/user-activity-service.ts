@@ -210,7 +210,7 @@ class UserActivityService {
       event_id:           eventId,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**

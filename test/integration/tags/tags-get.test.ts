@@ -1,115 +1,119 @@
-export {};
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-const gen         = require('../../generators');
-const helpers     = require('../helpers');
-const tagsHelper  = require('../helpers/tags-helper');
-const tagsGenerator = require('../../generators/entity/entity-tags-generator');
+import SeedsHelper = require('../helpers/seeds-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import PostsGenerator = require('../../generators/posts-generator');
+import TagsHelper = require('../helpers/tags-helper');
+import RequestHelper = require('../helpers/request-helper');
+import EntityTagsGenerator = require('../../generators/entity/entity-tags-generator');
+import ResponseHelper = require('../helpers/response-helper');
+import UsersHelper = require('../helpers/users-helper');
+import CommonHelper = require('../helpers/common-helper');
+import OrganizationsHelper = require('../helpers/organizations-helper');
 
-const requestHelper = require('../helpers/request-helper');
+let userVlad: UserModel;
+let userJane: UserModel;
+let userPetr: UserModel;
 
-let userVlad;
-let userJane;
-let userPetr;
+const options = {
+  isGraphQl: false,
+  workersMocking: 'blockchainOnly',
+};
 
 describe('GET Tags', () => {
-  beforeAll(async () => {
-    helpers.Mock.mockAllTransactionSigning();
-    helpers.Mock.mockAllBlockchainJobProducers();
-  });
-  afterAll(async () => {
-    await helpers.SeedsHelper.doAfterAll();
-  });
+  beforeAll(async () => { await SeedsHelper.beforeAllSetting(options); });
+  afterAll(async () => { await SeedsHelper.doAfterAll(options); });
   beforeEach(async () => {
-    [userVlad, userJane, userPetr] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('pagination last id is required', () => {
     it('is NOT required for related organizations if page is 1', async () => {
       const tagTitle = 'summer';
 
-      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
-      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+      const orgOneId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
         description: `Hi everyone! #${tagTitle} is so close`,
       });
 
-      await tagsHelper.getPostWhenTagsAreProcessed(postId);
-      const queryString = requestHelper.getPaginationQueryString(1, 10);
+      await TagsHelper.getPostWhenTagsAreProcessed(postId);
+      const queryString = RequestHelper.getPaginationQueryString(1, 10);
 
-      const url = helpers.Req.getTagsOrgUrl(tagTitle) + queryString;
+      const url = RequestHelper.getTagsOrgUrl(tagTitle) + queryString;
 
-      await requestHelper.makeGetRequestForList(url);
+      await RequestHelper.makeGetRequestForList(url);
     });
 
     it('is required for related organizations if page is more than 1', async () => {
       const tagTitle = 'summer';
 
-      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
-      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+      const orgOneId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
         description: `Hi everyone! #${tagTitle} is so close`,
       });
-      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+      await TagsHelper.getPostWhenTagsAreProcessed(postId);
 
-      const queryString = requestHelper.getPaginationQueryString(2, 10);
-      const url = helpers.Req.getTagsOrgUrl(tagTitle) + queryString;
+      const queryString = RequestHelper.getPaginationQueryString(2, 10);
+      const url = RequestHelper.getTagsOrgUrl(tagTitle) + queryString;
 
-      await requestHelper.makeGetRequest(url, 400);
+      await RequestHelper.makeGetRequest(url, 400);
     });
 
     it('last id = string is not correct', async () => {
       const tagTitle = 'summer';
 
-      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
-      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+      const orgOneId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
         description: `Hi everyone! #${tagTitle} is so close`,
       });
-      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+      await TagsHelper.getPostWhenTagsAreProcessed(postId);
 
-      const queryString = requestHelper.getPaginationQueryString(2, 10);
-      const url = `${requestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=hello`;
+      const queryString = RequestHelper.getPaginationQueryString(2, 10);
+      const url = `${RequestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=hello`;
 
-      await requestHelper.makeGetRequest(url, 400);
+      await RequestHelper.makeGetRequest(url, 400);
     });
 
     it('last id = float - is not correct', async () => {
       const tagTitle = 'summer';
 
-      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
-      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+      const orgOneId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
         description: `Hi everyone! #${tagTitle} is so close`,
       });
 
-      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+      await TagsHelper.getPostWhenTagsAreProcessed(postId);
 
-      const queryString = requestHelper.getPaginationQueryString(2, 10);
-      const url = `${requestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=12.06`;
+      const queryString = RequestHelper.getPaginationQueryString(2, 10);
+      const url = `${RequestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=12.06`;
 
-      await requestHelper.makeGetRequest(url, 400);
+      await RequestHelper.makeGetRequest(url, 400);
     });
 
     it('lets provide correct last id', async () => {
       const tagTitle = 'summer';
 
-      const orgOneId = await gen.Org.createOrgWithoutTeam(userVlad);
-      const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgOneId, {
+      const orgOneId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgOneId, {
         description: `Hi everyone! #${tagTitle} is so close`,
       });
 
-      await tagsHelper.getPostWhenTagsAreProcessed(postId);
+      await TagsHelper.getPostWhenTagsAreProcessed(postId);
 
-      const queryString = requestHelper.getPaginationQueryString(1, 3);
-      const url = `${requestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=12`;
+      const queryString = RequestHelper.getPaginationQueryString(1, 3);
+      const url = `${RequestHelper.getTagsOrgUrl(tagTitle)}${queryString}&last_id=12`;
 
-      await requestHelper.makeGetRequestForList(url);
+      await RequestHelper.makeGetRequestForList(url);
     });
   });
 
   it('Get one tag page by tag name', async () => {
-    const generated = await tagsGenerator.createPostsWithTags(userVlad, userJane);
+    const generated = await EntityTagsGenerator.createPostsWithTags(userVlad, userJane);
 
     const tagName = generated.tagsTitles[0];
     const expectedFeedPosts = generated.posts.total_amount;
 
-    const data = await helpers.Tags.requestToGetOneTagPageByTitleAsGuest(tagName);
+    const data = await TagsHelper.requestToGetOneTagPageByTitleAsGuest(tagName);
 
     expect(data.posts).toBeDefined();
     expect(data.users).toBeDefined();
@@ -127,27 +131,28 @@ describe('GET Tags', () => {
     expect(typeof data.current_rate).toBe('number');
     expect(data.created_at.length).toBeGreaterThanOrEqual(0);
 
-    const options = {
+    const checkerOptions = {
       myselfData: false,
       postProcessing: 'list',
     };
 
-    helpers.Res.expectValidListBody(data.posts);
-    helpers.Common.checkPostsListFromApi(data.posts.data, expectedFeedPosts, options);
+    ResponseHelper.expectValidListBody(data.posts);
+    CommonHelper.checkPostsListFromApi(data.posts.data, expectedFeedPosts, checkerOptions);
 
-    helpers.Res.expectValidListBody(data.users);
-    helpers.Users.checkManyUsersPreview(data.users.data);
+    ResponseHelper.expectValidListBody(data.users);
+    UsersHelper.checkManyUsersPreview(data.users.data);
 
-    helpers.Res.expectValidListBody(data.orgs);
-    helpers.Organizations.checkOrganizationsPreviewFields(data.orgs.data);
+    ResponseHelper.expectValidListBody(data.orgs);
+    OrganizationsHelper.checkOrganizationsPreviewFields(data.orgs.data);
   });
 
   it('Get tag related organizations', async () => {
-    const { postTags, orgIds } = await tagsGenerator.createPostsWithTagsForOrgs(userVlad, userJane);
+    const { postTags, orgIds } =
+      await EntityTagsGenerator.createPostsWithTagsForOrgs(userVlad, userJane);
 
-    const url = helpers.Req.getTagsOrgUrl(postTags[0]);
+    const url = RequestHelper.getTagsOrgUrl(postTags[0]);
 
-    const models = await helpers.Req.makeGetRequestForList(url);
+    const models = await RequestHelper.makeGetRequestForList(url);
 
     expect(models.length).toBe(3);
 
@@ -156,7 +161,7 @@ describe('GET Tags', () => {
     expect(models.some((item): any => item.id === orgIds[3])).toBeTruthy();
     expect(models.some((item): any => item.id === orgIds[2])).toBeFalsy();
 
-    helpers.Organizations.checkOrganizationsPreviewFields(models);
+    OrganizationsHelper.checkOrganizationsPreviewFields(models);
   });
 
   it('Get tag related users', async () => {
@@ -165,32 +170,32 @@ describe('GET Tags', () => {
       'undefined',
     ];
 
-    const postOneId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
+    const postOneId = await PostsGenerator.createMediaPostByUserHimself(userVlad, {
       description: `Hi everyone! #${postTags[0]} is so close`,
     });
 
-    const postTwoId = await gen.Posts.createMediaPostByUserHimself(userVlad, {
+    const postTwoId = await PostsGenerator.createMediaPostByUserHimself(userVlad, {
       description: `Hi everyone! #${postTags[0]} is so close - here is another description`,
     }); // to test duplications issue
 
-    const postThreeId = await gen.Posts.createMediaPostByUserHimself(userJane, {
+    const postThreeId = await PostsGenerator.createMediaPostByUserHimself(userJane, {
       description: `Hi everyone! #${postTags[0]} is so close close close ${postTags[1]}`,
     });
 
-    const postFourId = await gen.Posts.createMediaPostByUserHimself(userPetr, {
+    const postFourId = await PostsGenerator.createMediaPostByUserHimself(userPetr, {
       description: `Hi everyone! #${postTags[1]} is so close ha`,
     });
 
     await Promise.all([
-      tagsHelper.getPostWhenTagsAreProcessed(postOneId),
-      tagsHelper.getPostWhenTagsAreProcessed(postTwoId),
-      tagsHelper.getPostWhenTagsAreProcessed(postThreeId),
-      tagsHelper.getPostWhenTagsAreProcessed(postFourId),
+      TagsHelper.getPostWhenTagsAreProcessed(postOneId),
+      TagsHelper.getPostWhenTagsAreProcessed(postTwoId),
+      TagsHelper.getPostWhenTagsAreProcessed(postThreeId),
+      TagsHelper.getPostWhenTagsAreProcessed(postFourId),
     ]);
 
-    const url = `${helpers.Req.getTagsUsersUrl(postTags[0])}/?v2=true`;
+    const url = `${RequestHelper.getTagsUsersUrl(postTags[0])}/?v2=true`;
 
-    const models = await helpers.Req.makeGetRequestForList(url);
+    const models = await RequestHelper.makeGetRequestForList(url);
 
     expect(models.length).toBe(2);
 
@@ -198,15 +203,15 @@ describe('GET Tags', () => {
     expect(models.some((item: any) => item.id === userJane.id)).toBeTruthy();
     expect(models.some((item: any) => item.id === userPetr.id)).toBeFalsy();
 
-    helpers.Users.checkManyUsersPreview(models);
+    UsersHelper.checkManyUsersPreview(models);
   });
 
   describe('Smoke tests', () => {
     it('[Smoke] Get one tag page by tag name by myself', async () => {
       const tagTitle: string = 'summer';
-      await gen.Entity.Tags.createPostsWithTags(userVlad, userJane);
+      await EntityTagsGenerator.createPostsWithTags(userVlad, userJane);
 
-      await tagsHelper.requestToGetOneTagPageByTitleAsMyself(tagTitle, userVlad);
+      await TagsHelper.requestToGetOneTagPageByTitleAsMyself(tagTitle, userVlad);
     });
   });
 
@@ -214,9 +219,9 @@ describe('GET Tags', () => {
     it('404 error if no tag with given title', async () => {
       const tagTitle: string = 'summer100500';
 
-      await tagsGenerator.createPostsWithTags(userVlad, userJane);
+      await EntityTagsGenerator.createPostsWithTags(userVlad, userJane);
 
-      await tagsHelper.requestToGetOneTagPageByTitleAsGuest(tagTitle, 404);
+      await TagsHelper.requestToGetOneTagPageByTitleAsGuest(tagTitle, 404);
     });
   });
 
@@ -226,3 +231,5 @@ describe('GET Tags', () => {
     });
   });
 });
+
+export {};

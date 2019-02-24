@@ -176,7 +176,7 @@ class PostsGenerator {
     user: any,
     amount: number,
   ): Promise<number[]> {
-    const promises: any = [];
+    const promises: Promise<number>[] = [];
 
     for (let i = 0; i < amount; i += 1) {
       promises.push(
@@ -184,7 +184,6 @@ class PostsGenerator {
       );
     }
 
-    // @ts-ignore
     return Promise.all(promises);
   }
 
@@ -192,8 +191,8 @@ class PostsGenerator {
     user: any,
     orgId: number,
     amount: number,
-  ) {
-    const promises: any = [];
+  ): Promise<number[]> {
+    const promises: Promise<number>[] = [];
 
     for (let i = 0; i < amount; i += 1) {
       promises.push(
@@ -351,11 +350,11 @@ class PostsGenerator {
    *
    */
   static async createDirectPostForOrganization(
-    myself,
-    targetOrgId,
-    givenDescription = null,
-    withImage = false,
-    idOnly = false,
+    myself: UserModel,
+    targetOrgId: number,
+    givenDescription: string | null = null,
+    withImage: boolean = false,
+    idOnly: boolean = false,
   ) {
     const url = RequestHelper.getOrgDirectPostUrl(targetOrgId);
 
@@ -375,11 +374,11 @@ class PostsGenerator {
   }
 
   public static async createDirectPostForOrganizationV2AndGetId(
-    myself,
-    targetOrgId,
-    givenDescription = null,
-    withImage = false,
-    idOnly = false,
+    myself: UserModel,
+    targetOrgId: number,
+    givenDescription: string | null = null,
+    withImage: boolean = false,
+    idOnly: boolean = false,
   ): Promise<number> {
     const url = RequestHelper.getOrgDirectPostV2UrlV(targetOrgId);
 

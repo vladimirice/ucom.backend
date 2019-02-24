@@ -55,6 +55,8 @@ class OrganizationsGenerator {
   ): Promise<number> {
     // noinspection JSUnresolvedFunction
     const title = faker.company.companyName();
+    const about = faker.company.companyName();
+    const poweredBy = faker.company.companyName();
     // noinspection JSCheckFunctionSignatures
     const nickname = faker.name.firstName();
 
@@ -63,6 +65,9 @@ class OrganizationsGenerator {
       .set('Authorization', `Bearer ${author.token}`)
       .field('title',             title)
       .field('nickname',          nickname)
+      .field('about',          about)
+      .field('powered_by',          poweredBy)
+      .field('email',          faker.internet.email())
     ;
 
     for (let i = 0; i < teamMembers.length; i += 1) {

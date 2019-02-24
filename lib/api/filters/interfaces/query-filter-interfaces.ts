@@ -1,6 +1,7 @@
 interface RequestQueryDto {
   readonly sort_by?: string;
 
+  readonly overview_type?: string;
   readonly page: number;
   readonly per_page: number;
   readonly last_id?: string;
@@ -18,15 +19,10 @@ interface RequestQueryComments extends RequestQueryDto {
   readonly commentable_id?: number;
 }
 
-interface DbParamOneEntityDto {
-  attributes: string[];
-  where: {[index: string]: any }
-  include?: any[]
-}
-
 interface DbParamsDto {
   attributes: string[];
   where: {[index: string]: any };
+  whereRaw?: string;
   include?: any[];
 
   limit: number;
@@ -39,13 +35,15 @@ interface DbParamsDto {
 interface QueryFilteredRepository {
   [index: string]: any
 
+  getOrderByRelationMap: Function;
+  getAllowedOrderBy: Function;
   getDefaultListParams: Function;
+  getWhereProcessor: Function;
 }
 
 export {
   RequestQueryDto,
   DbParamsDto,
   RequestQueryComments,
-  DbParamOneEntityDto,
   QueryFilteredRepository,
 };

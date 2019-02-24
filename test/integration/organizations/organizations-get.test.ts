@@ -108,8 +108,8 @@ describe('Organizations. Get requests', () => {
         const queryString = 'sort_by=-current_rate,-id';
         const orgs = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest(queryString);
 
-        const minOrgId = await orgRepository.findMinOrgIdByParameter('current_rate');
-        const maxOrgId = await orgRepository.findMaxOrgIdByParameter('current_rate');
+        const minOrgId = await OrganizationsRepository.findMinOrgIdByParameter('current_rate');
+        const maxOrgId = await OrganizationsRepository.findMaxOrgIdByParameter('current_rate');
 
         expect(orgs[orgs.length - 1].id).toBe(minOrgId);
         expect(orgs[0].id).toBe(maxOrgId);

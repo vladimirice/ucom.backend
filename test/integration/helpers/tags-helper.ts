@@ -1,9 +1,20 @@
+import { TagsModelResponse, TagsListResponse } from '../../../lib/tags/interfaces/dto-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
+import ResponseHelper = require('./response-helper');
+import TagsRepository = require('../../../lib/tags/repository/tags-repository');
+import RequestHelper = require('./request-helper');
+import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
+
+import knex = require('../../../config/knex');
+import EosImportance = require('../../../lib/eos/eos-importance');
+import _ = require('lodash');
+import TagsCurrentParamsRepository = require('../../../lib/tags/repository/tags-current-params-repository');
+
 const delay = require('delay');
 
 const request = require('supertest');
 const server = require('../../../app');
-const requestHelper = require('./request-helper');
-const responseHelper = require('./response-helper');
 
 const postsRepository = require('../../../lib/posts/posts-repository');
 const tagsRepository = require('../../../lib/tags/repository/tags-repository.js');
@@ -16,46 +27,87 @@ const postsModelProvider = require('../../../lib/posts/service/posts-model-provi
 require('jest-expect-message');
 
 class TagsHelper {
+  public static async checkManyNewEntitiesCurrentParams(entitiesIds: number[]) {
+    for (const entityId of entitiesIds) {
+      const paramsData = await TagsCurrentParamsRepository.getCurrentStatsByEntityId(entityId);
 
-  /**
-   * [Legacy]
-   * @param {int} tagId
-   * @param {number} expectedResponseStatus
-   * @returns {Promise<*>}
-   */
-  static async requestToGetOneTagPageByIdAsGuest(tagId, expectedResponseStatus = 200) {
-    const url = `${requestHelper.getTagsRootUrl()}/${tagId}`;
-
-    const res = await request(server)
-      .get(url)
-    ;
-
-    responseHelper.expectStatusToBe(res, expectedResponseStatus);
-
-    return res.body;
+      this.checkOneNewEntityCurrentParams(paramsData);
+    }
   }
 
-  /**
-   * @param {string} tagTitle
-   * @param {Object} myself
-   * @param {number} expectedResponseStatus
-   * @returns {Promise<*>}
-   */
-  static async requestToGetOneTagPageByTitleAsMyself(
+  private static checkOneNewEntityCurrentParams(data, isEmpty = false) {
+    expect(_.isEmpty(data)).toBeFalsy();
+    this.checkOneCurrentParamsRowStructure(data);
+    if (isEmpty) {
+      this.checkOneCurrentParamsRowFreshness(data);
+    }
+  }
+
+  private static checkOneCurrentParamsRowStructure(data) {
+    const expectedFields: string[] = [
+      'created_at',
+      'updated_at',
+      'id',
+      'tag_id',
+      'importance_delta',
+      'activity_index_delta',
+      'posts_total_amount_delta',
+    ];
+
+    ResponseHelper.expectAllFieldsExistence(data, expectedFields);
+
+    expect(typeof data.tag_id).toBe('number');
+    expect(typeof data.importance_delta).toBe('number');
+    expect(typeof data.activity_index_delta).toBe('number');
+    expect(typeof data.posts_total_amount_delta).toBe('number');
+
+    // #task
+    // expect(typeof data.created_at).toBe('string');
+    // expect(typeof data.updated_at).toBe('string');
+  }
+
+  private static checkOneCurrentParamsRowFreshness(data) {
+    expect(data.importance_delta).toBe(0);
+    expect(data.activity_index_delta).toBe(0);
+    expect(data.posts_total_amount_delta).toBe(0);
+  }
+
+  public static async setSampleRateToTagById(
+    id: number,
+    rateToSet = 0.1235,
+  ): Promise<number> {
+    const sql = `
+      UPDATE tags
+        SET current_rate = ${rateToSet}
+        WHERE id = ${+id} 
+    `;
+
+    await knex.raw(sql);
+    const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
+
+    return +rateNormalized.toFixed();
+  }
+
+  public static checkTagsListResponseStructure(response: TagsListResponse): void {
+    ResponseHelper.checkListResponseStructure(response);
+    this.checkManyTags(response.data);
+  }
+
+  public static async requestToGetOneTagPageByTitleAsMyself(
     tagTitle: string,
-    myself: Object,
+    myself: UserModel,
     expectedResponseStatus: number = 200,
-  ) {
-    const url = requestHelper.getOneTagUrl(tagTitle);
+  ): Promise<void> {
+    const url = RequestHelper.getOneTagUrl(tagTitle);
     const req = request(server)
       .get(url)
     ;
 
-    requestHelper.addAuthToken(req, myself);
+    RequestHelper.addAuthToken(req, myself);
 
     const res = await req;
 
-    responseHelper.expectStatusToBe(res, expectedResponseStatus);
+    ResponseHelper.expectStatusToBe(res, expectedResponseStatus);
 
     return res.body;
   }
@@ -66,17 +118,17 @@ class TagsHelper {
    * @param {number} expectedResponseStatus
    * @returns {Promise<Object>}
    */
-  static async requestToGetOneTagPageByTitleAsGuest(
+  public static async requestToGetOneTagPageByTitleAsGuest(
     tagTitle: string,
     expectedResponseStatus: number = 200,
-  ): Promise<Object> {
-    const url = `${requestHelper.getTagsRootUrl()}/${tagTitle}`;
+  ): Promise<any> {
+    const url = `${RequestHelper.getTagsRootUrl()}/${tagTitle}`;
 
     const res = await request(server)
       .get(url)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedResponseStatus);
+    ResponseHelper.expectStatusToBe(res, expectedResponseStatus);
 
     return res.body;
   }
@@ -86,9 +138,10 @@ class TagsHelper {
    * @param {number} modelId
    * @returns {Promise<Object>}
    */
-  static async getPostWhenTagsAreProcessed(modelId) {
+  public static async getPostWhenTagsAreProcessed(modelId: number): Promise<any> {
     let model;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       model = await postsRepository.findOnlyPostItselfById(modelId);
 
@@ -111,6 +164,7 @@ class TagsHelper {
   static async getPostWhenTagsAreUpdated(modelId: number, expectedTags: string[]) {
     let model;
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       model = await postsRepository.findOnlyPostItselfById(modelId);
 
@@ -248,6 +302,26 @@ class TagsHelper {
       entityTags,
       entityStateLog,
     };
+  }
+
+  private static checkManyTags(data: TagsModelResponse[]): void {
+    data.forEach((item) => {
+      this.checkOneTag(item);
+    });
+  }
+
+  private static checkOneTag(model: TagsModelResponse): void {
+    const expected = TagsRepository.getTagPreviewFields();
+    ResponseHelper.expectFieldsAreExist(model, expected);
+
+    expect(model.entity_name).toBe(TagsModelProvider.getEntityName());
+
+    ResponseHelper.checkFieldsAreNumerical(
+      model,
+      TagsRepository.getNumericalFields(),
+    );
+
+    ResponseHelper.checkCreatedAtUpdatedAtFormat(model);
   }
 }
 

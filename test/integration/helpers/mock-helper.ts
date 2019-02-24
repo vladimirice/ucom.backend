@@ -1,10 +1,11 @@
 /* tslint:disable:max-line-length */
 import { CommentsCreatorService } from '../../../lib/comments/service/comments-creator-service';
 
+import PostCreatorService = require('../../../lib/posts/service/post-creator-service');
+
 const userActivityService = require('../../../lib/users/user-activity-service');
 const organizationService = require('../../../lib/organizations/service/organization-service');
 const usersToOrgActivity = require('../../../lib/users/activity/user-to-organization-activity');
-const postsService = require('../../../lib/posts/post-service');
 const activityProducer = require('../../../lib/jobs/activity-producer');
 
 const eosTransactionService = require('../../../lib/eos/eos-transaction-service');
@@ -32,7 +33,6 @@ class MockHelper {
   }
 
   static mockAllBlockchainPart() {
-
     this.mockAllTransactionSigning();
 
     this.mockBlockchainPart();
@@ -69,7 +69,6 @@ class MockHelper {
       // @ts-ignore
       organizationBlockchainId = null,
     ) {
-
       body.blockchain_id  = 'new_comment_sample_blockchain_id';
       body.sign           = 'example_sign';
 
@@ -90,7 +89,8 @@ class MockHelper {
   }
 
   static mockPostTransactionSigning() {
-    postsService.addSignedTransactionDetailsToBody = async function (
+    // @ts-ignore
+    PostCreatorService.addSignedTransactionDetailsToBody = async function (
       body,
       // @ts-ignore
       user,

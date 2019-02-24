@@ -29,6 +29,14 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static generateRandomImportance(): number {
+    return this.generateRandomNumber(1, 10, 6);
+  }
+
+  public static generateRandomNumber(min: number, max: number, precision: number): number {
+    return +(Math.random() * (max - min) + min).toFixed(precision);
+  }
+
   public static makeRandomString(length) {
     let text = '';
     // noinspection SpellCheckingInspection
@@ -338,15 +346,6 @@ class RequestHelper {
    */
   static getPartnershipSearchUrl(query) {
     return `${partnershipUrl}/search?q=${query}`;
-  }
-
-  /**
-   *
-   * @param {number} orgId
-   * @return {string}
-   */
-  static getOrganizationsPostsUrl(orgId) {
-    return `${apiV1Prefix}/organizations/${orgId}/posts`;
   }
 
   /**

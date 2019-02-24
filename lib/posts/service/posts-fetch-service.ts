@@ -18,6 +18,7 @@ import UsersModelProvider = require('../../users/users-model-provider');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 import OrganizationsFetchService = require('../../organizations/service/organizations-fetch-service');
 import UsersFetchService = require('../../users/service/users-fetch-service');
+import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -30,6 +31,10 @@ const commentsFetchService = require('../../comments/service/comments-fetch-serv
  * This service never changes any persistent data (ex. object properties in DB)
  */
 class PostsFetchService {
+  public static isDirectPost(post) {
+    return post.post_type_id === ContentTypeDictionary.getTypeDirectPost();
+  }
+
   /**
    * @param postId
    * @param currentUserId
@@ -124,6 +129,8 @@ class PostsFetchService {
     currentUserId: number | null,
   ): Promise<PostsListResponse> {
     const repository = PostsRepository;
+
+    this.processForTrendingAndHotBackwardCompatibility(query);
 
     const params: DbParamsDto = queryFilterService.getQueryParametersWithRepository(query, repository);
     queryFilterService.processWithIncludeProcessor(repository, query, params);
@@ -409,7 +416,6 @@ class PostsFetchService {
     commentsQuery: RequestQueryComments,
     currentUserId: number | null,
   ): Promise<void> {
-
     commentsQuery.depth = 0;
 
     const idToComments = await commentsFetchService.findAndProcessCommentsByPostsIds(
@@ -427,6 +433,22 @@ class PostsFetchService {
         post.comments = idToComments[post.id];
       }
     });
+  }
+
+  private static processForTrendingAndHotBackwardCompatibility(query: PostRequestQueryDto): void {
+    if (query.sort_by === '-current_rate_delta_daily') {
+      // @ts-ignore
+      query.overview_type = EntityListCategoryDictionary.getTrending();
+      // @ts-ignore
+      query.sort_by = '-importance_delta';
+    }
+
+    if (query.created_at && query.created_at === '24_hours' && query.sort_by === '-current_rate') {
+      // @ts-ignore
+      query.overview_type = EntityListCategoryDictionary.getHot();
+      // @ts-ignore
+      query.sort_by = '-activity_index_delta';
+    }
   }
 }
 

@@ -1,4 +1,6 @@
+/* eslint-disable max-len */
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { EntityJobExecutorService } from '../../lib/stats/service/entity-job-executor-service';
 
 import OrganizationsGenerator = require('./organizations-generator');
 import PostsGenerator = require('./posts-generator');
@@ -7,9 +9,34 @@ import activityHelper = require('../integration/helpers/activity-helper');
 import orgGen = require('./organizations-generator');
 import postGen = require('./posts-generator');
 import commentsGen = require('./comments-generator');
+import CommentsGenerator = require('./comments-generator');
+import PostsHelper = require('../integration/helpers/posts-helper');
+import UsersHelper = require('../integration/helpers/users-helper');
+import OrganizationsHelper = require('../integration/helpers/organizations-helper');
+import EntityTagsGenerator = require('./entity/entity-tags-generator');
+import TagsCurrentRateProcessor = require('../../lib/tags/service/tags-current-rate-processor');
+import EventParamTypeDictionary = require('../../lib/stats/dictionary/event-param/event-param-type-dictionary');
+import StatsHelper = require('../integration/helpers/stats-helper');
+import TagsRepository = require('../../lib/tags/repository/tags-repository');
+
+
+let userVlad: UserModel;
+let userJane: UserModel;
+let userPetr: UserModel;
+let userRokky: UserModel;
+
+(async () => {
+  [userVlad, userJane, userPetr, userRokky] = await Promise.all([
+    UsersHelper.getUserVlad(),
+    UsersHelper.getUserJane(),
+    UsersHelper.getUserPetr(),
+    UsersHelper.getUserRokky(),
+  ]);
+})();
+
 
 class CommonGenerator {
-  static async createAllTypesOfNotifications(userVlad, userJane, userPetr, userRokky) {
+  static async createAllTypesOfNotifications() {
     // User Jane = 1 - vlad follows you
     await activityHelper.requestToCreateFollow(userVlad, userJane);
 
@@ -32,12 +59,7 @@ class CommonGenerator {
     await commentsGen.createCommentOnComment(postId, newJaneComment.id, userRokky);
   }
 
-  public static async createFeedsForAllUsers(
-    userVlad: UserModel,
-    userJane: UserModel,
-    userPetr: UserModel,
-    userRokky: UserModel,
-  ): Promise<any> {
+  public static async createFeedsForAllUsers(): Promise<any> {
     const [janeOrgIdOne, janeOrgIdTwo] = await Promise.all([
       OrganizationsGenerator.createOrgWithoutTeam(userJane),
       OrganizationsGenerator.createOrgWithoutTeam(userJane),
@@ -116,6 +138,222 @@ class CommonGenerator {
     return {
       posts: responsePosts,
       orgs,
+    };
+  }
+
+  public static async createActivityDisturbance(options: {posts: boolean, orgs: boolean, tags: boolean}) {
+    const res: any = {};
+
+    if (options.posts) {
+      res.expectedForPosts = await this.createPostsActivityAsDisturbance();
+    }
+
+    if (options.orgs) {
+      res.expectedForOrgs = await this.createOrgActivityAsDisturbance();
+    }
+
+    if (options.tags) {
+      res.expectedForTags = await this.createTagsActivityAsDisturbance();
+    }
+
+    await EntityJobExecutorService.processEntityEventParam();
+
+    return res;
+  }
+
+  private static async createOrgActivityAsDisturbance() {
+    const [firstOrgId, secondOrgId, thirdOrgId, fourthOrgId] = await Promise.all([
+      OrganizationsGenerator.createOrgWithoutTeam(userVlad),
+      OrganizationsGenerator.createOrgWithoutTeam(userJane),
+      OrganizationsGenerator.createOrgWithoutTeam(userRokky),
+      OrganizationsGenerator.createOrgWithoutTeam(userJane),
+
+      OrganizationsGenerator.createOrgWithoutTeam(userVlad),
+    ]);
+
+    const orgToImportance = await OrganizationsHelper.setRandomRateToManyOrgs([
+      firstOrgId,
+      secondOrgId,
+      thirdOrgId,
+    ]);
+
+    await Promise.all([
+      CommonGenerator.createOrgPostsActivity(firstOrgId, secondOrgId, thirdOrgId),
+      CommonGenerator.createOrgFollowingActivity(firstOrgId, secondOrgId, thirdOrgId),
+      OrganizationsHelper.requestToFollowOrganization(fourthOrgId, userRokky),
+    ]);
+
+    return {
+      [EventParamTypeDictionary.getCurrentBlockchainImportance()]: orgToImportance,
+      [EventParamTypeDictionary.getOrgCurrentActivityIndex()]:
+        StatsHelper.getExpectedHardcodedOrgsActivityIndexes(firstOrgId, secondOrgId, thirdOrgId, fourthOrgId),
+    };
+  }
+
+
+  private static async createPostsActivityAsDisturbance()
+    : Promise<any> {
+    const [firstPostId, secondPostId, thirdPostId, fourthPostId, fifthPostId] = await Promise.all([
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+    ]);
+
+    await CommonGenerator.createPostRepostActivity(fourthPostId);
+    await CommonGenerator.createPostCommentsActivity(fifthPostId);
+
+    await CommonGenerator.createPostRepostActivity(firstPostId, secondPostId);
+    await CommonGenerator.createPostCommentsActivity(firstPostId, secondPostId);
+
+    await CommonGenerator.createPostVotingActivity(firstPostId, secondPostId, thirdPostId);
+
+    const postToImportance = await PostsHelper.setRandomRateToManyPosts([firstPostId, secondPostId, thirdPostId]);
+
+    return {
+      [EventParamTypeDictionary.getCurrentBlockchainImportance()]: postToImportance,
+      [EventParamTypeDictionary.getPostCurrentActivityIndex()]:
+        StatsHelper.getExpectedHardcodedPostsActivityIndex(firstPostId, secondPostId, thirdPostId, fourthPostId, fifthPostId),
+    };
+  }
+
+  public static async createPostRepostActivity(
+    idForOneRepost: number,
+    idForTwoReposts: number | null = null,
+  ): Promise<void> {
+    await PostsGenerator.createRepostOfUserPost(userJane, idForOneRepost);
+
+    if (idForTwoReposts !== null) {
+      // Post one has two reposts
+      await Promise.all([
+        PostsGenerator.createRepostOfUserPost(userJane, idForTwoReposts),
+        PostsGenerator.createRepostOfUserPost(userPetr, idForTwoReposts),
+      ]);
+    }
+  }
+
+  // Three likes for first post
+  // Two likes and one dislike for second post
+  // Three dislikes, no likes for third post
+  public static async createPostVotingActivity(
+    threeLikesPostId,
+    twoLikesOneDislikePostId,
+    threeDislikesPostId,
+  ): Promise<void> {
+    await Promise.all([
+      PostsHelper.requestToUpvotePost(userJane, threeLikesPostId),
+      PostsHelper.requestToUpvotePost(userPetr, threeLikesPostId),
+      PostsHelper.requestToUpvotePost(userRokky, threeLikesPostId),
+    ]);
+
+    await Promise.all([
+      PostsHelper.requestToUpvotePost(userJane, twoLikesOneDislikePostId),
+      PostsHelper.requestToUpvotePost(userPetr, twoLikesOneDislikePostId),
+      PostsHelper.requestToDownvotePost(userRokky, twoLikesOneDislikePostId),
+    ]);
+
+    await Promise.all([
+      PostsHelper.requestToDownvotePost(userJane, threeDislikesPostId),
+      PostsHelper.requestToDownvotePost(userPetr, threeDislikesPostId),
+      PostsHelper.requestToDownvotePost(userRokky, threeDislikesPostId),
+    ]);
+  }
+
+  public static async createPostCommentsActivity(
+    fourCommentsPostId: number,
+    oneCommentPostId: number | null = null,
+  ): Promise<void> {
+    const [postOneCommentOneId] = await Promise.all([
+      CommentsGenerator.createCommentForPostAndGetId(fourCommentsPostId, userVlad),
+      CommentsGenerator.createCommentForPostAndGetId(fourCommentsPostId, userJane),
+    ]);
+
+    await Promise.all([
+      CommentsGenerator.createCommentOnComment(fourCommentsPostId, postOneCommentOneId, userPetr),
+      CommentsGenerator.createCommentOnComment(fourCommentsPostId, postOneCommentOneId, userRokky),
+    ]);
+
+    if (oneCommentPostId !== null) {
+      await CommentsGenerator.createCommentForPost(oneCommentPostId, userPetr);
+    }
+  }
+
+  public static async createOrgFollowingActivity(
+    orgIdWithTwoFollowers: number,
+    orgIdWithOneFollowerAndHistory: number,
+    orgIdWithOneDirectFollower: number,
+  ): Promise<void> {
+    await OrganizationsHelper.requestToCreateOrgFollowHistory(userJane, orgIdWithTwoFollowers);
+    await OrganizationsHelper.requestToFollowOrganization(orgIdWithTwoFollowers, userPetr);
+    await OrganizationsHelper.requestToCreateOrgUnfollowHistory(userRokky, orgIdWithTwoFollowers);
+
+    await OrganizationsHelper.requestToFollowOrganization(orgIdWithOneFollowerAndHistory, userPetr);
+    await OrganizationsHelper.requestToCreateOrgUnfollowHistory(userVlad, orgIdWithOneFollowerAndHistory);
+    await OrganizationsHelper.requestToCreateOrgUnfollowHistory(userRokky, orgIdWithOneFollowerAndHistory);
+
+    await OrganizationsHelper.requestToFollowOrganization(orgIdWithOneDirectFollower, userRokky);
+  }
+
+  public static async createOrgPostsActivity(
+    orgIdWithThreeMediaAndTwoDirectPosts: number,
+    orgIdWithOneDirectPost: number,
+    orgIdWithOneMediaPost: number,
+  ): Promise<void> {
+    await Promise.all([
+      PostsGenerator.createManyMediaPostsOfOrganization(userVlad, orgIdWithThreeMediaAndTwoDirectPosts, 3),
+      PostsGenerator.createDirectPostForOrganization(userJane, orgIdWithThreeMediaAndTwoDirectPosts),
+      PostsGenerator.createDirectPostForOrganization(userPetr, orgIdWithThreeMediaAndTwoDirectPosts),
+
+      PostsGenerator.createDirectPostForOrganization(userPetr, orgIdWithOneDirectPost),
+      PostsGenerator.createMediaPostOfOrganization(userRokky, orgIdWithOneMediaPost),
+    ]);
+  }
+
+  public static async createTagsPostsActivity(
+    tagTitleWithTwoMediaAndOneDirect: string,
+    tagTitleWithOneMedia: string,
+    tagTitleWithOneDirect: string,
+  ): Promise<number[]> {
+    return Promise.all([
+      EntityTagsGenerator.createTagViaNewPost(userVlad, tagTitleWithTwoMediaAndOneDirect),
+      EntityTagsGenerator.createTagViaNewPost(userVlad, tagTitleWithTwoMediaAndOneDirect),
+      EntityTagsGenerator.createTagViaNewDirectPost(userVlad, userJane, tagTitleWithTwoMediaAndOneDirect),
+
+      EntityTagsGenerator.createTagViaNewPost(userVlad, tagTitleWithOneMedia),
+
+      EntityTagsGenerator.createTagViaNewDirectPost(userJane, userVlad, tagTitleWithOneDirect),
+    ]);
+  }
+
+  private static async createTagsActivityAsDisturbance() {
+    const firstTagTitle     = 'summer';
+    const secondTagTitle    = 'autumn';
+    const thirdTagTitle     = 'winter';
+
+    const [firstPostId, secondPostId] = await CommonGenerator.createTagsPostsActivity(
+      firstTagTitle,
+      secondTagTitle,
+      thirdTagTitle,
+    );
+
+    await PostsHelper.setRandomRateToManyPosts([firstPostId, secondPostId], false);
+    await TagsCurrentRateProcessor.process();
+
+    const [firstTagModel, secondTagModel, thirdTagModel] = await Promise.all([
+      TagsRepository.findOneByTitle(firstTagTitle),
+      TagsRepository.findOneByTitle(secondTagTitle),
+      TagsRepository.findOneByTitle(thirdTagTitle),
+    ]);
+
+    return {
+      [EventParamTypeDictionary.getTagCurrentActivityIndex()]:
+        StatsHelper.getExpectedHardcodedTagsActivityIndexes(
+          firstTagModel!.id,
+          secondTagModel!.id,
+          thirdTagModel!.id,
+        ),
     };
   }
 }

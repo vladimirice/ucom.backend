@@ -1,4 +1,4 @@
-import { UserIdToUserModelCard, UserModel } from '../interfaces/model-interfaces';
+import { UserIdToUserModelCard, UserModel, UsersRequestQueryDto } from '../interfaces/model-interfaces';
 
 import UsersRepository = require('../users-repository');
 
@@ -42,7 +42,7 @@ class UsersFetchService {
    * @param {number|null} currentUserId
    * @returns {Promise<Object>}
    */
-  static async findAllAndProcessForList(query, currentUserId) {
+  static async findAllAndProcessForList(query: UsersRequestQueryDto, currentUserId) {
     // preparation for universal class-fetching processor
     const repository  = usersRepository;
     const params      = queryFilterService.getQueryParametersWithRepository(query, repository);
@@ -61,7 +61,8 @@ class UsersFetchService {
     ApiPostProcessor.processUsersAfterQuery(models);
     const metadata = queryFilterService.getMetadata(totalAmount, query, params);
 
-    if (query.v2) {
+    // @ts-ignore
+    if (query.v2 || query.overview_type) {
       return {
         metadata,
         data: models,

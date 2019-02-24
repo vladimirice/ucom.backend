@@ -7,8 +7,11 @@ import {
 } from '../../../lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { OrgListResponse, OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
+import { TagsListResponse } from '../../../lib/tags/interfaces/dto-interfaces';
 
 import ResponseHelper = require('./response-helper');
+import TagsHelper = require('./tags-helper');
+import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
@@ -52,6 +55,7 @@ export class GraphqlHelper {
     postPerPage: number = 10,
     commentsPage: number = 1,
     commentsPerPage: number = 10,
+
   ): Promise<PostsListResponse> {
     // @ts-ignore
     const postFiltering: PostRequestQueryDto = {
@@ -96,7 +100,126 @@ export class GraphqlHelper {
     const key: string = 'organizations';
 
     const response: OrgListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
+  }
+
+  public static async getManyOrgsForTrending(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getManyTrendingOrganizationsQuery(page, perPage);
+
+    return this.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyOrgsForHot(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getManyHotOrganizationsQuery(page, perPage);
+
+    return this.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyOrgsForFresh(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getManyFreshOrganizationsQuery(page, perPage);
+
+    return this.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyOrgsForTop(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getManyTopOrganizationsQuery(page, perPage);
+
+    return this.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyTagsForTrending(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<TagsListResponse> {
+    const query: string = GraphQLSchema.getManyTrendingTagsQuery(page, perPage);
+
+    return this.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyTagsForHot(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getManyHotTagsQuery(page, perPage);
+
+    return this.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyTagsForFresh(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getManyFreshTagsQuery(page, perPage);
+
+    return this.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyTagsForTop(
+    myself: UserModel,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const query: string = GraphQLSchema.getManyTopTagsQuery(page, perPage);
+
+    return this.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyTagsAsMyself(
+    myself: UserModel,
+    ordering: string = '-id',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<TagsListResponse> {
+    const query: string = GraphQLSchema.getManyTagsQuery(
+      ordering,
+      page,
+      perPage,
+    );
+    const key: string = 'many_tags';
+
+    const response: TagsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+    TagsHelper.checkTagsListResponseStructure(response);
+
+    return response;
+  }
+
+  public static async getManyTagsAsGuest(
+    ordering: string = '-id',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<TagsListResponse> {
+    const query: string = GraphQLSchema.getManyTagsQuery(
+      ordering,
+      page,
+      perPage,
+    );
+    const key: string = 'many_tags';
+
+    const response: TagsListResponse = await this.makeRequestAsGuest(query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+    TagsHelper.checkTagsListResponseStructure(response);
 
     return response;
   }
@@ -147,9 +270,313 @@ export class GraphqlHelper {
     const key: string = 'posts';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
+  }
+
+  public static async getPostsPageAsMyself(
+    myself: UserModel,
+    overviewType: string,
+    postTypeId: number,
+    postPage: number = 1,
+    postPerPage: number = 10,
+    commentsPage: number = 1,
+    commentsPerPage: number = 10,
+  ): Promise<PostsListResponse> {
+    let query: string;
+
+    switch (overviewType) {
+      case EntityListCategoryDictionary.getTrending():
+        query = GraphQLSchema.getManyTrendingPostsQuery(
+          postTypeId,
+          postPage,
+          postPerPage,
+          commentsPage,
+          commentsPerPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getHot():
+        query = GraphQLSchema.getManyHotPostsQuery(
+          postTypeId,
+          postPage,
+          postPerPage,
+          commentsPage,
+          commentsPerPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        query = GraphQLSchema.getManyFreshPostsQuery(
+          postTypeId,
+          postPage,
+          postPerPage,
+          commentsPage,
+          commentsPerPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getTop():
+        query = GraphQLSchema.getManyTopPostsQuery(
+          postTypeId,
+          postPage,
+          postPerPage,
+          commentsPage,
+          commentsPerPage,
+          true,
+        );
+        break;
+      default:
+        throw new Error(`Unsupported overview type: ${overviewType}`);
+    }
+
+    return this.makeRequestAsMyself(myself, query);
+  }
+
+  public static async getPostUsersAsMyself(
+    myself: UserModel,
+    overviewType: string,
+    postTypeId: number,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PostsListResponse> {
+    let query: string;
+
+    switch (overviewType) {
+      case EntityListCategoryDictionary.getTrending():
+        query = GraphQLSchema.getManyUsersForTrendingPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getHot():
+        query = GraphQLSchema.getManyUsersForHotPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        query = GraphQLSchema.getManyUsersForFreshPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getTop():
+        query = GraphQLSchema.getManyUsersForTopPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      default:
+        throw new Error(`Unsupported overview type: ${overviewType}`);
+    }
+
+    const keyToReturn = 'many_users';
+
+    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+  }
+
+  public static async getPostsOrgsAsMyself(
+    myself: UserModel,
+    overviewType: string,
+    postTypeId: number,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PostsListResponse> {
+    let query: string;
+
+    switch (overviewType) {
+      case EntityListCategoryDictionary.getTrending():
+        query = GraphQLSchema.getManyOrganizationsForTrendingPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getHot():
+        query = GraphQLSchema.getManyOrganizationsForHotPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        query = GraphQLSchema.getManyOrganizationsForFreshPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getTop():
+        query = GraphQLSchema.getManyOrganizationsForTopPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      default:
+        throw new Error(`Unsupported overview type: ${overviewType}`);
+    }
+
+    const keyToReturn = 'many_organizations';
+
+    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+  }
+
+  public static async getPostsTagsAsMyself(
+    myself: UserModel,
+    overviewType: string,
+    postTypeId: number,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PostsListResponse> {
+    let query: string;
+
+    switch (overviewType) {
+      case EntityListCategoryDictionary.getTrending():
+        query = GraphQLSchema.getManyTagsForTrendingPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getHot():
+        query = GraphQLSchema.getManyTagsForHotPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        query = GraphQLSchema.getManyTagsForFreshPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getTop():
+        query = GraphQLSchema.getManyTagsForTopPostsQuery(
+          postTypeId,
+          page,
+          perPage,
+          true,
+        );
+        break;
+      default:
+        throw new Error(`Unsupported overview type: ${overviewType}`);
+    }
+
+    const keyToReturn = 'many_tags';
+
+    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+  }
+
+  public static async getTagsUsersAsMyself(
+    myself: UserModel,
+    overviewType: string,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PostsListResponse> {
+    let query: string;
+
+    switch (overviewType) {
+      case EntityListCategoryDictionary.getTrending():
+        query = GraphQLSchema.getManyUsersForTrendingTagsQuery(
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getHot():
+        query = GraphQLSchema.getManyUsersForHotTagsQuery(
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        query = GraphQLSchema.getManyUsersForFreshTagsQuery(
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getTop():
+        query = GraphQLSchema.getManyUsersForTopTagsQuery(
+          page,
+          perPage,
+          true,
+        );
+        break;
+      default:
+        throw new Error(`Unsupported overview type: ${overviewType}`);
+    }
+
+    const keyToReturn = 'many_users';
+
+    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+  }
+
+  public static async getOrgsUsersAsMyself(
+    myself: UserModel,
+    overviewType: string,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PostsListResponse> {
+    let query: string;
+
+    switch (overviewType) {
+      case EntityListCategoryDictionary.getTrending():
+        query = GraphQLSchema.getManyUsersForTrendingOrganizationsQuery(
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getHot():
+        query = GraphQLSchema.getManyUsersForHotOrganizationsQuery(
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        query = GraphQLSchema.getManyUsersForFreshOrganizationsQuery(
+          page,
+          perPage,
+          true,
+        );
+        break;
+      case EntityListCategoryDictionary.getTop():
+        query = GraphQLSchema.getManyUsersForTopOrganizationsQuery(
+          page,
+          perPage,
+          true,
+        );
+        break;
+      default:
+        throw new Error(`Unsupported overview type: ${overviewType}`);
+    }
+
+    const keyToReturn = 'many_users';
+
+    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
   }
 
   public static async getManyPostsAsGuest(
@@ -173,7 +600,7 @@ export class GraphqlHelper {
     const key: string = 'posts';
 
     const response: PostsListResponse = await this.makeRequestAsGuest(query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -197,7 +624,7 @@ export class GraphqlHelper {
     const key: string = 'user_wall_feed';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -221,7 +648,7 @@ export class GraphqlHelper {
     const key: string = 'org_wall_feed';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -245,7 +672,7 @@ export class GraphqlHelper {
     const key: string = 'tag_wall_feed';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -265,7 +692,7 @@ export class GraphqlHelper {
       key,
       false,
     );
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -291,7 +718,7 @@ export class GraphqlHelper {
 
     const response: CommentsListResponse =
       await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -303,7 +730,7 @@ export class GraphqlHelper {
     const key: string = 'user_news_feed';
 
     const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
-    ResponseHelper.expectValidListResponseStructure(response);
+    ResponseHelper.checkListResponseStructure(response);
 
     return response;
   }
@@ -322,14 +749,7 @@ export class GraphqlHelper {
     dataOnly = true,
   ): Promise<any> {
     const myselfClient = this.getClientWithToken(myself);
-
-    // let response;
-    // try {
     const response = await myselfClient.query({ query: gql(query) });
-    // } catch (err) {
-    // @ts-ignore
-    // const a = 0;
-    // }
 
     if (keyToReturn) {
       return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];

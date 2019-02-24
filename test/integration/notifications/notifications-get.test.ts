@@ -1,37 +1,41 @@
+import MockHelper = require('../helpers/mock-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import CommonGenerator = require('../../generators/common-generator');
+import NotificationsHelper = require('../helpers/notifications-helper');
+import CommonHelper = require('../helpers/common-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import RequestHelper = require('../helpers/request-helper');
+import ResponseHelper = require('../helpers/response-helper');
+
 export {};
 
-const helpers = require('../helpers');
-const gen     = require('../../generators');
 const notificationRepo = require('../../../lib/entities/repository').Notifications;
-
-const commonGen = require('../../generators/common-generator');
 
 let userVlad;
 let userJane;
 let userPetr;
-let userRokky;
 
-helpers.Mock.mockAllTransactionSigning();
-helpers.Mock.mockAllBlockchainJobProducers();
+MockHelper.mockAllTransactionSigning();
+MockHelper.mockAllBlockchainJobProducers();
 
 describe('Get notifications', () => {
   beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
   });
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    await SeedsHelper.initUsersOnly();
   });
 
   describe('Notifications list', () => {
     it('get notifications of several types - all of them has required structure', async () => {
-      await commonGen.createAllTypesOfNotifications(userVlad, userJane, userPetr, userRokky);
+      await CommonGenerator.createAllTypesOfNotifications();
 
       let models = [];
       while (models.length < 5) {
-        models = await helpers.Notifications.requestToGetNotificationsList(userJane);
+        models = await NotificationsHelper.requestToGetNotificationsList(userJane);
       }
 
       const options = {
@@ -40,11 +44,11 @@ describe('Get notifications', () => {
 
       // #task check that all notification types are exist
 
-      helpers.Common.checkNotificationsList(models, 5, options);
+      CommonHelper.checkNotificationsList(models, 5, options);
     }, 10000);
   });
 
-  describe('Pagination', async () => {
+  describe('Pagination', () => {
     it('Smoke test. Get one without query string', async () => {
       const usersTeam = [
         userVlad,
@@ -52,13 +56,13 @@ describe('Get notifications', () => {
       ];
 
       const totalAmount = 2;
-      await gen.Org.createManyOrgWithSameTeam(userJane, usersTeam, totalAmount);
+      await OrganizationsGenerator.createManyOrgWithSameTeam(userJane, usersTeam, totalAmount);
 
-      await helpers.Notifications.requestToGetExactNotificationsAmount(userVlad, totalAmount);
+      await NotificationsHelper.requestToGetExactNotificationsAmount(userVlad, totalAmount);
 
-      const models = await helpers.Notifications.requestToGetNotificationsList(userVlad);
+      const models = await NotificationsHelper.requestToGetNotificationsList(userVlad);
 
-      helpers.Common.checkNotificationsList(models, totalAmount);
+      CommonHelper.checkNotificationsList(models, totalAmount);
     });
 
     it('Metadata', async () => {
@@ -70,31 +74,31 @@ describe('Get notifications', () => {
       ];
 
       const totalAmount = 6;
-      await gen.Org.createManyOrgWithSameTeam(author, usersTeam, totalAmount);
+      await OrganizationsGenerator.createManyOrgWithSameTeam(author, usersTeam, totalAmount);
 
       const page    = 1;
       let perPage   = 2;
 
-      const queryString = helpers.Req.getPaginationQueryString(page, perPage);
+      const queryString = RequestHelper.getPaginationQueryString(page, perPage);
 
-      await helpers.Notifications.requestToGetExactNotificationsAmount(userVlad, totalAmount);
+      await NotificationsHelper.requestToGetExactNotificationsAmount(userVlad, totalAmount);
 
       const response =
-        await helpers.Notifications.requestToGetNotificationsList(userVlad, queryString, false);
-      helpers.Res.checkMetadata(response, page, perPage, totalAmount, true);
+        await NotificationsHelper.requestToGetNotificationsList(userVlad, queryString, false);
+      ResponseHelper.checkMetadataByValues(response, page, perPage, totalAmount, true);
 
       perPage = 3;
-      const lastPage = helpers.Req.getLastPage(totalAmount, perPage);
+      const lastPage = RequestHelper.getLastPage(totalAmount, perPage);
 
-      const queryStringLast = helpers.Req.getPaginationQueryString(
+      const queryStringLast = RequestHelper.getPaginationQueryString(
         lastPage,
         perPage,
       );
 
       const lastResponse =
-        await helpers.Notifications.requestToGetNotificationsList(userVlad, queryStringLast, false);
+        await NotificationsHelper.requestToGetNotificationsList(userVlad, queryStringLast, false);
 
-      helpers.Res.checkMetadata(lastResponse, lastPage, perPage, totalAmount, false);
+      ResponseHelper.checkMetadataByValues(lastResponse, lastPage, perPage, totalAmount, false);
     });
 
     it('Get two pages', async () => {
@@ -106,18 +110,18 @@ describe('Get notifications', () => {
       ];
 
       const totalAmount = 6;
-      await gen.Org.createManyOrgWithSameTeam(author, usersTeam, totalAmount);
+      await OrganizationsGenerator.createManyOrgWithSameTeam(author, usersTeam, totalAmount);
 
-      await helpers.Notifications.requestToGetExactNotificationsAmount(userVlad, totalAmount);
+      await NotificationsHelper.requestToGetExactNotificationsAmount(userVlad, totalAmount);
 
       let page    = 1;
       const perPage   = 2;
 
-      const queryString   = helpers.Req.getPaginationQueryString(page, perPage);
+      const queryString   = RequestHelper.getPaginationQueryString(page, perPage);
       const models = await notificationRepo.findAllUserNotificationsItselfByUserId(userVlad.id);
 
       const firstPage =
-        await helpers.Notifications.requestToGetNotificationsList(userVlad, queryString);
+        await NotificationsHelper.requestToGetNotificationsList(userVlad, queryString);
 
       const expectedIdsOfFirstPage = [
         models[page - 1].id,
@@ -131,9 +135,9 @@ describe('Get notifications', () => {
       });
 
       page = 2;
-      const queryStringSecondPage = helpers.Req.getPaginationQueryString(page, perPage);
+      const queryStringSecondPage = RequestHelper.getPaginationQueryString(page, perPage);
       const secondPage =
-        await helpers.Notifications.requestToGetNotificationsList(userVlad, queryStringSecondPage);
+        await NotificationsHelper.requestToGetNotificationsList(userVlad, queryStringSecondPage);
 
       const expectedIdsOfSecondPage = [
         models[page].id,

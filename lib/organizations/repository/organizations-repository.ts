@@ -2,6 +2,11 @@
 
 import { OrgIdToOrgModelCard, OrgModel, OrgModelResponse } from '../interfaces/model-interfaces';
 import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
+import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
+
+import knex = require('../../../config/knex');
+import OrganizationsModelProvider = require('../service/organizations-model-provider');
+import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 
 const _ = require('lodash');
 
@@ -21,10 +26,23 @@ const { Op } = db;
 
 const taggableRepository = require('../../common/repository/taggable-repository');
 
+// @ts-ignore
 class OrganizationsRepository implements QueryFilteredRepository {
-  // eslint-disable-next-line class-methods-use-this
-  getDefaultListParams() {
-    return OrganizationsRepository.getDefaultListParams();
+  public static async findManyOrgsEntityEvents(
+    limit: number,
+    lastId: number | null = null,
+  ): Promise<ModelWithEventParamsDto[]> {
+    const queryBuilder = knex(TABLE_NAME)
+      .select(['id', 'blockchain_id', 'current_rate'])
+      .orderBy('id', 'ASC')
+      .limit(limit)
+    ;
+
+    if (lastId) {
+      queryBuilder.whereRaw(`id > ${+lastId}`);
+    }
+
+    return queryBuilder;
   }
 
   /**
@@ -105,15 +123,19 @@ class OrganizationsRepository implements QueryFilteredRepository {
     });
   }
 
-  /**
-   *
-   * @param {Object | null} queryParameters
-   * @returns {Promise<number>}
-   */
-  static async countAllOrganizations(queryParameters: any = null) {
-    return this.getOrganizationModel().count({
-      where: queryParameters ? queryParameters.where : {},
-    });
+  static async countAllOrganizations(params: DbParamsDto | null = null): Promise<number> {
+    const query = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
+
+    orgDbModel.prototype.addCurrentParamsLeftJoin(query);
+
+    if (params && params.whereRaw) {
+      // noinspection JSIgnoredPromiseFromCall
+      query.whereRaw(params.whereRaw);
+    }
+
+    const res = await query;
+
+    return +res[0].amount;
   }
 
   /**
@@ -253,7 +275,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
    * @param {number|null} teamStatus
    * @return {Promise<Object>}
    */
-  static async findOneById(id, teamStatus = null) {
+  static async findOneById(id: number, teamStatus: number | null = null) {
     const usersTeamStatus = teamStatus === null ?
       usersTeamStatusDictionary.getStatusConfirmed() : teamStatus;
 
@@ -513,19 +535,55 @@ class OrganizationsRepository implements QueryFilteredRepository {
     return {};
   }
 
-  static getAllowedOrderBy(): string[] {
+  // noinspection JSUnusedGlobalSymbols - is used in query service
+  public static getAllowedOrderBy(): string[] {
     return [
       'id',
       'title',
       'current_rate',
       'created_at',
+      'importance_delta',
+      'activity_index_delta',
     ];
   }
 
+  // noinspection JSUnusedGlobalSymbols @see QueryFilterService
   static getWhereProcessor(): Function {
-    // @ts-ignore
     return (query, params) => {
       params.where = {};
+
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getTrending()) {
+        params.whereRaw = this.whereRawTrending();
+      }
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getHot()) {
+        params.whereRaw = this.whereRawHot();
+      }
+    };
+  }
+
+  public static whereRawTrending(): string {
+    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
+
+    const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.importance_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
+  }
+
+  public static whereRawHot(): string {
+    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
+
+    const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.activity_index_delta > ${lowerLimit}`;
+  }
+
+  public static getIncludeProcessor(): Function {
+    // @ts-ignore
+    return (query, params) => {
+      params.include = [
+        orgModelProvider.getIncludeForPreview(),
+        usersModelProvider.getIncludeAuthorForPreview(),
+      ];
     };
   }
 

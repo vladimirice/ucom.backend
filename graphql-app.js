@@ -4,6 +4,8 @@ const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
 const OrganizationsFetchService = require("./lib/organizations/service/organizations-fetch-service");
+const TagsFetchService = require("./lib/tags/service/tags-fetch-service");
+const UsersFetchService = require("./lib/users/service/users-fetch-service");
 const express = require('express');
 const { ApolloServer, gql, AuthenticationError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
@@ -16,7 +18,12 @@ const typeDefs = gql `
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     
     posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
-    organizations(order_by: String!, page: Int!, per_page: Int!): organizations!
+    many_posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    many_users(filters: users_filtering, order_by: String!, page: Int!, per_page: Int!): users!
+    
+    organizations(filters: org_filtering, order_by: String!, page: Int!, per_page: Int!): organizations!
+    many_organizations(filters: org_filtering, order_by: String!, page: Int!, per_page: Int!): organizations!
+    many_tags(filters: tag_filtering, order_by: String!, page: Int!, per_page: Int!): tags!
 
     user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
@@ -117,6 +124,16 @@ const typeDefs = gql `
     data: [Organization!]!
     metadata: metadata!
   }
+
+  type tags {
+    data: [Tag!]!
+    metadata: metadata!
+  }
+  
+  type users {
+    data: [User!]!
+    metadata: metadata!
+  }
   
   type Organization {
     id: Int!
@@ -125,6 +142,24 @@ const typeDefs = gql `
     nickname: String!
     current_rate: Float!
     user_id: Int!
+    about: String
+    powered_by: String
+  }
+  
+  type Tag {
+    id: Int!
+    title: String!
+    current_rate: Float!
+    current_posts_amount: Int!
+    current_media_posts_amount: Int!
+    current_direct_posts_amount: Int!
+
+    first_entity_id: Int!
+    
+    entity_name: String!
+    
+    created_at: String!
+    updated_at: String!
   }
 
   type MyselfData {
@@ -157,14 +192,52 @@ const typeDefs = gql `
   }
 
   input post_filtering {
+    overview_type: String
     post_type_id: Int!
     created_at: String
   }
+  
+  input org_filtering {
+    overview_type: String
+    entity_name: String
+  }
+  
+  input tag_filtering {
+    overview_type: String
+    entity_name: String
+  }
+
+  input users_filtering {
+    overview_type: String
+    entity_name: String
+    post_type_id: Int
+  }
 `;
+// @ts-ignore
 const resolvers = {
     JSON: graphQLJSON,
     Query: {
         // @ts-ignore
+        async many_users(parent, args, ctx) {
+            const postsQuery = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            return UsersFetchService.findAllAndProcessForList(postsQuery, currentUserId);
+        },
+        // @ts-ignore
+        async many_posts(parent, args, ctx) {
+            const postsQuery = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters, { include: [
+                    'comments',
+                ], included_query: {
+                    comments: args.comments_query,
+                } });
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            return PostsFetchService.findManyPosts(postsQuery, currentUserId);
+        },
+        /**
+         * @deprecated
+         */
+        // @ts-ignore
+        // eslint-disable-next-line sonarjs/no-identical-functions
         async posts(parent, args, ctx) {
             const postsQuery = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters, { include: [
                     'comments',
@@ -174,14 +247,21 @@ const resolvers = {
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             return PostsFetchService.findManyPosts(postsQuery, currentUserId);
         },
-        // @ts-ignore
+        // @ts-ignore // @deprecated
         async organizations(parent, args, ctx) {
-            const query = {
-                page: args.page,
-                per_page: args.per_page,
-                sort_by: args.order_by,
-            };
+            const query = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
             return OrganizationsFetchService.findAndProcessAll(query);
+        },
+        // @ts-ignore
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        async many_organizations(parent, args, ctx) {
+            const query = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
+            return OrganizationsFetchService.findAndProcessAll(query);
+        },
+        // @ts-ignore
+        async many_tags(parent, args, ctx) {
+            const query = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
+            return TagsFetchService.findAndProcessManyTags(query);
         },
         // @ts-ignore
         async one_post(parent, args, ctx) {

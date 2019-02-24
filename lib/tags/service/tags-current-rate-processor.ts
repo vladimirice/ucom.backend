@@ -1,7 +1,9 @@
 import { PostWithTagCurrentRateDto, TagToRate } from '../interfaces/dto-interfaces';
 
-const postsRepository = require('../../posts/posts-repository');
-const tagsRepository  = require('../../tags/repository/tags-repository');
+import TagsRepository = require('../repository/tags-repository');
+import PostsRepository = require('../../posts/posts-repository');
+
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 interface IndexedTagToRate {
   [index: string]: TagToRate;
@@ -13,9 +15,10 @@ class TagsCurrentRateProcessor {
 
     const tagToRate: IndexedTagToRate = {};
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const posts: PostWithTagCurrentRateDto[] =
-        await postsRepository.findAllWithTagsForTagCurrentRate(offset, batchSize);
+        await PostsRepository.findAllWithTagsForTagCurrentRate(offset, batchSize);
 
       if (posts.length === 0) {
         break;
@@ -26,38 +29,68 @@ class TagsCurrentRateProcessor {
       offset += batchSize;
     }
 
-    await this.processTagsStatsAndUpdateTheirRates(tagToRate);
+    await this.processTagsStatsAndUpdateTheirStats(tagToRate);
+    await TagsRepository.resetTagsCurrentStats(Object.keys(tagToRate));
   }
 
-  private static async processTagsStatsAndUpdateTheirRates(tagToRate: IndexedTagToRate) {
+  private static async processTagsStatsAndUpdateTheirStats(tagToRate: IndexedTagToRate) {
     const batchSize: number = 100;
 
     let counter: number = 0;
-    let whenThenString: string = ' ';
+    let whenThenRateString: string = ' ';
+    let whenThenPostsAmountString: string = ' ';
+    let whenThenMediaPostsAmountString: string = ' ';
+    let whenThenDirectPostsAmountString: string = ' ';
     let processedTitles: string[] = [];
 
     const promises: Promise<Object>[] = [];
     for (const tagTitle in tagToRate) {
+      if (!tagToRate.hasOwnProperty(tagTitle)) {
+        continue;
+      }
+
       const current = tagToRate[tagTitle];
 
       current.currentRate = +(current.ratePerPost / current.postsAmount).toFixed(10);
-      whenThenString += tagsRepository.getWhenThenString(current.title, current.currentRate);
+      whenThenRateString +=
+        TagsRepository.getWhenThenString(current.title, current.currentRate);
+      whenThenPostsAmountString +=
+        TagsRepository.getWhenThenString(current.title, current.postsAmount);
+      whenThenMediaPostsAmountString +=
+        TagsRepository.getWhenThenString(current.title, current.mediaPostsAmount);
+      whenThenDirectPostsAmountString +=
+        TagsRepository.getWhenThenString(current.title, current.directPostsAmount);
       processedTitles.push(current.title);
       counter += 1;
 
       if (counter % batchSize === 0) {
         promises.push(
-          tagsRepository.updateTagsCurrentRates(whenThenString, processedTitles),
+          TagsRepository.updateTagsCurrentStats(
+            whenThenRateString,
+            whenThenPostsAmountString,
+            whenThenMediaPostsAmountString,
+            whenThenDirectPostsAmountString,
+            processedTitles,
+          ),
         );
         counter = 0;
-        whenThenString = ' ';
+        whenThenRateString = ' ';
+        whenThenPostsAmountString = ' ';
+        whenThenMediaPostsAmountString = ' ';
+        whenThenDirectPostsAmountString = ' ';
         processedTitles = [];
       }
     }
 
-    if (whenThenString !== ' ') {
+    if (whenThenRateString !== ' ') {
       promises.push(
-        tagsRepository.updateTagsCurrentRates(whenThenString, processedTitles),
+        TagsRepository.updateTagsCurrentStats(
+          whenThenRateString,
+          whenThenPostsAmountString,
+          whenThenMediaPostsAmountString,
+          whenThenDirectPostsAmountString,
+          processedTitles,
+        ),
       );
     }
 
@@ -68,7 +101,6 @@ class TagsCurrentRateProcessor {
     posts: PostWithTagCurrentRateDto[],
     tagToRate: IndexedTagToRate,
   ): void {
-
     posts.forEach((post) => {
       const oneTagRatePerPost: number = this.getOneTagRatePerPost(post);
 
@@ -78,8 +110,21 @@ class TagsCurrentRateProcessor {
             title,
             ratePerPost: 0,
             postsAmount: 0,
+            mediaPostsAmount: 0,
+            directPostsAmount: 0,
             currentRate: 0,
           };
+        }
+
+        switch (post.post_type_id) {
+          case ContentTypeDictionary.getTypeMediaPost():
+            tagToRate[title].mediaPostsAmount += 1;
+            break;
+          case ContentTypeDictionary.getTypeDirectPost():
+            tagToRate[title].directPostsAmount += 1;
+            break;
+          default:
+            // do nothing
         }
 
         tagToRate[title].ratePerPost += oneTagRatePerPost;

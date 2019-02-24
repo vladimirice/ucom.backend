@@ -5,19 +5,22 @@ DOCKER_B_EXEC_CMD=docker-compose exec -T --user=${DOCKER_BACKEND_APP_USER} ${DOC
 DOCKER_B_EXEC_CMD_ROOT=docker-compose exec -T --user=root ${DOCKER_BACKEND_APP_NAME}
 
 SEQ_EXEC_FILE=node_modules/.bin/sequelize
+KNEX_EXEC_FILE=node_modules/.bin/knex
 
 DB_DROP_COMMAND=${SEQ_EXEC_FILE} db:drop
 DB_CREATE_COMMAND=${SEQ_EXEC_FILE} db:create
 DB_MIGRATE_COMMAND=${SEQ_EXEC_FILE} db:migrate
 DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
-DB_GENERATE_MIGRATION=${SEQ_EXEC_FILE} migration:generate
+DB_GENERATE_MIGRATION=${KNEX_EXEC_FILE} migrate:make
+
+DB_KNEX_MIGRATE_EVENTS_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=events
+DB_KNEX_MIGRATE_MONOLITH_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=monolith
 
 ENV_VALUE_TEST=test
 
 init-project ip:
-	npm i --only dev
-	npm ci
 	make docker-rebuild
+	make docker-npm-ci
 	make docker-init-test-db
 	make docker-compile-typescript
 	make pm2-reload-test-ecosystem
@@ -57,11 +60,11 @@ docker-compile-typescript-watch:
 docker-chown:
 	${DOCKER_B_EXEC_CMD_ROOT} chgrp -R docker: /var/www/ucom.backend
 
-docker-db-migrate dm:
+docker-db-migrate-sequelize dm:
 	${DOCKER_B_EXEC_CMD} ${DB_MIGRATE_COMMAND}
 
-docker-db-create-migration dmg:
-	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} --name ${NAME}
+docker-db-create-migration-monolith dmg:
+	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} ${NAME} --env=monolith
 
 docker-up-build:
 	docker-compose up -d --build
@@ -117,7 +120,33 @@ staging-console:
 ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
 
-docker-init-test-db ditd:
+docker-recreate-db:
 	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
 	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
-	make docker-db-migrate
+	make docker-migrate-monolith-via-knex
+
+docker-recreate-events-db:
+	${DOCKER_B_EXEC_CMD} bin/test-only-scripts/knex-create-new-db
+	make docker-migrate-events-via-knex
+
+docker-recreate-monolith-db:
+	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
+	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
+	make docker-db-migrate-sequelize
+	make docker-migrate-monolith-via-knex
+
+docker-migrate-monolith-via-knex:
+	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_MONOLITH_COMMAND}
+
+docker-migrate-events-via-knex:
+	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_EVENTS_COMMAND}
+
+docker-init-test-db ditd:
+	make docker-recreate-monolith-db
+	make docker-recreate-events-db
+
+copy-production-config:
+	scp ./config/production.json gt:/var/www/ucom.backend/config/production.json
+
+copy-staging-config:
+	scp ./config/staging.json gt:/var/www/ucom.backend.staging/config/staging.json

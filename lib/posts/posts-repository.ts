@@ -1,7 +1,14 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
+import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
+import { QueryFilteredRepository } from '../api/filters/interfaces/query-filter-interfaces';
+import { PostRequestQueryDto } from './interfaces/model-interfaces';
+
+import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
+import RepositoryHelper = require('../common/repository/repository-helper');
+import PostsModelProvider = require('./service/posts-model-provider');
+import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-category-dictionary');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-const moment = require('moment');
 const _ = require('lodash');
 
 const models = require('../../models');
@@ -9,6 +16,7 @@ const models = require('../../models');
 const ENTITY_STATS_CURRENT_TABLE_NAME = 'entity_stats_current';
 
 const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
+
 const db = models.sequelize;
 const { Op } = db;
 
@@ -28,7 +36,72 @@ const model = postsModelProvider.getModel();
 
 const knex = require('../../config/knex');
 
-class PostsRepository {
+// @ts-ignore
+class PostsRepository implements QueryFilteredRepository {
+  public static async getManyOrgsPostsAmount() {
+    const orgEntityName: string = OrganizationsModelProvider.getEntityName();
+
+    const postTypes: number[] = [
+      ContentTypeDictionary.getTypeMediaPost(),
+      ContentTypeDictionary.getTypeDirectPost(),
+    ];
+
+    const sql = `
+      SELECT array_agg(post_type_id || '__' || amount) AS array_agg, entity_id_for FROM
+        (
+          SELECT entity_id_for, post_type_id, COUNT(1) AS amount
+          FROM posts
+          WHERE entity_name_for = '${orgEntityName}'
+          AND post_type_id IN (${postTypes.join(', ')})
+          GROUP BY entity_id_for, post_type_id
+        ) AS t
+      GROUP BY entity_id_for
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows.map(row => ({
+      aggregates: RepositoryHelper.splitAggregates(row),
+      entityId: +row.entity_id_for,
+    }));
+  }
+
+  public static async getManyPostsRepostsAmount() {
+    const postTypeId: number = ContentTypeDictionary.getTypeRepost();
+
+    const sql = `
+       SELECT parent_id, blockchain_id, COUNT(1) AS amount FROM posts
+       WHERE post_type_id = ${postTypeId}
+       GROUP BY parent_id, blockchain_id
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows.map(item => ({
+      entityId:       item.parent_id,
+      blockchainId:   item.blockchain_id,
+      repostsAmount:  +item.amount,
+    }));
+  }
+
+  public static async findManyPostsEntityEvents(
+    limit: number,
+    lastId: number | null = null,
+  ): Promise<ModelWithEventParamsDto[]> {
+    const queryBuilder = knex('posts')
+      .select(['id', 'blockchain_id', 'current_rate'])
+      .orderBy('id', 'ASC')
+      .limit(limit)
+    ;
+
+    if (lastId) {
+      // noinspection JSIgnoredPromiseFromCall
+      queryBuilder.whereRaw(`id > ${+lastId}`);
+    }
+
+    return queryBuilder;
+  }
+
   /**
    *
    * @param {number} id
@@ -51,6 +124,7 @@ class PostsRepository {
    * @return {Promise<Object>}
    */
   static async findIdsByBlockchainIds(blockchainIds) {
+    // noinspection TypeScriptValidateJSTypes
     const data =  await this.getModel().findAll({
       attributes: ['id', 'blockchain_id'],
       where: {
@@ -73,25 +147,41 @@ class PostsRepository {
    * @returns {Function}
    */
   static getWhereProcessor() {
-    return (query, params) => {
+    return (query: PostRequestQueryDto, params) => {
       if (query.post_type_id) {
         params.where.post_type_id = +query.post_type_id;
       }
 
-      if (query.created_at && query.created_at === '24_hours') {
-        const newData = moment().subtract(24, 'hours');
-
-        params.where.created_at = {
-          [Op.gte]: newData.format('YYYY-MM-DD HH:mm:ss'),
-        };
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getTrending()) {
+        Object.assign(params.where, this.whereSequelizeTranding());
       }
 
-      if (query.sort_by && query.sort_by.includes('current_rate_delta_daily')) {
-        params.where.importance_delta =
-          db.where(db.col(`${ENTITY_STATS_CURRENT_TABLE_NAME}.importance_delta`), {
-            [Op.gt]: 0,
-          });
+      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getHot()) {
+        Object.assign(params.where, this.whereSequelizeHot());
       }
+    };
+  }
+
+  public static whereSequelizeTranding() {
+    const greaterThan = process.env.NODE_ENV === 'staging' ? -100 : 0;
+
+    return {
+      importance_delta: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.importance_delta`), {
+        [Op.gt]: greaterThan,
+      }),
+      upvotes_delta: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.upvotes_delta`), {
+        [Op.gt]: greaterThan,
+      }),
+    };
+  }
+
+  public static whereSequelizeHot() {
+    const greaterThan = process.env.NODE_ENV === 'staging' ? -100 : 0;
+
+    return {
+      activity_index: db.where(db.col(`${PostsModelProvider.getCurrentParamsTableName()}.activity_index_delta`), {
+        [Op.gt]: greaterThan,
+      }),
     };
   }
 
@@ -106,9 +196,13 @@ class PostsRepository {
         postsModelProvider.getPostStatsModel(),
         'comments_count',
       ],
-      current_rate_delta_daily: [
-        entityStatsCurrentModel,
+      importance_delta: [
+        postsModelProvider.getCurrentParamsSequelizeModel(),
         'importance_delta',
+      ],
+      activity_index_delta: [
+        postsModelProvider.getCurrentParamsSequelizeModel(),
+        'activity_index_delta',
       ],
     };
   }
@@ -126,7 +220,9 @@ class PostsRepository {
       'comments_count',
       'current_vote',
       'created_at',
-      'current_rate_delta_daily',
+
+      'activity_index_delta',
+      'importance_delta',
     ];
   }
 
@@ -254,6 +350,7 @@ class PostsRepository {
    * @returns {Promise<Object>}
    */
   static async findAllMediaPosts(raw = true) {
+    // noinspection TypeScriptValidateJSTypes
     return this.getModel().findAll({
       raw,
       where: {
@@ -269,9 +366,10 @@ class PostsRepository {
    */
   static async countAllPosts(queryParameters: any | null = null) {
     const include = [
+      PostsModelProvider.getCurrentParamsSequelizeInclude(),
       {
         attributes: [],
-        model: entityStatsCurrentModel,
+        model: entityStatsCurrentModel, // @deprecated
         required: false,
       },
     ];
@@ -344,6 +442,7 @@ class PostsRepository {
     return data.map(item => item.toJSON());
   }
 
+  // noinspection JSUnusedGlobalSymbols
   public static getIncludeProcessor(): Function {
     // @ts-ignore
     return (query, params) => {
@@ -353,11 +452,7 @@ class PostsRepository {
         postsModelProvider.getPostsStatsInclude(),
         postsModelProvider.getPostOfferItselfInclude(),
         postsModelProvider.getParentPostInclude(),
-        {
-          attributes: ['upvote_delta', 'importance_delta'],
-          model: entityStatsCurrentModel,
-          required: false,
-        },
+        postsModelProvider.getCurrentParamsSequelizeInclude(),
       ];
     };
   }
@@ -543,6 +638,7 @@ class PostsRepository {
 
   // noinspection JSUnusedGlobalSymbols
   static async findAllWithRates() {
+    // noinspection TypeScriptValidateJSTypes
     const rows = await PostsRepository.getModel().findAll({
       where: {
         current_rate: {
@@ -661,6 +757,7 @@ class PostsRepository {
     delete data.id;
 
     const newPost = await PostsRepository.getModel().create(data, { transaction });
+    // @deprecated
     await postStatsRepository.createNew(newPost.id, transaction);
 
     return newPost;
@@ -686,7 +783,7 @@ class PostsRepository {
     // So WHERE current_rate > 0 for post is not ok for current_rate calculation
 
     return knex(TABLE_NAME)
-      .select(['current_rate', 'entity_tags'])
+      .select(['current_rate', 'entity_tags', 'post_type_id'])
       .whereRaw("entity_tags != '{}'")
       .offset(offset)
       .limit(limit)

@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+import OrgsCurrentParamsRepository = require('../repository/organizations-current-params-repository');
+
 const status  = require('statuses');
 const _       = require('lodash');
 const joi     = require('joi');
@@ -107,6 +109,9 @@ class OrganizationService {
         };
       });
 
+    // #task - create new entity via knex only and provide related transaction
+    // #task use Promise.all when possible
+    await OrgsCurrentParamsRepository.insertRowForNewEntity(newOrganization.id);
     await OrganizationService.sendOrgCreationActivityToRabbit(newUserActivity);
     await OrganizationService.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
 

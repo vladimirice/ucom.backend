@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const rabbitMqService             = require('../../jobs/rabbitmq-service');
 const postActivityProcessor       = require('../../posts/service/post-activity-processor');
 const commentsActivityProcessor   = require('../../comments/service/comments-activity-processor');
@@ -33,14 +34,12 @@ class ConsumerTagsParser {
           String content is: ${messageContent}`;
         ConsumerLogger.error(err);
 
-          // In order to terminate consumer properly - with error exit code
+        // In order to terminate consumer properly - with error exit code
         throw err;
-
       } finally {
         channel.ack(message);
         console.log('acked!');
       }
-
     },                     { noAck: false });
   }
 }

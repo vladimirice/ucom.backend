@@ -24,6 +24,7 @@ class PostActivityProcessor {
       return false;
     }
 
+    console.log('lets process tag');
     await tagsProcessor.processTags(activity);
     await mentionsProcessor.processMentions(activity);
 

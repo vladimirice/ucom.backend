@@ -1,5 +1,7 @@
 import { ActivityWithContentEntity } from '../../users/interfaces/dto-interfaces';
 
+import TagsCurrentParamsRepository = require('../repository/tags-current-params-repository');
+
 const _     = require('lodash');
 const knex  = require('../../../config/knex');
 
@@ -32,6 +34,7 @@ class TagsProcessorService {
       let createdTags: Object = {};
       if (tagsToInsert.length > 0) {
         createdTags = await tagsRepository.createNewTags(tagsToInsert, trx);
+        await TagsCurrentParamsRepository.insertManyRowsForNewEntity(Object.values(createdTags), trx);
       }
 
       const tagModels: Object = {

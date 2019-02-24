@@ -1,8 +1,12 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
+import { StringToNumberCollection } from '../../../lib/common/interfaces/common-types';
+
 import OrganizationsGenerator = require('../organizations-generator');
 import PostsGenerator = require('../posts-generator');
 import TagsHelper = require('../../integration/helpers/tags-helper');
+import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
+import TagsRepository = require('../../../lib/tags/repository/tags-repository');
 
 class EntityTagsGenerator {
   public static async createPostsWithTagsForOrgs(userVlad, userJane) {
@@ -71,6 +75,85 @@ class EntityTagsGenerator {
         orgFourId,
       ],
     };
+  }
+
+  public static async createTagsViaNewPostsByAmount(
+    myself: UserModel,
+    tagsAmount: number,
+  ): Promise<number[]> {
+    const tagPrefix = 'party';
+    const tagsTitles: string[] = [];
+    for (let i = 1; i <= tagsAmount; i += 1) {
+      tagsTitles.push(`${tagPrefix}_${i}`);
+    }
+
+    const res = await this.createManyTagsViaManyNewPosts(myself, tagsTitles);
+
+    await TagsCurrentRateProcessor.process();
+
+    return res;
+  }
+
+  public static async createManyTagsViaManyNewPosts(
+    myself: UserModel,
+    tagsTitles: string[],
+  ): Promise<number[]> {
+    const promises: Promise<any>[] = [];
+
+    tagsTitles.forEach((title: string) => {
+      promises.push(this.createTagViaNewPost(myself, title));
+    });
+
+    return Promise.all(promises);
+  }
+
+  public static async createTagViaNewPost(
+    myself: UserModel,
+    tagTitle: string,
+  ): Promise<number> {
+    const postId: number = await PostsGenerator.createMediaPostByUserHimself(myself, {
+      description: `Hi everyone! #${tagTitle} is so close.`,
+    });
+
+    await TagsHelper.getPostWhenTagsAreProcessed(postId);
+
+    return postId;
+  }
+
+  public static async createManyTagsViaNewPostAndGetTagsIds(
+    myself: UserModel,
+    tagsTitles: string[],
+  ): Promise<StringToNumberCollection> {
+    let description = 'Hi everyone! So close.';
+    for (const title of tagsTitles) {
+      description += `#${title} `;
+    }
+
+    const postId: number = await PostsGenerator.createMediaPostByUserHimself(myself, {
+      description,
+    });
+
+    await TagsHelper.getPostWhenTagsAreProcessed(postId);
+
+    return TagsRepository.findAllTagsByTitles(tagsTitles);
+  }
+
+  public static async createTagViaNewDirectPost(
+    myself: UserModel,
+    wallOwner: UserModel,
+    tagTitle: string,
+  ): Promise<number> {
+    const description = `Hi everyone! #${tagTitle} is so close.`;
+
+    const postId: number = await PostsGenerator.createDirectPostForUserAndGetId(
+      myself,
+      wallOwner,
+      description,
+    );
+
+    await TagsHelper.getPostWhenTagsAreProcessed(postId);
+
+    return postId;
   }
 
   public static async createPostsWithTags(

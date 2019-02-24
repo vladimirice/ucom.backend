@@ -10,6 +10,9 @@ const db = require('../../../models').sequelize;
 
 const postsModelProvider = require('../../posts/service/posts-model-provider');
 
+/**
+ * @deprecated
+ */
 class EntityStatsCurrentRepository {
 
   static async updateUpvoteDelta() {

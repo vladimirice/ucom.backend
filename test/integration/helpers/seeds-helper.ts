@@ -1,6 +1,13 @@
+/* eslint-disable import/no-dynamic-require */
 /* tslint:disable:max-line-length */
+import { GraphqlHelper } from './graphql-helper';
+
 import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import UsersHelper = require('./users-helper');
+import knexEvents = require('../../../config/knex-events');
+import knex = require('../../../config/knex');
+import RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -13,7 +20,6 @@ const postStatsSeeds = require('../../../seeders/posts/post-stats-seeds');
 const postUsersTeamSeeds = require('../../../seeders/posts/posts-users-team');
 const commentsSeeds = require('../../../seeders/comments/comments-seeds');
 const organizationsSeeds = require('../../../seeders/organizations/organizations-seeds');
-const usersHelper = require('../helpers/users-helper');
 
 const organizationsRepositories = require('../../../lib/organizations/repository');
 const usersRepositories = require('../../../lib/users/repository');
@@ -23,14 +29,22 @@ const entityModelProvider = require('../../../lib/entities/service').ModelProvid
 
 const rabbitMqService     = require('../../../lib/jobs/rabbitmq-service.js');
 
-const seedsDir = '../../../seeders';
+const orgSeeds = require('../../../seeders/organizations/organizations-seeds');
+const usersTeamSeeds = require('../../../seeders/users/users-team-seeds');
 
 const tableToSeeds = {
-  [organizationsRepositories.Main.getOrganizationsModelName()]: require(`${seedsDir}/organizations/organizations-seeds`),
-  [usersRepositories.Main.getUsersModelName()]:                 require(`${seedsDir}/users/users`),
-  [usersModelProvider.getUsersTeamTableName()]:                 require(`${seedsDir}/users/users-team-seeds`),
-  [postRepositories.MediaPosts.getModelName()]:                 require(`${seedsDir}/posts/posts`),
+  [organizationsRepositories.Main.getOrganizationsModelName()]: orgSeeds,
+  [usersRepositories.Main.getUsersModelName()]:                 usersSeeds,
+  [usersModelProvider.getUsersTeamTableName()]:                 usersTeamSeeds,
+  [postRepositories.MediaPosts.getModelName()]:                 postsSeeds,
 };
+
+
+const minorTablesToSkipSequences = [
+  'posts_current_params_id_seq',
+  'organizations_current_params_id_seq',
+  'tags_current_params_id_seq',
+];
 
 // Truncated async
 const minorTables = [
@@ -39,8 +53,12 @@ const minorTables = [
 
   'entity_tags',
   'entity_state_log',
+
+  'posts_current_params',
+  'organizations_current_params',
+  'tags_current_params',
+
   'tags',
-  'entity_event_param',
   'entity_stats_current',
   'blockchain_tr_traces',
 
@@ -110,7 +128,7 @@ class SeedsHelper {
 
   /**
    * @deprecated
-   * @see genetrators
+   * @see generators
    * @param {Object} user
    * @param {number} postId
    * @return {Promise<Object>}
@@ -139,12 +157,30 @@ class SeedsHelper {
     await rabbitMqService.purgeAllQueues();
   }
 
+  public static async beforeAllSetting(options) {
+    if (options.isGraphQl) {
+      await GraphqlHelper.beforeAll();
+    }
+
+    switch (options.workersMocking) {
+      case 'blockchainOnly':
+        MockHelper.mockAllTransactionSigning();
+        MockHelper.mockAllBlockchainJobProducers();
+        break;
+      case 'all':
+        MockHelper.mockAllBlockchainPart();
+        break;
+      default:
+        // do nothing
+    }
+  }
+
   /**
    *
    * @returns {Promise<*>}
    */
   static async beforeAllRoutine(
-    mockAllBlockchain: boolean = false,
+    mockAllBlockchain: boolean = false, // deprecated
   ) {
     if (mockAllBlockchain) {
       MockHelper.mockAllBlockchainPart();
@@ -152,14 +188,14 @@ class SeedsHelper {
 
     await Promise.all([
       this.destroyTables(),
-      this.purgeAllQueues(),
+      // this.purgeAllQueues(),
+      this.truncateEventsDb(),
     ]);
 
     const usersModel = usersRepositories.Main.getUsersModelName();
 
     // init users
     const usersSequence = this.getSequenceNameByModelName(usersModel);
-    const usersSeeds    = tableToSeeds[usersModel];
 
     await this.resetSequence(usersSequence);
     await this.bulkCreate(usersModel, usersSeeds);
@@ -171,15 +207,11 @@ class SeedsHelper {
     ]);
 
     return Promise.all([
-      usersHelper.getUserVlad(),
-      usersHelper.getUserJane(),
-      usersHelper.getUserPetr(),
-      usersHelper.getUserRokky(),
+      UsersHelper.getUserVlad(),
+      UsersHelper.getUserJane(),
+      UsersHelper.getUserPetr(),
+      UsersHelper.getUserRokky(),
     ]);
-  }
-
-  public async seedOrganizations() {
-    await models.organizations.bulkCreate(organizationsSeeds);
   }
 
   /**
@@ -195,6 +227,7 @@ class SeedsHelper {
     return `${name}_id_seq`;
   }
 
+  // @deprecated. It is required because of deprecated seeding without generators
   static async resetSequence(name) {
     return models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`);
   }
@@ -216,7 +249,10 @@ class SeedsHelper {
         name = '"Users_id_seq"';
       }
 
-      resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`));
+      if (!~minorTablesToSkipSequences.indexOf(name)) {
+        // @deprecated - sequence reset was required for seeds, not for generators
+        resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`));
+      }
     });
 
     await Promise.all(resetSequencePromises);
@@ -322,24 +358,31 @@ class SeedsHelper {
     await models.posts.bulkCreate(postsSeeds);
     await models.post_offer.bulkCreate(postsOffersSeeds);
     await models.post_users_team.bulkCreate(postUsersTeamSeeds);
-
-    // noinspection JSUnresolvedFunction
-    usersSeeds.forEach(() => {
-      // tslint:disable-next-line
-      models.sequelize.query('SELECT nextval(\'"Users_id_seq"\')').then(() => {
-      });
-    });
   }
 
-  static async doAfterAll() {
-    await Promise.all([
-      // rabbitMqService.closeAll(),
-      models.sequelize.close(),
-    ]);
+  public static async doAfterAll(
+    options: any = null,
+  ): Promise<void> {
+    await this.sequelizeAfterAll();
+
+    if (options && options.isGraphQl) {
+      await GraphqlHelper.afterAll();
+    }
   }
 
   static async sequelizeAfterAll() {
-    models.sequelize.close();
+    await models.sequelize.close();
+    await this.closeKnexConnections();
+
+    await RabbitMqService.purgeAllQueues();
+    await RabbitMqService.closeAll();
+  }
+
+  private static async closeKnexConnections() {
+    await Promise.all([
+      knex.destroy(),
+      knexEvents.destroy(),
+    ]);
   }
 
   /**
@@ -357,6 +400,12 @@ class SeedsHelper {
         await models[table].bulkCreate(seeds);
       }
     }
+  }
+
+  private static async truncateEventsDb() {
+    const tableName = 'entity_event_param';
+
+    await knexEvents.raw(`TRUNCATE TABLE ${tableName}`);
   }
 }
 

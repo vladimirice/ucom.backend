@@ -1,11 +1,10 @@
-import MockHelper = require("../../helpers/mock-helper");
-import UsersHelper = require("../../helpers/users-helper");
-import SeedsHelper = require("../../helpers/seeds-helper");
-import PostsGenerator = require("../../../generators/posts-generator");
-import OrganizationsGenerator = require("../../../generators/organizations-generator");
-import PostsHelper = require("../../helpers/posts-helper");
-
-export {};
+import MockHelper = require('../../helpers/mock-helper');
+import UsersHelper = require('../../helpers/users-helper');
+import SeedsHelper = require('../../helpers/seeds-helper');
+import PostsGenerator = require('../../../generators/posts-generator');
+import OrganizationsGenerator = require('../../../generators/organizations-generator');
+import PostsHelper = require('../../helpers/posts-helper');
+import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
 
 const expect  = require('expect');
 
@@ -46,6 +45,29 @@ describe('Post repost API', () => {
 
   describe('Create post-repost', () => {
     describe('Positive', () => {
+      it('Post of user himself - current params row should be created during post creation', async () => {
+        const { postId, repostId } = await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
+
+        const postData = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(postId);
+        const repostData = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(repostId);
+
+        PostsHelper.checkOneNewPostCurrentParams(postData, true);
+        PostsHelper.checkOneNewPostCurrentParams(repostData, true);
+      });
+
+      it('Post of org - current params row should be created during post creation', async () => {
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
+
+        const repostId = await PostsGenerator.createRepostOfUserPost(userJane, postId);
+
+        const postData = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(postId);
+        const repostData = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(repostId);
+
+        PostsHelper.checkOneNewPostCurrentParams(postData, true);
+        PostsHelper.checkOneNewPostCurrentParams(repostData, true);
+      });
+
       it('Create repost of user himself post', async () => {
         const parentPostAuthor = userVlad;
         const repostAuthor = userJane;
@@ -147,3 +169,5 @@ describe('Post repost API', () => {
     });
   });
 });
+
+export {};
