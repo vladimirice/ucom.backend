@@ -1,9 +1,11 @@
 import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
 import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
+import { AppError } from '../api/errors';
+
 import knex = require('../../config/knex');
 import PostsModelProvider = require('../posts/service/posts-model-provider');
-import { AppError } from '../api/errors';
+import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-category-dictionary');
 
 const _ = require('lodash');
 
@@ -21,13 +23,33 @@ const taggableRepository = require('../common/repository/taggable-repository');
 
 class UsersRepository {
   public static async findManyAsRelatedToEntity(
-    // @ts-ignore
     params: DbParamsDto,
     statsFieldName: string,
     relEntityField: string,
+    overviewType: string,
+    entityName: string,
   ): Promise<OrgModelResponse[]> {
+    if (entityName !== PostsModelProvider.getEntityName()) {
+      throw new AppError(`Unsupported entity: ${entityName}`, 500);
+    }
+
     const posts = PostsModelProvider.getTableName();
     const postsCurrentParams = PostsModelProvider.getCurrentParamsTableName();
+
+    let whereRawOverviewBounds = '';
+    let innerJoinWithStats = '';
+    let extraFieldsToSelect = '';
+    if (EntityListCategoryDictionary.isOverviewWithStats(overviewType)) {
+      if (!params.whereRaw) {
+        throw new AppError(
+          `It is required to fill params.whereRaw for overviewType: ${overviewType}. Current params set is: ${JSON.stringify(params)}`,
+          500,
+        );
+      }
+      whereRawOverviewBounds = `AND ${params.whereRaw}`;
+      innerJoinWithStats = ` INNER JOIN "${postsCurrentParams}" on "${posts}"."id" = "${postsCurrentParams}"."post_id" `;
+      extraFieldsToSelect = `, "t".${statsFieldName}`;
+    }
 
     const sql = `
       select "Users"."id"               as "id",
@@ -36,26 +58,25 @@ class UsersRepository {
              "Users"."last_name"        as "last_name",
              "Users"."nickname"         as "nickname",
              "Users"."avatar_filename"  as "avatar_filename",
-             "Users"."current_rate"     as "current_rate",
-
-             "t".${statsFieldName}
+             "Users"."current_rate"     as "current_rate"
+             ${extraFieldsToSelect}
       from "Users" INNER JOIN
            (
              SELECT ${relEntityField}, ${statsFieldName}
              FROM (SELECT DISTINCT ON (${relEntityField}) ${relEntityField}, ${statsFieldName}
                    FROM ${posts}
-                      INNER JOIN "${postsCurrentParams}" on "${posts}"."id" = "${postsCurrentParams}"."post_id"
+                    ${innerJoinWithStats}
                    WHERE 
-                      ${params.whereRaw}
-                      AND ${posts}.post_type_id = +${params.where.post_type_id}
+                      ${posts}.post_type_id = ${+params.where.post_type_id}
+                      ${whereRawOverviewBounds}
                    ORDER BY ${relEntityField}, ${statsFieldName} DESC
                   ) as inner_t
              ORDER BY ${statsFieldName} DESC
-             LIMIT  +${params.limit}
-             OFFSET +${params.offset}
+             LIMIT  ${+params.limit}
+             OFFSET ${+params.offset}
            ) as t
            ON t.${relEntityField} = "Users".id
-      ORDER BY ${statsFieldName} DESC
+      ORDER BY t.${statsFieldName} DESC
     `;
 
     const data = await knex.raw(sql);
@@ -67,6 +88,7 @@ class UsersRepository {
     params: DbParamsDto,
     relatedEntity: string,
     statsFieldName: string,
+    overviewType: string,
   ): Promise<number> {
     if (relatedEntity !== PostsModelProvider.getEntityName()) {
       throw new AppError(`Unsupported entity: ${relatedEntity}`, 500);
@@ -74,13 +96,25 @@ class UsersRepository {
     const posts = PostsModelProvider.getTableName();
     const postsCurrentParams = PostsModelProvider.getCurrentParamsTableName();
 
+    let whereRawOverviewBounds = '';
+    let innerJoinWithStats = '';
+    if (EntityListCategoryDictionary.isOverviewWithStats(overviewType)) {
+      if (!params.whereRaw) {
+        throw new AppError(
+          `It is required to fill params.whereRaw for overviewType: ${overviewType}. Current params set is: ${JSON.stringify(params)}`,
+          500,
+        );
+      }
+      whereRawOverviewBounds = `WHERE ${params.whereRaw}`;
+      innerJoinWithStats = ` INNER JOIN "${postsCurrentParams}" on "${posts}"."id" = "${postsCurrentParams}"."post_id" `;
+    }
+
     const sql = `
     SELECT COUNT(1) as amount FROM
       (
         SELECT DISTINCT ON (user_id) user_id, ${statsFieldName} FROM ${posts}
-        INNER JOIN "${postsCurrentParams}" on "${posts}"."id" = "${postsCurrentParams}"."post_id"
-        WHERE 
-            ${params.whereRaw}
+          ${innerJoinWithStats}
+          ${whereRawOverviewBounds}
         ORDER BY user_id, ${statsFieldName} DESC
       ) AS t
     `;

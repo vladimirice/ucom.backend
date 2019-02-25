@@ -12,8 +12,17 @@ const overviewTypeToStatsField = {
   [TOP]:      'current_rate',
 };
 
+const overviewTypesWithStats: string[] = [
+  TRENDING,
+  HOT,
+];
+
 
 class EntityListCategoryDictionary {
+  public static isOverviewWithStats(overviewType: string): boolean {
+    return !!~overviewTypesWithStats.indexOf(overviewType);
+  }
+
   public static getStatsFieldByOverviewType(overviewType: string): string {
     if (!overviewTypeToStatsField[overviewType]) {
       throw new AppError(`Unsupported overview type: ${overviewType}`, 500);

@@ -86,8 +86,8 @@ class UsersFetchService {
 
     const statsFieldName = EntityListCategoryDictionary.getStatsFieldByOverviewType(query.overview_type!);
     const promises = [
-      UsersRepository.findManyAsRelatedToEntity(params, statsFieldName, mainEntityField),
-      UsersRepository.countManyUsersAsRelatedToEntity(params, entityName, statsFieldName),
+      UsersRepository.findManyAsRelatedToEntity(params, statsFieldName, mainEntityField, query.overview_type!, entityName),
+      UsersRepository.countManyUsersAsRelatedToEntity(params, entityName, statsFieldName, query.overview_type!),
     ];
 
     return {

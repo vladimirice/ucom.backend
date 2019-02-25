@@ -130,8 +130,8 @@ class OrganizationsFetchService {
 
     const statsFieldName = EntityListCategoryDictionary.getStatsFieldByOverviewType(query.overview_type!);
     const promises = [
-      OrganizationsRepository.findManyAsRelatedToEntity(params, statsFieldName),
-      OrganizationsRepository.countManyOrganizationsAsRelatedToEntity(params, entityName, statsFieldName),
+      OrganizationsRepository.findManyAsRelatedToEntity(params, statsFieldName, entityName, query.overview_type!),
+      OrganizationsRepository.countManyOrganizationsAsRelatedToEntity(params, entityName, statsFieldName, query.overview_type!),
     ];
 
     return {

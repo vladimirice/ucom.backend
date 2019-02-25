@@ -1,7 +1,7 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
-import { IdToPropsCollection, NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
+import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
 
 import EosImportance = require('../../../lib/eos/eos-importance');
 import PostsRepository = require('../../../lib/posts/posts-repository');
@@ -106,36 +106,41 @@ class PostsHelper {
   public static async setSamplePositiveStatsParametersToPosts(
     entitiesIds: number[],
     orderedBy: string,
-  ): Promise<IdToPropsCollection> {
-    const entityIdToParams = {};
+  ): Promise<any[]> {
+    const entityIdToParams: any = [];
 
     const promises: Promise<any>[] = [];
     for (const id of entitiesIds) {
-      entityIdToParams[id] = {
+      const data = {
         post_id: id,
         importance_delta: RequestHelper.generateRandomNumber(1, 10, 10),
         activity_index_delta: RequestHelper.generateRandomNumber(1, 10, 4),
         upvotes_delta: RequestHelper.generateRandomNumber(1, 10, 0),
       };
 
+      entityIdToParams.push(data);
+
       promises.push(
-        PostsCurrentParamsRepository.updateValuesForEntity(id, entityIdToParams[id]),
+        PostsCurrentParamsRepository.updateValuesForEntity(id, data),
+      );
+
+      promises.push(
+        this.setSampleRateToPost(id, RequestHelper.generateRandomImportance()),
       );
     }
 
     await Promise.all(promises);
 
-    const orderedExpectedData: any = _.orderBy(entityIdToParams, [orderedBy], ['desc']);
-
-    for (let i = 0; i < orderedExpectedData.length; i += 1) {
-      const current = orderedExpectedData[i];
+    for (let i = 0; i < entityIdToParams.length; i += 1) {
+      const current = entityIdToParams[i];
       const dbPost = await PostsRepository.findOneByIdV2(current.post_id);
 
       current.user_id = dbPost.user_id;
       current.organization_id = dbPost.organization_id;
+      current.current_rate = +dbPost.current_rate;
     }
 
-    return orderedExpectedData;
+    return _.orderBy(entityIdToParams, [orderedBy], ['desc']);
   }
 
   /**

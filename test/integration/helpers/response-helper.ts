@@ -1,9 +1,25 @@
 /* tslint:disable:max-line-length */
 import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
+import { PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
+
+import _ = require('lodash');
 
 require('jest-expect-message');
 
 class ResponseHelper {
+  public static checkResponseOrdering(
+    response: PostsListResponse,
+    expected: any,
+    orderedField: string,
+    offset: number = 0,
+  ): void {
+    expect(_.isEmpty(response.data)).toBeFalsy();
+
+    for (let i = offset; i < response.data.length; i += 1) {
+      expect(response.data[i].id).toBe(expected[i][orderedField]);
+    }
+  }
+
   public static checkFieldsAreNumerical(model: any, fields: string[]) {
     fields.forEach((field) => {
       expect(typeof model[field]).toBe('number');

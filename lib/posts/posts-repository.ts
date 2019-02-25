@@ -869,6 +869,12 @@ class PostsRepository implements QueryFilteredRepository {
         Object.assign(params.where, this.whereSequelizeHot());
         params.whereRaw = this.whereRawHot();
         break;
+      case EntityListCategoryDictionary.getFresh():
+        params.whereRaw = '';
+        break;
+      case EntityListCategoryDictionary.getTop():
+        params.whereRaw = '';
+        break;
       default:
         throw new AppError(`Unsupported overview type: ${query.overview_type}`, 500);
     }
