@@ -58,7 +58,7 @@ class OrganizationsGenerator {
     const about = faker.company.companyName();
     const poweredBy = faker.company.companyName();
     // noinspection JSCheckFunctionSignatures
-    const nickname = faker.name.firstName();
+    const nickname = `${faker.name.firstName()}_${RequestHelper.generateRandomNumber(0, 10, 0)}`;
 
     const req = request(server)
       .post(RequestHelper.getOrganizationsUrl())

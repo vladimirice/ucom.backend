@@ -7,6 +7,8 @@ import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
+import PostsModelProvider = require('../../posts/service/posts-model-provider');
+import { AppError } from '../../api/errors';
 
 const _ = require('lodash');
 
@@ -136,6 +138,35 @@ class OrganizationsRepository implements QueryFilteredRepository {
     const res = await query;
 
     return +res[0].amount;
+  }
+
+  public static async countManyOrganizationsAsRelatedToEntity(
+    params: DbParamsDto,
+    relatedEntity: string,
+    statsFieldName: string,
+  ): Promise<number> {
+    if (relatedEntity !== PostsModelProvider.getEntityName()) {
+      throw new AppError(`Unsupported relatedEntity: ${relatedEntity}`, 500);
+    }
+
+    const posts = PostsModelProvider.getTableName();
+    const postsCurrentParams = PostsModelProvider.getCurrentParamsTableName();
+
+    const sql = `
+    SELECT COUNT(1) as amount FROM
+      (
+        SELECT DISTINCT ON (organization_id) organization_id, ${statsFieldName} FROM ${posts}
+        INNER JOIN "${postsCurrentParams}" on "posts"."id" = "${postsCurrentParams}"."post_id"
+        WHERE 
+          ${params.whereRaw}
+          AND organization_id IS NOT NULL
+        ORDER BY organization_id, ${statsFieldName} DESC
+      ) AS t
+    `;
+
+    const res = await knex.raw(sql);
+
+    return +res.rows[0].amount;
   }
 
   /**
@@ -486,6 +517,39 @@ class OrganizationsRepository implements QueryFilteredRepository {
     const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
 
     return res.toJSON();
+  }
+
+  public static async findManyAsRelatedToEntity(
+    // @ts-ignore
+    params: DbParamsDto,
+    statsFieldName: string,
+  ): Promise<OrgModelResponse[]> {
+    const sql = `
+      select ${params.attributes},
+             "t".${statsFieldName}
+      from "organizations" INNER JOIN
+           (
+             SELECT organization_id, ${statsFieldName}
+             FROM (SELECT DISTINCT ON (organization_id) organization_id, ${statsFieldName}
+                   FROM posts
+                      INNER JOIN "posts_current_params" on "posts"."id" = "posts_current_params"."post_id"
+                   WHERE 
+                      ${params.whereRaw}
+                      AND organization_id IS NOT NULL
+                      AND posts.post_type_id = +${params.where.post_type_id}
+                   ORDER BY organization_id, ${statsFieldName} DESC
+                  ) as inner_t
+             ORDER BY ${statsFieldName} DESC
+             LIMIT  +${params.limit}
+             OFFSET +${params.offset}
+           ) as t
+           ON t.organization_id = organizations.id
+      ORDER BY ${statsFieldName} DESC
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows;
   }
 
   /**

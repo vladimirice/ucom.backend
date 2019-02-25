@@ -2,6 +2,7 @@ import { ApiLogger } from '../../../config/winston';
 
 import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import { StringToNumberCollection } from '../../common/interfaces/common-types';
 
 const TABLE_NAME = 'posts_current_params';
 
@@ -28,6 +29,12 @@ class PostsCurrentParamsRepository {
     };
 
     await knex(TABLE_NAME).insert(data);
+  }
+
+  public static async updateValuesForEntity(entityId: number, values: StringToNumberCollection) {
+    return knex(TABLE_NAME)
+      .where('post_id', '=', +entityId)
+      .update(values);
   }
 
   private static getNumericalFields(): string[] {

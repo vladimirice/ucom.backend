@@ -3,6 +3,8 @@ import { PostModelResponse } from '../../lib/posts/interfaces/model-interfaces';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
+import UsersHelper = require('../integration/helpers/users-helper');
+import OrganizationsGenerator = require('./organizations-generator');
 
 const _ = require('lodash');
 
@@ -182,6 +184,26 @@ class PostsGenerator {
       promises.push(
         this.createMediaPostByUserHimself(user),
       );
+    }
+
+    return Promise.all(promises);
+  }
+
+  public static async createManyDefaultMediaPostsByDifferentUsers(
+    amount: number,
+  ): Promise<number[]> {
+    const promises: Promise<number>[] = [];
+
+    const users: UserModel[] = await UsersHelper.getAllSampleUsersFromDb();
+    for (let i = 0; i < amount; i += 1) {
+      const creatorIndex = RequestHelper.generateRandomNumber(0, users.length - 1, 0);
+
+      if (i % 2 === 0) {
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(users[creatorIndex]);
+        promises.push(this.createMediaPostOfOrganization(users[creatorIndex], orgId));
+      } else {
+        promises.push(this.createMediaPostByUserHimself(users[creatorIndex]));
+      }
     }
 
     return Promise.all(promises);

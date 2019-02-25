@@ -1,22 +1,23 @@
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { GraphqlHelper } from '../helpers/graphql-helper';
+import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+import { GraphqlHelper } from '../../helpers/graphql-helper';
 import {
   PostModelResponse,
   PostRequestQueryDto,
   PostsListResponse,
-} from '../../../lib/posts/interfaces/model-interfaces';
+} from '../../../../lib/posts/interfaces/model-interfaces';
 
-import SeedsHelper = require('../helpers/seeds-helper');
-import PostsGenerator = require('../../generators/posts-generator');
+import SeedsHelper = require('../../helpers/seeds-helper');
+import PostsGenerator = require('../../../generators/posts-generator');
 
-import CommonHelper = require('../helpers/common-helper');
-import CommentsGenerator = require('../../generators/comments-generator');
-import ResponseHelper = require('../helpers/response-helper');
-import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
-import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
+import CommonHelper = require('../../helpers/common-helper');
+import CommentsGenerator = require('../../../generators/comments-generator');
+import ResponseHelper = require('../../helpers/response-helper');
+import EntityEventParamGeneratorV2 = require('../../../generators/entity/entity-event-param-generator-v2');
+import EntityListCategoryDictionary = require('../../../../lib/stats/dictionary/entity-list-category-dictionary');
 import _ = require('lodash');
-import OrganizationsHelper = require('../helpers/organizations-helper');
-import TagsHelper = require('../helpers/tags-helper');
+import OrganizationsHelper = require('../../helpers/organizations-helper');
+import TagsHelper = require('../../helpers/tags-helper');
+import PostsHelper = require('../../helpers/posts-helper');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -24,6 +25,16 @@ let userVlad: UserModel;
 let userJane: UserModel;
 
 const JEST_TIMEOUT = 10000;
+
+function checkResponseOrdering(
+  response: PostsListResponse,
+  expected: any,
+  orderedField: string,
+): void {
+  for (let i = 0; i < response.data.length; i += 1) {
+    expect(response.data[i].id).toBe(expected[i][orderedField]);
+  }
+}
 
 function checkPostsPage(response) {
   const options = {
@@ -57,17 +68,65 @@ describe('GET posts via graphql', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
-
   describe('Media Posts trending', () => {
     const overviewType = EntityListCategoryDictionary.getTrending();
     const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
 
     beforeEach(async () => {
-      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+      // await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
     });
 
     it('Trending with side blocks. #smoke #posts', async () => {
-      // #task - very basic smoke test. It is required to check ordering
+      const entitiesAmount = 22;
+      const postsIds: number[] = await PostsGenerator.createManyDefaultMediaPostsByDifferentUsers(entitiesAmount);
+
+      const expectedOrderBy = 'importance_delta';
+
+      const expectedValues: any =
+        await PostsHelper.setSamplePositiveStatsParametersToPosts(postsIds, expectedOrderBy);
+
+      let indexToRemain;
+      let getRidOfIndex;
+
+      // This is special disturbance in order to catch not distinct related organization issue
+      for (let i = 0; i < expectedValues.length; i += 1) {
+        if (getRidOfIndex) {
+          break;
+        }
+
+        const item = expectedValues[i];
+        if (!item.organization_id) {
+          continue;
+        }
+
+        if (!indexToRemain) {
+          indexToRemain = i;
+        } else if (!getRidOfIndex) {
+          getRidOfIndex = i;
+        }
+      }
+
+      await PostsHelper.changeOrganizationId(expectedValues[indexToRemain].post_id, expectedValues[getRidOfIndex].organization_id);
+
+      let expectedForOrg = _.cloneDeep(expectedValues);
+      expectedForOrg[indexToRemain].organization_id = expectedValues[getRidOfIndex].organization_id;
+
+      expectedForOrg = expectedForOrg.filter((item, index) => {
+        return item.organization_id !== null && index !== getRidOfIndex;
+      });
+
+      const userIdAlready: number[] = [];
+
+      let expectedForUsers = _.cloneDeep(expectedValues);
+      expectedForUsers = expectedForUsers.filter((item) => {
+        if (!~userIdAlready.indexOf(item.user_id)) {
+          userIdAlready.push(item.user_id);
+
+          return true;
+        }
+
+        return false;
+      });
 
       const response: any = await GraphqlHelper.getPostsPageAsMyself(
         userVlad,
@@ -75,8 +134,19 @@ describe('GET posts via graphql', () => {
         postTypeId,
       );
 
+      checkResponseOrdering(response.data.many_posts, expectedValues, 'post_id');
+
+      expect(_.isEmpty(response.data.many_organizations.data)).toBeFalsy();
+      checkResponseOrdering(response.data.many_organizations, expectedForOrg, 'organization_id');
+      expect(response.data.many_organizations.metadata.total_amount).toBe(entitiesAmount / 2 - 1);
+
+      expect(_.isEmpty(response.data.many_users.data)).toBeFalsy();
+      checkResponseOrdering(response.data.many_users, expectedForUsers, 'user_id');
+      expect(response.data.many_users.metadata.total_amount).toBe(4);
+
       checkPostsPage(response);
-    });
+    }, 100000000);
+
 
     it('Users list for trending post', async () => {
       // #task - very basic smoke test. It is required to check ordering

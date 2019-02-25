@@ -1,5 +1,9 @@
 import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
-import { OrgModel } from '../organizations/interfaces/model-interfaces';
+import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
+import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
+import knex = require('../../config/knex');
+import PostsModelProvider = require('../posts/service/posts-model-provider');
+import { AppError } from '../api/errors';
 
 const _ = require('lodash');
 
@@ -16,6 +20,76 @@ const TABLE_NAME = 'Users';
 const taggableRepository = require('../common/repository/taggable-repository');
 
 class UsersRepository {
+  public static async findManyAsRelatedToEntity(
+    // @ts-ignore
+    params: DbParamsDto,
+    statsFieldName: string,
+    relEntityField: string,
+  ): Promise<OrgModelResponse[]> {
+    const posts = PostsModelProvider.getTableName();
+    const postsCurrentParams = PostsModelProvider.getCurrentParamsTableName();
+
+    const sql = `
+      select "Users"."id"               as "id",
+             "Users"."account_name"     as "account_name",
+             "Users"."first_name"       as "first_name",
+             "Users"."last_name"        as "last_name",
+             "Users"."nickname"         as "nickname",
+             "Users"."avatar_filename"  as "avatar_filename",
+             "Users"."current_rate"     as "current_rate",
+
+             "t".${statsFieldName}
+      from "Users" INNER JOIN
+           (
+             SELECT ${relEntityField}, ${statsFieldName}
+             FROM (SELECT DISTINCT ON (${relEntityField}) ${relEntityField}, ${statsFieldName}
+                   FROM ${posts}
+                      INNER JOIN "${postsCurrentParams}" on "${posts}"."id" = "${postsCurrentParams}"."post_id"
+                   WHERE 
+                      ${params.whereRaw}
+                      AND ${posts}.post_type_id = +${params.where.post_type_id}
+                   ORDER BY ${relEntityField}, ${statsFieldName} DESC
+                  ) as inner_t
+             ORDER BY ${statsFieldName} DESC
+             LIMIT  +${params.limit}
+             OFFSET +${params.offset}
+           ) as t
+           ON t.${relEntityField} = "Users".id
+      ORDER BY ${statsFieldName} DESC
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows;
+  }
+
+  public static async countManyUsersAsRelatedToEntity(
+    params: DbParamsDto,
+    relatedEntity: string,
+    statsFieldName: string,
+  ): Promise<number> {
+    if (relatedEntity !== PostsModelProvider.getEntityName()) {
+      throw new AppError(`Unsupported entity: ${relatedEntity}`, 500);
+    }
+    const posts = PostsModelProvider.getTableName();
+    const postsCurrentParams = PostsModelProvider.getCurrentParamsTableName();
+
+    const sql = `
+    SELECT COUNT(1) as amount FROM
+      (
+        SELECT DISTINCT ON (user_id) user_id, ${statsFieldName} FROM ${posts}
+        INNER JOIN "${postsCurrentParams}" on "${posts}"."id" = "${postsCurrentParams}"."post_id"
+        WHERE 
+            ${params.whereRaw}
+        ORDER BY user_id, ${statsFieldName} DESC
+      ) AS t
+    `;
+
+    const res = await knex.raw(sql);
+
+    return +res.rows[0].amount;
+  }
+
   /**
    *
    * @param {string[]} accountNames

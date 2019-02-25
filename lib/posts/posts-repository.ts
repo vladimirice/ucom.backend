@@ -1,7 +1,8 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
-import { QueryFilteredRepository } from '../api/filters/interfaces/query-filter-interfaces';
+import { DbParamsDto, QueryFilteredRepository } from '../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from './interfaces/model-interfaces';
+import { AppError } from '../api/errors';
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
@@ -152,15 +153,10 @@ class PostsRepository implements QueryFilteredRepository {
         params.where.post_type_id = +query.post_type_id;
       }
 
-      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getTrending()) {
-        Object.assign(params.where, this.whereSequelizeTranding());
-      }
-
-      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getHot()) {
-        Object.assign(params.where, this.whereSequelizeHot());
-      }
+      this.andWhereByOverviewType(query, params);
     };
   }
+
 
   public static whereSequelizeTranding() {
     const greaterThan = process.env.NODE_ENV === 'staging' ? -100 : 0;
@@ -190,20 +186,29 @@ class PostsRepository implements QueryFilteredRepository {
    *
    * @returns {Object}
    */
-  static getOrderByRelationMap() {
+  static getOrderByRelationMap(forSequelize: boolean = true) {
+
+    if (forSequelize) {
+      return {
+        comments_count: [
+          postsModelProvider.getPostStatsModel(),
+          'comments_count',
+        ],
+        importance_delta: [
+          postsModelProvider.getCurrentParamsSequelizeModel(),
+          'importance_delta',
+        ],
+        activity_index_delta: [
+          postsModelProvider.getCurrentParamsSequelizeModel(),
+          'activity_index_delta',
+        ],
+      };
+    }
+
     return {
-      comments_count: [
-        postsModelProvider.getPostStatsModel(),
-        'comments_count',
-      ],
-      importance_delta: [
-        postsModelProvider.getCurrentParamsSequelizeModel(),
-        'importance_delta',
-      ],
-      activity_index_delta: [
-        postsModelProvider.getCurrentParamsSequelizeModel(),
-        'activity_index_delta',
-      ],
+      comments_count:       `${PostsModelProvider.getPostsStatsTableName()}.comments_count`,
+      importance_delta:     `${PostsModelProvider.getCurrentParamsTableName()}.importance_delta`,
+      activity_index_delta: `${PostsModelProvider.getCurrentParamsTableName()}.activity_index_delta`,
     };
   }
 
@@ -212,7 +217,7 @@ class PostsRepository implements QueryFilteredRepository {
    *
    * @return {string[]}
    */
-  static getAllowedOrderBy() {
+  static getAllowedOrderBy(): string[] {
     return [
       'current_rate',
       'id',
@@ -848,6 +853,41 @@ class PostsRepository implements QueryFilteredRepository {
       limit: 10,
       order: this.getDefaultOrderBy(),
     };
+  }
+
+  private static andWhereByOverviewType(query: PostRequestQueryDto, params: DbParamsDto) {
+    if (!query.overview_type) {
+      return;
+    }
+
+    switch (query.overview_type) {
+      case EntityListCategoryDictionary.getTrending():
+        Object.assign(params.where, this.whereSequelizeTranding());
+        params.whereRaw = this.whereRawTrending();
+        break;
+      case EntityListCategoryDictionary.getHot():
+        Object.assign(params.where, this.whereSequelizeHot());
+        params.whereRaw = this.whereRawHot();
+        break;
+      default:
+        throw new AppError(`Unsupported overview type: ${query.overview_type}`, 500);
+    }
+  }
+
+  private static whereRawTrending(): string {
+    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
+
+    const tableName = PostsModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.importance_delta > ${lowerLimit} AND ${tableName}.upvotes_delta > ${lowerLimit}`;
+  }
+
+  private static whereRawHot(): string {
+    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
+
+    const tableName = PostsModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.activity_index_delta > ${lowerLimit}`;
   }
 }
 

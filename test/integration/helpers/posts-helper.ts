@@ -1,7 +1,7 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
-import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
+import { IdToPropsCollection, NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
 
 import EosImportance = require('../../../lib/eos/eos-importance');
 import PostsRepository = require('../../../lib/posts/posts-repository');
@@ -9,6 +9,9 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
 import _ = require('lodash');
+import PostsCurrentParamsRepository = require('../../../lib/posts/repository/posts-current-params-repository');
+import knex = require('../../../config/knex');
+import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 
 const request = require('supertest');
 const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
@@ -89,6 +92,50 @@ class PostsHelper {
     const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
 
     return +rateNormalized.toFixed();
+  }
+
+  public static async changeOrganizationId(id: number, orgId: number): Promise<void> {
+    await knex(PostsModelProvider.getTableName())
+      .update({
+        organization_id: orgId,
+      })
+      .where('id', '=', id)
+    ;
+  }
+
+  public static async setSamplePositiveStatsParametersToPosts(
+    entitiesIds: number[],
+    orderedBy: string,
+  ): Promise<IdToPropsCollection> {
+    const entityIdToParams = {};
+
+    const promises: Promise<any>[] = [];
+    for (const id of entitiesIds) {
+      entityIdToParams[id] = {
+        post_id: id,
+        importance_delta: RequestHelper.generateRandomNumber(1, 10, 10),
+        activity_index_delta: RequestHelper.generateRandomNumber(1, 10, 4),
+        upvotes_delta: RequestHelper.generateRandomNumber(1, 10, 0),
+      };
+
+      promises.push(
+        PostsCurrentParamsRepository.updateValuesForEntity(id, entityIdToParams[id]),
+      );
+    }
+
+    await Promise.all(promises);
+
+    const orderedExpectedData: any = _.orderBy(entityIdToParams, [orderedBy], ['desc']);
+
+    for (let i = 0; i < orderedExpectedData.length; i += 1) {
+      const current = orderedExpectedData[i];
+      const dbPost = await PostsRepository.findOneByIdV2(current.post_id);
+
+      current.user_id = dbPost.user_id;
+      current.organization_id = dbPost.organization_id;
+    }
+
+    return orderedExpectedData;
   }
 
   /**
