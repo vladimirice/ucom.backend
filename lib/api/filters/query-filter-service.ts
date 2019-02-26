@@ -111,7 +111,7 @@ class QueryFilterService {
     return params;
   }
 
-  public static processAttributes(params: DbParamsDto, mainTableName: string) {
+  public static processAttributes(params: DbParamsDto, mainTableName: string, prefixAll = false) {
     if (!params.attributes) {
       return;
     }
@@ -123,7 +123,9 @@ class QueryFilterService {
     ];
 
     for (let i = 0; i < params.attributes.length; i += 1) {
-      if (~paramsToAddPrefix.indexOf(params.attributes[i])) {
+      if (prefixAll) {
+        params.attributes[i] = `${mainTableName}.${params.attributes[i]} AS ${params.attributes[i]}`;
+      } else if (~paramsToAddPrefix.indexOf(params.attributes[i])) {
         params.attributes[i] = `${mainTableName}.${params.attributes[i]} AS ${params.attributes[i]}`;
       }
     }
@@ -140,8 +142,8 @@ class QueryFilterService {
   static getQueryParameters(
     query: RequestQueryDto | null,
     orderByRelationMap = {},
-    allowedSortBy = null,
-    whereProcessor = null,
+    allowedSortBy: string[] | null = null,
+    whereProcessor: Function | null = null,
   ) {
     const params: any = {};
 

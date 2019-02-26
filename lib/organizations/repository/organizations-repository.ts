@@ -7,6 +7,7 @@ import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
+import PostsRepository = require('../../posts/posts-repository');
 
 const _ = require('lodash');
 
@@ -136,6 +137,33 @@ class OrganizationsRepository implements QueryFilteredRepository {
     const res = await query;
 
     return +res[0].amount;
+  }
+
+  public static async countManyOrganizationsAsRelatedToEntity(
+    params: DbParamsDto,
+    statsFieldName: string,
+    relatedEntityField: string,
+    overviewType: string,
+  ): Promise<number> {
+    const relEntityNotNull = true;
+    const subQuery = PostsRepository.prepareSubQueryForCounting(
+      overviewType,
+      relatedEntityField,
+      statsFieldName,
+      params,
+      relEntityNotNull,
+    );
+
+    const sql = `
+    SELECT COUNT(1) as amount FROM
+      (
+        ${subQuery}
+      ) AS t
+    `;
+
+    const res = await knex.raw(sql);
+
+    return +res.rows[0].amount;
   }
 
   /**
@@ -486,6 +514,30 @@ class OrganizationsRepository implements QueryFilteredRepository {
     const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
 
     return res.toJSON();
+  }
+
+  public static async findManyAsRelatedToEntity(
+    params: DbParamsDto,
+    statsFieldName: string,
+    relEntityField: string,
+    overviewType: string,
+  ): Promise<OrgModelResponse[]> {
+    const relEntityNotNull = true;
+    const { postSubQuery, extraFieldsToSelect } =
+      PostsRepository.prepareRelatedEntitySqlParts(overviewType, params, statsFieldName, relEntityField, relEntityNotNull);
+
+    const sql = `
+      select ${params.attributes}
+             ${extraFieldsToSelect}
+      from "organizations" INNER JOIN
+            ${postSubQuery}
+           ON t.${relEntityField} = "organizations".id
+      ORDER BY t.${statsFieldName} DESC
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows;
   }
 
   /**

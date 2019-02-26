@@ -1,22 +1,22 @@
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { GraphqlHelper } from '../helpers/graphql-helper';
+import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+import { GraphqlHelper } from '../../helpers/graphql-helper';
 import {
   PostModelResponse,
   PostRequestQueryDto,
   PostsListResponse,
-} from '../../../lib/posts/interfaces/model-interfaces';
+} from '../../../../lib/posts/interfaces/model-interfaces';
 
-import SeedsHelper = require('../helpers/seeds-helper');
-import PostsGenerator = require('../../generators/posts-generator');
+import SeedsHelper = require('../../helpers/seeds-helper');
+import PostsGenerator = require('../../../generators/posts-generator');
 
-import CommonHelper = require('../helpers/common-helper');
-import CommentsGenerator = require('../../generators/comments-generator');
-import ResponseHelper = require('../helpers/response-helper');
-import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
-import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
+import CommonHelper = require('../../helpers/common-helper');
+import CommentsGenerator = require('../../../generators/comments-generator');
+import ResponseHelper = require('../../helpers/response-helper');
+import EntityListCategoryDictionary = require('../../../../lib/stats/dictionary/entity-list-category-dictionary');
 import _ = require('lodash');
-import OrganizationsHelper = require('../helpers/organizations-helper');
-import TagsHelper = require('../helpers/tags-helper');
+import OrganizationsHelper = require('../../helpers/organizations-helper');
+import TagsHelper = require('../../helpers/tags-helper');
+import StatsGenerator = require('../../../generators/stats-generator');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -25,7 +25,8 @@ let userJane: UserModel;
 
 const JEST_TIMEOUT = 10000;
 
-function checkPostsPage(response) {
+
+function checkPostsPage(response, expected) {
   const options = {
     author: {
       myselfData: true,
@@ -34,14 +35,13 @@ function checkPostsPage(response) {
 
   expect(_.isEmpty(response.data)).toBeFalsy();
 
-  expect(_.isEmpty(response.data.many_posts)).toBeFalsy();
+  ResponseHelper.checkResponseOrdering(response.data.many_posts, expected.expectedValues, 'post_id');
+  ResponseHelper.checkResponseOrdering(response.data.many_organizations, expected.expectedForOrg, 'organization_id');
+  ResponseHelper.checkResponseOrdering(response.data.many_users, expected.expectedForUsers, 'user_id');
+
   CommonHelper.checkPostListResponseWithoutOrg(response.data.many_posts, true, true);
-
-  expect(_.isEmpty(response.data.many_users)).toBeFalsy();
   CommonHelper.checkUsersListResponse(response.data.many_users, options);
-
-  expect(_.isEmpty(response.data.many_tags)).toBeFalsy();
-  expect(_.isEmpty(response.data.many_organizations)).toBeFalsy();
+  OrganizationsHelper.checkOrgListResponseStructure(response.data.many_organizations);
 }
 
 const beforeAfterOptions = {
@@ -57,30 +57,33 @@ describe('GET posts via graphql', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
-
   describe('Media Posts trending', () => {
     const overviewType = EntityListCategoryDictionary.getTrending();
     const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
+    const entitiesAmount = 22;
+    const expectedOrderBy = 'importance_delta';
+    const expectedUsersAmount = 4;
+    const expectedOrgsAmount = entitiesAmount / 2 - 1; // -1 due to special org disturbance
 
+    let expected;
     beforeEach(async () => {
-      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+      expected = await StatsGenerator.generatePosts(expectedOrderBy, entitiesAmount);
     });
 
     it('Trending with side blocks. #smoke #posts', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostsPageAsMyself(
         userVlad,
         overviewType,
         postTypeId,
       );
 
-      checkPostsPage(response);
-    });
+      checkPostsPage(response, expected);
+
+      expect(response.data.many_organizations.metadata.total_amount).toBe(expectedOrgsAmount);
+      expect(response.data.many_users.metadata.total_amount).toBe(expectedUsersAmount);
+    }, JEST_TIMEOUT);
 
     it('Users list for trending post', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostUsersAsMyself(
         userVlad,
         overviewType,
@@ -94,23 +97,45 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id');
+      expect(response.metadata.total_amount).toBe(expectedUsersAmount);
+    });
+
+    it('Users list for trending post - pagination', async () => {
+      // #task - very basic smoke test. It is required to check ordering
+      const page = 2;
+
+      const response: any = await GraphqlHelper.getPostUsersAsMyself(
+        userVlad,
+        overviewType,
+        postTypeId,
+        page,
+        2,
+      );
+
+      const options = {
+        author: {
+          myselfData: true,
+        },
+      };
+
+      CommonHelper.checkUsersListResponse(response, options);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id', page);
     });
 
     it('Organizations list for trending post', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostsOrgsAsMyself(
         userVlad,
         overviewType,
         postTypeId,
       );
 
-      expect(_.isEmpty(response.data)).toBeFalsy();
-
       OrganizationsHelper.checkOrgListResponseStructure(response);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForOrg, 'organization_id');
+      expect(response.metadata.total_amount).toBe(expectedOrgsAmount);
     });
 
-    it('Tags list for trending post', async () => {
+    it.skip('Tags list for trending post', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
       const response: any = await GraphqlHelper.getPostsTagsAsMyself(
@@ -121,26 +146,6 @@ describe('GET posts via graphql', () => {
 
       expect(_.isEmpty(response.data)).toBeFalsy();
       TagsHelper.checkTagsListResponseStructure(response);
-    });
-
-    it('Users list for trending post - pagination', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
-      const response: any = await GraphqlHelper.getPostUsersAsMyself(
-        userVlad,
-        overviewType,
-        postTypeId,
-        2,
-        2,
-      );
-
-      const options = {
-        author: {
-          myselfData: true,
-        },
-      };
-
-      CommonHelper.checkUsersListResponse(response, options);
     });
 
     it('Trending legacy - sort by current_rate_daily_delta. #smoke #posts', async () => {
@@ -160,27 +165,29 @@ describe('GET posts via graphql', () => {
     const overviewType = EntityListCategoryDictionary.getHot();
     const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
 
+    const entitiesAmount = 22;
+    const expectedOrderBy = 'activity_index_delta';
+    // const expectedUsersAmount = 4;
+    // const expectedOrgsAmount = entitiesAmount / 2 - 1; // -1 due to special org disturbance
+
+    let expected;
     beforeEach(async () => {
-      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+      expected = await StatsGenerator.generatePosts(expectedOrderBy, entitiesAmount);
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     it('Hot with side blocks. #smoke #posts', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostsPageAsMyself(
         userVlad,
         overviewType,
         postTypeId,
       );
 
-      checkPostsPage(response);
+      checkPostsPage(response, expected);
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     it('Users list for hot post', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostUsersAsMyself(
         userVlad,
         overviewType,
@@ -194,25 +201,23 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     it('Organizations list for hot post', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostsOrgsAsMyself(
         userVlad,
         overviewType,
         postTypeId,
       );
 
-      expect(_.isEmpty(response.data)).toBeFalsy();
-
       OrganizationsHelper.checkOrgListResponseStructure(response);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForOrg, 'organization_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
-    it('Tags list for hot post', async () => {
+    it.skip('Tags list for hot post', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
       const response: any = await GraphqlHelper.getPostsTagsAsMyself(
@@ -249,27 +254,27 @@ describe('GET posts via graphql', () => {
     const overviewType = EntityListCategoryDictionary.getFresh();
     const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
 
+    const entitiesAmount = 22;
+    const expectedOrderBy = 'post_id';
+
+    let expected;
     beforeEach(async () => {
-      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+      expected = await StatsGenerator.generatePosts(expectedOrderBy, entitiesAmount);
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     it('Fresh with side blocks. #smoke #posts', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostsPageAsMyself(
         userVlad,
         overviewType,
         postTypeId,
       );
 
-      checkPostsPage(response);
+      checkPostsPage(response, expected);
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     it('Users list for fresh post', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostUsersAsMyself(
         userVlad,
         overviewType,
@@ -283,25 +288,23 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     it('Organizations list for fresh post', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostsOrgsAsMyself(
         userVlad,
         overviewType,
         postTypeId,
       );
 
-      expect(_.isEmpty(response.data)).toBeFalsy();
-
       OrganizationsHelper.checkOrgListResponseStructure(response);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForOrg, 'organization_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
-    it('Tags list for fresh post', async () => {
+    it.skip('Tags list for fresh post', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
       const response: any = await GraphqlHelper.getPostsTagsAsMyself(
@@ -319,26 +322,27 @@ describe('GET posts via graphql', () => {
     const overviewType = EntityListCategoryDictionary.getTop();
     const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
 
+    const entitiesAmount = 22;
+    const expectedOrderBy = 'current_rate';
+
+    let expected;
     beforeEach(async () => {
-      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+      expected = await StatsGenerator.generatePosts(expectedOrderBy, entitiesAmount);
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     it('Top with side blocks. #smoke #posts', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostsPageAsMyself(
         userVlad,
         overviewType,
         postTypeId,
       );
 
-      checkPostsPage(response);
+      checkPostsPage(response, expected);
     });
-    // eslint-disable-next-line
-    it('Users list for top post', async () => {
-      // #task - very basic smoke test. It is required to check ordering
 
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    it('Users list for top post', async () => {
       const response: any = await GraphqlHelper.getPostUsersAsMyself(
         userVlad,
         overviewType,
@@ -352,25 +356,23 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     it('Organizations list for top post', async () => {
-      // #task - very basic smoke test. It is required to check ordering
-
       const response: any = await GraphqlHelper.getPostsOrgsAsMyself(
         userVlad,
         overviewType,
         postTypeId,
       );
 
-      expect(_.isEmpty(response.data)).toBeFalsy();
-
       OrganizationsHelper.checkOrgListResponseStructure(response);
+      ResponseHelper.checkResponseOrdering(response, expected.expectedForOrg, 'organization_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
-    it('Tags list for top post', async () => {
+    it.skip('Tags list for top post', async () => {
       // #task - very basic smoke test. It is required to check ordering
 
       const response: any = await GraphqlHelper.getPostsTagsAsMyself(

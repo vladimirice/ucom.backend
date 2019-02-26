@@ -33,6 +33,10 @@ class RequestHelper {
     return this.generateRandomNumber(1, 10, 6);
   }
 
+  public static generateRandomBoolean(): boolean {
+    return !!this.generateRandomNumber(0, 1, 0);
+  }
+
   public static generateRandomNumber(min: number, max: number, precision: number): number {
     return +(Math.random() * (max - min) + min).toFixed(precision);
   }

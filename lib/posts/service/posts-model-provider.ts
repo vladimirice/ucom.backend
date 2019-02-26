@@ -58,6 +58,10 @@ class PostsModelProvider {
     return 'posts_current_params';
   }
 
+  public static getCurrentParamsForeignColumn(): string {
+    return 'post_id';
+  }
+
   /**
    *
    * @return {string}
@@ -126,6 +130,10 @@ class PostsModelProvider {
       as:    POST_STATS_TABLE_NAME,
       required: false, // #task
     };
+  }
+
+  public static getPostsStatsTableName(): string {
+    return POST_STATS_TABLE_NAME;
   }
 
   /**
