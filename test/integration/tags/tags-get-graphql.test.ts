@@ -22,20 +22,10 @@ const options = {
 };
 
 function checkTagsPage(response) {
-  const usersCheckOptions = {
-    author: {
-      myselfData: true,
-    },
-  };
-
   expect(_.isEmpty(response.data)).toBeFalsy();
   expect(_.isEmpty(response.data.many_tags)).toBeFalsy();
   expect(_.isEmpty(response.data.many_tags.data)).toBeFalsy();
   TagsHelper.checkTagsListResponseStructure(response.data.many_tags);
-
-  expect(_.isEmpty(response.data.many_users)).toBeFalsy();
-  expect(_.isEmpty(response.data.many_users.data)).toBeFalsy();
-  CommonHelper.checkUsersListResponse(response.data.many_users, usersCheckOptions);
 }
 
 describe('GET Tags via graphql #graphql #tags', () => {
