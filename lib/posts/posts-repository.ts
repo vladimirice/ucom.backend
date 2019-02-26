@@ -1,6 +1,9 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
-import { DbParamsDto, QueryFilteredRepository } from '../api/filters/interfaces/query-filter-interfaces';
+import {
+  DbParamsDto,
+  QueryFilteredRepository,
+} from '../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from './interfaces/model-interfaces';
 import { AppError } from '../api/errors';
 
@@ -14,7 +17,10 @@ const _ = require('lodash');
 
 const models = require('../../models');
 
+// @deprecated
 const ENTITY_STATS_CURRENT_TABLE_NAME = 'entity_stats_current';
+
+const CURRENT_PARAMS = PostsModelProvider.getCurrentParamsTableName();
 
 const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
 
@@ -187,7 +193,6 @@ class PostsRepository implements QueryFilteredRepository {
    * @returns {Object}
    */
   static getOrderByRelationMap(forSequelize: boolean = true) {
-
     if (forSequelize) {
       return {
         comments_count: [
@@ -778,6 +783,139 @@ class PostsRepository implements QueryFilteredRepository {
       where: { id },
       raw: true,
     });
+  }
+
+  public static prepareRelatedEntitySqlParts(
+    overviewType: string,
+    params: DbParamsDto,
+    statsFieldName: string,
+    relEntityField: string,
+    relEntityNotNull: boolean,
+  ) {
+    let whereRawOverviewBounds = '';
+    let joinWithStats = false;
+    let extraFieldsToSelect = '';
+    if (EntityListCategoryDictionary.isOverviewWithStats(overviewType)) {
+      if (!params.whereRaw) {
+        throw new AppError(
+          `It is required to fill params.whereRaw for overviewType: ${overviewType}. Current params set is: ${JSON.stringify(params)}`,
+          500,
+        );
+      }
+      whereRawOverviewBounds = `AND ${params.whereRaw}`;
+      joinWithStats = true;
+      extraFieldsToSelect = `, "t".${statsFieldName}`;
+    }
+
+    const postSubQuery: string = PostsRepository.getSubQueryForFindingRelatedEntities(
+      joinWithStats,
+      relEntityField,
+      statsFieldName,
+      whereRawOverviewBounds,
+      params,
+      relEntityNotNull,
+    );
+
+    return {
+      postSubQuery,
+      extraFieldsToSelect,
+    };
+  }
+
+  public static prepareSubQueryForCounting(
+    overviewType: string,
+    relEntityField: string,
+    statsFieldName: string,
+    params: DbParamsDto,
+    relEntityNotNull: boolean,
+  ): string {
+    let whereRawOverviewBounds = '';
+    let joinWithStats = false;
+    if (EntityListCategoryDictionary.isOverviewWithStats(overviewType)) {
+      if (!params.whereRaw) {
+        throw new AppError(
+          `It is required to fill params.whereRaw for overviewType: ${overviewType}. Current params set is: ${JSON.stringify(params)}`,
+          500,
+        );
+      }
+      whereRawOverviewBounds = params.whereRaw;
+      joinWithStats = true;
+    }
+
+    return this.getSubQueryForCountingRelatedEntities(
+      joinWithStats,
+      relEntityField,
+      statsFieldName,
+      whereRawOverviewBounds,
+      relEntityNotNull,
+    );
+  }
+
+  private static getSubQueryForCountingRelatedEntities(
+    joinWithStats: boolean,
+    relEntityField: string,
+    statsFieldName: string,
+    whereRawOverviewBounds: string,
+    relEntityNotNull: boolean,
+  ) {
+    const innerJoinWithStats  = joinWithStats ? this.getInnerJoinWithStats() : '';
+    const whereParts: string[] = [];
+
+    if (whereRawOverviewBounds) {
+      whereParts.push(whereRawOverviewBounds);
+    }
+
+    if (relEntityNotNull) {
+      whereParts.push(`${relEntityField} IS NOT NULL`);
+    }
+
+    let whereString = '';
+    if (whereParts.length > 0) {
+      whereString += `WHERE ${whereParts.join(' AND ')}`;
+    }
+
+    return `
+      SELECT DISTINCT ON (${relEntityField}) ${relEntityField}, ${statsFieldName} FROM ${TABLE_NAME}
+      ${innerJoinWithStats}
+      ${whereString}
+      ORDER BY ${relEntityField}, ${statsFieldName} DESC
+    `;
+  }
+
+  private static getSubQueryForFindingRelatedEntities(
+    joinWithStats: boolean,
+    relEntityField: string,
+    statsFieldName: string,
+    whereRawOverviewBounds: string,
+    params: DbParamsDto,
+    relEntityNotNull: boolean,
+  ) {
+    const innerJoinWithStats  = joinWithStats ? this.getInnerJoinWithStats() : '';
+    const notNullWhere        = relEntityNotNull ? ` AND ${relEntityField} IS NOT NULL ` : '';
+
+    return `
+       (
+         SELECT ${relEntityField}, ${statsFieldName}
+         FROM (SELECT DISTINCT ON (${relEntityField}) ${relEntityField}, ${statsFieldName}
+               FROM ${TABLE_NAME}
+                ${innerJoinWithStats}
+               WHERE 
+                  ${TABLE_NAME}.post_type_id = ${+params.where.post_type_id}
+                  ${whereRawOverviewBounds}
+                  ${notNullWhere}
+               ORDER BY ${relEntityField}, ${statsFieldName} DESC
+              ) as inner_t
+         ORDER BY ${statsFieldName} DESC
+         LIMIT  ${params.limit}
+         OFFSET ${params.offset}
+       ) as t
+    `;
+  }
+
+  private static getInnerJoinWithStats(): string {
+    return `
+     INNER JOIN "${CURRENT_PARAMS}" on "${TABLE_NAME}"."id" = "${CURRENT_PARAMS}"."post_id" 
+    `;
   }
 
   public static async findAllWithTagsForTagCurrentRate(

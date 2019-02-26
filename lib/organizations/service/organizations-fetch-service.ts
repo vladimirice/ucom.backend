@@ -8,13 +8,13 @@ import {
 } from '../interfaces/model-interfaces';
 
 import { AppError } from '../../api/errors';
+import { PostRequestQueryDto } from '../../posts/interfaces/model-interfaces';
 
 import OrganizationPostProcessor = require('./organization-post-processor');
 import PostsRepository = require('../../posts/posts-repository');
 import OrganizationsModelProvider = require('./organizations-model-provider');
 import _ = require('lodash');
 import PostsModelProvider = require('../../posts/service/posts-model-provider');
-import { PostRequestQueryDto } from '../../posts/interfaces/model-interfaces';
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 
 const QueryFilterService      = require('../../api/filters/query-filter-service');
@@ -128,10 +128,12 @@ class OrganizationsFetchService {
     params = _.defaults(params, OrganizationsRepository.getDefaultListParams());
     QueryFilterService.processAttributes(params, OrganizationsModelProvider.getTableName(), true);
 
+    const relEntityFields = 'organization_id';
+
     const statsFieldName = EntityListCategoryDictionary.getStatsFieldByOverviewType(query.overview_type!);
     const promises = [
-      OrganizationsRepository.findManyAsRelatedToEntity(params, statsFieldName, entityName, query.overview_type!),
-      OrganizationsRepository.countManyOrganizationsAsRelatedToEntity(params, entityName, statsFieldName, query.overview_type!),
+      OrganizationsRepository.findManyAsRelatedToEntity(params, statsFieldName, relEntityFields, query.overview_type!),
+      OrganizationsRepository.countManyOrganizationsAsRelatedToEntity(params, statsFieldName, relEntityFields, query.overview_type!),
     ];
 
     return {

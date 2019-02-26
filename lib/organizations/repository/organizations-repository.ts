@@ -3,12 +3,11 @@
 import { OrgIdToOrgModelCard, OrgModel, OrgModelResponse } from '../interfaces/model-interfaces';
 import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
-import { AppError } from '../../api/errors';
 
 import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
-import PostsModelProvider = require('../../posts/service/posts-model-provider');
+import PostsRepository = require('../../posts/posts-repository');
 
 const _ = require('lodash');
 
@@ -142,38 +141,23 @@ class OrganizationsRepository implements QueryFilteredRepository {
 
   public static async countManyOrganizationsAsRelatedToEntity(
     params: DbParamsDto,
-    relatedEntity: string,
     statsFieldName: string,
+    relatedEntityField: string,
     overviewType: string,
   ): Promise<number> {
-    if (relatedEntity !== PostsModelProvider.getEntityName()) {
-      throw new AppError(`Unsupported relatedEntity: ${relatedEntity}`, 500);
-    }
-
-    const posts = PostsModelProvider.getTableName();
-    const postsCurrentParams = PostsModelProvider.getCurrentParamsTableName();
-
-    let whereRawOverviewBounds = '';
-    let innerJoinWithStats = '';
-    if (EntityListCategoryDictionary.isOverviewWithStats(overviewType)) {
-      if (!params.whereRaw) {
-        throw new AppError(
-          `It is required to fill params.whereRaw for overviewType: ${overviewType}. Current params set is: ${JSON.stringify(params)}`,
-          500,
-        );
-      }
-      whereRawOverviewBounds = `AND ${params.whereRaw}`;
-      innerJoinWithStats = ` INNER JOIN "${postsCurrentParams}" on "${posts}"."id" = "${postsCurrentParams}"."post_id" `;
-    }
+    const relEntityNotNull = true;
+    const subQuery = PostsRepository.prepareSubQueryForCounting(
+      overviewType,
+      relatedEntityField,
+      statsFieldName,
+      params,
+      relEntityNotNull,
+    );
 
     const sql = `
     SELECT COUNT(1) as amount FROM
       (
-        SELECT DISTINCT ON (organization_id) organization_id, ${statsFieldName} FROM ${posts}
-        ${innerJoinWithStats}
-        WHERE organization_id IS NOT NULL
-        ${whereRawOverviewBounds} 
-        ORDER BY organization_id, ${statsFieldName} DESC
+        ${subQuery}
       ) AS t
     `;
 
@@ -535,50 +519,19 @@ class OrganizationsRepository implements QueryFilteredRepository {
   public static async findManyAsRelatedToEntity(
     params: DbParamsDto,
     statsFieldName: string,
-    entityName: string,
+    relEntityField: string,
     overviewType: string,
   ): Promise<OrgModelResponse[]> {
-    if (entityName !== PostsModelProvider.getEntityName()) {
-      throw new AppError(`Unsupported entity: ${entityName}`, 500);
-    }
-    const posts = PostsModelProvider.getTableName();
-    const postsCurrentParams = PostsModelProvider.getCurrentParamsTableName();
-
-    let whereRawOverviewBounds = '';
-    let innerJoinWithStats = '';
-    let extraFieldsToSelect = '';
-    if (EntityListCategoryDictionary.isOverviewWithStats(overviewType)) {
-      if (!params.whereRaw) {
-        throw new AppError(
-          `It is required to fill params.whereRaw for overviewType: ${overviewType}. Current params set is: ${JSON.stringify(params)}`,
-          500,
-        );
-      }
-      whereRawOverviewBounds  = `AND ${params.whereRaw}`;
-      innerJoinWithStats      = ` INNER JOIN "${postsCurrentParams}" on "${posts}"."id" = "${postsCurrentParams}"."post_id" `;
-      extraFieldsToSelect     = `, "t".${statsFieldName}`;
-    }
+    const relEntityNotNull = true;
+    const { postSubQuery, extraFieldsToSelect } =
+      PostsRepository.prepareRelatedEntitySqlParts(overviewType, params, statsFieldName, relEntityField, relEntityNotNull);
 
     const sql = `
       select ${params.attributes}
              ${extraFieldsToSelect}
       from "organizations" INNER JOIN
-           (
-             SELECT organization_id, ${statsFieldName}
-             FROM (SELECT DISTINCT ON (organization_id) organization_id, ${statsFieldName}
-                   FROM posts
-                      ${innerJoinWithStats}
-                   WHERE 
-                       posts.post_type_id = ${+params.where.post_type_id}
-                      AND organization_id IS NOT NULL
-                      ${whereRawOverviewBounds}
-                   ORDER BY organization_id, ${statsFieldName} DESC
-                  ) as inner_t
-             ORDER BY ${statsFieldName} DESC
-             LIMIT  ${+params.limit}
-             OFFSET ${+params.offset}
-           ) as t
-           ON t.organization_id = organizations.id
+            ${postSubQuery}
+           ON t.${relEntityField} = "organizations".id
       ORDER BY t.${statsFieldName} DESC
     `;
 
