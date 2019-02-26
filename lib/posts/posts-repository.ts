@@ -447,6 +447,8 @@ class PostsRepository implements QueryFilteredRepository {
     const params = _.defaults(queryParameters, this.getDefaultListParams());
     params.attributes = this.getModel().getFieldsForPreview();
 
+    params.order.push(['id', 'DESC']);
+
     const data = await postsModelProvider.getModel().findAll(params);
 
     return data.map(item => item.toJSON());
@@ -903,7 +905,7 @@ class PostsRepository implements QueryFilteredRepository {
                   ${TABLE_NAME}.post_type_id = ${+params.where.post_type_id}
                   ${whereRawOverviewBounds}
                   ${notNullWhere}
-               ORDER BY ${relEntityField}, ${statsFieldName} DESC
+               ORDER BY ${relEntityField}, ${statsFieldName} DESC, ${TABLE_NAME}.id DESC
               ) as inner_t
          ORDER BY ${statsFieldName} DESC
          LIMIT  ${params.limit}
