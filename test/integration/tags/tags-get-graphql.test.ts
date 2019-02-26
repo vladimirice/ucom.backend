@@ -52,7 +52,7 @@ describe('GET Tags via graphql #graphql #tags', () => {
         checkTagsPage(response);
       }, JEST_TIMEOUT);
 
-      it('Users list for trending tags', async () => {
+      it.skip('Users list for trending tags', async () => {
         // #task - very basic smoke test. It is required to check ordering
 
         const response: any = await GraphqlHelper.getTagsUsersAsMyself(
@@ -75,7 +75,7 @@ describe('GET Tags via graphql #graphql #tags', () => {
       }, JEST_TIMEOUT);
 
       // eslint-disable-next-line sonarjs/no-identical-functions
-      it('Users list for hot tags', async () => {
+      it.skip('Users list for hot tags', async () => {
         // #task - very basic smoke test. It is required to check ordering
 
         const response: any = await GraphqlHelper.getTagsUsersAsMyself(
@@ -98,7 +98,7 @@ describe('GET Tags via graphql #graphql #tags', () => {
       }, JEST_TIMEOUT);
 
       // eslint-disable-next-line sonarjs/no-identical-functions
-      it('Users list for fresh tags', async () => {
+      it.skip('Users list for fresh tags', async () => {
         // #task - very basic smoke test. It is required to check ordering
 
         const response: any = await GraphqlHelper.getTagsUsersAsMyself(
@@ -121,7 +121,7 @@ describe('GET Tags via graphql #graphql #tags', () => {
       }, JEST_TIMEOUT);
 
       // eslint-disable-next-line sonarjs/no-identical-functions
-      it('Users list for top tags', async () => {
+      it.skip('Users list for top tags', async () => {
         // #task - very basic smoke test. It is required to check ordering
 
         const response: any = await GraphqlHelper.getTagsUsersAsMyself(
