@@ -1,6 +1,6 @@
 "use strict";
-/* tslint:disable:max-line-length */
 const OrganizationsFetchService = require("../../lib/organizations/service/organizations-fetch-service");
+const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
 const express = require('express');
 const status = require('statuses');
 require('express-async-errors');
@@ -12,6 +12,13 @@ const orgIdParamMiddleware = require('../../lib/organizations/middleware/organiz
 const activityUserToOrg = require('../../lib/users/activity').UserToOrg;
 function getOrganizationService(req) {
     return req.container.get('organizations-service');
+}
+function getUserService(req) {
+    return req.container.get('current-user');
+}
+function getCurrentUserId(req) {
+    const CurrentUserService = getUserService(req);
+    return CurrentUserService.getCurrentUserId();
 }
 /**
  * @param {Object} req
@@ -28,8 +35,29 @@ orgRouter.get('/', async (req, res) => {
 /* Get one organization by ID */
 orgRouter.get('/:organization_id', async (req, res) => {
     const targetId = req.organization_id;
-    const model = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
-    res.send(model);
+    const currentUserId = getCurrentUserId(req);
+    const response = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
+    const query = {
+        entity_state: 'card',
+        post_type_id: 10,
+        page: 1,
+        per_page: 5,
+    };
+    const posts = await PostsFetchService.findManyPosts(query, currentUserId);
+    const processedPosts = [];
+    posts.data.forEach((post) => {
+        processedPosts.push({
+            id: post.id,
+            entity_images: post.entity_images,
+            user_id: post.user_id,
+            post_type_id: post.post_type_id,
+            main_image_filename: post.main_image_filename,
+            created_at: post.created_at,
+            updated_at: post.updated_at,
+        });
+    });
+    response.data.discussions = response.data.id % 2 === 0 ? processedPosts : [];
+    res.send(response);
 });
 /* GET wall feed for organization */
 orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {
@@ -46,6 +74,13 @@ orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const model = await getOrganizationService(req).processNewOrganizationCreation(req);
     return res.status(201).send({
         id: model.id,
+    });
+});
+/* Receive new discussions state */
+// @ts-ignore
+orgRouter.post('/:organization_id/discussions', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    return res.status(200).send({
+        status: 'success',
     });
 });
 /* Update organization */

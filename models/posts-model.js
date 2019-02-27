@@ -127,6 +127,17 @@ module.exports = (sequelize, DataTypes) => {
     ];
   };
 
+  Posts.getFieldsForCard = () => [
+    'id',
+    'entity_images',
+    'main_image_filename', // @deprecated
+
+    'user_id',
+    'post_type_id',
+    'created_at',
+    'updated_at',
+  ];
+
   Posts.getHtmlFields = function () {
     return [
       'description',

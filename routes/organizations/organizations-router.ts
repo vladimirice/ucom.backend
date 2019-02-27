@@ -1,5 +1,8 @@
 /* tslint:disable:max-line-length */
+import { PostRequestQueryDto, PostsListResponse } from '../../lib/posts/interfaces/model-interfaces';
+
 import OrganizationsFetchService = require('../../lib/organizations/service/organizations-fetch-service');
+import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 
 const express = require('express');
 const status  = require('statuses');
@@ -21,6 +24,16 @@ function getOrganizationService(req) {
   return req.container.get('organizations-service');
 }
 
+function getUserService(req) {
+  return req.container.get('current-user');
+}
+
+function getCurrentUserId(req): number | null {
+  const CurrentUserService = getUserService(req);
+
+  return CurrentUserService.getCurrentUserId();
+}
+
 /**
  * @param {Object} req
  * @returns {PostService}
@@ -39,10 +52,36 @@ orgRouter.get('/', async (req, res) => {
 /* Get one organization by ID */
 orgRouter.get('/:organization_id', async (req, res) => {
   const targetId = req.organization_id;
+  const currentUserId: number | null = getCurrentUserId(req);
 
-  const model = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
+  const response = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
 
-  res.send(model);
+  const query: PostRequestQueryDto = {
+    entity_state: 'card',
+    post_type_id: 10,
+    page: 1,
+    per_page: 5,
+  };
+
+  const posts: PostsListResponse = await PostsFetchService.findManyPosts(query, currentUserId);
+
+  const processedPosts: any[] = [];
+
+  posts.data.forEach((post) => {
+    processedPosts.push({
+      id: post.id,
+      entity_images: post.entity_images,
+      user_id: post.user_id,
+      post_type_id: post.post_type_id,
+      main_image_filename: post.main_image_filename,
+      created_at: post.created_at,
+      updated_at: post.updated_at,
+    });
+  });
+
+  response.data.discussions = response.data.id % 2 === 0 ? processedPosts : [];
+
+  res.send(response);
 });
 
 /* GET wall feed for organization */
@@ -66,6 +105,14 @@ orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 
   return res.status(201).send({
     id: model.id,
+  });
+});
+
+/* Receive new discussions state */
+// @ts-ignore
+orgRouter.post('/:organization_id/discussions', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  return res.status(200).send({
+    status: 'success',
   });
 });
 

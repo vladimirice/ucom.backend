@@ -5,6 +5,7 @@ import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 import { ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
+import { OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 
 import ResponseHelper = require('./response-helper');
 import CommentsHelper = require('./comments-helper');
@@ -17,12 +18,38 @@ import NotificationsEventIdDictionary = require('../../../lib/entities/dictionar
 import PostsHelper = require('./posts-helper');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 require('jest-expect-message');
 
 class CommonHelper {
+  // #task - improve checkOneOrganizationFully method
+  public static checkOneOrganizationFully(model: OrgModelResponse, options) {
+    expect(_.isEmpty(model)).toBeFalsy();
+
+    UsersHelper.checkIncludedUserPreview(model);
+
+    expect(model.users_team).toBeDefined();
+    if (options.mustHaveValue.usersTeam) {
+      expect(model.users_team.length).toBeGreaterThan(0);
+    }
+
+    expect(model.social_networks).toBeDefined();
+
+    expect(model.current_rate).toBeDefined();
+    expect(model.current_rate).not.toBeNull();
+
+    expect(model.discussions).toBeDefined();
+    expect(Array.isArray(model.discussions)).toBeTruthy();
+    if (options.mustHaveValue.discussions) {
+      expect(model.discussions.length).toBeGreaterThan(0);
+
+      this.checkManyPostsV2(model.discussions, options);
+    }
+  }
+
   /**
    * deprecated
    * @link checkManyIncludedCommentsV2 - for new APIs
@@ -680,25 +707,25 @@ class CommonHelper {
     expect(_.isEmpty(post)).toBeFalsy();
 
     PostsHelper.checkPostItselfCommonFields(post, options);
-    UsersHelper.checkIncludedUserForEntityPage(post, options);
 
-    this.checkPostTypeRelatedStructure(post, options);
+    if (options.postProcessing !== EntityResponseState.card()) {
+      UsersHelper.checkIncludedUserForEntityPage(post, options);
+      this.checkOnePostEntityForCard(post);
+      this.checkMyselfData(post, options);
+      this.checkPostTypeRelatedStructure(post, options);
+      if (options.comments) {
+        this.checkManyIncludedCommentsV2(post, options);
+      }
 
-    this.checkOnePostEntityForCard(post);
+      if (options.organization && options.organization.required) {
+        expect(post.organization_id).toBeTruthy();
+        expect(post.organization_id).toBe(options.organization.expectedId);
 
-    this.checkMyselfData(post, options);
+        OrganizationsHelper.checkOneOrganizationPreviewFields(post.organization);
+      }
+    }
+
     ResponseHelper.checkCreatedAtUpdatedAtFormat(post);
-
-    if (options.comments) {
-      this.checkManyIncludedCommentsV2(post, options);
-    }
-
-    if (options.organization && options.organization.required) {
-      expect(post.organization_id).toBeTruthy();
-      expect(post.organization_id).toBe(options.organization.expectedId);
-
-      OrganizationsHelper.checkOneOrganizationPreviewFields(post.organization);
-    }
   }
 
   /**
