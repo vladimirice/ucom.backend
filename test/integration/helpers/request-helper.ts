@@ -377,6 +377,10 @@ class RequestHelper {
     return `${apiV1Prefix}/organizations`;
   }
 
+  public static getOrganizationsDiscussionUrl(orgId: number): string {
+    return `${apiV1Prefix}/organizations/${orgId}/discussions`;
+  }
+
   /**
    *
    * @param {number} id

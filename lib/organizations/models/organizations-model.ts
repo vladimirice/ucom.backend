@@ -22,7 +22,9 @@ const orgDbModel = bookshelf.Model.extend({
       this.addCurrentParamsLeftJoin(query);
     });
   },
-
+  isAuthor(userId: number) {
+    return this.attributes.user_id === userId;
+  },
   addCurrentParamsLeftJoin(query) {
     // noinspection JSIgnoredPromiseFromCall // #task - use inner join instead
     query.leftJoin(CURRENT_PARAMS_TABLE_NAME, `${TABLE_NAME}.id`, '=', `${CURRENT_PARAMS_TABLE_NAME}.organization_id`);

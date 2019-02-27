@@ -1,8 +1,7 @@
 /* tslint:disable:max-line-length */
-import { PostRequestQueryDto, PostsListResponse } from '../../lib/posts/interfaces/model-interfaces';
-
 import OrganizationsFetchService = require('../../lib/organizations/service/organizations-fetch-service');
-import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
+import OrganizationsCreatorRelated = require('../../lib/organizations/service/organizations-creator-related');
+import OrganizationsFetchRelated = require('../../lib/organizations/service/organizations-fetch-related');
 
 const express = require('express');
 const status  = require('statuses');
@@ -28,7 +27,7 @@ function getUserService(req) {
   return req.container.get('current-user');
 }
 
-function getCurrentUserId(req): number | null {
+function getCurrentUserId(req): number {
   const CurrentUserService = getUserService(req);
 
   return CurrentUserService.getCurrentUserId();
@@ -56,30 +55,8 @@ orgRouter.get('/:organization_id', async (req, res) => {
 
   const response = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
 
-  const query: PostRequestQueryDto = {
-    entity_state: 'card',
-    post_type_id: 10,
-    page: 1,
-    per_page: 5,
-  };
-
-  const posts: PostsListResponse = await PostsFetchService.findManyPosts(query, currentUserId);
-
-  const processedPosts: any[] = [];
-
-  posts.data.forEach((post) => {
-    processedPosts.push({
-      id: post.id,
-      entity_images: post.entity_images,
-      user_id: post.user_id,
-      post_type_id: post.post_type_id,
-      main_image_filename: post.main_image_filename,
-      created_at: post.created_at,
-      updated_at: post.updated_at,
-    });
-  });
-
-  response.data.discussions = response.data.id % 2 === 0 ? processedPosts : [];
+  response.data.discussions =
+    await OrganizationsFetchRelated.getManyDiscussions(response.data.id, currentUserId);
 
   res.send(response);
 });
@@ -108,11 +85,14 @@ orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
   });
 });
 
-/* Receive new discussions state */
-// @ts-ignore
+/* Receive new discussions state from frontend */
 orgRouter.post('/:organization_id/discussions', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  const currentUserId: number = getCurrentUserId(req);
+
+  await OrganizationsCreatorRelated.processNewDiscussionsState(req.organization_model, req.body, currentUserId);
+
   return res.status(200).send({
-    status: 'success',
+    success: true,
   });
 });
 
