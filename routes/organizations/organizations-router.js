@@ -68,6 +68,14 @@ orgRouter.post('/:organization_id/discussions', [authTokenMiddleWare, cpUpload],
         success: true,
     });
 });
+/* Validate one discussion */
+orgRouter.get('/:organization_id/discussions/:post_id/validate', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    const currentUserId = getCurrentUserId(req);
+    await OrganizationsCreatorRelated.validateOneDiscussion(req.organization_model, req.body, currentUserId);
+    return res.status(200).send({
+        success: true,
+    });
+});
 /* Update organization */
 orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     await getOrganizationService(req).updateOrganization(req);

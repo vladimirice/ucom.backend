@@ -19,11 +19,12 @@ class OrganizationsToEntitiesRepository {
     const entityName    = PostsModelProvider.getEntityName();
     const relationType  = OrganizationsToEntitiesRelations.discussions();
     const posts         = PostsModelProvider.getTableName();
+    const postsStats    = PostsModelProvider.getPostsStatsTableName();
 
     const toSelect = QueryFilterService.getPrefixedAttributes(
       PostsModelProvider.getPostsFieldsForCard(),
       posts,
-      true,
+      false,
     );
 
     return knex(TABLE_NAME)
@@ -35,7 +36,9 @@ class OrganizationsToEntitiesRepository {
           .andOn(knex.raw(`${TABLE_NAME}.organization_id = ${orgId}`))
           .andOn(knex.raw(`${TABLE_NAME}.relation_type = ${relationType}`))
         ;
-      });
+      })
+      .innerJoin(postsStats, `${posts}.id`, `${postsStats}.post_id`)
+      .orderByRaw(`${TABLE_NAME}.id ASC`);
   }
 
   public static async updateDiscussionsState(

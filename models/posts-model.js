@@ -129,8 +129,10 @@ module.exports = (sequelize, DataTypes) => {
 
   Posts.getFieldsForCard = () => [
     'id',
+    'title',
     'entity_images',
     'main_image_filename', // @deprecated
+    'comments_count',
 
     'user_id',
     'post_type_id',

@@ -284,14 +284,17 @@ class PostsHelper {
   static checkMediaPostFields(post, options) {
     let mustExist;
     switch (options.postProcessing) {
-      case 'list':
+      case EntityResponseState.list():
         mustExist = postsModelProvider.getModel().getMediaOrOfferPostMustExistFields();
         break;
-      case 'full':
+      case EntityResponseState.full():
         mustExist = postsModelProvider.getModel().getMediaPostFullFields();
         break;
-      case 'notification':
+      case EntityResponseState.notification():
         mustExist = postsModelProvider.getModel().getFieldsRequiredForNotification();
+        break;
+      case EntityResponseState.card():
+        mustExist = PostsModelProvider.getPostsFieldsForCard();
         break;
       default:
         throw new Error(

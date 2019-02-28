@@ -381,6 +381,11 @@ class RequestHelper {
     return `${apiV1Prefix}/organizations/${orgId}/discussions`;
   }
 
+  public static getValidateOneDiscussionUrl(orgId: number, postId: number): string {
+    return `${apiV1Prefix}/organizations/${orgId}/discussions/${postId}/validate`;
+  }
+
+
   /**
    *
    * @param {number} id

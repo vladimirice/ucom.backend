@@ -32,6 +32,22 @@ const entityModelProvider = require('../../../lib/entities/service').ModelProvid
 require('jest-expect-message');
 
 class OrganizationsHelper {
+  public static async validateOneDiscussion(
+    myself: UserModel,
+    orgId: number,
+    postId: number,
+  ): Promise<any> {
+    const url = RequestHelper.getValidateOneDiscussionUrl(orgId, postId);
+
+    const req = request(server)
+      .get(url)
+    ;
+
+    RequestHelper.addAuthToken(req, myself);
+
+    return req;
+  }
+
   public static checkOneNewEntityCurrentParams(data, isEmpty = false) {
     expect(_.isEmpty(data)).toBeFalsy();
     this.checkOneCurrentParamsRowStructure(data);
