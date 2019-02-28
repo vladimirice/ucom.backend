@@ -127,6 +127,7 @@ class QueryFilterService {
     attributes: string[],
     prefix: string,
     prefixAll = false,
+    prefixForAlias: string = '',
   ): string[] {
     const paramsToAddPrefix = [
       'id',
@@ -136,7 +137,7 @@ class QueryFilterService {
 
     return attributes.map((attribute) => {
       if (prefixAll || ~paramsToAddPrefix.indexOf(attribute)) {
-        return `${prefix}.${attribute} AS ${attribute}`;
+        return `${prefix}.${attribute} AS ${prefixForAlias}${attribute}`;
       }
 
       return attribute;

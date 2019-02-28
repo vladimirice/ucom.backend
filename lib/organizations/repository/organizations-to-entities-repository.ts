@@ -4,6 +4,7 @@ import PostsModelProvider = require('../../posts/service/posts-model-provider');
 import OrganizationsToEntitiesRelations = require('../dictionary/OrganizationsToEntitiesRelations');
 import knex = require('../../../config/knex');
 import QueryFilterService = require('../../api/filters/query-filter-service');
+import UsersModelProvider = require('../../users/users-model-provider');
 
 const TABLE_NAME = 'organizations_to_entities';
 
@@ -20,14 +21,26 @@ class OrganizationsToEntitiesRepository {
     const relationType  = OrganizationsToEntitiesRelations.discussions();
     const posts         = PostsModelProvider.getTableName();
     const postsStats    = PostsModelProvider.getPostsStatsTableName();
+    const users         = UsersModelProvider.getTableName();
 
-    const toSelect = QueryFilterService.getPrefixedAttributes(
+    let toSelect = QueryFilterService.getPrefixedAttributes(
       PostsModelProvider.getPostsFieldsForCard(),
       posts,
       false,
     );
 
-    return knex(TABLE_NAME)
+    const userTablePrefix = 'User__';
+
+    const usersToSelect = QueryFilterService.getPrefixedAttributes(
+      UsersModelProvider.getUserFieldsForPreview(),
+      users,
+      true,
+      userTablePrefix,
+    );
+
+    toSelect = Array.prototype.concat(toSelect, usersToSelect);
+
+    const data = await knex(TABLE_NAME)
       .select(toSelect)
       .innerJoin(posts, function () {
         // @ts-ignore
@@ -38,7 +51,43 @@ class OrganizationsToEntitiesRepository {
         ;
       })
       .innerJoin(postsStats, `${posts}.id`, `${postsStats}.post_id`)
+      .innerJoin(users, `${users}.id`, `${posts}.user_id`)
       .orderByRaw(`${TABLE_NAME}.id ASC`);
+
+    this.hydrateManyObjects(data, userTablePrefix);
+
+    return data;
+  }
+
+  private static hydrateManyObjects(data: any, objectPrefix: string, delimiter = '__') {
+    data.forEach((item) => {
+      this.hydrateOneObject(item, objectPrefix, delimiter);
+    });
+  }
+
+  private static hydrateOneObject(data: any, objectPrefix: string, delimiter = '__') {
+    const obj: any = {};
+
+    const fieldsToDelete: string[] = [];
+    for (const field in data) {
+      if (!data.hasOwnProperty(field)) {
+        continue;
+      }
+
+      if (field.includes(objectPrefix)) {
+        const objField = field.replace(objectPrefix, '');
+        obj[objField] = data[field];
+
+        fieldsToDelete.push(field);
+      }
+    }
+
+    fieldsToDelete.forEach((field) => {
+      delete data[field];
+    });
+
+    const objectKey = objectPrefix.replace(delimiter, '');
+    data[objectKey] = obj;
   }
 
   public static async updateDiscussionsState(

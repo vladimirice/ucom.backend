@@ -708,8 +708,8 @@ class CommonHelper {
 
     PostsHelper.checkPostItselfCommonFields(post, options);
 
+    UsersHelper.checkIncludedUserForEntityPage(post, options);
     if (options.postProcessing !== EntityResponseState.card()) {
-      UsersHelper.checkIncludedUserForEntityPage(post, options);
       this.checkOnePostEntityForCard(post);
       this.checkMyselfData(post, options);
       this.checkPostTypeRelatedStructure(post, options);

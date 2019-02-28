@@ -51,12 +51,12 @@ orgRouter.get('/', async (req, res) => {
 /* Get one organization by ID */
 orgRouter.get('/:organization_id', async (req, res) => {
   const targetId = req.organization_id;
-  const currentUserId: number | null = getCurrentUserId(req);
+  // const currentUserId: number | null = getCurrentUserId(req);
 
   const response = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
 
   response.data.discussions =
-    await OrganizationsFetchRelated.getManyDiscussions(response.data.id, currentUserId);
+    await OrganizationsFetchRelated.getManyDiscussions(response.data.id);
 
   res.send(response);
 });
