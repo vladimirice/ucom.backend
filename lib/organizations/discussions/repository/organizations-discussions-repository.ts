@@ -1,11 +1,11 @@
 import { Transaction } from 'knex';
 
-import PostsModelProvider = require('../../posts/service/posts-model-provider');
-import OrganizationsToEntitiesRelations = require('../dictionary/OrganizationsToEntitiesRelations');
-import knex = require('../../../config/knex');
-import QueryFilterService = require('../../api/filters/query-filter-service');
-import UsersModelProvider = require('../../users/users-model-provider');
-import RepositoryHelper = require('../../common/repository/repository-helper');
+import PostsModelProvider = require('../../../posts/service/posts-model-provider');
+import knex = require('../../../../config/knex');
+import QueryFilterService = require('../../../api/filters/query-filter-service');
+import UsersModelProvider = require('../../../users/users-model-provider');
+import RepositoryHelper = require('../../../common/repository/repository-helper');
+import OrganizationsToEntitiesRelations = require('../../dictionary/organizations-to-entities-relations');
 
 const TABLE_NAME = 'organizations_to_entities';
 
@@ -16,20 +16,21 @@ interface Relations {
   relation_type:    number;
 }
 
-class OrganizationsToEntitiesRepository {
-  public static async findManyDiscussions(orgId: number) {
-    const entityName    = PostsModelProvider.getEntityName();
-    const relationType  = OrganizationsToEntitiesRelations.discussions();
-    const posts         = PostsModelProvider.getTableName();
-    const postsStats    = PostsModelProvider.getPostsStatsTableName();
-    const users         = UsersModelProvider.getTableName();
+const entityName    = PostsModelProvider.getEntityName();
+const relationType  = OrganizationsToEntitiesRelations.discussions();
+const posts         = PostsModelProvider.getTableName();
+const postsStats    = PostsModelProvider.getPostsStatsTableName();
+const users         = UsersModelProvider.getTableName();
 
+class OrganizationsDiscussionsRepository {
+  public static async findManyDiscussions(orgId: number) {
     let toSelect = QueryFilterService.getPrefixedAttributes(
       PostsModelProvider.getPostsFieldsForCard(),
       posts,
       false,
     );
 
+    // #task - use knex hydrator or ORM or separate libs
     const userTablePrefix = 'User__';
 
     const usersToSelect = QueryFilterService.getPrefixedAttributes(
@@ -64,9 +65,6 @@ class OrganizationsToEntitiesRepository {
   public static async countDiscussions(
     orgId: number,
   ): Promise<number> {
-    const entityName    = PostsModelProvider.getEntityName();
-    const relationType  = OrganizationsToEntitiesRelations.discussions();
-
     const query = knex(TABLE_NAME)
       .count(`${TABLE_NAME}.id AS amount`)
       .where({
@@ -81,14 +79,21 @@ class OrganizationsToEntitiesRepository {
     return +res[0].amount;
   }
 
+  public static async deleteAllDiscussions(orgId: number) {
+    await knex(TABLE_NAME)
+      .where({
+        organization_id:  orgId,
+        entity_name:      entityName,
+        relation_type:    relationType,
+      })
+      .delete();
+  }
+
   public static async updateDiscussionsState(
     orgId: number,
     postsIds: number[],
     trx: Transaction,
   ): Promise<void> {
-    const entityName    = PostsModelProvider.getEntityName();
-    const relationType  = OrganizationsToEntitiesRelations.discussions();
-
     await trx(TABLE_NAME)
       .where({
         organization_id:  orgId,
@@ -112,4 +117,4 @@ class OrganizationsToEntitiesRepository {
   }
 }
 
-export = OrganizationsToEntitiesRepository;
+export = OrganizationsDiscussionsRepository;

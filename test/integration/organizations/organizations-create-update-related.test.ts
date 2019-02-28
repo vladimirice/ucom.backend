@@ -117,7 +117,51 @@ describe('Organizations create,update related entities', () => {
     });
   });
 
-  describe('Create discussions. #posts', () => {
+  describe('Delete all discussions', () => {
+    it('Create and then delete all discussions', async () => {
+      const [vladOrgId, janeOrgId] = await Promise.all([
+        OrganizationsGenerator.createOrgWithoutTeam(userVlad),
+        OrganizationsGenerator.createOrgWithoutTeam(userJane),
+      ]);
+
+      const [vladPostsIds, janePostsIds]: [number[], number[]] = await Promise.all([
+        PostsGenerator.createManyMediaPostsOfOrganization(userVlad, vladOrgId, 5),
+        PostsGenerator.createManyMediaPostsOfOrganization(userJane, janeOrgId, 8),
+      ]);
+
+      await Promise.all([
+        OrganizationsGenerator.changeDiscussionsState(userVlad, vladOrgId, vladPostsIds),
+        OrganizationsGenerator.changeDiscussionsState(userJane, janeOrgId, janePostsIds),
+      ]);
+
+      const vladOrgModelBefore: OrgModelResponse =
+        await OrganizationsHelper.requestToGetOneOrganizationAsGuest(vladOrgId);
+
+      CommonHelper.expectModelsExistence(vladOrgModelBefore.discussions, vladPostsIds, true);
+
+
+      await OrganizationsGenerator.deleteAllDiscussions(userVlad, vladOrgId);
+
+      const vladOrgModelAfter: OrgModelResponse =
+        await OrganizationsHelper.requestToGetOneOrganizationAsGuest(vladOrgId);
+
+      const options = {
+        mustHaveValue: {
+          discussions: false,
+          usersTeam: false,
+        },
+      };
+
+      CommonHelper.checkOneOrganizationFully(vladOrgModelAfter, options);
+
+      const janeOrgModelAfter: OrgModelResponse =
+        await OrganizationsHelper.requestToGetOneOrganizationAsGuest(janeOrgId);
+
+      CommonHelper.expectModelsExistence(janeOrgModelAfter.discussions, janePostsIds, true);
+    });
+  });
+
+  describe('Change discussions state. #posts #discussions', () => {
     describe('Positive', () => {
       it('Check all create-modify discussions workflow', async () => {
         // Let's create discussions

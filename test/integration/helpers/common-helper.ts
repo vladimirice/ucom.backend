@@ -46,6 +46,8 @@ class CommonHelper {
       expect(model.discussions.length).toBeGreaterThan(0);
 
       this.checkManyPostsV2(model.discussions, options);
+    } else {
+      expect(model.discussions.length).toBe(0);
     }
   }
 

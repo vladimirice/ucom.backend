@@ -32,6 +32,23 @@ class OrganizationsGenerator {
     ResponseHelper.expectStatusOk(res);
   }
 
+  public static async deleteAllDiscussions(
+    myself: UserModel,
+    orgId: number,
+  ): Promise<void> {
+    const url = RequestHelper.getOrganizationsDiscussionUrl(orgId);
+
+    const req = request(server)
+      .delete(url)
+    ;
+
+    RequestHelper.addAuthToken(req, myself);
+
+    const res = await req;
+
+    ResponseHelper.expectStatusToBe(res, 204);
+  }
+
   /**
    *
    * @param {Object} author
