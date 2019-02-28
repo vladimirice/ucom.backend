@@ -10,6 +10,7 @@ import CommonHelper = require('../helpers/common-helper');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
 import UsersHelper = require('../helpers/users-helper');
 import ResponseHelper = require('../helpers/response-helper');
+import _ = require('lodash');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -118,15 +119,15 @@ describe('Organizations create,update related entities', () => {
 
   describe('Create discussions. #posts', () => {
     describe('Positive', () => {
-      it('Should add discussions to existing organizations', async () => {
+      it('Check all create-modify discussions workflow', async () => {
+        // Let's create discussions
         const firstOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
-        await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, firstOrgId, 3);
-        const postsIds = [1, 3, 2];
+        const postsIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, firstOrgId, 5);
 
         await OrganizationsGenerator.changeDiscussionsState(userVlad, firstOrgId, postsIds);
 
         const secondOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
-        const secondOrgPostIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, secondOrgId, 5);
+        const secondOrgPostIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, secondOrgId, 8);
         await OrganizationsGenerator.changeDiscussionsState(userVlad, secondOrgId, secondOrgPostIds);
 
         const orgModel: OrgModelResponse =
@@ -146,6 +147,43 @@ describe('Organizations create,update related entities', () => {
           await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
 
         CommonHelper.expectModelsExistence(secondOrgModel.discussions, secondOrgPostIds, true);
+
+        // Change order of two elements for first organization and two for second
+
+        const reorderedFirstPostsIds = _.shuffle(postsIds);
+        const reorderedSecondPostsIds = _.shuffle(secondOrgPostIds);
+        await Promise.all([
+          OrganizationsGenerator.changeDiscussionsState(userVlad, firstOrgId, reorderedFirstPostsIds),
+          OrganizationsGenerator.changeDiscussionsState(userVlad, secondOrgId, reorderedSecondPostsIds),
+        ]);
+
+        const [firstModelWithShuffled, secondModelWithShuffled]  = await Promise.all([
+          OrganizationsHelper.requestToGetOneOrganizationAsGuest(firstOrgId),
+          OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId),
+        ]);
+
+        CommonHelper.expectModelsExistence(firstModelWithShuffled.discussions, reorderedFirstPostsIds, true);
+        CommonHelper.expectModelsExistence(secondModelWithShuffled.discussions, reorderedSecondPostsIds, true);
+
+        // Delete some of discussions
+        reorderedFirstPostsIds.pop();
+        reorderedFirstPostsIds.shift();
+
+        reorderedSecondPostsIds.pop();
+        reorderedSecondPostsIds.shift();
+
+        await Promise.all([
+          OrganizationsGenerator.changeDiscussionsState(userVlad, firstOrgId, reorderedFirstPostsIds),
+          OrganizationsGenerator.changeDiscussionsState(userVlad, secondOrgId, reorderedSecondPostsIds),
+        ]);
+
+        const [firstModelWithDeleted, secondModelWithDeleted]  = await Promise.all([
+          OrganizationsHelper.requestToGetOneOrganizationAsGuest(firstOrgId),
+          OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId),
+        ]);
+
+        CommonHelper.expectModelsExistence(firstModelWithDeleted.discussions, reorderedFirstPostsIds, true);
+        CommonHelper.expectModelsExistence(secondModelWithDeleted.discussions, reorderedSecondPostsIds, true);
       }, JEST_TIMEOUT);
     });
   });
