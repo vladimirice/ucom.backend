@@ -3,6 +3,15 @@ import { BadRequestError, HttpForbiddenError } from '../../api/errors';
 import OrganizationsToEntitiesRepository = require('../repository/organizations-to-entities-repository');
 import knex = require('../../../config/knex');
 import OrganizationsRepository = require('../repository/organizations-repository');
+import PostsRepository = require('../../posts/posts-repository');
+
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+
+const allowedDiscussionsTypes: number[] = [
+  ContentTypeDictionary.getTypeMediaPost(),
+];
+
+const ALLOWED_DISCUSSIONS_AMOUNT_PER_ORG = 10;
 
 class OrganizationsCreatorRelated {
   public static async validateOneDiscussion(orgModel: any, postId: number, currentUserId: number): Promise<void> {
@@ -10,22 +19,31 @@ class OrganizationsCreatorRelated {
       throw new BadRequestError('Post ID field must be a valid number');
     }
 
-    const [isOrgMember] = await Promise.all([
+    const [isOrgMember, post, discussionsAmount] = await Promise.all([
       OrganizationsRepository.isOrgMember(currentUserId, orgModel.id),
+      PostsRepository.findOnlyPostItselfById(postId),
+      OrganizationsToEntitiesRepository.countDiscussions(orgModel.id),
     ]);
+
+    if (discussionsAmount === ALLOWED_DISCUSSIONS_AMOUNT_PER_ORG) {
+      throw new BadRequestError(`Organization with ID ${orgModel.id} already has maximum allowed amount of discussions: ${ALLOWED_DISCUSSIONS_AMOUNT_PER_ORG}`);
+    }
 
     if (!isOrgMember) {
       throw new HttpForbiddenError('Only author of organization is able to change discussions');
     }
 
-    // const post = PostsRepository.findOneByIdV2(postId, true);
+    if (post === null) {
+      throw new BadRequestError(`There is no post with ID: ${postId}`);
+    }
 
-  /* I'm an author of org or team member
-    * Organization ID exists
-    * this is only publication type of post
-    * Posts amount is no more than 10
-    * Post ID exists
-*/
+    if (!~allowedDiscussionsTypes.indexOf(post.post_type_id)) {
+      throw new BadRequestError(`Post type ID is not allowed. Allowed types are: ${allowedDiscussionsTypes.join(', ')}`);
+    }
+
+    if (post.organization_id === null || post.organization_id !== orgModel.id) {
+      throw new BadRequestError('Post should be made by organization member');
+    }
   }
 
   public static async processNewDiscussionsState(orgModel, body: any, currentUserId: number) {

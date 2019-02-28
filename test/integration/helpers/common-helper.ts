@@ -3,7 +3,6 @@ import { CommentModelResponse, CommentsListResponse } from '../../../lib/comment
 import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 import { ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
-import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 import { OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 
@@ -609,14 +608,19 @@ class CommonHelper {
   }
 
   public static expectModelsExistence(
-    actualModels: StringToAnyCollection,
+    actualModels,
     expectedModelIds: number[],
+    checkOrdering: boolean = false,
   ): void {
     expect(actualModels.length).toBe(expectedModelIds.length);
 
     expectedModelIds.forEach((expectedId) => {
       expect(actualModels.some(actual => actual.id === expectedId)).toBeTruthy();
     });
+
+    if (checkOrdering) {
+      ResponseHelper.checkOrderingById(actualModels, expectedModelIds);
+    }
   }
 
   public static expectModelsDoNotExist(

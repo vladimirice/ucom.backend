@@ -100,7 +100,7 @@ orgRouter.post('/:organization_id/discussions', [authTokenMiddleWare, cpUpload],
 orgRouter.get('/:organization_id/discussions/:post_id/validate', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const currentUserId: number = getCurrentUserId(req);
 
-  await OrganizationsCreatorRelated.validateOneDiscussion(req.organization_model, req.body, currentUserId);
+  await OrganizationsCreatorRelated.validateOneDiscussion(req.organization_model, +req.params.post_id, currentUserId);
 
   return res.status(200).send({
     success: true,

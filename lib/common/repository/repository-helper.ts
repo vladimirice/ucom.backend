@@ -5,6 +5,37 @@ import { CurrentParams } from '../../stats/interfaces/dto-interfaces';
 import knex = require('../../../config/knex');
 
 class RepositoryHelper {
+  public static hydrateObjectForManyEntities(data: any, objectPrefix: string, delimiter = '__') {
+    data.forEach((item) => {
+      this.hydrateOneObject(item, objectPrefix, delimiter);
+    });
+  }
+
+  private static hydrateOneObject(data: any, objectPrefix: string, delimiter = '__') {
+    const obj: any = {};
+
+    const fieldsToDelete: string[] = [];
+    for (const field in data) {
+      if (!data.hasOwnProperty(field)) {
+        continue;
+      }
+
+      if (field.includes(objectPrefix)) {
+        const objField = field.replace(objectPrefix, '');
+        obj[objField] = data[field];
+
+        fieldsToDelete.push(field);
+      }
+    }
+
+    fieldsToDelete.forEach((field) => {
+      delete data[field];
+    });
+
+    const objectKey = objectPrefix.replace(delimiter, '');
+    data[objectKey] = obj;
+  }
+
   // It is required because big int fields from Postgresql are represented as string
   // It is supposed that js numerical limit will not be exceeded before a bigint support feature of nodejs core will be created
   public static convertStringFieldsToNumbers(model: any, fields: string[]) {
