@@ -17,7 +17,7 @@ import RepositoryHelper = require('../../common/repository/repository-helper');
 
 const moment = require('moment');
 
-const RATE_DELTA_HOURS_INTERVAL = 24;
+const RATE_DELTA_HOURS_INTERVAL = 24 * 3;
 
 const profilingInfo = {};
 
