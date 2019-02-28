@@ -3,6 +3,7 @@ import { Transaction } from 'knex';
 import PostsModelProvider = require('../../posts/service/posts-model-provider');
 import OrganizationsToEntitiesRelations = require('../dictionary/OrganizationsToEntitiesRelations');
 import knex = require('../../../config/knex');
+import QueryFilterService = require('../../api/filters/query-filter-service');
 
 const TABLE_NAME = 'organizations_to_entities';
 
@@ -18,7 +19,12 @@ class OrganizationsToEntitiesRepository {
     const entityName    = PostsModelProvider.getEntityName();
     const relationType  = OrganizationsToEntitiesRelations.discussions();
     const posts         = PostsModelProvider.getTableName();
-    const toSelect      = PostsModelProvider.getPostsFieldsForCard();
+
+    const toSelect = QueryFilterService.getPrefixedAttributes(
+      PostsModelProvider.getPostsFieldsForCard(),
+      posts,
+      true,
+    );
 
     return knex(TABLE_NAME)
       .select(toSelect)

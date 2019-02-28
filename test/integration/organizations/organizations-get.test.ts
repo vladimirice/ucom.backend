@@ -274,7 +274,7 @@ describe('Organizations. Get requests', () => {
 
       const options = {
         mustHaveValue: {
-          discussions: true,
+          discussions: false,
           usersTeam: true,
         },
         postProcessing: EntityResponseState.card(),

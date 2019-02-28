@@ -111,24 +111,36 @@ class QueryFilterService {
     return params;
   }
 
-  public static processAttributes(params: DbParamsDto, mainTableName: string, prefixAll = false) {
+  public static processAttributes(
+    params: DbParamsDto,
+    mainTableName: string,
+    prefixAll = false,
+  ): void {
     if (!params.attributes) {
       return;
     }
 
+    params.attributes = this.getPrefixedAttributes(params.attributes, mainTableName, prefixAll);
+  }
+
+  public static getPrefixedAttributes(
+    attributes: string[],
+    prefix: string,
+    prefixAll = false,
+  ): string[] {
     const paramsToAddPrefix = [
       'id',
       'created_at',
       'updated_at',
     ];
 
-    for (let i = 0; i < params.attributes.length; i += 1) {
-      if (prefixAll) {
-        params.attributes[i] = `${mainTableName}.${params.attributes[i]} AS ${params.attributes[i]}`;
-      } else if (~paramsToAddPrefix.indexOf(params.attributes[i])) {
-        params.attributes[i] = `${mainTableName}.${params.attributes[i]} AS ${params.attributes[i]}`;
+    return attributes.map((attribute) => {
+      if (prefixAll || ~paramsToAddPrefix.indexOf(attribute)) {
+        return `${prefix}.${attribute} AS ${attribute}`;
       }
-    }
+
+      return attribute;
+    });
   }
 
   /**

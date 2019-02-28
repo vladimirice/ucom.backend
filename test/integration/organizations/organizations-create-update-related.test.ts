@@ -10,6 +10,8 @@ import CommonHelper = require('../helpers/common-helper');
 
 let userVlad: UserModel;
 
+const JEST_TIMEOUT = 5000;
+
 const beforeAfterOptions = {
   isGraphQl: false,
   workersMocking: 'all',
@@ -24,15 +26,24 @@ describe('Organizations create,update related entities', () => {
     describe('Positive', () => {
       it('Should add discussions to existing organizations', async () => {
         const firstOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
-        const postsIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, firstOrgId, 10);
-
+        const postsIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, firstOrgId, 3);
         await OrganizationsGenerator.changeDiscussionsState(userVlad, firstOrgId, postsIds);
+
+        // Disturbance
+        const secondOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const secondOrgPostIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, secondOrgId, 5);
+        await OrganizationsGenerator.changeDiscussionsState(userVlad, secondOrgId, secondOrgPostIds);
 
         const orgModel: OrgModelResponse =
           await OrganizationsHelper.requestToGetOneOrganizationAsGuest(firstOrgId);
 
         CommonHelper.expectModelsExistence(orgModel.discussions, postsIds);
-      }, 100000);
+
+        const secondOrgModel: OrgModelResponse =
+          await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
+
+        CommonHelper.expectModelsExistence(secondOrgModel.discussions, secondOrgPostIds);
+      }, JEST_TIMEOUT);
     });
   });
 });

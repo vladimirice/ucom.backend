@@ -23,7 +23,7 @@ class OrgApiMiddleware {
       if (model === null) {
         throw new BadRequestError({
           organization_id: `There is no organization with ID: ${value}`,
-        });
+        }, 404);
       }
 
       req.organization_id     = value;
