@@ -35,9 +35,9 @@ function checkPostsPage(response, expected) {
 
   expect(_.isEmpty(response.data)).toBeFalsy();
 
-  ResponseHelper.checkResponseOrdering(response.data.many_posts, expected.expectedValues, 'post_id');
-  ResponseHelper.checkResponseOrdering(response.data.many_organizations, expected.expectedForOrg, 'organization_id');
-  ResponseHelper.checkResponseOrdering(response.data.many_users, expected.expectedForUsers, 'user_id');
+  ResponseHelper.checkResponseOrderingForList(response.data.many_posts, expected.expectedValues, 'post_id');
+  ResponseHelper.checkResponseOrderingForList(response.data.many_organizations, expected.expectedForOrg, 'organization_id');
+  ResponseHelper.checkResponseOrderingForList(response.data.many_users, expected.expectedForUsers, 'user_id');
 
   CommonHelper.checkPostListResponseWithoutOrg(response.data.many_posts, true, true);
   CommonHelper.checkUsersListResponse(response.data.many_users, options);
@@ -97,7 +97,7 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id');
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForUsers, 'user_id');
       expect(response.metadata.total_amount).toBe(expectedUsersAmount);
     });
 
@@ -120,7 +120,7 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id', page);
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForUsers, 'user_id', page);
     });
 
     it('Organizations list for trending post', async () => {
@@ -131,7 +131,7 @@ describe('GET posts via graphql', () => {
       );
 
       OrganizationsHelper.checkOrgListResponseStructure(response);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForOrg, 'organization_id');
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForOrg, 'organization_id');
       expect(response.metadata.total_amount).toBe(expectedOrgsAmount);
     });
 
@@ -201,7 +201,7 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id');
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForUsers, 'user_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -213,7 +213,7 @@ describe('GET posts via graphql', () => {
       );
 
       OrganizationsHelper.checkOrgListResponseStructure(response);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForOrg, 'organization_id');
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForOrg, 'organization_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -288,7 +288,7 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id');
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForUsers, 'user_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -300,7 +300,7 @@ describe('GET posts via graphql', () => {
       );
 
       OrganizationsHelper.checkOrgListResponseStructure(response);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForOrg, 'organization_id');
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForOrg, 'organization_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -356,7 +356,7 @@ describe('GET posts via graphql', () => {
       };
 
       CommonHelper.checkUsersListResponse(response, options);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForUsers, 'user_id');
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForUsers, 'user_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions
@@ -368,7 +368,7 @@ describe('GET posts via graphql', () => {
       );
 
       OrganizationsHelper.checkOrgListResponseStructure(response);
-      ResponseHelper.checkResponseOrdering(response, expected.expectedForOrg, 'organization_id');
+      ResponseHelper.checkResponseOrderingForList(response, expected.expectedForOrg, 'organization_id');
     });
 
     // eslint-disable-next-line sonarjs/no-identical-functions

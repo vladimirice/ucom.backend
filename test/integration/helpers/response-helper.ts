@@ -7,7 +7,20 @@ import _ = require('lodash');
 require('jest-expect-message');
 
 class ResponseHelper {
-  public static checkResponseOrdering(
+  public static expectErrorMatchMessage(res, msg: string, statusCode: number = 400) {
+    expect(res.status).toBe(statusCode);
+    expect(res.body.errors).toMatch(msg);
+  }
+
+  public static checkOrderingById(actual: any[], expected: number[]): void {
+    expect(expected.length).toBe(actual.length);
+
+    for (let i = 0; i < actual.length; i += 1) {
+      expect(+actual[i].id).toBe(+expected[i]);
+    }
+  }
+
+  public static checkResponseOrderingForList(
     response: PostsListResponse,
     expected: any,
     orderedField: string,

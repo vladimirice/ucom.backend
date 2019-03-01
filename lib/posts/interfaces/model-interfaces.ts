@@ -36,6 +36,7 @@ interface PostModelMyselfResponse extends PostModelResponse {
 }
 
 interface PostRequestQueryDto extends RequestQueryDto {
+  readonly entity_state?: string;
   readonly post_type_id?: number;
   readonly created_at?: string;
 }

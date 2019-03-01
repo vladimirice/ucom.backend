@@ -158,12 +158,12 @@ class PostsModelProvider {
   //   ];
   // }
 
-  /**
-   *
-   * @return {string[]}
-   */
-  static getPostsFieldsForPreview() {
+  public static getPostsFieldsForPreview(): string[] {
     return this.getModel().getFieldsForPreview();
+  }
+
+  public static getPostsFieldsForCard(): string[] {
+    return this.getModel().getFieldsForCard();
   }
 
   static getPostOfferItselfInclude() {

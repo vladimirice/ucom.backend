@@ -409,6 +409,21 @@ class PostsGenerator {
     return data.id;
   }
 
+  public static async createManyDirectPostsForOrganization(
+    myself: UserModel,
+    orgId: number,
+    amount: number,
+  ): Promise<number[]> {
+    const promises: any[] = [];
+    for (let i = 0; i < amount; i += 1) {
+      promises.push(
+        this.createDirectPostForOrganization(myself, orgId, null, true, true),
+      );
+    }
+
+    return Promise.all(promises);
+  }
+
   static async createDirectPost(
     url: string,
     myself: UserModel,

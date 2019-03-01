@@ -8,6 +8,7 @@ import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 import PostsRepository = require('../../posts/posts-repository');
+import UsersTeamRepository = require('../../users/repository/users-team-repository');
 
 const _ = require('lodash');
 
@@ -18,6 +19,7 @@ const usersModelProvider = require('../../users/users-model-provider');
 const usersTeamStatusDictionary = require('../../users/dictionary/users-team-status-dictionary');
 
 const TABLE_NAME = orgModelProvider.getModelName();
+const ENTITY_NAME = orgModelProvider.getEntityName();
 const model = orgModelProvider.getModel();
 
 const models = require('../../../models');
@@ -29,6 +31,30 @@ const taggableRepository = require('../../common/repository/taggable-repository'
 
 // @ts-ignore
 class OrganizationsRepository implements QueryFilteredRepository {
+  public static async isOrgMember(userId: number, orgId: number): Promise<boolean> {
+    const state = await this.getUserTeamMemberState(userId, orgId);
+
+    return state.isOrgAuthor || state.isTeamMember;
+  }
+
+  public static async getUserTeamMemberState(
+    userId: number,
+    orgId: number,
+  ): Promise<{ isOrgAuthor: boolean, isTeamMember: boolean}> {
+    const isOrgAuthor = await this.isUserAuthor(orgId, userId);
+
+    const isTeamMember = await UsersTeamRepository.isTeamMember(
+      ENTITY_NAME,
+      orgId,
+      userId,
+    );
+
+    return {
+      isOrgAuthor,
+      isTeamMember,
+    };
+  }
+
   public static async findManyOrgsEntityEvents(
     limit: number,
     lastId: number | null = null,

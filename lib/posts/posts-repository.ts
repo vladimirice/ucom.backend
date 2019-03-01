@@ -445,7 +445,6 @@ class PostsRepository implements QueryFilteredRepository {
    */
   static async findAllPosts(queryParameters = {}) {
     const params = _.defaults(queryParameters, this.getDefaultListParams());
-    params.attributes = this.getModel().getFieldsForPreview();
 
     params.order.push(['id', 'DESC']);
 
@@ -988,6 +987,7 @@ class PostsRepository implements QueryFilteredRepository {
 
   private static getDefaultListParams() {
     return {
+      attributes: this.getModel().getFieldsForPreview(),
       where: {},
       offset: 0,
       limit: 10,

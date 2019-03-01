@@ -19,6 +19,7 @@ import OrganizationsModelProvider = require('../../organizations/service/organiz
 import OrganizationsFetchService = require('../../organizations/service/organizations-fetch-service');
 import UsersFetchService = require('../../users/service/users-fetch-service');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
+import PostsModelProvider = require('./posts-model-provider');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -134,6 +135,10 @@ class PostsFetchService {
 
     const params: DbParamsDto = queryFilterService.getQueryParametersWithRepository(query, repository);
     queryFilterService.processWithIncludeProcessor(repository, query, params);
+
+    if (query.entity_state === 'card') {
+      params.attributes = PostsModelProvider.getPostsFieldsForCard();
+    }
 
     const findCountPromises: Promise<any>[] = this.getFindCountPromisesForAllPosts(params);
 
@@ -271,7 +276,7 @@ class PostsFetchService {
    * @private
    */
   private static async findAndProcessAllForWallFeed(
-    query: RequestQueryDto,
+    query: PostRequestQueryDto,
     params: DbParamsDto,
     currentUserId: number | null,
     findCountPromises: Promise<any>[],
@@ -287,7 +292,7 @@ class PostsFetchService {
     }
 
     let userActivity;
-    if (currentUserId) {
+    if (currentUserId && query.entity_state !== 'card') {
       const postsActivity = await usersActivityRepository.findOneUserToPostsVotingAndRepostActivity(
         currentUserId,
         postsIds,
@@ -298,7 +303,6 @@ class PostsFetchService {
       };
     }
 
-    // #task - use included query
     if (query && query.included_query && query.included_query.comments) {
       await this.addCommentsToPosts(
         posts,
@@ -309,7 +313,23 @@ class PostsFetchService {
     }
 
     const data = ApiPostProcessor.processManyPosts(posts, currentUserId, userActivity);
+    if (query.entity_state !== 'card') {
+      await this.addEntityForCard(posts, data);
 
+      for (const post of posts) {
+        await this.processEntityForCardForRepost(post);
+      }
+    }
+
+    const metadata  = queryFilterService.getMetadata(totalAmount, query, params);
+
+    return {
+      data,
+      metadata,
+    };
+  }
+
+  private static async addEntityForCard(posts, data) {
     // #task - maybe use JOIN instead (knex and good hydration is required) or provide Card REDIS caching
     const postIdToEntityForCard = await this.getPostIdToEntityForCard(posts);
     data.forEach((post) => {
@@ -319,17 +339,6 @@ class PostsFetchService {
         ApiLogger.error(`there is no entityForCard record for post: ${JSON.stringify(post)}. Skipped...`);
       }
     });
-
-    for (const post of posts) {
-      await this.processEntityForCardForRepost(post);
-    }
-
-    const metadata  = queryFilterService.getMetadata(totalAmount, query, params);
-
-    return {
-      data,
-      metadata,
-    };
   }
 
   private static async getPostIdToEntityForCard(

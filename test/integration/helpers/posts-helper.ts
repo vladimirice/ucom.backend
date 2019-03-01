@@ -12,6 +12,7 @@ import _ = require('lodash');
 import PostsCurrentParamsRepository = require('../../../lib/posts/repository/posts-current-params-repository');
 import knex = require('../../../config/knex');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
 
 const request = require('supertest');
 const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
@@ -283,14 +284,17 @@ class PostsHelper {
   static checkMediaPostFields(post, options) {
     let mustExist;
     switch (options.postProcessing) {
-      case 'list':
+      case EntityResponseState.list():
         mustExist = postsModelProvider.getModel().getMediaOrOfferPostMustExistFields();
         break;
-      case 'full':
+      case EntityResponseState.full():
         mustExist = postsModelProvider.getModel().getMediaPostFullFields();
         break;
-      case 'notification':
+      case EntityResponseState.notification():
         mustExist = postsModelProvider.getModel().getFieldsRequiredForNotification();
+        break;
+      case EntityResponseState.card():
+        mustExist = PostsModelProvider.getPostsFieldsForCard();
         break;
       default:
         throw new Error(
@@ -334,19 +338,24 @@ class PostsHelper {
    * @param {Object} options
    */
   static checkDirectPostItself(post, options: any = {}) {
-    const toExclude = postsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
-    ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
+    if (options.postProcessing === EntityResponseState.card()) {
+      const expected = PostsModelProvider.getPostsFieldsForCard();
+      ResponseHelper.expectFieldsAreExist(post, expected);
+    } else {
+      const toExclude = postsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
+      ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
 
-    const mustBeNotNull = postsModelProvider.getModel().getDirectPostNotNullFields();
-    expect(post.main_image_filename).toBeDefined();
+      const mustBeNotNull = postsModelProvider.getModel().getDirectPostNotNullFields();
+      expect(post.main_image_filename).toBeDefined();
 
-    if (options.postProcessing === 'notification') {
-      const commentsCountIndex = mustBeNotNull.indexOf('comments_count');
+      if (options.postProcessing === 'notification') {
+        const commentsCountIndex = mustBeNotNull.indexOf('comments_count');
 
-      delete mustBeNotNull[commentsCountIndex];
+        delete mustBeNotNull[commentsCountIndex];
+      }
+
+      ResponseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
     }
-
-    ResponseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
 
     this.checkWrongPostProcessingSmell(post);
   }

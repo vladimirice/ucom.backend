@@ -9,6 +9,46 @@ const faker   = require('faker');
 const server          = require('../../app');
 
 class OrganizationsGenerator {
+  public static async changeDiscussionsState(
+    myself: UserModel,
+    orgId: number,
+    postsIds: number[],
+  ): Promise<void> {
+    const url = RequestHelper.getOrganizationsDiscussionUrl(orgId);
+
+    const req = request(server)
+      .post(url)
+    ;
+
+    for (let i = 0; i < postsIds.length; i += 1) {
+      const field = `discussions[${i}][id]`;
+      req.field(field, postsIds[i]);
+    }
+
+    RequestHelper.addAuthToken(req, myself);
+
+    const res = await req;
+
+    ResponseHelper.expectStatusOk(res);
+  }
+
+  public static async deleteAllDiscussions(
+    myself: UserModel,
+    orgId: number,
+  ): Promise<void> {
+    const url = RequestHelper.getOrganizationsDiscussionUrl(orgId);
+
+    const req = request(server)
+      .delete(url)
+    ;
+
+    RequestHelper.addAuthToken(req, myself);
+
+    const res = await req;
+
+    ResponseHelper.expectStatusToBe(res, 204);
+  }
+
   /**
    *
    * @param {Object} author
@@ -16,7 +56,7 @@ class OrganizationsGenerator {
    * @param {number} mul
    * @return {Promise<void>}
    */
-  static async createManyOrgWithSameTeam(author, teamMembers, mul = 1) {
+  public static async createManyOrgWithSameTeam(author, teamMembers, mul = 1) {
     for (let i = 0; i < mul; i += 1) {
       await this.createOrgWithTeam(author, teamMembers);
     }

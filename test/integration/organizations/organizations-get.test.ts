@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 import { DbParamsDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 
 import MockHelper = require('../helpers/mock-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
@@ -10,6 +11,9 @@ import OrganizationsGenerator = require('../../generators/organizations-generato
 import PostsHelper = require('../helpers/posts-helper');
 import ActivityHelper = require('../helpers/activity-helper');
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
+import CommonHelper = require('../helpers/common-helper');
+import PostsGenerator = require('../../generators/posts-generator');
+import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
 
 const organizationsRepositories = require('../../../lib/organizations/repository');
 const orgRepository             = require('../../../lib/organizations/repository').Main;
@@ -264,21 +268,33 @@ describe('Organizations. Get requests', () => {
       await UsersHelper.directlySetUserConfirmsInvitation(modelId, userJane);
 
       await OrganizationsHelper.createSocialNetworksDirectly(modelId);
+      await PostsGenerator.createManyDirectPostsForUserAndGetIds(userVlad, userJane, 10);
 
-      const model = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(modelId);
+      const model: OrgModelResponse = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(modelId);
 
-      expect(model).toBeDefined();
-      expect(model.id).toBe(modelId);
+      const options = {
+        mustHaveValue: {
+          discussions: false,
+          usersTeam: true,
+        },
+        postProcessing: EntityResponseState.card(),
+      };
 
-      UsersHelper.checkIncludedUserPreview(model);
+      CommonHelper.checkOneOrganizationFully(model, options);
 
-      expect(model.users_team).toBeDefined();
-      expect(model.users_team.length).toBeGreaterThan(0);
 
-      expect(model.social_networks).toBeDefined();
+      const secondOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      const secondOrgResponse: OrgModelResponse = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
 
-      expect(model.current_rate).toBeDefined();
-      expect(model.current_rate).not.toBeNull();
+      const secondOrgOptions = {
+        mustHaveValue: {
+          discussions: false,
+          usersTeam: false,
+        },
+        postProcessing: EntityResponseState.card(),
+      };
+
+      CommonHelper.checkOneOrganizationFully(secondOrgResponse, secondOrgOptions);
     });
 
     it('should return communities and partnerships', async () => {
