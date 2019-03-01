@@ -11,6 +11,8 @@ import OrganizationsModelProvider = require('../../../lib/organizations/service/
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
 import TagsCurrentParamsRepository = require('../../../lib/tags/repository/tags-current-params-repository');
+import CommonModelProvider = require('../../../lib/common/service/common-model-provider');
+import TotalCurrentParamsRepository = require('../../../lib/stats/repository/total-current-params-repository');
 
 // #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
@@ -184,6 +186,39 @@ class StatsHelper {
     }
 
     this.checkManyEventsJsonValuesByExpectedSet(filteredEvents, expectedSet);
+  }
+
+  public static async checkTotalsCurrentParams(
+    eventType: number,
+    expectedCurrent,
+  ): Promise<void> {
+    const actual = await TotalCurrentParamsRepository.findOneByEventType(eventType);
+
+    expect(_.isEmpty(actual)).toBeFalsy();
+
+    expect(_.isEmpty(actual.json_value.created_at)).toBeFalsy();
+    expect(typeof actual.json_value.created_at).toBe('string');
+
+    ResponseHelper.expectValuesAreExpected(expectedCurrent, actual.json_value);
+  }
+
+  public static checkOneEventOfTotals(actual: EntityEventParamDto, expected: any) {
+    expect(_.isEmpty(actual)).toBeFalsy();
+
+    const commonTotalsParams = {
+      entity_name: CommonModelProvider.getEntityName(),
+      entity_id: CommonModelProvider.getFakeEntityId(),
+      entity_blockchain_id: CommonModelProvider.getFakeBlockchainId(),
+      event_group: 0,
+      event_super_group: 0,
+    };
+
+    const expectedMerged = {
+      ...expected,
+      ...commonTotalsParams,
+    };
+
+    ResponseHelper.expectValuesAreExpected(expectedMerged, actual);
   }
 
   public static checkManyEventsJsonValuesByExpectedSet(

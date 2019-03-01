@@ -181,14 +181,13 @@ class ResponseHelper {
     });
   }
 
-  /**
-   *
-   * @param {Object} expected
-   * @param {Object} actual
-   */
-  static expectValuesAreExpected(expected, actual) {
-    expect(actual).toBeDefined();
+  static expectValuesAreExpected(expected, actual, skipFields: string[] = []) {
+    expect(_.isEmpty(actual)).toBeFalsy();
     for (const field in expected) {
+      if (~skipFields.indexOf(field)) {
+        continue;
+      }
+
       if (expected.hasOwnProperty(field)) {
         // noinspection JSUnfilteredForInLoop
         // @ts-ignore
