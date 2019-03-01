@@ -34,7 +34,7 @@ pm2-reload-test-ecosystem pmt:
 	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
 
 docker-npm-ci:
-	${DOCKER_B_EXEC_CMD} /bin/bash ssh-add_and_npm_ci.sh
+	${DOCKER_B_EXEC_CMD} npm ci
 
 docker-prepare-for-tests pft:
 	make init-project
