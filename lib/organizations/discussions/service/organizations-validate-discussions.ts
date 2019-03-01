@@ -37,7 +37,7 @@ class OrganizationsValidateDiscussions {
     }
 
     if (!isOrgMember) {
-      throw new HttpForbiddenError('Only author of organization is able to change discussions');
+      throw new HttpForbiddenError('Only community team member is able to change discussions');
     }
 
     if (post === null) {

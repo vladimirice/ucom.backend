@@ -13,6 +13,7 @@ class OrganizationsGenerator {
     myself: UserModel,
     orgId: number,
     postsIds: number[],
+    expectedStatus: number = 200,
   ): Promise<void> {
     const url = RequestHelper.getOrganizationsDiscussionUrl(orgId);
 
@@ -29,7 +30,9 @@ class OrganizationsGenerator {
 
     const res = await req;
 
-    ResponseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res;
   }
 
   public static async deleteAllDiscussions(

@@ -230,6 +230,20 @@ describe('Organizations create,update related entities', () => {
         CommonHelper.expectModelsExistence(secondModelWithDeleted.discussions, reorderedSecondPostsIds, true);
       }, JEST_TIMEOUT);
     });
+
+    describe('Negative', () => {
+      it('It is not possible to send list with duplicates', async () => {
+        const firstOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+
+        const postsIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, firstOrgId, 5);
+
+        const duplicatedSet = _.clone(postsIds);
+        duplicatedSet.push(postsIds[0]);
+
+        const res = await OrganizationsGenerator.changeDiscussionsState(userVlad, firstOrgId, duplicatedSet, 400);
+        ResponseHelper.expectErrorMatchMessage(res, 'discussions must be unique');
+      });
+    });
   });
 });
 

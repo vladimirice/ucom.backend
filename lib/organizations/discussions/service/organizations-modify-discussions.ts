@@ -25,6 +25,10 @@ class OrganizationsModifyDiscussions {
 
       await OrganizationsValidateDiscussions.validateOneDiscussion(orgModel, id, currentUserId);
 
+      if (~postsIds.indexOf(id)) {
+        throw new BadRequestError(`All discussions must be unique. Duplicate ID is found: ${id}`);
+      }
+
       postsIds.push(id);
     }
 
