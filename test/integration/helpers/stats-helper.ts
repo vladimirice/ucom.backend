@@ -104,12 +104,26 @@ class StatsHelper {
     calculateCurrent: boolean = true,
     calculateDeltas: boolean = false,
   ) {
+    const jsonValue: any = {
+      description,
+      recalc_interval:  recalcInterval,
+    };
+
+    const expectedCurrent: any = {
+      description,
+      event_type: eventType,
+      value: amount,
+      recalc_interval: recalcInterval,
+    };
+
     if (calculateCurrent) {
       await EntityTotalsCalculator.calculate();
     }
 
     if (calculateDeltas) {
       await TotalDeltaCalculationService.updateTotalDeltas();
+      jsonValue.window_interval       = 'PT24H'; // #task provide separately
+      expectedCurrent.window_interval = 'PT24H'; // #task provide separately
     }
 
     const event: EntityEventParamDto =
@@ -118,19 +132,7 @@ class StatsHelper {
     const expected = {
       event_type: eventType,
       result_value: amount,
-      json_value: {
-        description,
-        recalc_interval:  recalcInterval,
-        window_interval: 'PT24H',
-      },
-    };
-
-    const expectedCurrent = {
-      description,
-      event_type: eventType,
-      value: amount,
-      recalc_interval: recalcInterval,
-      window_interval: 'PT24H',
+      json_value: jsonValue,
     };
 
     StatsHelper.checkOneEventOfTotals(event, expected);
