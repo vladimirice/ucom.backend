@@ -458,12 +458,7 @@ class UsersRepository {
     };
   }
 
-  /**
-   *
-   * @param {Object} params
-   * @returns {Promise<*>}
-   */
-  static async countAll(params) {
+  public static async countAll(params): Promise<number> {
     const where = params ? params.where : {};
 
     return UsersRepository.getModel().count({

@@ -158,6 +158,20 @@ class PostsGenerator {
     };
   }
 
+  public static async createUserDirectPostAndRepost(
+    postAuthor: UserModel,
+    wallOwner: UserModel,
+    repostAuthor: UserModel,
+  ): Promise<{postId: number, repostId: number}> {
+    const postId  = await this.createDirectPostForUserAndGetId(postAuthor, wallOwner);
+    const repostId = await this.createRepostOfUserPost(repostAuthor, postId);
+
+    return {
+      postId,
+      repostId,
+    };
+  }
+
   /**
    *
    * @param {Object} postAuthor

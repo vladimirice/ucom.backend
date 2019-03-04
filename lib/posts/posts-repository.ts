@@ -45,6 +45,57 @@ const knex = require('../../config/knex');
 
 // @ts-ignore
 class PostsRepository implements QueryFilteredRepository {
+  public static async countAllRepostsOfMediaPosts(): Promise<number> {
+    const typeId = ContentTypeDictionary.getTypeMediaPost();
+
+    return PostsRepository.countAllRepostsByParentType(typeId);
+  }
+
+  public static async countAllRepostsByDirectPosts(): Promise<number> {
+    const typeId = ContentTypeDictionary.getTypeDirectPost();
+
+    return PostsRepository.countAllRepostsByParentType(typeId);
+  }
+
+  private static async countAllRepostsByParentType(parentType: number): Promise<number> {
+    const typeRepost = ContentTypeDictionary.getTypeRepost();
+
+    const sql = `
+      SELECT COUNT(1) FROM posts AS t
+      INNER JOIN posts AS r 
+        ON  t.parent_id = r.id 
+        AND t.parent_id IS NOT NULL 
+        AND t.post_type_id = ${+typeRepost}
+        AND r.post_type_id = ${parentType}
+    `;
+
+    const res = await knex.raw(sql);
+
+    return +res.rows[0].count;
+  }
+
+  public static async countAllMediaPosts(): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+      })
+    ;
+
+    return +res[0].amount;
+  }
+
+  public static async countAllDirectPosts(): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      })
+    ;
+
+    return +res[0].amount;
+  }
+
   public static async getManyOrgsPostsAmount() {
     const orgEntityName: string = OrganizationsModelProvider.getEntityName();
 

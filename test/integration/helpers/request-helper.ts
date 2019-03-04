@@ -29,6 +29,10 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getApiV1Prefix(): string {
+    return apiV1Prefix;
+  }
+
   public static generateRandomImportance(): number {
     return this.generateRandomNumber(1, 10, 6);
   }

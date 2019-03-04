@@ -592,6 +592,12 @@ class OrganizationsRepository implements QueryFilteredRepository {
     return taggableRepository.countAllByTagTitle(TABLE_NAME, tagTitle, joinColumn);
   }
 
+  public static async countAllWithoutFilter(): Promise<number> {
+    const res = await knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
+
+    return +res[0].amount;
+  }
+
   public static getDefaultListParams(): DbParamsDto {
     return {
       attributes: model.getFieldsForPreview(),

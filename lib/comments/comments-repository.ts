@@ -5,6 +5,7 @@ import {
 import { DbCommentParamsDto } from './interfaces/query-filter-interfaces';
 import { CommentModel, ParentIdToDbCommentCollection } from './interfaces/model-interfaces';
 import knex = require('../../config/knex');
+import CommentsModelProvider = require('./service/comments-model-provider');
 
 const _ = require('lodash');
 
@@ -21,7 +22,27 @@ const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
 
 const model = commentsModelProvider.getModel();
 
+const TABLE_NAME = CommentsModelProvider.getTableName();
+
 class CommentsRepository {
+  public static async countAllCommentsWithoutParent(): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .whereNull('parent_id')
+    ;
+
+    return +res[0].amount;
+  }
+
+  public static async countAllReplies(): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .whereNotNull('parent_id')
+    ;
+
+    return +res[0].amount;
+  }
+
   public static async getManyPostsCommentsAmount() {
     const sql = `
       SELECT COUNT(1) as amount, commentable_id FROM comments

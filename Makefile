@@ -20,7 +20,7 @@ ENV_VALUE_TEST=test
 
 init-project ip:
 	make docker-rebuild
-	make docker-npm-ci
+	npm ci
 	make docker-init-test-db
 	make docker-compile-typescript
 	make pm2-reload-test-ecosystem
