@@ -121,16 +121,6 @@ const currentNumberSet: TotalStatsParams[] = [
     eventGroup,
     eventSuperGroup,
 
-    eventType:        ParamTypes.ACTIVITIES_VOTE_DOWNVOTE__NUMBER,
-    recalcInterval:   RECALC_INTERVAL,
-    description:      'ACTIVITIES_VOTE_DOWNVOTE__NUMBER',
-
-    providerFunc:     UsersActivityRepository.countAllDownvotes,
-  },
-  {
-    eventGroup,
-    eventSuperGroup,
-
     eventType:        ParamTypes.POSTS_REPOST_MEDIA__NUMBER,
     recalcInterval:   RECALC_INTERVAL,
     description:      'POSTS_REPOST_MEDIA__NUMBER',
