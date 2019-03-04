@@ -22,7 +22,7 @@ export class EntityEventRepository {
     return this.findManyEventsByEntityName(OrganizationsModelProvider.getEntityName(), eventType);
   }
 
-  public static async findOneEventOfTotals(eventType: number): Promise<EntityEventParamDto> {
+  public static async findOneEventOfTotals(eventType: number) {
     const where: any = {
       entity_name: CommonModelProvider.getEntityName(),
       event_type: eventType,
@@ -31,6 +31,10 @@ export class EntityEventRepository {
     const data = await knexEvents(TABLE_NAME)
       .where(where)
       .first();
+
+    if (!data) {
+      return null;
+    }
 
     RepositoryHelper.convertStringFieldsToNumbers(data, this.getNumericalFields());
 

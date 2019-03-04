@@ -197,6 +197,14 @@ class TagsRepository implements QueryFilteredRepository {
     return res.toJSON();
   }
 
+  public static async countAllWithoutFilter(): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+    ;
+
+    return +res[0].amount;
+  }
+
   public static async countManyTagsForList(params: DbParamsDto): Promise<number> {
     const query = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
 

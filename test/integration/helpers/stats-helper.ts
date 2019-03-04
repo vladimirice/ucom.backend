@@ -2,6 +2,8 @@
 import { EntityEventParamDto } from '../../../lib/stats/interfaces/model-interfaces';
 import { IdToPropsCollection } from '../../../lib/common/interfaces/common-types';
 
+import { EntityEventRepository } from '../../../lib/stats/repository/entity-event-repository';
+
 import _ = require('lodash');
 import EventParamTypeDictionary = require('../../../lib/stats/dictionary/event-param/event-param-type-dictionary');
 import ResponseHelper = require('./response-helper');
@@ -13,6 +15,8 @@ import TagsModelProvider = require('../../../lib/tags/service/tags-model-provide
 import TagsCurrentParamsRepository = require('../../../lib/tags/repository/tags-current-params-repository');
 import CommonModelProvider = require('../../../lib/common/service/common-model-provider');
 import TotalCurrentParamsRepository = require('../../../lib/stats/repository/total-current-params-repository');
+
+import EntityTotalsCalculator = require('../../../lib/stats/service/entity-totals-calculator');
 
 // #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
@@ -91,6 +95,37 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
 };
 
 class StatsHelper {
+  public static async checkStatsTotalForOneTypeDynamically(
+    eventType: number,
+    amount: number,
+    description: string,
+    recalcInterval: string,
+  ) {
+    await EntityTotalsCalculator.calculate();
+
+    const event: EntityEventParamDto =
+      await EntityEventRepository.findOneEventOfTotals(eventType);
+
+    const expected = {
+      event_type: eventType,
+      result_value: amount,
+      json_value: {
+        description,
+        recalc_interval:  recalcInterval,
+      },
+    };
+
+    const expectedCurrent = {
+      event_type: eventType,
+      value: amount,
+      recalc_interval: recalcInterval,
+      description,
+    };
+
+    StatsHelper.checkOneEventOfTotals(event, expected);
+    await StatsHelper.checkTotalsCurrentParams(eventType, expectedCurrent);
+  }
+
   public static async checkEntitiesCurrentValues(
     sampleData: any,
     entityName: string,
@@ -191,7 +226,7 @@ class StatsHelper {
   public static async checkTotalsCurrentParams(
     eventType: number,
     expectedCurrent,
-  ): Promise<void> {
+  ): Promise<any> {
     const actual = await TotalCurrentParamsRepository.findOneByEventType(eventType);
 
     expect(_.isEmpty(actual)).toBeFalsy();
@@ -200,6 +235,8 @@ class StatsHelper {
     expect(typeof actual.json_value.created_at).toBe('string');
 
     ResponseHelper.expectValuesAreExpected(expectedCurrent, actual.json_value);
+
+    return actual;
   }
 
   public static checkOneEventOfTotals(actual: EntityEventParamDto, expected: any) {
