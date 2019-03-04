@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { EntityJobExecutorService } from '../lib/stats/service/entity-job-executor-service';
+
 import EntityTotalsCalculator = require('../lib/stats/service/entity-totals-calculator');
 
 (async () => {
