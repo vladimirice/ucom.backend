@@ -13,15 +13,7 @@ import UsersActivityRepository = require('../../users/repository/users-activity-
 const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
 
 const RECALC_INTERVAL = 'PT1H';
-/*
 
-кол-во профилей
-кол-во комьюнити, публикаций, постов, тегов
-кол-во комментов/реплаев/тотал
-кол-во оценов - лайк дизлайк тотал
-шеры - посты/публикации/тотал
-
- */
 
 const eventGroup      =  EventParamGroupDictionary.getNotDetermined();
 const eventSuperGroup =  EventParamSuperGroupDictionary.getNotDetermined();

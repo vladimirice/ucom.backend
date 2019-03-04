@@ -141,7 +141,6 @@ describe('Stats for organizations', () => {
     });
   });
 
-
   describe('Stats delta for organizations', () => {
     let sampleDataSet;
     beforeEach(async () => {
