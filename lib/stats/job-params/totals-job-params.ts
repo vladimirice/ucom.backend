@@ -38,6 +38,160 @@ const deltaSet: any[] = [
     recalcInterval:   RECALC_INTERVAL,
     description:      'USERS_PERSON__DELTA_PT24H',
   },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.ORGS_PERSON__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.ORGS_PERSON__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'ORGS_PERSON__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.POSTS_MEDIA__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.POSTS_MEDIA__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'POSTS_MEDIA__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.POSTS_DIRECT__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.POSTS_DIRECT__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'POSTS_DIRECT__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.TAGS_PERSON__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.TAGS_PERSON__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'TAGS_PERSON__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.COMMENTS_PARENT__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.COMMENTS_PARENT__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'COMMENTS_PARENT__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.COMMENTS_REPLY__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.COMMENTS_REPLY__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'COMMENTS_REPLY__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.ACTIVITIES_VOTE_UPVOTE__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.ACTIVITIES_VOTE_UPVOTE__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'ACTIVITIES_VOTE_UPVOTE__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.ACTIVITIES_VOTE_DOWNVOTE__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.ACTIVITIES_VOTE_DOWNVOTE__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'ACTIVITIES_VOTE_DOWNVOTE__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.POSTS_REPOST_MEDIA__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.POSTS_REPOST_MEDIA__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'POSTS_REPOST_MEDIA__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.POSTS_REPOST_MEDIA__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.POSTS_REPOST_MEDIA__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'POSTS_REPOST_MEDIA__DELTA_PT24H',
+  },
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.POSTS_REPOST_DIRECT__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.POSTS_REPOST_DIRECT__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'POSTS_REPOST_DIRECT__DELTA_PT24H',
+  },
 ];
 
 const currentNumberSet: TotalStatsParams[] = [

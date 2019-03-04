@@ -17,6 +17,9 @@ import PostsGenerator = require('../posts-generator');
 import EntityCalculationService = require('../../../lib/stats/service/entity-calculation-service');
 import CommonModelProvider = require('../../../lib/common/service/common-model-provider');
 
+
+const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
+
 const moment = require('moment');
 
 const NOT_DETERMINED_BLOCKCHAIN_ID = 'not-determined';
@@ -266,6 +269,16 @@ class EntityEventParamGeneratorV2 {
       entityName,
       eventType,
     );
+
+    return sampleData;
+  }
+
+  public static async createAllTotalEvents(): Promise<any> {
+    const isFloat = false;
+    const sampleData: any = {};
+    for (const eventType of ParamTypes.ALL_NUMBERS) {
+      sampleData[eventType] = await this.createTotalEventsAndGetExpectedDataSet(eventType, isFloat);
+    }
 
     return sampleData;
   }

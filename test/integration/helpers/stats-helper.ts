@@ -17,6 +17,7 @@ import CommonModelProvider = require('../../../lib/common/service/common-model-p
 import TotalCurrentParamsRepository = require('../../../lib/stats/repository/total-current-params-repository');
 
 import EntityTotalsCalculator = require('../../../lib/stats/service/entity-totals-calculator');
+import TotalDeltaCalculationService = require('../../../lib/stats/service/total-delta-calculation-service');
 
 // #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
@@ -100,8 +101,16 @@ class StatsHelper {
     amount: number,
     description: string,
     recalcInterval: string,
+    calculateCurrent: boolean = true,
+    calculateDeltas: boolean = false,
   ) {
-    await EntityTotalsCalculator.calculate();
+    if (calculateCurrent) {
+      await EntityTotalsCalculator.calculate();
+    }
+
+    if (calculateDeltas) {
+      await TotalDeltaCalculationService.updateTotalDeltas();
+    }
 
     const event: EntityEventParamDto =
       await EntityEventRepository.findOneEventOfTotals(eventType);
@@ -112,14 +121,16 @@ class StatsHelper {
       json_value: {
         description,
         recalc_interval:  recalcInterval,
+        window_interval: 'PT24H',
       },
     };
 
     const expectedCurrent = {
+      description,
       event_type: eventType,
       value: amount,
       recalc_interval: recalcInterval,
-      description,
+      window_interval: 'PT24H',
     };
 
     StatsHelper.checkOneEventOfTotals(event, expected);

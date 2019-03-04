@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 /* tslint:disable:max-line-length */
 import { EventDbDataDto } from '../interfaces/dto-interfaces';
+import { WorkerLogger } from '../../../config/winston';
 
 
 import TotalsJobParams = require('../job-params/totals-job-params');
@@ -16,7 +17,12 @@ class TotalDeltaCalculationService {
 
     for (const set of entitiesSets) {
       for (const params of set) {
-        await this.processOneToOne(params);
+        try {
+          await this.processOneToOne(params);
+        } catch (err) {
+          WorkerLogger.error(err);
+          console.log('Lets skip and continue');
+        }
       }
     }
   }
