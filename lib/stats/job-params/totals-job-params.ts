@@ -9,14 +9,36 @@ import PostsRepository = require('../../posts/posts-repository');
 import TagsRepository = require('../../tags/repository/tags-repository');
 import CommentsRepository = require('../../comments/comments-repository');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
+import CommonModelProvider = require('../../common/service/common-model-provider');
 
 const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
 
 const RECALC_INTERVAL = 'PT1H';
+const WINDOW_INTERVAL_ISO = 'PT24H';
 
+const windowIntervalHours = 24;
+
+const entityName = CommonModelProvider.getEntityName();
 
 const eventGroup      =  EventParamGroupDictionary.getNotDetermined();
 const eventSuperGroup =  EventParamSuperGroupDictionary.getNotDetermined();
+
+const deltaSet: any[] = [
+  {
+    entityName,
+    windowIntervalHours,
+    initialEventType:     ParamTypes.USERS_PERSON__NUMBER,
+    windowIntervalIso:    WINDOW_INTERVAL_ISO,
+    isFloat: false,
+    eventType:            ParamTypes.USERS_PERSON__DELTA_PT24H,
+
+    eventGroup,
+    eventSuperGroup,
+
+    recalcInterval:   RECALC_INTERVAL,
+    description:      'USERS_PERSON__DELTA_PT24H',
+  },
+];
 
 const currentNumberSet: TotalStatsParams[] = [
   {
@@ -132,6 +154,10 @@ const currentNumberSet: TotalStatsParams[] = [
 ];
 
 class TotalsJobParams {
+  public static getDeltaSet(): any[] {
+    return deltaSet;
+  }
+
   public static getCurrentNumberSet(): TotalStatsParams[] {
     return currentNumberSet;
   }

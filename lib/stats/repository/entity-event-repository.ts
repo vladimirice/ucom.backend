@@ -78,7 +78,7 @@ export class EntityEventRepository {
    */
   static async findLastRowsGroupedByEntity(where) {
     return knexEvents(TABLE_NAME).distinct(knexEvents.raw(
-      'ON (entity_id, event_type) entity_id, json_value, entity_name, entity_blockchain_id',
+      'ON (entity_id, event_type) entity_id, json_value, entity_name, entity_blockchain_id, result_value',
     ))
       .whereRaw(where)
       .orderBy('entity_id')

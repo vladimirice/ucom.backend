@@ -11,9 +11,8 @@ import EntityTagsGenerator = require('../../generators/entity/entity-tags-genera
 import CommentsGenerator = require('../../generators/comments-generator');
 import PostsHelper = require('../helpers/posts-helper');
 import CommentsHelper = require('../helpers/comments-helper');
-// import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
-// import { EntityEventParamDto } from '../../../lib/stats/interfaces/model-interfaces';
-// import { EntityEventRepository } from '../../../lib/stats/repository/entity-event-repository';
+import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
+import TotalDeltaCalculationService = require('../../../lib/stats/service/total-delta-calculation-service');
 
 const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
 
@@ -40,30 +39,22 @@ describe('Stats totals', () => {
   });
 
   describe('Delta Stats for users', () => {
-    // it('Delta Stats for users', async () => {
-    //   const eventTypeRes      = ParamTypes.USERS_PERSON__NUMBER; // TODO
-    //
-    //   const fieldNameInitial  = 'activity_index';
-    //   const fieldNameRes      = 'activity_index_delta';
-    //   const isFloat           = false;
-    //
-    //   const eventTypeInitial = ParamTypes.USERS_PERSON__NUMBER;
-    //   // const description = 'USERS_PERSON__NUMBER';
-    //
-    //   const sampleData = await EntityEventParamGeneratorV2.createTotalEventsAndGetExpectedDataSet(
-    //     eventTypeInitial,
-    //     isFloat,
-    //   );
-    //
-    //   // TODO
-    //   // await EntityCalculationService.updateEntitiesDeltas();
-    //
-    //   const eventType = ParamTypes.USERS_PERSON__NUMBER;
-    //   const number = 4;
-    //   const description = 'USERS_PERSON__NUMBER';
-    //
-    //   await StatsHelper.checkStatsTotalForOneTypeDynamically(eventType, number, description, RECALC_INTERVAL);
-    // }, JEST_TIMEOUT);
+    it('Delta Stats for users', async () => {
+      const eventTypeInitial  = ParamTypes.USERS_PERSON__NUMBER;
+      const isFloat           = false;
+
+      const eventTypeRes      = ParamTypes.USERS_PERSON__DELTA_PT24H;
+      const description       = 'USERS_PERSON__DELTA_PT24H';
+
+      const sampleData = await EntityEventParamGeneratorV2.createTotalEventsAndGetExpectedDataSet(
+        eventTypeInitial,
+        isFloat,
+      );
+
+      await TotalDeltaCalculationService.updateTotalDeltas();
+
+      await StatsHelper.checkStatsTotalForOneTypeDynamically(eventTypeRes, sampleData.delta, description, RECALC_INTERVAL);
+    }, JEST_TIMEOUT);
   });
 
   describe('Stats for organizations', () => {

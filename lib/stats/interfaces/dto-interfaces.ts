@@ -22,6 +22,7 @@ interface EventDbDataDto {
   };
   readonly entity_name: string;
   readonly entity_blockchain_id: string;
+  readonly result_value: number;
 }
 
 interface EntitiesWithImportanceDelta {
@@ -70,13 +71,16 @@ interface TotalCurrentParamsJsonValue {
   readonly description: string;
   readonly created_at: string;
 
-  readonly window_interval?: string;
+  window_interval?: string;
 }
 
 interface DeltaParams {
   readonly entityName:    string;
   readonly paramField:    string;
   readonly isFloat:       boolean;
+
+  readonly windowIntervalHours: number
+  readonly windowIntervalIso?: number
 
   readonly initialEventType: number;
 
