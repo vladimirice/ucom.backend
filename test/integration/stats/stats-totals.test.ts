@@ -10,6 +10,7 @@ import StatsHelper = require('../helpers/stats-helper');
 import EntityTotalsCalculator = require('../../../lib/stats/service/entity-totals-calculator');
 
 import EventParamTypeCommon = require('../../../lib/stats/dictionary/event-param/event-param-type-common-dictionary');
+import StatsRequestHelper = require('../helpers/stats-request-helper');
 
 
 const beforeAfterOptions = {
@@ -26,11 +27,21 @@ let userPetr: UserModel;
 // @ts-ignore
 let userRokky: UserModel;
 
-describe('Stats for organizations', () => {
+describe('Stats totals', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
+  });
+
+  describe('Get stats', () => {
+    it('Check stats url', async () => {
+      // @ts-ignore
+      const res = await StatsRequestHelper.getStatsTotal();
+
+      // @ts-ignore
+      const a = 0;
+    });
   });
 
   describe('Stats for users', () => {
@@ -61,7 +72,7 @@ describe('Stats for organizations', () => {
       StatsHelper.checkOneEventOfTotals(event, expected);
       await StatsHelper.checkTotalsCurrentParams(eventType, expectedCurrent);
 
-      // TODO - check that current params is correctly updated
+      // TODO - check that current params is correctly updated twice
     });
   });
 });
