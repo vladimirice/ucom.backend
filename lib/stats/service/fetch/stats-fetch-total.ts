@@ -1,9 +1,12 @@
+import TotalCurrentParamsRepository = require('../../repository/total-current-params-repository');
+
 const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
 
 function generateRandomNumber(min: number, max: number, precision: number = 0): number {
   return +(Math.random() * (max - min) + min).toFixed(precision);
 }
 
+// @ts-ignore
 const sample = {
   // ========== Users ============
   [ParamTypes.USERS_PERSON__NUMBER]: {
@@ -171,7 +174,7 @@ const sample = {
 
 class StatsFetchTotal {
   public static async fetchManyTotal(): Promise<any> {
-    return sample;
+    return TotalCurrentParamsRepository.findAllAndFlattenJsonValue();
   }
 }
 

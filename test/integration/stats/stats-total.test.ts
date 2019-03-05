@@ -12,6 +12,9 @@ import EntityTagsGenerator = require('../../generators/entity/entity-tags-genera
 import CommentsGenerator = require('../../generators/comments-generator');
 import PostsHelper = require('../helpers/posts-helper');
 import CommentsHelper = require('../helpers/comments-helper');
+import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
+import EntityTotalsCalculator = require('../../../lib/stats/service/entity-totals-calculator');
+import TotalDeltaCalculationService = require('../../../lib/stats/service/total-delta-calculation-service');
 
 const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
 
@@ -39,6 +42,10 @@ describe('Stats totals', () => {
 
   describe('Get stats', () => {
     it('Smoke - Check stats url', async () => {
+      await EntityEventParamGeneratorV2.createAllTotalEvents();
+      await EntityTotalsCalculator.calculate();
+      await TotalDeltaCalculationService.updateTotalDeltas();
+
       await StatsRequestHelper.getStatsTotal();
     });
   });

@@ -5,6 +5,12 @@ import knex = require('../../../config/knex');
 const TABLE_NAME = 'total_current_params';
 
 class TotalCurrentParamsRepository {
+  public static async findAllAndFlattenJsonValue(): Promise<any> {
+    const data = await knex(TABLE_NAME).select('json_value');
+
+    return data.map(item => item.json_value);
+  }
+
   public static async findOneByEventType(
     eventType: number,
   ): Promise<TotalCurrentParamsModel> {

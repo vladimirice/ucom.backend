@@ -1,4 +1,4 @@
-import StatsFetchTotal = require('../service/fetch/StatsFetchTotal');
+import StatsFetchTotal = require('../service/fetch/stats-fetch-total');
 
 const express = require('express');
 
