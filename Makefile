@@ -66,6 +66,9 @@ docker-db-migrate-sequelize dm:
 docker-db-create-migration-monolith dmg:
 	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} ${NAME} --env=monolith
 
+docker-db-create-migration-events:
+	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} ${NAME} --env=events
+
 docker-up-build:
 	docker-compose up -d --build
 
