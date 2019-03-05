@@ -16,7 +16,7 @@ const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
 const RECALC_INTERVAL = 'PT1H';
 const WINDOW_INTERVAL_ISO = 'PT24H';
 
-const windowIntervalHours = 24;
+const windowIntervalHours = 12;
 
 const entityName = CommonModelProvider.getEntityName();
 
