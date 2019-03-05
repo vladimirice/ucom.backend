@@ -8,7 +8,13 @@ class TotalCurrentParamsRepository {
   public static async findAllAndFlattenJsonValue(): Promise<any> {
     const data = await knex(TABLE_NAME).select('json_value');
 
-    return data.map(item => item.json_value);
+    const res = {};
+
+    data.forEach((item) => {
+      res[item.json_value.event_type] = item.json_value;
+    });
+
+    return res;
   }
 
   public static async findOneByEventType(
