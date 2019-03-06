@@ -1,6 +1,7 @@
 # U°Community Backend API Service
 
 [![dependencies Status](https://david-dm.org/UOSnetwork/ucom.backend/status.svg)](https://david-dm.org/UOSnetwork/ucom.backend) 
+[![devDependencies Status](https://david-dm.org/UOSnetwork/ucom.backend/dev-status.svg)](https://david-dm.org/UOSnetwork/ucom.backend?type=dev)
 [![Known Vulnerabilities](https://snyk.io/test/github/vladimirice/ucom.backend/badge.svg)](https://snyk.io/test/github/vladimirice/ucom.backend)
 
 ## Content
