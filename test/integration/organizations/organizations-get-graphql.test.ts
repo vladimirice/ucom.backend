@@ -32,9 +32,9 @@ function checkOrgsPage(response) {
   expect(_.isEmpty(response.data.many_organizations.data)).toBeFalsy();
   OrganizationsHelper.checkOrgListResponseStructure(response.data.many_organizations);
 
-  expect(_.isEmpty(response.data.many_users)).toBeFalsy();
-  expect(_.isEmpty(response.data.many_users.data)).toBeFalsy();
-  CommonHelper.checkUsersListResponse(response.data.many_users, usersCheckOptions);
+  // expect(_.isEmpty(response.data.many_users)).toBeFalsy();
+  // expect(_.isEmpty(response.data.many_users.data)).toBeFalsy();
+  // CommonHelper.checkUsersListResponse(response.data.many_users, usersCheckOptions);
 }
 
 describe('Organizations. Get requests', () => {
@@ -74,7 +74,7 @@ describe('Organizations. Get requests', () => {
         checkOrgsPage(response);
       }, JEST_TIMEOUT);
 
-      it('Users list for trending orgs', async () => {
+      it.skip('Users list for trending orgs', async () => {
         // #task - very basic smoke test. It is required to check ordering
 
         const response: any = await GraphqlHelper.getOrgsUsersAsMyself(
@@ -98,7 +98,7 @@ describe('Organizations. Get requests', () => {
       }, JEST_TIMEOUT);
 
       // eslint-disable-next-line sonarjs/no-identical-functions
-      it('Users list for hot orgs', async () => {
+      it.skip('Users list for hot orgs', async () => {
         // #task - very basic smoke test. It is required to check ordering
 
         const response: any = await GraphqlHelper.getOrgsUsersAsMyself(
@@ -122,7 +122,7 @@ describe('Organizations. Get requests', () => {
       }, JEST_TIMEOUT);
 
       // eslint-disable-next-line sonarjs/no-identical-functions
-      it('Users list for fresh orgs', async () => {
+      it.skip('Users list for fresh orgs', async () => {
         // #task - very basic smoke test. It is required to check ordering
 
         const response: any = await GraphqlHelper.getOrgsUsersAsMyself(
@@ -146,7 +146,7 @@ describe('Organizations. Get requests', () => {
       }, JEST_TIMEOUT);
 
       // eslint-disable-next-line sonarjs/no-identical-functions
-      it('Users list for top orgs', async () => {
+      it.skip('Users list for top orgs', async () => {
         // #task - very basic smoke test. It is required to check ordering
 
         const response: any = await GraphqlHelper.getOrgsUsersAsMyself(

@@ -3,6 +3,8 @@ import { PostModelResponse } from '../../lib/posts/interfaces/model-interfaces';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
+import UsersHelper = require('../integration/helpers/users-helper');
+import OrganizationsGenerator = require('./organizations-generator');
 
 const _ = require('lodash');
 
@@ -156,6 +158,20 @@ class PostsGenerator {
     };
   }
 
+  public static async createUserDirectPostAndRepost(
+    postAuthor: UserModel,
+    wallOwner: UserModel,
+    repostAuthor: UserModel,
+  ): Promise<{postId: number, repostId: number}> {
+    const postId  = await this.createDirectPostForUserAndGetId(postAuthor, wallOwner);
+    const repostId = await this.createRepostOfUserPost(repostAuthor, postId);
+
+    return {
+      postId,
+      repostId,
+    };
+  }
+
   /**
    *
    * @param {Object} postAuthor
@@ -182,6 +198,26 @@ class PostsGenerator {
       promises.push(
         this.createMediaPostByUserHimself(user),
       );
+    }
+
+    return Promise.all(promises);
+  }
+
+  public static async createManyDefaultMediaPostsByDifferentUsers(
+    amount: number,
+  ): Promise<number[]> {
+    const promises: Promise<number>[] = [];
+
+    const users: UserModel[] = await UsersHelper.getAllSampleUsersFromDb();
+    for (let i = 0; i < amount; i += 1) {
+      const creatorIndex = RequestHelper.generateRandomNumber(0, users.length - 1, 0);
+
+      if (i % 2 === 0) {
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(users[creatorIndex]);
+        promises.push(this.createMediaPostOfOrganization(users[creatorIndex], orgId));
+      } else {
+        promises.push(this.createMediaPostByUserHimself(users[creatorIndex]));
+      }
     }
 
     return Promise.all(promises);
@@ -385,6 +421,21 @@ class PostsGenerator {
     const data = await this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
 
     return data.id;
+  }
+
+  public static async createManyDirectPostsForOrganization(
+    myself: UserModel,
+    orgId: number,
+    amount: number,
+  ): Promise<number[]> {
+    const promises: any[] = [];
+    for (let i = 0; i < amount; i += 1) {
+      promises.push(
+        this.createDirectPostForOrganization(myself, orgId, null, true, true),
+      );
+    }
+
+    return Promise.all(promises);
   }
 
   static async createDirectPost(

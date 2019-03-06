@@ -14,10 +14,7 @@ import PostsJobParams = require('../job-params/posts-job-params');
 import OrgsJobParams = require('../job-params/orgs-job-params');
 import TagsJobParams = require('../job-params/tags-job-params');
 import RepositoryHelper = require('../../common/repository/repository-helper');
-
-const moment = require('moment');
-
-const RATE_DELTA_HOURS_INTERVAL = 24;
+import StatsFetchCalculation = require('./fetch/stats-fetch-calculation');
 
 const profilingInfo = {};
 
@@ -41,7 +38,7 @@ class EntityCalculationService {
     this.printMemoryUsage('before_start');
 
     const [lastData, lastOfGivenDateData]: [EventDbDataDto[], EventDbDataDto[]] =
-      await this.findStatsData(params);
+      await StatsFetchCalculation.findStatsData(params);
 
     const totalFetchedAmount = lastData.length + lastOfGivenDateData.length;
     if (process.env.NODE_ENV !== 'test') {
@@ -85,22 +82,6 @@ class EntityCalculationService {
 
     this.printMemoryUsage('after_to_process_filling', false);
     this.printMemoryDiff('after_to_process_filling', 'after_db_fetching');
-  }
-
-  private static async findStatsData(
-    params: DeltaParams,
-  ): Promise<[EventDbDataDto[], EventDbDataDto[]]> {
-    const newData = moment().subtract(RATE_DELTA_HOURS_INTERVAL, 'hours');
-    const createdAtAsString = newData.utc().format('YYYY-MM-DD HH:mm:ss');
-
-    return Promise.all([
-      EntityEventRepository.findLastRowsGroupedByEntity(
-        `event_type = ${params.initialEventType} AND entity_name = '${params.entityName}'`,
-      ),
-      EntityEventRepository.findLastRowsGroupedByEntity(
-        `"event_type" = ${params.initialEventType} AND entity_name = '${params.entityName}' AND created_at < '${createdAtAsString}'`,
-      ),
-    ]);
   }
 
   private static prepareDeltaDataToProcess(
@@ -159,7 +140,7 @@ class EntityCalculationService {
         continue;
       }
 
-      if (current.json_value.data.importance < 0) {
+      if (current.json_value.data[paramField] < 0) {
         throw new Error(`Importance value is negative for entity ${JSON.stringify(current)}`);
       }
 
@@ -193,7 +174,7 @@ class EntityCalculationService {
         [params.paramFieldDelta]: stats.delta_value,
       };
 
-      const description = `${params.description} with window of ${RATE_DELTA_HOURS_INTERVAL} hours`;
+      const description = `${params.description} with window of ${params.windowIntervalHours} hours`;
 
       events.push({
         entity_id:            +entityId,

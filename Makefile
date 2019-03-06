@@ -20,7 +20,7 @@ ENV_VALUE_TEST=test
 
 init-project ip:
 	make docker-rebuild
-	make docker-npm-ci
+	npm ci
 	make docker-init-test-db
 	make docker-compile-typescript
 	make pm2-reload-test-ecosystem
@@ -34,7 +34,7 @@ pm2-reload-test-ecosystem pmt:
 	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
 
 docker-npm-ci:
-	${DOCKER_B_EXEC_CMD} /bin/bash ssh-add_and_npm_ci.sh
+	${DOCKER_B_EXEC_CMD} npm ci
 
 docker-prepare-for-tests pft:
 	make init-project
@@ -65,6 +65,9 @@ docker-db-migrate-sequelize dm:
 
 docker-db-create-migration-monolith dmg:
 	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} ${NAME} --env=monolith
+
+docker-db-create-migration-events:
+	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} ${NAME} --env=events
 
 docker-up-build:
 	docker-compose up -d --build

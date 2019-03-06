@@ -22,6 +22,7 @@ interface EventDbDataDto {
   };
   readonly entity_name: string;
   readonly entity_blockchain_id: string;
+  readonly result_value: number;
 }
 
 interface EntitiesWithImportanceDelta {
@@ -47,10 +48,39 @@ interface EntitiesWithDeltaFields {
   }
 }
 
+interface TotalStatsParams  {
+  readonly providerFunc:        Function;
+
+  readonly eventType:           number;
+  readonly recalcInterval:      string;
+  readonly description:         string;
+
+  readonly eventGroup:          number;
+  readonly eventSuperGroup:     number;
+}
+
+interface TotalCurrentParamsModel {
+  [index: string]:  any;
+  json_value:       TotalCurrentParamsJsonValue;
+}
+
+interface TotalCurrentParamsJsonValue {
+  readonly event_type: number;
+  readonly value: number;
+  readonly recalc_interval: string;
+  readonly description: string;
+  readonly created_at: string;
+
+  window_interval?: string;
+}
+
 interface DeltaParams {
   readonly entityName:    string;
   readonly paramField:    string;
   readonly isFloat:       boolean;
+
+  readonly windowIntervalHours: number
+  readonly windowIntervalIso?: number
 
   readonly initialEventType: number;
 
@@ -105,4 +135,7 @@ export {
   EntitiesWithDeltaFields,
   DeltaParams,
   CurrentParams,
+  TotalStatsParams,
+  TotalCurrentParamsJsonValue,
+  TotalCurrentParamsModel,
 };

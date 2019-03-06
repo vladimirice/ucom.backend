@@ -25,6 +25,28 @@ const TABLE_NAME = 'users_activity';
 const model = usersModelProvider.getUsersActivityModel();
 
 class UsersActivityRepository {
+  public static async countAllUpvotes(): Promise<number> {
+    const filter = UsersActivityRepository.getUpvoteFilter();
+
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where(filter)
+    ;
+
+    return +res[0].amount;
+  }
+
+  public static async countAllDownvotes(): Promise<number> {
+    const filter = UsersActivityRepository.getDownvoteFilter();
+
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where(filter)
+    ;
+
+    return +res[0].amount;
+  }
+
   public static async getPostsVotes(): Promise<any[]> {
     const eventIds: number[] = [
       NotificationsEventIdDictionary.getUserUpvotesPostOfOrg(),
@@ -816,6 +838,20 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
 
   static getModel() {
     return models[TABLE_NAME];
+  }
+
+  private static getUpvoteFilter() {
+    return {
+      activity_type_id:   InteractionTypeDictionary.getUpvoteId(),
+      activity_group_id:  activityGroupDictionary.getGroupContentInteraction(),
+    };
+  }
+
+  private static getDownvoteFilter() {
+    return {
+      activity_type_id:   InteractionTypeDictionary.getDownvoteId(),
+      activity_group_id:  activityGroupDictionary.getGroupContentInteraction(),
+    };
   }
 }
 

@@ -7,6 +7,8 @@ import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
+import PostsRepository = require('../../posts/posts-repository');
+import UsersTeamRepository = require('../../users/repository/users-team-repository');
 
 const _ = require('lodash');
 
@@ -17,6 +19,7 @@ const usersModelProvider = require('../../users/users-model-provider');
 const usersTeamStatusDictionary = require('../../users/dictionary/users-team-status-dictionary');
 
 const TABLE_NAME = orgModelProvider.getModelName();
+const ENTITY_NAME = orgModelProvider.getEntityName();
 const model = orgModelProvider.getModel();
 
 const models = require('../../../models');
@@ -28,6 +31,30 @@ const taggableRepository = require('../../common/repository/taggable-repository'
 
 // @ts-ignore
 class OrganizationsRepository implements QueryFilteredRepository {
+  public static async isOrgMember(userId: number, orgId: number): Promise<boolean> {
+    const state = await this.getUserTeamMemberState(userId, orgId);
+
+    return state.isOrgAuthor || state.isTeamMember;
+  }
+
+  public static async getUserTeamMemberState(
+    userId: number,
+    orgId: number,
+  ): Promise<{ isOrgAuthor: boolean, isTeamMember: boolean}> {
+    const isOrgAuthor = await this.isUserAuthor(orgId, userId);
+
+    const isTeamMember = await UsersTeamRepository.isTeamMember(
+      ENTITY_NAME,
+      orgId,
+      userId,
+    );
+
+    return {
+      isOrgAuthor,
+      isTeamMember,
+    };
+  }
+
   public static async findManyOrgsEntityEvents(
     limit: number,
     lastId: number | null = null,
@@ -136,6 +163,33 @@ class OrganizationsRepository implements QueryFilteredRepository {
     const res = await query;
 
     return +res[0].amount;
+  }
+
+  public static async countManyOrganizationsAsRelatedToEntity(
+    params: DbParamsDto,
+    statsFieldName: string,
+    relatedEntityField: string,
+    overviewType: string,
+  ): Promise<number> {
+    const relEntityNotNull = true;
+    const subQuery = PostsRepository.prepareSubQueryForCounting(
+      overviewType,
+      relatedEntityField,
+      statsFieldName,
+      params,
+      relEntityNotNull,
+    );
+
+    const sql = `
+    SELECT COUNT(1) as amount FROM
+      (
+        ${subQuery}
+      ) AS t
+    `;
+
+    const res = await knex.raw(sql);
+
+    return +res.rows[0].amount;
   }
 
   /**
@@ -488,6 +542,30 @@ class OrganizationsRepository implements QueryFilteredRepository {
     return res.toJSON();
   }
 
+  public static async findManyAsRelatedToEntity(
+    params: DbParamsDto,
+    statsFieldName: string,
+    relEntityField: string,
+    overviewType: string,
+  ): Promise<OrgModelResponse[]> {
+    const relEntityNotNull = true;
+    const { postSubQuery, extraFieldsToSelect } =
+      PostsRepository.prepareRelatedEntitySqlParts(overviewType, params, statsFieldName, relEntityField, relEntityNotNull);
+
+    const sql = `
+      select ${params.attributes}
+             ${extraFieldsToSelect}
+      from "organizations" INNER JOIN
+            ${postSubQuery}
+           ON t.${relEntityField} = "organizations".id
+      ORDER BY t.${statsFieldName} DESC
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows;
+  }
+
   /**
    *
    * @param tagTitle
@@ -512,6 +590,12 @@ class OrganizationsRepository implements QueryFilteredRepository {
     const joinColumn = 'org_id';
 
     return taggableRepository.countAllByTagTitle(TABLE_NAME, tagTitle, joinColumn);
+  }
+
+  public static async countAllWithoutFilter(): Promise<number> {
+    const res = await knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
+
+    return +res[0].amount;
   }
 
   public static getDefaultListParams(): DbParamsDto {

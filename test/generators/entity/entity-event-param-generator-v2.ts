@@ -15,6 +15,10 @@ import UsersHelper = require('../../integration/helpers/users-helper');
 import EntityTagsGenerator = require('./entity-tags-generator');
 import PostsGenerator = require('../posts-generator');
 import EntityCalculationService = require('../../../lib/stats/service/entity-calculation-service');
+import CommonModelProvider = require('../../../lib/common/service/common-model-provider');
+
+
+const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
 
 const moment = require('moment');
 
@@ -267,6 +271,32 @@ class EntityEventParamGeneratorV2 {
     );
 
     return sampleData;
+  }
+
+  public static async createAllTotalEvents(): Promise<any> {
+    const isFloat = false;
+    const sampleData: any = {};
+    for (const eventType of ParamTypes.ALL_NUMBERS) {
+      sampleData[eventType] = await this.createTotalEventsAndGetExpectedDataSet(eventType, isFloat);
+    }
+
+    return sampleData;
+  }
+
+  public static async createTotalEventsAndGetExpectedDataSet(
+    eventType: number,
+    isFloat: boolean = true,
+  ): Promise<any> {
+    const floatPrecision = isFloat ? 10 : 0;
+
+    const positiveDeltaSet  = this.getBeforeAfterDeltaSet(floatPrecision, true);
+
+    await EntityEventParamGeneratorV2.createTotalEventsEntitiesData(
+      positiveDeltaSet,
+      eventType,
+    );
+
+    return positiveDeltaSet;
   }
 
   public static async createTagItselfCurrentEventsAndGetExpectedDataSet(
@@ -548,6 +578,57 @@ class EntityEventParamGeneratorV2 {
 
       await EntityEventRepository.insertManyEvents(events);
     }
+  }
+
+  private static async createTotalEventsEntitiesData(
+    positiveDeltaSet: any,
+    eventType: number,
+  ) {
+    const entityId      = CommonModelProvider.getFakeEntityId();
+    const entityName    = CommonModelProvider.getEntityName();
+    const blockchainId  = CommonModelProvider.getFakeBlockchainId();
+
+    const events: EntityEventParamDto[] = [];
+
+    const createdAtSet = this.getCreatedAtSet();
+
+    if (positiveDeltaSet.before) {
+      events.push({
+        entity_id:    +entityId,
+        entity_name:  entityName,
+        event_type:   eventType,
+        // @ts-ignore
+        json_value:   {},
+        created_at:   createdAtSet.before,
+
+        result_value:         positiveDeltaSet.before,
+
+        entity_blockchain_id: blockchainId,
+
+        event_group:          EventParamGroupDictionary.getNotDetermined(),
+        event_super_group:    EventParamGroupDictionary.getNotDetermined(),
+      });
+    }
+
+    if (positiveDeltaSet.after) {
+      events.push({
+        entity_id:    +entityId,
+        entity_name:  entityName,
+        event_type:   eventType,
+        // @ts-ignore
+        json_value:   {},
+        created_at:   createdAtSet.after,
+
+        result_value:         positiveDeltaSet.after,
+
+        entity_blockchain_id: blockchainId,
+
+        event_group:          EventParamGroupDictionary.getNotDetermined(),
+        event_super_group:    EventParamGroupDictionary.getNotDetermined(),
+      });
+    }
+
+    await EntityEventRepository.insertManyEvents(events);
   }
 
   private static async createUpvoteEventsByPostsData(entitiesData, entityName) {

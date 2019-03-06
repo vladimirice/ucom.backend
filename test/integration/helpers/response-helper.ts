@@ -1,9 +1,38 @@
 /* tslint:disable:max-line-length */
 import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
+import { PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
+
+import _ = require('lodash');
 
 require('jest-expect-message');
 
 class ResponseHelper {
+  public static expectErrorMatchMessage(res, msg: string, statusCode: number = 400) {
+    expect(res.status).toBe(statusCode);
+    expect(res.body.errors).toMatch(msg);
+  }
+
+  public static checkOrderingById(actual: any[], expected: number[]): void {
+    expect(expected.length).toBe(actual.length);
+
+    for (let i = 0; i < actual.length; i += 1) {
+      expect(+actual[i].id).toBe(+expected[i]);
+    }
+  }
+
+  public static checkResponseOrderingForList(
+    response: PostsListResponse,
+    expected: any,
+    orderedField: string,
+    offset: number = 0,
+  ): void {
+    expect(_.isEmpty(response.data)).toBeFalsy();
+
+    for (let i = offset; i < response.data.length; i += 1) {
+      expect(response.data[i].id).toBe(expected[i][orderedField]);
+    }
+  }
+
   public static checkFieldsAreNumerical(model: any, fields: string[]) {
     fields.forEach((field) => {
       expect(typeof model[field]).toBe('number');
@@ -152,14 +181,13 @@ class ResponseHelper {
     });
   }
 
-  /**
-   *
-   * @param {Object} expected
-   * @param {Object} actual
-   */
-  static expectValuesAreExpected(expected, actual) {
-    expect(actual).toBeDefined();
+  static expectValuesAreExpected(expected, actual, skipFields: string[] = []) {
+    expect(_.isEmpty(actual)).toBeFalsy();
     for (const field in expected) {
+      if (~skipFields.indexOf(field)) {
+        continue;
+      }
+
       if (expected.hasOwnProperty(field)) {
         // noinspection JSUnfilteredForInLoop
         // @ts-ignore

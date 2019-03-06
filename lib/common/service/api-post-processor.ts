@@ -299,8 +299,8 @@ class ApiPostProcessor {
    */
   static processManyPosts(
     posts: PostModelResponse[],
-    currentUserId: number | null,
-    userActivity: any,
+    currentUserId: number | null = null,
+    userActivity: any = null,
   ): PostModelResponse[] {
     for (let i = 0; i < posts.length; i += 1) {
       const post = posts[i];

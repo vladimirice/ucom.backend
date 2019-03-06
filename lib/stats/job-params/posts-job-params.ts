@@ -9,6 +9,8 @@ const ENTITY_NAME         = PostsModelProvider.getEntityName();
 const currentTableName    = PostsModelProvider.getCurrentParamsTableName();
 const whenFieldName       = 'post_id';
 
+const windowIntervalHours = 24 * 3;
+
 const oneToOneSet: DeltaParams[] = [
   {
     entityName:       ENTITY_NAME,
@@ -21,6 +23,7 @@ const oneToOneSet: DeltaParams[] = [
     paramFieldDelta:  'importance_delta',
     isFloat:          true,
     description:      `Importance delta for ${ENTITY_NAME}`,
+    windowIntervalHours,
 
     currentParams: {
       whenFieldName,
@@ -40,6 +43,7 @@ const oneToOneSet: DeltaParams[] = [
     paramFieldDelta:  'upvotes_delta',
     isFloat:          false,
     description:      `Upvotes delta for ${ENTITY_NAME}`,
+    windowIntervalHours,
 
     currentParams: {
       whenFieldName,
@@ -59,6 +63,7 @@ const oneToOneSet: DeltaParams[] = [
     paramFieldDelta:  'activity_index_delta',
     isFloat:          false,
     description:      `Activity index delta for ${ENTITY_NAME}`,
+    windowIntervalHours,
 
     currentParams: {
       whenFieldName,

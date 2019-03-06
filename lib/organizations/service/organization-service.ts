@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import OrgsCurrentParamsRepository = require('../repository/organizations-current-params-repository');
+import OrganizationsFetchDiscussions = require('../discussions/service/organizations-fetch-discussions');
 
 const status  = require('statuses');
 const _       = require('lodash');
@@ -279,6 +280,9 @@ class OrganizationService {
     model.social_networks      = entitySources.social_networks;
     model.community_sources    = entitySources.community_sources;
     model.partnership_sources  = entitySources.partnership_sources;
+
+    model.discussions =
+      await OrganizationsFetchDiscussions.getManyDiscussions(model.id);
 
     return {
       data: model,

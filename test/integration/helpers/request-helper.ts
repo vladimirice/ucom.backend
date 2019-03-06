@@ -29,8 +29,16 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getApiV1Prefix(): string {
+    return apiV1Prefix;
+  }
+
   public static generateRandomImportance(): number {
     return this.generateRandomNumber(1, 10, 6);
+  }
+
+  public static generateRandomBoolean(): boolean {
+    return !!this.generateRandomNumber(0, 1, 0);
   }
 
   public static generateRandomNumber(min: number, max: number, precision: number): number {
@@ -372,6 +380,15 @@ class RequestHelper {
   static getOrganizationsUrl() {
     return `${apiV1Prefix}/organizations`;
   }
+
+  public static getOrganizationsDiscussionUrl(orgId: number): string {
+    return `${apiV1Prefix}/organizations/${orgId}/discussions`;
+  }
+
+  public static getValidateOneDiscussionUrl(orgId: number, postId: number): string {
+    return `${apiV1Prefix}/organizations/${orgId}/discussions/${postId}/validate`;
+  }
+
 
   /**
    *

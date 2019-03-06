@@ -30,6 +30,12 @@ class PostsCurrentParamsRepository {
     await knex(TABLE_NAME).insert(data);
   }
 
+  public static async updateValuesForEntity(entityId: number, values: any) {
+    return knex(TABLE_NAME)
+      .where('post_id', '=', +entityId)
+      .update(values);
+  }
+
   private static getNumericalFields(): string[] {
     return [
       'id',

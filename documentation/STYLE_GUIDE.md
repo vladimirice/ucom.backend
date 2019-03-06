@@ -19,6 +19,8 @@ Because of this some of conventions are not satisfied by "old code", only for ne
 * **Do** write new project files on Typescript language.
 * **Do** provide type for every variable, argument and function return type. 
 
+* TODO is not allowed for code pushed to master. It is allowed only during development stage.
+
 ### Autotests
 * **Do** write autotests for new functions. TDD style is preferable.
 

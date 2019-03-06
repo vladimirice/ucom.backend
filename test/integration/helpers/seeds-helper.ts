@@ -56,7 +56,10 @@ const minorTables = [
 
   'posts_current_params',
   'organizations_current_params',
+  'organizations_to_entities',
   'tags_current_params',
+
+  'total_current_params',
 
   'tags',
   'entity_stats_current',

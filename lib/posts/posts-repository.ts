@@ -1,7 +1,11 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
-import { QueryFilteredRepository } from '../api/filters/interfaces/query-filter-interfaces';
+import {
+  DbParamsDto,
+  QueryFilteredRepository,
+} from '../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from './interfaces/model-interfaces';
+import { AppError } from '../api/errors';
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
@@ -13,7 +17,10 @@ const _ = require('lodash');
 
 const models = require('../../models');
 
+// @deprecated
 const ENTITY_STATS_CURRENT_TABLE_NAME = 'entity_stats_current';
+
+const CURRENT_PARAMS = PostsModelProvider.getCurrentParamsTableName();
 
 const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
 
@@ -38,6 +45,57 @@ const knex = require('../../config/knex');
 
 // @ts-ignore
 class PostsRepository implements QueryFilteredRepository {
+  public static async countAllRepostsOfMediaPosts(): Promise<number> {
+    const typeId = ContentTypeDictionary.getTypeMediaPost();
+
+    return PostsRepository.countAllRepostsByParentType(typeId);
+  }
+
+  public static async countAllRepostsByDirectPosts(): Promise<number> {
+    const typeId = ContentTypeDictionary.getTypeDirectPost();
+
+    return PostsRepository.countAllRepostsByParentType(typeId);
+  }
+
+  private static async countAllRepostsByParentType(parentType: number): Promise<number> {
+    const typeRepost = ContentTypeDictionary.getTypeRepost();
+
+    const sql = `
+      SELECT COUNT(1) FROM posts AS t
+      INNER JOIN posts AS r 
+        ON  t.parent_id = r.id 
+        AND t.parent_id IS NOT NULL 
+        AND t.post_type_id = ${+typeRepost}
+        AND r.post_type_id = ${parentType}
+    `;
+
+    const res = await knex.raw(sql);
+
+    return +res.rows[0].count;
+  }
+
+  public static async countAllMediaPosts(): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+      })
+    ;
+
+    return +res[0].amount;
+  }
+
+  public static async countAllDirectPosts(): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      })
+    ;
+
+    return +res[0].amount;
+  }
+
   public static async getManyOrgsPostsAmount() {
     const orgEntityName: string = OrganizationsModelProvider.getEntityName();
 
@@ -152,15 +210,10 @@ class PostsRepository implements QueryFilteredRepository {
         params.where.post_type_id = +query.post_type_id;
       }
 
-      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getTrending()) {
-        Object.assign(params.where, this.whereSequelizeTranding());
-      }
-
-      if (query.overview_type && query.overview_type === EntityListCategoryDictionary.getHot()) {
-        Object.assign(params.where, this.whereSequelizeHot());
-      }
+      this.andWhereByOverviewType(query, params);
     };
   }
+
 
   public static whereSequelizeTranding() {
     const greaterThan = process.env.NODE_ENV === 'staging' ? -100 : 0;
@@ -190,20 +243,28 @@ class PostsRepository implements QueryFilteredRepository {
    *
    * @returns {Object}
    */
-  static getOrderByRelationMap() {
+  static getOrderByRelationMap(forSequelize: boolean = true) {
+    if (forSequelize) {
+      return {
+        comments_count: [
+          postsModelProvider.getPostStatsModel(),
+          'comments_count',
+        ],
+        importance_delta: [
+          postsModelProvider.getCurrentParamsSequelizeModel(),
+          'importance_delta',
+        ],
+        activity_index_delta: [
+          postsModelProvider.getCurrentParamsSequelizeModel(),
+          'activity_index_delta',
+        ],
+      };
+    }
+
     return {
-      comments_count: [
-        postsModelProvider.getPostStatsModel(),
-        'comments_count',
-      ],
-      importance_delta: [
-        postsModelProvider.getCurrentParamsSequelizeModel(),
-        'importance_delta',
-      ],
-      activity_index_delta: [
-        postsModelProvider.getCurrentParamsSequelizeModel(),
-        'activity_index_delta',
-      ],
+      comments_count:       `${PostsModelProvider.getPostsStatsTableName()}.comments_count`,
+      importance_delta:     `${PostsModelProvider.getCurrentParamsTableName()}.importance_delta`,
+      activity_index_delta: `${PostsModelProvider.getCurrentParamsTableName()}.activity_index_delta`,
     };
   }
 
@@ -212,7 +273,7 @@ class PostsRepository implements QueryFilteredRepository {
    *
    * @return {string[]}
    */
-  static getAllowedOrderBy() {
+  static getAllowedOrderBy(): string[] {
     return [
       'current_rate',
       'id',
@@ -435,7 +496,8 @@ class PostsRepository implements QueryFilteredRepository {
    */
   static async findAllPosts(queryParameters = {}) {
     const params = _.defaults(queryParameters, this.getDefaultListParams());
-    params.attributes = this.getModel().getFieldsForPreview();
+
+    params.order.push(['id', 'DESC']);
 
     const data = await postsModelProvider.getModel().findAll(params);
 
@@ -775,6 +837,139 @@ class PostsRepository implements QueryFilteredRepository {
     });
   }
 
+  public static prepareRelatedEntitySqlParts(
+    overviewType: string,
+    params: DbParamsDto,
+    statsFieldName: string,
+    relEntityField: string,
+    relEntityNotNull: boolean,
+  ) {
+    let whereRawOverviewBounds = '';
+    let joinWithStats = false;
+    let extraFieldsToSelect = '';
+    if (EntityListCategoryDictionary.isOverviewWithStats(overviewType)) {
+      if (!params.whereRaw) {
+        throw new AppError(
+          `It is required to fill params.whereRaw for overviewType: ${overviewType}. Current params set is: ${JSON.stringify(params)}`,
+          500,
+        );
+      }
+      whereRawOverviewBounds = `AND ${params.whereRaw}`;
+      joinWithStats = true;
+      extraFieldsToSelect = `, "t".${statsFieldName}`;
+    }
+
+    const postSubQuery: string = PostsRepository.getSubQueryForFindingRelatedEntities(
+      joinWithStats,
+      relEntityField,
+      statsFieldName,
+      whereRawOverviewBounds,
+      params,
+      relEntityNotNull,
+    );
+
+    return {
+      postSubQuery,
+      extraFieldsToSelect,
+    };
+  }
+
+  public static prepareSubQueryForCounting(
+    overviewType: string,
+    relEntityField: string,
+    statsFieldName: string,
+    params: DbParamsDto,
+    relEntityNotNull: boolean,
+  ): string {
+    let whereRawOverviewBounds = '';
+    let joinWithStats = false;
+    if (EntityListCategoryDictionary.isOverviewWithStats(overviewType)) {
+      if (!params.whereRaw) {
+        throw new AppError(
+          `It is required to fill params.whereRaw for overviewType: ${overviewType}. Current params set is: ${JSON.stringify(params)}`,
+          500,
+        );
+      }
+      whereRawOverviewBounds = params.whereRaw;
+      joinWithStats = true;
+    }
+
+    return this.getSubQueryForCountingRelatedEntities(
+      joinWithStats,
+      relEntityField,
+      statsFieldName,
+      whereRawOverviewBounds,
+      relEntityNotNull,
+    );
+  }
+
+  private static getSubQueryForCountingRelatedEntities(
+    joinWithStats: boolean,
+    relEntityField: string,
+    statsFieldName: string,
+    whereRawOverviewBounds: string,
+    relEntityNotNull: boolean,
+  ) {
+    const innerJoinWithStats  = joinWithStats ? this.getInnerJoinWithStats() : '';
+    const whereParts: string[] = [];
+
+    if (whereRawOverviewBounds) {
+      whereParts.push(whereRawOverviewBounds);
+    }
+
+    if (relEntityNotNull) {
+      whereParts.push(`${relEntityField} IS NOT NULL`);
+    }
+
+    let whereString = '';
+    if (whereParts.length > 0) {
+      whereString += `WHERE ${whereParts.join(' AND ')}`;
+    }
+
+    return `
+      SELECT DISTINCT ON (${relEntityField}) ${relEntityField}, ${statsFieldName} FROM ${TABLE_NAME}
+      ${innerJoinWithStats}
+      ${whereString}
+      ORDER BY ${relEntityField}, ${statsFieldName} DESC
+    `;
+  }
+
+  private static getSubQueryForFindingRelatedEntities(
+    joinWithStats: boolean,
+    relEntityField: string,
+    statsFieldName: string,
+    whereRawOverviewBounds: string,
+    params: DbParamsDto,
+    relEntityNotNull: boolean,
+  ) {
+    const innerJoinWithStats  = joinWithStats ? this.getInnerJoinWithStats() : '';
+    const notNullWhere        = relEntityNotNull ? ` AND ${relEntityField} IS NOT NULL ` : '';
+
+    return `
+       (
+         SELECT ${relEntityField}, ${statsFieldName}
+         FROM (SELECT DISTINCT ON (${relEntityField}) ${relEntityField}, ${statsFieldName}, ${TABLE_NAME}.id AS inner_posts_id
+               FROM ${TABLE_NAME}
+                ${innerJoinWithStats}
+               WHERE 
+                  ${TABLE_NAME}.post_type_id = ${+params.where.post_type_id}
+                  ${whereRawOverviewBounds}
+                  ${notNullWhere}
+               ORDER BY ${relEntityField}, ${statsFieldName} DESC, inner_posts_id DESC
+              ) as inner_t
+         ORDER BY ${statsFieldName} DESC, inner_t.inner_posts_id DESC
+         LIMIT  ${params.limit}
+         OFFSET ${params.offset}
+       ) as t
+    `;
+  }
+
+  private static getInnerJoinWithStats(): string {
+    return `
+     INNER JOIN "${CURRENT_PARAMS}" on "${TABLE_NAME}"."id" = "${CURRENT_PARAMS}"."post_id" 
+    `;
+  }
+
   public static async findAllWithTagsForTagCurrentRate(
     offset: number = 0,
     limit: number = 10,
@@ -843,11 +1038,53 @@ class PostsRepository implements QueryFilteredRepository {
 
   private static getDefaultListParams() {
     return {
+      attributes: this.getModel().getFieldsForPreview(),
       where: {},
       offset: 0,
       limit: 10,
       order: this.getDefaultOrderBy(),
     };
+  }
+
+  private static andWhereByOverviewType(query: PostRequestQueryDto, params: DbParamsDto) {
+    if (!query.overview_type) {
+      return;
+    }
+
+    switch (query.overview_type) {
+      case EntityListCategoryDictionary.getTrending():
+        Object.assign(params.where, this.whereSequelizeTranding());
+        params.whereRaw = this.whereRawTrending();
+        break;
+      case EntityListCategoryDictionary.getHot():
+        Object.assign(params.where, this.whereSequelizeHot());
+        params.whereRaw = this.whereRawHot();
+        break;
+      case EntityListCategoryDictionary.getFresh():
+        params.whereRaw = '';
+        break;
+      case EntityListCategoryDictionary.getTop():
+        params.whereRaw = '';
+        break;
+      default:
+        throw new AppError(`Unsupported overview type: ${query.overview_type}`, 500);
+    }
+  }
+
+  private static whereRawTrending(): string {
+    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
+
+    const tableName = PostsModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.importance_delta > ${lowerLimit} AND ${tableName}.upvotes_delta > ${lowerLimit}`;
+  }
+
+  private static whereRawHot(): string {
+    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
+
+    const tableName = PostsModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.activity_index_delta > ${lowerLimit}`;
   }
 }
 

@@ -58,6 +58,10 @@ class PostsModelProvider {
     return 'posts_current_params';
   }
 
+  public static getCurrentParamsForeignColumn(): string {
+    return 'post_id';
+  }
+
   /**
    *
    * @return {string}
@@ -128,6 +132,10 @@ class PostsModelProvider {
     };
   }
 
+  public static getPostsStatsTableName(): string {
+    return POST_STATS_TABLE_NAME;
+  }
+
   /**
    *
    * @return {Object[]}
@@ -150,12 +158,12 @@ class PostsModelProvider {
   //   ];
   // }
 
-  /**
-   *
-   * @return {string[]}
-   */
-  static getPostsFieldsForPreview() {
+  public static getPostsFieldsForPreview(): string[] {
     return this.getModel().getFieldsForPreview();
+  }
+
+  public static getPostsFieldsForCard(): string[] {
+    return this.getModel().getFieldsForCard();
   }
 
   static getPostOfferItselfInclude() {

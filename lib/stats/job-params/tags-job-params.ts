@@ -9,8 +9,11 @@ const ENTITY_NAME       = TagsModelProvider.getEntityName();
 const currentTableName  = TagsModelProvider.getCurrentParamsTableName();
 const whenFieldName     = 'tag_id';
 
+const windowIntervalHours = 24 * 3;
+
 const oneToOneSet: DeltaParams[] = [
   {
+    windowIntervalHours,
     entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getTagCurrentActivityIndex(),
@@ -29,6 +32,7 @@ const oneToOneSet: DeltaParams[] = [
     },
   },
   {
+    windowIntervalHours,
     entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getTagItselfCurrentAmounts(),
@@ -47,6 +51,7 @@ const oneToOneSet: DeltaParams[] = [
     },
   },
   {
+    windowIntervalHours,
     entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getTagItselfCurrentAmounts(),

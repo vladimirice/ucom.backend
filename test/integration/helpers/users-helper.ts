@@ -1,5 +1,9 @@
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
+
+import _ = require('lodash');
 
 const eosJsEcc = require('eosjs-ecc');
 
@@ -252,6 +256,8 @@ class UsersHelper {
       ]);
     }
 
+    expect(_.isEmpty(model.User.first_name)).toBeFalsy();
+
     ResponseHelper.expectAllFieldsExistence(model.User, expected);
   }
 
@@ -354,6 +360,15 @@ class UsersHelper {
 
     expect(dbUser[fileUploadField]).toBeDefined();
     expect(dbUser[fileUploadField]).toBe(body[fileUploadField]);
+  }
+
+  public static async getAllSampleUsersFromDb(): Promise<UserModel[]> {
+    return Promise.all([
+      this.getUserVlad(),
+      this.getUserJane(),
+      this.getUserPetr(),
+      this.getUserRokky(),
+    ]);
   }
 
   /**

@@ -9,6 +9,10 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import TagsCurrentRateProcessor = require('../../../lib/tags/service/tags-current-rate-processor');
 import _ = require('lodash');
+import PostsCurrentParamsRepository = require('../../../lib/posts/repository/posts-current-params-repository');
+import knex = require('../../../config/knex');
+import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
 
 const request = require('supertest');
 const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
@@ -89,6 +93,55 @@ class PostsHelper {
     const rateNormalized = EosImportance.getImportanceMultiplier() * rateToSet;
 
     return +rateNormalized.toFixed();
+  }
+
+  public static async changeOrganizationId(id: number, orgId: number): Promise<void> {
+    await knex(PostsModelProvider.getTableName())
+      .update({
+        organization_id: orgId,
+      })
+      .where('id', '=', id)
+    ;
+  }
+
+  public static async setSamplePositiveStatsParametersToPosts(
+    entitiesIds: number[],
+    orderedBy: string,
+  ): Promise<any[]> {
+    const entityIdToParams: any = [];
+
+    const promises: Promise<any>[] = [];
+    for (const id of entitiesIds) {
+      const data = {
+        post_id: id,
+        importance_delta: RequestHelper.generateRandomNumber(1, 10, 10),
+        activity_index_delta: RequestHelper.generateRandomNumber(1, 10, 4),
+        upvotes_delta: RequestHelper.generateRandomNumber(1, 10, 0),
+      };
+
+      entityIdToParams.push(data);
+
+      promises.push(
+        PostsCurrentParamsRepository.updateValuesForEntity(id, data),
+      );
+
+      promises.push(
+        this.setSampleRateToPost(id, RequestHelper.generateRandomImportance()),
+      );
+    }
+
+    await Promise.all(promises);
+
+    for (let i = 0; i < entityIdToParams.length; i += 1) {
+      const current = entityIdToParams[i];
+      const dbPost = await PostsRepository.findOneByIdV2(current.post_id);
+
+      current.user_id = dbPost.user_id;
+      current.organization_id = dbPost.organization_id;
+      current.current_rate = +dbPost.current_rate;
+    }
+
+    return _.orderBy(entityIdToParams, [orderedBy], ['desc']);
   }
 
   /**
@@ -231,14 +284,17 @@ class PostsHelper {
   static checkMediaPostFields(post, options) {
     let mustExist;
     switch (options.postProcessing) {
-      case 'list':
+      case EntityResponseState.list():
         mustExist = postsModelProvider.getModel().getMediaOrOfferPostMustExistFields();
         break;
-      case 'full':
+      case EntityResponseState.full():
         mustExist = postsModelProvider.getModel().getMediaPostFullFields();
         break;
-      case 'notification':
+      case EntityResponseState.notification():
         mustExist = postsModelProvider.getModel().getFieldsRequiredForNotification();
+        break;
+      case EntityResponseState.card():
+        mustExist = PostsModelProvider.getPostsFieldsForCard();
         break;
       default:
         throw new Error(
@@ -282,19 +338,24 @@ class PostsHelper {
    * @param {Object} options
    */
   static checkDirectPostItself(post, options: any = {}) {
-    const toExclude = postsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
-    ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
+    if (options.postProcessing === EntityResponseState.card()) {
+      const expected = PostsModelProvider.getPostsFieldsForCard();
+      ResponseHelper.expectFieldsAreExist(post, expected);
+    } else {
+      const toExclude = postsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
+      ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
 
-    const mustBeNotNull = postsModelProvider.getModel().getDirectPostNotNullFields();
-    expect(post.main_image_filename).toBeDefined();
+      const mustBeNotNull = postsModelProvider.getModel().getDirectPostNotNullFields();
+      expect(post.main_image_filename).toBeDefined();
 
-    if (options.postProcessing === 'notification') {
-      const commentsCountIndex = mustBeNotNull.indexOf('comments_count');
+      if (options.postProcessing === 'notification') {
+        const commentsCountIndex = mustBeNotNull.indexOf('comments_count');
 
-      delete mustBeNotNull[commentsCountIndex];
+        delete mustBeNotNull[commentsCountIndex];
+      }
+
+      ResponseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
     }
-
-    ResponseHelper.expectFieldsAreNotNull(post, mustBeNotNull); // check for fields which must exist
 
     this.checkWrongPostProcessingSmell(post);
   }

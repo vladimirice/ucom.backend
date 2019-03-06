@@ -1,6 +1,8 @@
 "use strict";
 /* tslint:disable:max-line-length */
 const OrganizationsFetchService = require("../../lib/organizations/service/organizations-fetch-service");
+const OrganizationsValidateDiscussions = require("../../lib/organizations/discussions/service/organizations-validate-discussions");
+const OrganizationsModifyDiscussions = require("../../lib/organizations/discussions/service/organizations-modify-discussions");
 const express = require('express');
 const status = require('statuses');
 require('express-async-errors');
@@ -12,6 +14,13 @@ const orgIdParamMiddleware = require('../../lib/organizations/middleware/organiz
 const activityUserToOrg = require('../../lib/users/activity').UserToOrg;
 function getOrganizationService(req) {
     return req.container.get('organizations-service');
+}
+function getUserService(req) {
+    return req.container.get('current-user');
+}
+function getCurrentUserId(req) {
+    const CurrentUserService = getUserService(req);
+    return CurrentUserService.getCurrentUserId();
 }
 /**
  * @param {Object} req
@@ -28,8 +37,8 @@ orgRouter.get('/', async (req, res) => {
 /* Get one organization by ID */
 orgRouter.get('/:organization_id', async (req, res) => {
     const targetId = req.organization_id;
-    const model = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
-    res.send(model);
+    const response = await getOrganizationService(req).findOneOrgByIdAndProcess(targetId);
+    res.send(response);
 });
 /* GET wall feed for organization */
 orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {
@@ -47,6 +56,28 @@ orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     return res.status(201).send({
         id: model.id,
     });
+});
+/* Receive new discussions state from frontend */
+orgRouter.post('/:organization_id/discussions', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    const currentUserId = getCurrentUserId(req);
+    await OrganizationsModifyDiscussions.processNewDiscussionsState(req.organization_model, req.body, currentUserId);
+    return res.status(200).send({
+        success: true,
+    });
+});
+/* Validate one discussion */
+orgRouter.get('/:organization_id/discussions/:post_id/validate', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    const currentUserId = getCurrentUserId(req);
+    await OrganizationsValidateDiscussions.validateOneDiscussion(req.organization_model, +req.params.post_id, currentUserId);
+    return res.status(200).send({
+        success: true,
+    });
+});
+/* Delete all discussions */
+orgRouter.delete('/:organization_id/discussions', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    const currentUserId = getCurrentUserId(req);
+    await OrganizationsModifyDiscussions.deleteAllDiscussions(req.organization_model, currentUserId);
+    return res.status(204).send({});
 });
 /* Update organization */
 orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {

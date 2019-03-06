@@ -1,5 +1,11 @@
 import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
-import { OrgModel } from '../organizations/interfaces/model-interfaces';
+import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
+import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
+import { AppError } from '../api/errors';
+
+import knex = require('../../config/knex');
+import PostsModelProvider = require('../posts/service/posts-model-provider');
+import PostsRepository = require('../posts/posts-repository');
 
 const _ = require('lodash');
 
@@ -16,6 +22,68 @@ const TABLE_NAME = 'Users';
 const taggableRepository = require('../common/repository/taggable-repository');
 
 class UsersRepository {
+  public static async findManyAsRelatedToEntity(
+    params: DbParamsDto,
+    statsFieldName: string,
+    relEntityField: string,
+    overviewType: string,
+    entityName: string,
+  ): Promise<OrgModelResponse[]> {
+    if (entityName !== PostsModelProvider.getEntityName()) {
+      throw new AppError(`Unsupported entity: ${entityName}`, 500);
+    }
+
+    const relEntityNotNull = false;
+    const { postSubQuery, extraFieldsToSelect } =
+      PostsRepository.prepareRelatedEntitySqlParts(overviewType, params, statsFieldName, relEntityField, relEntityNotNull);
+
+    const sql = `
+      select "Users"."id"               as "id",
+             "Users"."account_name"     as "account_name",
+             "Users"."first_name"       as "first_name",
+             "Users"."last_name"        as "last_name",
+             "Users"."nickname"         as "nickname",
+             "Users"."avatar_filename"  as "avatar_filename",
+             "Users"."current_rate"     as "current_rate"
+             ${extraFieldsToSelect}
+      from "Users" INNER JOIN
+            ${postSubQuery}
+           ON t.${relEntityField} = "Users".id
+      ORDER BY t.${statsFieldName} DESC
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows;
+  }
+
+  public static async countManyUsersAsRelatedToEntity(
+    params: DbParamsDto,
+    statsFieldName: string,
+    relatedEntityField: string,
+    overviewType: string,
+  ): Promise<number> {
+    const relEntityNotNull = false;
+    const subQuery = PostsRepository.prepareSubQueryForCounting(
+      overviewType,
+      relatedEntityField,
+      statsFieldName,
+      params,
+      relEntityNotNull,
+    );
+
+    const sql = `
+    SELECT COUNT(1) as amount FROM
+      (
+        ${subQuery}
+      ) AS t
+    `;
+
+    const res = await knex.raw(sql);
+
+    return +res.rows[0].amount;
+  }
+
   /**
    *
    * @param {string[]} accountNames
@@ -390,12 +458,7 @@ class UsersRepository {
     };
   }
 
-  /**
-   *
-   * @param {Object} params
-   * @returns {Promise<*>}
-   */
-  static async countAll(params) {
+  public static async countAll(params): Promise<number> {
     const where = params ? params.where : {};
 
     return UsersRepository.getModel().count({
