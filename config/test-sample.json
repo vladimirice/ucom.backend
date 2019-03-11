@@ -2,5 +2,14 @@
   "eos": {
     "mongo_connection_string": "mongodb://user:password@127.0.0.1:27017/?authMechanism=DEFAULT&authSource=admin",
     "mongo_db_name": "admin"
+  },
+  "github": {
+    "main_uri": "https://github.com",
+    "api_uri": "https://api.github.com",
+    "client_id": "12345",
+    "client_secret": "12345",
+    "state": "randomstatestring",
+    "app_name": "staging-backend.u.community",
+    "default_redirect_uri": "https://staging.u.community"
   }
 }

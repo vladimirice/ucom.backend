@@ -26,17 +26,16 @@ describe('Github airdrop auth', () => {
 
   describe('Positive', () => {
     it('Github callback endpoint', async () => {
-      const code = 'e563547ef8a972f2ebeb';
+      const code = '369a07fbd5b93336b641';
+
+      // How to autotest? Response by sample data
 
       await GithubRequest.sendSampleGithubCallback(code);
 
-      // const sampleResponse = '{"access_token":"cb259e0f9ea2b0dc02323e80d3b6667e8ce6462e","token_type":"bearer","scope":""}';
-      // const decoded = JSON.parse(resp);
 
       // TODO - endpoint to receive github callback
       /*
       Step 1:
-        * log incoming request, catch redirect url - saving and redirect mockup for autotests
         * then exchange code to token. Use mockup github url from config. Mockup endpoint
         * then fetch data from github. Same mockup endpoint
         * Save all data to db - external_auth + external_auth_log
