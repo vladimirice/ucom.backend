@@ -11,10 +11,12 @@ const MAX_FILES = 30;
 const LOGGER__API = 'api';
 const LOGGER_CONSUMER = 'consumer';
 const LOGGER_WORKER = 'worker';
+const LOGGER_AUTH_CALLBACK = 'auth-callback';
 const LOGGERS_ALL = [
     LOGGER__API,
     LOGGER_CONSUMER,
     LOGGER_WORKER,
+    LOGGER_AUTH_CALLBACK,
 ];
 const myFormat = printf((info) => {
     const nodeEnv = process.env.NODE_ENV || 'not-determined';
@@ -87,3 +89,5 @@ const ConsumerLogger = winston.loggers.get(LOGGER_CONSUMER);
 exports.ConsumerLogger = ConsumerLogger;
 const WorkerLogger = winston.loggers.get(LOGGER_WORKER);
 exports.WorkerLogger = WorkerLogger;
+const AuthCallbackLogger = winston.loggers.get(LOGGER_AUTH_CALLBACK);
+exports.AuthCallbackLogger = AuthCallbackLogger;

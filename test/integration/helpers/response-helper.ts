@@ -52,6 +52,11 @@ class ResponseHelper {
     expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(200);
   }
 
+  static expectStatusTempRedirect(res) {
+    // @ts-ignore
+    expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(302);
+  }
+
   static expectStatusCreated(res) {
     // @ts-ignore
     expect(res.status, `Body is: ${JSON.stringify(res.body, null, 2)}`).toBe(201);
