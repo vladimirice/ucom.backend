@@ -24,6 +24,7 @@ const tagsRouter = require('./routes/tags/tags-router');
 const StatsRouter = require('./lib/stats/router/stats-router');
 
 const GithubAuthRouter = require('./lib/github/router/github-auth-router');
+const GithubAuthMockRouter = require('./lib/github/router/github-auth-mock-router');
 
 const app = express();
 
@@ -75,6 +76,7 @@ app.use('/api/v1/partnership', partnershipRouter);
 app.use('/api/v1/tags', tagsRouter);
 app.use('/api/v1/stats', StatsRouter);
 app.use('/api/v1/github', GithubAuthRouter);
+app.use('/github-auth-mock', GithubAuthMockRouter);
 
 // V2 for post
 app.use('/api/v2/posts', postsV2Router);

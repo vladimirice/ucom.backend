@@ -6,10 +6,10 @@ const apiV1Prefix = RequestHelper.getApiV1Prefix();
 const githubConfig = require('config').github;
 
 class GithubRequest {
-  public static async sendSampleGithubCallback(code: string) {
+  public static async sendSampleGithubCallback(code: string = 'vlad_code') {
     const url = this.getBackendCallbackUrl();
 
-    const redirectLocation = 'https://u.community/users';
+    const redirectLocation = 'https://u.community/users/?utm=fb';
     const qs = `?redirect_uri=${redirectLocation}&code=${code}&state=${githubConfig.state}`;
 
     const req = RequestHelper.getRequestObj();

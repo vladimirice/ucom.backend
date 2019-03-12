@@ -8,6 +8,7 @@ import UsersHelper = require('./users-helper');
 import knexEvents = require('../../../config/knex-events');
 import knex = require('../../../config/knex');
 import RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
+import UsersExternalModelProvider = require('../../../lib/users-external/service/users-external-model-provider');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -44,6 +45,8 @@ const minorTablesToSkipSequences = [
   'posts_current_params_id_seq',
   'organizations_current_params_id_seq',
   'tags_current_params_id_seq',
+  `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
+  `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
 ];
 
 // Truncated async
@@ -53,6 +56,8 @@ const minorTables = [
 
   'entity_tags',
   'entity_state_log',
+
+  'users_external_auth_log',
 
   'posts_current_params',
   'organizations_current_params',
@@ -88,6 +93,7 @@ const minorTables = [
 // Truncated in order
 const majorTables = [
   usersRepositories.Activity.getModelName(),
+  'users_external',
   'comments',
   'posts',
   'organizations',

@@ -3,6 +3,11 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import SeedsHelper = require('../helpers/seeds-helper');
 // @ts-ignore
 import GithubRequest = require('../../helpers/github-request');
+import UsersExternalRepository = require('../../../lib/users-external/repository/users-external-repository');
+import GithubSampleValues = require('../../helpers/github-sample-values');
+import _ = require('lodash');
+import UsersExternalAuthLogRepository = require('../../../lib/users-external/repository/users-external-auth-log-repository');
+import delay from 'delay';
 
 // @ts-ignore
 let userVlad: UserModel;
@@ -11,6 +16,8 @@ const beforeAfterOptions = {
   isGraphQl: false,
   workersMocking: 'all',
 };
+
+const JEST_TIMEOUT = 10000;
 
 // #task - these are is unit tests
 describe('Github airdrop auth', () => {
@@ -26,22 +33,35 @@ describe('Github airdrop auth', () => {
 
   describe('Positive', () => {
     it('Github callback endpoint', async () => {
-      const code = '369a07fbd5b93336b641';
+      await GithubRequest.sendSampleGithubCallback();
+      const vladSampleData = GithubSampleValues.getVladSampleExternalData();
 
-      // How to autotest? Response by sample data
+      const data = await UsersExternalRepository.findExternalUserByExternalId(vladSampleData.id);
 
-      await GithubRequest.sendSampleGithubCallback(code);
+      expect(_.isEmpty(data)).toBeFalsy();
 
+      expect(data.external_login).toBe(vladSampleData.login);
+      expect(data.json_value).toEqual(vladSampleData);
+      expect(data.user_id).toBeNull();
 
-      // TODO - endpoint to receive github callback
-      /*
-      Step 1:
-        * then exchange code to token. Use mockup github url from config. Mockup endpoint
-        * then fetch data from github. Same mockup endpoint
-        * Save all data to db - external_auth + external_auth_log
-        * redirect user to required URL
-      */
-    }, 10000);
+      const logData = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data.id);
+      expect(Array.isArray(logData)).toBeTruthy();
+      expect(logData.length).toBe(1);
+
+      expect(logData[0].json_value).toEqual(vladSampleData);
+
+      await delay(1000);
+      // check upsert - should be updating of existing data
+      await GithubRequest.sendSampleGithubCallback();
+
+      const logDataAfter = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data.id);
+      expect(Array.isArray(logDataAfter)).toBeTruthy();
+      expect(logDataAfter.length).toBe(2);
+    }, JEST_TIMEOUT);
+
+    it('should receive secure cookie with valid token', async () => {
+      // TODO
+    }, JEST_TIMEOUT);
   });
 });
 

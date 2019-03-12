@@ -22,8 +22,6 @@ exports.up = (knex) => {
 
     CREATE UNIQUE INDEX ${TABLE_NAME}_external_type_id_external_id_idx 
       ON ${TABLE_NAME}(external_type_id, external_id);
-    CREATE UNIQUE INDEX ${TABLE_NAME}_external_type_id_external_login_idx 
-      ON ${TABLE_NAME}(external_type_id, external_login);
 
     CREATE INDEX ${TABLE_NAME}_user_id_idx ON ${TABLE_NAME}(user_id);
   `;
