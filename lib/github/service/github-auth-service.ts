@@ -4,6 +4,7 @@ import { AppError, BadRequestError } from '../../api/errors';
 import UsersExternalRepository = require('../../users-external/repository/users-external-repository');
 import ExternalTypeIdDictionary = require('../../users-external/dictionary/external-type-id-dictionary');
 import UsersExternalAuthLogRepository = require('../../users-external/repository/users-external-auth-log-repository');
+import AuthService = require('../../auth/authService');
 
 const request = require('request-promise-native');
 
@@ -12,8 +13,22 @@ const githubConfig = require('config').github;
 const ACCESS_TOKEN_URI              = '/login/oauth/access_token';
 const FETCH_USER_DATA_VIA_TOKEN_URI = '/user?access_token=';
 
+const TOKEN_EXPIRATION_IN_DAYS = 30;
+
 class GithubAuthService {
-  public static async processAuthCallback(req: any): Promise<string> {
+  public static getCookieName(): string {
+    const githubType = ExternalTypeIdDictionary.github();
+
+    return `token.users_external.${githubType}`;
+  }
+
+  public static getCookieExpiration(): number {
+    return (3600 * 1000) * 24 * 30; // 1 month
+  }
+
+  public static async processAuthCallback(
+    req: any,
+  ): Promise<{redirectUri: string, authToken: string}> {
     AuthCallbackLogger.info(`Github callback. Method is: ${req.method}, query string content: ${JSON.stringify(req.query)}`);
 
     const { code, state } = req.query;
@@ -29,21 +44,24 @@ class GithubAuthService {
       const token     = await this.fetchTokenByCode(code);
       const userData  = await this.fetchUserDataViaToken(token);
 
-      await this.saveDataToDb(req, userData);
+      const usersExternalId: number = await this.saveDataToDb(req, userData);
+      const authToken = AuthService.getNewGithubAuthToken(usersExternalId, TOKEN_EXPIRATION_IN_DAYS);
 
+      let redirectUri = githubConfig.default_redirect_uri;
       if (req.query && req.query.redirect_uri) {
-        return req.query.redirect_uri;
+        redirectUri = req.query.redirect_uri;
       }
 
-      return githubConfig.default_redirect_uri;
+      return {
+        redirectUri,
+        authToken,
+      };
     } catch (err) {
       throw this.processAuthError(err);
     }
   }
 
-
-  // @ts-ignore
-  private static async saveDataToDb(req, userData): Promise<void> {
+  private static async saveDataToDb(req, userData): Promise<number> {
     const usersExternalId: number = await UsersExternalRepository.upsertExternalUser(
       ExternalTypeIdDictionary.github(),
       userData.id,
@@ -59,6 +77,8 @@ class GithubAuthService {
       referer: req.query.redirect_uri,
       users_external_id: usersExternalId,
     });
+
+    return usersExternalId;
   }
 
   private static processAuthError(err) {

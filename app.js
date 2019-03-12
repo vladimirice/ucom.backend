@@ -1,6 +1,7 @@
 "use strict";
 const express = require('express');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const { ApiLoggerStream, ApiLogger } = require('./config/winston');
 const ApiErrorAndLoggingHelper = require('./lib/api/helpers/api-error-and-logging-helper');
 const diContainerMiddleware = require('./lib/api/di-container-middleware');
@@ -21,6 +22,7 @@ const tagsRouter = require('./routes/tags/tags-router');
 const StatsRouter = require('./lib/stats/router/stats-router');
 const GithubAuthRouter = require('./lib/github/router/github-auth-router');
 const GithubAuthMockRouter = require('./lib/github/router/github-auth-mock-router');
+const AirdropsUserRouter = require('./lib/airdrops/router/airdrops-user-router');
 const app = express();
 // only for autotests - check is file upload
 if (process.env.NODE_ENV === 'test') {
@@ -45,6 +47,7 @@ app.use((req, res, next) => {
     next();
 });
 EosApi.initTransactionFactory();
+app.use(cookieParser());
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v2/users', usersV2Router);
 app.use('/api/v1/auth', authRouter);
@@ -60,6 +63,7 @@ app.use('/api/v1/tags', tagsRouter);
 app.use('/api/v1/stats', StatsRouter);
 app.use('/api/v1/github', GithubAuthRouter);
 app.use('/github-auth-mock', GithubAuthMockRouter);
+app.use('/api/v1/airdrops', AirdropsUserRouter);
 // V2 for post
 app.use('/api/v2/posts', postsV2Router);
 require('./lib/auth/passport');

@@ -1,3 +1,4 @@
+import delay from 'delay';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
@@ -7,7 +8,7 @@ import UsersExternalRepository = require('../../../lib/users-external/repository
 import GithubSampleValues = require('../../helpers/github-sample-values');
 import _ = require('lodash');
 import UsersExternalAuthLogRepository = require('../../../lib/users-external/repository/users-external-auth-log-repository');
-import delay from 'delay';
+import AirdropsRequest = require('../../helpers/airdrops-request');
 
 // @ts-ignore
 let userVlad: UserModel;
@@ -19,7 +20,6 @@ const beforeAfterOptions = {
 
 const JEST_TIMEOUT = 10000;
 
-// #task - these are is unit tests
 describe('Github airdrop auth', () => {
   beforeAll(async () => {
     await SeedsHelper.beforeAllSetting(beforeAfterOptions);
@@ -60,7 +60,12 @@ describe('Github airdrop auth', () => {
     }, JEST_TIMEOUT);
 
     it('should receive secure cookie with valid token', async () => {
-      // TODO
+      const res = await GithubRequest.sendSampleGithubCallback();
+
+      expect(Array.isArray(res.headers['set-cookie'])).toBeTruthy();
+      expect(res.headers['set-cookie'].length).toBe(1);
+
+      await AirdropsRequest.getUserAirdropStatus(res.headers['set-cookie'][0]);
     }, JEST_TIMEOUT);
   });
 });

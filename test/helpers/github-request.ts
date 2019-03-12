@@ -19,7 +19,7 @@ class GithubRequest {
     ResponseHelper.expectStatusTempRedirect(res);
     expect(res.headers.location).toBe(redirectLocation);
 
-    return res.body;
+    return res;
   }
 
   private static getBackendCallbackUrl(): string {

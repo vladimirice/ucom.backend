@@ -4,11 +4,11 @@
     "mongo_db_name": "admin"
   },
   "github": {
-    "main_uri": "https://github.com",
-    "api_uri": "https://api.github.com",
-    "client_id": "12345",
-    "client_secret": "12345",
-    "state": "randomstatestring",
+    "main_uri": "http://173.18.212.40:3000/github-auth-mock",
+    "api_uri": "http://173.18.212.40:3000/github-auth-mock",
+    "client_id": "123456",
+    "client_secret": "123456",
+    "state": "random-state-string",
     "app_name": "staging-backend.u.community",
     "default_redirect_uri": "https://staging.u.community"
   }

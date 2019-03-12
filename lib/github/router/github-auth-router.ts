@@ -7,7 +7,16 @@ const GithubAuthRouter = express.Router();
 require('express-async-errors');
 
 GithubAuthRouter.all('/auth_callback', async (req, res) => {
-  const redirectUri = await GithubAuthService.processAuthCallback(req);
+  const { redirectUri, authToken } = await GithubAuthService.processAuthCallback(req);
+
+  res.cookie(
+    GithubAuthService.getCookieName(),
+    authToken,
+    {
+      maxAge: GithubAuthService.getCookieExpiration(),
+      httpOnly: true,
+    },
+  );
 
   res.redirect(redirectUri);
 });
