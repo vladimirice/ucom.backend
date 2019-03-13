@@ -1,6 +1,7 @@
+import { BadRequestError } from '../../api/errors';
+
 import GithubAuthService = require('../../github/service/github-auth-service');
 import AuthService = require('../../auth/authService');
-import { BadRequestError } from '../../api/errors';
 
 const express = require('express');
 
@@ -17,13 +18,21 @@ AirdropsUserRouter.get('/:airdrop_id/user', async (req, res) => {
 
   AuthService.extractUsersExternalIdByTokenOrError(token);
 
-  res.send({
-    airdrop_id: +req.params.airdrop_id,
-    rates: {
-      total: 100500,
-      myself: 200,
-    },
-  });
+  const sampleResponse = {
+    github_score: 550.044,
+    tokens: [
+      {
+        amount: 50025,
+        symbol: 'UOS',
+      },
+      {
+        amount: 82678,
+        symbol: 'FN',
+      },
+    ],
+  };
+
+  res.send(sampleResponse);
 });
 
 export = AirdropsUserRouter;

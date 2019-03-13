@@ -4,7 +4,6 @@ import ResponseHelper = require('../integration/helpers/response-helper');
 const apiV1Prefix = RequestHelper.getApiV1Prefix();
 
 class AirdropsRequest {
-  // @ts-ignore
   public static async getUserAirdropStatus(cookieWithToken: string) {
     const url = this.getAirdropsGithubSummerUserUrl();
 
@@ -14,7 +13,7 @@ class AirdropsRequest {
 
     ResponseHelper.expectStatusOk(res);
 
-    return res;
+    return res.body;
   }
 
   private static getAirdropsGithubSummerUserUrl(): string {
