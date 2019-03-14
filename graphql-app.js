@@ -419,6 +419,7 @@ const resolvers = {
 };
 const app = express();
 exports.app = app;
+// noinspection JSUnusedGlobalSymbols
 const server = new ApolloServer({
     typeDefs,
     resolvers,
