@@ -7,6 +7,7 @@ const OrganizationsFetchService = require("./lib/organizations/service/organizat
 const TagsFetchService = require("./lib/tags/service/tags-fetch-service");
 const UsersFetchService = require("./lib/users/service/users-fetch-service");
 const express = require('express');
+const { BlockchainNodesTypes } = require('ucom.libs.common').Governance.Dictionary;
 const { ApolloServer, gql, AuthenticationError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
 const { ApiLogger } = require('./config/winston');
@@ -233,7 +234,7 @@ const resolvers = {
                     votes_amount: i * 10003509,
                     currency: 'UOS',
                     bp_status: i % 2 === 0 ? 1 : 2,
-                    blockchain_nodes_type: 1,
+                    blockchain_nodes_type: BlockchainNodesTypes.BLOCK_PRODUCERS,
                     myselfData: {
                         bp_vote: i % 2 === 0,
                     },
@@ -248,7 +249,7 @@ const resolvers = {
                     votes_amount: i * 10003509,
                     currency: 'importance',
                     bp_status: i % 2 === 0 ? 1 : 2,
-                    blockchain_nodes_type: 2,
+                    blockchain_nodes_type: BlockchainNodesTypes.CALCULATOR_NODES,
                     myselfData: {
                         bp_vote: i % 2 === 0,
                     },
@@ -256,7 +257,7 @@ const resolvers = {
                 });
             }
             return {
-                1: {
+                [BlockchainNodesTypes.BLOCK_PRODUCERS]: {
                     data: bpNodes,
                     metadata: {
                         has_more: true,
@@ -265,7 +266,7 @@ const resolvers = {
                         total_amount: 12,
                     },
                 },
-                2: {
+                [BlockchainNodesTypes.CALCULATOR_NODES]: {
                     data: calcNodes,
                     metadata: {
                         has_more: false,
