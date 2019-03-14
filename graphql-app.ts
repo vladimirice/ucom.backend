@@ -41,6 +41,8 @@ const typeDefs = gql`
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
     comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
     one_post(id: Int!, comments_query: comments_query!): Post
+    
+    many_blockchain_nodes(order_by: String!, page: Int!, per_page: Int!): JSON
   }
 
   scalar JSON
@@ -232,6 +234,64 @@ const resolvers = {
   JSON: graphQLJSON,
 
   Query: {
+
+    // @ts-ignore
+    async many_blockchain_nodes(parent, args, ctx) {
+      const bpNodes: any[] = [];
+      const calcNodes: any[] = [];
+
+      for (let i = 1; i <= 12; i += 1) {
+        bpNodes.push({
+          id: i,
+          title: `bp_node_${i}`,
+          votes_count: i * 5,
+          votes_amount: i * 10003509,
+          currency: 'UOS',
+          bp_status: i % 2 === 0 ? 1 : 2,
+          blockchain_nodes_type: 1,
+          myselfData: {
+            bp_vote: i % 2 === 0,
+          },
+          votes_percentage: 23.81 + i * 4,
+        });
+      }
+      for (let i = 13; i <= 21; i += 1) {
+        calcNodes.push({
+          id: i,
+          title: `calc_node_${i}`,
+          votes_count: i * 5,
+          votes_amount: i * 10003509,
+          currency: 'importance',
+          bp_status: i % 2 === 0 ? 1 : 2,
+          blockchain_nodes_type: 2,
+          myselfData: {
+            bp_vote: i % 2 === 0,
+          },
+          votes_percentage: 23.81 + i * 2,
+        });
+      }
+
+      return {
+        1: {
+          data: bpNodes,
+          metadata: {
+            has_more: true,
+            page: +args.page,
+            per_page: args.per_page,
+            total_amount: 12,
+          },
+        },
+        2: {
+          data: calcNodes,
+          metadata: {
+            has_more: false,
+            page: +args.page,
+            per_page: args.per_page,
+            total_amount: 8,
+          },
+        },
+      };
+    },
     // @ts-ignore
     async many_users(parent, args, ctx): Promise<UsersListResponse> {
       const postsQuery: UsersRequestQueryDto = {
@@ -453,6 +513,7 @@ const resolvers = {
 };
 
 const app = express();
+// noinspection JSUnusedGlobalSymbols
 const server = new ApolloServer({
   typeDefs,
   resolvers,
