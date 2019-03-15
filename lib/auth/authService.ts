@@ -1,4 +1,4 @@
-import { BadRequestError } from '../api/errors';
+import { BadRequestError, HttpUnauthorizedError } from '../api/errors';
 
 import moment = require('moment');
 
@@ -58,7 +58,7 @@ class AuthService {
       return +jwtData.externalUsersId;
     } catch (err) {
       if (err.message === 'invalid signature') {
-        throw new AppError('Provided token is not valid', 401);
+        throw new HttpUnauthorizedError('Provided token is not valid');
       }
 
       throw err;
@@ -99,7 +99,7 @@ class AuthService {
     const expiredAt = moment(jwtData.expiredAt);
     const now = moment();
     if (now > expiredAt) {
-      throw new BadRequestError('Token is expired', 401);
+      throw new HttpUnauthorizedError('Token is expired');
     }
   }
 }

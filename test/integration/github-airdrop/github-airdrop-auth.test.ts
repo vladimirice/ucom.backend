@@ -1,5 +1,6 @@
 import delay from 'delay';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 // @ts-ignore
@@ -8,13 +9,12 @@ import UsersExternalRepository = require('../../../lib/users-external/repository
 import GithubSampleValues = require('../../helpers/github-sample-values');
 import _ = require('lodash');
 import UsersExternalAuthLogRepository = require('../../../lib/users-external/repository/users-external-auth-log-repository');
-import AirdropsRequest = require('../../helpers/airdrops-request');
 
 // @ts-ignore
 let userVlad: UserModel;
 
 const beforeAfterOptions = {
-  isGraphQl: false,
+  isGraphQl: true,
   workersMocking: 'all',
 };
 
@@ -60,12 +60,40 @@ describe('Github airdrop auth', () => {
     }, JEST_TIMEOUT);
 
     it('should receive secure cookie with valid token', async () => {
+      const airdropId = 1;
+
+      const expected = {
+        airdrop_id: airdropId,
+        user_id:  null, // null only if airdrop_status = new
+        github_score: 550.044,
+        airdrop_status: 1, // new
+        conditions: {
+          auth_github: true,
+          auth_myself: false,
+          following_devExchange: false,
+        },
+        tokens: [
+          {
+            amount_claim: 50025,
+            symbol: 'UOS',
+          },
+          {
+            amount_claim: 82678,
+            symbol: 'FN',
+          },
+        ],
+      };
+
       const res = await GithubRequest.sendSampleGithubCallback();
 
       expect(Array.isArray(res.headers['set-cookie'])).toBeTruthy();
       expect(res.headers['set-cookie'].length).toBe(1);
 
-      await AirdropsRequest.getUserAirdropStatus(res.headers['set-cookie'][0]);
+      const tokenCookie = res.headers['set-cookie'][0].split(';')[0];
+
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, tokenCookie);
+
+      expect(oneUserAirdrop).toMatchObject(expected);
     }, JEST_TIMEOUT);
   });
 });

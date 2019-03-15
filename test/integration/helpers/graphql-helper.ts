@@ -736,6 +736,22 @@ export class GraphqlHelper {
     return response;
   }
 
+  public static async getOneUserAirdrop(
+    airdropId: number,
+    // @ts-ignore
+    cookieWithToken: string,
+  ): Promise<any> {
+    const filter = {
+      airdrop_id: airdropId,
+    };
+
+    const query = GraphQLSchema.getOneUserAirdrop(filter);
+
+    const key: string = 'one_user_airdrop';
+
+    return this.makeRequestWithCookie(cookieWithToken, query, key, false);
+  }
+
   public static async getUserNewsFeed(
     myself: UserModel,
   ): Promise<PostsListResponse> {
@@ -787,6 +803,23 @@ export class GraphqlHelper {
     return response;
   }
 
+  private static async makeRequestWithCookie(
+    cookie: string,
+    query: string,
+    keyToReturn: string | null = null,
+    dataOnly = true,
+  ): Promise<any> {
+    const client = this.getClientWithCookie(cookie);
+
+    const response = await client.query({ query: gql(query) });
+
+    if (keyToReturn) {
+      return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];
+    }
+
+    return response;
+  }
+
   private static getClientWithToken(user: UserModel) {
     return new ApolloClient({
       request: async (operation) => {
@@ -806,6 +839,18 @@ export class GraphqlHelper {
   private static getClient() {
     return new ApolloClient({
       uri: GRAPHQL_URI,
+      cache: new InMemoryCache({
+        addTypename: false,
+      }),
+    });
+  }
+
+  private static getClientWithCookie(cookie: string) {
+    return new ApolloClient({
+      uri: GRAPHQL_URI,
+      headers: {
+        cookie,
+      },
       cache: new InMemoryCache({
         addTypename: false,
       }),

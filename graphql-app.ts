@@ -3,6 +3,8 @@ import { RequestQueryComments, RequestQueryDto } from './lib/api/filters/interfa
 import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from './lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from './lib/comments/interfaces/model-interfaces';
 import { UsersListResponse, UsersRequestQueryDto } from './lib/users/interfaces/model-interfaces';
+import { HttpUnauthorizedError } from './lib/api/errors';
+import { OneUserAirdropDto } from './lib/airdrops/interfaces/dto-interfaces';
 
 import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
 import AuthService = require('./lib/auth/authService');
@@ -11,7 +13,10 @@ import OrganizationsFetchService = require('./lib/organizations/service/organiza
 import TagsFetchService = require('./lib/tags/service/tags-fetch-service');
 
 import UsersFetchService = require('./lib/users/service/users-fetch-service');
+import GithubAuthService = require('./lib/github/service/github-auth-service');
+import UsersAirdropService = require('./lib/airdrops/service/users-airdrop-service');
 
+const cookieParser = require('cookie-parser');
 const express = require('express');
 
 const { BlockchainNodesTypes } = require('ucom.libs.common').Governance.Dictionary;
@@ -43,6 +48,8 @@ const typeDefs = gql`
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
     comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
     one_post(id: Int!, comments_query: comments_query!): Post
+    
+    one_user_airdrop(filters: one_user_airdrop_state_filtering): JSON
     
     many_blockchain_nodes(order_by: String!, page: Int!, per_page: Int!): JSON
   }
@@ -201,6 +208,10 @@ const typeDefs = gql`
     next_depth_total_amount: Int!
   }
   
+  input one_user_airdrop_state_filtering {
+    airdrop_id: Int!
+  }
+  
   input comments_query {
     page: Int!
     per_page: Int!
@@ -236,7 +247,18 @@ const resolvers = {
   JSON: graphQLJSON,
 
   Query: {
+    // @ts-ignore
+    async one_user_airdrop(parent, args, ctx): Promise<OneUserAirdropDto> {
+      const token = ctx.req.cookies[GithubAuthService.getCookieName()];
 
+      if (!token) {
+        throw new HttpUnauthorizedError('Github token should be provided via cookie');
+      }
+
+      const usersExternalId = AuthService.extractUsersExternalIdByTokenOrError(token);
+
+      return UsersAirdropService.getOneUserAirdrop(usersExternalId, args.filters);
+    },
     // @ts-ignore
     async many_blockchain_nodes(parent, args, ctx) {
       const bpNodes: any[] = [];
@@ -515,6 +537,8 @@ const resolvers = {
 };
 
 const app = express();
+app.use(cookieParser());
+
 // noinspection JSUnusedGlobalSymbols
 const server = new ApolloServer({
   typeDefs,
@@ -531,7 +555,9 @@ const server = new ApolloServer({
       originalError,
     };
 
-    if (originalError && originalError.name === 'JsonWebTokenError') {
+    if (originalError && originalError.status === 401) {
+      error = new AuthenticationError(originalError.message, 401);
+    } else if (originalError && originalError.name === 'JsonWebTokenError') {
       error = new AuthenticationError('Invalid token', 401);
     } else if (!originalError
       // @ts-ignore
