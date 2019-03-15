@@ -48,6 +48,13 @@ export class GraphqlHelper {
     return this.makeRequestAsMyself(myself, query, key, false);
   }
 
+  public static async getGithubAirdropPostWithoutUser(postId: number): Promise<any> {
+    const query: string = GraphQLSchema.getGithubAirdropPost(postId);
+    const key: string = 'one_post';
+
+    return this.makeRequestAsGuest(query, key, false);
+  }
+
   public static async getManyMediaPostsAsMyself(
     myself: UserModel,
     postOrdering: string = '-id',

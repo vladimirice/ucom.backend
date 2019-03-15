@@ -122,7 +122,15 @@ class PostsFetchService {
       commentsQuery,
     );
 
+    await this.addDataForGithubAirdropOffer(post);
+
     return post;
+  }
+
+  // @ts-ignore
+  private static async addDataForGithubAirdropOffer(post) {
+    // @ts-ignore
+    const a = 0;
   }
 
   public static async findManyPosts(
