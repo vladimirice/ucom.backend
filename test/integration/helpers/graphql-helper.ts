@@ -49,8 +49,8 @@ export class GraphqlHelper {
   }
 
   public static async getGithubAirdropPostWithoutUser(postId: number): Promise<any> {
-    const query: string = GraphQLSchema.getGithubAirdropPost(postId);
-    const key: string = 'one_post';
+    const query: string = GraphQLSchema.getOnePostOffer(postId);
+    const key: string = 'one_post_offer';
 
     return this.makeRequestAsGuest(query, key, false);
   }

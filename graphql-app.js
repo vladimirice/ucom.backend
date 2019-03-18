@@ -35,6 +35,7 @@ const typeDefs = gql `
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
     comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
     one_post(id: Int!, comments_query: comments_query!): Post
+    one_post_offer(id: Int!, comments_query: comments_query!): PostOffer!
     
     one_user_airdrop(filters: one_user_airdrop_state_filtering): JSON
     
@@ -79,6 +80,52 @@ const typeDefs = gql `
     comments: comments
     
     post: Post
+  }
+  
+  type PostOffer {
+    id: Int!
+    title: String!
+    description: String!
+    leading_text: String!
+
+    current_vote: Float!
+    current_rate: Float!
+    comments_count: Int!
+
+    main_image_filename: String
+    entity_images: JSON
+    
+    entity_tags: JSON
+
+    user_id: Int!
+    post_type_id: Int!
+    blockchain_id: String!
+    organization_id: Int
+    
+    organization: Organization
+    
+    created_at: String!
+    updated_at: String!
+
+    entity_id_for: Int
+    entity_name_for: String
+    entity_for_card: JSON
+
+    User: User!
+
+    myselfData: MyselfData
+
+    comments: comments!
+    
+    post: Post
+    
+    started_at: String!
+    finished_at: String!
+    
+    post_offer_type_id: Int!
+    
+    users_team: JSON!
+    offer_data: JSON!
   }
 
   type User {
@@ -341,6 +388,13 @@ const resolvers = {
         async many_tags(parent, args, ctx) {
             const query = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
             return TagsFetchService.findAndProcessManyTags(query);
+        },
+        // @ts-ignore
+        async one_post_offer(parent, args, ctx) {
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            const commentsQuery = args.comments_query;
+            commentsQuery.depth = 0;
+            return PostsFetchService.findOnePostByIdAndProcessV2(args.id, currentUserId, commentsQuery);
         },
         // @ts-ignore
         async one_post(parent, args, ctx) {
