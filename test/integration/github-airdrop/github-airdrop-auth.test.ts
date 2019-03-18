@@ -11,6 +11,7 @@ import _ = require('lodash');
 import UsersExternalAuthLogRepository = require('../../../lib/users-external/repository/users-external-auth-log-repository');
 import PostsGenerator = require('../../generators/posts-generator');
 import AuthService = require('../../../lib/auth/authService');
+import UsersExternalRequest = require('../../helpers/users-external-request');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -138,6 +139,26 @@ describe('Github airdrop auth', () => {
       expect(res.data.one_user_airdrop).toBeDefined();
 
       expect(res.data.one_user_airdrop).toMatchObject(getExpectedUserAirdrop());
+    });
+
+    it('API to link github account and currently authorised user', async () => {
+      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+
+      await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, sampleToken);
+    });
+  });
+
+  describe('Negative', () => {
+    it('Error if no github token', async () => {
+      const res = await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, null, 401);
+      expect(res.body.errors).toBe('Please provide valid Github auth token');
+    });
+
+    it('Error if no Auth token', async () => {
+      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+
+      const res = await UsersExternalRequest.sendPairExternalUserWithUser(null, sampleToken, 401);
+      expect(res.body.errors).toBe('There is no Authorization Bearer token');
     });
   });
 });

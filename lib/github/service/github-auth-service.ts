@@ -16,12 +16,6 @@ const FETCH_USER_DATA_VIA_TOKEN_URI = '/user?access_token=';
 const TOKEN_EXPIRATION_IN_DAYS = 30;
 
 class GithubAuthService {
-  public static getCookieName(): string {
-    const githubType = ExternalTypeIdDictionary.github();
-
-    return `token.users_external.${githubType}`;
-  }
-
   public static getCookieExpiration(): number {
     return (3600 * 1000) * 24 * 30; // 1 month
   }

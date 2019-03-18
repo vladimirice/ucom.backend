@@ -1,9 +1,10 @@
 import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
+
 const request = require('supertest');
 const server = require('../../../app');
-
 
 const fileToUploadHelper = require('./file-to-upload-helper.ts');
 
@@ -31,6 +32,10 @@ const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 class RequestHelper {
   public static getRequestObj() {
     return request(server);
+  }
+
+  public static getRequestObjForPost(url: string) {
+    return request(server).post(url);
   }
 
   public static getApiV1Prefix(): string {
@@ -109,7 +114,7 @@ class RequestHelper {
    * @param {boolean} getOnlyData
    * @returns {Promise<*>}
    */
-  static async makeGetRequestForList(url, myself = null, getOnlyData = true) {
+  static async makeGetRequestForList(url, myself: UserModel | null = null, getOnlyData = true) {
     const req = request(server)
       .get(url);
     if (myself) {
@@ -130,7 +135,7 @@ class RequestHelper {
    * @param {Object} myself
    * @returns {Promise<*>}
    */
-  static async makeGetRequest(url, expectedStatus, myself = null) {
+  static async makeGetRequest(url, expectedStatus, myself: UserModel | null = null) {
     const req = request(server)
       .get(url);
     if (myself) {
@@ -170,14 +175,14 @@ class RequestHelper {
     return `${onePostUrl}/repost`;
   }
 
-  /**
-   *
-   * @param {Object} req
-   * @param {Object} user
-   */
-  static addAuthToken(req, user) {
+  public static addAuthToken(req: any, user: UserModel): void {
     req
       .set('Authorization', `Bearer ${user.token}`);
+  }
+
+  public static addGithubAuthToken(req: any, token: string): void {
+    req
+      .set(CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB, token);
   }
 
   /**

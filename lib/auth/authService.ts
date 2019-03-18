@@ -10,6 +10,8 @@ const authConfig = config.get('auth');
 
 const passportJWT = require('passport-jwt');
 
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
+
 const extractJWT = passportJWT.ExtractJwt;
 
 const { AppError } = require('../api/errors');
@@ -55,6 +57,10 @@ class AuthService {
 
       this.exceptionIfExpired(jwtData);
 
+      if (!jwtData.externalUsersId) {
+        throw new HttpUnauthorizedError('Provided token is not valid');
+      }
+
       return +jwtData.externalUsersId;
     } catch (err) {
       if (err.message === 'invalid signature') {
@@ -63,6 +69,26 @@ class AuthService {
 
       throw err;
     }
+  }
+
+  public static extractUsersExternalIdFromGithubAuthTokenOrError(req): number {
+    const jwtToken = req.headers[CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB];
+
+    if (!jwtToken) {
+      throw new HttpUnauthorizedError('Please provide valid Github auth token');
+    }
+
+    return this.extractUsersExternalIdByTokenOrError(jwtToken);
+  }
+
+  public static extractCurrentUserIdFromReqOrError(req): number {
+    const jwtToken = extractJWT.fromAuthHeaderAsBearerToken()(req);
+
+    if (!jwtToken) {
+      throw new HttpUnauthorizedError('There is no Authorization Bearer token');
+    }
+
+    return this.extractCurrentUserIdByTokenOrError(jwtToken);
   }
 
   static extractCurrentUserByToken(req): number | null {
