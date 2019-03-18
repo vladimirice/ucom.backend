@@ -9,6 +9,7 @@ import UsersExternalRepository = require('../../../lib/users-external/repository
 import GithubSampleValues = require('../../helpers/github-sample-values');
 import _ = require('lodash');
 import UsersExternalAuthLogRepository = require('../../../lib/users-external/repository/users-external-auth-log-repository');
+import PostsGenerator = require('../../generators/posts-generator');
 
 // @ts-ignore
 let userVlad: UserModel;
@@ -32,6 +33,14 @@ describe('Github airdrop auth', () => {
   });
 
   describe('Positive', () => {
+    it('Get custom post-offer', async () => {
+      // TODO - interface only
+      const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
+
+      // @ts-ignore
+      const res = await GraphqlHelper.getGithubAirdropPostWithoutUser(postsIds[postsIds.length - 1]);
+    }, JEST_TIMEOUT * 100);
+
     it('Github callback endpoint', async () => {
       await GithubRequest.sendSampleGithubCallback();
       const vladSampleData = GithubSampleValues.getVladSampleExternalData();

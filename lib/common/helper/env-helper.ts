@@ -1,8 +1,18 @@
-const ENV__TEST = 'test';
+const ENV__TEST       = 'test';
+const ENV__STAGING    = 'staging';
+const ENV__PRODUCTION = 'production';
 
 class EnvHelper {
   public static isTestEnv(): boolean {
     return this.isExpectedEnv(ENV__TEST);
+  }
+
+  public static isStagingEnv(): boolean {
+    return this.isExpectedEnv(ENV__STAGING);
+  }
+
+  public static isProductionEnv(): boolean {
+    return this.isExpectedEnv(ENV__PRODUCTION);
   }
 
   public static isNotTestEnv(): boolean {
