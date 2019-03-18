@@ -19,6 +19,8 @@ const { gql } = require('apollo-boost');
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
+
 const { app, server } = require('../../../graphql-app');
 
 const PORT = 4007;
@@ -743,20 +745,55 @@ export class GraphqlHelper {
     return response;
   }
 
-  public static async getOneUserAirdrop(
-    airdropId: number,
-    // @ts-ignore
-    cookieWithToken: string,
-  ): Promise<any> {
+  public static async getOneUserAirdrop(airdropId: number, githubToken: string): Promise<any> {
     const filter = {
       airdrop_id: airdropId,
     };
 
     const query = GraphQLSchema.getOneUserAirdrop(filter);
-
     const key: string = 'one_user_airdrop';
 
-    return this.makeRequestWithCookie(cookieWithToken, query, key, false);
+    const headers = {
+      [CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB]: githubToken,
+    };
+
+    return this.makeRequestWithHeaders(headers, query, key, false);
+  }
+
+  public static async getOnePostOfferWithUserAirdrop(
+    airdropId: number,
+    postId: number,
+    token: string,
+    isGithubToken: boolean = true,
+  ): Promise<any> {
+    const filter = {
+      airdrop_id: airdropId,
+    };
+
+    const query = GraphQLSchema.getOnePostOfferWithUserAirdrop(filter, postId);
+
+    const headerName = isGithubToken ? CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB : 'Authorization';
+
+    const headers = {
+      [headerName]: token,
+    };
+
+    return this.makeRequestWithHeaders(headers, query);
+  }
+
+  public static async getOneUserAirdropViaAuthToken(myself: UserModel, airdropId: number): Promise<any> {
+    const filter = {
+      airdrop_id: airdropId,
+    };
+
+    const query = GraphQLSchema.getOneUserAirdrop(filter);
+    const key: string = 'one_user_airdrop';
+
+    const headers = {
+      Authorization: `Bearer ${myself.token}`,
+    };
+
+    return this.makeRequestWithHeaders(headers, query, key, false);
   }
 
   public static async getUserNewsFeed(
@@ -810,13 +847,13 @@ export class GraphqlHelper {
     return response;
   }
 
-  private static async makeRequestWithCookie(
-    cookie: string,
+  private static async makeRequestWithHeaders(
+    headers: any,
     query: string,
     keyToReturn: string | null = null,
     dataOnly = true,
   ): Promise<any> {
-    const client = this.getClientWithCookie(cookie);
+    const client = this.getClientWithHeaders(headers);
 
     const response = await client.query({ query: gql(query) });
 
@@ -852,12 +889,10 @@ export class GraphqlHelper {
     });
   }
 
-  private static getClientWithCookie(cookie: string) {
+  private static getClientWithHeaders(headers) {
     return new ApolloClient({
+      headers,
       uri: GRAPHQL_URI,
-      headers: {
-        cookie,
-      },
       cache: new InMemoryCache({
         addTypename: false,
       }),

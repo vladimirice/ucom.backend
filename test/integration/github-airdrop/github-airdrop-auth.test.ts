@@ -3,15 +3,17 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import SeedsHelper = require('../helpers/seeds-helper');
-// @ts-ignore
+
 import GithubRequest = require('../../helpers/github-request');
 import UsersExternalRepository = require('../../../lib/users-external/repository/users-external-repository');
 import GithubSampleValues = require('../../helpers/github-sample-values');
 import _ = require('lodash');
 import UsersExternalAuthLogRepository = require('../../../lib/users-external/repository/users-external-auth-log-repository');
 import PostsGenerator = require('../../generators/posts-generator');
+import AuthService = require('../../../lib/auth/authService');
 
-// @ts-ignore
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
+
 let userVlad: UserModel;
 
 const beforeAfterOptions = {
@@ -20,6 +22,32 @@ const beforeAfterOptions = {
 };
 
 const JEST_TIMEOUT = 10000;
+
+const airdropId = 1;
+
+function getExpectedUserAirdrop() {
+  return {
+    airdrop_id: airdropId,
+    user_id:  null, // null only if airdrop_status = new
+    github_score: 550.044,
+    airdrop_status: 1, // new
+    conditions: {
+      auth_github: true,
+      auth_myself: false,
+      following_devExchange: false,
+    },
+    tokens: [
+      {
+        amount_claim: 50025,
+        symbol: 'UOS',
+      },
+      {
+        amount_claim: 82678,
+        symbol: 'FN',
+      },
+    ],
+  };
+}
 
 describe('Github airdrop auth', () => {
   beforeAll(async () => {
@@ -69,41 +97,48 @@ describe('Github airdrop auth', () => {
     }, JEST_TIMEOUT);
 
     it('should receive secure cookie with valid token', async () => {
-      const airdropId = 1;
-
-      const expected = {
-        airdrop_id: airdropId,
-        user_id:  null, // null only if airdrop_status = new
-        github_score: 550.044,
-        airdrop_status: 1, // new
-        conditions: {
-          auth_github: true,
-          auth_myself: false,
-          following_devExchange: false,
-        },
-        tokens: [
-          {
-            amount_claim: 50025,
-            symbol: 'UOS',
-          },
-          {
-            amount_claim: 82678,
-            symbol: 'FN',
-          },
-        ],
-      };
-
       const res = await GithubRequest.sendSampleGithubCallback();
 
       expect(Array.isArray(res.headers['set-cookie'])).toBeTruthy();
       expect(res.headers['set-cookie'].length).toBe(1);
 
-      const tokenCookie = res.headers['set-cookie'][0].split(';')[0];
+      const githubTokenCookie = res.headers['set-cookie'][0].split(';')[0].split('=');
 
-      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, tokenCookie);
+      expect(githubTokenCookie[0]).toBe(CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB);
 
-      expect(oneUserAirdrop).toMatchObject(expected);
+      AuthService.extractUsersExternalIdByTokenOrError(githubTokenCookie[1]);
     }, JEST_TIMEOUT);
+
+    it('get user state via github token', async () => {
+      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, sampleToken);
+
+      expect(oneUserAirdrop).toMatchObject(getExpectedUserAirdrop());
+    });
+
+    it('get user state via auth token', async () => {
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdropViaAuthToken(userVlad, airdropId);
+
+      expect(oneUserAirdrop).toMatchObject(getExpectedUserAirdrop());
+    });
+
+    it('get both post offer data and airdrop state', async () => {
+      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+
+      const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
+
+      const res = await GraphqlHelper.getOnePostOfferWithUserAirdrop(
+        airdropId,
+        postsIds[postsIds.length - 1],
+        sampleToken,
+      );
+
+      expect(res.data.one_post_offer).toBeDefined();
+      expect(res.data.one_user_airdrop).toBeDefined();
+
+      expect(res.data.one_user_airdrop).toMatchObject(getExpectedUserAirdrop());
+    });
   });
 });
 

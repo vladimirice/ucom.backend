@@ -3,7 +3,6 @@ import { RequestQueryComments, RequestQueryDto } from './lib/api/filters/interfa
 import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from './lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from './lib/comments/interfaces/model-interfaces';
 import { UsersListResponse, UsersRequestQueryDto } from './lib/users/interfaces/model-interfaces';
-import { HttpUnauthorizedError } from './lib/api/errors';
 import { OneUserAirdropDto } from './lib/airdrops/interfaces/dto-interfaces';
 
 import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
@@ -13,7 +12,6 @@ import OrganizationsFetchService = require('./lib/organizations/service/organiza
 import TagsFetchService = require('./lib/tags/service/tags-fetch-service');
 
 import UsersFetchService = require('./lib/users/service/users-fetch-service');
-import GithubAuthService = require('./lib/github/service/github-auth-service');
 import UsersAirdropService = require('./lib/airdrops/service/users-airdrop-service');
 
 const cookieParser = require('cookie-parser');
@@ -296,15 +294,7 @@ const resolvers = {
   Query: {
     // @ts-ignore
     async one_user_airdrop(parent, args, ctx): Promise<OneUserAirdropDto> {
-      const token = ctx.req.cookies[GithubAuthService.getCookieName()];
-
-      if (!token) {
-        throw new HttpUnauthorizedError('Github token should be provided via cookie');
-      }
-
-      const usersExternalId = AuthService.extractUsersExternalIdByTokenOrError(token);
-
-      return UsersAirdropService.getOneUserAirdrop(usersExternalId, args.filters);
+      return UsersAirdropService.getOneUserAirdrop(ctx.req, args.filters);
     },
     // @ts-ignore
     async many_blockchain_nodes(parent, args, ctx) {
