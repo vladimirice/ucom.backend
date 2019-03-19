@@ -6,6 +6,19 @@ const apiV1Prefix = RequestHelper.getApiV1Prefix();
 const githubConfig = require('config').github;
 
 class GithubRequest {
+  public static async sendSampleGithubCallbackAndGetToken(
+    code: string = 'vlad_code',
+  ): Promise<string> {
+    const res = await GithubRequest.sendSampleGithubCallback(code);
+
+    expect(Array.isArray(res.headers['set-cookie'])).toBeTruthy();
+    expect(res.headers['set-cookie'].length).toBe(1);
+
+    const githubTokenCookie = res.headers['set-cookie'][0].split(';')[0].split('=');
+
+    return githubTokenCookie[1];
+  }
+
   public static async sendSampleGithubCallback(code: string = 'vlad_code') {
     const url = this.getBackendCallbackUrl();
 

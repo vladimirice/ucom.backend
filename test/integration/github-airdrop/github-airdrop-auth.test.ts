@@ -78,11 +78,11 @@ describe('Github airdrop auth', () => {
 
       expect(_.isEmpty(data)).toBeFalsy();
 
-      expect(data.external_login).toBe(vladSampleData.login);
-      expect(data.json_value).toEqual(vladSampleData);
-      expect(data.user_id).toBeNull();
+      expect(data!.external_login).toBe(vladSampleData.login);
+      expect(data!.json_value).toEqual(vladSampleData);
+      expect(data!.user_id).toBeNull();
 
-      const logData = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data.id);
+      const logData = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data!.id);
       expect(Array.isArray(logData)).toBeTruthy();
       expect(logData.length).toBe(1);
 
@@ -92,7 +92,7 @@ describe('Github airdrop auth', () => {
       // check upsert - should be updating of existing data
       await GithubRequest.sendSampleGithubCallback();
 
-      const logDataAfter = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data.id);
+      const logDataAfter = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data!.id);
       expect(Array.isArray(logDataAfter)).toBeTruthy();
       expect(logDataAfter.length).toBe(2);
     }, JEST_TIMEOUT);
@@ -140,25 +140,37 @@ describe('Github airdrop auth', () => {
 
       expect(res.data.one_user_airdrop).toMatchObject(getExpectedUserAirdrop());
     });
-
-    it('API to link github account and currently authorised user', async () => {
-      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
-
-      await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, sampleToken);
-    });
   });
 
-  describe('Negative', () => {
-    it('Error if no github token', async () => {
-      const res = await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, null, 401);
-      expect(res.body.errors).toBe('Please provide valid Github auth token');
+  describe('Pair external user and registered user', () => {
+    describe('Positive', () => {
+      it('API to link github account and currently authorised user', async () => {
+        const token = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+
+        await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, token);
+
+        const usersExternalId = AuthService.extractUsersExternalIdByTokenOrError(token);
+
+        const externalUser = await UsersExternalRepository.findExternalUserByPkId(usersExternalId);
+
+        expect(externalUser!.user_id).toBe(userVlad.id);
+
+        await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, token, 208);
+      });
     });
 
-    it('Error if no Auth token', async () => {
-      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+    describe('Negative', () => {
+      it('Error if no github token', async () => {
+        const res = await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, null, 401);
+        expect(res.body.errors).toBe('Please provide valid Github auth token');
+      });
 
-      const res = await UsersExternalRequest.sendPairExternalUserWithUser(null, sampleToken, 401);
-      expect(res.body.errors).toBe('There is no Authorization Bearer token');
+      it('Error if no Auth token', async () => {
+        const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+
+        const res = await UsersExternalRequest.sendPairExternalUserWithUser(null, sampleToken, 401);
+        expect(res.body.errors).toBe('There is no Authorization Bearer token');
+      });
     });
   });
 });

@@ -11,11 +11,9 @@ require('express-async-errors');
 
 // @ts-ignore
 UsersExternalRouter.all('/users/pair', async (req, res) => {
-  await UsersExternalUserPairService.pair(req);
+  const { status, message } = await UsersExternalUserPairService.pair(req);
 
-  res.status(201).send({
-    success: true,
-  });
+  res.status(status).send(message);
 });
 
 export = UsersExternalRouter;
