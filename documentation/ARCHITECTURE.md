@@ -1,6 +1,13 @@
 # ARCHITECTURE
 
-## List of main technologies:
+Table of contents
+* [Common information](#common-information)
+* [Statistics module](#statistics-module)
+* [Airdrop](#airdrop-and-balances)
+
+## Common information
+
+### List of main technologies:
 * NodeJs
 * GraphQL
 * REST
@@ -8,7 +15,7 @@
 * REDIS
 * RabbitMq
 
-## Entities list
+### Entities list
 * Users (Myself as a user state: user + auth token)
 * Posts (Publications, reposts, etc.)
 * Comments
@@ -17,7 +24,7 @@
 * Blockchain nodes - for caching blockchain state
 
 
-## Entities states (response fields structure):
+### Entities states (response fields structure):
 * `Full` - all possible fields
 * `Preview` - amount of fields required for lists of entities
 * `Card` - minimum amount of fields, used in `object inside object` situations, 
@@ -95,3 +102,71 @@ In the future, these classes will be refactored to split declaration and impleme
 to code the expected values before implementing the solution (TDD principle). If somebody occasionally changes the implementation, the autotest will fail.
 * There is a universal `StatsHelper` parameters checker, based on `expected set` declared manually inside autotests.
 * Here is [an example of test suite for posts](../test/integration/stats/stats-only-orgs.test.ts) 
+
+## Airdrop and balances
+
+This is basic draft. Still under development.
+
+There are different accounts in the system to represent the balance flows:
+
+type | description
+--- | ---
+`debt` | To track incoming balances, positive amount
+`income` | To track incoming balances, always negative. Required to track new amounts of tokens for an airdrop (`debt` + `income` = 0) 
+`reserved` | Amount of tokens user should receive in the future if everything goes ok
+`waiting` | Amount of tokens represented by blockchain transaction which is already sent to blockchain
+`wallet` | Current amount of airdrop tokens under user's control 
+
+
+Notes:
+* For every new `symbol` new balance account record should be created
+
+
+### Workflow (with example numbers):
+
+Beforehand - `debt` and `income` accounts must be created.
+
+* There is new token distribution for airdrop, amount = 100 000 tokens (`TNS`). 
+* New transaction - from `income` (- 100 000) to `debt` (100 000).
+* User is asking about his airdrop state.
+* `reserved`, `waiting` and `wallet` accounts are created.
+* Transaction is created: from `debt` to `reserved`, amount = 100 TNS
+* User fulfills some business conditions in order to participate (ex. follows devExchange community)
+* Background worker checks conditions and decides to create blockchain transaction (trx).
+* Trx is created and is sent to blockchain. Trx ID is received.
+?think - what if there backend is down and no following record? - answer: check airdrop state in background
+* DB transaction is created: from `reserved` to `waiting`.
+* Background worker checks user's airdrop conditions.
+** If success - from `waiting` to `wallet`
+** If fail - rollback from `waiting` to `reserved`
+
+
+### Tables
+
+#### Balances
+* account_id
+* symbol
+* amount
+* last_transaction_id
+
+#### Accounts
+* id
+* user_id
+* other params (TODO)
+
+#### Transaction parts
+* ID
+* transaction_id
+* account_id_from
+* account_id_to
+* amount
+* symbol
+
+#### Transactions
+* ID
+* created_at
+* rel_id (FOREIGN KEY REFERENCES Transactions(ID)) - in order to build transaction history tree
+* json_data - some useful data, ex link to blockchain transactions
+
+#### Transaction event flow - TODO
+A group of tables required to track all stages of transaction
