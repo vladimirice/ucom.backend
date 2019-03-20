@@ -10,8 +10,13 @@ import GithubSampleValues = require('../../helpers/github-sample-values');
 import _ = require('lodash');
 import UsersExternalAuthLogRepository = require('../../../lib/users-external/repository/users-external-auth-log-repository');
 import PostsGenerator = require('../../generators/posts-generator');
+import AuthService = require('../../../lib/auth/authService');
+import UsersExternalRequest = require('../../helpers/users-external-request');
+import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-creator-service');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
 
-// @ts-ignore
+const {CommonHeaders} = require('ucom.libs.common').Common.Dictionary;
+
 let userVlad: UserModel;
 
 const beforeAfterOptions = {
@@ -20,6 +25,32 @@ const beforeAfterOptions = {
 };
 
 const JEST_TIMEOUT = 10000;
+
+const airdropId = 1;
+
+function getExpectedUserAirdrop() {
+  return {
+    airdrop_id: airdropId,
+    user_id: null, // null only if airdrop_status = new
+    github_score: 550.044,
+    airdrop_status: 1, // new
+    conditions: {
+      auth_github: true,
+      auth_myself: false,
+      following_devExchange: false,
+    },
+    tokens: [
+      {
+        amount_claim: 50025,
+        symbol: 'UOS',
+      },
+      {
+        amount_claim: 82678,
+        symbol: 'FN',
+      },
+    ],
+  };
+}
 
 describe('Github airdrop auth', () => {
   beforeAll(async () => {
@@ -30,6 +61,36 @@ describe('Github airdrop auth', () => {
   });
   beforeEach(async () => {
     [userVlad] = await SeedsHelper.beforeAllRoutine();
+  });
+
+  describe('Github airdrop creation', () => {
+    it('create valid airdrop with related accounts', async () => {
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+
+      const tokens = [
+        {
+          symbol_id: 1,
+          amount: 300000,
+        },
+        {
+          symbol_id: 2,
+          amount: 100000,
+        },
+      ];
+
+      await AirdropCreatorService.createNewAirdrop(
+        'github_airdrop',
+        postId,
+        {
+          auth_github: true,
+          auth_myself: true,
+          community_id_to_follow: orgId,
+        },
+        tokens,
+      );
+      // TODO - check all workflow by autotests
+    }, JEST_TIMEOUT * 100);
   });
 
   describe('Positive', () => {
@@ -69,8 +130,6 @@ describe('Github airdrop auth', () => {
     }, JEST_TIMEOUT);
 
     it('should receive secure cookie with valid token', async () => {
-      const airdropId = 1;
-
       const expected = {
         airdrop_id: airdropId,
         user_id:  null, // null only if airdrop_status = new
@@ -104,6 +163,69 @@ describe('Github airdrop auth', () => {
 
       expect(oneUserAirdrop).toMatchObject(expected);
     }, JEST_TIMEOUT);
+
+    it('get user state via github token', async () => {
+      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, sampleToken);
+
+      expect(oneUserAirdrop).toMatchObject(getExpectedUserAirdrop());
+    });
+
+    it('get user state via auth token', async () => {
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdropViaAuthToken(userVlad, airdropId);
+
+      expect(oneUserAirdrop).toMatchObject(getExpectedUserAirdrop());
+    });
+
+    it('get both post offer data and airdrop state', async () => {
+      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+
+      const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
+
+      const res = await GraphqlHelper.getOnePostOfferWithUserAirdrop(
+        airdropId,
+        postsIds[postsIds.length - 1],
+        sampleToken,
+      );
+
+      expect(res.data.one_post_offer).toBeDefined();
+      expect(res.data.one_user_airdrop).toBeDefined();
+
+      expect(res.data.one_user_airdrop).toMatchObject(getExpectedUserAirdrop());
+    });
+  });
+
+  describe('Pair external user and registered user', () => {
+    describe('Positive', () => {
+      it('API to link github account and currently authorised user', async () => {
+        const token = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+
+        await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, token);
+
+        const usersExternalId = AuthService.extractUsersExternalIdByTokenOrError(token);
+
+        const externalUser = await UsersExternalRepository.findExternalUserByPkId(usersExternalId);
+
+        expect(externalUser!.user_id).toBe(userVlad.id);
+
+        await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, token, 208);
+      });
+    });
+
+    describe('Negative', () => {
+      it('Error if no github token', async () => {
+        const res = await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, null, 401);
+        expect(res.body.errors).toBe('Please provide valid Github auth token');
+      });
+
+      it('Error if no Auth token', async () => {
+        const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+
+        const res = await UsersExternalRequest.sendPairExternalUserWithUser(null, sampleToken, 401);
+        expect(res.body.errors).toBe('There is no Authorization Bearer token');
+      });
+    });
   });
 });
 

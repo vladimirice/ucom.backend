@@ -54,6 +54,11 @@ const minorTables = [
   entityModelProvider.getNotificationsTableName(),
   usersRepositories.UsersTeam.getModelName(),
 
+  'accounts_transactions_parts',
+
+  'airdrops_tokens',
+  'airdrops_users',
+
   'entity_tags',
   'entity_state_log',
 
@@ -93,6 +98,12 @@ const minorTables = [
 // Truncated in order
 const majorTables = [
   usersRepositories.Activity.getModelName(),
+
+  'airdrops',
+  'accounts',
+
+  'accounts_transactions',
+
   'users_external',
   'comments',
   'posts',
