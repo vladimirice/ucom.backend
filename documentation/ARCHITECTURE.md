@@ -170,3 +170,38 @@ Beforehand - `debt` and `income` accounts must be created.
 
 #### Transaction event flow - TODO
 A group of tables required to track all stages of transaction
+
+
+#### Requests
+
+------ Airdrop state --------
+
+--- Tokens which are reserved for airdrop
+SELECT income.current_balance, accounts_symbols.symbol FROM airdrops_tokens
+WHERE airdrop_id = ${airdropId}
+INNER JOIN accounts AS income
+ON airdrop_tokens.income_account_id = accounts.id
+INNER JOIN accounts_symbols
+ON accounts_symbols.id = airdrops_tokens.symbol_id
+
+-10000 'GF'
+-20000 'UOS'
+
+--- How to calc already distributed amounts
+SELECT
+    COUNT(wallet_account.current_balance) AS distributed_amount,
+    users_tokens.symbol_id AS symbol_id
+FROM
+    users_tokens
+INNER JOIN accounts AS wallet_account ON accounts.id = users_token.wallet_account_id
+WHERE airdrop_id = ${airdropId}
+GROUP BY users_tokens.symbol_id
+
+
+--- Airdrop participants:
+
+SELECT ${Preview fields set as for users_list} FROM Users
+WHERE id IN (
+    SELECT DISTINCT user_id FROM airdrops_users WHERE airdrop_id = 1 AND status = '${PENDING}'
+)
+
