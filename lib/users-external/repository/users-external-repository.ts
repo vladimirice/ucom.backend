@@ -1,9 +1,19 @@
+import { UserExternalModel } from '../interfaces/model-interfaces';
+
 import knex = require('../../../config/knex');
 import UsersExternalModelProvider = require('../service/users-external-model-provider');
+import RepositoryHelper = require('../../common/repository/repository-helper');
 
 const TABLE_NAME = UsersExternalModelProvider.usersExternalTableName();
 
 class UsersExternalRepository {
+  public static async setUserId(id: number, userId: number): Promise<void> {
+    await knex(TABLE_NAME)
+      .where('id', '=', id)
+      .update({ user_id: userId })
+    ;
+  }
+
   public static async upsertExternalUser(
     externalTypeId: number,
     externalId: number,
@@ -29,15 +39,52 @@ class UsersExternalRepository {
     return +res.rows[0].id;
   }
 
-  public static async findExternalUserByExternalId(id: number): Promise<any> {
+  public static async findExternalUserByExternalId(
+    id: number,
+  ): Promise<UserExternalModel | null> {
     const where = {
       external_id: id,
     };
 
-    return knex(TABLE_NAME)
+    const res = await  knex(TABLE_NAME)
       .where(where)
       .first()
     ;
+
+    if (!res) {
+      return null;
+    }
+
+    RepositoryHelper.convertStringFieldsToNumbers(res, this.getNumericalFields());
+
+    return res;
+  }
+
+  public static async findExternalUserByPkId(
+    id: number,
+  ): Promise<UserExternalModel | null> {
+    const where = {
+      id,
+    };
+
+    const res = await knex(TABLE_NAME)
+      .where(where)
+      .first()
+    ;
+
+    if (!res) {
+      return null;
+    }
+
+    RepositoryHelper.convertStringFieldsToNumbers(res, this.getNumericalFields());
+
+    return res;
+  }
+
+  private static getNumericalFields(): string[] {
+    return [
+      'id',
+    ];
   }
 }
 

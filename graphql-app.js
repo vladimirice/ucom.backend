@@ -1,13 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const errors_1 = require("./lib/api/errors");
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
 const OrganizationsFetchService = require("./lib/organizations/service/organizations-fetch-service");
 const TagsFetchService = require("./lib/tags/service/tags-fetch-service");
 const UsersFetchService = require("./lib/users/service/users-fetch-service");
-const GithubAuthService = require("./lib/github/service/github-auth-service");
 const UsersAirdropService = require("./lib/airdrops/service/users-airdrop-service");
 const cookieParser = require('cookie-parser');
 const express = require('express');
@@ -281,12 +279,7 @@ const resolvers = {
     Query: {
         // @ts-ignore
         async one_user_airdrop(parent, args, ctx) {
-            const token = ctx.req.cookies[GithubAuthService.getCookieName()];
-            if (!token) {
-                throw new errors_1.HttpUnauthorizedError('Github token should be provided via cookie');
-            }
-            const usersExternalId = AuthService.extractUsersExternalIdByTokenOrError(token);
-            return UsersAirdropService.getOneUserAirdrop(usersExternalId, args.filters);
+            return UsersAirdropService.getOneUserAirdrop(ctx.req, args.filters);
         },
         // @ts-ignore
         async many_blockchain_nodes(parent, args, ctx) {

@@ -3,7 +3,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import SeedsHelper = require('../helpers/seeds-helper');
-// @ts-ignore
+
 import GithubRequest = require('../../helpers/github-request');
 import UsersExternalRepository = require('../../../lib/users-external/repository/users-external-repository');
 import GithubSampleValues = require('../../helpers/github-sample-values');
@@ -15,7 +15,7 @@ import UsersExternalRequest = require('../../helpers/users-external-request');
 import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-creator-service');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 
-const {CommonHeaders} = require('ucom.libs.common').Common.Dictionary;
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 let userVlad: UserModel;
 
@@ -110,11 +110,11 @@ describe('Github airdrop auth', () => {
 
       expect(_.isEmpty(data)).toBeFalsy();
 
-      expect(data.external_login).toBe(vladSampleData.login);
-      expect(data.json_value).toEqual(vladSampleData);
-      expect(data.user_id).toBeNull();
+      expect(data!.external_login).toBe(vladSampleData.login);
+      expect(data!.json_value).toEqual(vladSampleData);
+      expect(data!.user_id).toBeNull();
 
-      const logData = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data.id);
+      const logData = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data!.id);
       expect(Array.isArray(logData)).toBeTruthy();
       expect(logData.length).toBe(1);
 
@@ -124,44 +124,22 @@ describe('Github airdrop auth', () => {
       // check upsert - should be updating of existing data
       await GithubRequest.sendSampleGithubCallback();
 
-      const logDataAfter = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data.id);
+      const logDataAfter = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data!.id);
       expect(Array.isArray(logDataAfter)).toBeTruthy();
       expect(logDataAfter.length).toBe(2);
     }, JEST_TIMEOUT);
 
     it('should receive secure cookie with valid token', async () => {
-      const expected = {
-        airdrop_id: airdropId,
-        user_id:  null, // null only if airdrop_status = new
-        github_score: 550.044,
-        airdrop_status: 1, // new
-        conditions: {
-          auth_github: true,
-          auth_myself: false,
-          following_devExchange: false,
-        },
-        tokens: [
-          {
-            amount_claim: 50025,
-            symbol: 'UOS',
-          },
-          {
-            amount_claim: 82678,
-            symbol: 'FN',
-          },
-        ],
-      };
-
       const res = await GithubRequest.sendSampleGithubCallback();
 
       expect(Array.isArray(res.headers['set-cookie'])).toBeTruthy();
       expect(res.headers['set-cookie'].length).toBe(1);
 
-      const tokenCookie = res.headers['set-cookie'][0].split(';')[0];
+      const githubTokenCookie = res.headers['set-cookie'][0].split(';')[0].split('=');
 
-      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, tokenCookie);
+      expect(githubTokenCookie[0]).toBe(CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB);
 
-      expect(oneUserAirdrop).toMatchObject(expected);
+      AuthService.extractUsersExternalIdByTokenOrError(githubTokenCookie[1]);
     }, JEST_TIMEOUT);
 
     it('get user state via github token', async () => {

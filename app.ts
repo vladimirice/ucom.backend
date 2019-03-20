@@ -1,3 +1,5 @@
+const API_V1_PREFIX = '/api/v1';
+
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -27,6 +29,8 @@ const StatsRouter = require('./lib/stats/router/stats-router');
 const GithubAuthRouter = require('./lib/github/router/github-auth-router');
 const GithubAuthMockRouter = require('./lib/github/router/github-auth-mock-router');
 const AirdropsUserRouter = require('./lib/airdrops/router/airdrops-user-router');
+
+const UsersExternalRouter = require('./lib/users-external/router/users-external-router');
 
 const app = express();
 
@@ -82,6 +86,7 @@ app.use('/api/v1/stats', StatsRouter);
 app.use('/api/v1/github', GithubAuthRouter);
 app.use('/github-auth-mock', GithubAuthMockRouter);
 app.use('/api/v1/airdrops', AirdropsUserRouter);
+app.use(`${API_V1_PREFIX}/users-external`, UsersExternalRouter);
 
 // V2 for post
 app.use('/api/v2/posts', postsV2Router);

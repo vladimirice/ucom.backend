@@ -689,7 +689,7 @@ describe('Organizations. Create-update requests', () => {
           .field('nickname',    'sample_nickname100500')
         ;
 
-        ResponseHelper.expectStatusForbidden(res);
+        expect(res.status).toBe(401);
       });
 
       it('should not be possible to change avatar filename without attaching a file', async () => {
