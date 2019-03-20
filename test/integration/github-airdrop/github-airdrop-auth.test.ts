@@ -65,23 +65,26 @@ describe('Github airdrop auth', () => {
 
   describe('Github airdrop creation', () => {
     it('create valid airdrop with related accounts', async () => {
-      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
+
+      const postId = postsIds[postsIds.length - 1];
+
       const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
       const tokens = [
         {
-          symbol_id: 1,
+          symbol_id: 2,
           amount: 300000,
         },
         {
-          symbol_id: 2,
+          symbol_id: 3,
           amount: 100000,
         },
       ];
 
       await AirdropCreatorService.createNewAirdrop(
         'github_airdrop',
-        postId,
+        postsIds[postsIds.length - 1],
         {
           auth_github: true,
           auth_myself: true,
@@ -89,6 +92,15 @@ describe('Github airdrop auth', () => {
         },
         tokens,
       );
+
+      // @ts-ignore
+      const res = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
+
+      // @ts-ignore
+      const a = 0;
+
+      // TODO - fetch current airdrop state and receive desired amounts
+
       // TODO - check all workflow by autotests
     }, JEST_TIMEOUT * 100);
   });
@@ -99,7 +111,7 @@ describe('Github airdrop auth', () => {
       const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
 
       // @ts-ignore
-      const res = await GraphqlHelper.getGithubAirdropPostWithoutUser(postsIds[postsIds.length - 1]);
+      const res = await GraphqlHelper.getOnePostOfferWithoutUser(postsIds[postsIds.length - 1]);
     }, JEST_TIMEOUT * 100);
 
     it('Github callback endpoint', async () => {

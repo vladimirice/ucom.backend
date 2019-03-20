@@ -20,7 +20,7 @@ import OrganizationsFetchService = require('../../organizations/service/organiza
 import UsersFetchService = require('../../users/service/users-fetch-service');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 import PostsModelProvider = require('./posts-model-provider');
-import EnvHelper = require('../../common/helper/env-helper');
+import AirdropsFetchRepository = require('../../airdrops/repository/airdrops-fetch-repository');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -83,6 +83,7 @@ class PostsFetchService {
     postId: number,
     currentUserId: number | null,
     commentsQuery: RequestQueryComments,
+    tryAirdropOffer = false, // #task - hardcoded condition - only for single existing airdrop
   ): Promise<PostModelResponse | null> {
     const post = await PostsRepository.findOneByIdV2(postId, true);
 
@@ -123,30 +124,27 @@ class PostsFetchService {
       commentsQuery,
     );
 
-    await this.addDataForGithubAirdropOffer(post);
+    if (tryAirdropOffer) {
+      await this.addDataForGithubAirdropOffer(post);
+    }
 
     return post;
   }
 
-  private static async addDataForGithubAirdropOffer(post) {
-    // TODO - move to db property - airdrop tables
-    if (EnvHelper.isTestEnv()) {
-      if (post.id !== 100) {
-        return;
-      }
-      this.setSamplePostOfferData(post);
-      return;
-    }
-
-    if (EnvHelper.isStagingEnv()) {
-      if (post.id === 14317) {
-        this.setSamplePostOfferData(post);
-      }
-    }
-  }
-
   // TODO - sample data for providing interface to frontend
-  private static setSamplePostOfferData(post) {
+  private static async addDataForGithubAirdropOffer(post) {
+    const state = await AirdropsFetchRepository.getAirdropStateByPostId(post.id);
+
+    const tokens: any[] = [];
+
+    state.tokens.forEach((item) => {
+      tokens.push({
+        amount_claim: item.amount_claim / (10 ** item.precision),
+        amount_left: (item.amount_claim - 50000) / (10 ** item.precision), // TODO - for frontend interface
+        symbol: item.symbol,
+      });
+    });
+
     post.started_at = '2019-04-01T14:51:35Z';
     post.finished_at = '2019-05-30T14:51:35Z';
     post.post_offer_type_id = 1;
@@ -187,20 +185,10 @@ class PostsFetchService {
         has_more: true,
       },
     };
+
     post.offer_data = {
-      airdrop_id: 1,
-      tokens: [
-        {
-          amount_claim: 100456.1425,
-          amount_left: 98456.1734,
-          symbol: 'UOS',
-        },
-        {
-          amount_claim: 512456.432,
-          amount_left: 214456.4322,
-          symbol: 'FN',
-        },
-      ],
+      airdrop_id: state.airdropId,
+      tokens,
     };
   }
 

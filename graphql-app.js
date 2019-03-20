@@ -387,7 +387,7 @@ const resolvers = {
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const commentsQuery = args.comments_query;
             commentsQuery.depth = 0;
-            return PostsFetchService.findOnePostByIdAndProcessV2(args.id, currentUserId, commentsQuery);
+            return PostsFetchService.findOnePostByIdAndProcessV2(args.id, currentUserId, commentsQuery, true);
         },
         // @ts-ignore
         async one_post(parent, args, ctx) {

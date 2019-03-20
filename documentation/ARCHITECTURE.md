@@ -176,16 +176,6 @@ A group of tables required to track all stages of transaction
 
 ------ Airdrop state --------
 
---- Tokens which are reserved for airdrop
-SELECT income.current_balance, accounts_symbols.symbol FROM airdrops_tokens
-WHERE airdrop_id = ${airdropId}
-INNER JOIN accounts AS income
-ON airdrop_tokens.income_account_id = accounts.id
-INNER JOIN accounts_symbols
-ON accounts_symbols.id = airdrops_tokens.symbol_id
-
--10000 'GF'
--20000 'UOS'
 
 --- How to calc already distributed amounts
 SELECT
