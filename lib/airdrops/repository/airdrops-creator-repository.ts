@@ -9,6 +9,8 @@ class AirdropsCreatorRepository {
     title: string,
     postId: number,
     conditions: any,
+    startedAt: string,
+    finishedAt: string,
     trx: Transaction,
   ): Promise<number> {
     const res = await trx(AIRDROPS_TABLE_NAME).insert({
@@ -16,6 +18,8 @@ class AirdropsCreatorRepository {
       status: AirdropStatuses.NEW,
       post_id: postId,
       conditions: JSON.stringify(conditions),
+      started_at: startedAt,
+      finished_at: finishedAt,
     }).returning(['id']);
 
     return +res[0].id;

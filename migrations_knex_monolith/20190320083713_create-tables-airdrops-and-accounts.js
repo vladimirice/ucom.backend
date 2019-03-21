@@ -70,6 +70,9 @@ exports.up = (knex) => {
                               
         created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,       
         updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,       
+
+        started_at       TIMESTAMP WITH TIME ZONE NOT NULL,       
+        finished_at      TIMESTAMP WITH TIME ZONE NOT NULL,       
         
         title           VARCHAR(255) NOT NULL CHECK(char_length(title) > 0),
         status          SMALLINT NOT NULL CHECK (status > 0),

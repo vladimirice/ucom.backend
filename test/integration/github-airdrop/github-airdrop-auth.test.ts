@@ -82,24 +82,46 @@ describe('Github airdrop auth', () => {
         },
       ];
 
-      await AirdropCreatorService.createNewAirdrop(
-        'github_airdrop',
-        postsIds[postsIds.length - 1],
+      const expectedTokens = [
         {
-          auth_github: true,
-          auth_myself: true,
-          community_id_to_follow: orgId,
+          symbol: 'UOSTEST',
+          amount_claim: 30,
+          amount_left: 25,
         },
+        {
+          symbol: 'UOSGHAIRTEST',
+          amount_claim: 10,
+          amount_left: 5,
+        },
+      ];
+
+      const title = 'github_airdrop';
+      const conditions = {
+        auth_github: true,
+        auth_myself: true,
+        community_id_to_follow: orgId,
+      };
+
+      const startedAt = '2019-04-01T14:51:35Z';
+      const finishedAt = '2019-05-30T14:51:35Z';
+
+      await AirdropCreatorService.createNewAirdrop(
+        title,
+        postId,
+        conditions,
+        startedAt,
+        finishedAt,
         tokens,
       );
 
-      // @ts-ignore
-      const res = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
+      const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
 
-      // @ts-ignore
-      const a = 0;
+      expect(postOffer.offer_data).toBeDefined();
+      expect(postOffer.offer_data.airdrop_id).toBeGreaterThan(0);
+      expect(postOffer.offer_data.tokens).toMatchObject(expectedTokens);
 
-      // TODO - fetch current airdrop state and receive desired amounts
+      expect(postOffer.started_at).toBe(startedAt);
+      expect(postOffer.finished_at).toBe(finishedAt);
 
       // TODO - check all workflow by autotests
     }, JEST_TIMEOUT * 100);

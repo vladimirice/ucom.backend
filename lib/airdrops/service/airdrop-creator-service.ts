@@ -28,11 +28,21 @@ class AirdropCreatorService {
     title: string,
     postId: number,
     conditions: any,
+    startedAt: string,
+    finishedAt: string,
+
     tokens: TokensToClaim[],
   ) {
     await knex.transaction(async (trx) => {
       const airdropId: number =
-        await AirdropsCreatorRepository.createNewAirdrop(title, postId, conditions, trx);
+        await AirdropsCreatorRepository.createNewAirdrop(
+          title,
+          postId,
+          conditions,
+          startedAt,
+          finishedAt,
+          trx,
+        );
 
       for (const token of tokens) {
         await this.createAccountsAndTrxForToken(token, airdropId, trx);
