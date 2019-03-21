@@ -12,7 +12,8 @@ import OrganizationsHelper = require('../helpers/organizations-helper');
 import PostsHelper = require('../helpers/posts-helper');
 import CommonHelper = require('../helpers/common-helper');
 import PostsOfferChecker = require('../../helpers/posts-offer-checker');
-import AirdropGenerator = require('../../generators/airdrop/airdrop-generator');
+import AirdropsGenerator = require('../../generators/airdrops/airdrops-generator');
+import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-users-generator');
 
 let userVlad: UserModel;
 
@@ -38,7 +39,7 @@ describe('Airdrops', () => {
     it('create valid airdrop with related accounts', async () => {
       const {
         airdropId, postId, startedAt, finishedAt, expectedTokens,
-      } = await AirdropGenerator.createNewAirdrop(userVlad);
+      } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
 
@@ -57,7 +58,7 @@ describe('Airdrops', () => {
 
   describe('Get airdrop', () => {
     it('get both post offer data and airdrop state via github token', async () => {
-      const {postId, airdropId} = await AirdropGenerator.createNewAirdrop(userVlad);
+      const {postId, airdropId} = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const githubToken = AuthService.getNewGithubAuthToken(1, 20);
 
@@ -75,7 +76,7 @@ describe('Airdrops', () => {
     });
 
     it('get both post offer data and airdrop state via auth token', async () => {
-      const {postId, airdropId} = await AirdropGenerator.createNewAirdrop(userVlad);
+      const {postId, airdropId} = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const headers = RequestHelper.getAuthBearerHeader(<string>userVlad.token);
       const res = await GraphqlHelper.getOnePostOfferWithUserAirdrop(
@@ -93,7 +94,7 @@ describe('Airdrops', () => {
 
   describe('User himself state', () => {
     it('get user airdrop conditions and modify them step by step', async () => {
-      const {airdropId, orgId} = await AirdropGenerator.createNewAirdrop(userVlad);
+      const {airdropId, orgId} = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken();
 
@@ -112,7 +113,7 @@ describe('Airdrops', () => {
       };
 
       expect(userAirdropWithGithub).toMatchObject(
-        AirdropGenerator.getExpectedUserAirdrop(conditions),
+        AirdropsGenerator.getExpectedUserAirdrop(conditions),
       );
 
       RequestHelper.addAuthBearerHeader(headers, <string>userVlad.token);
@@ -127,7 +128,7 @@ describe('Airdrops', () => {
       };
 
       expect(userAirdropWithAllAuth).toMatchObject(
-        AirdropGenerator.getExpectedUserAirdrop(conditionsAllAuth, userVlad.id),
+        AirdropsGenerator.getExpectedUserAirdrop(conditionsAllAuth, userVlad.id),
       );
 
       // make pairing and check again
@@ -143,7 +144,7 @@ describe('Airdrops', () => {
       };
 
       expect(userAirdropWithPairing).toMatchObject(
-        AirdropGenerator.getExpectedUserAirdrop(conditionsAllAuthAndPairing, userVlad.id),
+        AirdropsGenerator.getExpectedUserAirdrop(conditionsAllAuthAndPairing, userVlad.id),
       );
 
       // Lets follow required community and expect following condition = true
@@ -158,7 +159,7 @@ describe('Airdrops', () => {
       };
 
       expect(userAirdropWithAllTrue).toMatchObject(
-        AirdropGenerator.getExpectedUserAirdrop(conditionsAllTrue, userVlad.id),
+        AirdropsGenerator.getExpectedUserAirdrop(conditionsAllTrue, userVlad.id),
       );
 
       // Lets UNfollow required community and expect following condition = true
@@ -166,23 +167,32 @@ describe('Airdrops', () => {
       const userAirdropWithUnfollowedOrg = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
 
       expect(userAirdropWithUnfollowedOrg).toMatchObject(
-        AirdropGenerator.getExpectedUserAirdrop(conditionsAllAuthAndPairing, userVlad.id),
+        AirdropsGenerator.getExpectedUserAirdrop(conditionsAllAuthAndPairing, userVlad.id),
       );
     }, JEST_TIMEOUT);
 
     it('get user state via github token', async () => {
-      const {airdropId} = await AirdropGenerator.createNewAirdrop(userVlad);
+      const {airdropId} = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+
+      const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(sampleToken);
+
+      // @ts-ignore
+      const sampleAirdropData =
+        await AirdropsUsersGenerator.createSampleUsersExternalData(usersExternalId, 100500);
 
       const headers = RequestHelper.getGithubAuthHeader(sampleToken);
       const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
 
       AirdropsUsersChecker.checkAirdropsStructure(oneUserAirdrop);
+
+      // TODO
+      expect(oneUserAirdrop.tokens).toMatchObject(sampleAirdropData.tokens);
     });
 
     it('get user state via auth token', async () => {
-      const {airdropId} = await AirdropGenerator.createNewAirdrop(userVlad);
+      const {airdropId} = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const oneUserAirdrop = await GraphqlHelper.getOneUserAirdropViaAuthToken(userVlad, airdropId);
 

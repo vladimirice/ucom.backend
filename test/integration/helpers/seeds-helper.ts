@@ -54,6 +54,8 @@ const minorTables = [
   entityModelProvider.getNotificationsTableName(),
   usersRepositories.UsersTeam.getModelName(),
 
+  'airdrops_users_external_data',
+
   'accounts_transactions_parts',
 
   'airdrops_tokens',

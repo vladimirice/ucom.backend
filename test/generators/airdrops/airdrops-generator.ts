@@ -5,7 +5,7 @@ import PostsGenerator = require('../posts-generator');
 import OrganizationsGenerator = require('../organizations-generator');
 import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-creator-service');
 
-class AirdropGenerator {
+class AirdropsGenerator {
   public static getExpectedUserAirdrop(
     conditions: any,
     userId: number | null = null,
@@ -88,4 +88,4 @@ class AirdropGenerator {
   }
 }
 
-export = AirdropGenerator;
+export = AirdropsGenerator;
