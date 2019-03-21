@@ -17,6 +17,28 @@ const extractJWT = passportJWT.ExtractJwt;
 const { AppError } = require('../api/errors');
 
 class AuthService {
+  public static getIdsFromAuthTokens(
+    req,
+  ): { currentUserId: number | null, usersExternalId: number | null } {
+    const res: any = {
+      currentUserId: null,
+      usersExternalId: null,
+    };
+
+    const githubToken = req.headers[CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB];
+    const currentUserId: number | null = this.extractCurrentUserByToken(req);
+
+    if (currentUserId) {
+      res.currentUserId = currentUserId;
+    }
+
+    if (githubToken) {
+      res.usersExternalId = this.extractUsersExternalIdByTokenOrError(githubToken);
+    }
+
+    return res;
+  }
+
   public static getNewJwtToken(user): string {
     return jwt.sign(_.pick(user, ['id', 'account_name']), config.get('auth').jwt_secret_key);
   }

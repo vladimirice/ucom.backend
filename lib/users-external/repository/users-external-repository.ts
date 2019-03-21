@@ -3,6 +3,7 @@ import { UserExternalModel } from '../interfaces/model-interfaces';
 import knex = require('../../../config/knex');
 import UsersExternalModelProvider = require('../service/users-external-model-provider');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import ExternalTypeIdDictionary = require('../dictionary/external-type-id-dictionary');
 
 const TABLE_NAME = UsersExternalModelProvider.usersExternalTableName();
 
@@ -39,11 +40,12 @@ class UsersExternalRepository {
     return +res.rows[0].id;
   }
 
-  public static async findExternalUserByExternalId(
+  public static async findGithubUserExternalExternalId(
     id: number,
   ): Promise<UserExternalModel | null> {
     const where = {
       external_id: id,
+      external_type_id: ExternalTypeIdDictionary.github(),
     };
 
     const res = await  knex(TABLE_NAME)
@@ -60,11 +62,34 @@ class UsersExternalRepository {
     return res;
   }
 
-  public static async findExternalUserByPkId(
+  public static async findGithubUserExternalByPkId(
     id: number,
   ): Promise<UserExternalModel | null> {
     const where = {
       id,
+      external_type_id: ExternalTypeIdDictionary.github(),
+    };
+
+    const res = await knex(TABLE_NAME)
+      .where(where)
+      .first()
+    ;
+
+    if (!res) {
+      return null;
+    }
+
+    RepositoryHelper.convertStringFieldsToNumbers(res, this.getNumericalFields());
+
+    return res;
+  }
+
+  public static async findGithubUserExternalByUserId(
+    userId: number,
+  ): Promise<UserExternalModel | null> {
+    const where = {
+      user_id: userId,
+      external_type_id: ExternalTypeIdDictionary.github(),
     };
 
     const res = await knex(TABLE_NAME)

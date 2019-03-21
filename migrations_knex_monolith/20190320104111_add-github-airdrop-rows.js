@@ -4,7 +4,8 @@ exports.up = (knex) => {
       
       INSERT INTO accounts_symbols (id, title, precision) VALUES (1, 'UOS', 4);
       INSERT INTO accounts_symbols (id, title, precision) VALUES (2, 'UOSTEST', 4);
-      INSERT INTO accounts_symbols (id, title, precision) VALUES (3, 'UOSGHAIRTEST', 4);
+      INSERT INTO accounts_symbols (id, title, precision)
+      VALUES (3, 'GHTEST', 4);
   `;
 
   return knex.raw(sql);

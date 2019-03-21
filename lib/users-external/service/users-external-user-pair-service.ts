@@ -8,7 +8,7 @@ class UsersExternalUserPairService {
   public static async pair(req) {
     const { currentUserId, usersExternalId } = this.getIdsFromTokens(req);
     const externalUser: UserExternalModel | null =
-      await UsersExternalRepository.findExternalUserByPkId(usersExternalId);
+      await UsersExternalRepository.findGithubUserExternalByPkId(usersExternalId);
 
     if (externalUser === null) {
       throw new BadRequestError(

@@ -19,8 +19,6 @@ const { gql } = require('apollo-boost');
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
-const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
-
 const { app, server } = require('../../../graphql-app');
 
 const PORT = 4007;
@@ -745,7 +743,10 @@ export class GraphqlHelper {
     return response;
   }
 
-  public static async getOneUserAirdrop(airdropId: number, githubToken: string): Promise<any> {
+  public static async getOneUserAirdrop(
+    airdropId: number,
+    headers: any,
+  ): Promise<any> {
     const filter = {
       airdrop_id: airdropId,
     };
@@ -753,18 +754,13 @@ export class GraphqlHelper {
     const query = GraphQLSchema.getOneUserAirdrop(filter);
     const key: string = 'one_user_airdrop';
 
-    const headers = {
-      [CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB]: githubToken,
-    };
-
     return this.makeRequestWithHeaders(headers, query, key, false);
   }
 
   public static async getOnePostOfferWithUserAirdrop(
     airdropId: number,
     postId: number,
-    token: string,
-    isGithubToken: boolean = true,
+    headers: any,
   ): Promise<any> {
     const filter = {
       airdrop_id: airdropId,
@@ -772,14 +768,9 @@ export class GraphqlHelper {
 
     const query = GraphQLSchema.getOnePostOfferWithUserAirdrop(filter, postId);
 
-    const headerName = isGithubToken ? CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB : 'Authorization';
-
-    const headers = {
-      [headerName]: token,
-    };
-
     return this.makeRequestWithHeaders(headers, query);
   }
+
 
   public static async getOneUserAirdropViaAuthToken(myself: UserModel, airdropId: number): Promise<any> {
     const filter = {

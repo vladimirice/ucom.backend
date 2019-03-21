@@ -1,7 +1,7 @@
 interface OneUserAirdropDto  {
   airdrop_id: number,
   user_id: number | null, // null only if airdrop_status = new
-  github_score: number,
+  score: number,
   airdrop_status: number,
   conditions: OneUserAirdropConditions,
   tokens: OneUserAirdropToken[],

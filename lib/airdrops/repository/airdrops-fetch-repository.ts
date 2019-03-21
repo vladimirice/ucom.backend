@@ -15,6 +15,18 @@ class AirdropsFetchRepository {
     return this.getAirdropStateByTokensWhere(where);
   }
 
+  public static async getAirdropByPk(
+    id: number,
+  ) {
+    const where = {
+      id,
+    };
+
+    return knex(AirdropsModelProvider.airdropsTableName())
+      .where(where)
+      .first();
+  }
+
   private static async getAirdropStateByTokensWhere(
     where: any,
   ) {

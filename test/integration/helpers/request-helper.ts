@@ -30,6 +30,26 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getAuthBearerHeader(token: string): { Authorization: string } {
+    return {
+      Authorization: `Bearer ${token}`,
+    };
+  }
+
+  public static getGithubAuthHeader(token: string): any {
+    return {
+      [CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB]: token,
+    };
+  }
+
+  public static addGithubAuthHeader(headers: any, token: string): void {
+    headers[CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB] = token;
+  }
+
+  public static addAuthBearerHeader(headers: any, token: string): void {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   public static getRequestObj() {
     return request(server);
   }

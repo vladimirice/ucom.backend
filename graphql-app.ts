@@ -12,7 +12,7 @@ import OrganizationsFetchService = require('./lib/organizations/service/organiza
 import TagsFetchService = require('./lib/tags/service/tags-fetch-service');
 
 import UsersFetchService = require('./lib/users/service/users-fetch-service');
-import UsersAirdropService = require('./lib/airdrops/service/users-airdrop-service');
+import UsersAirdropService = require('./lib/airdrops/service/airdrop-users-service');
 
 const cookieParser = require('cookie-parser');
 const express = require('express');
