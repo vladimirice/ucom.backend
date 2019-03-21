@@ -26,11 +26,10 @@ const beforeAfterOptions = {
 
 const JEST_TIMEOUT = 10000;
 
-const airdropId = 1;
 
 function getExpectedUserAirdrop() {
   return {
-    airdrop_id: airdropId,
+    airdrop_id: 1,
     user_id: null, // null only if airdrop_status = new
     github_score: 550.044,
     airdrop_status: 1, // new
@@ -52,6 +51,52 @@ function getExpectedUserAirdrop() {
   };
 }
 
+async function createNewAirdrop() {
+  const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
+
+  const postId = postsIds[postsIds.length - 1];
+
+  const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+
+  const tokens = [
+    {
+      symbol_id: 2,
+      amount: 300000,
+    },
+    {
+      symbol_id: 3,
+      amount: 100000,
+    },
+  ];
+
+  const title = 'github_airdrop';
+  const conditions = {
+    auth_github: true,
+    auth_myself: true,
+    community_id_to_follow: orgId,
+  };
+
+  const startedAt = '2019-04-01T14:51:35Z';
+  const finishedAt = '2019-05-30T14:51:35Z';
+
+  // eslint-disable-next-line no-shadow
+  const {airdropId} = await AirdropCreatorService.createNewAirdrop(
+    title,
+    postId,
+    conditions,
+    startedAt,
+    finishedAt,
+    tokens,
+  );
+
+  return {
+    airdropId,
+    postId,
+    startedAt,
+    finishedAt,
+  };
+}
+
 describe('Github airdrop auth', () => {
   beforeAll(async () => {
     await SeedsHelper.beforeAllSetting(beforeAfterOptions);
@@ -65,55 +110,35 @@ describe('Github airdrop auth', () => {
 
   describe('Github airdrop creation', () => {
     it('create valid airdrop with related accounts', async () => {
-      const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
-
-      const postId = postsIds[postsIds.length - 1];
-
-      const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
-
-      const tokens = [
+      const expectedTokens = [
         {
-          symbol_id: 2,
-          amount: 300000,
+          symbol: 'UOSTEST',
+          amount_claim: 30,
+          amount_left: 25,
         },
         {
-          symbol_id: 3,
-          amount: 100000,
+          symbol: 'UOSGHAIRTEST',
+          amount_claim: 10,
+          amount_left: 5,
         },
       ];
 
-      await AirdropCreatorService.createNewAirdrop(
-        'github_airdrop',
-        postsIds[postsIds.length - 1],
-        {
-          auth_github: true,
-          auth_myself: true,
-          community_id_to_follow: orgId,
-        },
-        tokens,
-      );
+      const {
+        airdropId, postId, startedAt, finishedAt,
+      } = await createNewAirdrop();
 
-      // @ts-ignore
-      const res = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
+      const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
 
-      // @ts-ignore
-      const a = 0;
+      expect(postOffer.offer_data).toBeDefined();
+      expect(postOffer.offer_data.airdrop_id).toBe(airdropId);
+      expect(postOffer.offer_data.tokens).toMatchObject(expectedTokens);
 
-      // TODO - fetch current airdrop state and receive desired amounts
-
-      // TODO - check all workflow by autotests
+      expect(postOffer.started_at).toBe(startedAt);
+      expect(postOffer.finished_at).toBe(finishedAt);
     }, JEST_TIMEOUT * 100);
   });
 
   describe('Positive', () => {
-    it('Get custom post-offer', async () => {
-      // TODO - interface only
-      const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
-
-      // @ts-ignore
-      const res = await GraphqlHelper.getOnePostOfferWithoutUser(postsIds[postsIds.length - 1]);
-    }, JEST_TIMEOUT * 100);
-
     it('Github callback endpoint', async () => {
       await GithubRequest.sendSampleGithubCallback();
       const vladSampleData = GithubSampleValues.getVladSampleExternalData();
@@ -157,25 +182,25 @@ describe('Github airdrop auth', () => {
     it('get user state via github token', async () => {
       const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
 
-      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, sampleToken);
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(1, sampleToken);
 
       expect(oneUserAirdrop).toMatchObject(getExpectedUserAirdrop());
     });
 
     it('get user state via auth token', async () => {
-      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdropViaAuthToken(userVlad, airdropId);
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdropViaAuthToken(userVlad, 1);
 
       expect(oneUserAirdrop).toMatchObject(getExpectedUserAirdrop());
     });
 
     it('get both post offer data and airdrop state', async () => {
-      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
+      const {postId, airdropId} = await createNewAirdrop();
 
-      const postsIds = await PostsGenerator.createManyDefaultMediaPostsByUserHimself(userVlad, 100);
+      const sampleToken = AuthService.getNewGithubAuthToken(1, 20);
 
       const res = await GraphqlHelper.getOnePostOfferWithUserAirdrop(
         airdropId,
-        postsIds[postsIds.length - 1],
+        postId,
         sampleToken,
       );
 
