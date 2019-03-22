@@ -2,7 +2,7 @@ import { Transaction } from 'knex';
 
 const AIRDROPS_TABLE_NAME = 'airdrops';
 
-const {AirdropStatuses} = require('ucom.libs.common').Airdrop.Dictionary;
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 class AirdropsCreatorRepository {
   public static async createNewAirdrop(

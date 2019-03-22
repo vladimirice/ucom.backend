@@ -53,7 +53,7 @@ class AirdropsUsersExternalDataService {
   ): Promise<any> {
     const jsonData = await this.getSampleUsersExternalData(airdropId, usersExternalId, githubUserId);
 
-    await AirdropsUsersExternalDataRepository.insertOneData(usersExternalId, jsonData);
+    await AirdropsUsersExternalDataRepository.insertOneData(airdropId, usersExternalId, jsonData);
 
     return jsonData;
   }
@@ -85,11 +85,11 @@ class AirdropsUsersExternalDataService {
       score: 147399 + scoreArg,
       tokens: [
         {
-          amount_claim: 50 + tokenArg,
+          amount_claim: +(50 + tokenArg).toFixed(4),
           symbol: 'UOSTEST',
         },
         {
-          amount_claim: 33.3333 + tokenArg,
+          amount_claim: +(50 + tokenArg).toFixed(4),
           symbol: 'GHTEST',
         },
       ],

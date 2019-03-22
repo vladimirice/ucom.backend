@@ -1,34 +1,48 @@
 import { BadRequestError } from '../../api/errors';
 
+const express = require('express');
+
+const { formDataParser } = require('../../api/middleware/form-data-parser-middleware');
+
 import EnvHelper = require('../../common/helper/env-helper');
 import GithubSampleValues = require('../../../test/helpers/github-sample-values');
-
-const express = require('express');
 
 const GithubAuthMockRouter = express.Router();
 
 require('express-async-errors');
 
-// @ts-ignore
-GithubAuthMockRouter.post('/login/oauth/access_token', async (req, res) => {
+GithubAuthMockRouter.post('/login/oauth/access_token', [formDataParser], async (req, res) => {
   if (EnvHelper.isNotTestEnv()) {
     throw new BadRequestError('Not found', 404);
   }
 
+  const { code } = req.body;
+  if (!code) {
+    throw new BadRequestError(`There is no code inside request. Body is: ${JSON.stringify(req.body)}`, 404);
+  }
+
+  const accessToken = GithubSampleValues.getAccessTokenForCode(code);
+
   res.send({
-    access_token: 'cb259e0f9ea2b0dc02323e74d3b6667e8ce6868e',
+    access_token: accessToken,
     token_type: 'bearer',
     scope: '',
   });
 });
 
-// @ts-ignore
 GithubAuthMockRouter.get('/user', async (req, res) => {
   if (EnvHelper.isNotTestEnv()) {
     throw new BadRequestError('Not found', 404);
   }
 
-  const result = GithubSampleValues.getVladSampleExternalData();
+  const accessToken = req.query.access_token;
+  if (!accessToken) {
+    throw new BadRequestError(
+      `There is no access_token in query string. Query string is: ${JSON.stringify(req.query)}`,
+    );
+  }
+
+  const result = GithubSampleValues.getSampleExternalData(accessToken);
 
   res.send(result);
 });

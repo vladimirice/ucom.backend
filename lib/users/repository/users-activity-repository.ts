@@ -743,7 +743,6 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
     const orgEntityName = orgModelProvider.getEntityName();
     const orgActivityGroupId = activityGroupDictionary.getGroupContentInteraction();
 
-    // @ts-ignore
     const data = await knex(activityTableName)
       .select('activity_type_id')
       .where({

@@ -95,6 +95,28 @@ describe('Airdrops create-get', () => {
   });
 
   describe('User himself state', () => {
+    it('Auth conditions are true after pairing but without github token', async () => {
+      const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+
+      const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+      const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(githubToken);
+
+      const headers = RequestHelper.getAuthBearerHeader(<string>userVlad.token);
+
+      await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, githubToken);
+      const response = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
+
+      const conditions = {
+        auth_github: true,
+        auth_myself: true,
+        following_devExchange: false,
+      };
+
+      expect(response).toMatchObject(
+        AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditions, userVlad.id),
+      );
+    });
+
     it('get user airdrop conditions and modify them step by step', async () => {
       const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 

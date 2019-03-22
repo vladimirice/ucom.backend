@@ -166,11 +166,11 @@ class AirdropUsersService {
 
     if (currentUserDto.userExternal) {
       conditions.auth_github = true;
+    }
 
-      if (currentUserDto.currentUser) {
-        const userExternal = await UsersExternalRepository.findGithubUserExternalByUserId(currentUserDto.currentUser.id);
-        conditions.auth_github = userExternal !== null;
-      }
+    if (currentUserDto.currentUser) {
+      const userExternal = await UsersExternalRepository.findGithubUserExternalByUserId(currentUserDto.currentUser.id);
+      conditions.auth_github = userExternal !== null;
     }
 
     if (currentUserDto.currentUser) {

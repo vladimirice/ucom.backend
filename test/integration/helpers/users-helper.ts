@@ -390,6 +390,7 @@ class UsersHelper {
       ...vladSeed,
       ...vladDbData,
       token,
+      github_code: 'github_code_vlad',
     };
   }
 
@@ -491,6 +492,7 @@ class UsersHelper {
       ...seed,
       ...data,
       token,
+      github_code: 'github_code_jane',
     };
   }
 
