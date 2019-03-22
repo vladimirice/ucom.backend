@@ -6,41 +6,21 @@ import OrganizationsGenerator = require('../organizations-generator');
 import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-creator-service');
 
 class AirdropsGenerator {
-  public static getExpectedUserAirdrop(
-    conditions: any,
-    userId: number | null = null,
-  ) {
-    return {
-      airdrop_id: 1,
-      user_id: userId,
-      score: 550.044,
-      airdrop_status: 1, // new
-      conditions,
-      tokens: [
-        {
-          amount_claim: 50025,
-          symbol: 'UOSTEST',
-        },
-        {
-          amount_claim: 82678,
-          symbol: 'GHTEST',
-        },
-      ],
-    };
-  }
-
   public static async createNewAirdrop(postAuthor: UserModel) {
     const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(postAuthor);
     const postId = await PostsGenerator.createMediaPostOfOrganization(postAuthor, orgId);
 
+    const firstSymbolAmount = 1000000 * (10 ** 4);
+    const secondSymbolAmount = 2000000 * (10 ** 4);
+
     const tokens = [
       {
         symbol_id: 2,
-        amount: 300000,
+        amount: firstSymbolAmount,
       },
       {
         symbol_id: 3,
-        amount: 100000,
+        amount: secondSymbolAmount,
       },
     ];
 
@@ -54,7 +34,7 @@ class AirdropsGenerator {
     const startedAt = '2019-04-01T14:51:35Z';
     const finishedAt = '2019-05-30T14:51:35Z';
 
-    const {airdropId} = await AirdropCreatorService.createNewAirdrop(
+    const { airdropId } = await AirdropCreatorService.createNewAirdrop(
       title,
       postId,
       conditions,
@@ -66,13 +46,13 @@ class AirdropsGenerator {
     const expectedTokens = [
       {
         symbol: 'UOSTEST',
-        amount_claim: 30,
-        amount_left: 25,
+        amount_claim: firstSymbolAmount / (10 ** 4),
+        amount_left: (firstSymbolAmount - 50000000) / (10 ** 4),
       },
       {
         symbol: 'GHTEST',
-        amount_claim: 10,
-        amount_left: 5,
+        amount_claim: secondSymbolAmount / (10 ** 4),
+        amount_left: (secondSymbolAmount - 50000000) / (10 ** 4),
       },
     ];
 

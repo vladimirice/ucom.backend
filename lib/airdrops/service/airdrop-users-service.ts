@@ -1,17 +1,21 @@
 import { OneUserAirdropDto, OneUserAirdropFilter } from '../interfaces/dto-interfaces';
+import { AppError, BadRequestError } from '../../api/errors';
+import { CurrentUserDataDto, IdsFromTokensDto } from '../../auth/interfaces/auth-interfaces-dto';
 
 import AuthService = require('../../auth/authService');
 import UsersExternalRepository = require('../../users-external/repository/users-external-repository');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import AirdropsFetchRepository = require('../repository/airdrops-fetch-repository');
-import { BadRequestError } from '../../api/errors';
+import AirdropsUsersExternalDataService = require('./airdrops-users-external-data-service');
+
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 class AirdropUsersService {
   public static async getOneUserAirdrop(
     req: any,
     filters: OneUserAirdropFilter,
   ): Promise<OneUserAirdropDto> {
-    const idsFromTokens = AuthService.getIdsFromAuthTokens(req);
+    const currentUserDto: CurrentUserDataDto = await this.getCurrentUserDto(req);
 
     const airdrop = await AirdropsFetchRepository.getAirdropByPk(filters.airdrop_id);
 
@@ -19,68 +23,159 @@ class AirdropUsersService {
       throw new BadRequestError(`There is no airdrop with ID: ${filters.airdrop_id}`, 404);
     }
 
-    const airdropData = await this.getUserAirdropData(idsFromTokens);
-    const conditions = await this.getConditions(idsFromTokens, +airdrop.conditions.community_id_to_follow);
+    const airdropData = await this.getUserAirdropData(currentUserDto, filters.airdrop_id);
+    const conditions = await this.getConditions(currentUserDto, +airdrop.conditions.community_id_to_follow);
 
     return {
       airdrop_id: filters.airdrop_id,
-      user_id: idsFromTokens.currentUserId,
+      user_id: currentUserDto.currentUser ? currentUserDto.currentUser.id : null,
       conditions,
       ...airdropData,
     };
   }
 
-  // TODO - fetch from user airdrops
-  private static async getUserAirdropData(idsFromTokens) {
-    const data = {
-      score: 0,
-      airdrop_status: 1,
-      tokens: [
-        {
-          amount_claim: 0,
-          symbol: 'UOSTEST',
-        },
-        {
-          amount_claim: 0,
-          symbol: 'GHTEST',
-        },
-      ],
+  private static async getCurrentUserDto(
+    req: any,
+  ): Promise<CurrentUserDataDto> {
+    const idsFromTokens: IdsFromTokensDto = AuthService.getIdsFromAuthTokens(req);
+
+    const res: CurrentUserDataDto = {
+      currentUser: null,
+      userExternal: null,
     };
 
-    if (idsFromTokens.currentUserId === null && idsFromTokens.usersExternalId === null) {
+    if (idsFromTokens.currentUserId) {
+      res.currentUser = {
+        id: idsFromTokens.currentUserId,
+      };
+    }
+
+    if (idsFromTokens.usersExternalId) {
+      const userExternal =
+        await UsersExternalRepository.findGithubUserExternalByPkId(idsFromTokens.usersExternalId);
+
+      if (!userExternal) {
+        throw new BadRequestError(
+          `Malformed userExternal ID inside token: ${idsFromTokens.usersExternalId}`,
+          400,
+        );
+      }
+
+      res.userExternal = {
+        id: idsFromTokens.usersExternalId,
+        external_id: userExternal.external_id,
+      };
+    }
+
+    return res;
+  }
+
+  private static async getUserAirdropData(
+    currentUserDto: CurrentUserDataDto,
+    airdropId: number,
+  ) {
+    const airdropState = await AirdropsFetchRepository.getAirdropStateById(airdropId);
+
+    const userTokens: any[] = [];
+    airdropState.tokens.forEach((item) => {
+      userTokens.push({
+        amount_claim: 0,
+        symbol: item.symbol,
+        precision: item.precision,
+      });
+    });
+
+    const data = {
+      score: 0,
+      airdrop_status: AirdropStatuses.NEW,
+      tokens: userTokens,
+    };
+
+    if (currentUserDto.currentUser === null && currentUserDto.userExternal === null) {
       return data;
     }
 
-    data.score = 550.044;
-    data.tokens[0].amount_claim = 50025;
-    data.tokens[1].amount_claim = 82678;
+    if (currentUserDto.userExternal) {
+      // If token exists then it is possible to fetch token distribution data
+      const externalData =
+        await AirdropsUsersExternalDataService.processForUsersExternalId(airdropId, currentUserDto.userExternal);
+
+      this.processWithExternalData(data, externalData, userTokens, airdropState);
+    } else if (currentUserDto.currentUser) {
+      const externalData =
+        await AirdropsUsersExternalDataService.processForCurrentUserId(airdropId, currentUserDto.currentUser);
+
+      if (externalData) {
+        this.processWithExternalData(data, externalData, userTokens, airdropState);
+      }
+
+      // else do nothing - zero tokens response
+    } else {
+      throw new AppError('Please check currentUsersDto conditions beforehand', 500);
+    }
 
     return data;
   }
 
-  private static async getConditions(idsFromTokens, orgIdToFollow: number) {
+  private static processWithExternalData(data, externalData, userTokens, airdropState): void {
+    this.checkTokensConsistency(userTokens, externalData.tokens);
+
+    data.score = externalData.score;
+    data.tokens = externalData.tokens;
+
+    data.tokens.forEach((token) => {
+      const stateToken = airdropState.tokens.find(airdropToken => airdropToken.symbol === token.symbol);
+
+      token.amount_claim /= (10 ** stateToken.precision);
+    });
+  }
+
+  private static checkTokensConsistency(airdropTokens, userTokens): void {
+    if (airdropTokens.length !== userTokens.length) {
+      throw new AppError(
+        `Airdrop tokens and userTokens have different length. Airdrop tokens: ${JSON.stringify(airdropTokens)}, userTokens: ${JSON.stringify(userTokens)}`,
+        500,
+      );
+    }
+
+    for (const expectedToken of airdropTokens) {
+      const userToken = userTokens.some(item => item.symbol === expectedToken.symbol);
+
+      if (!userToken) {
+        throw new AppError(
+          `There is no token of symbol ${expectedToken.symbol} in userTokens. Airdrop tokens: ${JSON.stringify(airdropTokens)}, userTokens: ${JSON.stringify(userTokens)}`,
+          500,
+        );
+      }
+    }
+  }
+
+  private static async getConditions(
+    currentUserDto: CurrentUserDataDto,
+    orgIdToFollow: number,
+  ) {
     const conditions = {
       auth_github: false,
       auth_myself: false,
       following_devExchange: false,
     };
 
-    if (idsFromTokens.currentUserId) {
+    if (currentUserDto.currentUser) {
       conditions.auth_myself = true;
     }
 
-    if (idsFromTokens.usersExternalId) {
+    if (currentUserDto.userExternal) {
       conditions.auth_github = true;
 
-      if (idsFromTokens.currentUserId) {
-        const userExternal = await UsersExternalRepository.findGithubUserExternalByUserId(idsFromTokens.currentUserId);
+      if (currentUserDto.currentUser) {
+        const userExternal = await UsersExternalRepository.findGithubUserExternalByUserId(currentUserDto.currentUser.id);
         conditions.auth_github = userExternal !== null;
       }
     }
 
-    if (idsFromTokens.currentUserId) {
+    if (currentUserDto.currentUser) {
       conditions.following_devExchange =
-        await UsersActivityRepository.doesUserFollowOrg(idsFromTokens.currentUserId, orgIdToFollow);
+        await UsersActivityRepository.doesUserFollowOrg(currentUserDto.currentUser.id, orgIdToFollow);
     }
 
     return conditions;

@@ -1,30 +1,23 @@
-import AirdropsUsersExternalDataRepository = require('../../../lib/airdrops/repository/airdrops-users-external-data-repository');
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
+
+import AirdropsUsersExternalDataService = require('../../../lib/airdrops/service/airdrops-users-external-data-service');
 
 class AirdropsUsersGenerator {
-  public static async createSampleUsersExternalData(
+  public static getExpectedUserAirdrop(
+    airdropId: number,
     usersExternalId: number,
-    githubUserId: number,
+    conditions: any,
+    userId: number | null = null,
   ) {
-    const jsonData = {
-      error: false,
-      airdrop_id: 1,
-      external_user_id: githubUserId,
-      score: 147399,
-      tokens: [
-        {
-          amount: 500000,
-          symbol: 'UOS',
-        },
-        {
-          amount: 333333,
-          symbol: 'FN',
-        },
-      ],
+    const commonData = AirdropsUsersExternalDataService.getUserAirdropCommonData(airdropId, usersExternalId, false);
+
+    return {
+      user_id: userId,
+      airdrop_status: AirdropStatuses.NEW,
+      conditions,
+
+      ...commonData,
     };
-
-    await AirdropsUsersExternalDataRepository.insertOneData(usersExternalId, jsonData);
-
-    return jsonData;
   }
 }
 

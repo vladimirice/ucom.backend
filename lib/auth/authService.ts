@@ -1,4 +1,5 @@
 import { BadRequestError, HttpUnauthorizedError } from '../api/errors';
+import { IdsFromTokensDto } from './interfaces/auth-interfaces-dto';
 
 import moment = require('moment');
 
@@ -19,7 +20,7 @@ const { AppError } = require('../api/errors');
 class AuthService {
   public static getIdsFromAuthTokens(
     req,
-  ): { currentUserId: number | null, usersExternalId: number | null } {
+  ): IdsFromTokensDto {
     const res: any = {
       currentUserId: null,
       usersExternalId: null,

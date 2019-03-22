@@ -1,16 +1,9 @@
 import { Transaction } from 'knex';
 
-import AccountsCreatorRepository = require('../accounts-creator-repository');
+import AccountsCreatorRepository = require('../repository/accounts-creator-repository');
 
 // @ts-ignore
 const ACCOUNTS = 'accounts';
-
-// @ts-ignore
-const AIRDROPS = 'airdrops';
-// @ts-ignore
-const AIRDROPS_TOKENS = 'airdrops_tokens';
-// @ts-ignore
-const AIRDROPS_USERS = 'airdrops_users';
 
 // @ts-ignore
 const ACCOUNTS_TRANSACTIONS_PARTS = 'accounts_transactions_parts';
@@ -46,7 +39,7 @@ class AccountsTransactionsCreatorService {
 
     // FROM - update
     await trx(ACCOUNTS)
-      .where({id: accountIdFrom})
+      .where({ id: accountIdFrom })
       .update({
         last_transaction_id: transactionId,
       })
@@ -55,7 +48,7 @@ class AccountsTransactionsCreatorService {
 
     // TO - update
     await trx(ACCOUNTS)
-      .where({id: accountIdTo})
+      .where({ id: accountIdTo })
       .update({
         last_transaction_id: transactionId,
       })

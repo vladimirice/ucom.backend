@@ -4,10 +4,25 @@ import knex = require('../../../config/knex');
 import UsersExternalModelProvider = require('../service/users-external-model-provider');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import ExternalTypeIdDictionary = require('../dictionary/external-type-id-dictionary');
+import AirdropsModelProvider = require('../../airdrops/service/airdrops-model-provider');
 
 const TABLE_NAME = UsersExternalModelProvider.usersExternalTableName();
 
+const airdropsUsersExternalData = AirdropsModelProvider.airdropsUsersExternalDataTableName();
+
 class UsersExternalRepository {
+  public static async getUserExternalWithExternalAirdropData(userId: number) {
+    return knex(TABLE_NAME)
+      .select([
+        `${TABLE_NAME}.id as primary_key`,
+        `${TABLE_NAME}.external_id as external_id`,
+        `${airdropsUsersExternalData}.json_data as json_data`,
+      ])
+      .leftJoin(airdropsUsersExternalData, `${TABLE_NAME}.id`, `${airdropsUsersExternalData}.users_external_id`)
+      .where(`${TABLE_NAME}.user_id`, '=', userId)
+      .first();
+  }
+
   public static async setUserId(id: number, userId: number): Promise<void> {
     await knex(TABLE_NAME)
       .where('id', '=', id)

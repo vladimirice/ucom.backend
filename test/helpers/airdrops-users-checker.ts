@@ -25,8 +25,19 @@ const githubAirdropGuestState = {
 };
 
 class AirdropsUsersChecker {
+  public static checkGithubAirdropState(actual: OneUserAirdropDto, expected): void {
+    expect(actual.airdrop_id).toBe(expected.airdrop_id);
+
+    expect(actual.score).toBe(expected.score);
+    expect(actual.tokens).toMatchObject(expected.tokens);
+  }
+
   public static checkGithubAirdropGuestState(actual: OneUserAirdropDto): void {
-    expect(actual).toMatchObject(githubAirdropGuestState);
+    expect(actual).toMatchObject(this.getGuestState());
+  }
+
+  public static checkGithubAirdropNoTokensState(actual: OneUserAirdropDto, userId: number): void {
+    expect(actual).toMatchObject(this.getNoTokensState(userId));
   }
 
   public static checkAirdropsStructure(actual): void {
@@ -51,6 +62,20 @@ class AirdropsUsersChecker {
 
     expect(Array.isArray(actual.tokens)).toBeTruthy();
     expect(actual.tokens.length).toBe(2);
+  }
+
+  private static getNoTokensState(userId: number) {
+    const data = _.cloneDeep(githubAirdropGuestState);
+
+    // @ts-ignore
+    data.user_id = userId;
+    data.conditions.auth_myself = true;
+
+    return data;
+  }
+
+  private static getGuestState() {
+    return githubAirdropGuestState;
   }
 }
 

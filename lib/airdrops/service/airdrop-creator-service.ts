@@ -1,4 +1,3 @@
-// @ts-ignore
 import { Transaction } from 'knex';
 
 import knex = require('../../../config/knex');
@@ -6,7 +5,7 @@ import AccountsTransactionsCreatorService = require('../../accounts/service/acco
 import AccountsCreatorService = require('../../accounts/service/accounts-creator-service');
 import AirdropsCreatorRepository = require('../repository/airdrops-creator-repository');
 
-const {AirdropStatuses} = require('ucom.libs.common').Airdrop.Dictionary;
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 // @ts-ignore
 const AIRDROPS_TOKENS = 'airdrops_tokens';
@@ -33,7 +32,7 @@ class AirdropCreatorService {
 
     tokens: TokensToClaim[],
   ) {
-    const {id: airdropId} = await knex.transaction(async (trx) => {
+    const { id: airdropId } = await knex.transaction(async (trx) => {
       const id =
         await AirdropsCreatorRepository.createNewAirdrop(
           title,
@@ -48,7 +47,7 @@ class AirdropCreatorService {
         await this.createAccountsAndTrxForToken(token, id, trx);
       }
 
-      return {id};
+      return { id };
     });
 
     return {

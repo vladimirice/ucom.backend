@@ -10,7 +10,7 @@ class AirdropFetchService {
     state.tokens.forEach((item) => {
       tokens.push({
         amount_claim: item.amount_claim / (10 ** item.precision),
-        amount_left: (item.amount_claim - 50000) / (10 ** item.precision), // #task - for frontend interface
+        amount_left: (item.amount_claim - 50000000) / (10 ** item.precision), // #task - for frontend interface
         symbol: item.symbol,
       });
     });
