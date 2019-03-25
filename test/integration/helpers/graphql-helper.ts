@@ -48,8 +48,24 @@ export class GraphqlHelper {
     return this.makeRequestAsMyself(myself, query, key, false);
   }
 
-  public static async getOnePostOfferWithoutUser(postId: number): Promise<any> {
-    const query: string = GraphQLSchema.getOnePostOffer(postId);
+  public static async getOnePostOfferWithoutUser(postId: number, airdropId: number): Promise<any> {
+    const usersTeamQuery = {
+      page: 1,
+      per_page: 10,
+      order_by: '-score',
+      filters: {
+        airdrops: {
+          id: airdropId,
+        },
+      },
+    };
+
+    const commentsQuery = {
+      page: 1,
+      per_page: 10,
+    };
+
+    const query: string = GraphQLSchema.getOnePostOffer(postId, commentsQuery, usersTeamQuery);
     const key: string = 'one_post_offer';
 
     return this.makeRequestAsGuest(query, key, false);
@@ -788,11 +804,26 @@ export class GraphqlHelper {
       airdrop_id: airdropId,
     };
 
-    const query = GraphQLSchema.getOnePostOfferWithUserAirdrop(filter, postId);
+    const usersTeamQuery = {
+      page: 1,
+      per_page: 10,
+      order_by: '-score',
+      filters: {
+        airdrops: {
+          id: airdropId,
+        },
+      },
+    };
+
+    const commentsQuery = {
+      page: 1,
+      per_page: 10,
+    };
+
+    const query = GraphQLSchema.getOnePostOfferWithUserAirdrop(filter, postId, commentsQuery, usersTeamQuery);
 
     return this.makeRequestWithHeaders(headers, query);
   }
-
 
   public static async getOneUserAirdropViaAuthToken(myself: UserModel, airdropId: number): Promise<any> {
     const filter = {

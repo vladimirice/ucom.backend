@@ -47,12 +47,12 @@ class AirdropsGenerator {
       {
         symbol: 'UOSTEST',
         amount_claim: firstSymbolAmount / (10 ** 4),
-        amount_left: (firstSymbolAmount - 50000000) / (10 ** 4),
+        amount_left: firstSymbolAmount / (10 ** 4),
       },
       {
         symbol: 'GHTEST',
         amount_claim: secondSymbolAmount / (10 ** 4),
-        amount_left: (secondSymbolAmount - 50000000) / (10 ** 4),
+        amount_left: secondSymbolAmount / (10 ** 4),
       },
     ];
 

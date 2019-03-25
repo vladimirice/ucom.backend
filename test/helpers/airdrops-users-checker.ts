@@ -46,7 +46,7 @@ class AirdropsUsersChecker {
     const userVladState = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userId, airdropId);
     expect(userVladState.length).toBe(2);
 
-    const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
+    const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId, airdropId);
     const manyAirdropDebts: AirdropDebtDto[] = await AirdropsTokensRepository.getAirdropsAccountDataById(airdropId);
 
     const titleToSymbolId = await AccountsSymbolsRepository.findAllAccountsSymbolsIndexedByTitle();

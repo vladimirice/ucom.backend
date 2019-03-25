@@ -77,8 +77,8 @@ class AirdropsUsersExternalDataService {
     usersExternalId: number,
     majorTokens: boolean,
   ) {
-    const scoreArg: number = (usersExternalId % 2 === 0 ? 100 : 55) * usersExternalId;
-    const tokenArg: number = (usersExternalId % 2 === 0 ? 10 : 5.5) * usersExternalId;
+    const scoreArg: number = 55 * usersExternalId;
+    const tokenArg: number = 5.5 * usersExternalId;
 
     const data = {
       airdrop_id: airdropId,

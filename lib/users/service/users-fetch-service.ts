@@ -63,7 +63,7 @@ class UsersFetchService {
 
   public static async findAllAirdropParticipants(
     query: UsersRequestQueryDto,
-    currentUserId,
+    currentUserId: number | null,
   ): Promise<UsersListResponse> {
     const repository          = usersRepository;
     const params: DbParamsDto = queryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
@@ -132,7 +132,7 @@ class UsersFetchService {
     promises: Promise<any>[],
     query: RequestQueryDto,
     params: DbParamsDto,
-    currentUserId,
+    currentUserId: number | null,
   ) {
     const [models, totalAmount] = await Promise.all(promises);
 

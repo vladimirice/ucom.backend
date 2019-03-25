@@ -46,7 +46,7 @@ const typeDefs = gql`
     feed_comments(commentable_id: Int!, page: Int!, per_page: Int!): comments!
     comments_on_comment(commentable_id: Int!, parent_id: Int!, parent_depth: Int!, page: Int!, per_page: Int!): comments!
     one_post(id: Int!, comments_query: comments_query!): Post
-    one_post_offer(id: Int!, comments_query: comments_query!): PostOffer!
+    one_post_offer(id: Int!, comments_query: comments_query!, users_team_query: users_team_query!): PostOffer!
     
     one_user_airdrop(filters: one_user_airdrop_state_filtering): JSON
     
@@ -264,6 +264,14 @@ const typeDefs = gql`
     page: Int!
     per_page: Int!
   }
+  
+  input users_team_query {
+    page: Int!
+    per_page: Int!
+    order_by: String!
+    
+    filters: users_filtering!
+  }
 
   input post_filtering {
     overview_type: String
@@ -369,6 +377,18 @@ const resolvers = {
 
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
+      /*
+      usersQuery
+
+      page
+      per_page
+      sort_by
+      filters: {
+        airdrop_id:
+      }
+
+       */
+
       if (usersQuery.airdrops) {
         return UsersFetchService.findAllAirdropParticipants(usersQuery, currentUserId);
       }
@@ -459,7 +479,14 @@ const resolvers = {
       const commentsQuery: RequestQueryComments = args.comments_query;
       commentsQuery.depth = 0;
 
-      return PostsFetchService.findOnePostByIdAndProcessV2(args.id, currentUserId, commentsQuery, true);
+      const usersTeamQuery: UsersRequestQueryDto = {
+        page: args.users_team_query.page,
+        per_page: args.users_team_query.per_page,
+        sort_by: args.users_team_query.order_by,
+        ...args.users_team_query.filters,
+      };
+
+      return PostsFetchService.findOnePostOfferWithAirdrop(args.id, currentUserId, commentsQuery, usersTeamQuery);
     },
     // @ts-ignore
     async one_post(parent, args, ctx): PostModelResponse {

@@ -93,7 +93,7 @@ describe('Airdrops create-get', () => {
       await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
       await AirdropsUsersToPendingService.process(airdropId);
 
-      const manyUsersFirstPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score', 1, 1);
+      const manyUsersFirstPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, 'score', 1, 1);
 
       expect(manyUsersFirstPage.data.length).toBe(1);
 
@@ -105,7 +105,7 @@ describe('Airdrops create-get', () => {
       expect(manyUsersFirstPage.metadata.page).toBe(1);
       expect(manyUsersFirstPage.metadata.per_page).toBe(1);
 
-      const manyUsersSecondPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score', 2, 1);
+      const manyUsersSecondPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, 'score', 2, 1);
 
       expect(manyUsersFirstPage.data.length).toBe(1);
 
@@ -128,8 +128,8 @@ describe('Airdrops create-get', () => {
       const manyUsersVladIsFirst =
         await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score');
 
-      expect(manyUsersVladIsFirst.data[0].account_name).toBe(userVlad.account_name);
-      expect(manyUsersVladIsFirst.data[1].account_name).toBe(userJane.account_name);
+      expect(manyUsersVladIsFirst.data[0].account_name).toBe(userJane.account_name);
+      expect(manyUsersVladIsFirst.data[1].account_name).toBe(userVlad.account_name);
 
       const manyUsersJaneIsFirst =
         await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, 'external_login');
@@ -151,7 +151,7 @@ describe('Airdrops create-get', () => {
         airdropId, postId, startedAt, finishedAt, expectedTokens,
       } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-      const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
+      const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId, airdropId);
 
       const options = CommonHelper.getOptionsForListAndGuest();
       PostsHelper.checkMediaPostFields(postOffer, options);
@@ -167,6 +167,54 @@ describe('Airdrops create-get', () => {
   });
 
   describe('Get airdrop', () => {
+    it('get only post offer itself with users_team data', async () => {
+      const { postId, airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+
+      const postOfferWithEmptyTeam = await GraphqlHelper.getOnePostOfferWithoutUser(
+        airdropId,
+        postId,
+      );
+
+      expect(postOfferWithEmptyTeam.users_team.data.length).toBe(0);
+
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
+      await AirdropsUsersToPendingService.process(airdropId);
+
+      const postOfferWithTeam = await GraphqlHelper.getOnePostOfferWithoutUser(
+        airdropId,
+        postId,
+      );
+
+      expect(postOfferWithTeam.users_team.data.length).toBe(2);
+    });
+
+    it('get both post offer data and airdrop state with users_team data', async () => {
+      const { postId, airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
+
+      const headers = RequestHelper.getGithubAuthHeader(githubToken);
+      const postOfferWithEmptyTeam = await GraphqlHelper.getOnePostOfferWithUserAirdrop(
+        airdropId,
+        postId,
+        headers,
+      );
+
+      expect(postOfferWithEmptyTeam.data.one_post_offer.users_team.data.length).toBe(0);
+
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
+      await AirdropsUsersToPendingService.process(airdropId);
+
+      const postOfferWithTeam = await GraphqlHelper.getOnePostOfferWithUserAirdrop(
+        airdropId,
+        postId,
+        headers,
+      );
+
+      expect(postOfferWithTeam.data.one_post_offer.users_team.data.length).toBe(2);
+    });
+
     it('get both post offer data and airdrop state via github token', async () => {
       const { postId, airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
