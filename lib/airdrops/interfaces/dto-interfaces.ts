@@ -22,7 +22,28 @@ interface OneUserAirdropToken {
   symbol: string;
 }
 
+interface FreshUserDto {
+  readonly user_id: number;
+  readonly json_data: any;
+  readonly users_external_id: number;
+}
+
+interface AirdropDebtDto {
+  readonly debt_account_id: number;
+  readonly symbol_id: number;
+  readonly symbol: string;
+  readonly current_balance: number;
+}
+
+interface TokensToClaim {
+  symbol_id: number,
+  amount: number,
+}
+
 export {
   OneUserAirdropDto,
   OneUserAirdropFilter,
+  FreshUserDto,
+  AirdropDebtDto,
+  TokensToClaim,
 };

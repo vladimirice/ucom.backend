@@ -7,7 +7,7 @@ const githubConfig = require('config').github;
 
 class GithubRequest {
   public static async sendSampleGithubCallbackAndGetToken(
-    code: string = 'vlad_code',
+    code: string,
   ): Promise<string> {
     const res = await GithubRequest.sendSampleGithubCallback(code);
 
@@ -19,7 +19,7 @@ class GithubRequest {
     return githubTokenCookie[1];
   }
 
-  public static async sendSampleGithubCallback(code: string = 'vlad_code') {
+  public static async sendSampleGithubCallback(code: string) {
     const url = this.getBackendCallbackUrl();
 
     const redirectLocation = 'https://u.community/users/?utm=fb';

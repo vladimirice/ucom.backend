@@ -89,7 +89,7 @@ class AirdropsUsersExternalDataService {
           symbol: 'UOSTEST',
         },
         {
-          amount_claim: +(50 + tokenArg).toFixed(4),
+          amount_claim: +(10 + tokenArg).toFixed(4),
           symbol: 'GHTEST',
         },
       ],

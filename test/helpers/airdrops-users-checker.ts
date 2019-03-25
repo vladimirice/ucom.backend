@@ -1,6 +1,13 @@
-import { OneUserAirdropDto } from '../../lib/airdrops/interfaces/dto-interfaces';
+import { AirdropDebtDto, OneUserAirdropDto } from '../../lib/airdrops/interfaces/dto-interfaces';
+import { GraphqlHelper } from '../integration/helpers/graphql-helper';
 
 import _ = require('lodash');
+import AirdropsTokensRepository = require('../../lib/airdrops/repository/airdrops-tokens-repository');
+import AccountsSymbolsRepository = require('../../lib/accounts/repository/accounts-symbols-repository');
+import AccountTypesDictionary = require('../../lib/accounts/dictionary/account-types-dictionary');
+import AirdropsUsersRepository = require('../../lib/airdrops/repository/airdrops-users-repository');
+
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 const githubAirdropGuestState = {
   airdrop_id: 1,
@@ -25,6 +32,71 @@ const githubAirdropGuestState = {
 };
 
 class AirdropsUsersChecker {
+  public static async checkThatNoUserTokens(airdropId: number, userId: number): Promise<void> {
+    const data = await AirdropsUsersRepository.getAllOfAirdropForOneUser(airdropId, userId);
+    expect(data.length).toBe(0);
+  }
+
+  public static async checkGithubAirdropToPendingState(
+    airdropId: number,
+    userId: number,
+    postId: number,
+    userAirdropData,
+  ) {
+    const userVladState = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userId, airdropId);
+    expect(userVladState.length).toBe(2);
+
+    const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId);
+    const manyAirdropDebts: AirdropDebtDto[] = await AirdropsTokensRepository.getAirdropsAccountDataById(airdropId);
+
+    const titleToSymbolId = await AccountsSymbolsRepository.findAllAccountsSymbolsIndexedByTitle();
+
+    const result: any = {};
+    for (const vladExpectedToken of userAirdropData.tokens) {
+      const expected = {
+        status: AirdropStatuses.PENDING,
+        reserved: {
+          account_type:       AccountTypesDictionary.reserved(),
+          current_balance:    `${vladExpectedToken.amount_claim * (10 ** 4)}`,
+          symbol_id:          titleToSymbolId[vladExpectedToken.symbol],
+          user_id:            userId,
+        },
+        waiting: {
+          account_type:       AccountTypesDictionary.waiting(),
+          current_balance:    '0',
+          symbol_id:          titleToSymbolId[vladExpectedToken.symbol],
+          user_id:            userId,
+          last_transaction_id: null,
+        },
+        wallet: {
+          account_type:       AccountTypesDictionary.wallet(),
+          current_balance:    '0',
+          symbol_id:          titleToSymbolId[vladExpectedToken.symbol],
+          user_id:            userId,
+          last_transaction_id: null,
+        },
+      };
+
+      const actual = userVladState.find(item => item.reserved_symbol_id === titleToSymbolId[vladExpectedToken.symbol]);
+      expect(_.isEmpty(actual)).toBeFalsy();
+      expect(actual.status).toBe(expected.status);
+
+      expect(actual.reserved).toMatchObject(expected.reserved);
+      expect(+actual.reserved.last_transaction_id).toBeGreaterThan(0);
+
+      const postOfferToken = postOffer.offer_data.tokens.find(item => item.symbol === vladExpectedToken.symbol);
+      expect(_.isEmpty(postOfferToken)).toBeFalsy();
+
+      const debt = manyAirdropDebts.find(item => item.symbol === postOfferToken.symbol);
+      expect(_.isEmpty(debt)).toBeFalsy();
+
+      expect(actual.waiting).toMatchObject(expected.waiting);
+      expect(actual.wallet).toMatchObject(expected.wallet);
+    }
+
+    return result;
+  }
+
   public static checkGithubAirdropState(actual: OneUserAirdropDto, expected): void {
     expect(actual.airdrop_id).toBe(expected.airdrop_id);
 

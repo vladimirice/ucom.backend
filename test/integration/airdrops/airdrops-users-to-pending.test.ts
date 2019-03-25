@@ -1,12 +1,11 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-// @ts-ignore
-import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import AirdropsGenerator = require('../../generators/airdrops/airdrops-generator');
-// @ts-ignore
-import RequestHelper = require('../helpers/request-helper');
 import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-users-generator');
+import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import AirdropsUsersChecker = require('../../helpers/airdrops-users-checker');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -16,7 +15,7 @@ const beforeAfterOptions = {
   workersMocking: 'all',
 };
 
-const JEST_TIMEOUT = 1000;
+const JEST_TIMEOUT = 5000;
 
 describe('Airdrops users to pending', () => {
   beforeAll(async () => {
@@ -30,39 +29,58 @@ describe('Airdrops users to pending', () => {
   });
 
   it('Process users one by one', async () => {
-    // @ts-ignore
-    const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+    const { airdropId, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-    await AirdropsUsersGenerator.fulfillAirdropCondition(userVlad, orgId, false);
-    await AirdropsUsersGenerator.fulfillAirdropCondition(userJane, orgId, false);
+    const userVladData =
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, false);
+    const userJaneData =
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, false);
 
-    // const headers = RequestHelper.getAuthBearerHeader(<string>userVlad.token);
+    await AirdropsUsersToPendingService.process(airdropId);
 
-    // @ts-ignore
-    // const userAirdropWithAllAuth = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
+    // Nothing - no records about tokens
+    await AirdropsUsersChecker.checkThatNoUserTokens(airdropId, userVlad.id);
+    await AirdropsUsersChecker.checkThatNoUserTokens(airdropId, userJane.id);
 
-    // @ts-ignore
-    // const a = 0;
+    // Process vlad
+    await OrganizationsHelper.requestToFollowOrganization(orgId, userVlad);
+    await AirdropsUsersToPendingService.process(airdropId);
 
-    /* TODO
-    * Create two users - upgrade `code` feature of autotests + add other user from github to imitate
-    * Try to process - result is nothing
-    * Prepare vlad to airdrop but not jane
-    * Try to process - only vlad should be processed
-    * Prepare jane also
-    * Try to process - no error, jane is also prepared to airdrop
-    * Try to process again, nothing new, no errors
-    */
-  }, JEST_TIMEOUT * 100);
+    // Vlad is processed but not Jane
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
+    await AirdropsUsersChecker.checkThatNoUserTokens(airdropId, userJane.id);
+
+    // Process Jane also
+    await OrganizationsHelper.requestToFollowOrganization(orgId, userJane);
+    await AirdropsUsersToPendingService.process(airdropId);
+
+    // No changes for Vlad
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
+    // New state for Jane
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
+
+    // Process again - should be no errors and no new states
+    await AirdropsUsersToPendingService.process(airdropId);
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
+  }, JEST_TIMEOUT);
 
   it('Process both users', async () => {
-    /*
-    * Create two users - upgrade `code` feature of autotests + add other user from github to imitate
-    * Try to process - result is nothing
-    * Prepare both vlad and jane to airdrop
-    * Try to process - both of them should be processed
-    * Try to process again - nothing new, no errors
-    */
+    const { airdropId, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+
+    const userVladData =
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
+    const userJaneData =
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, true);
+
+    await AirdropsUsersToPendingService.process(airdropId);
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
+
+    // Try to process again - nothing new, no errors
+    await AirdropsUsersToPendingService.process(airdropId);
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
+    await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
   }, JEST_TIMEOUT);
 });
 

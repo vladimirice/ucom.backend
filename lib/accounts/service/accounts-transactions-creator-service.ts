@@ -1,6 +1,8 @@
 import { Transaction } from 'knex';
+import { AppError } from '../../api/errors';
 
 import AccountsCreatorRepository = require('../repository/accounts-creator-repository');
+import AccountsRepository = require('../repository/accounts-repository');
 
 // @ts-ignore
 const ACCOUNTS = 'accounts';
@@ -14,9 +16,19 @@ class AccountsTransactionsCreatorService {
     accountIdTo: number,
     amount: number,
     trx: Transaction,
+    allowNegativeFrom: boolean = false,
     parentTrxId: number | null = null,
     jsonData: any = {},
   ) {
+    const areSymbolsEqual =
+      await AccountsRepository.areSymbolsEqual([accountIdFrom, accountIdTo], trx);
+    if (!areSymbolsEqual) {
+      throw new AppError(
+        `It is not possible to transfer between accounts of different symbols. Account Id from: ${accountIdFrom}, account ID to: ${accountIdTo}`,
+        500,
+      );
+    }
+
     const transactionId: number = await AccountsCreatorRepository.createNewTransaction(
       jsonData,
       parentTrxId,
@@ -38,12 +50,13 @@ class AccountsTransactionsCreatorService {
     });
 
     // FROM - update
-    await trx(ACCOUNTS)
+    const newBalanceFrom = await trx(ACCOUNTS)
       .where({ id: accountIdFrom })
       .update({
         last_transaction_id: transactionId,
       })
       .decrement('current_balance', amount)
+      .returning('current_balance')
     ;
 
     // TO - update
@@ -53,7 +66,12 @@ class AccountsTransactionsCreatorService {
         last_transaction_id: transactionId,
       })
       .increment('current_balance', amount)
+      .returning('current_balance')
     ;
+
+    if (!allowNegativeFrom && +newBalanceFrom < 0) {
+      throw new AppError(`Current balance of account from after transaction becomes negative. Account Id from: ${accountIdFrom}, account ID to: ${accountIdTo}`, 500);
+    }
   }
 }
 

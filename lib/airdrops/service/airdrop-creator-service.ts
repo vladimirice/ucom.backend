@@ -1,26 +1,11 @@
 import { Transaction } from 'knex';
+import { TokensToClaim } from '../interfaces/dto-interfaces';
 
 import knex = require('../../../config/knex');
 import AccountsTransactionsCreatorService = require('../../accounts/service/accounts-transactions-creator-service');
 import AccountsCreatorService = require('../../accounts/service/accounts-creator-service');
 import AirdropsCreatorRepository = require('../repository/airdrops-creator-repository');
-
-const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
-
-// @ts-ignore
-const AIRDROPS_TOKENS = 'airdrops_tokens';
-// @ts-ignore
-const AIRDROPS_USERS = 'airdrops_users';
-
-// @ts-ignore
-const ACCOUNTS_TRANSACTIONS_PARTS = 'accounts_transactions_parts';
-// @ts-ignore
-const ACCOUNTS_TRANSACTIONS = 'accounts_transactions';
-
-interface TokensToClaim {
-  symbol_id: number,
-  amount: number,
-}
+import AirdropsTokensRepository = require('../repository/airdrops-tokens-repository');
 
 class AirdropCreatorService {
   public static async createNewAirdrop(
@@ -70,14 +55,10 @@ class AirdropCreatorService {
       debtAccountId,
       token.amount,
       trx,
+      true,
     );
 
-    await trx(AIRDROPS_TOKENS).insert({
-      airdrop_id: airdropId,
-      income_account_id: incomeAccountId,
-      debt_account_id: debtAccountId,
-      status: AirdropStatuses.NEW,
-    });
+    await AirdropsTokensRepository.insertNewRecord(airdropId, incomeAccountId, debtAccountId, trx);
   }
 }
 

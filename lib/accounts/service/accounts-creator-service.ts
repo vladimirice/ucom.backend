@@ -5,6 +5,45 @@ import AccountTypesDictionary = require('../dictionary/account-types-dictionary'
 const ACCOUNTS_TABLE_NAME = 'accounts';
 
 class AccountsCreatorService {
+  public static async createNewReservedAccount(
+    symbolId: number,
+    userId: number,
+    trx: Transaction,
+  ): Promise<number> {
+    return this.createNewAccount(
+      AccountTypesDictionary.reserved(),
+      symbolId,
+      userId,
+      trx,
+    );
+  }
+
+  public static async createNewWaitingAccount(
+    symbolId: number,
+    userId: number,
+    trx: Transaction,
+  ): Promise<number> {
+    return this.createNewAccount(
+      AccountTypesDictionary.waiting(),
+      symbolId,
+      userId,
+      trx,
+    );
+  }
+
+  public static async createNewWalletAccount(
+    symbolId: number,
+    userId: number,
+    trx: Transaction,
+  ): Promise<number> {
+    return this.createNewAccount(
+      AccountTypesDictionary.wallet(),
+      symbolId,
+      userId,
+      trx,
+    );
+  }
+
   public static async createNewIncomeAccount(symbolId: number, trx: Transaction): Promise<number> {
     return this.createNewAccount(
       AccountTypesDictionary.income(),

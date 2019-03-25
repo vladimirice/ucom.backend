@@ -62,7 +62,7 @@ describe('Airdrops create-get', () => {
     it('get both post offer data and airdrop state via github token', async () => {
       const { postId, airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-      const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+      const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
 
       const headers = RequestHelper.getGithubAuthHeader(githubToken);
       const res = await GraphqlHelper.getOnePostOfferWithUserAirdrop(
@@ -98,7 +98,7 @@ describe('Airdrops create-get', () => {
     it('Auth conditions are true after pairing but without github token', async () => {
       const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-      const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+      const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(githubToken);
 
       const headers = RequestHelper.getAuthBearerHeader(<string>userVlad.token);
@@ -120,7 +120,7 @@ describe('Airdrops create-get', () => {
     it('get user airdrop conditions and modify them step by step', async () => {
       const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-      const githubToken: string = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+      const githubToken: string = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(githubToken);
 
       const headers = {};
@@ -199,7 +199,7 @@ describe('Airdrops create-get', () => {
     it('get user state via github token', async () => {
       const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-      const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+      const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(sampleToken);
 
       const sampleAirdropData = await AirdropsUsersExternalDataService.getSampleUsersExternalData(
@@ -236,7 +236,7 @@ describe('Airdrops create-get', () => {
     it('get user state WITH pairing via auth token', async () => {
       const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-      const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+      const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(githubToken);
 
       await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, githubToken);

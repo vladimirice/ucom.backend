@@ -7,6 +7,7 @@ import UsersExternalRepository = require('../../users-external/repository/users-
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import AirdropsFetchRepository = require('../repository/airdrops-fetch-repository');
 import AirdropsUsersExternalDataService = require('./airdrops-users-external-data-service');
+import AirdropUsersValidator = require('../validator/airdrop-users-validator');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
@@ -118,7 +119,7 @@ class AirdropUsersService {
   }
 
   private static processWithExternalData(data, externalData, userTokens, airdropState): void {
-    this.checkTokensConsistency(userTokens, externalData.tokens);
+    AirdropUsersValidator.checkTokensConsistency(userTokens, externalData.tokens);
 
     data.score = externalData.score;
     data.tokens = externalData.tokens;
@@ -130,25 +131,6 @@ class AirdropUsersService {
     });
   }
 
-  private static checkTokensConsistency(airdropTokens, userTokens): void {
-    if (airdropTokens.length !== userTokens.length) {
-      throw new AppError(
-        `Airdrop tokens and userTokens have different length. Airdrop tokens: ${JSON.stringify(airdropTokens)}, userTokens: ${JSON.stringify(userTokens)}`,
-        500,
-      );
-    }
-
-    for (const expectedToken of airdropTokens) {
-      const userToken = userTokens.some(item => item.symbol === expectedToken.symbol);
-
-      if (!userToken) {
-        throw new AppError(
-          `There is no token of symbol ${expectedToken.symbol} in userTokens. Airdrop tokens: ${JSON.stringify(airdropTokens)}, userTokens: ${JSON.stringify(userTokens)}`,
-          500,
-        );
-      }
-    }
-  }
 
   private static async getConditions(
     currentUserDto: CurrentUserDataDto,

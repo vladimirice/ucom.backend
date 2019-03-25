@@ -35,7 +35,7 @@ describe('Github airdrop auth', () => {
 
   describe('Positive', () => {
     it('Github callback endpoint', async () => {
-      await GithubRequest.sendSampleGithubCallback();
+      await GithubRequest.sendSampleGithubCallback(<string>userVlad.github_code);
       const vladSampleData = GithubSampleValues.getVladSampleExternalData();
 
       const data = await UsersExternalRepository.findGithubUserExternalExternalId(vladSampleData.id);
@@ -54,7 +54,7 @@ describe('Github airdrop auth', () => {
 
       await delay(1000);
       // check upsert - should be updating of existing data
-      await GithubRequest.sendSampleGithubCallback();
+      await GithubRequest.sendSampleGithubCallback(<string>userVlad.github_code);
 
       const logDataAfter = await UsersExternalAuthLogRepository.findManyByUsersExternalId(+data!.id);
       expect(Array.isArray(logDataAfter)).toBeTruthy();
@@ -62,7 +62,7 @@ describe('Github airdrop auth', () => {
     }, JEST_TIMEOUT);
 
     it('should receive secure cookie with valid token', async () => {
-      const res = await GithubRequest.sendSampleGithubCallback();
+      const res = await GithubRequest.sendSampleGithubCallback(<string>userVlad.github_code);
 
       expect(Array.isArray(res.headers['set-cookie'])).toBeTruthy();
       expect(res.headers['set-cookie'].length).toBe(1);
@@ -78,7 +78,7 @@ describe('Github airdrop auth', () => {
   describe('Pair external user and registered user', () => {
     describe('Positive', () => {
       it('API to link github account and currently authorised user', async () => {
-        const token = await GithubRequest.sendSampleGithubCallbackAndGetToken();
+        const token = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
 
         await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, token);
 
