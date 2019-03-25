@@ -41,7 +41,7 @@ class QueryFilterService {
    * @param {string|null} tableName
    * @returns {string}
    */
-  static sequelizeOrderByToKnexRaw(orderBy, tableName = null) {
+  public static sequelizeOrderByToKnexRaw(orderBy, tableName = null) {
     const arraysSet: string[] = [];
     orderBy.forEach((set) => {
       if (tableName) {
@@ -85,6 +85,7 @@ class QueryFilterService {
     repository: QueryFilteredRepository,
     processAttributes = false, // hardcoded variable in order to reduce refactoring at the beginning
     processInclude = false, // hardcoded variable in order to reduce refactoring at the beginning
+    processOrderByRaw = false,
   ): DbParamsDto {
     const orderByRelationMap    = repository.getOrderByRelationMap();
     const allowedOrderBy        = repository.getAllowedOrderBy();
@@ -106,6 +107,10 @@ class QueryFilterService {
     if (processInclude) {
       const includeProcessor = repository.getIncludeProcessor();
       includeProcessor(query, params);
+    }
+
+    if (processOrderByRaw) {
+      params.orderByRaw = this.sequelizeOrderByToKnexRaw(params.order);
     }
 
     return params;

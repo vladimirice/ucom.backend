@@ -53,7 +53,7 @@ class AirdropsUsersExternalDataService {
   ): Promise<any> {
     const jsonData = await this.getSampleUsersExternalData(airdropId, usersExternalId, githubUserId);
 
-    await AirdropsUsersExternalDataRepository.insertOneData(airdropId, usersExternalId, jsonData);
+    await AirdropsUsersExternalDataRepository.insertOneData(airdropId, usersExternalId, jsonData.score, jsonData);
 
     return jsonData;
   }

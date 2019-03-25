@@ -55,6 +55,28 @@ export class GraphqlHelper {
     return this.makeRequestAsGuest(query, key, false);
   }
 
+  public static async getManyUsersAsParticipantsAsMyself(
+    myself: UserModel,
+    airdropId: number,
+    orderBy: string = '-score',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<any> {
+    const filter = {
+      airdrops: {
+        id: airdropId,
+      },
+    };
+
+    const query: string = GraphQLSchema.getManyUsers(filter, orderBy, page, perPage, true);
+    const key: string = 'many_users';
+
+    const response = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
+  }
+
   public static async getManyMediaPostsAsMyself(
     myself: UserModel,
     postOrdering: string = '-id',

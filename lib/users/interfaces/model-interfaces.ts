@@ -27,6 +27,9 @@ interface UserIdToUserModelCard {
 }
 
 interface UsersRequestQueryDto extends RequestQueryDto {
+  readonly airdrops?: {
+    readonly id: number;
+  }
 }
 
 export {

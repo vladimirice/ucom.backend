@@ -1,11 +1,23 @@
 import { NumberToNumberCollection } from '../interfaces/common-types';
 
 import { CurrentParams } from '../../stats/interfaces/dto-interfaces';
-
-import knex = require('../../../config/knex');
 import { AppError } from '../../api/errors';
 
+import knex = require('../../../config/knex');
+
 class RepositoryHelper {
+  public static getPrefixedAttributes(
+    attributes: string[],
+    tableName: string,
+    prefixForAlias: string = '',
+  ): string[] {
+    return attributes.map(attribute => `${tableName}.${attribute} AS ${prefixForAlias}${attribute}`);
+  }
+
+  public static getKnexCountAsNumber(res: any): number {
+    return res.length === 0 ? 0 : +res[0].amount;
+  }
+
   public static hydrateObjectForManyEntities(data: any, objectPrefix: string, delimiter = '__') {
     data.forEach((item) => {
       this.hydrateOneObject(item, objectPrefix, delimiter);

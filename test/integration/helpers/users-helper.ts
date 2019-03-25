@@ -256,6 +256,10 @@ class UsersHelper {
       ]);
     }
 
+    if (options.airdrops) {
+      expected.push('score', 'external_login');
+    }
+
     expect(_.isEmpty(model.User.first_name)).toBeFalsy();
 
     ResponseHelper.expectAllFieldsExistence(model.User, expected);

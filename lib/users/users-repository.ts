@@ -6,6 +6,11 @@ import { AppError } from '../api/errors';
 import knex = require('../../config/knex');
 import PostsModelProvider = require('../posts/service/posts-model-provider');
 import PostsRepository = require('../posts/posts-repository');
+import UsersModelProvider = require('./users-model-provider');
+import RepositoryHelper = require('../common/repository/repository-helper');
+import UsersExternalModelProvider = require('../users-external/service/users-external-model-provider');
+import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
+import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
 
 const _ = require('lodash');
 
@@ -18,10 +23,42 @@ const db = models.sequelize;
 const model = userModelProvider.getUsersModel();
 
 const TABLE_NAME = 'Users';
+const usersExternal = UsersExternalModelProvider.usersExternalTableName();
+const airdropsUsersExternalData = AirdropsModelProvider.airdropsUsersExternalDataTableName();
+const airdropsUsers = AirdropsModelProvider.airdropsUsersTableName();
 
 const taggableRepository = require('../common/repository/taggable-repository');
 
 class UsersRepository {
+  public static async findAllAirdropParticipants(
+    airdropId: number,
+    params: DbParamsDto,
+  ) {
+    const previewFields = UsersModelProvider.getUserFieldsForPreview();
+    const toSelect = RepositoryHelper.getPrefixedAttributes(previewFields, TABLE_NAME);
+
+    toSelect.push(`${airdropsUsersExternalData}.score AS score`);
+    toSelect.push(`${usersExternal}.external_login AS external_login`);
+
+    return knex(TABLE_NAME)
+      .select(toSelect)
+      .innerJoin(usersExternal, `${usersExternal}.user_id`, `${TABLE_NAME}.id`)
+      .innerJoin(airdropsUsersExternalData, `${airdropsUsersExternalData}.users_external_id`, `${usersExternal}.id`)
+      .whereIn(`${TABLE_NAME}.id`, function () {
+        // @ts-ignore
+        this
+          .distinct('user_id')
+          .select()
+          .from(airdropsUsers)
+          .where('airdrop_id', '=', airdropId);
+      })
+      .andWhere(`${usersExternal}.external_type_id`, '=', ExternalTypeIdDictionary.github())
+      .orderByRaw(params.orderByRaw)
+      .limit(params.limit)
+      .offset(params.offset)
+    ;
+  }
+
   public static async findManyAsRelatedToEntity(
     params: DbParamsDto,
     statsFieldName: string,
@@ -433,6 +470,8 @@ class UsersRepository {
       'current_rate',
       'created_at',
       'account_name',
+      'score',
+      'external_login',
     ];
   }
 

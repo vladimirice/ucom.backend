@@ -151,6 +151,9 @@ const typeDefs = gql`
     I_follow: JSON, 
     followed_by: JSON,
     myselfData: MyselfData,
+    
+    score: Float
+    external_login: String
   }
 
   type Comment {
@@ -284,6 +287,8 @@ const typeDefs = gql`
     overview_type: String
     entity_name: String
     post_type_id: Int
+    
+    airdrops: JSON
   }
 `;
 
@@ -355,7 +360,7 @@ const resolvers = {
     },
     // @ts-ignore
     async many_users(parent, args, ctx): Promise<UsersListResponse> {
-      const postsQuery: UsersRequestQueryDto = {
+      const usersQuery: UsersRequestQueryDto = {
         page: args.page,
         per_page: args.per_page,
         sort_by: args.order_by,
@@ -364,7 +369,11 @@ const resolvers = {
 
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
-      return UsersFetchService.findAllAndProcessForList(postsQuery, currentUserId);
+      if (usersQuery.airdrops) {
+        return UsersFetchService.findAllAirdropParticipants(usersQuery, currentUserId);
+      }
+
+      return UsersFetchService.findAllAndProcessForList(usersQuery, currentUserId);
     },
 
     // @ts-ignore

@@ -9,6 +9,16 @@ const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 const TABLE_NAME = AirdropsModelProvider.airdropsUsersTableName();
 
 class AirdropsUsersRepository {
+  public static async countAllAirdropParticipants(
+    airdropId: number,
+  ): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .countDistinct(`${TABLE_NAME}.user_id AS amount`)
+      .where('airdrop_id', '=', airdropId);
+
+    return RepositoryHelper.getKnexCountAsNumber(res);
+  }
+
   public static async getAllAirdropsUsersDataByUserId(userId: number, airdropId: number) {
     const sql = `
       SELECT

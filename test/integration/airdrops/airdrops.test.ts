@@ -16,8 +16,11 @@ import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-user
 import AirdropsUsersRequest = require('../../helpers/airdrops-users-request');
 import AuthService = require('../../../lib/auth/authService');
 import AirdropsUsersExternalDataService = require('../../../lib/airdrops/service/airdrops-users-external-data-service');
+import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
+import _ = require('lodash');
 
 let userVlad: UserModel;
+let userJane: UserModel;
 
 const beforeAfterOptions = {
   isGraphQl: true,
@@ -34,7 +37,112 @@ describe('Airdrops create-get', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    [userVlad] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+  });
+
+  describe('Github airdrop participants', () => {
+    it('Get many participants as separate request', async () => {
+      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const manyUsersEmpty = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId);
+      expect(manyUsersEmpty.data.length).toBe(0);
+
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
+      await AirdropsUsersToPendingService.process(airdropId);
+
+      const manyUsersVladOnly = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId);
+      expect(manyUsersVladOnly.data.length).toBe(1);
+
+      const options = {
+        author: {
+          myselfData: true,
+        },
+        airdrops: {},
+      };
+
+      CommonHelper.checkUsersListResponse(manyUsersVladOnly, options);
+
+      expect(manyUsersVladOnly.data[0].external_login).toBe('vladimirice');
+      expect(manyUsersVladOnly.data[0].score).toBeGreaterThan(0);
+
+      expect(manyUsersVladOnly.metadata.total_amount).toBe(1);
+      expect(manyUsersVladOnly.metadata.has_more).toBeFalsy();
+
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
+      await AirdropsUsersToPendingService.process(airdropId);
+
+      const manyUsers = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId);
+      expect(manyUsers.data.length).toBe(2);
+
+      const vladResponse = manyUsers.data.find(item => item.account_name === userVlad.account_name);
+      const janeResponse = manyUsers.data.find(item => item.account_name === userJane.account_name);
+
+      expect(vladResponse.external_login).toBe('vladimirice');
+      expect(vladResponse.score).toBeGreaterThan(0);
+
+      expect(janeResponse.external_login).toBe('akegaviar');
+      expect(janeResponse.score).toBeGreaterThan(0);
+
+      expect(manyUsers.metadata.total_amount).toBe(2);
+      expect(manyUsers.metadata.has_more).toBeFalsy();
+    }, JEST_TIMEOUT);
+
+    it('Smoke - Check pagination', async () => {
+      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
+      await AirdropsUsersToPendingService.process(airdropId);
+
+      const manyUsersFirstPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score', 1, 1);
+
+      expect(manyUsersFirstPage.data.length).toBe(1);
+
+      const vladResponse = manyUsersFirstPage.data.find(item => item.account_name === userVlad.account_name);
+      expect(_.isEmpty(vladResponse)).toBeFalsy();
+
+      expect(manyUsersFirstPage.metadata.total_amount).toBe(2);
+      expect(manyUsersFirstPage.metadata.has_more).toBeTruthy();
+      expect(manyUsersFirstPage.metadata.page).toBe(1);
+      expect(manyUsersFirstPage.metadata.per_page).toBe(1);
+
+      const manyUsersSecondPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score', 2, 1);
+
+      expect(manyUsersFirstPage.data.length).toBe(1);
+
+      const janeResponse = manyUsersSecondPage.data.find(item => item.account_name === userJane.account_name);
+      expect(_.isEmpty(janeResponse)).toBeFalsy();
+
+      expect(manyUsersSecondPage.metadata.total_amount).toBe(2);
+      expect(manyUsersSecondPage.metadata.has_more).toBeFalsy();
+      expect(manyUsersSecondPage.metadata.page).toBe(2);
+      expect(manyUsersSecondPage.metadata.per_page).toBe(1);
+    }, JEST_TIMEOUT);
+
+    it('Smoke - Check ordering', async () => {
+      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
+      await AirdropsUsersToPendingService.process(airdropId);
+
+      const manyUsersVladIsFirst =
+        await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score');
+
+      expect(manyUsersVladIsFirst.data[0].account_name).toBe(userVlad.account_name);
+      expect(manyUsersVladIsFirst.data[1].account_name).toBe(userJane.account_name);
+
+      const manyUsersJaneIsFirst =
+        await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, 'external_login');
+
+      expect(manyUsersJaneIsFirst.data[0].account_name).toBe(userJane.account_name);
+      expect(manyUsersJaneIsFirst.data[1].account_name).toBe(userVlad.account_name);
+
+      const manyUsersOrderById =
+        await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-id');
+
+      expect(manyUsersOrderById.data[0].account_name).toBe(userJane.account_name);
+      expect(manyUsersOrderById.data[1].account_name).toBe(userVlad.account_name);
+    }, JEST_TIMEOUT);
   });
 
   describe('Github airdrop creation', () => {
