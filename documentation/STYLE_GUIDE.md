@@ -1,5 +1,14 @@
 # Style guide
 
+Table of contents:
+* [Linter](#linter)
+* [Conventions](#conventions)
+    * [Basic](#basic)
+    * [Autotests](#autotests)
+    * [Naming](#naming)
+    * [Commenting](#commenting)
+    
+
 
 ## Linter
 It is required to follow the eslint rules declared in [.eslintrc.js](../.eslintrc.js). 
@@ -34,5 +43,25 @@ Because of this, some of the conventions are not satisfied by the "old code", on
 * **Don't** use `getSinglePost`, `getPosts`.
 * **Do** use `One/Many`, for ex. `getOnePost`, `getManyPosts`.
 
+### Commenting
+
+Don't use | Do use
+--- | ---
+TODO mark | tags which represents comments reason.
+
+In order to mark hardcode, raw, bad-optimised fragments, etc. - use such structure:
+```
+[tag_name] - [description]
+```
+Description must include a reason of a described code structure.
+
+Comments reason tags
+
+title | description
+--- | ---
+#task | general tag. Avoid if possible
+#hardcode | hardcode
+#optimize | parts of code to optimise (ex. performance) in the future
+#tech-debt | technical debt
 
 TODO - This section is not ready yet. This will populated with links to files that represent project conventions
