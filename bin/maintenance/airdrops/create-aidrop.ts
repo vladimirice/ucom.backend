@@ -1,9 +1,27 @@
+import { AppError } from '../../../lib/api/errors';
+
 import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-creator-service');
+import EnvHelper = require('../../../lib/common/helper/env-helper');
 
 const STAGING_POST_ID = 14317;
 const STAGING_ORG_ID = 107;
 
+const PRODUCTION_POST_ID = 5548;
+const PRODUCTION_ORG_ID = 105;
+
 (async () => {
+  let postId: number;
+  let orgId: number;
+  if (EnvHelper.isStagingEnv()) {
+    postId = STAGING_POST_ID;
+    orgId = STAGING_ORG_ID;
+  } else if (EnvHelper.isProductionEnv()) {
+    postId = PRODUCTION_POST_ID;
+    orgId = PRODUCTION_ORG_ID;
+  } else {
+    throw new AppError(`Unsupported env: ${EnvHelper.getNodeEnv()}`, 500);
+  }
+
   const tokens = [
     {
       symbol_id: 2,
@@ -19,7 +37,7 @@ const STAGING_ORG_ID = 107;
   const conditions = {
     auth_github: true,
     auth_myself: true,
-    community_id_to_follow: STAGING_ORG_ID,
+    community_id_to_follow: orgId,
   };
 
   const startedAt = '2019-04-15T14:51:35Z';
@@ -27,7 +45,7 @@ const STAGING_ORG_ID = 107;
 
   await AirdropCreatorService.createNewAirdrop(
     title,
-    STAGING_POST_ID,
+    postId,
     conditions,
     startedAt,
     finishedAt,
