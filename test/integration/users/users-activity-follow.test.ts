@@ -144,7 +144,6 @@ describe('User to user activity', () => {
 
   describe('User list. MyselfData', () => {
     it('MyselfData. User list must contain myselfData with actual follow status', async () => {
-
       await activityHelper.requestToCreateFollowHistory(userPetr, userVlad);
 
       await Promise.all([
@@ -169,7 +168,6 @@ describe('User to user activity', () => {
 
     describe('Negative scenarios', () => {
       it('MyselfData. There is no myself data if user is not logged in', async () => {
-
         await Promise.all([
           activityHelper.requestToCreateFollow(userPetr, userVlad),
           activityHelper.requestToCreateFollow(userPetr, userJane),
@@ -342,7 +340,7 @@ describe('User to user activity', () => {
     }, JEST_TIMEOUT);
   });
 
-  describe('General negative scenarios', async () => {
+  describe('General negative scenarios', () => {
     it('Not possible to follow user which does not exist', async () => {
       // noinspection MagicNumberJS
       const res = await request(server)
