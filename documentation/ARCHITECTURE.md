@@ -3,7 +3,7 @@
 Table of contents
 * [Common information](#common-information)
 * [Statistics module](#statistics-module)
-* [Airdrop](#airdrop-and-balances)
+* [Airdrop and balances](#airdrop-and-balances)
 
 ## Common information
 
@@ -105,8 +105,6 @@ to code the expected values before implementing the solution (TDD principle). If
 
 ## Airdrop and balances
 
-This is basic draft. Still under development.
-
 There are different accounts in the system to represent the balance flows:
 
 type | description
@@ -129,10 +127,11 @@ Beforehand - `debt` and `income` accounts must be created.
 * There is new token distribution for airdrop, amount = 100 000 tokens (`TNS`). 
 * New transaction - from `income` (- 100 000) to `debt` (100 000).
 * User is asking about his airdrop state.
+* User fulfills some business conditions in order to participate (ex. follows devExchange community)
+* Background worker checks conditions and determines users that fulfill all conditions.
 * `reserved`, `waiting` and `wallet` accounts are created.
 * Transaction is created: from `debt` to `reserved`, amount = 100 TNS
-* User fulfills some business conditions in order to participate (ex. follows devExchange community)
-* Background worker checks conditions and decides to create blockchain transaction (trx).
+* Other worker fetches `pending` users and creates blockchain transaction (trx).
 * Trx is created and is sent to blockchain. Trx ID is received.
 ?think - what if there backend is down and no following record? - answer: check airdrop state in background
 * DB transaction is created: from `reserved` to `waiting`.
@@ -141,41 +140,14 @@ Beforehand - `debt` and `income` accounts must be created.
 ** If fail - rollback from `waiting` to `reserved`
 
 
-### Tables
+### Database structure
 
-#### Balances
-* account_id
-* symbol
-* amount
-* last_transaction_id
+Please observe the migrations. 
+The first one is [create-tables-airdrops-and-accounts](../migrations_knex_monolith/20190320083713_create-tables-airdrops-and-accounts.js)
 
-#### Accounts
-* id
-* user_id
-* other params (TODO)
-
-#### Transaction parts
-* ID
-* transaction_id
-* account_id_from
-* account_id_to
-* amount
-* symbol
-
-#### Transactions
-* ID
-* created_at
-* rel_id (FOREIGN KEY REFERENCES Transactions(ID)) - in order to build transaction history tree
-* json_data - some useful data, ex link to blockchain transactions
-
-#### Transaction event flow - TODO
-A group of tables required to track all stages of transaction
-
-
-#### Requests
+#### Future requests (for reference in the future)
 
 ------ Airdrop state --------
-
 
 --- How to calc already distributed amounts
 SELECT
@@ -186,12 +158,3 @@ FROM
 INNER JOIN accounts AS wallet_account ON accounts.id = users_token.wallet_account_id
 WHERE airdrop_id = ${airdropId}
 GROUP BY users_tokens.symbol_id
-
-
---- Airdrop participants:
-
-SELECT ${Preview fields set as for users_list} FROM Users
-WHERE id IN (
-    SELECT DISTINCT user_id FROM airdrops_users WHERE airdrop_id = 1 AND status = '${PENDING}'
-)
-
