@@ -3,6 +3,10 @@ const ENV__STAGING    = 'staging';
 const ENV__PRODUCTION = 'production';
 
 class EnvHelper {
+  public static getNodeEnv(): string | undefined {
+    return process.env.NODE_ENV;
+  }
+
   public static isTestEnv(): boolean {
     return this.isExpectedEnv(ENV__TEST);
   }
