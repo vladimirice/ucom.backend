@@ -90,7 +90,26 @@ async function registerNewUser(givenAccountName) {
 }
 (async () => {
     const accountNamesToRegister = [
-        'rokkyrok5555',
+        'rokky1115555',
+        'rokky2225555',
+        'rokky2235555',
+        'rokky2245555',
+        'rokky2255555',
+        'rokky2265555',
+        'rokky2275555',
+        'rokky2285555',
+        'rokky2295555',
+        'rokky2105555',
+        'rokky2115555',
+        'rokky2125555',
+        'rokky2135555',
+        'rokky2145555',
+        'rokky2155555',
+        'rokky2165555',
+        'rokky2175555',
+        'rokky2185555',
+        'rokky2195555',
+        'rokky2205555',
     ];
     const headers = [
         'accountName',
