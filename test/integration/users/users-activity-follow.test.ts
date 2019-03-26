@@ -152,7 +152,8 @@ describe('User to user activity', () => {
         activityHelper.requestToCreateFollow(userJane, userPetr),
       ]);
 
-      const users = await userHelper.requestUserListByMyself(userPetr);
+      const usersResponse = await userHelper.requestUserListByMyself(userPetr);
+      const users = usersResponse.data;
 
       const responseVlad = users.find(data => data.id === userVlad.id);
       expect(responseVlad.myselfData.follow).toBeTruthy();

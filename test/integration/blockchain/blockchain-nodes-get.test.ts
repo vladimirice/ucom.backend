@@ -166,7 +166,7 @@ describe('Blockchain nodes get', () => {
 
   describe('Negative', () => {
     it('Not possible to ask for myself_bp_vote=true without auth token', async () => {
-      await helpers.Blockchain.requestToGetNodesList(null, true, 403);
+      await helpers.Blockchain.requestToGetNodesList(null, true, 401);
     });
   });
 });
