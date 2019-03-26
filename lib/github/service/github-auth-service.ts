@@ -5,6 +5,7 @@ import UsersExternalRepository = require('../../users-external/repository/users-
 import ExternalTypeIdDictionary = require('../../users-external/dictionary/external-type-id-dictionary');
 import UsersExternalAuthLogRepository = require('../../users-external/repository/users-external-auth-log-repository');
 import AuthService = require('../../auth/authService');
+import NumbersHelper = require('../../common/helper/numbers-helper');
 
 const request = require('request-promise-native');
 
@@ -43,7 +44,7 @@ class GithubAuthService {
 
       let redirectUri = githubConfig.default_redirect_uri;
       if (req.query && req.query.redirect_uri) {
-        redirectUri = req.query.redirect_uri;
+        redirectUri = this.composeRedirectUrl(req.query);
       }
 
       return {
@@ -55,10 +56,34 @@ class GithubAuthService {
     }
   }
 
+  private static composeRedirectUrl(queryString) {
+    const toExclude = ['redirect_uri', 'code', 'state'];
+
+    const toAppend: string[] = [];
+    for (const field in queryString) {
+      if (!~toExclude.indexOf(field)) {
+        toAppend.push(`${field}=${queryString[field]}`);
+      }
+    }
+
+    if (toAppend.length === 0) {
+      return queryString.redirect_uri;
+    }
+
+    return `${queryString.redirect_uri}&${toAppend.join('&')}`;
+  }
+
   private static async saveDataToDb(req, userData): Promise<number> {
+    let externalId = userData.id;
+
+    // TODO - disable this after testing
+    if (req.query.mock_external_id) {
+      externalId = NumbersHelper.generateRandomInteger(1, 10000000);
+    }
+
     const usersExternalId: number = await UsersExternalRepository.upsertExternalUser(
       ExternalTypeIdDictionary.github(),
-      userData.id,
+      externalId,
       userData.login,
       userData,
       null,

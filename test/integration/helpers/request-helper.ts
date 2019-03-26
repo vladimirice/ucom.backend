@@ -1,5 +1,6 @@
 import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -71,7 +72,7 @@ class RequestHelper {
   }
 
   public static generateRandomNumber(min: number, max: number, precision: number): number {
-    return +(Math.random() * (max - min) + min).toFixed(precision);
+    return NumbersHelper.generateRandomNumber(min, max, precision);
   }
 
   public static makeRandomString(length) {

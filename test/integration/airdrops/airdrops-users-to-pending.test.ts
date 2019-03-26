@@ -63,7 +63,7 @@ describe('Airdrops users to pending', () => {
     await AirdropsUsersToPendingService.process(airdropId);
     await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
     await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
-  }, JEST_TIMEOUT);
+  }, JEST_TIMEOUT * 100);
 
   it('Process both users', async () => {
     const { airdropId, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);

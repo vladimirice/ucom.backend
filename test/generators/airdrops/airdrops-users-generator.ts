@@ -16,12 +16,16 @@ class AirdropsUsersGenerator {
     user: UserModel,
     orgId: number,
     alsoFollow: boolean = true,
+    customGithubCode: string | null = null,
+    mockExternalId: boolean = false,
   ) {
     if (!user.github_code) {
       throw new Error('Code is required to use this generator function');
     }
 
-    const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>user.github_code);
+    const githubCode: string = customGithubCode || <string>user.github_code;
+
+    const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(githubCode, mockExternalId);
 
     await UsersExternalRequest.sendPairExternalUserWithUser(user, githubToken);
 
