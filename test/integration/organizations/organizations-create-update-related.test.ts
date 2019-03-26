@@ -112,7 +112,7 @@ describe('Organizations create,update related entities', () => {
         const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
         const res = await OrganizationsHelper.validateOneDiscussion(userJane, firstOrgId, postId);
 
-        expect(res.status).toBe(403);
+        expect(res.status).toBe(401);
       });
     });
   });

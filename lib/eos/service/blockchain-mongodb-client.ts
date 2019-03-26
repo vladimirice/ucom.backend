@@ -6,6 +6,8 @@ const dbName = eosConfig.mongo_db_name;
 
 let client;
 
+const MONGODB_CONNECTION = (60 * 1000) * 20; // 20 minutes
+
 class BlockchainMongoDbClient {
   /**
    *
@@ -13,7 +15,15 @@ class BlockchainMongoDbClient {
    */
   static async getDbConnection() {
     if (!client) {
-      client = new MongoClient(connectionString, { useNewUrlParser: true });
+      client = new MongoClient(connectionString, {
+        useNewUrlParser: true,
+        server: {
+          socketOptions: {
+            connectTimeoutMS: MONGODB_CONNECTION,
+            socketTimeoutMS:  MONGODB_CONNECTION,
+          },
+        },
+      });
       await client.connect();
     }
 

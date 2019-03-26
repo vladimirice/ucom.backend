@@ -96,6 +96,11 @@ deploy-staging deploy:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
+deploy-staging-no-check deploy-no-check:
+	git checkout staging
+	git push
+	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
+
 deploy-production:
 	git checkout master
 	make docker-check-project
@@ -103,10 +108,10 @@ deploy-production:
 	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
 
 deploy-frontend-staging deploy-frontend:
-	ssh gt bash deploy_frontend_staging
+	ssh gt bash /var/www/ucom.frontend/deploy_frontend_staging
 
 deploy-frontend-production:
-	ssh gt bash deploy_frontend_production
+	ssh gt bash /var/www/ucom.frontend/deploy_frontend_production
 
 production-error-logs pl:
 	ssh gt 'bash -s' < ./pm2_error_logs.sh production
@@ -138,7 +143,7 @@ docker-recreate-monolith-db:
 	make docker-db-migrate-sequelize
 	make docker-migrate-monolith-via-knex
 
-docker-migrate-monolith-via-knex:
+docker-migrate-monolith-via-knex dmm:
 	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_MONOLITH_COMMAND}
 
 docker-migrate-events-via-knex:

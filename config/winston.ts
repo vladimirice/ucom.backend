@@ -13,14 +13,16 @@ const {
 const MAX_FILE_SIZE = 104857600; // 100 MB;
 const MAX_FILES = 30;
 
-const LOGGER__API = 'api';
-const LOGGER_CONSUMER = 'consumer';
-const LOGGER_WORKER = 'worker';
+const LOGGER__API               = 'api';
+const LOGGER_CONSUMER           = 'consumer';
+const LOGGER_WORKER             = 'worker';
+const LOGGER_AUTH_CALLBACK      = 'auth-callback';
 
 const LOGGERS_ALL = [
   LOGGER__API,
   LOGGER_CONSUMER,
   LOGGER_WORKER,
+  LOGGER_AUTH_CALLBACK,
 ];
 
 const myFormat = printf((info: any) => {
@@ -104,9 +106,10 @@ const ApiLoggerStream = {
   },
 };
 
-const ApiLogger = winston.loggers.get(LOGGER__API);
-const ConsumerLogger = winston.loggers.get(LOGGER_CONSUMER);
-const WorkerLogger = winston.loggers.get(LOGGER_WORKER);
+const ApiLogger           = winston.loggers.get(LOGGER__API);
+const ConsumerLogger      = winston.loggers.get(LOGGER_CONSUMER);
+const WorkerLogger        = winston.loggers.get(LOGGER_WORKER);
+const AuthCallbackLogger  = winston.loggers.get(LOGGER_AUTH_CALLBACK);
 
 export {
   ApiLogger,
@@ -114,4 +117,5 @@ export {
   WorkerLogger,
 
   ApiLoggerStream,
+  AuthCallbackLogger,
 };

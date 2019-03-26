@@ -731,6 +731,36 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
     };
   }
 
+  public static async doesUserFollowOrg(
+    userId: number,
+    orgId: number,
+  ): Promise<boolean> {
+    const activityTypeFollow = InteractionTypeDictionary.getFollowId();
+    const activityTypeUnfollow = InteractionTypeDictionary.getUnfollowId();
+
+    const activityTableName = usersModelProvider.getUsersActivityTableName();
+
+    const orgEntityName = orgModelProvider.getEntityName();
+    const orgActivityGroupId = activityGroupDictionary.getGroupContentInteraction();
+
+    const data = await knex(activityTableName)
+      .select('activity_type_id')
+      .where({
+        user_id_from: userId,
+        entity_id_to: orgId,
+        entity_name: orgEntityName,
+
+        activity_group_id: orgActivityGroupId,
+      })
+      .andWhereRaw(`activity_type_id IN (${activityTypeFollow}, ${activityTypeUnfollow})`)
+      .orderBy('id', 'DESC')
+      .limit(1)
+      .first()
+    ;
+
+    return !!data && data.activity_type_id === activityTypeFollow;
+  }
+
   /**
    *
    * @param {number} userId

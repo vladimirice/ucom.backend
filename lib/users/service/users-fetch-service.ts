@@ -1,7 +1,7 @@
 import {
   UserIdToUserModelCard,
   UserModel,
-  UsersListResponse,
+  UsersListResponse, UsersRequestQueryDto,
 } from '../interfaces/model-interfaces';
 import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from '../../posts/interfaces/model-interfaces';
@@ -17,6 +17,7 @@ import QueryFilterService = require('../../api/filters/query-filter-service');
 import _ = require('lodash');
 import UsersModelProvider = require('../users-model-provider');
 import PostsRepository = require('../../posts/posts-repository');
+import AirdropsUsersRepository = require('../../airdrops/repository/airdrops-users-repository');
 
 const usersRepository       = require('../users-repository');
 const queryFilterService    = require('../../api/filters/query-filter-service');
@@ -58,6 +59,21 @@ class UsersFetchService {
     }
 
     return this.findAllAndProcessForListByParams(data.promises, query, data.params, currentUserId);
+  }
+
+  public static async findAllAirdropParticipants(
+    query: UsersRequestQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
+    const repository          = usersRepository;
+    const params: DbParamsDto = queryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
+
+    const promises = [
+      UsersRepository.findAllAirdropParticipants(query.airdrops!.id, params),
+      AirdropsUsersRepository.countAllAirdropParticipants(query.airdrops!.id),
+    ];
+
+    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
   }
 
   private static getManyUsersListAsRelatedToEntityPromises(
@@ -116,7 +132,7 @@ class UsersFetchService {
     promises: Promise<any>[],
     query: RequestQueryDto,
     params: DbParamsDto,
-    currentUserId,
+    currentUserId: number | null,
   ) {
     const [models, totalAmount] = await Promise.all(promises);
 
@@ -128,15 +144,10 @@ class UsersFetchService {
     ApiPostProcessor.processUsersAfterQuery(models);
     const metadata = queryFilterService.getMetadata(totalAmount, query, params);
 
-    // @ts-ignore
-    if (query.v2 || query.overview_type) {
-      return {
-        metadata,
-        data: models,
-      };
-    }
-
-    return models;
+    return {
+      metadata,
+      data: models,
+    };
   }
 
   /**

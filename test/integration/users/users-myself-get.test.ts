@@ -1,14 +1,19 @@
-export {};
+import RequestHelper = require('../helpers/request-helper');
+import MockHelper = require('../helpers/mock-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import UsersHelper = require('../helpers/users-helper');
+import ActivityHelper = require('../helpers/activity-helper');
+import PostsGenerator = require('../../generators/posts-generator');
+import PostsHelper = require('../helpers/posts-helper');
+import ResponseHelper = require('../helpers/response-helper');
 
 const request = require('supertest');
-const helpers = require('../helpers');
-const gen = require('../../generators');
 
 const usersRepository = require('./../../../lib/users/users-repository');
 const server = require('../../../app');
 
-helpers.Mock.mockAllBlockchainPart();
-helpers.Mock.mockAllTransactionSigning();
+MockHelper.mockAllBlockchainPart();
+MockHelper.mockAllTransactionSigning();
 
 const usersActivityRepository = require('../../../lib/users/repository').Activity;
 
@@ -19,50 +24,54 @@ let userRokky;
 
 describe('Myself. Get requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    await SeedsHelper.initUsersOnly();
   });
 
   describe('Get myself data', () => {
     it('should be field unread_messages_count', async () => {
-      const userVlad = await helpers.Users.getUserVlad();
-
       const res = await request(server)
-        .get(helpers.Req.getMyselfUrl())
+        .get(RequestHelper.getMyselfUrl())
         .set('Authorization', `Bearer ${userVlad.token}`);
       expect(res.body.unread_messages_count).toBeDefined();
     });
 
-    it('Get logged user data', async () => {
-      const userVlad = await helpers.Users.getUserVlad();
-
+    it('should be field current_importance', async () => {
       const res = await request(server)
-        .get(helpers.Req.getMyselfUrl())
+        .get(RequestHelper.getMyselfUrl())
+        .set('Authorization', `Bearer ${userVlad.token}`);
+
+      expect(res.body.current_importance).toBeDefined();
+    });
+
+    it('Get logged user data', async () => {
+      const res = await request(server)
+        .get(RequestHelper.getMyselfUrl())
         .set('Authorization', `Bearer ${userVlad.token}`);
       expect(res.status).toBe(200);
       const user = await usersRepository.getUserById(userVlad.id);
 
-      helpers.Users.validateUserJson(res.body, userVlad, user);
+      UsersHelper.validateUserJson(res.body, userVlad, user);
     });
 
     it('should get correct users_ids and org_ids I follow', async () => {
       // This is unit test
 
       // noinspection JSDeprecatedSymbols
-      await helpers.Seeds.seedOrganizations();
+      await SeedsHelper.seedOrganizations();
 
       const myself = userVlad;
       const usersToFollow = [userJane, userPetr];
       const usersToUnfollow = [userRokky];
 
-      const { usersIdsToFollow } = await helpers.Activity.requestToCreateFollowUnfollowHistoryOfUsers(
+      const { usersIdsToFollow } = await ActivityHelper.requestToCreateFollowUnfollowHistoryOfUsers(
         myself,
         usersToFollow,
         usersToUnfollow,
@@ -71,7 +80,7 @@ describe('Myself. Get requests', () => {
       const orgIdsToFollow = [1, 3, 4];
       const orgIdsToUnfollow = [2, 5];
 
-      await helpers.Activity.requestToCreateFollowUnfollowHistoryOfOrgs(
+      await ActivityHelper.requestToCreateFollowUnfollowHistoryOfOrgs(
         myself,
         orgIdsToFollow,
         orgIdsToUnfollow,
@@ -95,21 +104,21 @@ describe('Myself. Get requests', () => {
         const parentPostAuthor = userVlad;
         const repostAuthor = userJane;
 
-        await helpers.Activity.requestToCreateFollow(repostAuthor, parentPostAuthor);
+        await ActivityHelper.requestToCreateFollow(repostAuthor, parentPostAuthor);
 
         const [postIdToRepost, secondPostIdToRepost, postIdNotToRepost, secondPostIdNotToRepost] = await Promise.all([
-          gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
-          gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
-          gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
-          gen.Posts.createMediaPostByUserHimself(parentPostAuthor),
+          PostsGenerator.createMediaPostByUserHimself(parentPostAuthor),
+          PostsGenerator.createMediaPostByUserHimself(parentPostAuthor),
+          PostsGenerator.createMediaPostByUserHimself(parentPostAuthor),
+          PostsGenerator.createMediaPostByUserHimself(parentPostAuthor),
         ]);
 
         await Promise.all([
-          gen.Posts.createRepostOfUserPost(repostAuthor, postIdToRepost),
-          gen.Posts.createRepostOfUserPost(repostAuthor, secondPostIdToRepost),
+          PostsGenerator.createRepostOfUserPost(repostAuthor, postIdToRepost),
+          PostsGenerator.createRepostOfUserPost(repostAuthor, secondPostIdToRepost),
         ]);
 
-        const posts = await helpers.Users.requestToGetMyselfNewsFeed(repostAuthor);
+        const posts = await UsersHelper.requestToGetMyselfNewsFeed(repostAuthor);
 
         posts.forEach((post) => {
           expect(post.myselfData.repost_available).toBeDefined();
@@ -133,7 +142,7 @@ describe('Myself. Get requests', () => {
       });
 
       it('should get myself news feed with posts of entities I follow', async () => {
-        await helpers.Seeds.seedOrganizations();
+        await SeedsHelper.seedOrganizations();
 
         const janeOrgIdOne = 3;
         const janeOrgIdTwo = 4;
@@ -141,43 +150,43 @@ describe('Myself. Get requests', () => {
         // Myself posts
         const promisesToCreatePosts = [
           // Vlad wall
-          gen.Posts.createMediaPostByUserHimself(userVlad), // User himself creates posts
-          helpers.Posts.requestToCreatePostOffer(userVlad),
-          helpers.Posts.requestToCreateDirectPostForUser(
+          PostsGenerator.createMediaPostByUserHimself(userVlad), // User himself creates posts
+          PostsGenerator.createPostOfferByUserHimself(userVlad),
+          PostsHelper.requestToCreateDirectPostForUser(
             userJane,
             userVlad,
           ), // somebody creates post in users wall
 
           // Jane wall
-          helpers.Posts.requestToCreateMediaPost(userJane), // User himself creates posts
-          helpers.Posts.requestToCreatePostOffer(userJane),
-          helpers.Posts.requestToCreateDirectPostForUser(
+          PostsHelper.requestToCreateMediaPost(userJane), // User himself creates posts
+          PostsHelper.requestToCreatePostOffer(userJane),
+          PostsHelper.requestToCreateDirectPostForUser(
             userVlad,
             userJane,
           ), // somebody creates post in users wall
 
           // Peter wall
-          helpers.Posts.requestToCreateMediaPost(userPetr), // User himself creates posts
-          helpers.Posts.requestToCreatePostOffer(userPetr),
+          PostsHelper.requestToCreateMediaPost(userPetr), // User himself creates posts
+          PostsHelper.requestToCreatePostOffer(userPetr),
 
-          helpers.Posts.requestToCreateDirectPostForUser(
+          PostsHelper.requestToCreateDirectPostForUser(
             userRokky,
             userPetr,
           ), // somebody creates post in users wall
 
           // Rokky wall
-          helpers.Posts.requestToCreateMediaPost(userRokky), // User himself creates posts
-          helpers.Posts.requestToCreatePostOffer(userRokky),
-          helpers.Posts.requestToCreateDirectPostForUser(
+          PostsHelper.requestToCreateMediaPost(userRokky), // User himself creates posts
+          PostsHelper.requestToCreatePostOffer(userRokky),
+          PostsHelper.requestToCreateDirectPostForUser(
             userPetr,
             userRokky,
           ), // somebody creates post in users wall
 
           // Jane Org wall
-          helpers.Posts.requestToCreateMediaPostOfOrganization(userJane, janeOrgIdOne),
-          helpers.Posts.requestToCreatePostOfferOfOrganization(userJane, janeOrgIdTwo),
+          PostsHelper.requestToCreateMediaPostOfOrganization(userJane, janeOrgIdOne),
+          PostsHelper.requestToCreatePostOfferOfOrganization(userJane, janeOrgIdTwo),
 
-          helpers.Posts.requestToCreateDirectPostForOrganization(userVlad, janeOrgIdTwo),
+          PostsHelper.requestToCreateDirectPostForOrganization(userVlad, janeOrgIdTwo),
         ];
 
         const usersToFollow = [
@@ -189,12 +198,12 @@ describe('Myself. Get requests', () => {
           userRokky,
         ];
 
-        await helpers.Activity.requestToCreateFollowUnfollowHistoryOfUsers(
+        await ActivityHelper.requestToCreateFollowUnfollowHistoryOfUsers(
           userVlad,
           usersToFollow,
           usersToUnfollow,
         );
-        await helpers.Activity.requestToCreateFollowUnfollowHistoryOfOrgs(
+        await ActivityHelper.requestToCreateFollowUnfollowHistoryOfOrgs(
           userVlad,
           [janeOrgIdOne, janeOrgIdTwo],
         );
@@ -211,9 +220,9 @@ describe('Myself. Get requests', () => {
           janeMediaPostOrg, janePostOfferOrg, janeDirectPostOrg,
         ] = await Promise.all(promisesToCreatePosts);
 
-        const queryString = helpers.Req.getPaginationQueryString(1, 20);
+        const queryString = RequestHelper.getPaginationQueryString(1, 20);
 
-        const posts = await helpers.Users.requestToGetMyselfNewsFeed(userVlad, queryString);
+        const posts = await UsersHelper.requestToGetMyselfNewsFeed(userVlad, queryString);
 
         posts.forEach((post) => {
           expect(post.description).toBeDefined();
@@ -239,12 +248,14 @@ describe('Myself. Get requests', () => {
 
     describe('Negative', () => {
       it('should not be possible to get news-feed without auth token', async () => {
-        const url = helpers.Req.getMyselfNewsFeedUrl();
+        const url = RequestHelper.getMyselfNewsFeedUrl();
 
         const res = await request(server)
           .get(url);
-        helpers.Res.expectStatusUnauthorized(res);
+        ResponseHelper.expectStatusUnauthorized(res);
       });
     });
   });
 });
+
+export {};

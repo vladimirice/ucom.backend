@@ -1,10 +1,23 @@
 import { NumberToNumberCollection } from '../interfaces/common-types';
 
 import { CurrentParams } from '../../stats/interfaces/dto-interfaces';
+import { AppError } from '../../api/errors';
 
 import knex = require('../../../config/knex');
 
 class RepositoryHelper {
+  public static getPrefixedAttributes(
+    attributes: string[],
+    tableName: string,
+    prefixForAlias: string = '',
+  ): string[] {
+    return attributes.map(attribute => `${tableName}.${attribute} AS ${prefixForAlias}${attribute}`);
+  }
+
+  public static getKnexCountAsNumber(res: any): number {
+    return res.length === 0 ? 0 : +res[0].amount;
+  }
+
   public static hydrateObjectForManyEntities(data: any, objectPrefix: string, delimiter = '__') {
     data.forEach((item) => {
       this.hydrateOneObject(item, objectPrefix, delimiter);
@@ -38,9 +51,18 @@ class RepositoryHelper {
 
   // It is required because big int fields from Postgresql are represented as string
   // It is supposed that js numerical limit will not be exceeded before a bigint support feature of nodejs core will be created
-  public static convertStringFieldsToNumbers(model: any, fields: string[]) {
+  public static convertStringFieldsToNumbers(model: any, fields: string[], fieldsToDisallowZero: string[] = []) {
     fields.forEach((field) => {
-      model[field] = +model[field];
+      const processed = +model[field];
+      if (!Number.isFinite(processed)) {
+        throw new AppError(`Number is not finite. Field name is: ${field}, basic value is: ${model[field]}`, 500);
+      }
+
+      if (~fieldsToDisallowZero.indexOf(field) && processed === 0) {
+        throw new AppError(`It is not allowed for ${field} to be zero. Initial value is: ${model[field]}`, 500);
+      }
+
+      model[field] = processed;
     });
   }
 

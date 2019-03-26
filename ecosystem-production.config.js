@@ -3,6 +3,8 @@ const HTTP_SERVER_PORT = 3000;
 const WEBSOCKET_SERVER_PORT = 5000;
 const GRAPHQL_SERVER_PORT = 4000;
 
+const CRON_PATTERN_EVERY_FIVE_MINUTES = '*/5 * * * *';
+
 module.exports = {
   apps: [
     // ================ Apps (interaction with user) =============
@@ -75,10 +77,19 @@ module.exports = {
     },
     // ================ Workers (CRON) ======================
     {
+      name: `${NODE_ENV}_worker_airdrops_users_to_pending`,
+      script: 'bin/workers-airdrops/airdrops-users-to-pending.js',
+      watch: false,
+      cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
+      env: {
+        NODE_ENV,
+      },
+    },
+    {
       name: `${NODE_ENV}_worker_update_importance`,
       script: 'bin/worker-update-importance.js',
       watch: false,
-      cron_restart: '*/5 * * * *',
+      cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
       env: {
         NODE_ENV,
       },
@@ -87,7 +98,7 @@ module.exports = {
       name: `${NODE_ENV}_worker_update_tags_importance`,
       script: 'bin/worker-update-tag-importance.js',
       watch: false,
-      cron_restart: '*/5 * * * *',
+      cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
       env: {
         NODE_ENV,
       },

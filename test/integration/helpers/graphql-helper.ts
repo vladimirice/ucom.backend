@@ -48,6 +48,51 @@ export class GraphqlHelper {
     return this.makeRequestAsMyself(myself, query, key, false);
   }
 
+  public static async getOnePostOfferWithoutUser(postId: number, airdropId: number): Promise<any> {
+    const usersTeamQuery = {
+      page: 1,
+      per_page: 10,
+      order_by: '-score',
+      filters: {
+        airdrops: {
+          id: airdropId,
+        },
+      },
+    };
+
+    const commentsQuery = {
+      page: 1,
+      per_page: 10,
+    };
+
+    const query: string = GraphQLSchema.getOnePostOffer(postId, commentsQuery, usersTeamQuery);
+    const key: string = 'one_post_offer';
+
+    return this.makeRequestAsGuest(query, key, false);
+  }
+
+  public static async getManyUsersAsParticipantsAsMyself(
+    myself: UserModel,
+    airdropId: number,
+    orderBy: string = '-score',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<any> {
+    const filter = {
+      airdrops: {
+        id: airdropId,
+      },
+    };
+
+    const query: string = GraphQLSchema.getManyUsers(filter, orderBy, page, perPage, true);
+    const key: string = 'many_users';
+
+    const response = await this.makeRequestAsMyself(myself, query, key, false);
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
+  }
+
   public static async getManyMediaPostsAsMyself(
     myself: UserModel,
     postOrdering: string = '-id',
@@ -71,6 +116,19 @@ export class GraphqlHelper {
       commentsPage,
       commentsPerPage,
     );
+  }
+
+  public static async getManyBlockchainNodesAsMyself(
+    myself: UserModel,
+    ordering: string,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PostsListResponse> {
+    const query: string = GraphQLSchema.getManyBlockchainNodes(ordering, page, perPage);
+
+    const key: string = 'many_blockchain_nodes';
+
+    return this.makeRequestAsMyself(myself, query, key, false);
   }
 
   public static async getManyOrgsDataOnlyAsMyself(
@@ -723,6 +781,65 @@ export class GraphqlHelper {
     return response;
   }
 
+  public static async getOneUserAirdrop(
+    airdropId: number,
+    headers: any,
+  ): Promise<any> {
+    const filter = {
+      airdrop_id: airdropId,
+    };
+
+    const query = GraphQLSchema.getOneUserAirdrop(filter);
+    const key: string = 'one_user_airdrop';
+
+    return this.makeRequestWithHeaders(headers, query, key, false);
+  }
+
+  public static async getOnePostOfferWithUserAirdrop(
+    airdropId: number,
+    postId: number,
+    headers: any,
+  ): Promise<any> {
+    const filter = {
+      airdrop_id: airdropId,
+    };
+
+    const usersTeamQuery = {
+      page: 1,
+      per_page: 10,
+      order_by: '-score',
+      filters: {
+        airdrops: {
+          id: airdropId,
+        },
+      },
+    };
+
+    const commentsQuery = {
+      page: 1,
+      per_page: 10,
+    };
+
+    const query = GraphQLSchema.getOnePostOfferWithUserAirdrop(filter, postId, commentsQuery, usersTeamQuery);
+
+    return this.makeRequestWithHeaders(headers, query);
+  }
+
+  public static async getOneUserAirdropViaAuthToken(myself: UserModel, airdropId: number): Promise<any> {
+    const filter = {
+      airdrop_id: airdropId,
+    };
+
+    const query = GraphQLSchema.getOneUserAirdrop(filter);
+    const key: string = 'one_user_airdrop';
+
+    const headers = {
+      Authorization: `Bearer ${myself.token}`,
+    };
+
+    return this.makeRequestWithHeaders(headers, query, key, false);
+  }
+
   public static async getUserNewsFeed(
     myself: UserModel,
   ): Promise<PostsListResponse> {
@@ -774,6 +891,23 @@ export class GraphqlHelper {
     return response;
   }
 
+  private static async makeRequestWithHeaders(
+    headers: any,
+    query: string,
+    keyToReturn: string | null = null,
+    dataOnly = true,
+  ): Promise<any> {
+    const client = this.getClientWithHeaders(headers);
+
+    const response = await client.query({ query: gql(query) });
+
+    if (keyToReturn) {
+      return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];
+    }
+
+    return response;
+  }
+
   private static getClientWithToken(user: UserModel) {
     return new ApolloClient({
       request: async (operation) => {
@@ -792,6 +926,16 @@ export class GraphqlHelper {
 
   private static getClient() {
     return new ApolloClient({
+      uri: GRAPHQL_URI,
+      cache: new InMemoryCache({
+        addTypename: false,
+      }),
+    });
+  }
+
+  private static getClientWithHeaders(headers) {
+    return new ApolloClient({
+      headers,
       uri: GRAPHQL_URI,
       cache: new InMemoryCache({
         addTypename: false,

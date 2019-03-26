@@ -5,9 +5,9 @@ import {
   PostModel, PostModelResponse, PostRequestQueryDto, PostsListResponse,
 } from '../interfaces/model-interfaces';
 import { ApiLogger } from '../../../config/winston';
-import { AppError } from '../../api/errors';
+import { AppError, BadRequestError } from '../../api/errors';
 import { OrgModelCard } from '../../organizations/interfaces/model-interfaces';
-import { UserIdToUserModelCard, UserModel } from '../../users/interfaces/model-interfaces';
+import { UserIdToUserModelCard, UserModel, UsersRequestQueryDto } from '../../users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
 import PostsRepository = require('../posts-repository');
@@ -20,6 +20,7 @@ import OrganizationsFetchService = require('../../organizations/service/organiza
 import UsersFetchService = require('../../users/service/users-fetch-service');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 import PostsModelProvider = require('./posts-model-provider');
+import AirdropFetchService = require('../../airdrops/service/airdrop-fetch-service');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -76,6 +77,22 @@ class PostsFetchService {
     }
 
     return ApiPostProcessor.processOnePostFully(post, currentUserId, currentUserPostActivity, userToUserActivity, orgTeamMembers);
+  }
+
+  public static async findOnePostOfferWithAirdrop(
+    postId: number,
+    currentUserId: number | null,
+    commentsQuery: RequestQueryComments,
+    usersRequestQuery: UsersRequestQueryDto,
+  ): Promise<PostModelResponse | null> {
+    const post = await this.findOnePostByIdAndProcessV2(postId, currentUserId, commentsQuery);
+    if (!post) {
+      throw new BadRequestError(`There is no post with ID: ${postId}`, 404);
+    }
+
+    await AirdropFetchService.addDataForGithubAirdropOffer(post, currentUserId, usersRequestQuery);
+
+    return post;
   }
 
   public static async findOnePostByIdAndProcessV2(

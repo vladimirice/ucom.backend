@@ -49,7 +49,7 @@ class JoiBadRequestError extends Error {
   }
 }
 
-class HttpForbiddenError extends Error {
+class HttpUnauthorizedError extends Error {
   public status;
 
   constructor(message) {
@@ -59,7 +59,22 @@ class HttpForbiddenError extends Error {
     this.name = this.constructor.name;
     Error.captureStackTrace(this, this.constructor);
 
-    this.status = 403;
+    this.status = 401;
+  }
+}
+
+class HttpForbiddenError extends Error {
+  public status;
+
+  // eslint-disable-next-line sonarjs/no-identical-functions
+  constructor(message) {
+    // noinspection JSCheckFunctionSignatures
+    super(message);
+
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
+
+    this.status = 401; // #task change to 403
   }
 }
 
@@ -87,5 +102,6 @@ export {
   AppError,
   BadRequestError,
   HttpForbiddenError,
+  HttpUnauthorizedError,
   JoiBadRequestError,
 };

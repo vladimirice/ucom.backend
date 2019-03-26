@@ -256,6 +256,10 @@ class UsersHelper {
       ]);
     }
 
+    if (options.airdrops) {
+      expected.push('score', 'external_login');
+    }
+
     expect(_.isEmpty(model.User.first_name)).toBeFalsy();
 
     ResponseHelper.expectAllFieldsExistence(model.User, expected);
@@ -390,6 +394,7 @@ class UsersHelper {
       ...vladSeed,
       ...vladDbData,
       token,
+      github_code: 'github_code_vlad',
     };
   }
 
@@ -491,6 +496,7 @@ class UsersHelper {
       ...seed,
       ...data,
       token,
+      github_code: 'github_code_jane',
     };
   }
 
