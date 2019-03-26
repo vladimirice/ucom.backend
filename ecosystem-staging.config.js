@@ -79,7 +79,7 @@ module.exports = {
     },
     // ================ Workers (CRON) ======================
     {
-      name: `${NODE_ENV}_worker_update_importance`,
+      name: `${NODE_ENV}_worker_airdrops_users_to_pending`,
       script: 'bin/workers-airdrops/airdrops-users-to-pending.js',
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
