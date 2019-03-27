@@ -16,7 +16,7 @@ GithubAuthRouter.all('/auth_callback', async (req, res) => {
     authToken,
     {
       maxAge: GithubAuthService.getCookieExpiration(),
-      httpOnly: true,
+      httpOnly: false,
     },
   );
 
