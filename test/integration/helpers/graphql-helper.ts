@@ -762,20 +762,6 @@ export class GraphqlHelper {
     return response;
   }
 
-  public static async getOneUserAirdrop(
-    airdropId: number,
-    headers: any,
-  ): Promise<any> {
-    const filter = {
-      airdrop_id: airdropId,
-    };
-
-    const query = GraphQLSchema.getOneUserAirdrop(filter);
-    const key: string = 'one_user_airdrop';
-
-    return GraphqlRequestHelper.makeRequestWithHeaders(headers, query, key, false);
-  }
-
   public static async getOnePostOfferWithUserAirdrop(
     airdropId: number,
     postId: number,
