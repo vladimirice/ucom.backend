@@ -2,9 +2,6 @@ import UsersExternalUserPairService = require('../service/users-external-user-pa
 
 const express = require('express');
 
-// @ts-ignore
-const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
-
 const UsersExternalRouter = express.Router();
 
 require('express-async-errors');
