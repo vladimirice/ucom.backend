@@ -10,6 +10,7 @@ import PostsGenerator = require('../../generators/posts-generator');
 import CommentsGenerator = require('../../generators/comments-generator');
 import ActivityHelper = require('../helpers/activity-helper');
 import CommonHelper = require('../helpers/common-helper');
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 const mockHelper = require('../helpers/mock-helper.ts');
 const seedsHelper = require('../helpers/seeds-helper.ts');
@@ -24,13 +25,13 @@ const JEST_TIMEOUT = 20000;
 describe('#feeds myself news feed. #graphql', () => {
   beforeAll(async () => {
     [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
-    await GraphqlHelper.beforeAll();
+    await GraphqlRequestHelper.beforeAll();
   });
 
   afterAll(async () => {
     await Promise.all([
       seedsHelper.doAfterAll(),
-      GraphqlHelper.afterAll(),
+      GraphqlRequestHelper.afterAll(),
     ]);
   });
 

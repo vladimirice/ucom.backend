@@ -13,6 +13,7 @@ import PostsHelper = require('../../helpers/posts-helper');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import OrganizationsHelper = require('../../helpers/organizations-helper');
 import ActivityHelper = require('../../helpers/activity-helper');
+import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -23,19 +24,19 @@ describe('Get One media post #graphql', () => {
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
 
-    await GraphqlHelper.beforeAll();
+    await GraphqlRequestHelper.beforeAll();
   });
 
   afterEach(async () => {
     await Promise.all([
-      GraphqlHelper.afterAll(),
+      GraphqlRequestHelper.afterAll(),
     ]);
   });
 
   afterAll(async () => {
     await Promise.all([
       SeedsHelper.doAfterAll(),
-      GraphqlHelper.afterAll(),
+      GraphqlRequestHelper.afterAll(),
     ]);
   });
 

@@ -1,6 +1,7 @@
 /* eslint-disable import/no-dynamic-require */
 /* tslint:disable:max-line-length */
-import { GraphqlHelper } from './graphql-helper';
+
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
@@ -181,7 +182,7 @@ class SeedsHelper {
 
   public static async beforeAllSetting(options) {
     if (options.isGraphQl) {
-      await GraphqlHelper.beforeAll();
+      await GraphqlRequestHelper.beforeAll();
     }
 
     switch (options.workersMocking) {
@@ -388,7 +389,7 @@ class SeedsHelper {
     await this.sequelizeAfterAll();
 
     if (options && options.isGraphQl) {
-      await GraphqlHelper.afterAll();
+      await GraphqlRequestHelper.afterAll();
     }
   }
 
