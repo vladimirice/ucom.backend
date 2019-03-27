@@ -1,5 +1,7 @@
 const API_V1_PREFIX = '/api/v1';
 
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
+
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -53,7 +55,10 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
   // Request headers you wish to allow
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB}`,
+  );
 
   // Set to true if you need the website to include cookies in the requests sent
   // to the API (e.g. in case you use sessions)
