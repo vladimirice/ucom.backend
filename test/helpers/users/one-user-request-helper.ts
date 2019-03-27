@@ -17,6 +17,19 @@ class OneUserRequestHelper {
 
     return GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
   }
+
+  public static async getOneUserAsGuest(
+    userId: number,
+  ): Promise<any> {
+    const filter = {
+      user_id: userId,
+    };
+
+    const query = GraphQLSchema.getOneUser(filter);
+    const key: string = 'one_user';
+
+    return GraphqlRequestHelper.makeRequestAsGuest(query, key, false);
+  }
 }
 
 export = OneUserRequestHelper;

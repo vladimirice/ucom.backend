@@ -550,7 +550,7 @@ class UserActivityService {
    * @param {number | null} userId
    * @returns {Promise<Object>}
    */
-  static async getUserActivityData(userId = null) {
+  static async getUserActivityData(userId: number | null = null) {
     if (userId === null) {
       return {
         IFollow: [],

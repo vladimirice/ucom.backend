@@ -73,7 +73,11 @@ class UserPostProcessor {
    * @param {number|null} currentUserId - logged user ID
    * @param {Object} activityData
    */
-  static processUser(user, currentUserId = null, activityData = null) {
+  static processUser(
+    user,
+    currentUserId: number | null = null,
+    activityData = null,
+  ): void {
     if (!user) {
       return;
     }

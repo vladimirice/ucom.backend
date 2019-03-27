@@ -5,7 +5,9 @@ import {
 } from '../interfaces/model-interfaces';
 import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from '../../posts/interfaces/model-interfaces';
-import { AppError } from '../../api/errors';
+import { AppError, BadRequestError } from '../../api/errors';
+
+import _ = require('lodash');
 
 import UsersRepository = require('../users-repository');
 
@@ -14,18 +16,45 @@ import ApiPostProcessor = require('../../common/service/api-post-processor');
 import PostsModelProvider = require('../../posts/service/posts-model-provider');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 import QueryFilterService = require('../../api/filters/query-filter-service');
-import _ = require('lodash');
 import UsersModelProvider = require('../users-model-provider');
 import PostsRepository = require('../../posts/posts-repository');
 import AirdropsUsersRepository = require('../../airdrops/repository/airdrops-users-repository');
-
-const usersRepository       = require('../users-repository');
-const queryFilterService    = require('../../api/filters/query-filter-service');
-const usersActivityService  = require('../user-activity-service');
-const userPostProcessor     = require('../user-post-processor');
+import OrganizationPostProcessor = require('../../organizations/service/organization-post-processor');
+import EntityNotificationsRepository = require('../../entities/repository/entity-notifications-repository');
+import UsersActivityRepository = require('../repository/users-activity-repository');
+import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
+import UserActivityService = require('../user-activity-service');
 
 class UsersFetchService {
-  static async findOneAndProcessForCard(
+  public static async findOneAndProcessFully(
+    userId: number,
+    currentUserId: number | null,
+  ): Promise<UserModel> {
+    const [user, activityData, userOrganizations] = await Promise.all([
+      UsersRepository.getUserById(userId),
+      UsersActivityRepository.findOneUserActivityWithInvolvedUsersData(userId),
+      OrganizationsRepository.findAllAvailableForUser(userId),
+    ]);
+
+    if (!user) {
+      throw new BadRequestError(`There is no user with ID: ${userId}`, 404);
+    }
+
+    const userJson = user.toJSON();
+    userJson.organizations = userOrganizations;
+
+    UserPostProcessor.processUser(userJson, currentUserId, activityData);
+    OrganizationPostProcessor.processManyOrganizations(userJson.organizations);
+
+    if (userId === currentUserId) {
+      userJson.unread_messages_count =
+        await EntityNotificationsRepository.countUnreadMessages(userId);
+    }
+
+    return userJson;
+  }
+
+  public static async findOneAndProcessForCard(
     userId: number,
   ): Promise<UserModel | null> {
     const model: UserModel | null = await UsersRepository.findOneByIdForPreview(userId);
@@ -65,8 +94,9 @@ class UsersFetchService {
     query: UsersRequestQueryDto,
     currentUserId: number | null,
   ): Promise<UsersListResponse> {
-    const repository          = usersRepository;
-    const params: DbParamsDto = queryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
+    const repository          = UsersRepository;
+    const params: DbParamsDto =
+      QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
 
     const promises = [
       UsersRepository.findAllAirdropParticipants(query.airdrops!.id, params),
@@ -114,8 +144,8 @@ class UsersFetchService {
 
   private static getManyUsersListPromises(query: RequestQueryDto): { promises: Promise<any>[], params: DbParamsDto } {
     // preparation for universal class-fetching processor
-    const repository  = usersRepository;
-    const params      = queryFilterService.getQueryParametersWithRepository(query, repository);
+    const repository  = UsersRepository;
+    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository);
 
     const promises = [
       repository.findAllForList(params),
@@ -137,12 +167,12 @@ class UsersFetchService {
     const [models, totalAmount] = await Promise.all(promises);
 
     if (currentUserId) {
-      const activityData = await usersActivityService.getUserActivityData(currentUserId);
-      userPostProcessor.addMyselfDataByActivityArrays(models, activityData);
+      const activityData = await UserActivityService.getUserActivityData(currentUserId);
+      UserPostProcessor.addMyselfDataByActivityArrays(models, activityData);
     }
 
     ApiPostProcessor.processUsersAfterQuery(models);
-    const metadata = queryFilterService.getMetadata(totalAmount, query, params);
+    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
 
     return {
       metadata,
@@ -158,10 +188,10 @@ class UsersFetchService {
    * @returns {Promise<*>}
    */
   static async findAllAndProcessForListByTagTitle(tagTitle, query, currentUserId) {
-    queryFilterService.checkLastIdExistence(query);
+    QueryFilterService.checkLastIdExistence(query);
 
-    const repository    = usersRepository;
-    const params          = queryFilterService.getQueryParametersWithRepository(query, repository);
+    const repository    = UsersRepository;
+    const params          = QueryFilterService.getQueryParametersWithRepository(query, repository);
 
     const [models, totalAmount] = await Promise.all([
       repository.findAllByTagTitle(tagTitle, params),
@@ -169,21 +199,17 @@ class UsersFetchService {
     ]);
 
     if (currentUserId) {
-      const activityData = await usersActivityService.getUserActivityData(currentUserId);
-      userPostProcessor.addMyselfDataByActivityArrays(models, activityData);
+      const activityData = await UserActivityService.getUserActivityData(currentUserId);
+      UserPostProcessor.addMyselfDataByActivityArrays(models, activityData);
     }
 
     ApiPostProcessor.processUsersAfterQuery(models);
-    const metadata = queryFilterService.getMetadata(totalAmount, query, params);
+    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
 
-    if (query.v2) {
-      return {
-        metadata,
-        data: models,
-      };
-    }
-
-    return models;
+    return {
+      metadata,
+      data: models,
+    };
   }
 }
 

@@ -2,7 +2,7 @@ import { GraphQLError } from 'graphql';
 import { RequestQueryComments, RequestQueryDto } from './lib/api/filters/interfaces/query-filter-interfaces';
 import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from './lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from './lib/comments/interfaces/model-interfaces';
-import { UsersListResponse, UsersRequestQueryDto } from './lib/users/interfaces/model-interfaces';
+import { UserModel, UsersListResponse, UsersRequestQueryDto } from './lib/users/interfaces/model-interfaces';
 import { OneUserAirdropDto } from './lib/airdrops/interfaces/dto-interfaces';
 
 import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
@@ -370,6 +370,13 @@ const resolvers = {
           },
         },
       };
+    },
+    // @ts-ignore
+    async one_user(parent, args, ctx): Promise<UserModel> {
+      const userId: number = args.filters.user_id;
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+
+      return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
     },
     // @ts-ignore
     async many_users(parent, args, ctx): Promise<UsersListResponse> {

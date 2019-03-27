@@ -36,6 +36,7 @@ const typeDefs = gql `
     one_post_offer(id: Int!, comments_query: comments_query!, users_team_query: users_team_query!): PostOffer!
     
     one_user_airdrop(filters: one_user_airdrop_state_filtering): JSON
+    one_user(filters: one_user_filtering): JSON
     
     many_blockchain_nodes(order_by: String!, page: Int!, per_page: Int!): JSON
   }
@@ -285,6 +286,10 @@ const typeDefs = gql `
     
     airdrops: JSON
   }
+  
+  input one_user_filtering {
+    user_id: Int!
+  }
 `;
 // @ts-ignore
 const resolvers = {
@@ -348,6 +353,12 @@ const resolvers = {
                     },
                 },
             };
+        },
+        // @ts-ignore
+        async one_user(parent, args, ctx) {
+            const userId = args.filters.user_id;
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
         },
         // @ts-ignore
         async many_users(parent, args, ctx) {

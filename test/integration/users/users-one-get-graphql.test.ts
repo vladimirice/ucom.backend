@@ -33,13 +33,15 @@ describe('Get one user via graphQL', () => {
       const userVladResponse = await OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id);
       const user = await UsersRepository.getUserById(userVlad.id);
 
-      UsersHelper.checkUserPreview(userVladResponse);
       UsersHelper.validateUserJson(userVladResponse, userVlad, user);
-    }, JEST_TIMEOUT_DEBUG);
+    }, JEST_TIMEOUT);
 
     it('Get one user via graphQL as guest', async () => {
-      // TODO
-    }, JEST_TIMEOUT_DEBUG);
+      const userVladResponse = await OneUserRequestHelper.getOneUserAsGuest(userJane.id);
+      const user = await UsersRepository.getUserById(userJane.id);
+
+      UsersHelper.validateUserJson(userVladResponse, userJane, user);
+    }, JEST_TIMEOUT);
   });
 });
 
