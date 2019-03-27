@@ -4,6 +4,7 @@ const WEBSOCKET_SERVER_PORT = 5001;
 const GRAPHQL_SERVER_PORT = 4001;
 
 const CRON_PATTERN_EVERY_HOUR = '0 */1 * * *';
+const CRON_PATTERN_EVERY_MINUTE = '* * * * *';
 const CRON_PATTERN_EVERY_FIVE_MINUTES = '*/5 * * * *';
 
 module.exports = {
@@ -82,7 +83,7 @@ module.exports = {
       name: `${NODE_ENV}_worker_airdrops_users_to_pending`,
       script: 'bin/workers-airdrops/airdrops-users-to-pending.js',
       watch: false,
-      cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
         NODE_ENV,
       },
@@ -109,7 +110,7 @@ module.exports = {
       name: `${NODE_ENV}_worker_update_blockchain_nodes`,
       script: 'bin/worker-update-blockchain-nodes.js',
       watch: false,
-      cron_restart: '* * * * *',
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
         NODE_ENV,
       },
