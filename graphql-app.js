@@ -37,6 +37,7 @@ const typeDefs = gql `
     
     one_user_airdrop(filters: one_user_airdrop_state_filtering): JSON
     one_user(filters: one_user_filtering): JSON
+    one_user_trusted_by(filters: one_user_filtering, order_by: String!, page: Int!, per_page: Int!): users!
     
     many_blockchain_nodes(order_by: String!, page: Int!, per_page: Int!): JSON
   }
@@ -364,20 +365,15 @@ const resolvers = {
         async many_users(parent, args, ctx) {
             const usersQuery = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
-            /*
-            usersQuery
-      
-            page
-            per_page
-            sort_by
-            filters: {
-              airdrop_id:
-            }
-      
-             */
             if (usersQuery.airdrops) {
                 return UsersFetchService.findAllAirdropParticipants(usersQuery, currentUserId);
             }
+            return UsersFetchService.findAllAndProcessForList(usersQuery, currentUserId);
+        },
+        // @ts-ignore
+        async one_user_trusted_by(parent, args, ctx) {
+            const usersQuery = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
+            const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             return UsersFetchService.findAllAndProcessForList(usersQuery, currentUserId);
         },
         // @ts-ignore

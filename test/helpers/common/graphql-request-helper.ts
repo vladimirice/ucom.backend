@@ -4,6 +4,8 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
 
+const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
+
 const { app, server } = require('../../../graphql-app');
 
 const PORT = 4007;
@@ -21,6 +23,15 @@ export class GraphqlRequestHelper {
 
   public static async afterAll(): Promise<void> {
     await serverApp.close();
+  }
+
+  public static async makeRequestFromQueryPartsAsMyself(
+    myself: UserModel,
+    parts: string[],
+  ): Promise<any> {
+    const query = GraphQLSchema.getQueryMadeFromParts(parts);
+
+    return this.makeRequestAsMyself(myself, query);
   }
 
   public static async makeRequestAsMyself(
