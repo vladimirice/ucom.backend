@@ -1,11 +1,14 @@
 /* tslint:disable:max-line-length */
 import { EntityParamAggregatesDto } from '../../stats/interfaces/dto-interfaces';
+import { UsersActivityModelDto } from '../interfaces/users-activity/model-interfaces';
 
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import UsersActivityWhere = require('./users-activity/users-activity-where');
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
+
 const models = require('../../../models');
 
 const db = models.sequelize;
@@ -26,7 +29,7 @@ const model = usersModelProvider.getUsersActivityModel();
 
 class UsersActivityRepository {
   public static async countAllUpvotes(): Promise<number> {
-    const filter = UsersActivityRepository.getUpvoteFilter();
+    const filter = UsersActivityWhere.getUpvoteFilter();
 
     const res = await knex(TABLE_NAME)
       .count(`${TABLE_NAME}.id AS amount`)
@@ -37,7 +40,7 @@ class UsersActivityRepository {
   }
 
   public static async countAllDownvotes(): Promise<number> {
-    const filter = UsersActivityRepository.getDownvoteFilter();
+    const filter = UsersActivityWhere.getDownvoteFilter();
 
     const res = await knex(TABLE_NAME)
       .count(`${TABLE_NAME}.id AS amount`)
@@ -112,6 +115,10 @@ class UsersActivityRepository {
    */
   static async createNewActivity(data, transaction) {
     return this.getModel().create(data, { transaction });
+  }
+
+  public static async createNewKnexActivity(row, trx) {
+    return trx(TABLE_NAME).insert(row).returning('*');
   }
 
   /**
@@ -435,7 +442,7 @@ class UsersActivityRepository {
    * @param {number} id
    * @return {Promise<*>}
    */
-  static async getSignedTransactionByActivityId(id) {
+  static async getSignedTransactionByActivityId(id): Promise<string | null> {
     const result = await this.getModel().findOne({
       attributes: ['signed_transaction'],
       where: { id },
@@ -476,7 +483,24 @@ class UsersActivityRepository {
     });
   }
 
-  static async findLastByUserIdAndEntityId(userIdFrom, entityIdTo) {
+  public static async findLastByEventIdWithBlockchainIsSentStatus(
+    userId: number,
+    eventId: number,
+  ): Promise<UsersActivityModelDto> {
+    const blockchainStatus = blockchainStatusDictionary.getStatusIsSent();
+
+    return knex(TABLE_NAME)
+      .where({
+        user_id_from: userId,
+        event_id: eventId,
+        blockchain_status: blockchainStatus,
+      })
+      .orderBy('id', 'desc')
+      .limit(1)
+      .first();
+  }
+
+  public static async findLastByUserIdAndEntityId(userIdFrom: number, entityIdTo: number) {
     return this.getModel().findOne({
       where: {
         user_id_from: userIdFrom,
@@ -572,6 +596,26 @@ class UsersActivityRepository {
       where: { id },
       raw: true,
     });
+  }
+
+  public static async findLastTrustUserActivity(userIdFrom: number, userIdTo: number): Promise<any> {
+    const where = UsersActivityWhere.getWhereTrustOneUser(userIdFrom, userIdTo);
+
+    return knex(TABLE_NAME)
+      .where(where)
+      .orderBy('id', 'DESC')
+      .limit(1)
+      .first();
+  }
+
+  public static async findLastUntrustUserActivity(userIdFrom: number, userIdTo: number): Promise<any> {
+    const where = UsersActivityWhere.getWhereUntrustOneUser(userIdFrom, userIdTo);
+
+    return knex(TABLE_NAME)
+      .where(where)
+      .orderBy('id', 'DESC')
+      .limit(1)
+      .first();
   }
 
   static async findLastByUserId(userIdFrom) {
@@ -868,20 +912,6 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
 
   static getModel() {
     return models[TABLE_NAME];
-  }
-
-  private static getUpvoteFilter() {
-    return {
-      activity_type_id:   InteractionTypeDictionary.getUpvoteId(),
-      activity_group_id:  activityGroupDictionary.getGroupContentInteraction(),
-    };
-  }
-
-  private static getDownvoteFilter() {
-    return {
-      activity_type_id:   InteractionTypeDictionary.getDownvoteId(),
-      activity_group_id:  activityGroupDictionary.getGroupContentInteraction(),
-    };
   }
 }
 

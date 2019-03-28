@@ -5,7 +5,9 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/vladimirice/ucom.backend/badge.svg)](https://snyk.io/test/github/vladimirice/ucom.backend)
 
 ## Content
+* [Main goals](#main-goals)
 * [Installation](documentation/INSTALLATION.md)
+* [How-to](documentation/HOW_TO.md)
 * [Architecture](documentation/ARCHITECTURE.md)
 * [Style guide](documentation/STYLE_GUIDE.md)
 * [Technical debt](documentation/TECHNICAL_DEBT.md)

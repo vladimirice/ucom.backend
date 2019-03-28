@@ -48,12 +48,15 @@ const minorTablesToSkipSequences = [
   'tags_current_params_id_seq',
   `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
   `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
+  `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
 ];
 
 // Truncated async
 const minorTables = [
   entityModelProvider.getNotificationsTableName(),
   usersRepositories.UsersTeam.getModelName(),
+
+  UsersModelProvider.getUsersActivityTrustTableName(),
 
   'airdrops_users_external_data',
 

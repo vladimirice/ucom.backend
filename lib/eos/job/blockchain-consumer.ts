@@ -18,7 +18,10 @@ class BlockchainConsumer {
         messageContent        = message.content.toString();
         parsedMessageContent  = JSON.parse(messageContent);
 
+        console.log(`Consumed message: ${messageContent}`);
+
         eosApi.initTransactionFactory();
+        eosApi.initWalletApi();
         await blockchainJobProcessor.process(parsedMessageContent);
       } catch (err) {
         const userIdFrom =

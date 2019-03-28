@@ -98,21 +98,21 @@ class RabbitMqService {
   }
 
   static async purgeIpfsQueue() {
-    const channel = await this.getChannel();
+    const ch = await this.getChannel();
 
-    await channel.purgeQueue(rabbitMqConfig.ipfs_queue_name);
+    await ch.purgeQueue(rabbitMqConfig.ipfs_queue_name);
   }
 
   static async purgeBlockchainQueue() {
-    const channel = await this.getChannel();
+    const ch = await this.getChannel();
 
-    await channel.purgeQueue(this.getBlockchainQueueName());
+    await ch.purgeQueue(this.getBlockchainQueueName());
   }
 
   static async purgeNotificationsQueue() {
-    const channel = await this.getChannel();
+    const ch = await this.getChannel();
 
-    await channel.purgeQueue(this.getNotificationsQueueName());
+    await ch.purgeQueue(this.getNotificationsQueueName());
   }
 
   /**
@@ -120,9 +120,9 @@ class RabbitMqService {
    * @returns {Promise<void>}
    */
   static async purgeTagsParserQueue() {
-    const channel = await this.getChannel();
+    const ch = await this.getChannel();
 
-    await channel.purgeQueue(this.getTagsParserQueueName());
+    await ch.purgeQueue(this.getTagsParserQueueName());
   }
 
   /**

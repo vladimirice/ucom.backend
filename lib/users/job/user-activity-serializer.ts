@@ -2,12 +2,20 @@ const userRepository = require('../repository');
 
 class UserActivitySerializer {
   // @ts-ignore
-  static getActivityDataToCreateJob(transactionId, scope = null) {
+  public static getActivityDataToCreateJob(transactionId, scope = null) {
     const payload = {
       id: transactionId,
     };
 
     return JSON.stringify(payload);
+  }
+
+  public static createJobWithOnlyEosJsV2Option(activityId: number): string {
+    const options = {
+      eosJsV2: true,
+    };
+
+    return this.createJobWithOptions(activityId, options);
   }
 
   /**
@@ -24,6 +32,15 @@ class UserActivitySerializer {
     }
 
     return JSON.parse(signedTransaction);
+  }
+
+  private static createJobWithOptions(activityId: number, options): string {
+    const payload = {
+      options,
+      id: activityId,
+    };
+
+    return JSON.stringify(payload);
   }
 
   // static async getPostDataForIpfs(postJobPayload) {

@@ -1,6 +1,7 @@
 import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
+import ResponseHelper = require('./response-helper');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -31,6 +32,14 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getUsersUrlV1(): string {
+    return usersUrl;
+  }
+
+  public static getOneUserUrlV1(userId: number): string {
+    return `${usersUrl}/${userId}`;
+  }
+
   public static getAuthBearerHeader(token: string): { Authorization: string } {
     return {
       Authorization: `Bearer ${token}`,
@@ -85,6 +94,14 @@ class RequestHelper {
     }
 
     return text;
+  }
+
+  public static async makeRequestAndGetBody(req, expectedStatus = 200): Promise<any> {
+    const res = await req;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
   }
 
   /**
