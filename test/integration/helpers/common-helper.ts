@@ -331,6 +331,17 @@ class CommonHelper {
    *
    * @param {Object} model
    */
+  static checkUserTrustsYouNotification(model) {
+    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserTrustsYou());
+
+    UsersHelper.checkIncludedUserPreview(model.data);
+    UsersHelper.checkIncludedUserPreview(model.target_entity);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   */
   static checkUserFollowsOrgNotification(model) {
     expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserFollowsOrg());
 

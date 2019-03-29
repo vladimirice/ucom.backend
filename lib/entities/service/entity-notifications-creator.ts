@@ -308,6 +308,21 @@ class EntityNotificationsCreator {
   /**
    *
    * @param {Object} activity
+   * @return {Promise<data>}
+   * @private
+   */
+  private static async userTrustsOtherUser(activity) {
+    const jsonData = await activityToNotificationRepository.findForUserTrustsOtherUser(activity.id);
+    apiPostProcessor.processOneUserTrustsOtherUserNotification(jsonData);
+
+    const recipientId = activity.entity_id_to;
+
+    return entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonData);
+  }
+
+  /**
+   *
+   * @param {Object} activity
    * @return {Promise<void>}
    * @private
    */
@@ -332,6 +347,9 @@ class EntityNotificationsCreator {
       // Following
       [eventIdDictionary.getUserFollowsYou()]:                    this.userFollowsOtherUser,
       [eventIdDictionary.getUserFollowsOrg()]:                    this.userFollowsOrg,
+
+      // Trust
+      [eventIdDictionary.getUserTrustsYou()]:                    this.userTrustsOtherUser,
 
       // Commenting
       [eventIdDictionary.getUserCommentsOrgPost()]:               this.processUserCommentsOrgPost,

@@ -86,7 +86,16 @@ class ApiPostProcessor {
    *
    * @param {Object} model
    */
-  static processOneUserFollowsOtherUserNotification(model) {
+  public static processOneUserFollowsOtherUserNotification(model) {
+    usersPostProcessor.processModelAuthorForListEntity(model.data.User);
+    usersPostProcessor.processModelAuthorForListEntity(model.target_entity.User);
+  }
+
+  /**
+   *
+   * @param {Object} model
+   */
+  public static processOneUserTrustsOtherUserNotification(model) {
     usersPostProcessor.processModelAuthorForListEntity(model.data.User);
     usersPostProcessor.processModelAuthorForListEntity(model.target_entity.User);
   }

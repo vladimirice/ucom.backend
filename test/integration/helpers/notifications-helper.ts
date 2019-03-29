@@ -1,4 +1,7 @@
 /* tslint:disable:max-line-length */
+import { AppError } from '../../../lib/api/errors';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 const request = require('supertest');
 const server = require('../../../app');
 const requestHelper = require('./request-helper');
@@ -135,18 +138,18 @@ class NotificationsHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {Object} myself
-   * @return {Promise<*>}
-   *
-   * @link EntityNotificationsService#getAllNotifications
-   */
-  static async requestToGetOnlyOneNotification(myself): Promise<any> {
+  public static async requestToGetOnlyOneNotification(myself: UserModel): Promise<any> {
     let notifications = [];
+    let counter = 0;
     while (_.isEmpty(notifications)) {
       notifications = await this.requestToGetOnlyOneNotificationBeforeReceive(myself);
       delay(100);
+
+      counter += 1;
+
+      if (counter >= 900) {
+        throw new AppError('Timeout is occurred. There are no any notifications');
+      }
     }
 
     expect(notifications.length).toBe(1);
