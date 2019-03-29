@@ -4,6 +4,8 @@ import { UsersActivityTrustModelDto } from '../../interfaces/users-activity/mode
 import knex = require('../../../../config/knex');
 import UsersModelProvider = require('../../users-model-provider');
 import _ from 'lodash';
+import { DbParamsDto } from '../../../api/filters/interfaces/query-filter-interfaces';
+import RepositoryHelper = require('../../../common/repository/repository-helper');
 
 const TABLE_NAME = UsersModelProvider.getUsersActivityTrustTableName();
 
@@ -62,6 +64,29 @@ class UsersActivityTrustRepository {
       .first();
 
     return res || null;
+  }
+
+  public static getUserIdsFromForUser(userIdTo: number, params: DbParamsDto) {
+    return knex(TABLE_NAME)
+      .select(['user_id'])
+      .where({
+        entity_id: userIdTo,
+        entity_name: UsersModelProvider.getEntityName(),
+      })
+      .orderByRaw(params.orderByRaw)
+      .limit(params.limit)
+      .offset(params.offset);
+  }
+
+  public static async countUsersThatTrustUser(userId: number): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        entity_id: userId,
+        entity_name: UsersModelProvider.getEntityName(),
+      });
+
+    return RepositoryHelper.getKnexCountAsNumber(res);
   }
 }
 

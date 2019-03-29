@@ -1,13 +1,12 @@
-import {UserModel} from "../../../lib/users/interfaces/model-interfaces";
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-const requestHelper = require('./request-helper');
-const responseHelper = require('./response-helper');
-const request = require('supertest');
-const server = require('../../../app');
+import RequestHelper = require('./request-helper');
+import ResponseHelper = require('./response-helper');
+import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
 
 const delay = require('delay');
-
-const usersActivityRepository = require('../../../lib/users/repository').Activity;
+const request = require('supertest');
+const server = require('../../../app');
 
 class ActivityHelper {
   static async requestToCreateFollow(
@@ -16,11 +15,11 @@ class ActivityHelper {
     expectedStatus: number = 201,
   ): Promise<any> {
     const res = await request(server)
-      .post(requestHelper.getFollowUrl(targetUser.id))
+      .post(RequestHelper.getFollowUrl(targetUser.id))
       .set('Authorization', `Bearer ${whoActs.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -35,7 +34,7 @@ class ActivityHelper {
     let activity = null;
 
     while (!activity) {
-      activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userFrom.id);
+      activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userFrom.id);
       await delay(200);
     }
 
@@ -94,7 +93,6 @@ class ActivityHelper {
     idsToFollow: number[] = [],
     idsToUnfollow: number[] = [],
   ) {
-
     for (let i = 0; i < idsToFollow.length; i += 1) {
       const current = idsToFollow[i];
 
@@ -108,26 +106,38 @@ class ActivityHelper {
     }
   }
 
-  static async requestToCreateFollowHistory(whoActs, targetUser) {
+  static async requestToCreateFollowHistory(
+    whoActs: UserModel,
+    targetUser: UserModel,
+  ): Promise<void> {
     await ActivityHelper.requestToCreateFollow(whoActs, targetUser);
     await ActivityHelper.requestToCreateUnfollow(whoActs, targetUser);
     await ActivityHelper.requestToCreateFollow(whoActs, targetUser);
   }
 
-  static async requestToCreateUnfollowHistory(whoActs, targetUser) {
+  static async requestToCreateUnfollowHistory(
+    whoActs: UserModel,
+    targetUser: UserModel,
+  ): Promise<void> {
     await ActivityHelper.requestToCreateFollow(whoActs, targetUser);
     await ActivityHelper.requestToCreateUnfollow(whoActs, targetUser);
     await ActivityHelper.requestToCreateFollow(whoActs, targetUser);
     await ActivityHelper.requestToCreateUnfollow(whoActs, targetUser);
   }
 
-  static async requestToCreateOrgFollowHistory(whoActs, targetOrgId) {
+  static async requestToCreateOrgFollowHistory(
+    whoActs: UserModel,
+    targetOrgId: number,
+  ): Promise<void> {
     await this.requestToFollowOrganization(targetOrgId, whoActs);
     await this.requestToUnfollowOrganization(targetOrgId, whoActs);
     await this.requestToFollowOrganization(targetOrgId, whoActs);
   }
 
-  static async requestToCreateOrgUnfollowHistory(whoActs, targetOrgId) {
+  static async requestToCreateOrgUnfollowHistory(
+    whoActs: UserModel,
+    targetOrgId: number,
+  ): Promise<void> {
     await this.requestToFollowOrganization(targetOrgId, whoActs);
     await this.requestToUnfollowOrganization(targetOrgId, whoActs);
     await this.requestToFollowOrganization(targetOrgId, whoActs);
@@ -140,22 +150,22 @@ class ActivityHelper {
     expectedStatus: number = 201,
   ): Promise<any> {
     const res = await request(server)
-      .post(requestHelper.getOrgFollowUrl(orgId))
+      .post(RequestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
 
   static async requestToUnfollowOrganization(orgId, user, expectedStatus = 201) {
     const res = await request(server)
-      .post(requestHelper.getOrgUnfollowUrl(orgId))
+      .post(RequestHelper.getOrgUnfollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -169,24 +179,23 @@ class ActivityHelper {
    */
   static async requestToCreateUnfollow(whoActs, targetUser, expectedStatus = 201) {
     const res = await request(server)
-      .post(requestHelper.getUnfollowUrl(targetUser.id))
+      .post(RequestHelper.getUnfollowUrl(targetUser.id))
       .set('Authorization', `Bearer ${whoActs.token}`)
     ;
 
-    responseHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
 
   // noinspection JSUnusedGlobalSymbols
   static async createJoin(userJoined, postIdTo) {
-
     const res = await request(server)
-      .post(requestHelper.getJoinUrl(postIdTo))
+      .post(RequestHelper.getJoinUrl(postIdTo))
       .set('Authorization', `Bearer ${userJoined.token}`)
     ;
 
-    responseHelper.expectStatusOk(res);
+    ResponseHelper.expectStatusOk(res);
   }
 }
 

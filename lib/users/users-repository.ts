@@ -11,6 +11,7 @@ import RepositoryHelper = require('../common/repository/repository-helper');
 import UsersExternalModelProvider = require('../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
+import UsersActivityTrustRepository = require('./repository/users-activity/users-activity-trust-repository');
 
 const _ = require('lodash');
 
@@ -44,6 +45,7 @@ class UsersRepository {
       .select(toSelect)
       .innerJoin(usersExternal, `${usersExternal}.user_id`, `${TABLE_NAME}.id`)
       .innerJoin(airdropsUsersExternalData, `${airdropsUsersExternalData}.users_external_id`, `${usersExternal}.id`)
+      // eslint-disable-next-line func-names
       .whereIn(`${TABLE_NAME}.id`, function () {
         // @ts-ignore
         this
@@ -411,6 +413,21 @@ class UsersRepository {
     });
 
     return !!count;
+  }
+
+  public static async findAllWhoTrustsUser(
+    userId: number,
+    params: DbParamsDto,
+  ) {
+    const previewFields = UsersModelProvider.getUserFieldsForPreview();
+    const toSelect = RepositoryHelper.getPrefixedAttributes(previewFields, TABLE_NAME);
+
+    const usersActivityTrust = UsersModelProvider.getUsersActivityTrustTableName();
+    const subQuery = UsersActivityTrustRepository.getUserIdsFromForUser(userId, params);
+
+    return knex(TABLE_NAME)
+      .select(toSelect)
+      .innerJoin(subQuery.as(usersActivityTrust), `${usersActivityTrust}.user_id`, `${TABLE_NAME}.id`);
   }
 
   /**

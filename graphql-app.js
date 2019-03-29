@@ -374,7 +374,7 @@ const resolvers = {
         async one_user_trusted_by(parent, args, ctx) {
             const usersQuery = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
-            return UsersFetchService.findAllAndProcessForList(usersQuery, currentUserId);
+            return UsersFetchService.findOneUserTrustedByAndProcessForList(args.filters.user_id, usersQuery, currentUserId);
         },
         // @ts-ignore
         async many_posts(parent, args, ctx) {

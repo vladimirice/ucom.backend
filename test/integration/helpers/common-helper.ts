@@ -679,6 +679,27 @@ class CommonHelper {
     });
   }
 
+  public static checkUsersListResponseForMyselfData(
+    response: UsersListResponse,
+    allowEmpty: boolean = false,
+  ): void {
+    ResponseHelper.checkListResponseStructure(response);
+
+    const options = {
+      author: {
+        myselfData: true,
+      },
+    };
+
+    if (!allowEmpty) {
+      expect(response.data.length).toBeGreaterThan(0);
+    }
+
+    response.data.forEach((item) => {
+      UsersHelper.checkIncludedUserForEntityPage({ User: item }, options);
+    });
+  }
+
   public static expectPostListResponse(
     response: PostsListResponse,
     options: CheckerOptions,

@@ -92,6 +92,22 @@ class UsersFetchService {
     return modelsSet;
   }
 
+  public static async findOneUserTrustedByAndProcessForList(
+    userId: number,
+    query: UsersRequestQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
+    const repository  = UsersRepository;
+    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
+
+    const promises = [
+      repository.findAllWhoTrustsUser(userId, params),
+      UsersActivityTrustRepository.countUsersThatTrustUser(userId),
+    ];
+
+    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
   public static async findAllAndProcessForList(query: RequestQueryDto, currentUserId): Promise<UsersListResponse> {
     let data;
     if (query.overview_type && query.entity_name) {

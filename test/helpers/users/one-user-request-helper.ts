@@ -1,5 +1,6 @@
 import { GraphqlRequestHelper } from '../common/graphql-request-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import ResponseHelper = require('../../integration/helpers/response-helper');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
@@ -65,7 +66,11 @@ class OneUserRequestHelper {
     const query = GraphQLSchema.getQueryMadeFromParts([trustedByPart]);
     const key: string = 'one_user_trusted_by';
 
-    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
+    const response = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
+
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
   }
 
   public static async getOneUserAsGuest(

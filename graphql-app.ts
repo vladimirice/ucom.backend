@@ -408,7 +408,7 @@ const resolvers = {
       };
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
-      return UsersFetchService.findAllAndProcessForList(usersQuery, currentUserId);
+      return UsersFetchService.findOneUserTrustedByAndProcessForList(args.filters.user_id, usersQuery, currentUserId);
     },
 
     // @ts-ignore
