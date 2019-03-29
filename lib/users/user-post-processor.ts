@@ -101,8 +101,10 @@ class UserPostProcessor {
   ) {
     this.processUser(user, currentUserId, activityDataSet.activityData);
 
-    // @ts-ignore
-    user.myselfData.trust = activityDataSet.myselfData.trust;
+    if (currentUserId) {
+      // @ts-ignore
+      user.myselfData.trust = activityDataSet.myselfData.trust;
+    }
   }
 
   public static processUserIdToUserModelCard(modelsSet: UserIdToUserModelCard): void {

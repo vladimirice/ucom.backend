@@ -2,6 +2,7 @@ import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { PostModelMyselfResponse, PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../../generators/interfaces/dto-interfaces';
 import { GraphqlHelper } from '../../helpers/graphql-helper';
+import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import CommonHelper = require('../../helpers/common-helper');
@@ -13,7 +14,6 @@ import PostsHelper = require('../../helpers/posts-helper');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import OrganizationsHelper = require('../../helpers/organizations-helper');
 import ActivityHelper = require('../../helpers/activity-helper');
-import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
 
 let userVlad: UserModel;
 let userJane: UserModel;
