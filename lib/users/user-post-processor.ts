@@ -73,10 +73,10 @@ class UserPostProcessor {
    * @param {number|null} currentUserId - logged user ID
    * @param {Object} activityData
    */
-  static processUser(
-    user,
+  public static processUser(
+    user: UserModel,
     currentUserId: number | null = null,
-    activityData = null,
+    activityData: any = null,
   ): void {
     if (!user) {
       return;
@@ -91,6 +91,19 @@ class UserPostProcessor {
     this.processFollowers(user);
   }
 
+  /**
+   * The Goal is to use activityDataSet instead of activityData with data only from users_activity table
+   */
+  public static processUserWithActivityDataSet(
+    user: UserModel,
+    currentUserId: number | null = null,
+    activityDataSet: any,
+  ) {
+    this.processUser(user, currentUserId, activityDataSet.activityData);
+
+    // @ts-ignore
+    user.myselfData.trust = activityDataSet.myselfData.trust;
+  }
 
   public static processUserIdToUserModelCard(modelsSet: UserIdToUserModelCard): void {
     for (const userId in modelsSet) {
@@ -139,6 +152,7 @@ class UserPostProcessor {
     const myselfData: MyselfDataDto = {
       follow: false,
       myFollower: false,
+      trust: false,
     };
 
     activityData.forEach((activity) => {

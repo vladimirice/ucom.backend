@@ -40,6 +40,15 @@ class UsersActivityTrustRepository {
     return _.isEmpty(res) ? null : +res[0].id;
   }
 
+  public static async doesUserTrustUser(
+    userIdFrom: number,
+    userIdTo: number,
+  ): Promise<boolean> {
+    const data = await this.getUserTrustUser(userIdFrom, userIdTo);
+
+    return data !== null;
+  }
+
   public static async getUserTrustUser(
     userIdFrom: number,
     userIdTo: number,

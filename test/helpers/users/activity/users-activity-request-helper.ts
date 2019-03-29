@@ -3,6 +3,24 @@ import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import RequestHelper = require('../../../integration/helpers/request-helper');
 
 class UsersActivityRequestHelper {
+  public static async trustOneUserWithMockTransaction(
+    whoActs: UserModel,
+    targetUserId: number,
+  ): Promise<any> {
+    const signedTransaction = 'sample_one';
+
+    return this.trustOneUser(whoActs, targetUserId, signedTransaction);
+  }
+
+  public static async untrustOneUserWithMockTransaction(
+    whoActs: UserModel,
+    targetUserId: number,
+  ): Promise<any> {
+    const signedTransaction = 'sample_one';
+
+    return this.untrustOneUser(whoActs, targetUserId, signedTransaction);
+  }
+
   static async trustOneUser(
     whoActs: UserModel,
     targetUserId: number,

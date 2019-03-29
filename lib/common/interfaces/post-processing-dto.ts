@@ -6,6 +6,7 @@ interface MyselfDataDto {
 
   follow?: boolean;
   myFollower?: boolean;
+  trust?: boolean;
 
   editable?: boolean;
   member?:   boolean;

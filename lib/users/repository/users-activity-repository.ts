@@ -12,6 +12,7 @@ const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const models = require('../../../models');
 
 const db = models.sequelize;
+const { Op } = models.sequelize;
 
 const activityGroupDictionary = require('../../activity/activity-group-dictionary');
 const blockchainStatusDictionary = require('../../eos/eos-blockchain-status-dictionary');
@@ -442,7 +443,7 @@ class UsersActivityRepository {
    * @param {number} id
    * @return {Promise<*>}
    */
-  static async getSignedTransactionByActivityId(id): Promise<string | null> {
+  public static async getSignedTransactionByActivityId(id): Promise<string | null> {
     const result = await this.getModel().findOne({
       attributes: ['signed_transaction'],
       where: { id },
@@ -457,7 +458,7 @@ class UsersActivityRepository {
    * @param {number} id
    * @return {Promise<*>}
    */
-  static async getUserIdFromByActivityId(id) {
+  public static async getUserIdFromByActivityId(id: number) {
     const result = await this.getModel().findOne({
       attributes: ['user_id_from'],
       where: { id },
@@ -668,8 +669,10 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @param {number} userId
    * @returns {Promise<any>}
    */
-  static async findOneUserActivityWithInvolvedUsersData(userId) {
+  public static async findOneUserActivityWithInvolvedUsersData(userId) {
     const activityTypeFollow  = InteractionTypeDictionary.getFollowId();
+    const activityTypeUnfollow  = InteractionTypeDictionary.getUnfollowId();
+
     const usersTableName      = usersModelProvider.getUsersTableName();
     const activityTableName   = usersModelProvider.getUsersActivityTableName();
     const activityGroupId     = activityGroupDictionary.getGroupUserUserInteraction();
@@ -700,7 +703,8 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
         FROM
           ${activityTableName}
         WHERE
-          activity_group_id = ${activityGroupId}
+          activity_type_id IN (${activityTypeFollow}, ${activityTypeUnfollow})
+          AND activity_group_id = ${activityGroupId}
           AND entity_name   = '${entityName}'
           AND (user_id_from = ${+userId} OR entity_id_to = ${+userId})
         ORDER BY user_id_from, entity_id_to, entity_name, activity_group_id, id DESC
@@ -836,8 +840,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
     return models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  static async getLastFollowActivityForUser(userIdFrom, userIdTo) {
+  public static async getLastFollowActivityForUser(userIdFrom, userIdTo) {
     return this.getModel()
       .findOne({
         where: {
@@ -861,7 +864,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @param {number} userIdTo
    * @returns {Promise<Object>}
    */
-  static async getLastUnfollowActivityForUser(userIdFrom, userIdTo) {
+  public static async getLastUnfollowActivityForUser(userIdFrom, userIdTo) {
     return this.getModel()
       .findOne({
         where: {
@@ -886,9 +889,16 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @return {Promise<Object>}
    */
   static async getLastFollowOrUnfollowActivityForUser(userIdFrom, userIdTo) {
+    const activityTypeFollow  = InteractionTypeDictionary.getFollowId();
+    const activityTypeUnfollow  = InteractionTypeDictionary.getUnfollowId();
+
     return this.getModel()
       .findOne({
         where: {
+          activity_type_id: {
+            [Op.in]: [activityTypeFollow, activityTypeUnfollow],
+          },
+
           user_id_from:       userIdFrom,
           entity_id_to:       userIdTo,
           entity_name:        usersModelProvider.getEntityName(),

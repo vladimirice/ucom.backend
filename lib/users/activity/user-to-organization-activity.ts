@@ -134,7 +134,6 @@ class UserToOrganizationActivity {
    */
   private static async addSignedTransactionsForOrganizationFollowing(body, currentUser, orgId, activityTypeId) {
     if (body.signed_transaction) {
-
       return;
     }
 

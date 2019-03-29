@@ -7,6 +7,8 @@ import ResponseHelper = require('../../helpers/response-helper');
 import CommonHelper = require('../../helpers/common-helper');
 import UsersRepository = require('../../../../lib/users/users-repository');
 import UsersHelper = require('../../helpers/users-helper');
+import UsersActivityRequestHelper = require('../../../helpers/users/activity/users-activity-request-helper');
+import ActivityHelper = require('../../helpers/activity-helper');
 
 require('jest-expect-message');
 
@@ -33,6 +35,40 @@ describe('Users activity trust GET', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
+  describe('Do you trust this user', () => {
+    it('trust property should be filled', async () => {
+      // fetch via graphql parts
+      const userVladBefore = await OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id);
+
+      expect(typeof userVladBefore.myselfData.trust).toBe('boolean');
+      expect(userVladBefore.myselfData.trust).toBeFalsy();
+
+      await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userJane, userVlad.id);
+
+      const userVladAfter = await OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id);
+      expect(userVladAfter.myselfData.trust).toBeTruthy();
+
+      await UsersActivityRequestHelper.untrustOneUserWithMockTransaction(userJane, userVlad.id);
+
+      const userVladAfterUntrust = await OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id);
+      expect(userVladAfterUntrust.myselfData.trust).toBeFalsy();
+
+      await ActivityHelper.requestToCreateFollow(userJane, userVlad);
+      await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userJane, userVlad.id);
+
+      const userVladWithTrustAndFollow = await OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id);
+      expect(userVladWithTrustAndFollow.myselfData.trust).toBeTruthy();
+      expect(userVladWithTrustAndFollow.myselfData.follow).toBeTruthy();
+
+      await ActivityHelper.requestToCreateFollow(userVlad, userJane);
+      const userVladWithTrustAndAllFollow = await OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id);
+      expect(userVladWithTrustAndAllFollow.myselfData.trust).toBeTruthy();
+      expect(userVladWithTrustAndAllFollow.myselfData.follow).toBeTruthy();
+      expect(userVladWithTrustAndAllFollow.myselfData.myFollower).toBeTruthy();
+
+    }, JEST_TIMEOUT_DEBUG);
+  });
+
   describe('One user is trusted by', () => {
     describe('Positive', () => {
       it('GET One user is trusted by', async () => {
@@ -48,7 +84,7 @@ describe('Users activity trust GET', () => {
         };
 
         CommonHelper.checkUsersListResponse(trustedBy, options);
-      }, JEST_TIMEOUT_DEBUG);
+      }, JEST_TIMEOUT);
 
       it('Get one user with trusted by list', async () => {
         // TODO - This is interface only

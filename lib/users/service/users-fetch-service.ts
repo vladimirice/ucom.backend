@@ -24,6 +24,7 @@ import EntityNotificationsRepository = require('../../entities/repository/entity
 import UsersActivityRepository = require('../repository/users-activity-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import UserActivityService = require('../user-activity-service');
+import UsersActivityTrustRepository = require('../repository/users-activity/users-activity-trust-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -43,7 +44,19 @@ class UsersFetchService {
     const userJson = user.toJSON();
     userJson.organizations = userOrganizations;
 
-    UserPostProcessor.processUser(userJson, currentUserId, activityData);
+
+    const activityDataSet = {
+      myselfData: {
+        trust: false,
+      },
+      activityData,
+    };
+
+    if (currentUserId) {
+      activityDataSet.myselfData.trust = await UsersActivityTrustRepository.doesUserTrustUser(currentUserId, userId);
+    }
+
+    UserPostProcessor.processUserWithActivityDataSet(userJson, currentUserId, activityDataSet);
     OrganizationPostProcessor.processManyOrganizations(userJson.organizations);
 
     if (userId === currentUserId) {
