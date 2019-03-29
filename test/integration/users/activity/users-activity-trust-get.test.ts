@@ -72,6 +72,30 @@ describe('Users activity trust GET', () => {
 
   describe('One user is trusted by', () => {
     describe('Positive', () => {
+      it('Get as guest', async () => {
+        await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userVlad, userJane.id);
+
+        const janeOnlyTrustedByList =
+          await OneUserRequestHelper.getOneUserTrustedByAsGuest(userJane.id);
+
+        CommonHelper.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
+        CommonHelper.checkUsersListResponseForMyselfData(janeOnlyTrustedByList);
+      });
+
+      it('Order by -id', async () => {
+        const orderBy = '-id';
+        await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userVlad, userJane.id);
+
+        const janeOnlyTrustedByList = await OneUserRequestHelper.getOneUserTrustedByAsMyself(
+          userVlad,
+          userJane.id,
+          orderBy,
+        );
+
+        CommonHelper.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
+        CommonHelper.checkUsersListResponseForMyselfData(janeOnlyTrustedByList);
+      });
+
       it('GET One user is trusted by', async () => {
         const emptyTrustedByList = await OneUserRequestHelper.getOneUserTrustedByAsMyself(userVlad, userJane.id);
         ResponseHelper.checkEmptyResponseList(emptyTrustedByList);

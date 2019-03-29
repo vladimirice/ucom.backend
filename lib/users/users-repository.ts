@@ -11,7 +11,6 @@ import RepositoryHelper = require('../common/repository/repository-helper');
 import UsersExternalModelProvider = require('../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
-import UsersActivityTrustRepository = require('./repository/users-activity/users-activity-trust-repository');
 
 const _ = require('lodash');
 
@@ -423,11 +422,17 @@ class UsersRepository {
     const toSelect = RepositoryHelper.getPrefixedAttributes(previewFields, TABLE_NAME);
 
     const usersActivityTrust = UsersModelProvider.getUsersActivityTrustTableName();
-    const subQuery = UsersActivityTrustRepository.getUserIdsFromForUser(userId, params);
 
     return knex(TABLE_NAME)
       .select(toSelect)
-      .innerJoin(subQuery.as(usersActivityTrust), `${usersActivityTrust}.user_id`, `${TABLE_NAME}.id`);
+      .where({
+        [`${usersActivityTrust}.entity_id`]: userId,
+        [`${usersActivityTrust}.entity_name`]: UsersModelProvider.getEntityName(),
+      })
+      .innerJoin(`${usersActivityTrust}`, `${usersActivityTrust}.user_id`, `${TABLE_NAME}.id`)
+      .orderByRaw(params.orderByRaw)
+      .limit(params.limit)
+      .offset(params.offset);
   }
 
   /**
