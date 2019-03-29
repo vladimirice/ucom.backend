@@ -142,7 +142,7 @@ class NotificationsHelper {
    *
    * @link EntityNotificationsService#getAllNotifications
    */
-  static async requestToGetOnlyOneNotification(myself) {
+  static async requestToGetOnlyOneNotification(myself): Promise<any> {
     let notifications = [];
     while (_.isEmpty(notifications)) {
       notifications = await this.requestToGetOnlyOneNotificationBeforeReceive(myself);
@@ -245,7 +245,7 @@ class NotificationsHelper {
     // @ts-ignore
     orgId,
     isNew = true,
-    status = null,
+    status: string | null = null,
   ) {
     const fieldsToCheck: any = {
       event_id: 10,

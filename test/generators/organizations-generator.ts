@@ -132,7 +132,7 @@ class OrganizationsGenerator {
    * @param {Object[]} usersTeam
    * @return {Promise<Object>}
    */
-  static async updateOrgUsersTeam(orgId, user, usersTeam = []) {
+  static async updateOrgUsersTeam(orgId, user, usersTeam: any[] = []) {
     // noinspection JSUnresolvedFunction
     const title = faker.company.companyName();
     // noinspection JSCheckFunctionSignatures
