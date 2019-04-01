@@ -18,6 +18,7 @@ module.exports = {
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:sonarjs/recommended",
+    "plugin:unicorn/recommended"
   ],
   "env": {
     "node": true,
