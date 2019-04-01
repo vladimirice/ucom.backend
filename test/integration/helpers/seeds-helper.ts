@@ -10,6 +10,7 @@ import knexEvents = require('../../../config/knex-events');
 import knex = require('../../../config/knex');
 import RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 import UsersExternalModelProvider = require('../../../lib/users-external/service/users-external-model-provider');
+import MongoGenerator = require('../../generators/common/mongo-generator');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -46,6 +47,7 @@ const minorTablesToSkipSequences = [
   'posts_current_params_id_seq',
   'organizations_current_params_id_seq',
   'tags_current_params_id_seq',
+  'irreversible_traces_id_seq',
   `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
   `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
   `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
@@ -232,6 +234,8 @@ class SeedsHelper {
       models.users_sources.bulkCreate(sourcesSeeds),
     ]);
 
+    await MongoGenerator.truncateAll();
+
     return Promise.all([
       UsersHelper.getUserVlad(),
       UsersHelper.getUserJane(),
@@ -417,8 +421,8 @@ class SeedsHelper {
    * @return {Promise<void>}
    * @private
    */
-  static async initTablesByList(syncInit) {
-    for (let i = 0; i < syncInit.length; i += 1) {
+  static async initTablesByList(syncInit: any[]) {
+    for (let i = 0; i < <number>syncInit.length; i += 1) {
       const table = syncInit[i];
       const seeds = tableToSeeds[table];
 
