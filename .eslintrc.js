@@ -55,6 +55,7 @@ module.exports = {
         "no-prototype-builtins": "off",
         "no-continue": "off",
         "max-len": "off",
+        "unicorn/prevent-abbreviations": "off",
       }
     }
   ]

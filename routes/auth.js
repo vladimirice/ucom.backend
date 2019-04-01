@@ -53,8 +53,8 @@ router.post('/login', [formDataParser], async (req, res, next) => {
             success: true,
         });
     }
-    catch (e) {
-        return next(new AppError(e.message, 400));
+    catch (error2) {
+        return next(new AppError(error2.message, 400));
     }
 });
 module.exports = router;

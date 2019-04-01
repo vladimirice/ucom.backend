@@ -1,4 +1,5 @@
 "use strict";
+/* eslint-disable no-console,no-process-exit,unicorn/no-process-exit */
 Object.defineProperty(exports, "__esModule", { value: true });
 const consumer = require('../lib/tags/job/consumer-tags-parser');
 (async () => {

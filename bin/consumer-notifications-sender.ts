@@ -1,5 +1,4 @@
-/* eslint-disable */
-export {};
+/* eslint-disable no-console,no-process-exit,unicorn/no-process-exit */
 
 const consumer = require('../lib/entities/job').NotificationsConsumer;
 
@@ -10,3 +9,5 @@ consumer.consume().then(() => {
   console.error('An error is occurred. See logs');
   process.exit(1);
 });
+
+export {};
