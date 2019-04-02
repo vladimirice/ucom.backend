@@ -23,9 +23,10 @@ class GithubRequest {
   public static async sendSampleGithubCallback(code: string, mockExternalId: boolean = false) {
     const url = this.getBackendCallbackUrl();
 
-    let redirectLocation = 'https://u.community/users/?utm=fb';
+    let redirectLocation = 'https://staging.u.community/';
+    // let redirectLocation = 'https://staging.u.community/?mock_external_id=true';
     if (mockExternalId) {
-      redirectLocation += '&mock_external_id=true';
+      redirectLocation += '?mock_external_id=true';
     }
 
     const qs = `?redirect_uri=${redirectLocation}&code=${code}&state=${githubConfig.state}`;
