@@ -13,6 +13,7 @@ import TagsFetchService = require('./lib/tags/service/tags-fetch-service');
 
 import UsersFetchService = require('./lib/users/service/users-fetch-service');
 import UsersAirdropService = require('./lib/airdrops/service/airdrop-users-service');
+import OneUserInputProcessor = require('./lib/users/input-processor/one-user-input-processor');
 
 const cookieParser = require('cookie-parser');
 const express = require('express');
@@ -29,7 +30,7 @@ const { ApiLogger } = require('./config/winston');
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql`
   type Query {
-    user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    user_wall_feed(filters: one_user_filtering, user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     
@@ -302,7 +303,8 @@ const typeDefs = gql`
   }
   
   input one_user_filtering {
-    user_id: Int!
+    user_id: Int
+    user_identity: String
   }
 `;
 
@@ -374,8 +376,8 @@ const resolvers = {
     },
     // @ts-ignore
     async one_user(parent, args, ctx): Promise<UserModel> {
-      const userId: number = args.filters.user_id;
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+      const userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
 
       return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
     },
@@ -408,7 +410,9 @@ const resolvers = {
       };
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
-      return UsersFetchService.findOneUserTrustedByAndProcessForList(args.filters.user_id, usersQuery, currentUserId);
+      const userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+
+      return UsersFetchService.findOneUserTrustedByAndProcessForList(userId, usersQuery, currentUserId);
     },
 
     // @ts-ignore
@@ -557,8 +561,13 @@ const resolvers = {
         },
       };
 
+      let userId = args.user_id;
+      if (args.filters && args.filters.user_identity) {
+        userId = OneUserInputProcessor.getUserIdByFilters(args.filters);
+      }
+
       return PostsFetchService.findAndProcessAllForUserWallFeed(
-        args.user_id,
+        userId,
         currentUserId,
         postsQuery,
       );

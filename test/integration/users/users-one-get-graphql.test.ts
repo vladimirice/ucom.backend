@@ -29,6 +29,38 @@ describe('Get one user via graphQL', () => {
   });
 
   describe('Positive', () => {
+    it('Get one user by id - using identity filter', async () => {
+      const filters = {
+        user_identity: `${userVlad.id}`,
+      };
+
+      const userVladResponse = await OneUserRequestHelper.getOneUserAsMyself(
+        userJane,
+        userVlad.id,
+        filters,
+      );
+
+      const user = await UsersRepository.getUserById(userVlad.id);
+
+      UsersHelper.validateUserJson(userVladResponse, userVlad, user);
+    }, JEST_TIMEOUT_DEBUG);
+
+    it('Get one user by account_name - using identity filter', async () => {
+      const filters = {
+        user_identity: userVlad.account_name,
+      };
+
+      const userVladResponse = await OneUserRequestHelper.getOneUserAsMyself(
+        userJane,
+        userVlad.id,
+        filters,
+      );
+
+      const user = await UsersRepository.getUserById(userVlad.id);
+
+      UsersHelper.validateUserJson(userVladResponse, userVlad, user);
+    }, JEST_TIMEOUT_DEBUG);
+
     it('Get one user via graphQL as myself', async () => {
       const userVladResponse = await OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id);
       const user = await UsersRepository.getUserById(userVlad.id);

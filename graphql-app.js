@@ -7,6 +7,7 @@ const OrganizationsFetchService = require("./lib/organizations/service/organizat
 const TagsFetchService = require("./lib/tags/service/tags-fetch-service");
 const UsersFetchService = require("./lib/users/service/users-fetch-service");
 const UsersAirdropService = require("./lib/airdrops/service/airdrop-users-service");
+const OneUserInputProcessor = require("./lib/users/input-processor/one-user-input-processor");
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const { BlockchainNodesTypes } = require('ucom.libs.common').Governance.Dictionary;
@@ -16,7 +17,7 @@ const { ApiLogger } = require('./config/winston');
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql `
   type Query {
-    user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    user_wall_feed(filters: one_user_filtering, user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     
@@ -289,7 +290,8 @@ const typeDefs = gql `
   }
   
   input one_user_filtering {
-    user_id: Int!
+    user_id: Int
+    user_identity: String
   }
 `;
 // @ts-ignore
@@ -357,8 +359,8 @@ const resolvers = {
         },
         // @ts-ignore
         async one_user(parent, args, ctx) {
-            const userId = args.filters.user_id;
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
+            const userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
             return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
         },
         // @ts-ignore
@@ -374,7 +376,8 @@ const resolvers = {
         async one_user_trusted_by(parent, args, ctx) {
             const usersQuery = Object.assign({ page: args.page, per_page: args.per_page, sort_by: args.order_by }, args.filters);
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
-            return UsersFetchService.findOneUserTrustedByAndProcessForList(args.filters.user_id, usersQuery, currentUserId);
+            const userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+            return UsersFetchService.findOneUserTrustedByAndProcessForList(userId, usersQuery, currentUserId);
         },
         // @ts-ignore
         async many_posts(parent, args, ctx) {
@@ -466,7 +469,11 @@ const resolvers = {
                     comments: args.comments_query,
                 },
             };
-            return PostsFetchService.findAndProcessAllForUserWallFeed(args.user_id, currentUserId, postsQuery);
+            let userId = args.user_id;
+            if (args.filters && args.filters.user_identity) {
+                userId = OneUserInputProcessor.getUserIdByFilters(args.filters);
+            }
+            return PostsFetchService.findAndProcessAllForUserWallFeed(userId, currentUserId, postsQuery);
         },
         // @ts-ignore
         async org_wall_feed(parent, args, ctx, info) {

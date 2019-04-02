@@ -9,11 +9,14 @@ class OneUserRequestHelper {
   public static async getOneUserAsMyself(
     myself: UserModel,
     userId: number,
+    givenFilters: any | null = null,
   ): Promise<any> {
+    const filters = givenFilters || {
+      user_id: userId,
+    };
+
     const params = {
-      filters: {
-        user_id: userId,
-      },
+      filters,
     };
 
     const query = GraphQLSchema.getOneUserQuery(params);
