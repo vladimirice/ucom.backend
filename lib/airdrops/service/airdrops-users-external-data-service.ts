@@ -6,6 +6,8 @@ import AirdropsUsersExternalDataRepository = require('../repository/airdrops-use
 import UsersExternalRepository = require('../../users-external/repository/users-external-repository');
 import AccountsSymbolsRepository = require('../../accounts/repository/accounts-symbols-repository');
 
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
+
 class AirdropsUsersExternalDataService {
   public static async processForCurrentUserId(
     airdropId: number,
@@ -18,7 +20,10 @@ class AirdropsUsersExternalDataService {
     }
 
     if (data.json_data) {
-      return data.json_data;
+      return  {
+        ...data.json_data,
+        status: data.status,
+      };
     }
 
     if (data.primary_key && data.json_data === null) {
@@ -32,18 +37,21 @@ class AirdropsUsersExternalDataService {
     airdropId: number,
     userExternalDto: userExternalDataDto,
   ) {
-    let externalData =
-      await AirdropsUsersExternalDataRepository.getJsonDataByUsersExternalId(userExternalDto.id);
+    const externalData =
+      await AirdropsUsersExternalDataRepository.getOneByUsersExternalId(userExternalDto.id);
 
-    if (!externalData) {
-      externalData = await this.createSampleUsersExternalData(
-        airdropId,
-        userExternalDto.id,
-        userExternalDto.external_id,
-      );
+    if (externalData) {
+      return {
+        ...externalData.json_data,
+        status: externalData.status,
+      };
     }
 
-    return externalData;
+    return this.createSampleUsersExternalData(
+      airdropId,
+      userExternalDto.id,
+      userExternalDto.external_id,
+    );
   }
 
   private static async createSampleUsersExternalData(
@@ -55,7 +63,10 @@ class AirdropsUsersExternalDataService {
 
     await AirdropsUsersExternalDataRepository.insertOneData(airdropId, usersExternalId, jsonData.score, jsonData);
 
-    return jsonData;
+    return {
+      ...jsonData,
+      status: AirdropStatuses.NEW,
+    };
   }
 
   public static async getSampleUsersExternalData(

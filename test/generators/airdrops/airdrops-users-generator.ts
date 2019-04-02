@@ -43,12 +43,13 @@ class AirdropsUsersGenerator {
     usersExternalId: number,
     conditions: any,
     userId: number | null = null,
+    airdropStatus: number = AirdropStatuses.NEW,
   ) {
     const commonData = AirdropsUsersExternalDataService.getUserAirdropCommonData(airdropId, usersExternalId, false);
 
     return {
       user_id: userId,
-      airdrop_status: AirdropStatuses.NEW,
+      airdrop_status: airdropStatus,
       conditions,
 
       ...commonData,

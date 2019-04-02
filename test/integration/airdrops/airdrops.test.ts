@@ -1,8 +1,9 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
-import SeedsHelper = require('../helpers/seeds-helper');
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
+import SeedsHelper = require('../helpers/seeds-helper');
 import RequestHelper = require('../helpers/request-helper');
 import AirdropsUsersChecker = require('../../helpers/airdrops-users-checker');
 import GithubRequest = require('../../helpers/github-request');
@@ -28,6 +29,9 @@ const beforeAfterOptions = {
 };
 
 const JEST_TIMEOUT = 1000;
+
+// @ts-ignore
+const JEST_TIMEOUT_DEBUG = 1000 * 1000;
 
 describe('Airdrops create-get', () => {
   beforeAll(async () => {
@@ -330,6 +334,7 @@ describe('Airdrops create-get', () => {
 
       // Lets follow required community and expect following condition = true
       await OrganizationsHelper.requestToCreateOrgFollowHistory(userVlad, orgId);
+      await AirdropsUsersToPendingService.process(airdropId);
 
       const userAirdropWithAllTrue = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
 
@@ -340,7 +345,13 @@ describe('Airdrops create-get', () => {
       };
 
       expect(userAirdropWithAllTrue).toMatchObject(
-        AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditionsAllTrue, userVlad.id),
+        AirdropsUsersGenerator.getExpectedUserAirdrop(
+          airdropId,
+          usersExternalId,
+          conditionsAllTrue,
+          userVlad.id,
+          AirdropStatuses.PENDING,
+        ),
       );
 
       // Lets UNfollow required community and expect following condition = true
@@ -348,9 +359,15 @@ describe('Airdrops create-get', () => {
       const userAirdropWithUnfollowedOrg = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
 
       expect(userAirdropWithUnfollowedOrg).toMatchObject(
-        AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditionsAllAuthAndPairing, userVlad.id),
+        AirdropsUsersGenerator.getExpectedUserAirdrop(
+          airdropId,
+          usersExternalId,
+          conditionsAllAuthAndPairing,
+          userVlad.id,
+          AirdropStatuses.PENDING, // after processing it is not possible to change status to new
+        ),
       );
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT_DEBUG);
 
     it('get user state via github token', async () => {
       const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
