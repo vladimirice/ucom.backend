@@ -30,7 +30,7 @@ const { ApiLogger } = require('./config/winston');
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql`
   type Query {
-    user_wall_feed(filters: one_user_filtering, user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    user_wall_feed(filters: one_user_filtering, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     
@@ -377,7 +377,7 @@ const resolvers = {
     // @ts-ignore
     async one_user(parent, args, ctx): Promise<UserModel> {
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
-      const userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+      const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
 
       return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
     },
@@ -410,7 +410,7 @@ const resolvers = {
       };
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
-      const userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+      const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
 
       return UsersFetchService.findOneUserTrustedByAndProcessForList(userId, usersQuery, currentUserId);
     },
@@ -561,9 +561,9 @@ const resolvers = {
         },
       };
 
-      let userId = args.user_id;
-      if (args.filters && args.filters.user_identity) {
-        userId = OneUserInputProcessor.getUserIdByFilters(args.filters);
+      let userId: number = args.user_id;
+      if (args.filters) {
+        userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
       }
 
       return PostsFetchService.findAndProcessAllForUserWallFeed(
