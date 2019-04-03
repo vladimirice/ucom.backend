@@ -26,9 +26,10 @@ class OneUserInputProcessor {
   public static async getUserIdByIdentity(
     identity: string,
   ): Promise<number> {
-    if (OneUserInputValidator.doesIdentityLooksLikeId(identity)) {
+    if (!OneUserInputValidator.doesIdentityLooksLikeAccountName(identity)) {
       return +identity;
     }
+
     const user = await UsersRepository.findOneByAccountNameAsObject(identity);
     if (!user) {
       throw new BadRequestError(`There is no user with account_name: ${identity}`);

@@ -4,6 +4,7 @@ import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from './lib
 import { CommentsListResponse } from './lib/comments/interfaces/model-interfaces';
 import { UserModel, UsersListResponse, UsersRequestQueryDto } from './lib/users/interfaces/model-interfaces';
 import { OneUserAirdropDto } from './lib/airdrops/interfaces/dto-interfaces';
+import { BadRequestError } from './lib/api/errors';
 
 import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
 import AuthService = require('./lib/auth/authService');
@@ -21,7 +22,7 @@ const express = require('express');
 const { BlockchainNodesTypes } = require('ucom.libs.common').Governance.Dictionary;
 
 const {
-  ApolloServer, gql, AuthenticationError, ForbiddenError,
+  ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError,
 } = require('apollo-server-express');
 
 const graphQLJSON = require('graphql-type-json');
@@ -661,7 +662,9 @@ const server = new ApolloServer({
       originalError,
     };
 
-    if (originalError && originalError.status === 401) {
+    if (originalError && originalError instanceof BadRequestError) {
+      error = new UserInputError(originalError.message);
+    } else if (originalError && originalError.status === 401) {
       error = new AuthenticationError(originalError.message, 401);
     } else if (originalError && originalError.name === 'JsonWebTokenError') {
       error = new AuthenticationError('Invalid token', 401);
