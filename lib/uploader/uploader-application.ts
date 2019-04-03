@@ -3,6 +3,7 @@ const express = require('express');
 const imagesRouter = require('./router/uploader-images-router');
 
 const ApiErrorAndLoggingHelper = require('../api/helpers/api-error-and-logging-helper');
+const diContainerMiddleware = require('../api/di-container-middleware');
 
 const app = express();
 const apiV1Prefix = '/api/v1';
@@ -10,6 +11,7 @@ const apiV1Prefix = '/api/v1';
 const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 
 app.use(express.json());
+app.use(diContainerMiddleware);
 app.use(`${apiV1Prefix}/images`, imagesRouter);
 
 // #security - very weak origin policy

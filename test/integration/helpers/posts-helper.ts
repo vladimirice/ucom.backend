@@ -70,7 +70,7 @@ class PostsHelper {
     processTags: boolean = true,
   ): Promise<NumberToNumberCollection> {
     const set: NumberToNumberCollection = {};
-    for (let i = 0; i < modelsIds.length; i += 1) {
+    for (let i = 0; i < <number>modelsIds.length; i += 1) {
       const modelId = modelsIds[i];
       set[modelId] = RequestHelper.generateRandomImportance();
 
@@ -132,7 +132,7 @@ class PostsHelper {
 
     await Promise.all(promises);
 
-    for (let i = 0; i < entityIdToParams.length; i += 1) {
+    for (let i = 0; i < <number>entityIdToParams.length; i += 1) {
       const current = entityIdToParams[i];
       const dbPost = await PostsRepository.findOneByIdV2(current.post_id);
 
@@ -792,7 +792,7 @@ class PostsHelper {
   }
 
   static async requestToUpvotePost(
-    whoUpvote: any,
+    whoUpvote: UserModel,
     postId: number,
     expectCreated:boolean = true,
   ) {

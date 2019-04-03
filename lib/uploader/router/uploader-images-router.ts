@@ -32,7 +32,7 @@ UploaderImagesRouter.post('/one-image', middlewareSet, async (req, res) => {
   res.status(201).send({
     files: [
       {
-        url: `${prefix}/${filename}`, // TODO
+        url: `${prefix}/${filename}`,
       },
     ],
   });

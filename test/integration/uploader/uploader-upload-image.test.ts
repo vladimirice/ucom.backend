@@ -9,7 +9,6 @@ const beforeAfterOptions = {
   workersMocking: 'all',
 };
 
-// @ts-ignore
 let userVlad: UserModel;
 
 // @ts-ignore
@@ -30,16 +29,36 @@ describe('Uploader - upload one image', () => {
   });
 
   describe('Positive', () => {
-    it('upload one image', async () => {
+    it('upload one jpg image', async () => {
       const body = await UploaderImagesRequestHelper.uploadOneSampleImage(userVlad);
 
       await UploaderImagesChecker.checkOneFileIsUploaded(body);
-    });
+    }, JEST_TIMEOUT);
+
+    it('Upload one gif image', async () => {
+      // TODO
+    }, JEST_TIMEOUT);
   });
 
   describe('Negative', () => {
     it('Not possible to upload without auth token', async () => {
       await UploaderImagesRequestHelper.uploadOneSampleImage(null, 401);
+    });
+
+    it('Not possible to upload png file', async () => {
+      // TODO
+    });
+
+    it('Not possible to upload very large jpg file', async () => {
+      // TODO
+    });
+
+    it('Not possible to upload very large gif file', async () => {
+      // TODO
+    });
+
+    it('Rename png file to jpg and try to upload - should be an error', async () => {
+      // TODO
     });
   });
 });

@@ -31,6 +31,14 @@ export = function (err, req, res, next) {
  * @private
  */
 function processError(err: AppError) {
+  // @ts-ignore
+  if (err.name === 'MulterError' && ~['LIMIT_FILE_SIZE'].indexOf(err.code)) {
+    return {
+      status: 400,
+      payload: err.message,
+    };
+  }
+
   // #task - this is because of registration error. err is got as string
   if (typeof err === 'string') {
     return {
