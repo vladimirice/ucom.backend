@@ -1,6 +1,9 @@
+import LegacyAccountNamesDictionary = require('../dictionary/legacy-account-names-dictionary');
+
 class OneUserInputValidator {
-  public static doesIdentityLooksLikeId(incomingValue: string): boolean {
-    return !!(incomingValue[0] !== '0' && +incomingValue);
+  public static doesIdentityLooksLikeAccountName(incomingValue: string): boolean {
+    return incomingValue.length === 12
+      || LegacyAccountNamesDictionary.isAccountNameLegacy(incomingValue);
   }
 }
 

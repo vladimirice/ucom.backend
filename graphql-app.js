@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const errors_1 = require("./lib/api/errors");
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
@@ -11,7 +12,7 @@ const OneUserInputProcessor = require("./lib/users/input-processor/one-user-inpu
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const { BlockchainNodesTypes } = require('ucom.libs.common').Governance.Dictionary;
-const { ApolloServer, gql, AuthenticationError, ForbiddenError, } = require('apollo-server-express');
+const { ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
 const { ApiLogger } = require('./config/winston');
 // #task - generate field list from model and represent as object, not string
@@ -543,7 +544,10 @@ const server = new ApolloServer({
             source: error.source,
             originalError,
         };
-        if (originalError && originalError.status === 401) {
+        if (originalError && originalError instanceof errors_1.BadRequestError) {
+            error = new UserInputError(originalError.message);
+        }
+        else if (originalError && originalError.status === 401) {
             error = new AuthenticationError(originalError.message, 401);
         }
         else if (originalError && originalError.name === 'JsonWebTokenError') {
