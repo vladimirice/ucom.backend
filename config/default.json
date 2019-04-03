@@ -4,6 +4,11 @@
     "profile_files_upload_dir": "/upload",
     "organization_files_upload_dir": "/upload/organizations"
   },
+  "uploader": {
+    "images": {
+      "dir_prefix": "/public/images_uploader"
+    }
+  },
   "db_knex_events": {
     "client": "pg",
     "debug": false,

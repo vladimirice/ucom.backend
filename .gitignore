@@ -73,6 +73,8 @@ config/accounts-data.js
 
 # static files
 public/upload/*
+public/images_uploader/*
+!public/images_uploader/.gitkeep
 !public/upload/.gitkeep
 !public/upload/organizations/.gitkeep
 
