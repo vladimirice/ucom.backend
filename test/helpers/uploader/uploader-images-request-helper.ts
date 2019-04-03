@@ -1,3 +1,5 @@
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import ResponseHelper = require('../../integration/helpers/response-helper');
 import RequestHelper = require('../../integration/helpers/request-helper');
 import UploaderRequestHelper = require('../common/uploader-request-helper');
@@ -6,7 +8,10 @@ const imagesUrl = `${UploaderRequestHelper.getApiV1Prefix()}/images`;
 const oneImageUrl = `${imagesUrl}/one-image`;
 
 class UploaderImagesRequestHelper {
-  public static async uploadOneSampleImage() {
+  public static async uploadOneSampleImage(
+    myself: UserModel | null = null,
+    expectedStatus: number = 201,
+  ): Promise<any> {
     const request = UploaderRequestHelper.getRequestObjForPost(oneImageUrl);
     const fieldName = 'one_image';
 
@@ -14,11 +19,16 @@ class UploaderImagesRequestHelper {
     // RequestHelper.addFieldsToRequest(req, fields);
 
     RequestHelper.addSampleMainImageFilename(request, fieldName);
-    const res = await request;
 
-    ResponseHelper.expectStatusCreated(res);
+    if (myself !== null) {
+      RequestHelper.addAuthToken(request, myself);
+    }
 
-    return res.body;
+    const response = await request;
+
+    ResponseHelper.expectStatusToBe(response, expectedStatus);
+
+    return response.body;
   }
 }
 

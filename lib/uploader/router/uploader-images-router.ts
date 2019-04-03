@@ -12,10 +12,18 @@ const {
   storageDirPrefix,
 } = require('../middleware/upload-one-image-middleware');
 
-require('express-async-errors');
+const authTokenMiddleWare = require('../../auth/auth-token-middleware');
+// @ts-ignore
+const activityApiMiddleware   =
+  require('../../activity/middleware/activity-api-middleware');
 
-/* Upload post picture (for description) */
-UploaderImagesRouter.post('/one-image', [imagesInputProcessor], async (req, res) => {
+const middlewareSet = [
+  authTokenMiddleWare,
+  imagesInputProcessor,
+  activityApiMiddleware.redlockBeforeActivity,
+];
+
+UploaderImagesRouter.post('/one-image', middlewareSet, async (req, res) => {
   const { filename } = req.files[imageFieldName][0];
   const rootUrl = config.get('host').root_url;
 

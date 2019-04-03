@@ -213,9 +213,9 @@ class RequestHelper {
     return `${onePostUrl}/repost`;
   }
 
-  public static addAuthToken(req: any, user: UserModel): void {
+  public static addAuthToken(req: any, myself: UserModel): void {
     req
-      .set('Authorization', `Bearer ${user.token}`);
+      .set('Authorization', `Bearer ${myself.token}`);
   }
 
   public static addGithubAuthToken(req: any, token: string): void {

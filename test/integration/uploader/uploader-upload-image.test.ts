@@ -1,14 +1,16 @@
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import SeedsHelper = require('../helpers/seeds-helper');
 import UploaderImagesRequestHelper = require('../../helpers/uploader/uploader-images-request-helper');
-// @ts-ignore
-import FileToUploadHelper = require('../helpers/file-to-upload-helper');
-import _ from 'lodash';
 import UploaderImagesChecker = require('../../helpers/uploader/uploader-images-checker');
 
 const beforeAfterOptions = {
   isGraphQl: false,
   workersMocking: 'all',
 };
+
+// @ts-ignore
+let userVlad: UserModel;
 
 // @ts-ignore
 const JEST_TIMEOUT = 1000;
@@ -24,14 +26,20 @@ describe('Uploader - upload one image', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    await SeedsHelper.beforeAllRoutine();
+    [userVlad] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Positive', () => {
     it('upload one image', async () => {
-      const body = await UploaderImagesRequestHelper.uploadOneSampleImage();
+      const body = await UploaderImagesRequestHelper.uploadOneSampleImage(userVlad);
 
       await UploaderImagesChecker.checkOneFileIsUploaded(body);
+    });
+  });
+
+  describe('Negative', () => {
+    it('Not possible to upload without auth token', async () => {
+      await UploaderImagesRequestHelper.uploadOneSampleImage(null, 401);
     });
   });
 });

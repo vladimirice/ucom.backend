@@ -31,6 +31,8 @@ app.use((req, res, next) => {
   next();
 });
 
+require('../auth/passport');
+
 ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
 
 export {
