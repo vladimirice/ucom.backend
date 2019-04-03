@@ -167,22 +167,22 @@ Notes:
 * Uploader knows nothing about when an image is used. It is only a file storage.
 
 Workflow:
-* Client sends basic request about `I want to upload an image`
-* Uploader responds to user with an one-time link to upload image.
+* Client sends a basic request about `I want to upload an image`
+* Uploader responds to user with a one-time link to upload image.
 * Client uploads an image using this one-time link.
-* Uploader returns an absolute link to the image. Actually it responds with JSON structure with the link inside it.
+* Uploader returns an absolute link to the image. Actually it responds with a JSON structure with the link inside it.
 It allows to upload several images in one request without changing the interface.
 * Client saves this link in a special JSON structure named `entity_images`. This is actually a column
-in database of table `posts`, `comments`, etc.
-* Client sends post request with `entity_images` to any main application route which supports it.
-* Backend application validates basic `entity_images` structure and saves it inside the database `as-is`.
-* In the future GET request backend application responds to the client and provides a saved `entity_images`
+in a database of table `posts`, `comments`, etc.
+* Client sends a post request with `entity_images` to any main application route which supports it.
+* The backend application validates the basic `entity_images` structure and saves it inside the database `as-is`.
+* In the future, GET request backend application responds to the client and provides a saved `entity_images`
 structure.
 
 Benefits:
-* Easy to extend. A client application can extend `entity_images` JSON structure totally by itself without
+* Easy to extend. A client application can extend the `entity_images` JSON structure totally by itself without
 any backend application changes.
-* Easy to scale. It is possible to implement CDN in the future with the same domain. Because CDN is using
+* Easy to scale. It is possible to implement CDN in the future with the same domain. Because CDN is using the
 one-time link concept too and can be placed to the domain the client asks.
-* Minimum backend development involvement - it is required to add `entity_images` column to table
+* Minimum backend development involvement - it is required to add an `entity_images` column to the table
 and allow saving of this field.
