@@ -153,8 +153,14 @@ docker-init-test-db ditd:
 	make docker-recreate-monolith-db
 	make docker-recreate-events-db
 
-copy-production-config:
+update-local-production-config:
+	scp gt:/var/www/ucom.backend/config/production.json ./config/production.json
+
+copy-local-production-config-to-server:
 	scp ./config/production.json gt:/var/www/ucom.backend/config/production.json
 
-copy-staging-config:
+update-local-staging-config:
+	scp gt:/var/www/ucom.backend.staging/config/staging.json ./config/staging.json
+
+copy-local-staging-config-to-server:
 	scp ./config/staging.json gt:/var/www/ucom.backend.staging/config/staging.json
