@@ -51,6 +51,7 @@ app.use((req, res, next) => {
 });
 EosApi.initTransactionFactory();
 app.use(cookieParser());
+ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v2/users', usersV2Router);
 app.use('/api/v1/auth', authRouter);
@@ -71,5 +72,5 @@ app.use(`${API_V1_PREFIX}/users-external`, UsersExternalRouter);
 // V2 for post
 app.use('/api/v2/posts', postsV2Router);
 require('./lib/auth/passport');
-ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
+ApiErrorAndLoggingHelper.initErrorHandlers(app);
 module.exports = app;

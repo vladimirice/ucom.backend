@@ -9,12 +9,14 @@ const app = express();
 const apiV1Prefix = '/api/v1';
 
 require('express-async-errors');
+require('../auth/passport');
 
 const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 
 app.use(express.json());
 app.use(diContainerMiddleware);
-app.use(`${apiV1Prefix}/images`, imagesRouter);
+
+ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 
 // #security - very weak origin policy
 // @ts-ignore
@@ -35,9 +37,9 @@ app.use((req, res, next) => {
   next();
 });
 
-require('../auth/passport');
+app.use(`${apiV1Prefix}/images`, imagesRouter);
 
-ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
+ApiErrorAndLoggingHelper.initErrorHandlers(app);
 
 export {
   app,

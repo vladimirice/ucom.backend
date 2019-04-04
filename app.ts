@@ -71,6 +71,7 @@ app.use((req, res, next) => {
 EosApi.initTransactionFactory();
 
 app.use(cookieParser());
+ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v2/users', usersV2Router);
@@ -98,6 +99,6 @@ app.use('/api/v2/posts', postsV2Router);
 
 require('./lib/auth/passport');
 
-ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
+ApiErrorAndLoggingHelper.initErrorHandlers(app);
 
 module.exports = app;

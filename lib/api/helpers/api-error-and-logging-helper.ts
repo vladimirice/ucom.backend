@@ -22,14 +22,16 @@ class ApiErrorAndLoggingHelper {
    * @param {Object} loggerStream
    * @return {Function[]}
    */
-  public static initAllForApp(app, logger, loggerStream) {
+  public static initBeforeRouters(app, logger, loggerStream) {
     app.use(helmet());
 
     app.use(morgan('combined', { stream: loggerStream }));
 
     process.on('uncaughtException', (ex) => { logger.error(ex); });
     process.on('unhandledRejection', (ex) => { throw ex; });
+  }
 
+  public static initErrorHandlers(app) {
     app.use(createErrorIfNoRoute);
     app.use(errorMiddleware);
   }
