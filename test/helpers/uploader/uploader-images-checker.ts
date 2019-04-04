@@ -17,6 +17,11 @@ class UploaderImagesChecker {
     await this.isFileUploaded(filename);
   }
 
+  public static checkOneFileAbsence(filePath: string): void {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    expect(fs.existsSync(`${storageFullPath}/${filePath}`)).toBeFalsy();
+  }
+
   /**
    *
    * @param {string} filename

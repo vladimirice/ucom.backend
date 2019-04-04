@@ -259,6 +259,11 @@ class RequestHelper {
       .attach(field, fileToUploadHelper.getSampleFilePathToUpload());
   }
 
+  public static attachImage(req: any, field: string, imagePath: string): void {
+    req
+      .attach(field, imagePath);
+  }
+
   /**
    *
    * @return {string}

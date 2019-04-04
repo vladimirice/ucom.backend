@@ -1,15 +1,10 @@
 const express = require('express');
 
 const UploaderImagesRouter = express.Router();
+import UploaderImagesService = require('../service/uploader-images-service');
 
-// @ts-ignore
-const config = require('config');
-
-// @ts-ignore
 const {
   imagesInputProcessor,
-  imageFieldName,
-  storageDirPrefix,
 } = require('../middleware/upload-one-image-middleware');
 
 const authTokenMiddleWare = require('../../auth/auth-token-middleware');
@@ -24,18 +19,9 @@ const middlewareSet = [
 ];
 
 UploaderImagesRouter.post('/one-image', middlewareSet, async (req, res) => {
-  const { filename } = req.files[imageFieldName][0];
-  const rootUrl = config.get('host').root_url;
+  const response = UploaderImagesService.processOneImage(req);
 
-  const prefix = `${rootUrl}${storageDirPrefix}`;
-
-  res.status(201).send({
-    files: [
-      {
-        url: `${prefix}/${filename}`,
-      },
-    ],
-  });
+  res.status(201).send(response);
 });
 
 export = UploaderImagesRouter;

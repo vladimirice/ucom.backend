@@ -6,7 +6,15 @@
   },
   "uploader": {
     "images": {
-      "dir_prefix": "/public/images_uploader"
+      "dir_prefix": "/public/images_uploader",
+      "validation_rules": {
+        "gif": {
+          "max_size_in_bytes": 1048576
+        },
+        "jpg": {
+          "max_size_in_bytes": 3145728
+        }
+      }
     }
   },
   "db_knex_events": {

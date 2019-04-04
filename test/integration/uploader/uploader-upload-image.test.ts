@@ -3,6 +3,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import SeedsHelper = require('../helpers/seeds-helper');
 import UploaderImagesRequestHelper = require('../../helpers/uploader/uploader-images-request-helper');
 import UploaderImagesChecker = require('../../helpers/uploader/uploader-images-checker');
+import FileToUploadHelper = require('../helpers/file-to-upload-helper');
 
 const beforeAfterOptions = {
   isGraphQl: false,
@@ -11,11 +12,10 @@ const beforeAfterOptions = {
 
 let userVlad: UserModel;
 
-// @ts-ignore
-const JEST_TIMEOUT = 1000;
+const JEST_TIMEOUT = 5000;
 
 // @ts-ignore
-const JEST_TIMEOUT_DEBUG = 1000 * 1000;
+const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 1000;
 
 describe('Uploader - upload one image', () => {
   beforeAll(async () => {
@@ -30,35 +30,44 @@ describe('Uploader - upload one image', () => {
 
   describe('Positive', () => {
     it('upload one jpg image', async () => {
-      const body = await UploaderImagesRequestHelper.uploadOneSampleImage(userVlad);
+      const imagePath: string = FileToUploadHelper.getSampleJpgPath();
+      const body = await UploaderImagesRequestHelper.uploadOneSampleImage(imagePath, userVlad);
 
       await UploaderImagesChecker.checkOneFileIsUploaded(body);
     }, JEST_TIMEOUT);
 
     it('Upload one gif image', async () => {
-      // TODO
+      const imagePath: string = FileToUploadHelper.getSampleGifPath();
+      const body = await UploaderImagesRequestHelper.uploadOneSampleImage(imagePath, userVlad);
+
+      await UploaderImagesChecker.checkOneFileIsUploaded(body);
     }, JEST_TIMEOUT);
   });
 
   describe('Negative', () => {
     it('Not possible to upload without auth token', async () => {
-      await UploaderImagesRequestHelper.uploadOneSampleImage(null, 401);
+      const imagePath: string = FileToUploadHelper.getSampleJpgPath();
+
+      await UploaderImagesRequestHelper.uploadOneSampleImage(imagePath, null, 401);
     });
 
     it('Not possible to upload png file', async () => {
-      // TODO
+      const imagePath: string = FileToUploadHelper.getSamplePngPath();
+      await UploaderImagesRequestHelper.uploadOneSampleImage(imagePath, userVlad, 400);
+
+      const imagePathFake: string = FileToUploadHelper.getSampleFakeGifPath();
+      await UploaderImagesRequestHelper.uploadOneSampleImage(imagePathFake, userVlad, 400);
+
+      const imagePathFakeJpg: string = FileToUploadHelper.getSampleFakeJpgPath();
+      await UploaderImagesRequestHelper.uploadOneSampleImage(imagePathFakeJpg, userVlad, 400);
     });
 
-    it('Not possible to upload very large jpg file', async () => {
-      // TODO
+    it.skip('Not possible to upload very large jpg file', async () => {
+      // is tested manually
     });
 
-    it('Not possible to upload very large gif file', async () => {
-      // TODO
-    });
-
-    it('Rename png file to jpg and try to upload - should be an error', async () => {
-      // TODO
+    it.skip('Not possible to upload very large gif file', async () => {
+      // is tested manually
     });
   });
 });
