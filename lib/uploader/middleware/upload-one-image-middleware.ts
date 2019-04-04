@@ -1,12 +1,10 @@
-import { MakeDirectoryOptions } from 'fs';
-
 import UploaderImagesHelper = require('../helper/uploader-images-helper');
 
 const appRootDir  = require('app-root-path');
 const config      = require('config');
 const multer      = require('multer');
 const path        = require('path');
-const fs          = require('fs');
+const fsExtra     = require('fs-extra');
 const uniqid      = require('uniqid');
 
 
@@ -25,13 +23,11 @@ const storage = multer.diskStorage({
     const subDirectory: string = UploaderImagesHelper.getDateBasedSubDirectory();
     const dirWithSubDir = `${storageFullPath}${subDirectory}`;
 
-    const options: MakeDirectoryOptions = {
-      recursive: true,
+    const options = {
       mode: 0o755,
     };
 
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
-    fs.mkdirSync(dirWithSubDir, options);
+    fsExtra.ensureDirSync(dirWithSubDir, options);
 
     cb(null, dirWithSubDir);
   },

@@ -9,14 +9,16 @@ const oneImageUrl = `${imagesUrl}/one-image`;
 
 class UploaderImagesRequestHelper {
   public static async uploadOneSampleImage(
-    imagePath: string,
+    imagePath: string | null,
     myself: UserModel | null = null,
     expectedStatus: number = 201,
   ): Promise<any> {
     const request = UploaderRequestHelper.getRequestObjForPost(oneImageUrl);
     const fieldName = 'one_image';
 
-    RequestHelper.attachImage(request, fieldName, imagePath);
+    if (imagePath) {
+      RequestHelper.attachImage(request, fieldName, imagePath);
+    }
 
     if (myself !== null) {
       RequestHelper.addAuthToken(request, myself);

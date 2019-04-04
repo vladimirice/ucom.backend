@@ -11,6 +11,9 @@ const beforeAfterOptions = {
 };
 
 let userVlad: UserModel;
+let userJane: UserModel;
+let userPetr: UserModel;
+let userRokky: UserModel;
 
 const JEST_TIMEOUT = 5000;
 // @ts-ignore
@@ -24,10 +27,32 @@ describe('Uploader - upload one image', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    [userVlad] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Positive', () => {
+    it('upload a lot of files at once but by different users', async () => {
+      // TODO - before all - clear uploader directory
+      const jpgPath: string = FileToUploadHelper.getSampleJpgPath();
+      const gifPath: string = FileToUploadHelper.getSampleGifPath();
+
+      await Promise.all([
+        UploaderImagesRequestHelper.uploadOneSampleImage(jpgPath, userVlad),
+        UploaderImagesRequestHelper.uploadOneSampleImage(gifPath, userJane),
+        UploaderImagesRequestHelper.uploadOneSampleImage(jpgPath, userPetr),
+        UploaderImagesRequestHelper.uploadOneSampleImage(gifPath, userRokky),
+      ]);
+      // and once again...
+      await Promise.all([
+        UploaderImagesRequestHelper.uploadOneSampleImage(jpgPath, userVlad),
+        UploaderImagesRequestHelper.uploadOneSampleImage(gifPath, userJane),
+        UploaderImagesRequestHelper.uploadOneSampleImage(jpgPath, userPetr),
+        UploaderImagesRequestHelper.uploadOneSampleImage(gifPath, userRokky),
+      ]);
+
+      // TODO - count files inside dir
+    });
+
     it('upload one jpg image', async () => {
       const imagePath: string = FileToUploadHelper.getSampleJpgPath();
       const body = await UploaderImagesRequestHelper.uploadOneSampleImage(imagePath, userVlad);
@@ -44,6 +69,10 @@ describe('Uploader - upload one image', () => {
   });
 
   describe('Negative', () => {
+    it('If no file then properly error is occurred', async () => {
+      await UploaderImagesRequestHelper.uploadOneSampleImage(null, userVlad); // TODO
+    }, JEST_TIMEOUT_DEBUG);
+
     it('Not possible to upload without auth token', async () => {
       const imagePath: string = FileToUploadHelper.getSampleJpgPath();
 

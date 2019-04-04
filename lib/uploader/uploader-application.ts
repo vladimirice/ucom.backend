@@ -8,6 +8,8 @@ const diContainerMiddleware = require('../api/di-container-middleware');
 const app = express();
 const apiV1Prefix = '/api/v1';
 
+require('express-async-errors');
+
 const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 
 app.use(express.json());
