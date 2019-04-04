@@ -1,23 +1,36 @@
-const NODE_ENV = 'staging';
-const HTTP_SERVER_PORT = 3001;
-const WEBSOCKET_SERVER_PORT = 5001;
-const GRAPHQL_SERVER_PORT = 4001;
+/* eslint-disable unicorn/prevent-abbreviations,no-multi-spaces */
+const NODE_ENV              = 'staging';
 
-const CRON_PATTERN_EVERY_HOUR = '0 */1 * * *';
-const CRON_PATTERN_EVERY_MINUTE = '* * * * *';
+const HTTP_SERVER_PORT      = 3001;
+const GRAPHQL_SERVER_PORT   = 4001;
+const WEBSOCKET_SERVER_PORT = 5001;
+const UPLOADER_SERVER_PORT  = 5011;
+
+const CRON_PATTERN_EVERY_HOUR         = '0 */1 * * *';
+const CRON_PATTERN_EVERY_MINUTE       = '* * * * *';
 const CRON_PATTERN_EVERY_FIVE_MINUTES = '*/5 * * * *';
+
+const clusterConfig = {
+  instances: 'max',
+  exec_mode: 'cluster',
+};
+
+const defaultConfig = {
+  instance_var: 'INSTANCE_ID',
+  watch: false,
+  autorestart: true,
+};
 
 module.exports = {
   apps: [
     // ================ Apps (interaction with user) =============
     {
       name: `${NODE_ENV}_app_backend`,
-      instance_var: 'INSTANCE_ID',
       script: 'bin/www.js',
-      instances: 'max',
-      exec_mode: 'cluster',
-      watch: false,
-      autorestart: true,
+
+      ...clusterConfig,
+      ...defaultConfig,
+
       env: {
         PORT: HTTP_SERVER_PORT,
         NODE_ENV,
@@ -25,12 +38,11 @@ module.exports = {
     },
     {
       name: `${NODE_ENV}_app_graphql`,
-      instance_var: 'INSTANCE_ID',
       script: 'bin/app-graphql.js',
-      instances: 'max',
-      exec_mode: 'cluster',
-      watch: false,
-      autorestart: true,
+
+      ...clusterConfig,
+      ...defaultConfig,
+
       env: {
         PORT: GRAPHQL_SERVER_PORT,
         NODE_ENV,
@@ -40,40 +52,54 @@ module.exports = {
       name: `${NODE_ENV}_app_websocket`,
       instance_var: 'INSTANCE_ID',
       script: 'bin/app-websocket.js',
+
+      // no cluster due to condition existence (connected users list)
+      ...defaultConfig,
+
       env: {
         PORT: WEBSOCKET_SERVER_PORT,
         NODE_ENV,
-        watch: false,
-        autorestart: true,
+      },
+    },
+    {
+      name: `${NODE_ENV}_app_uploader`,
+      script: 'bin/app-uploader.js',
+
+      ...clusterConfig,
+      ...defaultConfig,
+
+      env: {
+        PORT: UPLOADER_SERVER_PORT,
+        NODE_ENV,
       },
     },
     // ================ Consumers ======================
     {
       name: `${NODE_ENV}_consumer_tags_parser`,
       script: 'bin/consumer-tags-parser.js',
-      watch: false,
-      autorestart: true,
+
+      ...defaultConfig,
+
       env: {
         NODE_ENV,
-        autorestart: true,
       },
     },
     {
       name: `${NODE_ENV}_consumer_transaction_sender`,
       script: 'bin/consumer-transaction-sender.js',
-      watch: false,
-      autorestart: true,
+
+      ...defaultConfig,
+
       env: {
         NODE_ENV,
-        autorestart: true,
       },
     },
     {
       name: `${NODE_ENV}_consumer_notifications_sender`,
-      instance_var: 'INSTANCE_ID',
       script: 'bin/consumer-notifications-sender.js',
-      watch: false,
-      autorestart: true,
+
+      ...defaultConfig,
+
       env: {
         NODE_ENV,
       },

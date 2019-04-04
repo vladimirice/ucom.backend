@@ -5,29 +5,29 @@ const fs = require('fs');
 const config = require('config');
 
 import ImageTypeValidator = require('../validator/image-type-validator');
+import UploaderImagesHelper = require('../helper/uploader-images-helper');
 
 const {
   imageFieldName,
-  storageDirPrefix,
-  storageFullPath,
 } = require('../middleware/upload-one-image-middleware');
 
 const validationRules: StringToAnyCollection = config.uploader.images.validation_rules;
 
 class UploaderImagesService {
   public static processOneImage(req: any): any {
-    const { filename } = req.files[imageFieldName][0];
-    const filePath = `${storageFullPath}/${filename}`;
+    const { path:filePath } = req.files[imageFieldName][0];
 
     this.validateOneImage(filePath);
 
-    const rootUrl = config.get('host').root_url;
-    const prefix = `${rootUrl}${storageDirPrefix}`;
+    const relativeFileName: string = UploaderImagesHelper.getRelativeFilenameForUrl(filePath);
+
+    const hostWithHttps = config.get('servers').uploader;
+    const url = `${hostWithHttps}${relativeFileName}`;
 
     return {
       files: [
         {
-          url: `${prefix}/${filename}`,
+          url,
         },
       ],
     };

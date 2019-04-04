@@ -13,7 +13,6 @@ const beforeAfterOptions = {
 let userVlad: UserModel;
 
 const JEST_TIMEOUT = 5000;
-
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 1000;
 
