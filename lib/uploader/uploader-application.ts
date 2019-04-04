@@ -8,15 +8,12 @@ const diContainerMiddleware = require('../api/di-container-middleware');
 const app = express();
 const apiV1Prefix = '/api/v1';
 
-require('express-async-errors');
 require('../auth/passport');
 
 const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 
 app.use(express.json());
 app.use(diContainerMiddleware);
-
-ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 
 // #security - very weak origin policy
 // @ts-ignore
@@ -36,6 +33,8 @@ app.use((req, res, next) => {
   // Pass to next layer of middleware
   next();
 });
+
+ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 
 app.use(`${apiV1Prefix}/images`, imagesRouter);
 

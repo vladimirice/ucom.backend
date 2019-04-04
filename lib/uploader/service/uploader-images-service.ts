@@ -16,7 +16,7 @@ const validationRules: StringToAnyCollection = config.uploader.images.validation
 class UploaderImagesService {
   public static processOneImage(req: any): any {
     if (!req.files || !req.files[imageFieldName] || !req.files[imageFieldName][0]) {
-      throw new BadRequestError('Please attach file to upload');
+      throw new BadRequestError('Please attach a file');
     }
 
     const { path:filePath } = req.files[imageFieldName][0];

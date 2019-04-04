@@ -1,4 +1,5 @@
 const express = require('express');
+require('express-async-errors');
 
 const UploaderImagesRouter = express.Router();
 import UploaderImagesService = require('../service/uploader-images-service');

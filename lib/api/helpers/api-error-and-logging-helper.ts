@@ -29,11 +29,10 @@ class ApiErrorAndLoggingHelper {
 
     process.on('uncaughtException', (ex) => { logger.error(ex); });
     process.on('unhandledRejection', (ex) => { throw ex; });
-
-    app.use(errorMiddleware);
   }
 
   public static initErrorHandlers(app) {
+    app.use(errorMiddleware);
     app.use(createErrorIfNoRoute);
   }
 
