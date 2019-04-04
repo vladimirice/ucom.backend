@@ -8,7 +8,6 @@ const {
 } = require('../middleware/upload-one-image-middleware');
 
 const authTokenMiddleWare = require('../../auth/auth-token-middleware');
-// @ts-ignore
 const activityApiMiddleware   =
   require('../../activity/middleware/activity-api-middleware');
 

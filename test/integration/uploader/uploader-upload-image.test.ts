@@ -70,7 +70,7 @@ describe('Uploader - upload one image', () => {
 
   describe('Negative', () => {
     it('If no file then properly error is occurred', async () => {
-      await UploaderImagesRequestHelper.uploadOneSampleImage(null, userVlad); // TODO
+      await UploaderImagesRequestHelper.uploadOneSampleImage(null, userVlad, 400);
     }, JEST_TIMEOUT_DEBUG);
 
     it('Not possible to upload without auth token', async () => {
