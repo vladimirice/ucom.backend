@@ -1,4 +1,5 @@
 const express = require('express');
+const config = require('config');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 const imagesRouter = require('./router/uploader-images-router');
@@ -18,7 +19,7 @@ app.use(diContainerMiddleware);
 // #security - very weak origin policy
 // @ts-ignore
 app.use((req, res, next) => {
-  const allowedOrigins = ['http://localhost:8080', 'https://staging.u.community', 'https://u.community'];
+  const allowedOrigins = config.cors.allowed_origins;
 
   const { origin } = req.headers;
   if (allowedOrigins.includes(origin)) {
