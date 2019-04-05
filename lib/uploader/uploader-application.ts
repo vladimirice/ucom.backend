@@ -16,26 +16,20 @@ const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 app.use(express.json());
 app.use(diContainerMiddleware);
 
+const allowedOrigins = 'http://localhost:8000,https://staging.u.community,https://u.community';
+
 // #security - very weak origin policy
 // @ts-ignore
 app.use((req, res, next) => {
-  // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigins);
 
-  // Request methods you wish to allow
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
-  // Request headers you wish to allow
   res.setHeader(
     'Access-Control-Allow-Headers',
-    `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB}`,
+    `content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB}`,
   );
 
-  // Set to true if you need the website to include cookies in the requests sent
-  // to the API (e.g. in case you use sessions)
-  res.setHeader('Access-Control-Allow-Credentials', true);
-
-  // Pass to next layer of middleware
   next();
 });
 
