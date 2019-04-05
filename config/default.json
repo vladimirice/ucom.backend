@@ -85,5 +85,12 @@
     "blockchain_queue_name": "test_blockchain",
     "notifications_queue_name": "test_notifications",
     "tags_parser_queue_name": "test_tags_parser"
+  },
+  "cors": {
+    "allowed_origins": [
+      "http://localhost:8080",
+      "https://staging.u.community",
+      "https://u.community"
+    ]
   }
 }
