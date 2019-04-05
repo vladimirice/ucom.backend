@@ -1,7 +1,9 @@
 import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
+import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -32,6 +34,12 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static addEntityImagesField(req: any, entityImages: any): void {
+    const value = typeof entityImages === 'string' ? entityImages : JSON.stringify(entityImages);
+
+    req.field(EntityImagesModelProvider.entityImagesColumn(), value);
+  }
+
   public static getUsersUrlV1(): string {
     return usersUrl;
   }

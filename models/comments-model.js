@@ -1,4 +1,6 @@
 /* eslint-disable security/detect-object-injection */
+const EntityImagesModelProvider = require('../lib/entity-images/service/entity-images-model-provider');
+
 const TABLE_NAME = 'comments';
 
 module.exports = (database, Sequelize) => {
@@ -83,6 +85,7 @@ module.exports = (database, Sequelize) => {
     'user_id',
     'commentable_id',
     'blockchain_id',
+    EntityImagesModelProvider.entityImagesColumn(),
   ];
 
   Model.apiResponseFields = () => [

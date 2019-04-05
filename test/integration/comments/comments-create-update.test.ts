@@ -35,7 +35,6 @@ describe('#comments create update', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
-
   describe('Positive', () => {
     describe('Media post related tests', () => {
       it('should create post with comment_count equal to zero', async () => {
