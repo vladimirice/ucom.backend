@@ -88,6 +88,17 @@ class CommentsGenerator {
 
     return res.body;
   }
+
+  public static async createCommentOnCommentAndGetId(
+    postId: number,
+    parentCommentId: number,
+    user: UserModel,
+    description: string = 'comment description',
+  ): Promise<number> {
+    const body = await this.createCommentOnComment(postId, parentCommentId, user, description);
+
+    return +body.id;
+  }
 }
 
 export = CommentsGenerator;

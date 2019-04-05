@@ -281,7 +281,7 @@ class PostsGenerator {
    * @param {Object} user
    * @return {Promise<number>}
    */
-  static async createPostOfferByUserHimself(user) {
+  static async createPostOfferByUserHimself(user: UserModel): Promise<number> {
     const newPostFields = {
       title: 'Extremely new post',
       description: 'Our super post description',
