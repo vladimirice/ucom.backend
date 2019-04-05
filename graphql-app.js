@@ -167,6 +167,7 @@ const typeDefs = gql `
     path: JSON
     updated_at: String!
     user_id: Int!
+    entity_images: JSON
 
     metadata: comment_metadata!
   }
