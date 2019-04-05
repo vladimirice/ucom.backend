@@ -16,12 +16,15 @@ const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 app.use(express.json());
 app.use(diContainerMiddleware);
 
-const allowedOrigins = 'http://localhost:8000,https://staging.u.community,https://u.community';
-
 // #security - very weak origin policy
 // @ts-ignore
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigins);
+  const allowedOrigins = ['http://localhost:8080', 'https://staging.u.community', 'https://u.community'];
+
+  const { origin } = req.headers;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
 
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
 
