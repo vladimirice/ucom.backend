@@ -16,8 +16,6 @@ const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 
 app.use(diContainerMiddleware);
 
-// #security - very weak origin policy
-// @ts-ignore
 app.use((req, res, next) => {
   const allowedOrigins = config.cors.allowed_origins;
 
