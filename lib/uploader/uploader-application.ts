@@ -13,7 +13,6 @@ require('../auth/passport');
 
 const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 
-app.use(express.json());
 app.use(diContainerMiddleware);
 
 // #security - very weak origin policy
