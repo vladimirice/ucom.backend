@@ -143,7 +143,7 @@ class NotificationsHelper {
     let counter = 0;
     while (_.isEmpty(notifications)) {
       notifications = await this.requestToGetOnlyOneNotificationBeforeReceive(myself);
-      delay(100);
+      await delay(100);
 
       counter += 1;
 
@@ -169,7 +169,7 @@ class NotificationsHelper {
     let notifications = [];
     while (_.isEmpty(notifications) || notifications.length < requiredAmount) {
       notifications = await this.requestToGetOnlyOneNotificationBeforeReceive(myself);
-      delay(100);
+      await delay(1000);
     }
 
     return notifications;

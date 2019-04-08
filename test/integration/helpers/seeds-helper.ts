@@ -10,7 +10,7 @@ import knexEvents = require('../../../config/knex-events');
 import knex = require('../../../config/knex');
 import RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 import UsersExternalModelProvider = require('../../../lib/users-external/service/users-external-model-provider');
-import MongoGenerator = require('../../generators/common/mongo-generator');
+// import MongoGenerator = require('../../generators/common/mongo-generator');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -234,7 +234,7 @@ class SeedsHelper {
       models.users_sources.bulkCreate(sourcesSeeds),
     ]);
 
-    await MongoGenerator.truncateAll();
+    // await MongoGenerator.truncateAll();
 
     return Promise.all([
       UsersHelper.getUserVlad(),

@@ -1,6 +1,5 @@
-export {};
+import SeedsHelper = require('../helpers/seeds-helper');
 
-const mockHelper = require('../helpers/mock-helper');
 const seedsHelper = require('../helpers/seeds-helper');
 const notificationsHelper = require('../helpers/notifications-helper');
 const commonHelper = require('../helpers/common-helper');
@@ -17,14 +16,15 @@ let userPetr;
 
 const JEST_TIMEOUT = 10000;
 
+const beforeAfterOptions = {
+  isGraphQl: false,
+  workersMocking: 'blockchainOnly',
+};
+
 describe('Mentions parsing by consumer', () => {
-  beforeAll(async () => {
-    mockHelper.mockAllTransactionSigning();
-    mockHelper.mockAllBlockchainJobProducers();
-  });
-  afterAll(async () => {
-    await seedsHelper.doAfterAll();
-  });
+  beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
+  afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
+
   beforeEach(async () => {
     [userVlad, userJane, userPetr] = await seedsHelper.beforeAllRoutine();
   });
@@ -348,3 +348,5 @@ describe('Mentions parsing by consumer', () => {
     it.skip('Org post updating mentions', async () => {});
   });
 });
+
+export {};

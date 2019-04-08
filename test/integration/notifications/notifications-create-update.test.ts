@@ -93,7 +93,7 @@ describe('Notifications create-update', () => {
         while (_.isEmpty(notifications)) {
           notifications =
             await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(userVlad);
-          delay(100);
+          await delay(100);
         }
 
         expect(notifications.length).toBe(1);
@@ -119,7 +119,7 @@ describe('Notifications create-update', () => {
         while (_.isEmpty(notifications)) {
           notifications =
             await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(userVlad);
-          delay(100);
+          await delay(100);
         }
 
         expect(notifications.length).toBe(1);
@@ -149,7 +149,7 @@ describe('Notifications create-update', () => {
       while (_.isEmpty(notifications)) {
         notifications =
           await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(userVlad);
-        delay(100);
+        await delay(100);
       }
 
       expect(notifications.length).toBe(1);
@@ -182,7 +182,7 @@ describe('Notifications create-update', () => {
         const notifications =
           await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(userJane);
         [notification] = notifications;
-        delay(100);
+        await delay(100);
       }
 
       const options = {
@@ -332,7 +332,7 @@ describe('Notifications create-update', () => {
         while (_.isEmpty(notifications)) {
           notifications =
             await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(orgAuthor);
-          delay(100);
+          await delay(100);
         }
 
         // Should not create notification when user creates comment on his own post. See above
@@ -356,7 +356,7 @@ describe('Notifications create-update', () => {
         let notification;
 
         while (!notification) {
-          delay(100);
+          await delay(100);
           const notifications =
             await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(orgAuthor);
           [notification] = notifications;

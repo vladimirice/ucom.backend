@@ -17,7 +17,7 @@ class MentionsProcessorService {
 
     const usersIds = Object.keys(userAccountNameToId).map(key => userAccountNameToId[key]);
 
-    for (let i = 0; i < usersIds.length; i += 1) {
+    for (let i = 0; i < <number>usersIds.length; i += 1) {
       const mentionedUserId = usersIds[i];
 
       await this.processNotificationActivity(activity, mentionedUserId);
@@ -28,19 +28,18 @@ class MentionsProcessorService {
     activity: ActivityWithContentEntity,
     mentionedUserId: number,
   ) {
-
     let mentionActivity;
     if (activity.entity_name === postsModelProvider.getEntityName()) {
       mentionActivity = await usersActivityService.processUserMentionOtherUserInPost(
         activity.entity_id,
         activity.user_id_from,
-        mentionedUserId, //// fetch user id by account name
+        mentionedUserId, // fetch user id by account name
       );
     } else if (activity.entity_name === commentsModelProvider.getEntityName()) {
       mentionActivity = await usersActivityService.processUserMentionOtherUserInComment(
         activity.entity_id,
         activity.user_id_from,
-        mentionedUserId, //// fetch user id by account name
+        mentionedUserId, // fetch user id by account name
       );
     } else {
       throw new Error(`Unknown entity name ${activity.entity_name}`);

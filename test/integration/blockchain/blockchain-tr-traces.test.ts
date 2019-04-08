@@ -28,7 +28,7 @@ describe('Blockchain tr traces sync tests', () => {
   });
 
   describe('irreversible transaction traces', () => {
-    it('test', async () => {
+    it.skip('test', async () => {
       await MongoIrreversibleTracesGenerator.insertAllSampleTraces();
     });
   });
