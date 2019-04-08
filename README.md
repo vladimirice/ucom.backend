@@ -9,6 +9,7 @@
 * [Installation](documentation/INSTALLATION.md)
 * [How-to](documentation/HOW_TO.md)
 * [Architecture](documentation/ARCHITECTURE.md)
+* [Improvements and scaling strategies](documentation/IMPROVEMENTS_AND_SCALING_STRATEGIES.md)
 * [Style guide](documentation/STYLE_GUIDE.md)
 * [Technical debt](documentation/TECHNICAL_DEBT.md)
 * [Problems and solutions](documentation/PROBLEMS_AND_SOLUTIONS.md)
