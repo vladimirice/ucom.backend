@@ -67,10 +67,7 @@
   },
   "servers": {
     "websocket": "http://localhost:5000",
-    "uploader": "http://localhost:5010",
-    "frontend": {
-      "domain": "u.community"
-    }
+    "uploader": "http://localhost:5010"
   },
   "eosAccounts": {
     "creatorAccountName": "12345",
