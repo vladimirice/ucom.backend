@@ -17,7 +17,7 @@ GithubAuthRouter.all('/auth_callback', async (req, res) => {
     {
       maxAge: GithubAuthService.getCookieExpiration(),
       httpOnly: false,
-      domain: 'staging.u.community',
+      domain: 'u.community',
     },
   );
 
