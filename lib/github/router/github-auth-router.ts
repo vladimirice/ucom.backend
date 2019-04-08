@@ -1,6 +1,7 @@
 import GithubAuthService = require('../service/github-auth-service');
 
 const express = require('express');
+const config = require('config');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -17,7 +18,7 @@ GithubAuthRouter.all('/auth_callback', async (req, res) => {
     {
       maxAge: GithubAuthService.getCookieExpiration(),
       httpOnly: false,
-      domain: 'u.community',
+      domain: config.servers.frontend.domain,
     },
   );
 
