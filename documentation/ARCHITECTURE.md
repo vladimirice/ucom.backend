@@ -6,6 +6,8 @@ Table of contents
 * [Airdrop and balances](#airdrop-and-balances)
 * [Images uploader](#images-uploader)
 * [Entity images](#entity-images)
+* users_activity - TODO
+* REDIS Redlock - TODO
 
 ## Common information
 
