@@ -54,3 +54,10 @@ services:
     networks:
       uos_backend_network:
         ipv4_address: 173.18.212.30
+  irreversible_traces_mongodb:
+    container_name: irreversible_traces_mongodb
+    hostname: irreversible-traces-mongodb.dev
+    image: mongo:4.0.8
+    networks:
+      uos_backend_network:
+        ipv4_address: 173.18.212.50
