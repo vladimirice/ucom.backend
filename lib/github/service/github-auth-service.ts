@@ -51,8 +51,8 @@ class GithubAuthService {
         redirectUri,
         authToken,
       };
-    } catch (err) {
-      throw this.processAuthError(err);
+    } catch (error) {
+      throw this.processAuthError(error);
     }
   }
 
@@ -75,9 +75,8 @@ class GithubAuthService {
 
   private static async saveDataToDb(req, userData): Promise<number> {
     let externalId = userData.id;
-
     // TODO - disable this after testing
-    if (req.query.mock_external_id) {
+    if (req.query.mock_external_id || (req.query.redirect_uri && req.query.redirect_uri.includes('mock_external_id'))) {
       externalId = NumbersHelper.generateRandomInteger(1, 10000000);
     }
 

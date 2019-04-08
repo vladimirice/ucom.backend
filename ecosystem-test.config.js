@@ -1,6 +1,7 @@
 const NODE_ENV = 'test';
 const HTTP_SERVER_PORT = 3000;
 const WEBSOCKET_SERVER_PORT = 5000;
+const UPLOADER_SERVER_PORT = 5010;
 const GRAPHQL_SERVER_PORT = 4010;
 const IGNORE_WATCH = ['node_modules', 'public', 'logs'];
 
@@ -41,6 +42,19 @@ module.exports = {
         PORT: WEBSOCKET_SERVER_PORT,
         NODE_ENV,
         autorestart: true,
+      },
+    },
+    {
+      name: `${NODE_ENV}_app_uploader`,
+      script: 'bin/app-uploader.js',
+
+      instance_var: 'INSTANCE_ID',
+      watch: true,
+      autorestart: true,
+
+      env: {
+        PORT: UPLOADER_SERVER_PORT,
+        NODE_ENV,
       },
     },
     // ================ Consumers ======================

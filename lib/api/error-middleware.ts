@@ -3,26 +3,6 @@ import { AppError } from './errors';
 const { ApiLogger } = require('../../config/winston');
 const { BadRequestError } = require('../../lib/api/errors');
 
-// noinspection JSUnusedLocalSymbols
-// @ts-ignore
-// eslint-disable-next-line
-export = function (err, req, res, next) {
-  // eslint-disable-next-line no-use-before-define
-  const { status, payload } = processError(err);
-
-  if (typeof err !== 'string') {
-    // eslint-disable-next-line no-param-reassign
-    err.message += ` Request body is: ${JSON.stringify(req.body)}`;
-  }
-
-  if (status === 500) {
-    ApiLogger.error(err);
-  } else {
-    ApiLogger.warn(err);
-  }
-
-  res.status(status).send(payload);
-};
 
 /**
  *
@@ -31,6 +11,16 @@ export = function (err, req, res, next) {
  * @private
  */
 function processError(err: AppError) {
+  // @ts-ignore
+  if (err.name === 'MulterError' && ~['LIMIT_FILE_SIZE'].indexOf(err.code)) {
+    return {
+      status: 400,
+      payload: {
+        errors: err.message,
+      },
+    };
+  }
+
   // #task - this is because of registration error. err is got as string
   if (typeof err === 'string') {
     return {
@@ -70,3 +60,26 @@ function processError(err: AppError) {
     },
   };
 }
+
+export = (
+  err,
+  req,
+  res,
+  // @ts-ignore
+  next,
+) => {
+  const { status, payload } = processError(err);
+
+  if (typeof err !== 'string') {
+    // eslint-disable-next-line no-param-reassign
+    err.message += ` Request body is: ${JSON.stringify(req.body)}`;
+  }
+
+  if (status === 500) {
+    ApiLogger.error(err);
+  } else {
+    ApiLogger.warn(err);
+  }
+
+  res.status(status).send(payload);
+};

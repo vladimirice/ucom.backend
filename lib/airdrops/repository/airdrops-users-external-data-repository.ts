@@ -49,14 +49,17 @@ class AirdropsUsersExternalDataRepository {
       });
   }
 
-  public static async getJsonDataByUsersExternalId(usersExternalId: number) {
+  public static async getOneByUsersExternalId(usersExternalId: number) {
     const data = await knex(TABLE_NAME)
-      .select('json_data')
+      .select([
+        `${TABLE_NAME}.json_data`,
+        `${TABLE_NAME}.status`,
+      ])
       .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
       .where(`${TABLE_NAME}.users_external_id`, usersExternalId)
       .first();
 
-    return data ? data.json_data : null;
+    return data || null;
   }
 }
 

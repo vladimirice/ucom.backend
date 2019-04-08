@@ -2,8 +2,9 @@ import { GraphQLError } from 'graphql';
 import { RequestQueryComments, RequestQueryDto } from './lib/api/filters/interfaces/query-filter-interfaces';
 import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from './lib/posts/interfaces/model-interfaces';
 import { CommentsListResponse } from './lib/comments/interfaces/model-interfaces';
-import { UsersListResponse, UsersRequestQueryDto } from './lib/users/interfaces/model-interfaces';
+import { UserModel, UsersListResponse, UsersRequestQueryDto } from './lib/users/interfaces/model-interfaces';
 import { OneUserAirdropDto } from './lib/airdrops/interfaces/dto-interfaces';
+import { BadRequestError } from './lib/api/errors';
 
 import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
 import AuthService = require('./lib/auth/authService');
@@ -13,6 +14,7 @@ import TagsFetchService = require('./lib/tags/service/tags-fetch-service');
 
 import UsersFetchService = require('./lib/users/service/users-fetch-service');
 import UsersAirdropService = require('./lib/airdrops/service/airdrop-users-service');
+import OneUserInputProcessor = require('./lib/users/input-processor/one-user-input-processor');
 
 const cookieParser = require('cookie-parser');
 const express = require('express');
@@ -20,7 +22,7 @@ const express = require('express');
 const { BlockchainNodesTypes } = require('ucom.libs.common').Governance.Dictionary;
 
 const {
-  ApolloServer, gql, AuthenticationError, ForbiddenError,
+  ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError,
 } = require('apollo-server-express');
 
 const graphQLJSON = require('graphql-type-json');
@@ -29,7 +31,7 @@ const { ApiLogger } = require('./config/winston');
 // #task - generate field list from model and represent as object, not string
 const typeDefs = gql`
   type Query {
-    user_wall_feed(user_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    user_wall_feed(filters: one_user_filtering, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     
@@ -49,6 +51,8 @@ const typeDefs = gql`
     one_post_offer(id: Int!, comments_query: comments_query!, users_team_query: users_team_query!): PostOffer!
     
     one_user_airdrop(filters: one_user_airdrop_state_filtering): JSON
+    one_user(filters: one_user_filtering): JSON
+    one_user_trusted_by(filters: one_user_filtering, order_by: String!, page: Int!, per_page: Int!): users!
     
     many_blockchain_nodes(order_by: String!, page: Int!, per_page: Int!): JSON
   }
@@ -176,6 +180,7 @@ const typeDefs = gql`
     path: JSON
     updated_at: String!
     user_id: Int!
+    entity_images: JSON
 
     metadata: comment_metadata!
   }
@@ -298,6 +303,11 @@ const typeDefs = gql`
     
     airdrops: JSON
   }
+  
+  input one_user_filtering {
+    user_id: Int
+    user_identity: String
+  }
 `;
 
 // @ts-ignore
@@ -367,6 +377,14 @@ const resolvers = {
       };
     },
     // @ts-ignore
+    async one_user(parent, args, ctx): Promise<UserModel> {
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+      const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+
+      return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
+    },
+
+    // @ts-ignore
     async many_users(parent, args, ctx): Promise<UsersListResponse> {
       const usersQuery: UsersRequestQueryDto = {
         page: args.page,
@@ -377,23 +395,26 @@ const resolvers = {
 
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
-      /*
-      usersQuery
-
-      page
-      per_page
-      sort_by
-      filters: {
-        airdrop_id:
-      }
-
-       */
-
       if (usersQuery.airdrops) {
         return UsersFetchService.findAllAirdropParticipants(usersQuery, currentUserId);
       }
 
       return UsersFetchService.findAllAndProcessForList(usersQuery, currentUserId);
+    },
+
+    // @ts-ignore
+    async one_user_trusted_by(parent, args, ctx): Promise<UsersListResponse> {
+      const usersQuery: UsersRequestQueryDto = {
+        page: args.page,
+        per_page: args.per_page,
+        sort_by: args.order_by,
+        ...args.filters,
+      };
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+
+      const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+
+      return UsersFetchService.findOneUserTrustedByAndProcessForList(userId, usersQuery, currentUserId);
     },
 
     // @ts-ignore
@@ -542,8 +563,13 @@ const resolvers = {
         },
       };
 
+      let userId: number = args.user_id;
+      if (args.filters) {
+        userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+      }
+
       return PostsFetchService.findAndProcessAllForUserWallFeed(
-        args.user_id,
+        userId,
         currentUserId,
         postsQuery,
       );
@@ -637,7 +663,9 @@ const server = new ApolloServer({
       originalError,
     };
 
-    if (originalError && originalError.status === 401) {
+    if (originalError && originalError instanceof BadRequestError) {
+      error = new UserInputError(originalError.message);
+    } else if (originalError && originalError.status === 401) {
       error = new AuthenticationError(originalError.message, 401);
     } else if (originalError && originalError.name === 'JsonWebTokenError') {
       error = new AuthenticationError('Invalid token', 401);

@@ -15,6 +15,6 @@ app.get('*', async (req, res) => {
   return res.send(html);
 });
 
-apiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
+apiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 
 export = app;

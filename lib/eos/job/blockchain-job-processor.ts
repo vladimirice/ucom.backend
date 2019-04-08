@@ -1,9 +1,14 @@
 /* tslint:disable:max-line-length */
-const userActivitySerializer = require('../../users/job/user-activity-serializer');
-const userRepository = require('../../users/repository');
+import UsersActivityRepository = require('../../users/repository/users-activity-repository');
+
 const { TransactionSender } = require('ucom-libs-social-transactions');
-const usersActivityRepository = require('../../users/repository').Activity;
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
+const { SocialApi } = require('ucom-libs-wallet');
+
+const userActivitySerializer = require('../../users/job/user-activity-serializer');
+
+const usersActivityRepository = require('../../users/repository').Activity;
+
 
 const { ConsumerLogger } = require('../../../config/winston');
 
@@ -41,13 +46,34 @@ class BlockchainJobProcessor {
       return;
     }
 
-    const signedTransaction = await userActivitySerializer.getActivityDataToPushToBlockchain(message);
-    const blockchainResponse = await TransactionSender.pushTransaction(signedTransaction.transaction);
+    let blockchainResponse;
+    if (message.options && message.options.eosJsV2) {
+      blockchainResponse = await this.pushByEosJsV2(message);
+    } else {
+      blockchainResponse = await this.pushByLegacyEosJs(message);
+    }
 
-    await userRepository.Activity.setIsSentToBlockchainAndResponse(
+    await UsersActivityRepository.setIsSentToBlockchainAndResponse(
       message.id,
       JSON.stringify(blockchainResponse),
     );
+  }
+
+  private static async pushByLegacyEosJs(message): Promise<any> {
+    const signedTransaction = await userActivitySerializer.getActivityDataToPushToBlockchain(message);
+
+    return TransactionSender.pushTransaction(signedTransaction.transaction);
+  }
+
+  private static async pushByEosJsV2(message): Promise<any> {
+    const signedTransaction: string | null =
+      await UsersActivityRepository.getSignedTransactionByActivityId(message.id);
+
+    if (!signedTransaction) {
+      throw new Error(`There is no activity data with id: ${message.id}`);
+    }
+
+    return SocialApi.pushSignedTransactionJson(signedTransaction);
   }
 }
 

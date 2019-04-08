@@ -1,7 +1,7 @@
 class AppError extends Error {
   public status;
 
-  constructor(message, status) {
+  constructor(message, status = 500) {
     // noinspection JSCheckFunctionSignatures
     super(message);
 

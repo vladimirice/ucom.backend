@@ -10,6 +10,7 @@ import EntityTagsGenerator = require('../../generators/entity/entity-tags-genera
 import MockHelper = require('../helpers/mock-helper');
 import CommentsGenerator = require('../../generators/comments-generator');
 import CommonHelper = require('../helpers/common-helper');
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 require('cross-fetch/polyfill');
 
@@ -24,13 +25,13 @@ MockHelper.mockAllBlockchainJobProducers();
 describe('#tags #feed #graphql', () => {
   beforeAll(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
-    await GraphqlHelper.beforeAll();
+    await GraphqlRequestHelper.beforeAll();
   });
 
   afterAll(async () => {
     await Promise.all([
       SeedsHelper.doAfterAll(),
-      GraphqlHelper.afterAll(),
+      GraphqlRequestHelper.afterAll(),
     ]);
   });
 

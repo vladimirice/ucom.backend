@@ -1,7 +1,7 @@
-/* tslint:disable:max-line-length */
 const axios = require('axios');
 
 const config    = require('config');
+
 const websocketHost = config.servers.websocket;
 
 const { ConsumerLogger } = require('../../../config/winston');
@@ -14,7 +14,6 @@ const apiPostProcessor = require('../../common/service').PostProcessor;
 const eventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
 class EntityNotificationsCreator {
-
   /**
    *
    * @param {Object} message
@@ -58,7 +57,7 @@ class EntityNotificationsCreator {
 
     apiPostProcessor.processUserMentionsYouInsidePost(jsonBody);
 
-    return await entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
+    return entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
   }
 
   /**
@@ -77,7 +76,7 @@ class EntityNotificationsCreator {
 
     apiPostProcessor.processUserMentionsYouInsideComment(jsonBody);
 
-    return await entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
+    return entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
   }
 
   /**
@@ -92,7 +91,7 @@ class EntityNotificationsCreator {
     const recipientId = jsonBody.target_entity.post.organization.user_id;
     apiPostProcessor.processUserCreatesCommentForOrgPost(jsonBody);
 
-    return await entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
+    return entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
   }
 
   /**
@@ -110,7 +109,7 @@ class EntityNotificationsCreator {
     }
     apiPostProcessor.processUserCreatesCommentForOrgComment(jsonBody);
 
-    return await entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
+    return entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
   }
 
   /**
@@ -129,7 +128,7 @@ class EntityNotificationsCreator {
 
     apiPostProcessor.processUserCreatesDirectPostForOtherUser(jsonBody);
 
-    return await entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
+    return entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
   }
 
   /**
@@ -148,7 +147,7 @@ class EntityNotificationsCreator {
 
     apiPostProcessor.processUserCreatesDirectPostForOrg(jsonBody);
 
-    return await entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
+    return entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonBody);
   }
 
   /**
@@ -309,6 +308,21 @@ class EntityNotificationsCreator {
   /**
    *
    * @param {Object} activity
+   * @return {Promise<data>}
+   * @private
+   */
+  private static async userTrustsOtherUser(activity) {
+    const jsonData = await activityToNotificationRepository.findForUserTrustsOtherUser(activity.id);
+    apiPostProcessor.processOneUserTrustsOtherUserNotification(jsonData);
+
+    const recipientId = activity.entity_id_to;
+
+    return entityNotificationRepository.createNewNotification(activity.event_id, recipientId, activity.id, jsonData);
+  }
+
+  /**
+   *
+   * @param {Object} activity
    * @return {Promise<void>}
    * @private
    */
@@ -333,6 +347,9 @@ class EntityNotificationsCreator {
       // Following
       [eventIdDictionary.getUserFollowsYou()]:                    this.userFollowsOtherUser,
       [eventIdDictionary.getUserFollowsOrg()]:                    this.userFollowsOrg,
+
+      // Trust
+      [eventIdDictionary.getUserTrustsYou()]:                    this.userTrustsOtherUser,
 
       // Commenting
       [eventIdDictionary.getUserCommentsOrgPost()]:               this.processUserCommentsOrgPost,

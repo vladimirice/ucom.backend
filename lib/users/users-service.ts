@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+import UsersFetchService = require('./service/users-fetch-service');
+
 const joi = require('joi');
 const _ = require('lodash');
 
@@ -7,9 +9,6 @@ const usersRepository = require('./users-repository');
 const blockchainStatusDictionary = require('../eos/eos-blockchain-status-dictionary');
 const models = require('../../models');
 const userPostProcessor = require('./user-post-processor');
-const organizationPostProcessor = require('../organizations/service/organization-post-processor');
-
-const usersActivityRepository = require('./repository').Activity;
 const { BadRequestError } = require('../api/errors');
 
 const usersModelProvider = require('./users-model-provider');
@@ -17,12 +16,7 @@ const usersModelProvider = require('./users-model-provider');
 const usersFetchService = require('./service/users-fetch-service');
 
 const { UpdateManyToMany } = require('../../lib/api/helpers');
-
-
 const { JoiBadRequestError } = require('../api/errors');
-
-const organizationRepository = require('../organizations/repository').Main;
-const entityNotificationRepository = require('../entities/repository').Notifications;
 const { UsersUpdatingSchema } = require('../validator').Schemas;
 
 class UsersService {
@@ -98,26 +92,10 @@ class UsersService {
    * @param {number} userId
    * @returns {Promise<Object>}
    */
-  async getUserByIdAndProcess(userId) {
-    // noinspection JSCheckFunctionSignatures
-    const [user, activityData, userOrganizations] = await Promise.all([
-      usersRepository.getUserById(userId),
-      usersActivityRepository.findOneUserActivityWithInvolvedUsersData(userId),
-      organizationRepository.findAllAvailableForUser(userId),
-    ]);
+  public async getUserByIdAndProcess(userId) {
+    const currentUserId = this.currentUser.id;
 
-    const userJson = user.toJSON();
-    userJson.organizations = userOrganizations;
-
-    userPostProcessor.processUser(userJson, this.currentUser.id, activityData);
-    organizationPostProcessor.processManyOrganizations(userJson.organizations);
-
-    if (userId === this.currentUser.id) {
-      userJson.unread_messages_count =
-        await entityNotificationRepository.countUnreadMessages(userId);
-    }
-
-    return userJson;
+    return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
   }
 
   static async findOneByAccountName(accountName: string) {

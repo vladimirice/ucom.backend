@@ -56,7 +56,7 @@ function objectsToCsv(accountsData, headers: any = null) {
     outputString += '\n';
   }
 
-  for (let i = 0; i < accountsData.length; i += 1) {
+  for (let i = 0; i < <number>accountsData.length; i += 1) {
     const data = accountsData[i];
 
     const processedData: string[] = [];
@@ -147,17 +147,17 @@ async function registerNewUser(givenAccountName: string) {
   ];
 
   const accountsToWrite: any = [];
-  for (let i = 0; i < accountNamesToRegister.length; i += 1) {
+  for (let i = 0; i < <number>accountNamesToRegister.length; i += 1) {
     const accountName = accountNamesToRegister[i];
 
     try {
       const { accountData } = await registerNewUser(accountName.toLowerCase());
       console.log(JSON.stringify(accountData));
       accountsToWrite.push(accountData);
-    } catch (e) {
+    } catch (error) {
       console.error(
         // tslint:disable-next-line:max-line-length
-        `Not possible to register user with account name ${accountName}. Skipped. Error message is: ${e.message}`,
+        `Not possible to register user with account name ${accountName}. Skipped. Error message is: ${error.message}`,
       );
     }
   }

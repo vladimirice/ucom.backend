@@ -1,9 +1,16 @@
+import { AppError } from '../api/errors';
+
+import EnvHelper = require('../common/helper/env-helper');
+
+const { WalletApi } = require('ucom-libs-wallet');
+
 const ecc = require('eosjs-ecc');
 
-const brainkey = require('../crypto/brainkey');
 const { TransactionFactory, TransactionSender } = require('ucom-libs-social-transactions');
+const brainkey = require('../crypto/brainkey');
 
 const accountsData = require('../../config/accounts-data');
+
 const accountCreator = accountsData.account_creator;
 
 const BRAINKEY_LENGTH = 12;
@@ -24,6 +31,20 @@ class EosApi {
     }
   }
 
+  public static initWalletApi(): void {
+    WalletApi.setNodeJsEnv();
+
+    if (EnvHelper.isProductionEnv()) {
+      WalletApi.initForProductionEnv();
+    } else if (EnvHelper.isStagingEnv()) {
+      WalletApi.initForStagingEnv();
+    } else if (EnvHelper.isTestEnv()) {
+      WalletApi.initForTestEnv();
+    } else {
+      throw new AppError(`Unsupported env: ${EnvHelper.getNodeEnv()}`);
+    }
+  }
+
   /**
    *
    * @return {string}
@@ -39,6 +60,7 @@ class EosApi {
     return text;
   }
 
+  // noinspection JSUnusedGlobalSymbols
   static async doesAccountExist(accountName) {
     const result = await TransactionSender.isAccountAvailable(accountName);
 
@@ -91,21 +113,21 @@ class EosApi {
     );
   }
 
-  static getKeysByBrainkey (brainkey) {
-    const ownerKey = ecc.seedPrivate(brainkey);
+  static getKeysByBrainkey(value) {
+    const ownerKey = ecc.seedPrivate(value);
     const activeKey = ecc.seedPrivate(ownerKey);
 
     return [ownerKey, activeKey];
   }
 
-  static getActivePrivateKeyByBrainkey(brainkey) {
-    const keys = this.getKeysByBrainkey(brainkey);
+  static getActivePrivateKeyByBrainkey(value) {
+    const keys = this.getKeysByBrainkey(value);
 
     return keys[1];
   }
 
-  static getOwnerPublicKeyByBrainKey(brainkey) {
-    const keys = this.getKeysByBrainkey(brainkey);
+  static getOwnerPublicKeyByBrainKey(value) {
+    const keys = this.getKeysByBrainkey(value);
 
     const ownerPrivateKey = keys[0];
 
@@ -115,7 +137,6 @@ class EosApi {
   static getPublicKeyByPrivate(privateKey) {
     return ecc.privateToPublic(privateKey);
   }
-
 }
 
 export = EosApi;

@@ -7,16 +7,16 @@ import ExternalTypeIdDictionary = require('../dictionary/external-type-id-dictio
 import AirdropsModelProvider = require('../../airdrops/service/airdrops-model-provider');
 
 const TABLE_NAME = UsersExternalModelProvider.usersExternalTableName();
-
 const airdropsUsersExternalData = AirdropsModelProvider.airdropsUsersExternalDataTableName();
 
 class UsersExternalRepository {
   public static async getUserExternalWithExternalAirdropData(userId: number) {
     return knex(TABLE_NAME)
       .select([
-        `${TABLE_NAME}.id as primary_key`,
-        `${TABLE_NAME}.external_id as external_id`,
-        `${airdropsUsersExternalData}.json_data as json_data`,
+        `${TABLE_NAME}.id AS primary_key`,
+        `${TABLE_NAME}.external_id AS external_id`,
+        `${airdropsUsersExternalData}.status AS status`,
+        `${airdropsUsersExternalData}.json_data AS json_data`,
       ])
       .leftJoin(airdropsUsersExternalData, `${TABLE_NAME}.id`, `${airdropsUsersExternalData}.users_external_id`)
       .where(`${TABLE_NAME}.user_id`, '=', userId)

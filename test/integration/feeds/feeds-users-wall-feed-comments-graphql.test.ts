@@ -14,6 +14,7 @@ import CommentsGenerator = require('../../generators/comments-generator');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 import ActivityHelper = require('../helpers/activity-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -22,13 +23,13 @@ const JEST_TIMEOUT = 20000;
 
 describe('#feeds #graphql', () => {
   beforeAll(async () => {
-    await GraphqlHelper.beforeAll();
+    await GraphqlRequestHelper.beforeAll();
   });
 
   afterAll(async () => {
     await Promise.all([
       SeedsHelper.doAfterAll(),
-      GraphqlHelper.afterAll(),
+      GraphqlRequestHelper.afterAll(),
     ]);
   });
 

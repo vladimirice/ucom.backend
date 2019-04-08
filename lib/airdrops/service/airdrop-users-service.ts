@@ -123,6 +123,7 @@ class AirdropUsersService {
 
     data.score = externalData.score;
     data.tokens = externalData.tokens;
+    data.airdrop_status = externalData.status;
 
     data.tokens.forEach((token) => {
       const stateToken = airdropState.tokens.find(airdropToken => airdropToken.symbol === token.symbol);

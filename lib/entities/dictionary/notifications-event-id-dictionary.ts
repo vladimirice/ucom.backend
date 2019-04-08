@@ -8,6 +8,8 @@ const USER_UPVOTES_YOUR_COMMENT   = 33;
 const USER_DOWNVOTES_YOUR_COMMENT = 34;
 
 const USER_UNFOLLOWS_YOU          = 35;
+const USER_TRUSTS_YOU             = 36;
+const USER_UNTRUSTS_YOU           = 37;
 
 const USER_FOLLOWS_ORG            = 50;
 const USER_UPVOTES_ORG_POST       = 51;
@@ -41,38 +43,22 @@ const eventRequiresPrompt = [
 
 // #task - it is not a notification events. Here is event_id dictionary for users_activity
 class NotificationsEventIdDictionary {
-  /**
-   *
-   * @returns {number}
-   */
-  static getUserHasMentionedYouInPost() {
+  public static getUserHasMentionedYouInPost(): number {
     return USER_HAS_MENTIONED_YOU_IN_POST;
   }
 
-  /**
-   *
-   * @returns {number}
-   */
-  static getUserHasMentionedYouInComment() {
+  public static getUserHasMentionedYouInComment(): number {
     return USER_HAS_MENTIONED_YOU_IN_COMMENT;
   }
 
-  /**
-   *
-   * @return {number[]}
-   */
-  static getEventIdsRelatedToRepost() {
+  public static getEventIdsRelatedToRepost(): number[] {
     return [
       USER_REPOSTS_OTHER_USER_POST,
       USER_REPOSTS_ORG_POST,
     ];
   }
 
-  /**
-   *
-   * @return {number}
-   */
-  static getUserVotesForBlockchainNode() {
+  public static getUserVotesForBlockchainNode(): number {
     return USER_VOTES_FOR_BLOCKCHAIN_NODE;
   }
 
@@ -180,12 +166,24 @@ class NotificationsEventIdDictionary {
     return USER_FOLLOWS_YOU;
   }
 
-  /**
-   *
-   * @return {number}
-   */
-  static getUserUnfollowsYou() {
+  public static getUserUnfollowsYou(): number {
     return USER_UNFOLLOWS_YOU;
+  }
+
+  public static getUserTrustsYou(): number {
+    return USER_TRUSTS_YOU;
+  }
+
+  public static isUserTrustsYou(value: number): boolean {
+    return value === this.getUserTrustsYou();
+  }
+
+  public static isUserUntrustsYou(value: number): boolean {
+    return value === this.getUserUntrustsYou();
+  }
+
+  public static getUserUntrustsYou(): number {
+    return USER_UNTRUSTS_YOU;
   }
 
   /**

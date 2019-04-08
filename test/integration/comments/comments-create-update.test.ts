@@ -1,99 +1,96 @@
-import MockHelper = require('../helpers/mock-helper');
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import UsersHelper = require('../helpers/users-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
-import PostsHelper = require('../helpers/posts-helper');
 import CommentsHelper = require('../helpers/comments-helper');
 import RequestHelper = require('../helpers/request-helper');
 import ResponseHelper = require('../helpers/response-helper');
 import CommonHelper = require('../helpers/common-helper');
-
-export {};
+import PostsGenerator = require('../../generators/posts-generator');
+import CommentsGenerator = require('../../generators/comments-generator');
+import PostService = require('../../../lib/posts/post-service');
+import CommentsRepository = require('../../../lib/comments/comments-repository');
 
 const request = require('supertest');
 const server = require('../../../app');
 
-const commentsRepository  = require('../../../lib/comments/comments-repository');
-const postService         = require('../../../lib/posts/post-service');
+let userVlad: UserModel;
+let userJane: UserModel;
 
-let userVlad;
+const JEST_TIMEOUT = 5000;
 
-MockHelper.mockAllBlockchainPart();
-
-const JEST_TIMEOUT = 10000;
+const beforeAfterOptions = {
+  isGraphQl: false,
+  workersMocking: 'all',
+};
 
 describe('#comments create update', () => {
   beforeAll(async () => {
-    // noinspection JSCheckFunctionSignatures
-    [userVlad] = await Promise.all([
-      UsersHelper.getUserVlad(),
-    ]);
-  });
-  beforeEach(async () => {
-    await SeedsHelper.initSeeds();
+    await SeedsHelper.beforeAllSetting(beforeAfterOptions);
   });
   afterAll(async () => {
-    await SeedsHelper.sequelizeAfterAll();
+    await SeedsHelper.doAfterAll(beforeAfterOptions);
+  });
+  beforeEach(async () => {
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Positive', () => {
     describe('Media post related tests', () => {
       it('should create post with comment_count equal to zero', async () => {
-        const newPostId = await PostsHelper.requestToCreateMediaPost(userVlad);
+        const newPostId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-        const postStats = await postService.findPostStatsById(newPostId);
+        const postStats = await PostService.findPostStatsById(newPostId);
         expect(postStats.comments_count).toBe(0);
       });
 
-      // tslint:disable-next-line:max-line-length
       it('should increase comment amount when new comment is created for media post', async () => {
-        const newPostId = await PostsHelper.requestToCreateMediaPost(userVlad);
-        await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+        const newPostId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+        await CommentsGenerator.createCommentForPost(newPostId, userVlad);
 
-        const postStats = await postService.findPostStatsById(newPostId);
+        const postStats = await PostService.findPostStatsById(newPostId);
         expect(postStats.comments_count).toBe(1);
       });
 
-      // tslint:disable-next-line
       it('should increase comment count for comment on comment action for media post', async () => {
-        const newPostId = await PostsHelper.requestToCreateMediaPost(userVlad);
-        const newRootComment = await CommentsHelper.requestToCreateComment(newPostId, userVlad);
-        await CommentsHelper.requestToCreateCommentOnComment(
+        const newPostId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+        const newRootComment = await CommentsGenerator.createCommentForPost(newPostId, userVlad);
+        await CommentsGenerator.createCommentOnComment(
           newPostId,
           newRootComment.id,
           userVlad,
         );
 
-        const postStats = await postService.findPostStatsById(newPostId);
+        const postStats = await PostService.findPostStatsById(newPostId);
 
         expect(postStats.comments_count).toBe(2);
       }, JEST_TIMEOUT);
     });
     describe('Post-offer related actions', () => {
       it('should create new with comment_count equal to zero', async () => {
-        const newPostId = await PostsHelper.requestToCreatePostOffer(userVlad);
-        const postStats = await postService.findPostStatsById(newPostId);
+        const newPostId = await PostsGenerator.createPostOfferByUserHimself(userVlad);
+        const postStats = await PostService.findPostStatsById(newPostId);
         expect(postStats.comments_count).toBe(0);
       });
 
       it('should increase comment amount when new comment is created', async () => {
-        const newPostId = await PostsHelper.requestToCreatePostOffer(userVlad);
-        await CommentsHelper.requestToCreateComment(newPostId, userVlad);
+        const newPostId = await PostsGenerator.createPostOfferByUserHimself(userVlad);
+        await CommentsGenerator.createCommentForPost(newPostId, userVlad);
 
-        const postStats = await postService.findPostStatsById(newPostId);
+        const postStats = await PostService.findPostStatsById(newPostId);
         expect(postStats.comments_count).toBe(1);
       });
 
-      // tslint:disable-next-line:max-line-length
       it('should increase comment count for comment on comment action for media post', async () => {
-        const newPostId = await PostsHelper.requestToCreatePostOffer(userVlad);
-        const newRootComment = await CommentsHelper.requestToCreateComment(newPostId, userVlad);
-        await CommentsHelper.requestToCreateCommentOnComment(
+        const newPostId = await PostsGenerator.createPostOfferByUserHimself(userVlad);
+        const newRootComment = await CommentsGenerator.createCommentForPost(newPostId, userVlad);
+        await CommentsGenerator.createCommentOnComment(
           newPostId,
           newRootComment.id,
           userVlad,
         );
 
-        const postStats = await postService.findPostStatsById(newPostId);
+        const postStats = await PostService.findPostStatsById(newPostId);
 
         expect(postStats.comments_count).toBe(2);
       }, JEST_TIMEOUT);
@@ -102,7 +99,7 @@ describe('#comments create update', () => {
 
   describe('Comment creation', () => {
     it('Create new comment for the post directly', async () => {
-      const postId = 1;
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
       const fieldsToSet = {
         description: 'comment description',
@@ -123,7 +120,7 @@ describe('#comments create update', () => {
       CommonHelper.checkOneCommentPreviewWithRelations(body, options);
 
       // #task It should be observed and deleted because of checkOneCommentPreviewWithRelations
-      const lastComment = await commentsRepository.findLastCommentByAuthor(userVlad.id);
+      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
       expect(lastComment).not.toBeNull();
 
       expect(body.path).toEqual([
@@ -146,20 +143,15 @@ describe('#comments create update', () => {
     });
 
     it('Create comment on comment - one level depth', async () => {
-      const postId = 1;
-      const parentCommentId = 1;
+      const postId: number =
+        await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      const parentCommentId: number =
+        await CommentsGenerator.createCommentForPostAndGetId(postId, userJane);
 
-      const fieldsToSet = {
-        description: 'comment on comment description',
-      };
+      const description = 'comment on comment description';
 
-      const res = await request(server)
-        .post(RequestHelper.getCommentOnCommentUrl(postId, parentCommentId))
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('description', fieldsToSet.description);
-      ResponseHelper.expectStatusCreated(res);
+      const body = await CommentsGenerator.createCommentOnComment(postId, parentCommentId, userVlad, description);
 
-      const { body } = res;
       expect(Array.isArray(body.path)).toBeTruthy();
 
       const options = {
@@ -171,18 +163,19 @@ describe('#comments create update', () => {
       CommentsHelper.checkCommentResponseBody(body);
       UsersHelper.checkIncludedUserPreview(body);
 
-      const lastComment = await commentsRepository.findLastCommentByAuthor(userVlad.id);
+      const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
 
       expect(body.path).toEqual([parentCommentId, lastComment.id]);
 
       expect(lastComment).not.toBeNull();
       expect(lastComment.blockchain_id).not.toBeNull();
 
-      const expectedFields: any = fieldsToSet;
+      const expectedFields: any = {};
       expectedFields.current_vote = 0;
       expectedFields.commentable_id = postId;
       expectedFields.user_id = userVlad.id;
       expectedFields.parent_id = parentCommentId;
+      expectedFields.description = description;
 
       expectedFields.path = [
         parentCommentId,
@@ -196,28 +189,29 @@ describe('#comments create update', () => {
     });
 
     it('Path when added comment has middle depth', async () => {
-      const postId = 1;
-      const parentCommentId = 5;
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-      const fieldsToSet = {
-        description: 'comment on comment description',
-      };
+      const firstCommentId: number =
+        await CommentsGenerator.createCommentForPostAndGetId(postId, userJane);
+      const secondCommentId: number =
+        await CommentsGenerator.createCommentOnCommentAndGetId(postId, firstCommentId, userVlad);
+      const thirdCommentId: number =
+        await CommentsGenerator.createCommentOnCommentAndGetId(postId, secondCommentId, userJane);
 
-      const res = await request(server)
-        .post(RequestHelper.getCommentOnCommentUrl(postId, parentCommentId))
-        .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('description', fieldsToSet.description);
-      ResponseHelper.expectStatusCreated(res);
+      const forthCommentId: number =
+        await CommentsGenerator.createCommentOnCommentAndGetId(postId, thirdCommentId, userVlad);
 
-      const { body } = res;
+      const description = 'comment on comment description';
+
+      const body = await CommentsGenerator.createCommentOnComment(postId, forthCommentId, userJane, description);
 
       CommentsHelper.checkCommentResponseBody(body);
       UsersHelper.checkIncludedUserPreview(body);
       expect(Array.isArray(body.path)).toBeTruthy();
 
-      const lastComment = await commentsRepository.findLastCommentByAuthor(userVlad.id);
+      const lastComment = await CommentsRepository.findLastCommentByAuthor(userJane.id);
 
-      const parentComment = await commentsRepository.findOneById(parentCommentId);
+      const parentComment = await CommentsRepository.findOneById(forthCommentId);
 
       const expectedPathJson = JSON.parse(parentComment.path);
       expectedPathJson.push(lastComment.id);
@@ -225,11 +219,12 @@ describe('#comments create update', () => {
       expect(lastComment).not.toBeNull();
       expect(lastComment.blockchain_id).not.toBeNull();
 
-      const expectedFields: any = fieldsToSet;
+      const expectedFields: any = {};
+      expectedFields.description = description;
       expectedFields.current_vote = 0;
       expectedFields.commentable_id = postId;
-      expectedFields.user_id = userVlad.id;
-      expectedFields.parent_id = parentCommentId;
+      expectedFields.user_id = userJane.id;
+      expectedFields.parent_id = forthCommentId;
 
       expectedFields.path = expectedPathJson;
       expectedFields.depth = 4;
@@ -242,7 +237,7 @@ describe('#comments create update', () => {
 
   describe('Negative scenarios', () => {
     it('Not possible to post comment without auth token', async () => {
-      const postId = 1;
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
       const res = await request(server)
         .post(RequestHelper.getCommentsUrl(postId))
@@ -298,7 +293,7 @@ describe('#comments create update', () => {
 
     // tslint:disable-next-line:max-line-length
     it('Not possible to create comment on comment for the comment which does not exist', async () => {
-      const postId = 1;
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
       const commentId = 100500;
 
       // noinspection JSCheckFunctionSignatures
@@ -310,7 +305,7 @@ describe('#comments create update', () => {
     });
 
     it('Not possible to create comment on comment for the comment with malformed ID', async () => {
-      const postId = 1;
+      const postId = PostsGenerator.createMediaPostByUserHimself(userVlad);
       const commentId = 'malformed';
 
       // noinspection JSCheckFunctionSignatures
@@ -322,8 +317,8 @@ describe('#comments create update', () => {
     });
 
     it('Not possible to to create comment on comment without auth token', async () => {
-      const postId = 1;
-      const commentId = 1;
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      const commentId: number = await CommentsGenerator.createCommentForPostAndGetId(postId, userJane);
 
       // noinspection JSCheckFunctionSignatures
       const res = await request(server)
@@ -333,3 +328,5 @@ describe('#comments create update', () => {
     });
   });
 });
+
+export {};

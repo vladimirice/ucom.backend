@@ -186,6 +186,21 @@ class ResponseHelper {
     });
   }
 
+  public static expectNotEmptyField(value: any): void {
+    expect(_.isEmpty(value)).toBeFalsy();
+  }
+
+  public static expectNotEmptyEntityField(entity: any, field: any): void {
+    this.expectNotEmptyField(entity[field]);
+  }
+
+  public static expectEmptyObject(value: any): void {
+    expect(value).toBeDefined();
+    expect(value).not.toBeNull();
+
+    expect(value).toMatchObject({});
+  }
+
   static expectValuesAreExpected(expected, actual, skipFields: string[] = []) {
     expect(_.isEmpty(actual)).toBeFalsy();
     for (const field in expected) {

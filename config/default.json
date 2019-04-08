@@ -4,6 +4,19 @@
     "profile_files_upload_dir": "/upload",
     "organization_files_upload_dir": "/upload/organizations"
   },
+  "uploader": {
+    "images": {
+      "dir_prefix": "/public/images_uploader",
+      "validation_rules": {
+        "gif": {
+          "max_size_in_bytes": 1048576
+        },
+        "jpg": {
+          "max_size_in_bytes": 3145728
+        }
+      }
+    }
+  },
   "db_knex_events": {
     "client": "pg",
     "debug": false,
@@ -53,7 +66,8 @@
     "jwt_secret_key": "secret_key"
   },
   "servers": {
-    "websocket": "http://localhost:5000"
+    "websocket": "http://localhost:5000",
+    "uploader": "http://localhost:5010"
   },
   "eosAccounts": {
     "creatorAccountName": "12345",
@@ -71,5 +85,12 @@
     "blockchain_queue_name": "test_blockchain",
     "notifications_queue_name": "test_notifications",
     "tags_parser_queue_name": "test_tags_parser"
+  },
+  "cors": {
+    "allowed_origins": [
+      "http://localhost:8080",
+      "https://staging.u.community",
+      "https://u.community"
+    ]
   }
 }

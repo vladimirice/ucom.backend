@@ -1,10 +1,11 @@
 "use strict";
+const UsersTrustService = require("../lib/users/service/users-trust-service");
+const UserActivityService = require("../lib/users/user-activity-service");
 const express = require('express');
 const usersRouter = express.Router();
 const status = require('statuses');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
-const userActivityService = require('../lib/users/user-activity-service');
 const userService = require('../lib/users/users-service');
 const usersApiMiddleware = require('../lib/users/middleware/users-api-middleware');
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
@@ -52,22 +53,36 @@ usersRouter.get('/:user_id/wall-feed', [bodyParser], async (req, res) => {
     const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId, query);
     res.send(response);
 });
-/* One user follows other user */
 usersRouter.post('/:user_id/follow', [authTokenMiddleWare, bodyParser], async (req, res) => {
     const userFrom = req.user;
     const userToId = req.user_id;
-    await userActivityService.userFollowsAnotherUser(userFrom, userToId, req.body);
+    await UserActivityService.userFollowsAnotherUser(userFrom, userToId, req.body);
     res.status(status('201')).send({
         success: true,
     });
 });
-/* One user unfollows other user */
 usersRouter.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser], async (req, res) => {
     const userFrom = req.user;
     const userIdTo = req.user_id;
-    await userActivityService.userUnfollowsUser(userFrom, userIdTo, req.body);
+    await UserActivityService.userUnfollowsUser(userFrom, userIdTo, req.body);
     res.status(status('201')).send({
         status: 'ok',
+    });
+});
+usersRouter.post('/:user_id/trust', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    const userFrom = req.user;
+    const userToId = req.user_id;
+    await UsersTrustService.trustUser(userFrom, userToId, req.body);
+    res.status(status('201')).send({
+        success: true,
+    });
+});
+usersRouter.post('/:user_id/untrust', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    const userFrom = req.user;
+    const userToId = req.user_id;
+    await UsersTrustService.untrustUser(userFrom, userToId, req.body);
+    res.status(status('201')).send({
+        success: true,
     });
 });
 usersRouter.param('user_id', usersApiMiddleware.userIdentityParam);

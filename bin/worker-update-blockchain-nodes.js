@@ -19,7 +19,7 @@ switch (process.env.NODE_ENV) {
 // eslint-disable-next-line promise/always-return
 blockchainService.updateBlockchainNodesByBlockchain().then(() => {
     console.log('Promise is resolved');
-}).catch((err) => {
-    WorkerLogger.error(err);
+}).catch((error) => {
+    WorkerLogger.error(error);
     console.error('There is an error. See logs');
 });

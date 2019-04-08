@@ -1,6 +1,7 @@
 /* eslint-disable import/no-dynamic-require */
 /* tslint:disable:max-line-length */
-import { GraphqlHelper } from './graphql-helper';
+
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
@@ -47,12 +48,15 @@ const minorTablesToSkipSequences = [
   'tags_current_params_id_seq',
   `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
   `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
+  `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
 ];
 
 // Truncated async
 const minorTables = [
   entityModelProvider.getNotificationsTableName(),
   usersRepositories.UsersTeam.getModelName(),
+
+  UsersModelProvider.getUsersActivityTrustTableName(),
 
   'airdrops_users_external_data',
 
@@ -181,7 +185,7 @@ class SeedsHelper {
 
   public static async beforeAllSetting(options) {
     if (options.isGraphQl) {
-      await GraphqlHelper.beforeAll();
+      await GraphqlRequestHelper.beforeAll();
     }
 
     switch (options.workersMocking) {
@@ -388,7 +392,7 @@ class SeedsHelper {
     await this.sequelizeAfterAll();
 
     if (options && options.isGraphQl) {
-      await GraphqlHelper.afterAll();
+      await GraphqlRequestHelper.afterAll();
     }
   }
 

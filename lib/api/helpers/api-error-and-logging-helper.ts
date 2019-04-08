@@ -1,3 +1,5 @@
+import EnvHelper = require('../../common/helper/env-helper');
+
 const morgan      = require('morgan');
 const helmet      = require('helmet');
 
@@ -5,6 +7,12 @@ const errorMiddleware     = require('../../../lib/api/error-middleware');
 const { BadRequestError } = require('../../../lib/api/errors');
 
 require('express-async-errors');
+
+// @ts-ignore
+function createErrorIfNoRoute(req, res, next) {
+  const err = new BadRequestError('Not found', 404);
+  next(err);
+}
 
 class ApiErrorAndLoggingHelper {
   /**
@@ -14,23 +22,43 @@ class ApiErrorAndLoggingHelper {
    * @param {Object} loggerStream
    * @return {Function[]}
    */
-  static initAllForApp(app, logger, loggerStream) {
+  public static initBeforeRouters(app, logger, loggerStream) {
     app.use(helmet());
 
     app.use(morgan('combined', { stream: loggerStream }));
 
     process.on('uncaughtException', (ex) => { logger.error(ex); });
     process.on('unhandledRejection', (ex) => { throw ex; });
-
-    app.use(createErrorIfNoRoute);
-    app.use(errorMiddleware);
   }
-}
 
-// @ts-ignore
-function createErrorIfNoRoute(req, res, next) {
-  const err = new BadRequestError('Not found', 404);
-  next(err);
+  public static initErrorHandlers(app) {
+    app.use(errorMiddleware);
+    app.use(createErrorIfNoRoute);
+  }
+
+  public static initServerOrException(app: any, server: any): void {
+    const port = EnvHelper.getPortOrException();
+    app.set('port', port);
+
+    server.listen(port);
+    server.on('error', ApiErrorAndLoggingHelper.httpServerOnError);
+  }
+
+  private static httpServerOnError(error, port): void {
+    if (error.syscall !== 'listen') {
+      throw error;
+    }
+
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+      case 'EACCES':
+        throw new Error(`Port ${port} requires elevated privileges`);
+      case 'EADDRINUSE':
+        throw new Error(`Port ${port} is already in use`);
+      default:
+        throw error;
+    }
+  }
 }
 
 export = ApiErrorAndLoggingHelper;

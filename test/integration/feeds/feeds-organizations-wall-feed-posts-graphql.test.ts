@@ -10,6 +10,7 @@ import OrganizationsGenerator = require('../../generators/organizations-generato
 import CommonHelper = require('../helpers/common-helper');
 
 import ResponseHelper = require('../helpers/response-helper');
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 require('cross-fetch/polyfill');
 
@@ -21,13 +22,13 @@ const JEST_TIMEOUT = 20000 * 10;
 describe('#organizations #feed #graphql', () => {
   beforeAll(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
-    await GraphqlHelper.beforeAll();
+    await GraphqlRequestHelper.beforeAll();
   });
 
   afterAll(async () => {
     await Promise.all([
       SeedsHelper.doAfterAll(),
-      GraphqlHelper.afterAll(),
+      GraphqlRequestHelper.afterAll(),
     ]);
   });
 

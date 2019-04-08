@@ -3,6 +3,16 @@ const ENV__STAGING    = 'staging';
 const ENV__PRODUCTION = 'production';
 
 class EnvHelper {
+  public static getPortOrException(): number {
+    const port = process.env.PORT;
+
+    if (!port) {
+      throw new Error('There is no port argument inside process.env');
+    }
+
+    return +port;
+  }
+
   public static getNodeEnv(): string | undefined {
     return process.env.NODE_ENV;
   }

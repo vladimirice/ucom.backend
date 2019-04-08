@@ -18,6 +18,7 @@ module.exports = {
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:sonarjs/recommended",
+    "plugin:unicorn/recommended"
   ],
   "env": {
     "node": true,
@@ -54,6 +55,7 @@ module.exports = {
         "no-prototype-builtins": "off",
         "no-continue": "off",
         "max-len": "off",
+        "unicorn/prevent-abbreviations": "off",
       }
     }
   ]

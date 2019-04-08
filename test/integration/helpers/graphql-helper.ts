@@ -1,4 +1,3 @@
-import { InMemoryCache } from 'apollo-cache-inmemory';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import {
   PostModelMyselfResponse,
@@ -8,36 +7,18 @@ import {
 import { CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { OrgListResponse, OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 import { TagsListResponse } from '../../../lib/tags/interfaces/dto-interfaces';
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import ResponseHelper = require('./response-helper');
 import TagsHelper = require('./tags-helper');
 import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
 
-const ApolloClient = require('apollo-boost').default;
-const { gql } = require('apollo-boost');
-
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-
-const { app, server } = require('../../../graphql-app');
-
-const PORT = 4007;
-
-const GRAPHQL_URI = `http://127.0.0.1:${PORT}${server.graphqlPath}`;
-
-let serverApp;
 
 require('cross-fetch/polyfill');
 
 export class GraphqlHelper {
-  public static async beforeAll(): Promise<void> {
-    serverApp = await app.listen({ port: PORT });
-  }
-
-  public static async afterAll(): Promise<void> {
-    await serverApp.close();
-  }
-
   public static async getOnePostAsMyself(
     myself: UserModel,
     postId: number,
@@ -45,7 +26,7 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getOnePostQueryAsMyself(postId);
     const key: string = 'one_post';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
   }
 
   public static async getOnePostOfferWithoutUser(postId: number, airdropId: number): Promise<any> {
@@ -68,7 +49,7 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getOnePostOffer(postId, commentsQuery, usersTeamQuery);
     const key: string = 'one_post_offer';
 
-    return this.makeRequestAsGuest(query, key, false);
+    return GraphqlRequestHelper.makeRequestAsGuest(query, key, false);
   }
 
   public static async getManyUsersAsParticipantsAsMyself(
@@ -87,7 +68,7 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getManyUsers(filter, orderBy, page, perPage, true);
     const key: string = 'many_users';
 
-    const response = await this.makeRequestAsMyself(myself, query, key, false);
+    const response = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -128,7 +109,7 @@ export class GraphqlHelper {
 
     const key: string = 'many_blockchain_nodes';
 
-    return this.makeRequestAsMyself(myself, query, key, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
   }
 
   public static async getManyOrgsDataOnlyAsMyself(
@@ -157,7 +138,7 @@ export class GraphqlHelper {
 
     const key: string = 'organizations';
 
-    const response: OrgListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    const response: OrgListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -170,7 +151,7 @@ export class GraphqlHelper {
   ): Promise<OrgListResponse> {
     const query: string = GraphQLSchema.getManyTrendingOrganizationsQuery(page, perPage);
 
-    return this.makeRequestAsMyself(myself, query, null, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
   public static async getManyOrgsForHot(
@@ -180,7 +161,7 @@ export class GraphqlHelper {
   ): Promise<OrgListResponse> {
     const query: string = GraphQLSchema.getManyHotOrganizationsQuery(page, perPage);
 
-    return this.makeRequestAsMyself(myself, query, null, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
   public static async getManyOrgsForFresh(
@@ -190,7 +171,7 @@ export class GraphqlHelper {
   ): Promise<OrgListResponse> {
     const query: string = GraphQLSchema.getManyFreshOrganizationsQuery(page, perPage);
 
-    return this.makeRequestAsMyself(myself, query, null, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
   public static async getManyOrgsForTop(
@@ -200,7 +181,7 @@ export class GraphqlHelper {
   ): Promise<OrgListResponse> {
     const query: string = GraphQLSchema.getManyTopOrganizationsQuery(page, perPage);
 
-    return this.makeRequestAsMyself(myself, query, null, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
   public static async getManyTagsForTrending(
@@ -210,7 +191,7 @@ export class GraphqlHelper {
   ): Promise<TagsListResponse> {
     const query: string = GraphQLSchema.getManyTrendingTagsQuery(page, perPage);
 
-    return this.makeRequestAsMyself(myself, query, null, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
   public static async getManyTagsForHot(
@@ -220,7 +201,7 @@ export class GraphqlHelper {
   ): Promise<OrgListResponse> {
     const query: string = GraphQLSchema.getManyHotTagsQuery(page, perPage);
 
-    return this.makeRequestAsMyself(myself, query, null, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
   public static async getManyTagsForFresh(
@@ -230,7 +211,7 @@ export class GraphqlHelper {
   ): Promise<OrgListResponse> {
     const query: string = GraphQLSchema.getManyFreshTagsQuery(page, perPage);
 
-    return this.makeRequestAsMyself(myself, query, null, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
   public static async getManyTagsForTop(
@@ -240,7 +221,7 @@ export class GraphqlHelper {
   ): Promise<OrgListResponse> {
     const query: string = GraphQLSchema.getManyTopTagsQuery(page, perPage);
 
-    return this.makeRequestAsMyself(myself, query, null, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
   public static async getManyTagsAsMyself(
@@ -256,7 +237,7 @@ export class GraphqlHelper {
     );
     const key: string = 'many_tags';
 
-    const response: TagsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    const response: TagsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
     TagsHelper.checkTagsListResponseStructure(response);
 
@@ -275,7 +256,7 @@ export class GraphqlHelper {
     );
     const key: string = 'many_tags';
 
-    const response: TagsListResponse = await this.makeRequestAsGuest(query, key, false);
+    const response: TagsListResponse = await GraphqlRequestHelper.makeRequestAsGuest(query, key, false);
     ResponseHelper.checkListResponseStructure(response);
     TagsHelper.checkTagsListResponseStructure(response);
 
@@ -327,7 +308,7 @@ export class GraphqlHelper {
 
     const key: string = 'posts';
 
-    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -389,7 +370,7 @@ export class GraphqlHelper {
         throw new Error(`Unsupported overview type: ${overviewType}`);
     }
 
-    return this.makeRequestAsMyself(myself, query);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query);
   }
 
   public static async getPostUsersAsMyself(
@@ -440,7 +421,7 @@ export class GraphqlHelper {
 
     const keyToReturn = 'many_users';
 
-    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, keyToReturn, false);
   }
 
   public static async getPostsOrgsAsMyself(
@@ -491,7 +472,7 @@ export class GraphqlHelper {
 
     const keyToReturn = 'many_organizations';
 
-    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, keyToReturn, false);
   }
 
   public static async getPostsTagsAsMyself(
@@ -542,7 +523,7 @@ export class GraphqlHelper {
 
     const keyToReturn = 'many_tags';
 
-    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, keyToReturn, false);
   }
 
   public static async getTagsUsersAsMyself(
@@ -588,7 +569,7 @@ export class GraphqlHelper {
 
     const keyToReturn = 'many_users';
 
-    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, keyToReturn, false);
   }
 
   public static async getOrgsUsersAsMyself(
@@ -634,7 +615,7 @@ export class GraphqlHelper {
 
     const keyToReturn = 'many_users';
 
-    return this.makeRequestAsMyself(myself, query, keyToReturn, false);
+    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, keyToReturn, false);
   }
 
   public static async getManyPostsAsGuest(
@@ -657,7 +638,7 @@ export class GraphqlHelper {
 
     const key: string = 'posts';
 
-    const response: PostsListResponse = await this.makeRequestAsGuest(query, key, false);
+    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsGuest(query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -681,7 +662,7 @@ export class GraphqlHelper {
 
     const key: string = 'user_wall_feed';
 
-    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -705,7 +686,7 @@ export class GraphqlHelper {
 
     const key: string = 'org_wall_feed';
 
-    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -729,7 +710,7 @@ export class GraphqlHelper {
 
     const key: string = 'tag_wall_feed';
 
-    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -744,7 +725,7 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getPostCommentsQuery(commentableId, page, perPage);
     const key: string = 'feed_comments';
 
-    const response: CommentsListResponse = await this.makeRequestAsMyself(
+    const response: CommentsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(
       myself,
       query,
       key,
@@ -775,7 +756,7 @@ export class GraphqlHelper {
     const key: string = 'comments_on_comment';
 
     const response: CommentsListResponse =
-      await this.makeRequestAsMyself(myself, query, key, false);
+      await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -792,7 +773,7 @@ export class GraphqlHelper {
     const query = GraphQLSchema.getOneUserAirdrop(filter);
     const key: string = 'one_user_airdrop';
 
-    return this.makeRequestWithHeaders(headers, query, key, false);
+    return GraphqlRequestHelper.makeRequestWithHeaders(headers, query, key, false);
   }
 
   public static async getOnePostOfferWithUserAirdrop(
@@ -822,7 +803,7 @@ export class GraphqlHelper {
 
     const query = GraphQLSchema.getOnePostOfferWithUserAirdrop(filter, postId, commentsQuery, usersTeamQuery);
 
-    return this.makeRequestWithHeaders(headers, query);
+    return GraphqlRequestHelper.makeRequestWithHeaders(headers, query);
   }
 
   public static async getOneUserAirdropViaAuthToken(myself: UserModel, airdropId: number): Promise<any> {
@@ -837,7 +818,7 @@ export class GraphqlHelper {
       Authorization: `Bearer ${myself.token}`,
     };
 
-    return this.makeRequestWithHeaders(headers, query, key, false);
+    return GraphqlRequestHelper.makeRequestWithHeaders(headers, query, key, false);
   }
 
   public static async getUserNewsFeed(
@@ -846,7 +827,7 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getUserNewsFeed(1, 10, 1, 10);
     const key: string = 'user_news_feed';
 
-    const response: PostsListResponse = await this.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -856,90 +837,6 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getOnePostQueryAsGuest(postId);
     const key: string = 'one_post';
 
-    return this.makeRequestAsGuest(query, key, false);
-  }
-
-  private static async makeRequestAsMyself(
-    myself: UserModel,
-    query: string,
-    keyToReturn: string | null = null,
-    dataOnly = true,
-  ): Promise<any> {
-    const myselfClient = this.getClientWithToken(myself);
-    const response = await myselfClient.query({ query: gql(query) });
-
-    if (keyToReturn) {
-      return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];
-    }
-
-    return response;
-  }
-
-  private static async makeRequestAsGuest(
-    query: string,
-    keyToReturn: string | null = null,
-    dataOnly = true,
-  ): Promise<any> {
-    const myselfClient = this.getClient();
-
-    const response = await myselfClient.query({ query: gql(query) });
-
-    if (keyToReturn) {
-      return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];
-    }
-
-    return response;
-  }
-
-  private static async makeRequestWithHeaders(
-    headers: any,
-    query: string,
-    keyToReturn: string | null = null,
-    dataOnly = true,
-  ): Promise<any> {
-    const client = this.getClientWithHeaders(headers);
-
-    const response = await client.query({ query: gql(query) });
-
-    if (keyToReturn) {
-      return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];
-    }
-
-    return response;
-  }
-
-  private static getClientWithToken(user: UserModel) {
-    return new ApolloClient({
-      request: async (operation) => {
-        operation.setContext({
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-      },
-      uri: GRAPHQL_URI,
-      cache: new InMemoryCache({
-        addTypename: false,
-      }),
-    });
-  }
-
-  private static getClient() {
-    return new ApolloClient({
-      uri: GRAPHQL_URI,
-      cache: new InMemoryCache({
-        addTypename: false,
-      }),
-    });
-  }
-
-  private static getClientWithHeaders(headers) {
-    return new ApolloClient({
-      headers,
-      uri: GRAPHQL_URI,
-      cache: new InMemoryCache({
-        addTypename: false,
-      }),
-    });
+    return GraphqlRequestHelper.makeRequestAsGuest(query, key, false);
   }
 }

@@ -1,8 +1,11 @@
 const API_V1_PREFIX = '/api/v1';
 
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
+
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const config = require('config');
 
 const { ApiLoggerStream, ApiLogger } = require('./config/winston');
 const ApiErrorAndLoggingHelper = require('./lib/api/helpers/api-error-and-logging-helper');
@@ -43,29 +46,30 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(diContainerMiddleware);
 
-// #task - very weak origin policy
-// @ts-ignore
 app.use((req, res, next) => {
-  // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = config.cors.allowed_origins;
 
-  // Request methods you wish to allow
+  const { origin } = req.headers;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
-  // Request headers you wish to allow
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB}`,
+  );
 
-  // Set to true if you need the website to include cookies in the requests sent
-  // to the API (e.g. in case you use sessions)
   res.setHeader('Access-Control-Allow-Credentials', true);
 
-  // Pass to next layer of middleware
   next();
 });
 
 EosApi.initTransactionFactory();
 
 app.use(cookieParser());
+ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 
 app.use('/api/v1/users', usersRouter);
 app.use('/api/v2/users', usersV2Router);
@@ -93,6 +97,6 @@ app.use('/api/v2/posts', postsV2Router);
 
 require('./lib/auth/passport');
 
-ApiErrorAndLoggingHelper.initAllForApp(app, ApiLogger, ApiLoggerStream);
+ApiErrorAndLoggingHelper.initErrorHandlers(app);
 
 module.exports = app;

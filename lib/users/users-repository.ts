@@ -44,6 +44,7 @@ class UsersRepository {
       .select(toSelect)
       .innerJoin(usersExternal, `${usersExternal}.user_id`, `${TABLE_NAME}.id`)
       .innerJoin(airdropsUsersExternalData, `${airdropsUsersExternalData}.users_external_id`, `${usersExternal}.id`)
+      // eslint-disable-next-line func-names
       .whereIn(`${TABLE_NAME}.id`, function () {
         // @ts-ignore
         this
@@ -411,6 +412,27 @@ class UsersRepository {
     });
 
     return !!count;
+  }
+
+  public static async findAllWhoTrustsUser(
+    userId: number,
+    params: DbParamsDto,
+  ) {
+    const previewFields = UsersModelProvider.getUserFieldsForPreview();
+    const toSelect = RepositoryHelper.getPrefixedAttributes(previewFields, TABLE_NAME);
+
+    const usersActivityTrust = UsersModelProvider.getUsersActivityTrustTableName();
+
+    return knex(TABLE_NAME)
+      .select(toSelect)
+      .where({
+        [`${usersActivityTrust}.entity_id`]: userId,
+        [`${usersActivityTrust}.entity_name`]: UsersModelProvider.getEntityName(),
+      })
+      .innerJoin(`${usersActivityTrust}`, `${usersActivityTrust}.user_id`, `${TABLE_NAME}.id`)
+      .orderByRaw(params.orderByRaw)
+      .limit(params.limit)
+      .offset(params.offset);
   }
 
   /**

@@ -4,6 +4,8 @@ Table of contents
 * [Common information](#common-information)
 * [Statistics module](#statistics-module)
 * [Airdrop and balances](#airdrop-and-balances)
+* [Images uploader](#images-uploader)
+* [Entity images](#entity-images)
 
 ## Common information
 
@@ -158,3 +160,179 @@ FROM
 INNER JOIN accounts AS wallet_account ON accounts.id = users_token.wallet_account_id
 WHERE airdrop_id = ${airdropId}
 GROUP BY users_tokens.symbol_id
+
+## Images uploader
+
+Notes:
+* This is a separate server to upload and distribute the images.
+* Uploader knows nothing about when an image is used. It is only a file storage.
+* In order to change an existing image please upload the new one and change the existing link
+inside the `entity_images` field.
+
+
+Workflow:
+* Client uploads an image to the uploader application.
+* Uploader returns an absolute link to the image. Actually it responds with a JSON structure with the link inside it.
+It allows to upload several images in one request without changing the interface.
+* Client saves this link in a special JSON structure named `entity_images`. This is actually a column
+in a database of table `posts`, `comments`, etc.
+* Client sends a post request with `entity_images` to any main application route which supports it.
+* The backend application validates the basic `entity_images` structure and saves it inside the database `as-is`.
+* In the future, GET request backend application responds to the client and provides a saved `entity_images`
+structure.
+
+Benefits:
+* Easy to extend. A client application can extend the `entity_images` JSON structure totally by itself without
+any backend application changes.
+* Easy to scale. It is possible to implement CDN in the future with the same domain.
+* Minimum backend development involvement - it is required to add an `entity_images` column to the table
+and allow saving of this field.
+
+Further improvements:
+* A background task to remove unused images
+* Rate limiters per one user per hour/day/month in order to avoid DOS attacks
+
+### An example of possible uploader request-response with a resizing feature (Draft)
+
+Request body
+```
+sizes: [ // supported only for a .jpg extension
+    '800x800',
+    '400x400',
+    '150x150',
+    {
+        max_width: 800,
+        max_height: 800,
+    },
+    {
+
+
+    },
+],
+// and attach file required to be uploaded
+```
+Response
+content-type: JSON
+
+example for .jpg
+```
+{
+    files: [
+      {
+        url: `${upload_url}/${filename}.jpg`, // there is no size in the filename!
+        type: 'original', // reserved for the future
+        width: 600,
+        height: 400,
+      },
+      {
+        url: `${upload_url}/${filename}.jpg`,
+        type: 'resize',
+
+
+        size: '400x200', // required only if type is a 'resize'
+      },
+      {
+        url: `${upload_url}/${filename}.jpg`,
+        type: 'resize',
+        width: 600,
+        height: 400,
+
+        resize_id: '800x800',
+
+
+        size: '600x400', // required only if type is a 'resize'
+      },
+      {
+        url: `${upload_url}/${filename}.jpg`,
+        type: 'resize',
+        size: '150x50',
+      },
+    ],
+    metadata: { // For future usage
+        resize_results: {
+            '150x150': {
+                status: 'ok',
+                requested: '150x150',
+                actual: '150x50',
+            },
+            '400x400': {
+                status: 'ok',
+                requested: '400x400',
+                actual: '400x200',
+            },
+            '800x800': {
+                status: 'impossible',
+                requested: '800x800',
+                actual: '600x400'
+                message: 'Original image size is less than the required value',
+            },
+        }
+    }
+};
+```
+
+example for .gif
+```
+{
+    files: [
+      {
+        url: `${upload_url}/${filename}.gif`,
+        type: 'original',
+      },
+    ],
+    metadata: {}
+};
+```
+
+## Entity images
+
+In order to add image(s) to any entity please consider to use a `entity_images` architectural feature.
+
+**The steps to do this:**
+* Create a new column using a migration - [example](../migrations_knex_monolith/20190405081637-alter-comments-add-entity-images.js).
+* *Optional:* add a new column to an appropriate ORM model.
+* Extend an existing model interface by `ModelWithEntityImages`. The interface is [here](../lib/entity-images/interfaces/model-interfaces.ts).
+* Make it possible to add a `entity_images` field to model during a creation process via [entity images input service](../lib/entity-images/service/entity-image-input-service.ts).
+* Make it possible to update a `entity_images` field (not yet implemented, TODO).
+* Write the autotests - [example](../test/integration/comments/comments-entity-images.test.ts).
+* Add the `entity_images` field to the GraphQL client library and to the GraphQL backend application server.
+* If there are any legacy fields to hold images then please don't forget to migrate existing images from these fields to the new field.
+
+**Related code conventions:**
+* Any other existing methods to store entity-related images are deprecated. Any new methods to store images are forbidden.
+* Do not use a column name inside the code as a plain string. Use this method:
+```
+EntityImagesModelProvider.entityImagesColumn()
+```
+* Keep in mind that a concrete `entity_images` JSON structure is up to the client application.
+It is not required to validate it somehow.
+* In order to clear a existing `entity_images` value please send empty object `{}`.
+
+**Entity images structure example:**
+```
+{
+   "article_title": [
+      {
+         "url":"https://backend.u.community/upload/main_image_filename-1545901400947.jpg",
+         "type": "original",
+      },
+      {
+         "url":"https://backend.u.community/upload/main_image_filename-123dadsada.jpg",
+         "type": "resize",
+         "size": '800x800',
+      },
+   ],
+   "main_slider_gallery": [
+      'slider_1': {
+         "url":"https://backend.u.community/upload/main_image_filename-1545901400947.jpg",
+         "type": "original",
+         "position": 1,
+      },
+      {
+         "url":"https://backend.u.community/upload/main_image_filename-1545901400947.jpg"
+         "type": "original"
+         "position": 1,
+      },
+   ],
+}
+```

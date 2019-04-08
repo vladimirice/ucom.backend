@@ -1,3 +1,5 @@
+import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
+
 export {};
 
 const request = require('supertest');
@@ -10,7 +12,6 @@ const requestHelper = require('../helpers/request-helper');
 const responseHelper = require('../helpers/response-helper');
 const activityHelper = require('../helpers/activity-helper');
 const postRepository = require('../../../lib/posts/posts-repository');
-const usersActivityRepository = require('../../../lib/users/repository').Activity;
 
 require('jest-expect-message');
 
@@ -40,7 +41,7 @@ describe('User to user activity', () => {
           await helpers.ActivityHelper.requestToCreateFollow(userVlad, userJane);
 
           const activity =
-            await usersActivityRepository.getLastFollowActivityForUser(userVlad.id, userJane.id);
+            await UsersActivityRepository.getLastFollowActivityForUser(userVlad.id, userJane.id);
           expect(activity).not.toBeNull();
         });
 
@@ -87,7 +88,7 @@ describe('User to user activity', () => {
           await helpers.ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane);
 
           const activity =
-            await usersActivityRepository.getLastUnfollowActivityForUser(userVlad.id, userJane.id);
+            await UsersActivityRepository.getLastUnfollowActivityForUser(userVlad.id, userJane.id);
           expect(activity).not.toBeNull();
           expect(activity.id).toBeTruthy();
         }, JEST_TIMEOUT);
@@ -245,7 +246,6 @@ describe('User to user activity', () => {
     }, JEST_TIMEOUT);
 
     it('Myself - I follow but not my follower', async () => {
-
       await Promise.all([
         helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
         helpers.ActivityHelper.requestToCreateUnfollowHistory(userPetr, userJane),  // disturbance
@@ -254,7 +254,7 @@ describe('User to user activity', () => {
 
       const user = await helpers.Req.requestUserByIdAsMyself(userJane, userPetr);
 
-      const myselfData = user.myselfData;
+      const { myselfData } = user;
 
       expect(myselfData).toBeDefined();
       expect(myselfData.follow).toBeTruthy();
@@ -262,7 +262,6 @@ describe('User to user activity', () => {
     }, JEST_TIMEOUT);
 
     it('Myself - My follower but I do not follow', async () => {
-
       await Promise.all([
         helpers.ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
         helpers.ActivityHelper.requestToCreateUnfollowHistory(userJane, userPetr),  // disturbance
@@ -271,7 +270,7 @@ describe('User to user activity', () => {
 
       const user = await helpers.Req.requestUserByIdAsMyself(userJane, userPetr);
 
-      const myselfData = user.myselfData;
+      const { myselfData } = user;
 
       expect(myselfData).toBeDefined();
       expect(myselfData.follow).toBeFalsy();
@@ -279,7 +278,6 @@ describe('User to user activity', () => {
     }, JEST_TIMEOUT);
 
     it('Myself both follow and my follower', async () => {
-
       await Promise.all([
         helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
         helpers.ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
@@ -288,7 +286,7 @@ describe('User to user activity', () => {
 
       const user = await helpers.Req.requestUserByIdAsMyself(userJane, userPetr);
 
-      const myselfData = user.myselfData;
+      const { myselfData } = user;
 
       expect(myselfData).toBeDefined();
       expect(myselfData.follow).toBeTruthy();
@@ -305,7 +303,6 @@ describe('User to user activity', () => {
 
   describe('Post author myself activity', () => {
     it('Myself data in post User info - following', async () => {
-
       await Promise.all([
         activityHelper.requestToCreateFollowHistory(userVlad, userJane),
         activityHelper.requestToCreateUnfollowHistory(userVlad, userPetr), // disturb

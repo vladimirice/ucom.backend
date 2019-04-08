@@ -1,5 +1,4 @@
-/* eslint-disable */
-export {};
+/* eslint-disable no-console,no-process-exit,unicorn/no-process-exit */
 
 const eosImportance = require('../lib/eos/eos-importance');
 const eosApi = require('../lib/eos/eosApi');
@@ -11,7 +10,9 @@ eosApi.initTransactionFactory();
 // eslint-disable-next-line promise/always-return
 eosImportance.updateRatesByBlockchain().then(() => {
   console.log('Job is finished');
-}).catch((err) => {
-  WorkerLogger.error(err);
+}).catch((error) => {
+  WorkerLogger.error(error);
   console.error('There is an error. See logs');
 });
+
+export {};

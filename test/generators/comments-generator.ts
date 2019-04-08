@@ -1,5 +1,6 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { CommentModel, CommentModelResponse } from '../../lib/comments/interfaces/model-interfaces';
+import RequestHelper = require('../integration/helpers/request-helper');
 
 const request = require('supertest');
 
@@ -44,19 +45,26 @@ class CommentsGenerator {
     return res;
   }
 
-  static async createCommentForPost(
+  public static async createCommentForPost(
     postId: number,
     user: UserModel,
-    description: string = 'comment description',
+    description: string  = 'comment description',
+    entityImages: any = null,
+    expectedStatus: number = 201,
   ): Promise<CommentModelResponse> {
     const req = request(server)
       .post(requestHelper.getCommentsUrl(postId))
       .field('description', description);
+
+    if (entityImages !== null) {
+      RequestHelper.addEntityImagesField(req, entityImages);
+    }
+
     requestHelper.addAuthToken(req, user);
 
     const res = await req;
 
-    responseHelper.expectStatusCreated(res);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
@@ -71,22 +79,39 @@ class CommentsGenerator {
     return body.id;
   }
 
-  static async createCommentOnComment(
+  public static async createCommentOnComment(
     postId: number,
     parentCommentId: number,
-    user: Object,
+    user: UserModel,
     description: string = 'comment description',
+    entityImages: any = null,
+    expectedStatus: number = 201,
   ): Promise<CommentModelResponse> {
     const req = request(server)
       .post(requestHelper.getCommentOnCommentUrl(postId, parentCommentId))
       .field('description', description);
     requestHelper.addAuthToken(req, user);
 
+    if (entityImages !== null) {
+      RequestHelper.addEntityImagesField(req, entityImages);
+    }
+
     const res = await req;
 
-    responseHelper.expectStatusCreated(res);
+    responseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
+  }
+
+  public static async createCommentOnCommentAndGetId(
+    postId: number,
+    parentCommentId: number,
+    user: UserModel,
+    description: string = 'comment description',
+  ): Promise<number> {
+    const body = await this.createCommentOnComment(postId, parentCommentId, user, description);
+
+    return +body.id;
   }
 }
 

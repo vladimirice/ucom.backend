@@ -19,6 +19,7 @@ const LOGGERS_ALL = [
     LOGGER_AUTH_CALLBACK,
 ];
 const myFormat = printf((info) => {
+    // eslint-disable-next-line unicorn/prevent-abbreviations
     const nodeEnv = process.env.NODE_ENV || 'not-determined';
     const basic = `${info.timestamp}.[${nodeEnv}].[${info.label}].[${info.level}]: ${JSON.stringify(info.message)}`;
     if (info.level === 'error') {
@@ -66,7 +67,8 @@ if (process.env.NODE_ENV === 'production') {
 function getFormat(labelToSet) {
     return combine(label({ label: labelToSet }), timestamp(), myFormat);
 }
-for (let i = 0; i < LOGGERS_ALL.length; i += 1) {
+const loggersLength = LOGGERS_ALL.length;
+for (let i = 0; i < loggersLength; i += 1) {
     // eslint-disable-next-line security/detect-object-injection
     const loggerName = LOGGERS_ALL[i];
     winston.loggers.add(loggerName, {

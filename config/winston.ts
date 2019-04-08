@@ -18,7 +18,7 @@ const LOGGER_CONSUMER           = 'consumer';
 const LOGGER_WORKER             = 'worker';
 const LOGGER_AUTH_CALLBACK      = 'auth-callback';
 
-const LOGGERS_ALL = [
+const LOGGERS_ALL: string[] = [
   LOGGER__API,
   LOGGER_CONSUMER,
   LOGGER_WORKER,
@@ -26,6 +26,7 @@ const LOGGERS_ALL = [
 ];
 
 const myFormat = printf((info: any) => {
+  // eslint-disable-next-line unicorn/prevent-abbreviations
   const nodeEnv: string = process.env.NODE_ENV || 'not-determined';
   const basic: string = `${info.timestamp}.[${nodeEnv}].[${info.label}].[${info.level}]: ${JSON.stringify(info.message)}`;
 
@@ -86,7 +87,8 @@ function getFormat(labelToSet) {
   );
 }
 
-for (let i = 0; i < LOGGERS_ALL.length; i += 1) {
+const loggersLength = LOGGERS_ALL.length;
+for (let i = 0; i < loggersLength; i += 1) {
   // eslint-disable-next-line security/detect-object-injection
   const loggerName = LOGGERS_ALL[i];
 

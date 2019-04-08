@@ -1,4 +1,6 @@
 /* eslint-disable max-len */
+import { CommentModelInput } from '../interfaces/model-interfaces';
+
 import PostsRepository = require('../../posts/posts-repository');
 import CommentsRepository = require('../comments-repository');
 import PostStatsService = require('../../posts/stats/post-stats-service');
@@ -9,6 +11,7 @@ import UserActivityService = require('../../users/user-activity-service');
 import UsersTeamRepository = require('../../users/repository/users-team-repository');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
+import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 
 const _ = require('lodash');
 const { TransactionFactory } = require('ucom-libs-social-transactions');
@@ -65,11 +68,13 @@ export class CommentsCreatorService {
     await this.processOrganizationAction(post, body, currentUser);
 
     // #task provide form validation
-    const newModelData = _.pick(body, ['description', 'blockchain_id', 'organization_id']);
+    const newModelData: CommentModelInput = _.pick(body, ['description', 'blockchain_id', 'organization_id']);
 
     newModelData.user_id        = currentUser.id;
     newModelData.commentable_id = post.id;
     newModelData.parent_id      = parentModel ? parentModel.id : null;
+
+    EntityImageInputService.addEntityImageFieldFromBodyOrException(newModelData, body);
 
     const { newModel, newActivity } = await db
       .transaction(async (transaction) => {

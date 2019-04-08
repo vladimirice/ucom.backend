@@ -127,10 +127,10 @@ async function registerNewUser(givenAccountName) {
             console.log(JSON.stringify(accountData));
             accountsToWrite.push(accountData);
         }
-        catch (e) {
+        catch (error) {
             console.error(
             // tslint:disable-next-line:max-line-length
-            `Not possible to register user with account name ${accountName}. Skipped. Error message is: ${e.message}`);
+            `Not possible to register user with account name ${accountName}. Skipped. Error message is: ${error.message}`);
         }
     }
     objectsToCsv(accountsToWrite, headers);

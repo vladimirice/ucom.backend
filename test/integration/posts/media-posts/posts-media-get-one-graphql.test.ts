@@ -2,6 +2,7 @@ import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { PostModelMyselfResponse, PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../../generators/interfaces/dto-interfaces';
 import { GraphqlHelper } from '../../helpers/graphql-helper';
+import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import CommonHelper = require('../../helpers/common-helper');
@@ -23,19 +24,19 @@ describe('Get One media post #graphql', () => {
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
 
-    await GraphqlHelper.beforeAll();
+    await GraphqlRequestHelper.beforeAll();
   });
 
   afterEach(async () => {
     await Promise.all([
-      GraphqlHelper.afterAll(),
+      GraphqlRequestHelper.afterAll(),
     ]);
   });
 
   afterAll(async () => {
     await Promise.all([
       SeedsHelper.doAfterAll(),
-      GraphqlHelper.afterAll(),
+      GraphqlRequestHelper.afterAll(),
     ]);
   });
 

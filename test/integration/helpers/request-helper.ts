@@ -1,6 +1,9 @@
 import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
+import ResponseHelper = require('./response-helper');
+import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -31,6 +34,20 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static addEntityImagesField(req: any, entityImages: any): void {
+    const value = typeof entityImages === 'string' ? entityImages : JSON.stringify(entityImages);
+
+    req.field(EntityImagesModelProvider.entityImagesColumn(), value);
+  }
+
+  public static getUsersUrlV1(): string {
+    return usersUrl;
+  }
+
+  public static getOneUserUrlV1(userId: number): string {
+    return `${usersUrl}/${userId}`;
+  }
+
   public static getAuthBearerHeader(token: string): { Authorization: string } {
     return {
       Authorization: `Bearer ${token}`,
@@ -85,6 +102,14 @@ class RequestHelper {
     }
 
     return text;
+  }
+
+  public static async makeRequestAndGetBody(req, expectedStatus = 200): Promise<any> {
+    const res = await req;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
   }
 
   /**
@@ -196,9 +221,9 @@ class RequestHelper {
     return `${onePostUrl}/repost`;
   }
 
-  public static addAuthToken(req: any, user: UserModel): void {
+  public static addAuthToken(req: any, myself: UserModel): void {
     req
-      .set('Authorization', `Bearer ${user.token}`);
+      .set('Authorization', `Bearer ${myself.token}`);
   }
 
   public static addGithubAuthToken(req: any, token: string): void {
@@ -240,6 +265,11 @@ class RequestHelper {
   static addSampleMainImageFilename(req, field = 'main_image_filename') {
     req
       .attach(field, fileToUploadHelper.getSampleFilePathToUpload());
+  }
+
+  public static attachImage(req: any, field: string, imagePath: string): void {
+    req
+      .attach(field, imagePath);
   }
 
   /**
