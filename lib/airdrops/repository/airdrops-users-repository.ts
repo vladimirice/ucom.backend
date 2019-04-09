@@ -1,12 +1,18 @@
 import { Transaction } from 'knex';
+import { AirdropsUserToChangeStatusDto } from '../interfaces/dto-interfaces';
 
 import AirdropsModelProvider = require('../service/airdrops-model-provider');
 import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import AccountsModelProvider = require('../../accounts/service/accounts-model-provider');
+import UsersModelProvider = require('../../users/users-model-provider');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 const TABLE_NAME = AirdropsModelProvider.airdropsUsersTableName();
+const accounts = AccountsModelProvider.accountsTableName();
+const accountsSymbols = AccountsModelProvider.accountsSymbolsTableName();
+const users = UsersModelProvider.getUsersTableName();
 
 class AirdropsUsersRepository {
   public static async countAllAirdropParticipants(
@@ -17,6 +23,68 @@ class AirdropsUsersRepository {
       .where('airdrop_id', '=', airdropId);
 
     return RepositoryHelper.getKnexCountAsNumber(res);
+  }
+
+  public static async getDataForStatusToWaiting(
+    limit: number,
+  ): Promise<AirdropsUserToChangeStatusDto[]> {
+    /*
+    SELECT
+    --- For transaction
+    id AS external_id,
+      airdrop_id,
+      account_name_to -> JOIN with "Users" one-to-one
+    amount - get reserved accounts amount - one-to-one
+    symbol - get from balance data - one-to-one
+
+    --- transfer transaction
+    reservedAccountId
+    waitingAccountId from initial table
+    amount - from appropriate reserved account one-to-one
+*/
+
+    const rows: any[] = await knex(TABLE_NAME)
+      .select([
+        `${users}.account_name AS account_name_to`,
+        `${TABLE_NAME}.user_id`,
+
+        `${TABLE_NAME}.id AS id`,
+        `${TABLE_NAME}.airdrop_id`,
+
+        `${TABLE_NAME}.reserved_account_id AS account_id_from`,
+        `${accounts}.current_balance AS amount`,
+
+        `${TABLE_NAME}.waiting_account_id AS account_id_to`,
+
+        `${accounts}.symbol_id AS symbol_id`,
+        `${accountsSymbols}.title AS symbol_title`,
+      ])
+      .innerJoin(accounts, `${TABLE_NAME}.reserved_account_id`, `${accounts}.id`)
+      .innerJoin(accountsSymbols, `${accounts}.symbol_id`, `${accountsSymbols}.id`)
+      .innerJoin(users, `${TABLE_NAME}.user_id`, `${users}.id`)
+      .where(`${TABLE_NAME}.status`, '=', AirdropStatuses.PENDING)
+      .orderBy(`${TABLE_NAME}.id`, 'DESC')
+      .limit(limit);
+
+    const toNumeric = [
+      'account_id_from',
+      'amount',
+      'account_id_to',
+      'airdrop_id',
+      'id',
+    ];
+
+    const disallowZero = [
+      'account_id_from',
+      'amount',
+      'account_id_to',
+      'airdrop_id',
+      'id',
+    ];
+
+    RepositoryHelper.convertStringFieldsToNumbersForArray(rows, toNumeric, disallowZero);
+
+    return rows;
   }
 
   public static async getAllAirdropsUsersDataByUserId(userId: number, airdropId: number) {

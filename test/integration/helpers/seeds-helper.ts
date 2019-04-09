@@ -48,6 +48,7 @@ const minorTablesToSkipSequences = [
   'organizations_current_params_id_seq',
   'tags_current_params_id_seq',
   'irreversible_traces_id_seq',
+  'outgoing_transactions_log_id_seq',
   `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
   `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
   `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
@@ -61,6 +62,8 @@ const minorTables = [
   UsersModelProvider.getUsersActivityTrustTableName(),
 
   'airdrops_users_external_data',
+  'airdrops_users_external_data',
+  'blockchain.outgoing_transactions_log',
 
   'accounts_transactions_parts',
 

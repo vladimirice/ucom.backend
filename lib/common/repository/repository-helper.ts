@@ -49,6 +49,14 @@ class RepositoryHelper {
     data[objectKey] = obj;
   }
 
+  public static convertStringFieldsToNumbersForArray(
+    models: any[],
+    fields: string[],
+    fieldsToDisallowZero: string[] = [],
+  ): void {
+    models.forEach(model => this.convertStringFieldsToNumbers(model, fields, fieldsToDisallowZero));
+  }
+
   // It is required because big int fields from Postgresql are represented as string
   // It is supposed that js numerical limit will not be exceeded before a bigint support feature of nodejs core will be created
   public static convertStringFieldsToNumbers(model: any, fields: string[], fieldsToDisallowZero: string[] = []) {

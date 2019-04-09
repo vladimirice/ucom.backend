@@ -17,7 +17,17 @@ const BRAINKEY_LENGTH = 12;
 
 const ACCOUNT_NAME_LENGTH = 12;
 
+const AIRDROPS_GITHUB_SENDER = 'airdrops_github_sender';
+
 class EosApi {
+  public static getGithubAirdropAccountName(): string {
+    return accountsData[AIRDROPS_GITHUB_SENDER].account_name;
+  }
+
+  public static getGithubAirdropActivePrivateKey(): string {
+    return accountsData[AIRDROPS_GITHUB_SENDER].activePk;
+  }
+
   static initTransactionFactory() {
     if (process.env.NODE_ENV === 'production') {
       TransactionFactory.initForProductionEnv();

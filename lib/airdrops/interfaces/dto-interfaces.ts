@@ -40,10 +40,27 @@ interface TokensToClaim {
   amount: number,
 }
 
+interface AirdropsUserToChangeStatusDto {
+  readonly account_name_to: string;
+  readonly user_id: number;
+
+  readonly airdrop_id: number;
+
+  readonly id: number;
+
+  readonly account_id_from: number;
+  readonly amount: number;
+  readonly account_id_to: number;
+
+  readonly symbol_id: number;
+  readonly symbol_title: string;
+}
+
 export {
   OneUserAirdropDto,
   OneUserAirdropFilter,
   FreshUserDto,
   AirdropDebtDto,
   TokensToClaim,
+  AirdropsUserToChangeStatusDto,
 };
