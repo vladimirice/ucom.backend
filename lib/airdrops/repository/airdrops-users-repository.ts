@@ -28,21 +28,6 @@ class AirdropsUsersRepository {
   public static async getDataForStatusToWaiting(
     limit: number,
   ): Promise<AirdropsUserToChangeStatusDto[]> {
-    /*
-    SELECT
-    --- For transaction
-    id AS external_id,
-      airdrop_id,
-      account_name_to -> JOIN with "Users" one-to-one
-    amount - get reserved accounts amount - one-to-one
-    symbol - get from balance data - one-to-one
-
-    --- transfer transaction
-    reservedAccountId
-    waitingAccountId from initial table
-    amount - from appropriate reserved account one-to-one
-*/
-
     const rows: any[] = await knex(TABLE_NAME)
       .select([
         `${users}.account_name AS account_name_to`,
@@ -87,7 +72,10 @@ class AirdropsUsersRepository {
     return rows;
   }
 
-  public static async getAllAirdropsUsersDataByUserId(userId: number, airdropId: number) {
+  public static async getAllAirdropsUsersDataByUserId(
+    userId: number,
+    airdropId: number,
+  ) {
     const sql = `
       SELECT
          airdrops_users.status AS status,
@@ -127,6 +115,12 @@ class AirdropsUsersRepository {
     RepositoryHelper.hydrateObjectForManyEntities(data, 'wallet__');
 
     return data;
+  }
+
+  public static async setStatusWaiting(id: number, trx: Transaction): Promise<void> {
+    await trx(TABLE_NAME)
+      .where('id', '=', id)
+      .update({ status: AirdropStatuses.WAITING });
   }
 
   public static async insertNewRecord(

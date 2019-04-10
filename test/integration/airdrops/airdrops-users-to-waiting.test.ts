@@ -7,8 +7,9 @@ import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-user
 import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
 // @ts-ignore
 import MockHelper = require('../helpers/mock-helper');
-
-const { WalletApi } = require('ucom-libs-wallet');
+import OutgoingTransactionsLogRepository = require('../../../lib/eos/repository/outgoing-transactions-log-repository');
+import AirdropsUsersRepository = require('../../../lib/airdrops/repository/airdrops-users-repository');
+import AirdropsUsersChecker = require('../../helpers/airdrops-users-checker');
 
 // @ts-ignore
 let userVlad: UserModel;
@@ -34,24 +35,36 @@ describe('Airdrops users to pending', () => {
   });
 
   it('process two pending users', async () => {
-    MockHelper.mockAirdropsTransactionsSenderForSuccess();
+    const { processedCounter: processedCounterBefore } = await AirdropsUsersToWaitingService.process(1000);
+    expect(processedCounterBefore).toBe(0);
 
-    WalletApi.setNodeJsEnv();
-    WalletApi.initForStagingEnv();
+    MockHelper.mockAirdropsTransactionsSenderForSuccess();
 
     const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-    // @ts-ignore
-    const userVladData =
-      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
-    // @ts-ignore
-    const userJaneData =
-      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, true);
+    await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
+    await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, true);
+
     await AirdropsUsersToPendingService.process(airdropId);
 
-    const limit = 100;
-    await AirdropsUsersToWaitingService.process(limit);
+    const vladStateBefore = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userVlad.id, airdropId);
+    const janeStateBefore = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userJane.id, airdropId);
 
+    const limit = 100;
+    const { processedCounter: processedCounterAfter } = await AirdropsUsersToWaitingService.process(limit);
+    expect(processedCounterAfter).toBe(4);
+
+    const outgoing = await OutgoingTransactionsLogRepository.findAll();
+    expect(outgoing.length).toBe(4);
+
+    await AirdropsUsersChecker.checkReservedToWaitingTransfer(userVlad.id, airdropId, vladStateBefore);
+    await AirdropsUsersChecker.checkReservedToWaitingTransfer(userJane.id, airdropId, janeStateBefore);
+
+    const { processedCounter: processedCounterAfterAll } = await AirdropsUsersToWaitingService.process(1000);
+    expect(processedCounterAfterAll).toBe(0);
+  }, JEST_TIMEOUT);
+
+  it('other tests', async () => {
     /*
       TODO
       if already waiting - do not fetch it
@@ -62,127 +75,7 @@ describe('Airdrops users to pending', () => {
 
       check pagination - run twice, set pagination from outside as parameter
      */
-  }, JEST_TIMEOUT * 100);
+  });
 });
-
-
-// @ts-ignore
-function getSampleSignedTrx() {
-  return {
-    signatures: [
-      'SIG_K1_KWk6eceRGtAHmoNgQQ6NfgejCiGX2dpCwQbB2GqokX1WyM9XcTctDPqQeAUUUU3Am3XQPxkCG7ACgbFhJZJMDoHBHRD9LL',
-    ],
-    serializedTransaction: {
-      0: 101,
-      1: 198,
-      2: 172,
-      3: 92,
-      4: 127,
-      5: 121,
-      6: 41,
-      7: 102,
-      8: 3,
-      9: 115,
-      10: 0,
-      11: 0,
-      12: 0,
-      13: 0,
-      14: 1,
-      15: 16,
-      16: 42,
-      17: 189,
-      18: 233,
-      19: 58,
-      20: 147,
-      21: 177,
-      22: 202,
-      23: 0,
-      24: 0,
-      25: 0,
-      26: 0,
-      27: 0,
-      28: 144,
-      29: 166,
-      30: 194,
-      31: 1,
-      32: 16,
-      33: 42,
-      34: 189,
-      35: 233,
-      36: 58,
-      37: 147,
-      38: 177,
-      39: 202,
-      40: 0,
-      41: 0,
-      42: 0,
-      43: 0,
-      44: 168,
-      45: 237,
-      46: 50,
-      47: 50,
-      48: 39,
-      49: 4,
-      50: 0,
-      51: 0,
-      52: 0,
-      53: 0,
-      54: 0,
-      55: 0,
-      56: 0,
-      57: 41,
-      58: 0,
-      59: 0,
-      60: 0,
-      61: 0,
-      62: 0,
-      63: 0,
-      64: 0,
-      65: 112,
-      66: 33,
-      67: 40,
-      68: 0,
-      69: 0,
-      70: 0,
-      71: 0,
-      72: 0,
-      73: 160,
-      74: 166,
-      75: 121,
-      76: 106,
-      77: 154,
-      78: 167,
-      79: 166,
-      80: 121,
-      81: 6,
-      82: 71,
-      83: 72,
-      84: 84,
-      85: 69,
-      86: 83,
-      87: 84,
-      88: 0,
-    },
-  };
-}
-
-// @ts-ignore
-function getBlockchainPushErrorContent() {
-  return {
-    json: {
-      code: 500,
-      message: 'Internal Service Error',
-      error: {
-        code: 3050003,
-        name: 'eosio_assert_message_exception',
-        what: 'eosio_assert_message assertion failure',
-        details: [],
-      },
-    },
-    message: 'Internal Service Error',
-    stack: 'Error: Internal Service Error\n' +
-      '    at new RpcError (/home/vlad/Projects/ucom/ucom',
-  };
-}
 
 export {};

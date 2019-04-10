@@ -28,6 +28,8 @@ exports.up = (knex) => {
 
       ALTER TABLE ${TABLE_NAME_WITH_SCHEMA} ADD CONSTRAINT ${TABLE_NAME_FOR_CONSTRAINTS}_status
       CHECK (status > 0);
+
+    CREATE UNIQUE INDEX ${TABLE_NAME_FOR_CONSTRAINTS}_tr_id_unique_idx ON ${TABLE_NAME_WITH_SCHEMA}(tr_id);
   `;
 
   return knex.raw(sql);

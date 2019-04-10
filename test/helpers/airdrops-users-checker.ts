@@ -6,6 +6,7 @@ import AirdropsTokensRepository = require('../../lib/airdrops/repository/airdrop
 import AccountsSymbolsRepository = require('../../lib/accounts/repository/accounts-symbols-repository');
 import AccountTypesDictionary = require('../../lib/accounts/dictionary/account-types-dictionary');
 import AirdropsUsersRepository = require('../../lib/airdrops/repository/airdrops-users-repository');
+import ResponseHelper = require('../integration/helpers/response-helper');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
@@ -32,6 +33,26 @@ const githubAirdropGuestState = {
 };
 
 class AirdropsUsersChecker {
+  public static async checkReservedToWaitingTransfer(
+    userId: number,
+    airdropId: number,
+    stateBefore: any,
+  ): Promise<void> {
+    const stateAfter =
+      await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userId, airdropId);
+
+    stateAfter.forEach((itemAfter) => {
+      const itemBefore = stateBefore.find(item => item.reserved_symbol_id === itemAfter.reserved_symbol_id);
+      ResponseHelper.expectNotEmpty(itemBefore);
+
+      expect(+itemAfter.reserved.current_balance).toBe(0);
+      expect(+itemAfter.waiting.current_balance).toBe(+itemBefore.reserved.current_balance);
+
+      expect(itemBefore.status).toBe(AirdropStatuses.PENDING);
+      expect(itemAfter.status).toBe(AirdropStatuses.WAITING);
+    });
+  }
+
   public static async checkThatNoUserTokens(airdropId: number, userId: number): Promise<void> {
     const data = await AirdropsUsersRepository.getAllOfAirdropForOneUser(airdropId, userId);
     expect(data.length).toBe(0);

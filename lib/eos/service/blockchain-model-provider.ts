@@ -2,45 +2,30 @@ const models = require('../../../models');
 
 const ENTITY_NAME = 'bl_nodes  ';
 const TABLE_NAME  = 'blockchain_nodes';
+const OUTGOING_TRANSACTIONS_LOG  = 'blockchain.outgoing_transactions_log';
 
 class BlockchainModelProvider {
-  /**
-   *
-   * @return {string}
-   */
-  static getEntityName() {
+  public static outgoingTransactionsLogTableName(): string {
+    return OUTGOING_TRANSACTIONS_LOG;
+  }
+
+  public static getEntityName(): string {
     return ENTITY_NAME;
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static getModelName() {
+  public static getModelName(): string {
     return TABLE_NAME;
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static getTableName() {
+  public static getTableName(): string {
     return TABLE_NAME;
   }
 
-  /**
-   *
-   * @return {Object}
-   */
-  static getModel() {
+  public static getModel(): any {
     return models[TABLE_NAME];
   }
 
-  /**
-   *
-   * @return {string[]}
-   */
-  static getFieldsForPreview() {
+  public static getFieldsForPreview(): string[] {
     return this.getModel().getFieldsForPreview();
   }
 }

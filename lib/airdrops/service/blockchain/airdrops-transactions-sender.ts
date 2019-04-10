@@ -7,7 +7,7 @@ const EosApi = require('../../../eos/eosApi');
 class AirdropsTransactionsSender {
   public static async sendTransaction(
     item: AirdropsUserToChangeStatusDto,
-  ): Promise<any> {
+  ): Promise<{signedPayload: any, pushingResponse: any}> {
     // #task - github airdrop only
     const accountNameFrom = EosApi.getGithubAirdropAccountName();
     const privateKey = EosApi.getGithubAirdropActivePrivateKey();
@@ -16,7 +16,7 @@ class AirdropsTransactionsSender {
     // Inside blockchain airdrop_id record has this 'composed' meaning
     const composedAirdropId: number = +`${item.airdrop_id}${item.symbol_id}`;
 
-    const signed = await BackendApi.getSignedAirdropTransaction(
+    const signedPayload = await BackendApi.getSignedAirdropTransaction(
       accountNameFrom,
       privateKey,
       permission,
@@ -28,7 +28,12 @@ class AirdropsTransactionsSender {
       item.symbol_title,
     );
 
-    return EosClient.pushTransaction(signed);
+    const pushingResponse = await EosClient.pushTransaction(signedPayload);
+
+    return {
+      signedPayload,
+      pushingResponse,
+    };
   }
 }
 
