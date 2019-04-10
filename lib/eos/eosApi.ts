@@ -18,6 +18,7 @@ const BRAINKEY_LENGTH = 12;
 const ACCOUNT_NAME_LENGTH = 12;
 
 const AIRDROPS_GITHUB_SENDER = 'airdrops_github_sender';
+const AIRDROPS_GITHUB_HOLDER = 'airdrops_github_holder';
 
 class EosApi {
   public static getGithubAirdropAccountName(): string {
@@ -26,6 +27,14 @@ class EosApi {
 
   public static getGithubAirdropActivePrivateKey(): string {
     return accountsData[AIRDROPS_GITHUB_SENDER].activePk;
+  }
+
+  public static getGithubAirdropHolderAccountName(): string {
+    return accountsData[AIRDROPS_GITHUB_HOLDER].account_name;
+  }
+
+  public static getGithubAirdropHolderActivePrivateKey(): string {
+    return accountsData[AIRDROPS_GITHUB_HOLDER].activePk;
   }
 
   static initTransactionFactory() {
