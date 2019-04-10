@@ -11,6 +11,19 @@ import OrganizationsHelper = require('../../integration/helpers/organizations-he
 import RequestHelper = require('../../integration/helpers/request-helper');
 
 class AirdropsUsersGenerator {
+  public static async fulfillAllAirdropConditionForManyUsers(
+    airdropId: number,
+    orgId: number,
+    users: UserModel[],
+  ): Promise<void> {
+    const promises: any[] = [];
+    for (const oneUser of users) {
+      promises.push(AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, oneUser, orgId, true))
+    }
+
+    await Promise.all(promises);
+  }
+
   public static async fulfillAirdropCondition(
     airdropId: number,
     user: UserModel,

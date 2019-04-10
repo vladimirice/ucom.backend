@@ -1,9 +1,14 @@
 /* tslint:disable:max-line-length */
 import { CommentsCreatorService } from '../../../lib/comments/service/comments-creator-service';
-import { AirdropsUserToChangeStatusDto } from '../../../lib/airdrops/interfaces/dto-interfaces';
+import {
+  AirdropsReceiptTableRowsDto,
+  AirdropsUserToChangeStatusDto
+} from '../../../lib/airdrops/interfaces/dto-interfaces';
 
 import PostCreatorService = require('../../../lib/posts/service/post-creator-service');
 import AirdropsTransactionsSender = require('../../../lib/airdrops/service/blockchain/airdrops-transactions-sender');
+import AirdropsFetchTableRowsService = require('../../../lib/airdrops/service/blockchain/airdrops-fetch-table-rows-service');
+import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 
 // @ts-ignore
 const uniqid = require('uniqid');
@@ -326,6 +331,60 @@ class MockHelper {
         signedPayload,
         pushingResponse,
       };
+    };
+  }
+
+  public static mockGetAirdropsReceiptTableRowsAfterExternalId(toMock: any[] = []) {
+    AirdropsFetchTableRowsService.getAirdropsReceiptTableRowsAfterExternalId = async (
+      // @ts-ignore
+      externalId: number,
+    ): Promise<AirdropsReceiptTableRowsDto[]> => {
+      const res: AirdropsReceiptTableRowsDto[] = [];
+
+      res.push({
+        id: 994,
+        external_id: 100500,
+        airdrop_id: 12,
+        amount: 830000,
+        acc_name: 'omgomgomgomg',
+        symbol: 'UOSTEST',
+      });
+
+      for (const mock of toMock) {
+        if (!mock.waiting || +mock.waiting.current_balance === 0) {
+          throw new Error('Malformed mock');
+        }
+
+        res.push({
+          external_id: +mock.id,
+          amount: +mock.waiting.current_balance,
+          acc_name: mock.account_name,
+          symbol: mock.symbol_title,
+
+          id: NumbersHelper.generateRandomInteger(0, 100),
+          airdrop_id: NumbersHelper.generateRandomInteger(0, 100),
+        });
+      }
+
+      res.push({
+        id: 623,
+        external_id: 2321,
+        airdrop_id: 13,
+        amount: 430000,
+        acc_name: 'omgomgomgomg',
+        symbol: 'GHTEST',
+      });
+
+      res.push({
+        id: 641,
+        external_id: 324,
+        airdrop_id: 12,
+        amount: 2150000,
+        acc_name: 'rokky5225555',
+        symbol: 'UOSTEST',
+      });
+
+      return res;
     };
   }
 

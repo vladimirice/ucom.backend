@@ -21,7 +21,7 @@ const beforeAfterOptions = {
 
 const JEST_TIMEOUT = 5000;
 
-describe('Airdrops users to pending', () => {
+describe('Airdrops users to waiting', () => {
   beforeAll(async () => {
     await SeedsHelper.beforeAllSetting(beforeAfterOptions);
   });

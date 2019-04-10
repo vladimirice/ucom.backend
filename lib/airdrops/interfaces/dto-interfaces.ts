@@ -56,6 +56,15 @@ interface AirdropsUserToChangeStatusDto {
   readonly symbol_title: string;
 }
 
+interface AirdropsReceiptTableRowsDto {
+  readonly id: number;
+  readonly acc_name: string;
+  readonly airdrop_id: number;
+  readonly amount: number;
+  readonly external_id: number;
+  readonly symbol: string;
+}
+
 export {
   OneUserAirdropDto,
   OneUserAirdropFilter,
@@ -63,4 +72,5 @@ export {
   AirdropDebtDto,
   TokensToClaim,
   AirdropsUserToChangeStatusDto,
+  AirdropsReceiptTableRowsDto,
 };

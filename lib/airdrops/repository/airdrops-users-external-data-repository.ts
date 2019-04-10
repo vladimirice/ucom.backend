@@ -61,6 +61,19 @@ class AirdropsUsersExternalDataRepository {
 
     return data || null;
   }
+
+  public static async getOneByUserId(userId: number) {
+    const data = await knex(TABLE_NAME)
+      .select([
+        `${TABLE_NAME}.json_data`,
+        `${TABLE_NAME}.status`,
+      ])
+      .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
+      .where(`${usersExternal}.user_id`, userId)
+      .first();
+
+    return data || null;
+  }
 }
 
 export = AirdropsUsersExternalDataRepository;
