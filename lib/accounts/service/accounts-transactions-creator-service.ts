@@ -19,6 +19,7 @@ class AccountsTransactionsCreatorService {
     allowNegativeFrom: boolean = false,
     parentTrxId: number | null = null,
     jsonData: any = {},
+    externalTrId: number | null = null,
   ) {
     const areSymbolsEqual =
       await AccountsRepository.areSymbolsEqual([accountIdFrom, accountIdTo], trx);
@@ -32,6 +33,7 @@ class AccountsTransactionsCreatorService {
     const transactionId: number = await AccountsCreatorRepository.createNewTransaction(
       jsonData,
       parentTrxId,
+      externalTrId,
       trx,
     );
 

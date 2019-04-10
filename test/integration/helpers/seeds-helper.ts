@@ -10,6 +10,8 @@ import knexEvents = require('../../../config/knex-events');
 import knex = require('../../../config/knex');
 import RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 import UsersExternalModelProvider = require('../../../lib/users-external/service/users-external-model-provider');
+import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
+import AccountsModelProvider = require('../../../lib/accounts/service/accounts-model-provider');
 // import MongoGenerator = require('../../generators/common/mongo-generator');
 
 const models = require('../../../models');
@@ -63,7 +65,6 @@ const minorTables = [
 
   'airdrops_users_external_data',
   'airdrops_users_external_data',
-  'blockchain.outgoing_transactions_log',
 
   'accounts_transactions_parts',
 
@@ -111,9 +112,10 @@ const majorTables = [
   usersRepositories.Activity.getModelName(),
 
   'airdrops',
-  'accounts',
 
-  'accounts_transactions',
+  AccountsModelProvider.accountsTableName(),
+  AccountsModelProvider.accountsTransactionsTableName(),
+  BlockchainModelProvider.outgoingTransactionsLogTableName(),
 
   'users_external',
   'comments',
@@ -299,7 +301,11 @@ class SeedsHelper {
     await Promise.all(minorTablesPromises);
 
     for (let i = 0; i < majorTables.length; i += 1) {
-      await models.sequelize.query(`DELETE FROM "${majorTables[i]}" WHERE 1=1`);
+      if (majorTables[i] === 'Users') {
+        await models.sequelize.query('DELETE FROM "Users" WHERE 1=1');
+      } else {
+        await models.sequelize.query(`DELETE FROM ${majorTables[i]} WHERE 1=1`);
+      }
     }
   }
 

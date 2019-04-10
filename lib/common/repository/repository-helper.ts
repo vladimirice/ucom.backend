@@ -18,6 +18,16 @@ class RepositoryHelper {
     return res.length === 0 ? 0 : +res[0].amount;
   }
 
+  public static getKnexOneIdReturningOrException(res: any): number {
+    if (res.length !== 1) {
+      throw new AppError('It is supposed that getKnexOneIdReturning res contains one element');
+    }
+
+    this.convertStringFieldsToNumbers(res[0], ['id'], ['id']);
+
+    return res[0].id;
+  }
+
   public static hydrateObjectForManyEntities(data: any, objectPrefix: string, delimiter = '__') {
     data.forEach((item) => {
       this.hydrateOneObject(item, objectPrefix, delimiter);

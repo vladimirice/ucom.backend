@@ -16,16 +16,19 @@ class AirdropsUsersToWaitingService {
   public static async process(
     limit: number,
   ): Promise<{ processedCounter }> {
-    const usersToProcess: AirdropsUserToChangeStatusDto[] =
-      await AirdropsUsersRepository.getDataForStatusToWaiting(limit);
-
-    console.log(`Airdrops users rows to process: ${usersToProcess.length}`);
-
+    let usersToProcess: AirdropsUserToChangeStatusDto[] = [];
     let processedCounter = 0;
-    for (const item of usersToProcess) {
-      await this.processOneItem(item);
-      processedCounter += 1;
-    }
+    do {
+      usersToProcess  =
+        await AirdropsUsersRepository.getDataForStatusToWaiting(limit);
+
+      console.log(`Airdrops users rows to process: ${usersToProcess.length}`);
+
+      for (const item of usersToProcess) {
+        await this.processOneItem(item);
+        processedCounter += 1;
+      }
+    } while (usersToProcess.length > 0);
 
     console.log(`Processed counter value: ${processedCounter}`);
 
@@ -43,19 +46,24 @@ class AirdropsUsersToWaitingService {
       const { signedPayload, pushingResponse } = await AirdropsTransactionsSender.sendTransaction(item);
 
       await knex.transaction(async (trx) => {
+        const externalTrId = await OutgoingTransactionsLogRepository.insertOneRow(
+          pushingResponse.transaction_id,
+          signedPayload,
+          pushingResponse,
+          EosBlockchainStatusDictionary.getStatusIsSent(),
+          trx,
+        );
+
         await Promise.all([
-          OutgoingTransactionsLogRepository.insertOneRow(
-            pushingResponse.transaction_id,
-            signedPayload,
-            pushingResponse,
-            EosBlockchainStatusDictionary.getStatusIsSent(),
-            trx,
-          ),
           AccountsTransactionsCreatorService.createTrxBetweenTwoAccounts(
             item.account_id_from,
             item.account_id_to,
             item.amount,
             trx,
+            false,
+            null,
+            {},
+            externalTrId,
           ),
           AirdropsUsersRepository.setStatusWaiting(item.id, trx),
         ]);

@@ -7,6 +7,7 @@ import AccountsSymbolsRepository = require('../../lib/accounts/repository/accoun
 import AccountTypesDictionary = require('../../lib/accounts/dictionary/account-types-dictionary');
 import AirdropsUsersRepository = require('../../lib/airdrops/repository/airdrops-users-repository');
 import ResponseHelper = require('../integration/helpers/response-helper');
+import AccountsTransactionsRepository = require('../../lib/accounts/repository/accounts-transactions-repository');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
@@ -41,7 +42,7 @@ class AirdropsUsersChecker {
     const stateAfter =
       await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userId, airdropId);
 
-    stateAfter.forEach((itemAfter) => {
+    for (const itemAfter of stateAfter) {
       const itemBefore = stateBefore.find(item => item.reserved_symbol_id === itemAfter.reserved_symbol_id);
       ResponseHelper.expectNotEmpty(itemBefore);
 
@@ -50,7 +51,10 @@ class AirdropsUsersChecker {
 
       expect(itemBefore.status).toBe(AirdropStatuses.PENDING);
       expect(itemAfter.status).toBe(AirdropStatuses.WAITING);
-    });
+
+      const waitingTrx = await AccountsTransactionsRepository.findOneById(+itemAfter.waiting.last_transaction_id);
+      ResponseHelper.expectNotEmpty(waitingTrx.external_tr_id);
+    }
   }
 
   public static async checkThatNoUserTokens(airdropId: number, userId: number): Promise<void> {
