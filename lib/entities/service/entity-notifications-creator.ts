@@ -33,6 +33,7 @@ class EntityNotificationsCreator {
 
     if (!executor) {
       this.logNotProcessed(activity);
+      console.log('Not required to process');
 
       return;
     }

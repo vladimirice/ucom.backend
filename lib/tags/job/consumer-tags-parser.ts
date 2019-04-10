@@ -17,6 +17,8 @@ class ConsumerTagsParser {
         messageContent        = message.content.toString();
         parsedMessageContent  = JSON.parse(messageContent);
 
+        console.log(`Message content ${messageContent}`);
+
         const processedAsPost =
           await postActivityProcessor.processOneActivity(parsedMessageContent.id);
 

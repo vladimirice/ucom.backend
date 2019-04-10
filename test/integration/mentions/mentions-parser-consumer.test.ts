@@ -273,7 +273,7 @@ describe('Mentions parsing by consumer', () => {
           userVlad.id,
           userPetr.id,
         );
-      }, JEST_TIMEOUT);
+      }, JEST_TIMEOUT * 10);
 
       it('Create notification based on one mention', async () => {
         const newPostFields = {
