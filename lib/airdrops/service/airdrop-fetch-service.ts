@@ -18,7 +18,7 @@ class AirdropFetchService {
     state.tokens.forEach((item) => {
       tokens.push({
         amount_claim: item.amount_claim / (10 ** item.precision),
-        amount_left: item.amount_claim / (10 ** item.precision), // #task - calculate after trx sender implementation
+        amount_left: item.amount_left / (10 ** item.precision),
         symbol: item.symbol,
       });
     });

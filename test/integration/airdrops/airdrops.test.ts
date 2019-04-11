@@ -179,10 +179,14 @@ describe('Airdrops create-get', () => {
         postId,
       );
 
+      for (const token of postOfferWithEmptyTeam.offer_data.tokens) {
+        expect(token.amount_claim).toBe(token.amount_left);
+      }
+
       expect(postOfferWithEmptyTeam.users_team.data.length).toBe(0);
 
-      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
-      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
+      const userVladState = await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
+      const userJaneState = await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
       await AirdropsUsersToPendingService.process(airdropId);
 
       const postOfferWithTeam = await GraphqlHelper.getOnePostOfferWithoutUser(
@@ -191,6 +195,26 @@ describe('Airdrops create-get', () => {
       );
 
       expect(postOfferWithTeam.users_team.data.length).toBe(2);
+
+      const claimedAmounts = {
+        UOSTEST: 0,
+        GHTEST: 0,
+      };
+
+      for (const token of userVladState.tokens) {
+        claimedAmounts[token.symbol] += token.amount_claim;
+      }
+
+      for (const token of userJaneState.tokens) {
+        claimedAmounts[token.symbol] += token.amount_claim;
+      }
+
+      for (const token of postOfferWithTeam.offer_data.tokens) {
+        expect(token.amount_claim).not.toBe(token.amount_left);
+        const claimed = claimedAmounts[token.symbol];
+
+        expect(token.amount_left).toBe(token.amount_claim - claimed);
+      }
     });
 
     it('get both post offer data and airdrop state with users_team data', async () => {
