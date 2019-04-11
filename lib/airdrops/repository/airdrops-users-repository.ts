@@ -88,11 +88,13 @@ class AirdropsUsersRepository {
   }
 
   public static async getDataForStatusToWaiting(
+    offset: number,
     limit: number,
   ): Promise<AirdropsUserToChangeStatusDto[]> {
     const qb = knex(TABLE_NAME)
       .where(`${TABLE_NAME}.status`, '=', AirdropStatuses.PENDING)
       .orderBy(`${TABLE_NAME}.id`, 'DESC')
+      .offset(offset)
       .limit(limit);
 
     return this.getChangeStatusDto(

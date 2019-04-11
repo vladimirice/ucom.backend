@@ -19,8 +19,10 @@ class AirdropsUsersToWaitingService {
     let usersToProcess: AirdropsUserToChangeStatusDto[] = [];
     let processedCounter = 0;
     do {
+      let offset = 0;
+
       usersToProcess  =
-        await AirdropsUsersRepository.getDataForStatusToWaiting(limit);
+        await AirdropsUsersRepository.getDataForStatusToWaiting(offset, limit);
 
       console.log(`Airdrops users rows to process: ${usersToProcess.length}`);
 
@@ -28,6 +30,8 @@ class AirdropsUsersToWaitingService {
         await this.processOneItem(item);
         processedCounter += 1;
       }
+
+      offset += limit;
     } while (usersToProcess.length > 0);
 
     console.log(`Processed counter value: ${processedCounter}`);
