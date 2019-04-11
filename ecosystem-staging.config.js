@@ -124,6 +124,15 @@ module.exports = {
       },
     },
     {
+      name: `${NODE_ENV}_worker_airdrops_users_to_received`,
+      script: 'bin/workers-airdrops/airdrops-users-to-received.js',
+      watch: false,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      env: {
+        NODE_ENV,
+      },
+    },
+    {
       name: `${NODE_ENV}_worker_update_importance`,
       script: 'bin/worker-update-importance.js',
       watch: false,
