@@ -42,6 +42,8 @@ interface TokensToClaim {
 
 interface AirdropsUserToChangeStatusDto {
   readonly account_name_to: string;
+
+  readonly users_external_id: number;
   readonly user_id: number;
 
   readonly airdrop_id: number;

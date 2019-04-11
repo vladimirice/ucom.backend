@@ -6,6 +6,7 @@ import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import AccountsModelProvider = require('../../accounts/service/accounts-model-provider');
 import UsersModelProvider = require('../../users/users-model-provider');
+import UsersExternalModelProvider = require('../../users-external/service/users-external-model-provider');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
@@ -13,12 +14,13 @@ const TABLE_NAME = AirdropsModelProvider.airdropsUsersTableName();
 const accounts = AccountsModelProvider.accountsTableName();
 const accountsSymbols = AccountsModelProvider.accountsSymbolsTableName();
 const users = UsersModelProvider.getUsersTableName();
+const usersExternal = UsersExternalModelProvider.usersExternalTableName();
 
 class AirdropsUsersRepository {
   public static async findFirstIdWithStatus(
     airdropId: number,
     status: number,
-  ): Promise<number> {
+  ): Promise<number | null> {
     const res = await knex(TABLE_NAME)
       .select(['id'])
       .where({
@@ -27,6 +29,10 @@ class AirdropsUsersRepository {
       })
       .orderBy('id', 'ASC')
       .limit(1);
+
+    if (res.length === 0) {
+      return null;
+    }
 
     return RepositoryHelper.getKnexOneIdReturningOrException(res);
   }
@@ -41,9 +47,36 @@ class AirdropsUsersRepository {
     return RepositoryHelper.getKnexCountAsNumber(res);
   }
 
-  public static async getOneDataForStatusToReceived(id: number): Promise<AirdropsUserToChangeStatusDto | null> {
+  public static async isAirdropReceivedByUser(
+    airdropId: number,
+    userId: number,
+    numberOfTokens: number,
+    trx: Transaction,
+  ): Promise<boolean> {
+    const res = await trx(TABLE_NAME)
+      .count('id as amount')
+      .select('status')
+      .where({
+        airdrop_id: airdropId,
+        user_id: userId,
+      })
+      .groupBy('status');
+
+    return res.length === 1
+      && res[0].status === AirdropStatuses.RECEIVED
+      && +res[0].amount === numberOfTokens;
+  }
+
+  public static async getOneDataForStatusToReceived(
+    airdropId: number,
+    id: number,
+  ): Promise<AirdropsUserToChangeStatusDto | null> {
     const qb = knex(TABLE_NAME)
-      .where(`${TABLE_NAME}.id`, '=', id);
+      .where({
+        [`${TABLE_NAME}.id`]: id,
+        [`${TABLE_NAME}.status`]: AirdropStatuses.WAITING,
+        [`${TABLE_NAME}.airdrop_id`]: airdropId,
+      });
 
     const res = await this.getChangeStatusDto(
       qb,
@@ -77,6 +110,7 @@ class AirdropsUsersRepository {
     const rows: any[] = await qb
       .select([
         `${users}.account_name AS account_name_to`,
+        `${usersExternal}.id AS users_external_id`,
         `${TABLE_NAME}.user_id`,
 
         `${TABLE_NAME}.id AS id`,
@@ -92,7 +126,8 @@ class AirdropsUsersRepository {
       ])
       .innerJoin(accounts, `${TABLE_NAME}.${accountFrom}`, `${accounts}.id`)
       .innerJoin(accountsSymbols, `${accounts}.symbol_id`, `${accountsSymbols}.id`)
-      .innerJoin(users, `${TABLE_NAME}.user_id`, `${users}.id`);
+      .innerJoin(users, `${TABLE_NAME}.user_id`, `${users}.id`)
+      .innerJoin(usersExternal, `${TABLE_NAME}.user_id`, `${usersExternal}.user_id`);
 
     const toNumeric = [
       'account_id_from',
@@ -153,6 +188,7 @@ class AirdropsUsersRepository {
       INNER JOIN accounts_symbols s ON reserved.symbol_id = s.id
       WHERE airdrops_users.airdrop_id = ${+airdropId}
       AND airdrops_users.user_id = ${+userId}
+      ORDER BY id ASC
     `;
 
     const res = await knex.raw(sql);

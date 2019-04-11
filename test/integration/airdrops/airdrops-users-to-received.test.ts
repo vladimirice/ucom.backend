@@ -24,7 +24,7 @@ const beforeAfterOptions = {
 
 const JEST_TIMEOUT = 5000;
 
-describe('Airdrops users to pending', () => {
+describe('Airdrops users to received', () => {
   beforeAll(async () => {
     await SeedsHelper.beforeAllSetting(beforeAfterOptions);
   });
@@ -77,16 +77,65 @@ describe('Airdrops users to pending', () => {
     expect(janeAirdropState.airdrop_status).toBe(AirdropStatuses.RECEIVED);
   }, JEST_TIMEOUT * 100);
 
-  it('test', async () => {
-    // TODO
-    // Process beforehand - no error (empty rows)
-    // Process beforehand - no error (fake users, not related)
+  it('process two users step by step', async () => {
+    MockHelper.mockAirdropsTransactionsSenderForSuccess();
 
-    // userVlad - status not received, userJane - not received
-    // userVlad - received, userJane - not received
-    // userJane - received
-    // Process again - no error
-  });
+    const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+    await AirdropsUsersToReceivedService.process(airdropId);
+
+
+    await AirdropsUsersGenerator.fulfillAllAirdropConditionForManyUsers(
+      airdropId,
+      orgId,
+      [userVlad, userJane],
+    );
+
+    await AirdropsUsersToPendingService.process(airdropId);
+    await AirdropsUsersToWaitingService.process(100);
+
+    const vladStateBefore = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userVlad.id, airdropId);
+    const janeStateBefore = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userJane.id, airdropId);
+
+    const mocksToSet: any[] = [];
+
+    MockHelper.mockGetAirdropsReceiptTableRowsAfterExternalId(mocksToSet);
+
+    await AirdropsUsersToReceivedService.process(airdropId);
+
+    mocksToSet.push(vladStateBefore[0]);
+    mocksToSet.push(janeStateBefore[0]);
+
+    MockHelper.mockGetAirdropsReceiptTableRowsAfterExternalId(mocksToSet);
+    await AirdropsUsersToReceivedService.process(airdropId);
+
+    const vladHeaders = RequestHelper.getAuthBearerHeader(<string>userVlad.token);
+    const vladAirdropStateNotReceived = await GraphqlHelper.getOneUserAirdrop(airdropId, vladHeaders);
+    expect(vladAirdropStateNotReceived.airdrop_status).toBe(AirdropStatuses.PENDING); // no waiting - it is internal
+
+    const janeHeaders = RequestHelper.getAuthBearerHeader(<string>userJane.token);
+    const janeAirdropStateNotReceived = await GraphqlHelper.getOneUserAirdrop(airdropId, janeHeaders);
+    expect(janeAirdropStateNotReceived.airdrop_status).toBe(AirdropStatuses.PENDING); // no waiting - it is internal
+
+
+    mocksToSet.push(vladStateBefore[1]);
+    MockHelper.mockGetAirdropsReceiptTableRowsAfterExternalId(mocksToSet);
+    await AirdropsUsersToReceivedService.process(airdropId);
+
+    const vladAirdropStateReceived = await GraphqlHelper.getOneUserAirdrop(airdropId, vladHeaders);
+    expect(vladAirdropStateReceived.airdrop_status).toBe(AirdropStatuses.RECEIVED);
+
+    const janeAirdropStateAfterVladStateReceived = await GraphqlHelper.getOneUserAirdrop(airdropId, janeHeaders);
+    expect(janeAirdropStateAfterVladStateReceived.airdrop_status).toBe(AirdropStatuses.PENDING);
+
+    mocksToSet.push(janeStateBefore[1]);
+    MockHelper.mockGetAirdropsReceiptTableRowsAfterExternalId(mocksToSet);
+    await AirdropsUsersToReceivedService.process(airdropId);
+
+    const janeAirdropStateReceived = await GraphqlHelper.getOneUserAirdrop(airdropId, janeHeaders);
+    expect(janeAirdropStateReceived.airdrop_status).toBe(AirdropStatuses.RECEIVED);
+
+    await AirdropsUsersToReceivedService.process(airdropId);
+  }, JEST_TIMEOUT * 10);
 });
 
 export {};

@@ -56,6 +56,14 @@ class AirdropsTokensRepository {
 
     return data;
   }
+
+  public static async countNumberOfTokens(airdropId: number): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count('id as amount')
+      .where('airdrop_id', '=', airdropId);
+
+    return RepositoryHelper.getKnexCountAsNumber(res);
+  }
 }
 
 export = AirdropsTokensRepository;

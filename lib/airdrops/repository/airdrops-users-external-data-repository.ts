@@ -19,6 +19,14 @@ class AirdropsUsersExternalDataRepository {
       .where('users_external_id', '=', usersExternalId);
   }
 
+  public static async changeStatusToReceived(usersExternalId: number, trx: Transaction): Promise<void> {
+    await trx(TABLE_NAME)
+      .update({
+        status: AirdropStatuses.RECEIVED,
+      })
+      .where('users_external_id', '=', usersExternalId);
+  }
+
   public static async getManyUsersWithStatusNew(
     airdropId: number,
   ): Promise<FreshUserDto[]> {
