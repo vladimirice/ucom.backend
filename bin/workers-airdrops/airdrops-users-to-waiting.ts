@@ -1,17 +1,23 @@
 /* eslint-disable no-console */
 
+import { WorkerOptionsDto } from '../../lib/common/interfaces/options-dto';
+
 import AirdropsUsersToWaitingService = require('../../lib/airdrops/service/status-changer/airdrops-users-to-waiting-service');
-import DatetimeHelper = require('../../lib/common/helper/datetime-helper');
+import WorkerHelper = require('../../lib/common/helper/worker-helper');
 const EosApi = require('../../lib/eos/eosApi');
 
-(async () => {
-  EosApi.initWalletApi();
-  console.log(`${DatetimeHelper.currentDatetime()}. Lets run the worker`);
-  const startTime = process.hrtime();
+const options: WorkerOptionsDto = {
+  processName: 'airdrops_users_to_waiting',
+  durationInSecondsToAlert: 60,
+};
 
+async function toExecute() {
+  EosApi.initWalletApi();
   await AirdropsUsersToWaitingService.process(100);
-  const endTime = process.hrtime(startTime);
-  console.log(`Worker has finished its work. Execution time is: ${endTime[1] / 1000000} ms`);
+}
+
+(async () => {
+  await WorkerHelper.process(toExecute, options);
 })();
 
 export {};

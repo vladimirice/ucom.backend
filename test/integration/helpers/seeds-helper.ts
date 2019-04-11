@@ -7,11 +7,11 @@ import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UsersHelper = require('./users-helper');
 import knexEvents = require('../../../config/knex-events');
-import knex = require('../../../config/knex');
 import RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 import UsersExternalModelProvider = require('../../../lib/users-external/service/users-external-model-provider');
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 import AccountsModelProvider = require('../../../lib/accounts/service/accounts-model-provider');
+import CloseHandlersHelper = require('../../../lib/common/helper/close-handlers-helper');
 // import MongoGenerator = require('../../generators/common/mongo-generator');
 
 const models = require('../../../models');
@@ -409,19 +409,11 @@ class SeedsHelper {
     }
   }
 
-  static async sequelizeAfterAll() {
-    await models.sequelize.close();
-    await this.closeKnexConnections();
+  public static async sequelizeAfterAll() {
+    await CloseHandlersHelper.closeDbConnections();
 
     await RabbitMqService.purgeAllQueues();
     await RabbitMqService.closeAll();
-  }
-
-  private static async closeKnexConnections() {
-    await Promise.all([
-      knex.destroy(),
-      knexEvents.destroy(),
-    ]);
   }
 
   /**

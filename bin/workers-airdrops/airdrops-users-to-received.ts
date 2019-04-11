@@ -3,7 +3,6 @@ import { WorkerOptionsDto } from '../../lib/common/interfaces/options-dto';
 import AirdropsUsersToReceivedService = require('../../lib/airdrops/service/status-changer/airdrops-users-to-received-service');
 import WorkerHelper = require('../../lib/common/helper/worker-helper');
 
-// @ts-ignore
 const EosApi = require('../../lib/eos/eosApi');
 
 const options: WorkerOptionsDto = {
@@ -12,7 +11,7 @@ const options: WorkerOptionsDto = {
 };
 
 async function toExecute() {
-  // EosApi.initWalletApi(); // by design
+  EosApi.initWalletApi();
 
   const airdropId = 1;
   await AirdropsUsersToReceivedService.process(airdropId);
