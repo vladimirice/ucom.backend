@@ -1,16 +1,20 @@
-/* eslint-disable no-console */
+import { WorkerOptionsDto } from '../../lib/common/interfaces/options-dto';
 
 import AirdropsUsersToPendingService = require('../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
+import WorkerHelper = require('../../lib/common/helper/worker-helper');
 
-const AIRDROP_ID = 1;
+const options: WorkerOptionsDto = {
+  processName: 'airdrops_users_to_pending',
+  durationInSecondsToAlert: 60,
+};
+
+async function toExecute() {
+  const airdropId = 1;
+  await AirdropsUsersToPendingService.process(airdropId);
+}
 
 (async () => {
-  console.log('Lets run the worker');
-  const startTime = process.hrtime();
-
-  await AirdropsUsersToPendingService.process(AIRDROP_ID);
-  const endTime = process.hrtime(startTime);
-  console.log(`Worker has finished its work. Execution time is: ${endTime[1] / 1000000} ms`);
+  await WorkerHelper.process(toExecute, options);
 })();
 
 export {};
