@@ -67,6 +67,21 @@ class AirdropsUsersRepository {
       && +res[0].amount === numberOfTokens;
   }
 
+  public static async getDataForStatusToWaiting(
+    limit: number,
+  ): Promise<AirdropsUserToChangeStatusDto[]> {
+    const qb = knex(TABLE_NAME)
+      .where(`${TABLE_NAME}.status`, '=', AirdropStatuses.PENDING)
+      .orderBy(`${TABLE_NAME}.id`, 'DESC')
+      .limit(limit);
+
+    return this.getChangeStatusDto(
+      qb,
+      'reserved_account_id',
+      'waiting_account_id',
+    );
+  }
+
   public static async getOneDataForStatusToReceived(
     airdropId: number,
     id: number,
@@ -85,23 +100,6 @@ class AirdropsUsersRepository {
     );
 
     return res.length === 1 ? res[0] : null;
-  }
-
-  public static async getDataForStatusToWaiting(
-    offset: number,
-    limit: number,
-  ): Promise<AirdropsUserToChangeStatusDto[]> {
-    const qb = knex(TABLE_NAME)
-      .where(`${TABLE_NAME}.status`, '=', AirdropStatuses.PENDING)
-      .orderBy(`${TABLE_NAME}.id`, 'DESC')
-      .offset(offset)
-      .limit(limit);
-
-    return this.getChangeStatusDto(
-      qb,
-      'reserved_account_id',
-      'waiting_account_id',
-    );
   }
 
   private static async getChangeStatusDto(

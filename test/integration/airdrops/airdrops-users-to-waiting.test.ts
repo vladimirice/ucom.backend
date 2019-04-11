@@ -118,14 +118,21 @@ describe('Airdrops users to waiting', () => {
 
     const limit = 2;
     const { processedCounter: processedCounterAfter } = await AirdropsUsersToWaitingService.process(limit);
-    expect(processedCounterAfter).toBe(4);
+    expect(processedCounterAfter).toBe(2);
 
     const outgoing = await OutgoingTransactionsLogRepository.findAll();
-    expect(outgoing.length).toBe(4);
+    expect(outgoing.length).toBe(2);
+
+    await AirdropsUsersChecker.checkReservedToWaitingTransfer(userJane.id, airdropId, janeStateBefore);
+
+    const { processedCounter: processedCounterAfterForVlad } = await AirdropsUsersToWaitingService.process(limit);
+    expect(processedCounterAfterForVlad).toBe(2);
+
+    const outgoingWithVlad = await OutgoingTransactionsLogRepository.findAll();
+    expect(outgoingWithVlad.length).toBe(4);
 
     await AirdropsUsersChecker.checkReservedToWaitingTransfer(userVlad.id, airdropId, vladStateBefore);
-    await AirdropsUsersChecker.checkReservedToWaitingTransfer(userJane.id, airdropId, janeStateBefore);
-  });
+  }, JEST_TIMEOUT);
 });
 
 export {};

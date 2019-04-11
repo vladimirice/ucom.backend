@@ -16,23 +16,16 @@ class AirdropsUsersToWaitingService {
   public static async process(
     limit: number,
   ): Promise<{ processedCounter }> {
-    let usersToProcess: AirdropsUserToChangeStatusDto[] = [];
     let processedCounter = 0;
-    do {
-      let offset = 0;
+    const usersToProcess: AirdropsUserToChangeStatusDto[]  =
+      await AirdropsUsersRepository.getDataForStatusToWaiting(limit);
 
-      usersToProcess  =
-        await AirdropsUsersRepository.getDataForStatusToWaiting(offset, limit);
+    console.log(`Airdrops users rows to process: ${usersToProcess.length}`);
 
-      console.log(`Airdrops users rows to process: ${usersToProcess.length}`);
-
-      for (const item of usersToProcess) {
-        await this.processOneItem(item);
-        processedCounter += 1;
-      }
-
-      offset += limit;
-    } while (usersToProcess.length > 0);
+    for (const item of usersToProcess) {
+      await this.processOneItem(item);
+      processedCounter += 1;
+    }
 
     console.log(`Processed counter value: ${processedCounter}`);
 
