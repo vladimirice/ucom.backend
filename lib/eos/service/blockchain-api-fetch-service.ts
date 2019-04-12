@@ -1,6 +1,6 @@
 const { HttpForbiddenError, BadRequestError }    = require('../../api/errors');
 const blockchainNodesRepository = require('../repository').Main;
-const Op = require('../../../models').sequelize.Op;
+const { Op } = require('../../../models').Sequelize;
 
 const usersActivityRepository = require('../../../lib/users/repository').Activity;
 

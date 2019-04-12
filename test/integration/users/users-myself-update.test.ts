@@ -100,7 +100,7 @@ describe('Myself API', () => {
 
         const responseUser = res.body;
 
-        const changedUser = await models['Users'].findById(userVlad.id);
+        const changedUser = await models.Users.findByPk(userVlad.id);
         expect(changedUser.account_name).toBe(userVlad.account_name);
 
         for (const fieldToChange in userHimselfFieldsToChange) {

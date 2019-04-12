@@ -4,15 +4,24 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
     },
     is_official: {
-      type: DataTypes.BOOLEAN
+      type: DataTypes.BOOLEAN,
     },
     source_type_id: {
       type: DataTypes.INTEGER,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: 'users_sources',
+    timestamps: false,
   });
   UsersSources.associate = function(models) {
   };

@@ -12,7 +12,7 @@ const _ = require('lodash');
 const models = require('../../models');
 
 const db = models.sequelize;
-const { Op } = db;
+const { Op } = db.Sequelize;
 
 const orgModelProvider = require('../organizations/service').ModelProvider;
 const commentsModelProvider = require('./service').ModelProvider;

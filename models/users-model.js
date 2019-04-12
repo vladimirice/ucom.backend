@@ -69,15 +69,24 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER
     },
     owner_public_key: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
     },
     is_tracking_allowed: {
-      type: DataTypes.BOOLEAN
+      type: DataTypes.BOOLEAN,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: 'Users',
+    timestamps: false,
   });
   Users.associate = function(models) {
     models[TABLE_NAME].hasMany(models.users_education, {

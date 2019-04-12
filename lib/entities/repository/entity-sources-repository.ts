@@ -33,7 +33,7 @@ class EntitySourcesRepository {
   }
 
   static async findAllByEntity(entityId, entityName) {
-    return await model.findAll({
+    return model.findAll({
       where: {
         entity_id: entityId,
         entity_name: entityName,

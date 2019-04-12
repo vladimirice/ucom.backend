@@ -7,8 +7,8 @@ import { IdOnlyDto } from '../common/interfaces/common-types';
 import PostsFetchService = require('./service/posts-fetch-service');
 import PostCreatorService = require('./service/post-creator-service');
 import UserActivityService = require('../users/user-activity-service');
+import PostsRepository = require('./posts-repository');
 
-const status = require('statuses');
 const _ = require('lodash');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
@@ -18,8 +18,7 @@ const postStatsRepository = require('./stats/post-stats-repository');
 const postsOffersRepository = require('./repository').PostOffer;
 const models = require('../../models');
 
-const db = models.sequelize;
-const { AppError, BadRequestError } = require('../../lib/api/errors');
+const { BadRequestError } = require('../../lib/api/errors');
 
 const postSanitizer = require('./post-sanitizer');
 const usersRepositories = require('../users/repository');
@@ -139,7 +138,7 @@ class PostService {
       },
     });
 
-    PostService.checkPostUpdatingConditions(postToUpdate);
+    PostService.checkPostUpdatingConditions(postToUpdate, currentUserId);
 
     if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeMediaPost()) {
       // noinspection AssignmentToFunctionParameterJS
@@ -147,48 +146,43 @@ class PostService {
       params = _.pick(params, ['post_type_id', 'title', 'description', 'main_image_filename', 'leading_text', 'entity_images']);
     }
 
-    const { updatedPost, newActivity } = await db
-      .transaction(async (transaction) => {
-        if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeOffer() && params.post_users_team) {
-          await PostService.updatePostUsersTeam(postId, params, transaction);
-        }
+    const { updatedPost, newActivity } = await models.sequelize.transaction(async (transaction) => {
+      if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeOffer() && params.post_users_team) {
+        await PostService.updatePostUsersTeam(postId, params, transaction);
+      }
 
-        const [updatedCount, updatedPosts] = await models.posts.update(params, {
+      await models.posts.update(params, {
+        transaction,
+        where: {
+          id: postId,
+          user_id: userId,
+        },
+        returning: true,
+        raw: true,
+      });
+
+      const updated = await PostsRepository.findOnlyPostItselfById(postId, transaction);
+
+      if (updated.post_type_id === ContentTypeDictionary.getTypeOffer()) {
+        await models.post_offer.update(params, {
           transaction,
           where: {
-            id: postId,
-            user_id: userId,
+            post_id: postId,
           },
-          returning: true,
-          raw: true,
         });
+      }
 
-        if (updatedCount === 0) {
-          throw new AppError(`There is no post with ID ${postId} and author ID ${userId}`, status('not found'));
-        }
+      const activity = await UserActivityService.processPostIsUpdated(
+        updated,
+        currentUserId,
+        transaction,
+      );
 
-        const updated = updatedPosts[0];
-
-        if (updated.post_type_id === ContentTypeDictionary.getTypeOffer()) {
-          await models.post_offer.update(params, {
-            transaction,
-            where: {
-              post_id: postId,
-            },
-          });
-        }
-
-        const activity = await UserActivityService.processPostIsUpdated(
-          updated,
-          currentUserId,
-          transaction,
-        );
-
-        return {
-          updatedPost: updated,
-          newActivity: activity,
-        };
-      });
+      return {
+        updatedPost: updated,
+        newActivity: activity,
+      };
+    });
 
     await UserActivityService.sendContentUpdatingPayloadToRabbit(newActivity);
 
@@ -418,13 +412,7 @@ class PostService {
     };
   }
 
-
-  /**
-   *
-   * @param {Object} postToUpdate
-   * @private
-   */
-  private static checkPostUpdatingConditions(postToUpdate) {
+  private static checkPostUpdatingConditions(postToUpdate, currentUserId: number) {
     const unableToEdit = [
       ContentTypeDictionary.getTypeRepost(),
     ];
@@ -433,6 +421,10 @@ class PostService {
       throw new BadRequestError({
         post_type_id: `It is not allowed to update post with type ${postToUpdate.post_type_id}`,
       });
+    }
+
+    if (postToUpdate.user_id !== currentUserId) {
+      throw new BadRequestError('Only post author can update the post');
     }
   }
 }

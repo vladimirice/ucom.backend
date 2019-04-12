@@ -52,10 +52,19 @@ module.exports = (database, Sequelize) => {
     entity_images: {
       type: Sequelize.JSONB,
     },
+    created_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
+    updated_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: TABLE_NAME,
+    timestamps: false,
   });
 
   Model.associate = (models) => {

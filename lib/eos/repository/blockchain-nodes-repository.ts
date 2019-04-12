@@ -4,7 +4,7 @@ const model       = blockchainModelProvider.getModel();
 const TABLE_NAME  = blockchainModelProvider.getTableName();
 
 const db = require('../../../models').sequelize;
-const Op = db.Op;
+const { Op } = db.Sequelize;
 
 const _ = require('lodash');
 

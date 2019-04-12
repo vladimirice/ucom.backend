@@ -363,7 +363,7 @@ describe('Posts API', () => {
           .field('title', 'Vlad title for Jane post')
         ;
 
-        ResponseHelper.expectStatusNotFound(res);
+        ResponseHelper.expectStatusBadRequest(res);
       });
     });
   });

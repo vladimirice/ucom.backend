@@ -1,3 +1,5 @@
+import PostsHelper = require('../helpers/posts-helper');
+
 export {};
 
 const helpers = require('../helpers');
@@ -45,7 +47,7 @@ describe('Users activity stats', () => {
 
       const firstPostBefore = await postService.findLastPostOfferByAuthor(userVlad.id);
 
-      await helpers.PostHelper.requestToSetPostTeam(
+      await PostsHelper.requestToSetPostTeam(
         firstPostBefore.id,
         userVlad,
         [userVlad, userJane],
@@ -53,13 +55,13 @@ describe('Users activity stats', () => {
 
       const post = await helpers.PostHelper.requestToGetOnePostAsGuest(firstPostBefore.id);
 
-      const team = post['post_users_team'];
+      const team = post.post_users_team;
 
       const teamVlad = team.find(member => member.id === userVlad.id);
       expect(teamVlad.current_rate).toBe(expectedVladRate);
 
       const teamJane = team.find(member => member.id === userJane.id);
       expect(teamJane.current_rate).toBe(expectedJaneRate);
-    });
+    }, 1000000);
   });
 });

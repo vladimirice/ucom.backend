@@ -10,6 +10,7 @@ import UsersHelper = require('../helpers/users-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
+import EntitySourcesRepository = require('../../../lib/entities/repository/entity-sources-repository');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -427,7 +428,7 @@ describe('Organizations. Create-update requests', () => {
         await OrganizationsHelper.createSocialNetworksDirectly(orgId);
 
         const sources =
-          await entitySourceRepository.findAllByEntity(orgId, orgModelProvider.getEntityName());
+          await EntitySourcesRepository.findAllByEntity(orgId, orgModelProvider.getEntityName());
 
         const sourcesForRequest: any = [];
 

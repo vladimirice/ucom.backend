@@ -25,7 +25,7 @@ const CURRENT_PARAMS = PostsModelProvider.getCurrentParamsTableName();
 const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
 
 const db = models.sequelize;
-const { Op } = db;
+const { Op } = db.Sequelize;
 
 const orgModelProvider    = require('../organizations/service/organizations-model-provider');
 const postsModelProvider  = require('./service/posts-model-provider');
@@ -830,8 +830,9 @@ class PostsRepository implements QueryFilteredRepository {
    * @param {number} id
    * @return {Promise<Object>}
    */
-  static async findOnlyPostItselfById(id) {
+  static async findOnlyPostItselfById(id, transaction = null) {
     return model.findOne({
+      transaction,
       where: { id },
       raw: true,
     });

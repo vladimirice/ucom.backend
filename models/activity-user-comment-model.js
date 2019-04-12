@@ -6,18 +6,27 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
     },
     user_id_from: {
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
     },
     comment_id_to: {
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
     },
     blockchain_status: {
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: TABLE_NAME,
+    timestamps: false,
   });
   Model.associate = function(models) {
 
