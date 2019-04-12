@@ -96,10 +96,20 @@ deploy-staging deploy:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
+deploy-staging-snyk
+	git checkout staging
+	snyk test
+	make deploy-staging
+
 deploy-staging-no-check deploy-no-check:
 	git checkout staging
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
+
+deploy-production-snyk:
+	git checkout master
+	snyk test
+	make deploy-production
 
 deploy-production:
 	git checkout master
