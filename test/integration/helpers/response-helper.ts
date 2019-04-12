@@ -201,6 +201,10 @@ class ResponseHelper {
     expect(value).toMatchObject({});
   }
 
+  public static expectNotEmpty(actual: any): void {
+    expect(_.isEmpty(actual)).toBeFalsy();
+  }
+
   static expectValuesAreExpected(expected, actual, skipFields: string[] = []) {
     expect(_.isEmpty(actual)).toBeFalsy();
     for (const field in expected) {

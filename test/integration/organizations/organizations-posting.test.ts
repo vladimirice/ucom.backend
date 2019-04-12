@@ -121,7 +121,7 @@ describe('Organizations. Get requests', () => {
       // tslint:disable-next-line:max-line-length
       it('should not be possible to update post by user who is not author but team member', async () => {
         const postId = 1;
-        await PostsHelper.updatePostWithFields(postId, userJane, null, 404);
+        await PostsHelper.updatePostWithFields(postId, userJane, null, 400);
       });
 
       // tslint:disable-next-line:max-line-length

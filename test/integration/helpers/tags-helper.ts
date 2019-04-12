@@ -149,7 +149,7 @@ class TagsHelper {
         break;
       }
 
-      delay(100);
+      await delay(100);
     }
 
     return model;
@@ -174,7 +174,7 @@ class TagsHelper {
         break;
       }
 
-      delay(100);
+      await delay(100);
     }
 
     return model;

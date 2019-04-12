@@ -1,11 +1,12 @@
 "use strict";
 /* eslint-disable no-console,no-process-exit,unicorn/no-process-exit */
 Object.defineProperty(exports, "__esModule", { value: true });
+const DatetimeHelper = require("../lib/common/helper/datetime-helper");
 const consumer = require('../lib/entities/job').NotificationsConsumer;
 // eslint-disable-next-line promise/always-return
 consumer.consume().then(() => {
-    console.log('Notifications consumer is started');
+    console.log(`${DatetimeHelper.currentDatetime()} Notifications consumer is started`);
 }).catch(() => {
-    console.error('An error is occurred. See logs');
+    console.error(`${DatetimeHelper.currentDatetime()}. An error is occurred. See logs`);
     process.exit(1);
 });

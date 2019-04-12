@@ -168,7 +168,7 @@ describe('Tags parsing by consumer', () => {
       const { dbTags:vladPostOneDbTags } =
         await TagsHelper.checkRelatedPostModels(postOneTags, vladPostOneModel);
 
-      delay(500);
+      await delay(500);
 
       const vladPostTwoId = await PostsGenerator.createMediaPostByUserHimself(userVlad, {
         description: `Hi everyone again! #${postTwoTags[0]} is so close.
@@ -193,7 +193,7 @@ describe('Tags parsing by consumer', () => {
         .toEqual(vladPostTwoDbTags.find((item: any) => item.title === tagsSet[1]))
       ;
 
-      delay(500);
+      await delay(500);
 
       const janePostOneId = await PostsGenerator.createMediaPostByUserHimself(userJane, {
         description: `Hi everyone! #${janePostOneTags[0]} is so close.

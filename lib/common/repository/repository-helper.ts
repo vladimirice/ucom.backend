@@ -18,6 +18,16 @@ class RepositoryHelper {
     return res.length === 0 ? 0 : +res[0].amount;
   }
 
+  public static getKnexOneIdReturningOrException(res: any): number {
+    if (res.length !== 1) {
+      throw new AppError('It is supposed that getKnexOneIdReturning res contains one element');
+    }
+
+    this.convertStringFieldsToNumbers(res[0], ['id'], ['id']);
+
+    return res[0].id;
+  }
+
   public static hydrateObjectForManyEntities(data: any, objectPrefix: string, delimiter = '__') {
     data.forEach((item) => {
       this.hydrateOneObject(item, objectPrefix, delimiter);
@@ -47,6 +57,14 @@ class RepositoryHelper {
 
     const objectKey = objectPrefix.replace(delimiter, '');
     data[objectKey] = obj;
+  }
+
+  public static convertStringFieldsToNumbersForArray(
+    models: any[],
+    fields: string[],
+    fieldsToDisallowZero: string[] = [],
+  ): void {
+    models.forEach(model => this.convertStringFieldsToNumbers(model, fields, fieldsToDisallowZero));
   }
 
   // It is required because big int fields from Postgresql are represented as string

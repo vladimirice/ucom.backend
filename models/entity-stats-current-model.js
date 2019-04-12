@@ -18,10 +18,19 @@ module.exports = (db, Sequelize) => {
       allowNull: false,
       defaultValue: 0,
     },
+    created_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
+    updated_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: TABLE_NAME,
+    timestamps: false,
   });
 
   Model.associate = function(models) {

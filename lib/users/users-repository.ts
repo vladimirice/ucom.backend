@@ -17,7 +17,7 @@ const _ = require('lodash');
 const models = require('../../models');
 const userModelProvider = require('./users-model-provider');
 
-const { Op } = models.sequelize;
+const { Op } = models.Sequelize;
 const db = models.sequelize;
 
 const model = userModelProvider.getUsersModel();
@@ -302,25 +302,24 @@ class UsersRepository {
    * @returns {Promise<Array<Object>>}
    */
   static async findByNameFields(query) {
+    const where = {
+      [Op.or]: {
+        account_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+        first_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+        last_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      },
+    };
+
     // noinspection JSUnusedGlobalSymbols
     return this.getModel().findAll({
       attributes: this.getModel().getFieldsForPreview(),
-      where: {
-        $or: {
-          first_name: {
-            $like: `%${query}%`,
-          },
-          last_name: {
-            $like: `%${query}%`,
-          },
-          account_name: {
-            $like: `%${query}%`,
-          },
-          nickname: {
-            $like: `%${query}%`,
-          },
-        },
-      },
+      where,
       raw: true,
     });
   }

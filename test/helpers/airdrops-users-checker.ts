@@ -6,6 +6,8 @@ import AirdropsTokensRepository = require('../../lib/airdrops/repository/airdrop
 import AccountsSymbolsRepository = require('../../lib/accounts/repository/accounts-symbols-repository');
 import AccountTypesDictionary = require('../../lib/accounts/dictionary/account-types-dictionary');
 import AirdropsUsersRepository = require('../../lib/airdrops/repository/airdrops-users-repository');
+import ResponseHelper = require('../integration/helpers/response-helper');
+import AccountsTransactionsRepository = require('../../lib/accounts/repository/accounts-transactions-repository');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
@@ -32,6 +34,56 @@ const githubAirdropGuestState = {
 };
 
 class AirdropsUsersChecker {
+  public static async checkReservedToWaitingTransfer(
+    userId: number,
+    airdropId: number,
+    stateBefore: any,
+  ): Promise<void> {
+    const stateAfter =
+      await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userId, airdropId);
+
+    for (const itemAfter of stateAfter) {
+      const itemBefore = stateBefore.find(item => item.reserved_symbol_id === itemAfter.reserved_symbol_id);
+      ResponseHelper.expectNotEmpty(itemBefore);
+
+      expect(+itemAfter.reserved.current_balance).toBe(0);
+      expect(+itemAfter.waiting.current_balance).toBeGreaterThan(0);
+      expect(+itemBefore.reserved.current_balance).toBeGreaterThan(0);
+
+      expect(+itemAfter.waiting.current_balance).toBe(+itemBefore.reserved.current_balance);
+
+      expect(itemBefore.status).toBe(AirdropStatuses.PENDING);
+      expect(itemAfter.status).toBe(AirdropStatuses.WAITING);
+
+      const waitingTrx = await AccountsTransactionsRepository.findOneById(+itemAfter.waiting.last_transaction_id);
+      ResponseHelper.expectNotEmpty(waitingTrx.external_tr_id);
+    }
+  }
+
+  public static async checkWaitingToWalletTransfer(
+    userId: number,
+    airdropId: number,
+    stateBefore: any,
+  ): Promise<void> {
+    const stateAfter =
+      await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userId, airdropId);
+
+    for (const itemAfter of stateAfter) {
+      const itemBefore = stateBefore.find(item => item.reserved_symbol_id === itemAfter.reserved_symbol_id);
+      ResponseHelper.expectNotEmpty(itemBefore);
+
+      expect(+itemAfter.reserved.current_balance).toBe(0);
+      expect(+itemAfter.waiting.current_balance).toBe(0);
+      expect(+itemAfter.wallet.current_balance).toBeGreaterThan(0);
+      expect(+itemBefore.waiting.current_balance).toBeGreaterThan(0);
+
+      expect(+itemAfter.wallet.current_balance).toBe(+itemBefore.waiting.current_balance);
+
+      expect(itemBefore.status).toBe(AirdropStatuses.WAITING);
+      expect(itemAfter.status).toBe(AirdropStatuses.RECEIVED);
+    }
+  }
+
   public static async checkThatNoUserTokens(airdropId: number, userId: number): Promise<void> {
     const data = await AirdropsUsersRepository.getAllOfAirdropForOneUser(airdropId, userId);
     expect(data.length).toBe(0);

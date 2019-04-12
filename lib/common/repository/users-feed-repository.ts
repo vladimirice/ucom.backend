@@ -10,7 +10,7 @@ const sequelizeIncludes = require('./sequelize-includes');
 
 const models = require('../../../models');
 
-const { Op } = models.sequelize;
+const { Op } = models.Sequelize;
 const db = models.sequelize;
 
 /**

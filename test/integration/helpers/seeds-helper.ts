@@ -7,9 +7,12 @@ import MockHelper = require('./mock-helper');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UsersHelper = require('./users-helper');
 import knexEvents = require('../../../config/knex-events');
-import knex = require('../../../config/knex');
 import RabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 import UsersExternalModelProvider = require('../../../lib/users-external/service/users-external-model-provider');
+import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
+import AccountsModelProvider = require('../../../lib/accounts/service/accounts-model-provider');
+import CloseHandlersHelper = require('../../../lib/common/helper/close-handlers-helper');
+// import MongoGenerator = require('../../generators/common/mongo-generator');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -46,6 +49,8 @@ const minorTablesToSkipSequences = [
   'posts_current_params_id_seq',
   'organizations_current_params_id_seq',
   'tags_current_params_id_seq',
+  'irreversible_traces_id_seq',
+  'outgoing_transactions_log_id_seq',
   `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
   `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
   `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
@@ -58,6 +63,7 @@ const minorTables = [
 
   UsersModelProvider.getUsersActivityTrustTableName(),
 
+  'airdrops_users_external_data',
   'airdrops_users_external_data',
 
   'accounts_transactions_parts',
@@ -106,9 +112,10 @@ const majorTables = [
   usersRepositories.Activity.getModelName(),
 
   'airdrops',
-  'accounts',
 
-  'accounts_transactions',
+  AccountsModelProvider.accountsTableName(),
+  AccountsModelProvider.accountsTransactionsTableName(),
+  BlockchainModelProvider.outgoingTransactionsLogTableName(),
 
   'users_external',
   'comments',
@@ -232,6 +239,8 @@ class SeedsHelper {
       models.users_sources.bulkCreate(sourcesSeeds),
     ]);
 
+    // await MongoGenerator.truncateAll();
+
     return Promise.all([
       UsersHelper.getUserVlad(),
       UsersHelper.getUserJane(),
@@ -292,7 +301,11 @@ class SeedsHelper {
     await Promise.all(minorTablesPromises);
 
     for (let i = 0; i < majorTables.length; i += 1) {
-      await models.sequelize.query(`DELETE FROM "${majorTables[i]}" WHERE 1=1`);
+      if (majorTables[i] === 'Users') {
+        await models.sequelize.query('DELETE FROM "Users" WHERE 1=1');
+      } else {
+        await models.sequelize.query(`DELETE FROM ${majorTables[i]} WHERE 1=1`);
+      }
     }
   }
 
@@ -396,19 +409,11 @@ class SeedsHelper {
     }
   }
 
-  static async sequelizeAfterAll() {
-    await models.sequelize.close();
-    await this.closeKnexConnections();
+  public static async sequelizeAfterAll() {
+    await CloseHandlersHelper.closeDbConnections();
 
     await RabbitMqService.purgeAllQueues();
     await RabbitMqService.closeAll();
-  }
-
-  private static async closeKnexConnections() {
-    await Promise.all([
-      knex.destroy(),
-      knexEvents.destroy(),
-    ]);
   }
 
   /**
@@ -417,8 +422,8 @@ class SeedsHelper {
    * @return {Promise<void>}
    * @private
    */
-  static async initTablesByList(syncInit) {
-    for (let i = 0; i < syncInit.length; i += 1) {
+  static async initTablesByList(syncInit: any[]) {
+    for (let i = 0; i < <number>syncInit.length; i += 1) {
       const table = syncInit[i];
       const seeds = tableToSeeds[table];
 

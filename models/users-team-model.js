@@ -14,7 +14,15 @@ module.exports = (db, Sequelize) => {
     },
     status: {
       type: Sequelize.SMALLINT
-    }
+    },
+    created_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
+    updated_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
   }, {
     underscored: true,
     freezeTableName: true,

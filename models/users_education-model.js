@@ -25,10 +25,19 @@ module.exports = (sequelize, DataTypes) => {
     is_current: {
       type: DataTypes.BOOLEAN
     },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: 'users_education',
+    timestamps: false,
   });
   UsersEducation.associate = function(models) {
     models['users_education'].belongsTo(models.Users, {foreignKey: 'user_id'});

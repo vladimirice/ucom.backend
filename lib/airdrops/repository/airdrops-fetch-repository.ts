@@ -51,6 +51,7 @@ class AirdropsFetchRepository {
     const res = await knex(t)
       .select([
         knex.raw('ABS(income.current_balance) AS amount_claim'),
+        'debt.current_balance AS amount_left',
         `${symbols}.title AS symbol`,
         `${symbols}.precision AS precision`,
         `${airdrops}.id as airdrop_id`,
@@ -60,10 +61,12 @@ class AirdropsFetchRepository {
       .where(where)
       .innerJoin(`${airdrops}`, `${t}.airdrop_id`, `${airdrops}.id`)
       .innerJoin(`${accounts} AS income`, `${t}.income_account_id`, 'income.id')
+      .innerJoin(`${accounts} AS debt`, `${t}.debt_account_id`, 'debt.id')
       .innerJoin(`${symbols}`, 'income.symbol_id', `${symbols}.id`);
 
     const tokens = res.map(item => ({
       amount_claim: +item.amount_claim,
+      amount_left: +item.amount_left,
       symbol: item.symbol,
       precision: item.precision,
     }));

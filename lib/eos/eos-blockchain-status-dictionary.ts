@@ -1,9 +1,9 @@
 class EosBlockchainStatusDictionary {
-  static getStatusIsSent() {
+  public static getStatusIsSent() {
     return 1;
   }
 
-  static getNotRequiredToSend() {
+  public static getNotRequiredToSend() {
     return 10;
   }
 }

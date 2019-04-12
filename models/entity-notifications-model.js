@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.SMALLINT,
     },
     event_id: {
-      type: DataTypes.SMALLINT
+      type: DataTypes.SMALLINT,
     },
     title: {
       type: DataTypes.STRING,
@@ -21,48 +21,57 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
     },
     seen: {
-      type: DataTypes.BOOLEAN
+      type: DataTypes.BOOLEAN,
     },
     confirmed: {
-      type: DataTypes.SMALLINT
+      type: DataTypes.SMALLINT,
     },
     severity: {
-      type: DataTypes.SMALLINT
+      type: DataTypes.SMALLINT,
     },
     notification_type_id: {
-      type: DataTypes.SMALLINT
+      type: DataTypes.SMALLINT,
     },
     recipient_entity_id: {
-      type: DataTypes.BIGINT
+      type: DataTypes.BIGINT,
     },
     recipient_entity_name: {
-      type: DataTypes.CHAR(10)
+      type: DataTypes.CHAR(10),
     },
     entity_id: {
-      type: DataTypes.BIGINT
+      type: DataTypes.BIGINT,
     },
     entity_name: {
-      type: DataTypes.CHAR(10)
+      type: DataTypes.CHAR(10),
     },
     target_entity_name: {
-      type: DataTypes.CHAR(10)
+      type: DataTypes.CHAR(10),
     },
     target_entity_id: {
-      type: DataTypes.BIGINT
+      type: DataTypes.BIGINT,
     },
     users_activity_id: {
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
     },
     user_id_from: {
-      type: DataTypes.INTEGER
+      type: DataTypes.INTEGER,
     },
     json_body: {
-      type: DataTypes.JSONB
-    }
+      type: DataTypes.JSONB,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: TABLE_NAME,
+    timestamps: false,
   });
 
   /**

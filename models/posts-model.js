@@ -52,10 +52,19 @@ module.exports = (sequelize, DataTypes) => {
     entity_tags: {
       type: DataTypes.JSONB,
     },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: TABLE_NAME,
+    timestamps: false,
   });
 
   Posts.getMediaPostFullFields = function () {

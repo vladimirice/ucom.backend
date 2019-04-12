@@ -101,6 +101,11 @@ deploy-staging-no-check deploy-no-check:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
+deploy-production-snyk:
+	git checkout master
+	snyk test
+	make deploy-production
+
 deploy-production:
 	git checkout master
 	make docker-check-project

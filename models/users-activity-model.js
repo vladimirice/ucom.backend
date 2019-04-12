@@ -40,10 +40,19 @@ module.exports = (db, Sequelize) => {
     event_id: {
       type: Sequelize.SMALLINT,
     },
+    created_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
+    updated_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: TABLE_NAME,
+    timestamps: false,
   });
   Model.associate = function(models) {
     models[TABLE_NAME].belongsTo(models.Users, {

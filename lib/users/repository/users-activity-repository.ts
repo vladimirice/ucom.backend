@@ -12,7 +12,7 @@ const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const models = require('../../../models');
 
 const db = models.sequelize;
-const { Op } = models.sequelize;
+const { Op } = models.Sequelize;
 
 const activityGroupDictionary = require('../../activity/activity-group-dictionary');
 const blockchainStatusDictionary = require('../../eos/eos-blockchain-status-dictionary');

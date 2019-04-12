@@ -25,7 +25,8 @@ const model = orgModelProvider.getModel();
 const models = require('../../../models');
 
 const db = models.sequelize;
-const { Op } = db;
+const { Op } = models.Sequelize;
+
 
 const taggableRepository = require('../../common/repository/taggable-repository');
 

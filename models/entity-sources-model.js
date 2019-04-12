@@ -34,11 +34,22 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       required: false,
       allowNull: true,
-    }
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      field: 'created_at',
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      field: 'updated_at',
+    },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: TABLE_NAME,
+    timestamps: false,
   });
 
   return Model;

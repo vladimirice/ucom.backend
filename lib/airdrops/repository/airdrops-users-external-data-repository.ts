@@ -19,6 +19,14 @@ class AirdropsUsersExternalDataRepository {
       .where('users_external_id', '=', usersExternalId);
   }
 
+  public static async changeStatusToReceived(usersExternalId: number, trx: Transaction): Promise<void> {
+    await trx(TABLE_NAME)
+      .update({
+        status: AirdropStatuses.RECEIVED,
+      })
+      .where('users_external_id', '=', usersExternalId);
+  }
+
   public static async getManyUsersWithStatusNew(
     airdropId: number,
   ): Promise<FreshUserDto[]> {
@@ -57,6 +65,19 @@ class AirdropsUsersExternalDataRepository {
       ])
       .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
       .where(`${TABLE_NAME}.users_external_id`, usersExternalId)
+      .first();
+
+    return data || null;
+  }
+
+  public static async getOneByUserId(userId: number) {
+    const data = await knex(TABLE_NAME)
+      .select([
+        `${TABLE_NAME}.json_data`,
+        `${TABLE_NAME}.status`,
+      ])
+      .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
+      .where(`${usersExternal}.user_id`, userId)
       .first();
 
     return data || null;

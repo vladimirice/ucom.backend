@@ -16,3 +16,7 @@ NAME='migration-file-name' make docker-db-create-migration-monolith
 ```
 * Add table to [SeedsHelper](../test/integration/helpers/seeds-helper.ts) `minorTables` or `majorTables` array 
 * Same workflow for the `events` - refer to [Makefile](../Makefile)
+
+## How to add new transaction method
+
+Please add it to the ucom.libs.wallet library.

@@ -32,13 +32,22 @@ module.exports = (db, Sequelize) => {
     deleted_at: {
       type: Sequelize.DATE,
       allowNull: true,
-      required: false
+      required: false,
+    },
+    created_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
+    },
+    updated_at: {
+      type: Sequelize.DATE,
+      defaultValue: Sequelize.NOW,
     },
   }, {
     underscored: true,
     freezeTableName: true,
     tableName: TABLE_NAME,
     paranoid: true,
+    timestamps: false,
   });
 
   Model.getFieldsForPreview = function () {

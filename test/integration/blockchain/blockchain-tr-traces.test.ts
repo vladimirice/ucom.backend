@@ -1,4 +1,5 @@
-export {};
+import MongoIrreversibleTracesGenerator = require('../../generators/blockchain/irreversible_traces/mongo-irreversible-traces-generator');
+
 
 const helpers = require('../helpers');
 const gen     = require('../../generators');
@@ -24,6 +25,12 @@ describe('Blockchain tr traces sync tests', () => {
 
   beforeEach(async () => {
     [userVlad] = await helpers.SeedsHelper.beforeAllRoutine();
+  });
+
+  describe('irreversible transaction traces', () => {
+    it.skip('test', async () => {
+      await MongoIrreversibleTracesGenerator.insertAllSampleTraces();
+    });
   });
 
   describe('check sync', () => {
@@ -351,3 +358,5 @@ describe('Blockchain tr traces sync tests', () => {
     });
   });
 });
+
+export {};
