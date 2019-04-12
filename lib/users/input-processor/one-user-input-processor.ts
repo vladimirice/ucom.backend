@@ -27,7 +27,7 @@ class OneUserInputProcessor {
     identity: string,
   ): Promise<number> {
     if (!OneUserInputValidator.doesIdentityLooksLikeAccountName(identity)) {
-      return +identity;
+      return this.getIdFromIdentityOrException(identity);
     }
 
     const user = await UsersRepository.findOneByAccountNameAsObject(identity);
@@ -36,6 +36,14 @@ class OneUserInputProcessor {
     }
 
     return +user.id;
+  }
+
+  private static getIdFromIdentityOrException(identity: string): number {
+    if (!Number.isFinite(+identity)) {
+      throw new BadRequestError('Malformed user Id');
+    }
+
+    return +identity;
   }
 }
 

@@ -41,7 +41,14 @@ export class GraphqlRequestHelper {
     dataOnly = true,
   ): Promise<any> {
     const myselfClient = this.getClientWithToken(myself);
-    const response = await myselfClient.query({ query: gql(query) });
+
+    let response;
+
+    try {
+      response = await myselfClient.query({ query: gql(query) });
+    } catch (error) {
+      throw new Error('GraphQL error');
+    }
 
     if (keyToReturn) {
       return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];

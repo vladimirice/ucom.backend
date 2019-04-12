@@ -75,6 +75,26 @@ describe('Get one user via graphQL', () => {
       UsersHelper.validateUserJson(userVladResponse, userJane, user);
     }, JEST_TIMEOUT);
   });
+
+  describe('Negative', () => {
+    const graphQlErrorPattern = new RegExp('GraphQL error');
+
+    it('Incorrect string identity', async () => {
+      const filters = {
+        user_identity: 'linkedin',
+      };
+
+      await expect(OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id, filters)).rejects.toThrow(graphQlErrorPattern);
+    });
+
+    it('Incorrect identity - zero', async () => {
+      const filters = {
+        user_identity: '0',
+      };
+
+      await expect(OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id, filters)).rejects.toThrow(graphQlErrorPattern);
+    });
+  });
 });
 
 export {};
