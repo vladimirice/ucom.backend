@@ -28,7 +28,8 @@ const LOGGERS_ALL: string[] = [
 const myFormat = printf((info: any) => {
   // eslint-disable-next-line unicorn/prevent-abbreviations
   const nodeEnv: string = process.env.NODE_ENV || 'not-determined';
-  const basic: string = `${info.timestamp}.[${nodeEnv}].[${info.label}].[${info.level}]: ${JSON.stringify(info.message)}`;
+  const service = info.service || `${info.label}-service`;
+  const basic: string = `${info.timestamp}.[${nodeEnv}].[${info.label}].[${service}].[${info.level}]: ${JSON.stringify(info.message)}`;
 
   if (info.level === 'error') {
     const full: string = util.inspect(info, false, 5, false);
