@@ -106,6 +106,14 @@ class BlockchainNodesRepository {
   static async findAllBlockchainNodes(queryParameters = {}) {
     const params = _.defaults(queryParameters, this.getDefaultListParams());
 
+    if (!params.where) {
+      params.where = {};
+    }
+
+    params.where.deleted_at = {
+      [Op.eq]: null,
+    };
+
     const data = await model.findAll({
       attributes: blockchainModelProvider.getFieldsForPreview(),
       ...params,
