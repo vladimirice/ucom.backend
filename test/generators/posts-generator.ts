@@ -134,6 +134,36 @@ class PostsGenerator {
     return +res.body.id;
   }
 
+  public static async createRepostWithFields(
+    myself: UserModel,
+    postId: number,
+    givenFields: any,
+    expectedStatus: number = 201,
+  ): Promise<PostModelResponse> {
+    const url: string = RequestHelper.getCreateRepostUrl(postId);
+
+    const fields = {
+      ...givenFields,
+      post_type_id: ContentTypeDictionary.getTypeRepost(),
+    };
+
+    if (typeof fields[entityImagesField] === 'object') {
+      fields[entityImagesField] = JSON.stringify(fields[entityImagesField]);
+    }
+
+    const req = request(server)
+      .post(url);
+
+    RequestHelper.addAuthToken(req, myself);
+    RequestHelper.addFieldsToRequest(req, fields);
+
+    const res = await req;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
+  }
+
   static async createRepostOfUserPost(
     repostAuthor: UserModel,
     postId: number,

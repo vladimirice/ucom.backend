@@ -436,7 +436,7 @@ class SeedsHelper {
 
   public static async afterAllWithGraphQl() {
     const beforeAfterOptions = {
-      isGraphQl: false,
+      isGraphQl: true,
     };
 
     return this.doAfterAll(beforeAfterOptions);

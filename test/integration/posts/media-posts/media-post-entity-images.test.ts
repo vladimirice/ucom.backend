@@ -45,7 +45,7 @@ describe('media posts entity images', () => {
           leading_text: 'extremely leading text',
           post_type_id: ContentTypeDictionary.getTypeMediaPost(),
 
-          [fieldName]: {},
+          [fieldName]: '',
           main_image_filename: null,
         };
 
@@ -149,7 +149,7 @@ describe('media posts entity images', () => {
   });
 
   describe('Update media post with entity images', () => {
-    it('Update Media Post and also update entity_images', async () => {
+    it('Update Media Post and also update entity_images. From empty to filled', async () => {
       await PostsGenerator.createMediaPostByUserHimself(userVlad);
       const firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
 
@@ -191,16 +191,6 @@ describe('media posts entity images', () => {
       ResponseHelper.expectValuesAreExpected(fieldsToChange, postAfter);
 
       PostsHelper.checkEntityImages(postAfter);
-    });
-  });
-
-  describe('Skipped', () => {
-    it.skip('Update empty to value for media post', async () => {
-      // there is no update feature for comments
-    });
-
-    it.skip('Update value to empty for media post', async () => {
-      // there is no update feature for comments
     });
   });
 });

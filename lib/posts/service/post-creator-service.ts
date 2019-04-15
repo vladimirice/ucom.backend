@@ -468,5 +468,5 @@ class PostCreatorService {
     }
   }
 }
-
+// @ts-ignore - possibly wrong duplicate export
 export = PostCreatorService;

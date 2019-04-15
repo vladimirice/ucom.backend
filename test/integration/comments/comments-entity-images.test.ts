@@ -81,6 +81,12 @@ describe('Comments entity images', () => {
   });
 
   describe('Negative', () => {
+    it('empty string is not allowed', async () => {
+      const malformed = '';
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
+    });
+
     it('Malformed entity_images JSON', async () => {
       const malformed = '{ { ]malformed]';
 
@@ -100,6 +106,27 @@ describe('Comments entity images', () => {
       const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
       await CommentsGenerator.createCommentForPost(postId, userJane, undefined, sampleEntityImages, 400);
     });
+
+    it('Empty array is not allowed', async () => {
+      const malformed = '[]';
+
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
+    }, JEST_TIMEOUT);
+
+    it('Array as root element is not allowed', async () => {
+      const malformed = [
+        {
+          success: true,
+        },
+        {
+          another_object: { success: 12345 },
+        },
+      ];
+
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
+    }, JEST_TIMEOUT);
   });
 
   describe('Skipped', () => {

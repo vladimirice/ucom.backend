@@ -22,7 +22,7 @@ class EntityImageInputService {
       return;
     }
 
-    EntityImagesInputValidator.validate(inputValue);
+    EntityImagesInputValidator.validateStringInput(inputValue);
 
     let parsed;
     try {
@@ -36,6 +36,8 @@ class EntityImageInputService {
 
       throw error;
     }
+
+    EntityImagesInputValidator.validateParsedInput(parsed);
 
     model[fieldName] = parsed;
   }

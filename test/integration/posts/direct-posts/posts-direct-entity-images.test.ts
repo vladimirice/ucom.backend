@@ -14,18 +14,19 @@ const request = require('supertest');
 const server = require('../../../../app');
 
 let userVlad: UserModel;
-// @ts-ignore
 let userJane: UserModel;
 
 const JEST_TIMEOUT = 5000;
 
 describe('direct posts entity images', () => {
-  afterEach(async () => {
+  beforeAll(async () => {
+    await SeedsHelper.withGraphQlMockAllWorkers();
+  });
+
+  afterAll(async () => {
     await SeedsHelper.afterAllWithGraphQl();
   });
   beforeEach(async () => {
-    await SeedsHelper.withGraphQlMockAllWorkers();
-
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
@@ -189,16 +190,42 @@ describe('direct posts entity images', () => {
 
       PostsHelper.checkEntityImages(newPost!);
     }, JEST_TIMEOUT);
-  });
 
-  describe('Skipped', () => {
-    it.skip('Update empty to value for direct post', async () => {
-      // there is no update feature for comments
-    });
+    it('Clear entity_images - pass empty object', async () => {
+      const givenFields = {
+        description: 'Our super post description',
+        [fieldName]: {
+          another_key12345: {
+            success: true,
+          },
+        },
+        main_image_filename: '',
+      };
 
-    it.skip('Update value to empty for direct post', async () => {
-      // there is no update feature for comments
-    });
+      const firstPostBefore =
+        await PostsGenerator.createDirectPostForUserWithFields(userVlad, userJane, givenFields);
+
+      ResponseHelper.expectValuesAreExpected(givenFields, firstPostBefore);
+
+      const fieldsToChange = {
+        [fieldName]: {},
+      };
+
+      const res = await request(server)
+        .patch(`${RequestHelper.getPostsUrl()}/${firstPostBefore.id}`)
+        .set('Authorization', `Bearer ${userVlad.token}`)
+        .field(fieldName,  JSON.stringify(fieldsToChange.entity_images))
+      ;
+
+      ResponseHelper.expectStatusOk(res);
+
+      const posts = await GraphqlHelper.getManyDirectPostsAsMyself(userVlad);
+      const newPost = posts.data.find(data => data.id === firstPostBefore.id);
+
+      ResponseHelper.expectValuesAreExpected(fieldsToChange, newPost);
+
+      PostsHelper.checkEntityImages(newPost!);
+    }, JEST_TIMEOUT);
   });
 });
 
