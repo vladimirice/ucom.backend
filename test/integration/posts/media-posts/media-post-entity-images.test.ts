@@ -45,7 +45,7 @@ describe('media posts entity images', () => {
           leading_text: 'extremely leading text',
           post_type_id: ContentTypeDictionary.getTypeMediaPost(),
 
-          [fieldName]: '',
+          [fieldName]: {},
           main_image_filename: null,
         };
 
