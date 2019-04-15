@@ -100,6 +100,8 @@ describe('Posts API', () => {
           entity_name_for:  UsersModelProvider.getEntityName(),
         });
 
+        newPost.entity_images = JSON.parse(newPost.entity_images);
+
         PostsHelper.checkEntityImages(newPost);
       });
     });

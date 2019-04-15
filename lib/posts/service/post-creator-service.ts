@@ -2,6 +2,7 @@
 
 import { IdOnlyDto } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
+import { PostModelInput } from '../interfaces/model-interfaces';
 
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import PostSanitizer = require('../post-sanitizer');
@@ -12,7 +13,7 @@ import UsersTeamRepository = require('../../users/repository/users-team-reposito
 import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
-import { PostModelInput } from '../interfaces/model-interfaces';
+import EntityImagesModelProvider = require('../../entity-images/service/entity-images-model-provider');
 
 const _ = require('lodash');
 const config = require('config');
@@ -38,6 +39,8 @@ const usersActivityRepository = require('../../users/repository/users-activity-r
 const postsRepository         = require('../posts-repository');
 
 const models = require('../../../models');
+
+const entityImagesField: string = EntityImagesModelProvider.entityImagesColumn();
 
 /**
  * beginning of refactoring
@@ -192,7 +195,7 @@ class PostCreatorService {
     }
 
     if (body.main_image_filename) {
-      body.entity_images = {
+      const entityImagesObject = {
         article_title: [
           {
             url: `${httpImagesFolder}/${body.main_image_filename}`,
@@ -200,7 +203,13 @@ class PostCreatorService {
         ],
       };
 
+      body[entityImagesField] = JSON.stringify(entityImagesObject);
+
       return;
+    }
+
+    if (!body[entityImagesField]) {
+      body[entityImagesField] = '{}';
     }
   }
 

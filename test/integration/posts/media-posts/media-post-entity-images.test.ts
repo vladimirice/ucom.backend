@@ -1,4 +1,6 @@
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+import { GraphqlHelper } from '../../helpers/graphql-helper';
+import { PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import EntityImagesModelProvider = require('../../../../lib/entity-images/service/entity-images-model-provider');
@@ -12,9 +14,8 @@ const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
 
 const server = require('../../../../app');
-// @ts-ignore
-let userVlad: UserModel;
 
+let userVlad: UserModel;
 // @ts-ignore
 let userJane: UserModel;
 
@@ -31,99 +32,141 @@ describe('media posts entity images', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
-  // @ts-ignore
   const fieldName = EntityImagesModelProvider.entityImagesColumn();
 
-  describe('Positive', () => {
-    it('Create media post without any images', async () => {
-      const myself = userVlad;
+  describe('Create media post with entity images', () => {
+    describe('Positive', () => {
+      it('Create media post without any images', async () => {
+        const myself = userVlad;
 
-      const newPostFields = {
-        title: 'Extremely new post',
-        description: 'Our super post description',
-        leading_text: 'extremely leading text',
-        post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+        const newPostFields = {
+          title: 'Extremely new post',
+          description: 'Our super post description',
+          leading_text: 'extremely leading text',
+          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
 
-        entity_images: null,
-        main_image_filename: null,
-      };
+          [fieldName]: {},
+          main_image_filename: null,
+        };
 
-      const res = await request(server)
-        .post(RequestHelper.getPostsUrl())
-        .set('Authorization', `Bearer ${myself.token}`)
-        .field('title', newPostFields.title)
-        .field('description', newPostFields.description)
-        .field('post_type_id', newPostFields.post_type_id)
-        .field('leading_text', newPostFields.leading_text)
-        .field('entity_images', '')
-      ;
+        const res = await request(server)
+          .post(RequestHelper.getPostsUrl())
+          .set('Authorization', `Bearer ${myself.token}`)
+          .field('title', newPostFields.title)
+          .field('description', newPostFields.description)
+          .field('post_type_id', newPostFields.post_type_id)
+          .field('leading_text', newPostFields.leading_text)
+          .field(fieldName, '')
+        ;
 
-      ResponseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
-      const posts = await PostsHelper.requestToGetManyPostsAsGuest();
-      const newPost = posts.find(data => data.title === newPostFields.title);
+        const posts = await GraphqlHelper.getManyMediaPostsAsMyself(myself);
+        const newPost: PostModelResponse | undefined = posts.data.find(data => data.title === newPostFields.title);
 
-      expect(newPost).toMatchObject(newPostFields);
-    }, JEST_TIMEOUT);
+        expect(newPost).toMatchObject(newPostFields);
 
-    it('Create media post with entity_images', async () => {
-      const myself = userVlad;
+        PostsHelper.checkEntityImages(newPost!);
 
-      const newPostFields = {
-        title: 'Extremely new post',
-        description: 'Our super post description',
-        leading_text: 'extremely leading text',
-        post_type_id: ContentTypeDictionary.getTypeMediaPost(),
-        entity_images: {
-          article_title: [
-            {
-              url: 'http://localhost:3000/upload/sample_filename_5.jpg',
+        ResponseHelper.expectEmptyObject(newPost![fieldName]);
+      }, JEST_TIMEOUT);
+      it('Create media post without any images - do not pass entity_images at all', async () => {
+        const myself = userVlad;
+
+        const newPostFields = {
+          title: 'Extremely new post',
+          description: 'Our super post description',
+          leading_text: 'extremely leading text',
+          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+        };
+
+        const res = await request(server)
+          .post(RequestHelper.getPostsUrl())
+          .set('Authorization', `Bearer ${myself.token}`)
+          .field('title', newPostFields.title)
+          .field('description', newPostFields.description)
+          .field('post_type_id', newPostFields.post_type_id)
+          .field('leading_text', newPostFields.leading_text)
+          .field(fieldName, '')
+        ;
+
+        ResponseHelper.expectStatusOk(res);
+
+        const posts = await GraphqlHelper.getManyMediaPostsAsMyself(myself);
+        const newPost: PostModelResponse | undefined = posts.data.find(data => data.title === newPostFields.title);
+
+        expect(newPost).toMatchObject(newPostFields);
+
+        PostsHelper.checkEntityImages(newPost!);
+
+        ResponseHelper.expectEmptyObject(newPost![fieldName]);
+      }, JEST_TIMEOUT);
+      it('Create media post with entity_images', async () => {
+        const myself = userVlad;
+
+        const newPostFields = {
+          title: 'Extremely new post',
+          description: 'Our super post description',
+          leading_text: 'extremely leading text',
+          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          [fieldName]: {
+            something: [
+              {
+                some_url_key: 'http://localhost:3000/upload/sample_filename_5.jpg',
+                comment: '12345',
+              },
+            ],
+            another_key: {
+              success: true,
             },
-          ],
-        },
-      };
+          },
+        };
 
-      const res = await request(server)
-        .post(RequestHelper.getPostsUrl())
-        .set('Authorization', `Bearer ${myself.token}`)
-        .field('title', newPostFields.title)
-        .field('description', newPostFields.description)
-        .field('post_type_id', newPostFields.post_type_id)
-        .field('leading_text', newPostFields.leading_text)
-        .field('entity_images', JSON.stringify(newPostFields.entity_images))
-      ;
+        const res = await request(server)
+          .post(RequestHelper.getPostsUrl())
+          .set('Authorization', `Bearer ${myself.token}`)
+          .field('title', newPostFields.title)
+          .field('description', newPostFields.description)
+          .field('post_type_id', newPostFields.post_type_id)
+          .field('leading_text', newPostFields.leading_text)
+          .field(fieldName, JSON.stringify(newPostFields.entity_images))
+        ;
 
-      ResponseHelper.expectStatusOk(res);
+        ResponseHelper.expectStatusOk(res);
 
-      const posts = await PostsHelper.requestToGetManyPostsAsGuest();
+        const posts = await PostsHelper.requestToGetManyPostsAsGuest();
 
-      // const posts = await PostsRepository.findAllByAuthor(myself.id);
-      const newPost = posts.find(data => data.title === newPostFields.title);
-      expect(newPost).toBeDefined();
+        const newPost = posts.find(data => data.title === newPostFields.title);
+        ResponseHelper.expectNotEmpty(newPost);
 
-      expect(newPost.main_image_filename).toBeNull();
+        expect(newPost.main_image_filename).toBeNull();
 
-      PostsHelper.checkEntityImages(newPost);
+        PostsHelper.checkEntityImages(newPost);
 
-      expect(newPost).toMatchObject(newPostFields);
+        expect(newPost).toMatchObject(newPostFields);
+      });
     });
+  });
 
+  describe('Update media post with entity images', () => {
     it('Update Media Post and also update entity_images', async () => {
       await PostsGenerator.createMediaPostByUserHimself(userVlad);
-
       const firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
-      // await PostsHelper.makeFieldNull(firstPostBefore.id, 'main_image_filename');
 
       const fieldsToChange = {
         title: 'This is title to change',
         description: 'Also necessary to change description',
         leading_text: 'And leading text',
-        entity_images: {
-          article_title: [
+        [fieldName]: {
+          something: [
             {
-              url: 'http://localhost:3000/upload/sample_filename_5.jpg',
+              some_url_key: 'http://localhost:3000/upload/sample_filename_5.jpg',
+              comment: '12345',
             },
           ],
+          another_key: {
+            success: true,
+          },
         },
       };
 
@@ -133,7 +176,7 @@ describe('media posts entity images', () => {
         .field('title',         fieldsToChange.title)
         .field('description',   fieldsToChange.description)
         .field('leading_text',  fieldsToChange.leading_text)
-        .field('entity_images',  JSON.stringify(fieldsToChange.entity_images))
+        .field(fieldName,  JSON.stringify(fieldsToChange.entity_images))
       ;
 
       ResponseHelper.expectStatusOk(res);
@@ -143,12 +186,21 @@ describe('media posts entity images', () => {
 
       PostsHelper.validatePatchResponse(res, postAfter);
 
+      postAfter.entity_images = JSON.parse(postAfter.entity_images);
+
       ResponseHelper.expectValuesAreExpected(fieldsToChange, postAfter);
 
-      // entity_images field do not change main_image_filename
-      expect(firstPostBefore.main_image_filename).toBe(postAfter.main_image_filename);
-
       PostsHelper.checkEntityImages(postAfter);
+    });
+  });
+
+  describe('Skipped', () => {
+    it.skip('Update empty to value for media post', async () => {
+      // there is no update feature for comments
+    });
+
+    it.skip('Update value to empty for media post', async () => {
+      // there is no update feature for comments
     });
   });
 });

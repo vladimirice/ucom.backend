@@ -55,4 +55,5 @@ export {
   PostsListResponse,
   PostRequestQueryDto,
   PostModelInput,
+  PostModelInterface,
 };

@@ -5,12 +5,15 @@ import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
 import UsersHelper = require('../integration/helpers/users-helper');
 import OrganizationsGenerator = require('./organizations-generator');
+import EntityImagesModelProvider = require('../../lib/entity-images/service/entity-images-model-provider');
 
 const _ = require('lodash');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
 const server = require('../../app');
+
+const entityImagesField: string = EntityImagesModelProvider.entityImagesColumn();
 
 class PostsGenerator {
   /**
@@ -436,6 +439,35 @@ class PostsGenerator {
     }
 
     return Promise.all(promises);
+  }
+
+  public static async createDirectPostForUserWithFields(
+    myself: UserModel,
+    wallOwner: UserModel,
+    givenFields: any,
+  ): Promise<PostModelResponse> {
+    const url: string = RequestHelper.getUserDirectPostUrlV2(wallOwner);
+
+    const fields = {
+      ...givenFields,
+      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+    };
+
+    if (typeof fields[entityImagesField] === 'object') {
+      fields[entityImagesField] = JSON.stringify(fields[entityImagesField]);
+    }
+
+    const req = request(server)
+      .post(url);
+
+    RequestHelper.addAuthToken(req, myself);
+    RequestHelper.addFieldsToRequest(req, fields);
+
+    const res = await req;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
   }
 
   static async createDirectPost(

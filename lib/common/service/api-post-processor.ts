@@ -6,6 +6,7 @@ import { TagsModelResponse } from '../../tags/interfaces/dto-interfaces';
 
 import CommentsPostProcessor = require('../../comments/service/comments-post-processor');
 import TagsModelProvider = require('../../tags/service/tags-model-provider');
+import PostsPostProcessor = require('../../posts/service/posts-post-processor');
 
 const PAGE_FOR_EMPTY_METADATA = 1;
 const PER_PAGE_FOR_EMPTY_METADATA = 10;
@@ -311,8 +312,7 @@ class ApiPostProcessor {
     currentUserId: number | null = null,
     userActivity: any = null,
   ): PostModelResponse[] {
-    for (let i = 0; i < posts.length; i += 1) {
-      const post = posts[i];
+    for (const post of posts) {
       this.processOnePostForList(post, currentUserId, userActivity);
 
       if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
@@ -350,7 +350,7 @@ class ApiPostProcessor {
     if (post.organization) {
       orgPostProcessor.processOneOrgModelCard(post.organization);
     }
-    postsPostProcessor.processPostInCommon(post);
+    PostsPostProcessor.processPostInCommon(post);
 
     this.normalizeModelInCommon(post);
 

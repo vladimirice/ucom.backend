@@ -13,6 +13,7 @@ import PostsCurrentParamsRepository = require('../../../lib/posts/repository/pos
 import knex = require('../../../config/knex');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
+import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 
 const request = require('supertest');
 const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
@@ -241,6 +242,7 @@ class PostsHelper {
     this.checkWrongPostProcessingSmell(post);
 
     expect(post.post_type_id).toBeTruthy();
+    expect(typeof post.entity_images).toBe('object');
 
     switch (post.post_type_id) {
       case ContentTypeDictionary.getTypeMediaPost():
@@ -264,16 +266,10 @@ class PostsHelper {
    *
    * @param {Object} model
    */
-  static checkEntityImages(model) {
-    expect(model.entity_images).toBeDefined();
+  public static checkEntityImages(model: PostModelResponse) {
+    const field: string = EntityImagesModelProvider.entityImagesColumn();
 
-    if (model.main_image_filename === null && model.entity_images === null) {
-      return;
-    }
-
-    expect(model.entity_images.article_title).toBeDefined();
-    expect(Array.isArray(model.entity_images.article_title)).toBeTruthy();
-    expect(model.entity_images.article_title.length).toBe(1);
+    ResponseHelper.expectToBeObject(model[field]);
   }
 
   /**
@@ -497,7 +493,7 @@ class PostsHelper {
       leading_text: 'extremely leading text',
       post_type_id: ContentTypeDictionary.getTypeMediaPost(),
       user_id: user.id,
-      current_rate: 0.0000000000,
+      current_rate: 0,
       current_vote: 0,
     };
 
