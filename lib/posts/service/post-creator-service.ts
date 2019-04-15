@@ -11,6 +11,8 @@ import PostOfferRepository = require('../repository/post-offer-repository');
 import UsersTeamRepository = require('../../users/repository/users-team-repository');
 import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
+import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
+import { PostModelInput } from '../interfaces/model-interfaces';
 
 const _ = require('lodash');
 const config = require('config');
@@ -81,11 +83,12 @@ class PostCreatorService {
     PostSanitizer.sanitisePost(body);
 
     // noinspection OverlyComplexBooleanExpressionJS
+    // #legacy backward compatibility - should be changed to entity_images
     if (files && files.main_image_filename && files.main_image_filename[0] && files.main_image_filename[0].filename) {
       body.main_image_filename = files.main_image_filename[0].filename;
     }
 
-    this.processEntityImagesWhileCreation(body);
+    this.legacyProcessEntityImagesWhileCreation(body);
 
     const { newPost, newActivity } = await models.sequelize
       .transaction(async (transaction) => {
@@ -121,7 +124,7 @@ class PostCreatorService {
    *
    * @param {Object} model
    */
-  public static processEntityImagesWhileUpdating(model) {
+  public static legacyProcessEntityImagesWhileUpdating(model) {
     // legacy compatibility. Main image filename rewrites entity_images if set
     if (model.main_image_filename) {
       model.entity_images = {
@@ -132,16 +135,6 @@ class PostCreatorService {
         ],
       };
     }
-
-    if (!model.entity_images) {
-      return;
-    }
-
-    if (typeof model.entity_images === 'string') {
-      model.entity_images = JSON.parse(model.entity_images);
-    }
-
-    this.checkPostEntityImages(model);
   }
 
   /**
@@ -192,39 +185,12 @@ class PostCreatorService {
     };
   }
 
-  /**
-   *
-   * @param {Object} model
-   */
-  private static checkPostEntityImages(model) {
-    if (!model.entity_images) {
-      throw new BadRequestError('Model must contain entity_images field');
-    }
-
-    if (!model.entity_images.article_title || !Array.isArray(model.entity_images.article_title)) {
-      throw new BadRequestError('Entity images must contain article_title array of objects');
-    }
-
-    if (model.entity_images.article_title.length !== 1) {
-      throw new BadRequestError('Entity images must contain exactly one object');
-    }
-
-    for (let i = 0; i < model.entity_images.article_title.length; i += 1) {
-      const current = model.entity_images.article_title[i];
-
-      if (!current.url || current.url.length === 0) {
-        throw new BadRequestError('Entity images object must contain valid url field');
-      }
-    }
-  }
-
-
-  private static processEntityImagesWhileCreation(body) {
+  // #legacy compatibility
+  private static legacyProcessEntityImagesWhileCreation(body) {
     if (body.main_image_filename && body.entity_images) {
       throw new BadRequestError('It is not possible to create post using both main_image_filename and entity_images');
     }
 
-    // legacy compatibility
     if (body.main_image_filename) {
       body.entity_images = {
         article_title: [
@@ -233,19 +199,9 @@ class PostCreatorService {
           },
         ],
       };
-    }
-
-    if (!body.entity_images) {
-      body.entity_images = null;
 
       return;
     }
-
-    if (typeof body.entity_images === 'string') {
-      body.entity_images = JSON.parse(body.entity_images);
-    }
-
-    this.checkPostEntityImages(body);
   }
 
   /**
@@ -415,7 +371,12 @@ class PostCreatorService {
 
   private static async createPostByPostType(postTypeId, body, transaction, currentUserId: number) {
     // #task - provide body validation form via Joi
-    let newPost;
+    let newPost: PostModelInput = {
+      entity_images: {},
+    };
+
+    EntityImageInputService.addEntityImageFieldFromBodyOrException(newPost, body);
+
     switch (postTypeId) {
       case ContentTypeDictionary.getTypeMediaPost():
         newPost = await postsRepository.createNewPost(body, currentUserId, transaction);

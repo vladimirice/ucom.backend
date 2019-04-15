@@ -129,7 +129,7 @@ class PostService {
 
     // noinspection JSDeprecatedSymbols
     postSanitizer.sanitisePost(params);
-    postCreatorService.processEntityImagesWhileUpdating(params);
+    postCreatorService.legacyProcessEntityImagesWhileUpdating(params);
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({

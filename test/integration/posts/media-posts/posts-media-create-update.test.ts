@@ -14,14 +14,15 @@ import PostsModelProvider = require('../../../../lib/posts/service/posts-model-p
 import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-const request = require('supertest');
 
+const request = require('supertest');
 const server = require('../../../../app');
+
 const ActivityGroupDictionary   = require('../../../../lib/activity/activity-group-dictionary');
 
 const PostsService            = require('./../../../../lib/posts/post-service');
 
-const avatarPath = FileToUploadHelper.getSampleFilePathToUpload();
+const avatarPath = FileToUploadHelper.getSamplePngPath();
 
 const postOfferUrl  = RequestHelper.getPostsUrl();
 const rootUrl       = RequestHelper.getPostsUrl();
@@ -34,12 +35,14 @@ MockHelper.mockAllBlockchainPart();
 
 // #this test cases should be refactored. Use generators, helper-checkers, etc.
 describe('Posts API', () => {
+  beforeAll(async () => {
+    await SeedsHelper.noGraphQlMockBlockchainOnly();
+  });
+  afterAll(async () => {
+    await SeedsHelper.afterAllWithoutGraphQl();
+  });
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
-  });
-
-  afterAll(async () => {
-    await SeedsHelper.sequelizeAfterAll();
   });
 
   describe('Media post creation', () => {
@@ -52,79 +55,6 @@ describe('Posts API', () => {
         PostsHelper.checkOneNewPostCurrentParams(data, true);
       });
 
-      it('Create media post without any images', async () => {
-        const myself = userVlad;
-
-        const newPostFields = {
-          title: 'Extremely new post',
-          description: 'Our super post description',
-          leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
-
-          entity_images: null,
-          main_image_filename: null,
-        };
-
-        const res = await request(server)
-          .post(postsUrl)
-          .set('Authorization', `Bearer ${myself.token}`)
-          .field('title', newPostFields.title)
-          .field('description', newPostFields.description)
-          .field('post_type_id', newPostFields.post_type_id)
-          .field('leading_text', newPostFields.leading_text)
-          .field('entity_images', '')
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-
-        const posts = await PostsHelper.requestToGetManyPostsAsGuest();
-        const newPost = posts.find(data => data.title === newPostFields.title);
-
-        expect(newPost).toMatchObject(newPostFields);
-      });
-
-      it('Create media post with entity_images', async () => {
-        const myself = userVlad;
-
-        const newPostFields = {
-          title: 'Extremely new post',
-          description: 'Our super post description',
-          leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
-          entity_images: {
-            article_title: [
-              {
-                url: 'http://localhost:3000/upload/sample_filename_5.jpg',
-              },
-            ],
-          },
-        };
-
-        const res = await request(server)
-          .post(postsUrl)
-          .set('Authorization', `Bearer ${myself.token}`)
-          .field('title', newPostFields.title)
-          .field('description', newPostFields.description)
-          .field('post_type_id', newPostFields.post_type_id)
-          .field('leading_text', newPostFields.leading_text)
-          .field('entity_images', JSON.stringify(newPostFields.entity_images))
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-
-        const posts = await PostsHelper.requestToGetManyPostsAsGuest();
-
-        // const posts = await PostsRepository.findAllByAuthor(myself.id);
-        const newPost = posts.find(data => data.title === newPostFields.title);
-        expect(newPost).toBeDefined();
-
-        expect(newPost.main_image_filename).toBeNull();
-
-        PostsHelper.checkEntityImages(newPost);
-
-        expect(newPost).toMatchObject(newPostFields);
-      });
-
       it('Create media post', async () => {
         const myself = userVlad;
 
@@ -134,7 +64,7 @@ describe('Posts API', () => {
           leading_text: 'extremely leading text',
           post_type_id: ContentTypeDictionary.getTypeMediaPost(),
           user_id: myself.id,
-          current_rate: 0.0000000000,
+          current_rate: 0,
           current_vote: 0,
         };
 
@@ -269,49 +199,6 @@ describe('Posts API', () => {
         expect(activity.event_id).toBeNull();
       });
 
-      it('Update Media Post and also update entity_images', async () => {
-        await PostsGenerator.createMediaPostByUserHimself(userVlad);
-
-        const firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
-        // await PostsHelper.makeFieldNull(firstPostBefore.id, 'main_image_filename');
-
-        const fieldsToChange = {
-          title: 'This is title to change',
-          description: 'Also necessary to change description',
-          leading_text: 'And leading text',
-          entity_images: {
-            article_title: [
-              {
-                url: 'http://localhost:3000/upload/sample_filename_5.jpg',
-              },
-            ],
-          },
-        };
-
-        const res = await request(server)
-          .patch(`${postsUrl}/${firstPostBefore.id}`)
-          .set('Authorization', `Bearer ${userVlad.token}`)
-          .field('title',         fieldsToChange.title)
-          .field('description',   fieldsToChange.description)
-          .field('leading_text',  fieldsToChange.leading_text)
-          .field('entity_images',  JSON.stringify(fieldsToChange.entity_images))
-        ;
-
-        ResponseHelper.expectStatusOk(res);
-
-        const postAfter =
-          await PostsRepository.findOneByIdAndAuthor(firstPostBefore.id, userVlad.id, true);
-
-        PostsHelper.validatePatchResponse(res, postAfter);
-
-        ResponseHelper.expectValuesAreExpected(fieldsToChange, postAfter);
-
-        // entity_images field do not change main_image_filename
-        expect(firstPostBefore.main_image_filename).toBe(postAfter.main_image_filename);
-
-        PostsHelper.checkEntityImages(postAfter);
-      });
-
       it('Update Media Post by its author', async () => {
         await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
@@ -425,6 +312,7 @@ describe('Posts API', () => {
     it('Should preserve iframe and attributes', async () => {
       const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
+      // noinspection HtmlDeprecatedAttribute
       const fieldsToChange = {
         description :
           `<div class="medium-insert-embeds">
@@ -514,7 +402,7 @@ describe('Posts API', () => {
       ResponseHelper.expectStatusOk(res);
 
       const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
-      expect(lastPost).toBeDefined();
+      ResponseHelper.expectNotEmpty(lastPost);
       expect(lastPost.post_offer).not.toBeNull();
 
       expect(res.body.id).toBe(lastPost.id);
@@ -670,7 +558,7 @@ describe('Posts API', () => {
       ResponseHelper.expectStatusOk(res);
 
       const lastPost = await PostsService.findLastPostOfferByAuthor(userVlad.id);
-      expect(lastPost).toBeDefined();
+      ResponseHelper.expectNotEmpty(lastPost);
       expect(lastPost.post_offer).not.toBeNull();
 
       expect(res.body.id).toBe(lastPost.id);

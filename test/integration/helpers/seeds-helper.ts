@@ -190,6 +190,33 @@ class SeedsHelper {
     await rabbitMqService.purgeAllQueues();
   }
 
+  public static async noGraphQlMockBlockchainOnly() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      workersMocking: 'blockchainOnly',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
+  }
+
+  public static async noGraphQlMockAllWorkers() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      workersMocking: 'all',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
+  }
+
+  public static async withGraphQlMockAllWorkers() {
+    const beforeAfterOptions = {
+      isGraphQl: true,
+      workersMocking: 'all',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
+  }
+
   public static async beforeAllSetting(options) {
     if (options.isGraphQl) {
       await GraphqlRequestHelper.beforeAll();
@@ -397,6 +424,22 @@ class SeedsHelper {
     await models.posts.bulkCreate(postsSeeds);
     await models.post_offer.bulkCreate(postsOffersSeeds);
     await models.post_users_team.bulkCreate(postUsersTeamSeeds);
+  }
+
+  public static async afterAllWithoutGraphQl() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+    };
+
+    return this.doAfterAll(beforeAfterOptions);
+  }
+
+  public static async afterAllWithGraphQl() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+    };
+
+    return this.doAfterAll(beforeAfterOptions);
   }
 
   public static async doAfterAll(
