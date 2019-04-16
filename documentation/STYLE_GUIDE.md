@@ -7,6 +7,7 @@ Table of contents:
     * [Autotests](#autotests)
     * [Naming](#naming)
     * [Commenting](#commenting)
+    * [Database](#database)
     
 
 
@@ -65,3 +66,9 @@ title | description
 #tech-debt | technical debt
 
 TODO - This section is not ready yet. This will populated with links to files that represent project conventions
+
+## Database
+
+Don't use | Do use
+--- | ---
+Create tables inside the public (default) schema | All new tables should be created inside the schemas different from public. [Example](../migrations_knex_monolith/20190401121234-create-table-blockchain-irreversible-traces.js)

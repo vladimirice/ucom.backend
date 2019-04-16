@@ -3,6 +3,7 @@ import { RequestQueryDto } from '../../api/filters/interfaces/query-filter-inter
 
 interface UserModel {
   readonly id: number;
+  readonly account_name: string;
 
   [index: string]: string | number,
 }

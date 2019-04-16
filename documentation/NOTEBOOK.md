@@ -2,16 +2,28 @@
 
 Goal - just to save workflow before implementation.
 
----- Worker - Change user status to pending ----
+-----------------
+Script to migrate from main_image_filename to the entity_images
 
+SELECT
+       main_image_filename,
+       entity_images,
+       post_type_id,
+       created_at,
+       concat('http://backend.u.community/upload/', main_image_filename)
+FROM posts
+WHERE
+      main_image_filename IS NOT NULL
+  AND main_image_filename != ''
+  AND (
+    entity_images = '""'
+    OR entity_images IS NULL
+  )
+ORDER BY main_image_filename ASC
 
-Step 2: Users-tokens and airdrop state:
-fetch status from external_data, not hardcoded NEW
+--------------
 
-Step 3:
-Add new worker to pm2 env
-
------------ Activity data provider -------------
+Activity data provider 
 
 workflow
 
