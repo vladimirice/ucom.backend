@@ -34,6 +34,22 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static async makePostRequest(
+    url: string,
+    fields: any,
+    myself: UserModel | null = null,
+  ): Promise<any> {
+    const req = this.getRequestObjForPost(url);
+
+    if (myself) {
+      this.addAuthToken(req, myself);
+    }
+
+    this.addFieldsToRequest(req, fields);
+
+    return req;
+  }
+
   public static addEntityImagesField(req: any, entityImages: any): void {
     const value = typeof entityImages === 'string' ? entityImages : JSON.stringify(entityImages);
 
