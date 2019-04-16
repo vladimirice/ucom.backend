@@ -27,7 +27,7 @@ describe('Importance - get and update for accounts', () => {
       MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
 
       await UosAccountsPropertiesUpdateService.updateAll();
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 100);
 
     it('test with pagination', async () => {
       // TODO

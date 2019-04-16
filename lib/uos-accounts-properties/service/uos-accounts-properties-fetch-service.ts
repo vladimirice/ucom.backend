@@ -8,6 +8,8 @@ class UosAccountsPropertiesFetchService {
     limit: number,
   ): Promise<UosAccountsResponseDto> {
     // @ts-ignore
+
+    // TODO check if accounts are persist - check root interface
     return [];
   }
 }
