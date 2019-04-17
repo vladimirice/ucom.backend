@@ -14,6 +14,7 @@ import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 import EntityImagesModelProvider = require('../../entity-images/service/entity-images-model-provider');
+import EnvHelper = require('../../common/helper/env-helper');
 
 const _ = require('lodash');
 const config = require('config');
@@ -385,7 +386,7 @@ class PostCreatorService {
     };
 
     // TODO - remove, backward compatibility
-    if (typeof body.entity_images !== 'string') {
+    if (typeof body.entity_images !== 'string' && EnvHelper.isProductionEnv()) {
       if (body.entity_images
         && body.entity_images.article_title
         && body.entity_images.article_title[0]
