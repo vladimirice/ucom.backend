@@ -434,8 +434,7 @@ describe('Posts API', () => {
     it.skip('Post-offer. Should create valid activity record', async () => {
       const user = userVlad;
 
-      // noinspection JSDeprecatedSymbols
-      const newPostId = await PostsHelper.requestToCreatePostOffer(user);
+      const newPostId = await PostsGenerator.createPostOfferByUserHimself(user);
       const activity  = await UsersActivityRepository.findLastByUserIdAndEntityId(
         userVlad.id,
         newPostId,

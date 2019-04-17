@@ -1,5 +1,4 @@
 import SeedsHelper = require('../helpers/seeds-helper');
-import CommentsHelper = require('../helpers/comments-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import PostsGenerator = require('../../generators/posts-generator');
@@ -77,8 +76,7 @@ describe('Organization members creates comments', () => {
 
         const postId = await PostsGenerator.createMediaPostOfOrganization(userJane, orgId);
 
-        // noinspection JSDeprecatedSymbols
-        const body = await CommentsHelper.requestToCreateComment(postId, userVlad);
+        const body = await CommentsGenerator.createCommentForPost(postId, userVlad);
         expect(body.organization_id).toBeNull();
 
         expect(body.organization).toBeNull();
@@ -105,11 +103,9 @@ describe('Organization members creates comments', () => {
         const postId = 1; // post_id = 1 is belong to organization of author vlad
         const orgId  = 1;
 
-        // noinspection JSDeprecatedSymbols
-        const parentComment = await CommentsHelper.requestToCreateComment(postId, userRokky);
+        const parentComment = await CommentsGenerator.createCommentForPost(postId, userRokky);
 
-        // noinspection JSDeprecatedSymbols
-        const body = await CommentsHelper.requestToCreateCommentOnComment(
+        const body = await CommentsGenerator.createCommentOnComment(
           postId,
           parentComment.id,
           userVlad,
@@ -145,11 +141,9 @@ describe('Organization members creates comments', () => {
       it('should not fill organization_id if comment author is not a org member', async () => {
         const postId = 1; // post_id = 1 is belong to organization of author vlad
 
-        // noinspection JSDeprecatedSymbols
-        const parentComment = await CommentsHelper.requestToCreateComment(postId, userVlad);
+        const parentComment = await CommentsGenerator.createCommentForPost(postId, userVlad);
 
-        // noinspection JSDeprecatedSymbols
-        const body = await CommentsHelper.requestToCreateCommentOnComment(
+        const body = await CommentsGenerator.createCommentOnComment(
           postId,
           parentComment.id,
           userRokky,
