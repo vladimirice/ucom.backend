@@ -30,7 +30,7 @@ router.post('/login', [formDataParser], async (req, res, next) => {
       errors: [
         {
           field: 'account_name',
-          message: 'Such account does not exist in blockchain',
+          message: 'Incorrect Brainkey or Account name',
         },
       ],
     });
@@ -50,7 +50,7 @@ router.post('/login', [formDataParser], async (req, res, next) => {
         errors: [
           {
             field: 'account_name',
-            message: 'Such account does not exist in blockchain',
+            message: 'Incorrect Brainkey or Account name',
           },
         ],
       });

@@ -1,42 +1,38 @@
-export {};
+import AuthHelper = require('../helpers/auth-helper');
+import UsersHelper = require('../helpers/users-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import ResponseHelper = require('../helpers/response-helper');
+import RequestHelper = require('../helpers/request-helper');
 
 const request = require('supertest');
 const models = require('../../../models');
 const server = require('../../../app');
 const eosJsEcc = require('../../../lib/crypto/eosjs-ecc');
 
-const authHelper = require('../helpers/auth-helper');
-const usersHelper = require('../helpers/users-helper');
-const seedsHelper = require('../helpers/seeds-helper');
-const responseHelper = require('../helpers/response-helper');
-
-const helpers = require('../helpers');
-
-const eosAccount = usersHelper.getVladEosAccount();
+const eosAccount = UsersHelper.getVladEosAccount();
 const registerUrl = '/api/v1/auth/login';
 
-const vladSeed = usersHelper.getUserVladSeed();
-const vladEosAccount = usersHelper.getVladEosAccount();
+const vladSeed = UsersHelper.getUserVladSeed();
+const vladEosAccount = UsersHelper.getVladEosAccount();
 
-const janeSeed = usersHelper.getUserJaneSeed();
-const janeEosAccount = usersHelper.getJaneEosAccount();
+const janeSeed = UsersHelper.getUserJaneSeed();
+const janeEosAccount = UsersHelper.getJaneEosAccount();
 
 describe('Test auth workflow', () => {
-
   beforeEach(async () => {
-    await seedsHelper.initSeeds();
+    await SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
-    await seedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   describe('Positive scenarios', () => {
     // #task put here all positive scenarios
     it('Send correct login request with already existed user', async () => {
-      const account_name = janeSeed.account_name;
+      const { account_name } = janeSeed;
       const privateKey = janeEosAccount.activePk;
-      const public_key = janeSeed.public_key;
+      const { public_key } = janeSeed;
 
       const usersCountBefore = await models.Users.count({ where: { account_name } });
       expect(usersCountBefore).toBe(1);
@@ -50,7 +46,7 @@ describe('Test auth workflow', () => {
         .field('sign', sign)
       ;
 
-      authHelper.validateAuthResponse(res, account_name);
+      AuthHelper.validateAuthResponse(res, account_name);
       const usersCountAfter = await models.Users.count({ where: { account_name } });
       expect(usersCountAfter).toBe(usersCountBefore);
     }, 10000);
@@ -74,7 +70,7 @@ describe('Test auth workflow', () => {
 
     const publicKeyError = body.find(e => e.field === 'account_name');
     expect(publicKeyError).toBeDefined();
-    expect(publicKeyError.message).toMatch('Such account does not exist in blockchain');
+    expect(publicKeyError.message).toMatch('Incorrect Brainkey or Account name');
   });
 
   it('Should receive validation error if no fields provided', async () => {
@@ -104,8 +100,8 @@ describe('Test auth workflow', () => {
       .field('sign', 'invalidSign')
     ;
 
-    responseHelper.expectStatusBadRequest(res);
-    const body = res.body;
+    ResponseHelper.expectStatusBadRequest(res);
+    const { body } = res;
 
     expect(body.hasOwnProperty('errors')).toBeTruthy();
     expect(body.errors).toMatch('Expecting signature like');
@@ -119,8 +115,8 @@ describe('Test auth workflow', () => {
       .field('sign', 'invalidSign')
     ;
 
-    responseHelper.expectStatusBadRequest(res);
-    const body = res.body;
+    ResponseHelper.expectStatusBadRequest(res);
+    const { body } = res;
 
     expect(body.hasOwnProperty('errors')).toBeTruthy();
     expect(body.errors).toMatch('Public key is not valid');
@@ -131,17 +127,17 @@ describe('Test auth workflow', () => {
     const oldToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNTM3ODc0NzI4fQ.thvAtbCYq8ubbI7mXZgXyQBEmqxZpmbRWuZyCuElaD1';
 
     const res = await request(server)
-      .get(helpers.RequestHelper.getUsersUrl())
+      .get(RequestHelper.getUsersUrl())
       .set('Authorization', `Bearer ${oldToken}`)
     ;
 
-    responseHelper.expectStatusUnauthorized(res);
+    ResponseHelper.expectStatusUnauthorized(res);
   });
 
   it('Send account name and sign of invalid private key', async () => {
-    const account_name = janeSeed.account_name;
+    const { account_name } = janeSeed;
     const privateKey = vladEosAccount.activePk;
-    const public_key = vladSeed.public_key;
+    const { public_key } = vladSeed;
 
     const sign = eosJsEcc.sign(account_name, privateKey);
 
@@ -155,3 +151,5 @@ describe('Test auth workflow', () => {
     expect(res.status).toBe(400);
   }, 10000);
 });
+
+export {};
