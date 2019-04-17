@@ -386,7 +386,15 @@ class PostCreatorService {
 
     // TODO - remove, backward compatibility
     if (typeof body.entity_images !== 'string') {
-      body.entity_images = '{}';
+      if (body.entity_images
+        && body.entity_images.article_title
+        && body.entity_images.article_title[0]
+        && body.entity_images.article_title[0].url
+      ) {
+        body.entity_images = `{"article_title": [{"url": "${body.entity_images.article_title[0].url}"}]}`;
+      } else {
+        body.entity_images = '{}';
+      }
     }
 
     EntityImageInputService.addEntityImageFieldFromBodyOrException(newPost, body);
