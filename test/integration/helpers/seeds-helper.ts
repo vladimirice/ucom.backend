@@ -144,7 +144,6 @@ class SeedsHelper {
       post_type_id: 1,
       title: 'EOS core library update',
       description: 'We are happy to announce a new major version of our EOS core library. A several cool features are successfully implemented',
-      main_image_filename: 'sample_filename_1.jpg',
       user_id: user.id,
       leading_text: 'Special update for our EOS people',
       created_at: new Date(),

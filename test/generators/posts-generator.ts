@@ -288,7 +288,7 @@ class PostsGenerator {
       leading_text: 'extremely leading text',
       post_type_id: ContentTypeDictionary.getTypeMediaPost(),
       user_id: user.id,
-      current_rate: 0.0000000000,
+      current_rate: 0,
       current_vote: 0,
     };
 
@@ -504,6 +504,7 @@ class PostsGenerator {
     url: string,
     myself: UserModel,
     givenDescription: string | null = null,
+    // @ts-ignore
     withImage: boolean = false,
     idOnly: boolean = false,
   ): Promise<PostModelResponse> {
@@ -519,10 +520,6 @@ class PostsGenerator {
 
     RequestHelper.addAuthToken(req, myself);
     RequestHelper.addFieldsToRequest(req, fields);
-
-    if (withImage) {
-      RequestHelper.addSampleMainImageFilename(req);
-    }
 
     const res = await req;
 

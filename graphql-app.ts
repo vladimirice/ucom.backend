@@ -69,7 +69,6 @@ const typeDefs = gql`
     current_rate: Float!
     comments_count: Int!
 
-    main_image_filename: String
     entity_images: JSON
     
     entity_tags: JSON
@@ -107,7 +106,6 @@ const typeDefs = gql`
     current_rate: Float!
     comments_count: Int!
 
-    main_image_filename: String
     entity_images: JSON
     
     entity_tags: JSON

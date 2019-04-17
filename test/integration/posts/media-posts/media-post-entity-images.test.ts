@@ -46,7 +46,6 @@ describe('media posts entity images', () => {
           post_type_id: ContentTypeDictionary.getTypeMediaPost(),
 
           [fieldName]: {},
-          main_image_filename: null,
         };
 
         const res = await request(server)
@@ -138,8 +137,6 @@ describe('media posts entity images', () => {
 
         const newPost = posts.find(data => data.title === newPostFields.title);
         ResponseHelper.expectNotEmpty(newPost);
-
-        expect(newPost.main_image_filename).toBeNull();
 
         PostsHelper.checkEntityImages(newPost);
 

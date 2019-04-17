@@ -4,8 +4,6 @@ import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsHelper = require('../../helpers/posts-helper');
 import CommonHelper = require('../../helpers/common-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
-import FileToUploadHelper = require('../../helpers/file-to-upload-helper');
-import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
 
 export {};
@@ -109,29 +107,6 @@ describe('Direct posts create-update', () => {
             ...expected,
             ...newPostFields,
           }, user);
-        });
-
-        it('Create direct post with picture', async () => {
-          const post =
-            await PostsGenerator.createUserDirectPostForOtherUser(userVlad, userJane, null, true);
-          expect(post.main_image_filename).toBeDefined();
-
-          await FileToUploadHelper.isFileUploaded(post.main_image_filename);
-        });
-
-        it('Create direct post for org with picture', async () => {
-          const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
-
-          const post = await PostsGenerator.createDirectPostForOrganization(
-            userVlad,
-            orgId,
-            null,
-            true,
-          );
-
-          expect(post.main_image_filename).toBeDefined();
-
-          await FileToUploadHelper.isFileUploaded(post.main_image_filename);
         });
       });
     });

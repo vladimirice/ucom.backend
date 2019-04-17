@@ -14,6 +14,10 @@ class EntityImagesInputValidator {
   }
 
   public static validateParsedInput(entityImages: any): boolean {
+    if (entityImages === null) {
+      throw new BadRequestError('Null value is not allowed for entity_images. Please, provide an empty object {} instead');
+    }
+
     if (Array.isArray(entityImages)) {
       throw new BadRequestError('Root element must to be an object, not an array.');
     }

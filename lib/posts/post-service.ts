@@ -129,7 +129,6 @@ class PostService {
 
     // noinspection JSDeprecatedSymbols
     postSanitizer.sanitisePost(params);
-    postCreatorService.legacyProcessEntityImagesWhileUpdating(params);
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({
@@ -143,7 +142,7 @@ class PostService {
     if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeMediaPost()) {
       // noinspection AssignmentToFunctionParameterJS
       // noinspection JSValidateTypes
-      params = _.pick(params, ['post_type_id', 'title', 'description', 'main_image_filename', 'leading_text', 'entity_images']);
+      params = _.pick(params, ['post_type_id', 'title', 'description', 'leading_text', 'entity_images']);
     }
 
     const { updatedPost, newActivity } = await models.sequelize.transaction(async (transaction) => {
