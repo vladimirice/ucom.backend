@@ -31,8 +31,7 @@ describe('Organization members creates comments', () => {
         const postId = 1; // post_id = 1 is belong to organization of author vlad
         const orgId  = 1;
 
-        // noinspection JSDeprecatedSymbols
-        const body = await CommentsHelper.requestToCreateComment(postId, userVlad);
+        const body = await CommentsGenerator.createCommentForPost(postId, userVlad);
         expect(body.organization_id).toBeDefined();
         expect(body.organization_id).toBe(orgId);
 

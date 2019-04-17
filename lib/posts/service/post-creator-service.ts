@@ -12,7 +12,6 @@ import UsersTeamRepository = require('../../users/repository/users-team-reposito
 import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
-import EnvHelper = require('../../common/helper/env-helper');
 
 const _ = require('lodash');
 
@@ -328,19 +327,6 @@ class PostCreatorService {
   }
 
   private static async createPostByPostType(postTypeId, body, transaction, currentUserId: number) {
-    // TODO - remove, backward compatibility
-    if (typeof body.entity_images !== 'string' && EnvHelper.isProductionEnv()) {
-      if (body.entity_images
-        && body.entity_images.article_title
-        && body.entity_images.article_title[0]
-        && body.entity_images.article_title[0].url
-      ) {
-        body.entity_images = `{"article_title": [{"url": "${body.entity_images.article_title[0].url}"}]}`;
-      } else {
-        body.entity_images = '{}';
-      }
-    }
-
     // #task - legacy. Pick beforehand required fields
     const data = _.cloneDeep(body);
     delete data.entity_images;

@@ -129,7 +129,8 @@ class PostsGenerator {
       .field('current_rate', newPostFields.current_rate)
       .field('current_vote', newPostFields.current_vote)
       .field('action_button_title', newPostFields.action_button_title)
-      .field('organization_id', newPostFields.organization_id);
+      .field('organization_id', newPostFields.organization_id)
+      .field(EntityImagesModelProvider.entityImagesColumn(), '{}');
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
