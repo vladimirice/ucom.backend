@@ -6,6 +6,10 @@ class EntityImagesInputValidator {
       throw new BadRequestError('It is required to provide entity_images as serialized JSON (string)');
     }
 
+    if (entityImages === 'null') {
+      throw new BadRequestError('null is not a valid value for entity_images');
+    }
+
     if (entityImages.length > 1000) {
       throw new BadRequestError('Max allowed entity_images string length is 1000 symbols');
     }
