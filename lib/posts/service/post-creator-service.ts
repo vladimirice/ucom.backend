@@ -2,7 +2,6 @@
 
 import { IdOnlyDto } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
-import { PostModelInput } from '../interfaces/model-interfaces';
 
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import PostSanitizer = require('../post-sanitizer');
@@ -129,6 +128,8 @@ class PostCreatorService {
 
     body.entity_id_for    = user.id;
     body.entity_name_for  = usersModelProvider.getEntityName();
+
+    EntityImageInputService.setEmptyEntityImages(body);
 
     await eosTransactionService.appendSignedUserCreatesRepost(body, user, parentPost.blockchain_id);
     const eventId = eventIdDictionary.getRepostEventId(parentPost.organization_id);
@@ -327,11 +328,6 @@ class PostCreatorService {
   }
 
   private static async createPostByPostType(postTypeId, body, transaction, currentUserId: number) {
-    // #task - provide body validation form via Joi
-    let newPost: PostModelInput = {
-      entity_images: {},
-    };
-
     // TODO - remove, backward compatibility
     if (typeof body.entity_images !== 'string' && EnvHelper.isProductionEnv()) {
       if (body.entity_images
@@ -345,20 +341,25 @@ class PostCreatorService {
       }
     }
 
-    EntityImageInputService.addEntityImageFieldFromBodyOrException(newPost, body);
+    // #task - legacy. Pick beforehand required fields
+    const data = _.cloneDeep(body);
+    delete data.entity_images;
 
+    EntityImageInputService.addEntityImageFieldFromBodyOrException(data, body);
+
+    let newPost;
     switch (postTypeId) {
       case ContentTypeDictionary.getTypeMediaPost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
+        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeOffer():
-        newPost = await PostOfferRepository.createNewOffer(body, currentUserId, transaction);
+        newPost = await PostOfferRepository.createNewOffer(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeDirectPost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
+        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeRepost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
+        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
         break;
       default:
         throw new BadRequestError({

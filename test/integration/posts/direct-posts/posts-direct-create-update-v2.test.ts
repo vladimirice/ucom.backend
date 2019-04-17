@@ -124,7 +124,6 @@ describe('Direct posts create-update v2', () => {
         description: 'changed sample description of direct post',
       };
 
-      // noinspection JSDeprecatedSymbols
       const postBefore  =
         await PostsGenerator.createUserDirectPostForOtherUserV2(user, targetUser);
       const postAfter   = await PostsHelper.requestToUpdatePostDescriptionV2(

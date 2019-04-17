@@ -151,6 +151,7 @@ class SeedsHelper {
       blockchain_id: 'sample_post_blockchain_id',
       entity_id_for: user.id,
       entity_name_for: UsersModelProvider.getEntityName(),
+      entity_images: {},
     };
 
     const model = await models.posts.create(data);
@@ -174,6 +175,7 @@ class SeedsHelper {
       user_id:        user.id,
       path:           [1], // Will be malformed if you create several comments
       depth: 0,
+      entity_images: {},
     };
 
     const model = await models.comments.create(data);

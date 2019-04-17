@@ -7,6 +7,10 @@ import EntityImagesModelProvider = require('./entity-images-model-provider');
 const fieldName = EntityImagesModelProvider.entityImagesColumn();
 
 class EntityImageInputService {
+  public static setEmptyEntityImages(model: any): void {
+    model[fieldName] = {};
+  }
+
   public static addEntityImageFieldFromBodyOrException(
     model: ModelWithEntityImages,
     body: any,

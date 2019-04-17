@@ -55,7 +55,7 @@ describe('media posts entity images', () => {
           .field('description', newPostFields.description)
           .field('post_type_id', newPostFields.post_type_id)
           .field('leading_text', newPostFields.leading_text)
-          .field(fieldName, '')
+          .field(fieldName, '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -86,7 +86,7 @@ describe('media posts entity images', () => {
           .field('description', newPostFields.description)
           .field('post_type_id', newPostFields.post_type_id)
           .field('leading_text', newPostFields.leading_text)
-          .field(fieldName, '')
+          .field(fieldName, '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -183,10 +183,7 @@ describe('media posts entity images', () => {
 
       PostsHelper.validatePatchResponse(res, postAfter);
 
-      postAfter.entity_images = JSON.parse(postAfter.entity_images);
-
       ResponseHelper.expectValuesAreExpected(fieldsToChange, postAfter);
-
       PostsHelper.checkEntityImages(postAfter);
     });
   });

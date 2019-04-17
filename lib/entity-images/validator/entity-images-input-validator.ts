@@ -10,6 +10,10 @@ class EntityImagesInputValidator {
       throw new BadRequestError('null is not a valid value for entity_images');
     }
 
+    if (entityImages.length === 0) {
+      throw new BadRequestError('entity_images string length should be more than 0');
+    }
+
     if (entityImages.length > 1000) {
       throw new BadRequestError('Max allowed entity_images string length is 1000 symbols');
     }

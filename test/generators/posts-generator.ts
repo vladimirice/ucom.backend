@@ -92,7 +92,8 @@ class PostsGenerator {
       .field('description', newPostFields.description)
       .field('post_type_id', newPostFields.post_type_id)
       .field('leading_text', newPostFields.leading_text)
-      .field('organization_id', orgId);
+      .field('organization_id', orgId)
+      .field('entity_images', '{}');
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -272,15 +273,9 @@ class PostsGenerator {
     return Promise.all(promises);
   }
 
-  /**
-   *
-   * @param {Object} user
-   * @param {Object} values
-   * @returns {Promise<number>}
-   */
-  static async createMediaPostByUserHimself(
-    user: any,
-    values: Object = {},
+  public static async createMediaPostByUserHimself(
+    user: UserModel,
+    values: any = {},
   ): Promise<number> {
     const defaultValues = {
       title: 'Extremely new post',
@@ -290,6 +285,7 @@ class PostsGenerator {
       user_id: user.id,
       current_rate: 0,
       current_vote: 0,
+      entity_images: '{}',
     };
 
     const newPostFields = _.defaults(values, defaultValues);
@@ -303,18 +299,14 @@ class PostsGenerator {
       .field('post_type_id', newPostFields.post_type_id)
       .field('user_id', newPostFields.user_id)
       .field('current_rate', newPostFields.current_rate)
-      .field('current_vote', newPostFields.current_vote);
+      .field('current_vote', newPostFields.current_vote)
+      .field('entity_images', newPostFields.entity_images);
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
 
-  /**
-   *
-   * @param {Object} user
-   * @return {Promise<number>}
-   */
-  static async createPostOfferByUserHimself(user: UserModel): Promise<number> {
+  public static async createPostOfferByUserHimself(user: UserModel): Promise<number> {
     const newPostFields = {
       title: 'Extremely new post',
       description: 'Our super post description',
@@ -336,7 +328,8 @@ class PostsGenerator {
       .field('post_type_id', newPostFields.post_type_id)
       .field('current_rate', newPostFields.current_rate)
       .field('current_vote', newPostFields.current_vote)
-      .field('action_button_title', newPostFields.action_button_title);
+      .field('action_button_title', newPostFields.action_button_title)
+      .field('entity_images', '{}');
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -479,6 +472,7 @@ class PostsGenerator {
     const url: string = RequestHelper.getUserDirectPostUrlV2(wallOwner);
 
     const fields = {
+      [EntityImagesModelProvider.entityImagesColumn()]: '{}',
       ...givenFields,
       post_type_id: ContentTypeDictionary.getTypeDirectPost(),
     };
@@ -516,6 +510,7 @@ class PostsGenerator {
     const fields = {
       description,
       post_type_id: postTypeId,
+      entity_images: '{}',
     };
 
     RequestHelper.addAuthToken(req, myself);

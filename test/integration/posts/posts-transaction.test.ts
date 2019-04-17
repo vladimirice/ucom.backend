@@ -1,3 +1,5 @@
+import PostsGenerator = require('../../generators/posts-generator');
+
 export {};
 
 const delay = require('delay');
@@ -103,8 +105,7 @@ describe('Posts related blockchain transactions.', () => {
         const orgId = 1;
         let activity: any = null;
 
-        // noinspection JSDeprecatedSymbols
-        await helpers.Post.requestToCreateMediaPostOfOrganization(user, orgId);
+        await PostsGenerator.createMediaPostOfOrganization(user, orgId);
         while (!activity) {
           activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
           await delay(100);
@@ -181,8 +182,7 @@ describe('Posts related blockchain transactions.', () => {
         const user = userVlad;
         let activity: any = null;
 
-        // noinspection JSDeprecatedSymbols
-        await helpers.Post.requestToCreateMediaPost(user);
+        await PostsGenerator.createMediaPostByUserHimself(user);
         while (!activity) {
           activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
           await delay(100);
@@ -203,8 +203,7 @@ describe('Posts related blockchain transactions.', () => {
       const user = userVlad;
       let activity: any = null;
 
-      // noinspection JSDeprecatedSymbols
-      await helpers.Post.requestToCreatePostOffer(user);
+      await PostsGenerator.createPostOfferByUserHimself(user);
       while (!activity) {
         activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
         await delay(100);

@@ -72,6 +72,7 @@ describe('Posts API', () => {
           .field('description', newPostFields.description)
           .field('post_type_id', newPostFields.post_type_id)
           .field('leading_text', newPostFields.leading_text)
+          .field('entity_images', '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -93,8 +94,6 @@ describe('Posts API', () => {
           entity_id_for:    `${myself.id}`,
           entity_name_for:  UsersModelProvider.getEntityName(),
         });
-
-        newPost.entity_images = JSON.parse(newPost.entity_images);
 
         PostsHelper.checkEntityImages(newPost);
       });
@@ -179,6 +178,7 @@ describe('Posts API', () => {
           .field('title',         fieldsToChange.title)
           .field('description',   fieldsToChange.description)
           .field('leading_text',  fieldsToChange.leading_text)
+          .field('entity_images',  '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -210,6 +210,7 @@ describe('Posts API', () => {
           .field('title',         fieldsToChange.title)
           .field('description',   fieldsToChange.description)
           .field('leading_text',  fieldsToChange.leading_text)
+          .field('entity_images',  '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -245,8 +246,7 @@ describe('Posts API', () => {
     it('Media post. Should create valid activity record', async () => {
       const user = userVlad;
 
-      // noinspection JSDeprecatedSymbols
-      const newPostId = await PostsHelper.requestToCreateMediaPost(user);
+      const newPostId = await PostsGenerator.createMediaPostByUserHimself(user);
       const activity =
         await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newPostId);
       expect(activity).not.toBeNull();
@@ -284,6 +284,7 @@ describe('Posts API', () => {
         .patch(RequestHelper.getOnePostUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description',   fieldsToChange.description)
+        .field('entity_images',   '{}')
       ;
 
       ResponseHelper.expectStatusOk(res);
@@ -315,6 +316,7 @@ describe('Posts API', () => {
         .patch(RequestHelper.getOnePostUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description',   fieldsToChange.description)
+        .field('entity_images',   '{}')
       ;
 
       ResponseHelper.expectStatusOk(res);
@@ -341,6 +343,7 @@ describe('Posts API', () => {
         .field('title',         fieldsToChange.title)
         .field('description',   fieldsToChange.description)
         .field('leading_text',  fieldsToChange.leading_text)
+        .field('entity_images',  '{}')
       ;
 
       ResponseHelper.expectStatusOk(res);

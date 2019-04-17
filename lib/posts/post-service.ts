@@ -8,6 +8,7 @@ import PostsFetchService = require('./service/posts-fetch-service');
 import PostCreatorService = require('./service/post-creator-service');
 import UserActivityService = require('../users/user-activity-service');
 import PostsRepository = require('./posts-repository');
+import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
 
 const _ = require('lodash');
 
@@ -150,7 +151,13 @@ class PostService {
         await PostService.updatePostUsersTeam(postId, params, transaction);
       }
 
-      await models.posts.update(params, {
+      // #refactor
+      const updatePostParams = _.cloneDeep(params);
+      delete updatePostParams.entity_images;
+
+      EntityImageInputService.addEntityImageFieldFromBodyOrException(updatePostParams, params);
+
+      await models.posts.update(updatePostParams, {
         transaction,
         where: {
           id: postId,

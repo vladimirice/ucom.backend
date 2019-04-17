@@ -418,6 +418,7 @@ class PostsHelper {
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
+      .field(EntityImagesModelProvider.entityImagesColumn(),  '{}')
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -449,6 +450,7 @@ class PostsHelper {
       .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
+      .field(EntityImagesModelProvider.entityImagesColumn(),   '{}')
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -472,6 +474,7 @@ class PostsHelper {
       .patch(RequestHelper.getOnePostV2Url(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
+      .field('entity_images',   '{}')
     ;
 
     ResponseHelper.expectStatusOk(res);
