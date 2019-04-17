@@ -384,6 +384,11 @@ class PostCreatorService {
       entity_images: {},
     };
 
+    // TODO - remove, backward compatibility
+    if (typeof body.entity_images !== 'string') {
+      body.entity_images = '{}';
+    }
+
     EntityImageInputService.addEntityImageFieldFromBodyOrException(newPost, body);
 
     switch (postTypeId) {
