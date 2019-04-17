@@ -42,10 +42,16 @@ class UosAccountsPropertiesUpdateService {
   ): Promise<void> {
     const accountsProperties: UosAccountPropertiesDto[] = response.accounts;
 
+
+    let values = '';
     // @ts-ignore
     for (const properties of accountsProperties) {
       // @ts-ignore
       const a = 0;
+
+      values += `
+        ('${properties.name}')
+      `;
     }
 
     const sql = `
@@ -59,7 +65,9 @@ class UosAccountsPropertiesUpdateService {
             WHERE t.account_name = properties.account_name;
     `;
 
-    await knex.raw(sql);
+    if (values.length > 0) {
+      await knex.raw(sql);
+    }
 
     // const promises: Promise<any>[] = [];
 
