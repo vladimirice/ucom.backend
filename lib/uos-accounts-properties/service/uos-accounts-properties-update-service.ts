@@ -5,6 +5,7 @@ import { UosAccountPropertiesDto, UosAccountsResponseDto } from '../interfaces/m
 import UsersModelProvider = require('../../users/users-model-provider');
 import BatchProcessingHelper = require('../../common/helper/batch-processing-helper');
 import UosAccountsPropertiesFetchService = require('./uos-accounts-properties-fetch-service');
+import knex = require('../../../config/knex');
 
 class UosAccountsPropertiesUpdateService {
   public static async updateAll(limit: number = 2): Promise<void> {
@@ -48,25 +49,17 @@ class UosAccountsPropertiesUpdateService {
     }
 
     const sql = `
-        update "Users" AS t 
+        UPDATE "Users" AS t 
         SET
-            current_rate = properties.
-        from (values
-                  ('123', 1),
-                  ('345', 2)
-             ) as properties (column_b, column_a)
-            where c.column_b = t.column_b;
-
-
-    UPDATE "Users" u
-    SET current_rate = .certificate_issued_at         -- we can reference joined table here
-FROM (
-        abiturients b                                    -- joined table
-      )
-WHERE 
-    a.abiturient_id = b.id AND                           -- JOIN ON clause
-    a.documents_taken_at::date < b.certificate_issued_at -- Subquery WHERE
+            current_rate = properties.scaled_social_rate
+        FROM (VALUES
+                  ('vladvladvlad', 77777),
+                  ('janejanejane', 55555)
+             ) AS properties (account_name, scaled_social_rate)
+            WHERE t.account_name = properties.account_name;
     `;
+
+    await knex.raw(sql);
 
     // const promises: Promise<any>[] = [];
 
