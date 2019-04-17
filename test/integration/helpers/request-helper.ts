@@ -10,8 +10,6 @@ const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 const request = require('supertest');
 const server = require('../../../app');
 
-const fileToUploadHelper = require('./file-to-upload-helper.ts');
-
 const apiV1Prefix = '/api/v1';
 const apiV2Prefix = '/api/v2';
 
@@ -271,16 +269,6 @@ class RequestHelper {
     for (const field in fields) {
       req.field(field, fields[field]);
     }
-  }
-
-  /**
-   *
-   * @param {Object} req
-   * @param {string} field
-   */
-  static addSampleMainImageFilename(req, field = 'main_image_filename') {
-    req
-      .attach(field, fileToUploadHelper.getSampleFilePathToUpload());
   }
 
   public static attachImage(req: any, field: string, imagePath: string): void {

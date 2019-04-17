@@ -4,8 +4,6 @@ import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsHelper = require('../../helpers/posts-helper');
 import CommonHelper = require('../../helpers/common-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
-import FileToUploadHelper = require('../../helpers/file-to-upload-helper');
-import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
 
 export {};
@@ -59,8 +57,7 @@ describe('Direct posts create-update', () => {
             entity_name_for: usersModelProvider.getEntityName(),
           };
 
-          // noinspection JSDeprecatedSymbols
-          const post = await PostsHelper.requestToCreateDirectPostForUser(
+          const post = await PostsGenerator.createUserDirectPostForOtherUserV2(
             user,
             targetUser,
             newPostFields.description,
@@ -69,6 +66,7 @@ describe('Direct posts create-update', () => {
           const options = {
             myselfData: true,
             postProcessing: 'full',
+            skipCommentsChecking: true,
           };
 
           await CommonHelper.checkOnePostForPage(post, options);
@@ -110,29 +108,6 @@ describe('Direct posts create-update', () => {
             ...newPostFields,
           }, user);
         });
-
-        it('Create direct post with picture', async () => {
-          const post =
-            await PostsGenerator.createUserDirectPostForOtherUser(userVlad, userJane, null, true);
-          expect(post.main_image_filename).toBeDefined();
-
-          await FileToUploadHelper.isFileUploaded(post.main_image_filename);
-        });
-
-        it('Create direct post for org with picture', async () => {
-          const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
-
-          const post = await PostsGenerator.createDirectPostForOrganization(
-            userVlad,
-            orgId,
-            null,
-            true,
-          );
-
-          expect(post.main_image_filename).toBeDefined();
-
-          await FileToUploadHelper.isFileUploaded(post.main_image_filename);
-        });
       });
     });
 
@@ -149,7 +124,7 @@ describe('Direct posts create-update', () => {
 
             // noinspection JSDeprecatedSymbols
             const postBefore =
-              await PostsHelper.requestToCreateDirectPostForUser(user, targetUser);
+              await PostsGenerator.createUserDirectPostForOtherUser(user, targetUser);
             const postAfter = await PostsHelper.requestToUpdatePostDescription(
               postBefore.id,
               user,
@@ -173,9 +148,8 @@ describe('Direct posts create-update', () => {
               description: 'changed sample description of direct post',
             };
 
-            // noinspection JSDeprecatedSymbols
             const postBefore =
-              await PostsHelper.requestToCreateDirectPostForOrganization(user, targetOrgId);
+              await PostsGenerator.createDirectPostForOrganizationV2(user, targetOrgId);
             const postAfter = await PostsHelper.requestToUpdatePostDescription(
               postBefore.id,
               user,

@@ -4,7 +4,6 @@ import SeedsHelper = require('../helpers/seeds-helper');
 import UsersHelper = require('../helpers/users-helper');
 import ActivityHelper = require('../helpers/activity-helper');
 import PostsGenerator = require('../../generators/posts-generator');
-import PostsHelper = require('../helpers/posts-helper');
 import ResponseHelper = require('../helpers/response-helper');
 
 const request = require('supertest');
@@ -148,45 +147,45 @@ describe('Myself. Get requests', () => {
         const janeOrgIdTwo = 4;
 
         // Myself posts
-        const promisesToCreatePosts = [
+        const promisesToCreatePosts: any[] = [
           // Vlad wall
           PostsGenerator.createMediaPostByUserHimself(userVlad), // User himself creates posts
           PostsGenerator.createPostOfferByUserHimself(userVlad),
-          PostsHelper.requestToCreateDirectPostForUser(
+          PostsGenerator.createUserDirectPostForOtherUserV2(
             userJane,
             userVlad,
           ), // somebody creates post in users wall
 
           // Jane wall
-          PostsHelper.requestToCreateMediaPost(userJane), // User himself creates posts
-          PostsHelper.requestToCreatePostOffer(userJane),
-          PostsHelper.requestToCreateDirectPostForUser(
+          PostsGenerator.createMediaPostByUserHimself(userJane), // User himself creates posts
+          PostsGenerator.createPostOfferByUserHimself(userJane),
+          PostsGenerator.createUserDirectPostForOtherUser(
             userVlad,
             userJane,
           ), // somebody creates post in users wall
 
           // Peter wall
-          PostsHelper.requestToCreateMediaPost(userPetr), // User himself creates posts
-          PostsHelper.requestToCreatePostOffer(userPetr),
+          PostsGenerator.createMediaPostByUserHimself(userPetr), // User himself creates posts
+          PostsGenerator.createPostOfferByUserHimself(userPetr),
 
-          PostsHelper.requestToCreateDirectPostForUser(
+          PostsGenerator.createUserDirectPostForOtherUserV2(
             userRokky,
             userPetr,
           ), // somebody creates post in users wall
 
           // Rokky wall
-          PostsHelper.requestToCreateMediaPost(userRokky), // User himself creates posts
-          PostsHelper.requestToCreatePostOffer(userRokky),
-          PostsHelper.requestToCreateDirectPostForUser(
+          PostsGenerator.createMediaPostByUserHimself(userRokky), // User himself creates posts
+          PostsGenerator.createPostOfferByUserHimself(userRokky),
+          PostsGenerator.createUserDirectPostForOtherUserV2(
             userPetr,
             userRokky,
           ), // somebody creates post in users wall
 
           // Jane Org wall
-          PostsHelper.requestToCreateMediaPostOfOrganization(userJane, janeOrgIdOne),
-          PostsHelper.requestToCreatePostOfferOfOrganization(userJane, janeOrgIdTwo),
+          PostsGenerator.createMediaPostOfOrganization(userJane, janeOrgIdOne),
+          PostsGenerator.createPostOfferOfOrganization(userJane, janeOrgIdTwo),
 
-          PostsHelper.requestToCreateDirectPostForOrganization(userVlad, janeOrgIdTwo),
+          PostsGenerator.createDirectPostForOrganizationV2(userVlad, janeOrgIdTwo),
         ];
 
         const usersToFollow = [
@@ -211,7 +210,7 @@ describe('Myself. Get requests', () => {
         // Vlad is following jane and petr but not rokky
         // News feed should consist of vlad wall + jane wall + petr wall
 
-        // noinspection JSUnusedLocalSymbols
+        // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
         const [
           vladMediaPost, vladPostOffer, vladDirectPost,
           janeMediaPost, janePostOffer, janeDirectPost,
@@ -240,7 +239,7 @@ describe('Myself. Get requests', () => {
         expect(posts.some(post => post.id === petrPostOffer)).toBeTruthy();
         expect(posts.some(post => post.id === petrDirectPost.id)).toBeTruthy();
 
-        expect(posts.some(post => post.id === janeMediaPostOrg.id)).toBeTruthy();
+        expect(posts.some(post => post.id === janeMediaPostOrg)).toBeTruthy();
         expect(posts.some(post => post.id === janePostOfferOrg)).toBeTruthy();
         expect(posts.some(post => post.id === janeDirectPostOrg.id)).toBeTruthy();
       });

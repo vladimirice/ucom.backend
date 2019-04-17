@@ -88,6 +88,16 @@ describe('Comments entity images', () => {
       await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
     });
 
+    it('null is not allowed', async () => {
+      const malformed = null;
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
+    });
+
+    it.skip('undefined is not allowed', async () => {
+      // tested manually
+    });
+
     it('Malformed entity_images JSON', async () => {
       const malformed = '{ { ]malformed]';
 

@@ -1,6 +1,7 @@
 "use strict";
 /* eslint-disable max-len */
 const ApiPostProcessor = require("../../lib/common/service/api-post-processor");
+const _ = require("lodash");
 const express = require('express');
 const PostsV2Router = express.Router();
 const { AppError, BadRequestError } = require('../../lib/api/errors');
@@ -29,15 +30,8 @@ PostsV2Router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 PostsV2Router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const userId = req.user.id;
     const postId = req.post_id;
-    // Lets change file
-    const { files } = req;
-    // noinspection OverlyComplexBooleanExpressionJS
-    if (files && files.main_image_filename && files.main_image_filename[0] && files.main_image_filename[0].filename) {
-        req.body.main_image_filename = files.main_image_filename[0].filename;
-    }
-    else {
-        // Not required to update main_image_filename if there is not uploaded file
-        delete req.body.main_image_filename;
+    if (!_.isEmpty(req.files)) {
+        throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
     }
     const params = req.body;
     const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);

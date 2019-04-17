@@ -46,7 +46,6 @@ describe('media posts entity images', () => {
           post_type_id: ContentTypeDictionary.getTypeMediaPost(),
 
           [fieldName]: {},
-          main_image_filename: null,
         };
 
         const res = await request(server)
@@ -56,7 +55,7 @@ describe('media posts entity images', () => {
           .field('description', newPostFields.description)
           .field('post_type_id', newPostFields.post_type_id)
           .field('leading_text', newPostFields.leading_text)
-          .field(fieldName, '')
+          .field(fieldName, '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -87,7 +86,7 @@ describe('media posts entity images', () => {
           .field('description', newPostFields.description)
           .field('post_type_id', newPostFields.post_type_id)
           .field('leading_text', newPostFields.leading_text)
-          .field(fieldName, '')
+          .field(fieldName, '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -139,8 +138,6 @@ describe('media posts entity images', () => {
         const newPost = posts.find(data => data.title === newPostFields.title);
         ResponseHelper.expectNotEmpty(newPost);
 
-        expect(newPost.main_image_filename).toBeNull();
-
         PostsHelper.checkEntityImages(newPost);
 
         expect(newPost).toMatchObject(newPostFields);
@@ -186,10 +183,7 @@ describe('media posts entity images', () => {
 
       PostsHelper.validatePatchResponse(res, postAfter);
 
-      postAfter.entity_images = JSON.parse(postAfter.entity_images);
-
       ResponseHelper.expectValuesAreExpected(fieldsToChange, postAfter);
-
       PostsHelper.checkEntityImages(postAfter);
     });
   });

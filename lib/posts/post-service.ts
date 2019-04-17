@@ -8,6 +8,7 @@ import PostsFetchService = require('./service/posts-fetch-service');
 import PostCreatorService = require('./service/post-creator-service');
 import UserActivityService = require('../users/user-activity-service');
 import PostsRepository = require('./posts-repository');
+import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
 
 const _ = require('lodash');
 
@@ -129,7 +130,6 @@ class PostService {
 
     // noinspection JSDeprecatedSymbols
     postSanitizer.sanitisePost(params);
-    postCreatorService.legacyProcessEntityImagesWhileUpdating(params);
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({
@@ -143,7 +143,7 @@ class PostService {
     if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeMediaPost()) {
       // noinspection AssignmentToFunctionParameterJS
       // noinspection JSValidateTypes
-      params = _.pick(params, ['post_type_id', 'title', 'description', 'main_image_filename', 'leading_text', 'entity_images']);
+      params = _.pick(params, ['post_type_id', 'title', 'description', 'leading_text', 'entity_images']);
     }
 
     const { updatedPost, newActivity } = await models.sequelize.transaction(async (transaction) => {
@@ -151,7 +151,13 @@ class PostService {
         await PostService.updatePostUsersTeam(postId, params, transaction);
       }
 
-      await models.posts.update(params, {
+      // #refactor
+      const updatePostParams = _.cloneDeep(params);
+      delete updatePostParams.entity_images;
+
+      EntityImageInputService.addEntityImageFieldFromBodyOrException(updatePostParams, params);
+
+      await models.posts.update(updatePostParams, {
         transaction,
         where: {
           id: postId,

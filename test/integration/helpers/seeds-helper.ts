@@ -144,7 +144,6 @@ class SeedsHelper {
       post_type_id: 1,
       title: 'EOS core library update',
       description: 'We are happy to announce a new major version of our EOS core library. A several cool features are successfully implemented',
-      main_image_filename: 'sample_filename_1.jpg',
       user_id: user.id,
       leading_text: 'Special update for our EOS people',
       created_at: new Date(),
@@ -152,6 +151,7 @@ class SeedsHelper {
       blockchain_id: 'sample_post_blockchain_id',
       entity_id_for: user.id,
       entity_name_for: UsersModelProvider.getEntityName(),
+      entity_images: {},
     };
 
     const model = await models.posts.create(data);
@@ -175,6 +175,7 @@ class SeedsHelper {
       user_id:        user.id,
       path:           [1], // Will be malformed if you create several comments
       depth: 0,
+      entity_images: {},
     };
 
     const model = await models.comments.create(data);
