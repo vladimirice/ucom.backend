@@ -1,5 +1,9 @@
 // @ts-ignore
-import { UosAccountPropertiesDto, UosAccountsResponseDto } from '../interfaces/model-interfaces';
+import {
+  UosAccountPropertiesDto,
+  UosAccountPropertiesValuesDto,
+  UosAccountsResponseDto,
+} from '../interfaces/model-interfaces';
 
 // @ts-ignore
 import UsersModelProvider = require('../../users/users-model-provider');
@@ -42,21 +46,88 @@ class UosAccountsPropertiesUpdateService {
   ): Promise<void> {
     const accountsProperties: UosAccountPropertiesDto[] = response.accounts;
 
-
     let values = '';
     // @ts-ignore
-    for (const properties of accountsProperties) {
-      // @ts-ignore
-      const a = 0;
+    for (const propertiesList of accountsProperties) {
+      const properties: UosAccountPropertiesValuesDto = propertiesList.values;
 
-      values += `
-        ('${properties.name}')
+      const fields = {
+        account_name: {
+          key: 'name',
+          type: 'string',
+        },
+        staked_balance: {
+          key: 'staked_balance',
+          type: 'number',
+        },
+        validity: {
+          key: 'validity',
+          type: 'number',
+        },
+        importance: {
+          key: 'importance',
+          type: 'number',
+        },
+        scaled_importance: {
+          key: 'scaled_importance',
+          type: 'number',
+        },
+        stake_rate: {
+          key: 'stake_rate',
+          type: 'number',
+        },
+        scaled_stake_rate: {
+          key: 'scaled_stake_rate',
+          type: 'number',
+        },
+        social_rate: {
+          key: 'social_rate',
+          type: 'number',
+        },
+        scaled_social_rate: {
+          key: 'scaled_social_rate',
+          type: 'number',
+        },
+        transfer_rate: {
+          key: 'transfer_rate',
+          type: 'number',
+        },
+        scaled_transfer_rate: {
+          key: 'scaled_transfer_rate',
+          type: 'number',
+        },
+        previous_cumulative_emission: {
+          key: 'previous_cumulative_emission',
+          type: 'number',
+        },
+        current_emission: {
+          key: 'current_emission',
+          type: 'number',
+        },
+        current_cumulative_emission: {
+          key: 'current_cumulative_emission',
+          type: 'number',
+        },
+      };
+
+
+      // TODO
+      for (const oneField of fields) {
+        values += `
+        (
+          '${propertiesList.name}', 
+          ${properties.staked_balance},
+          ${properties.validity},
+         
+        )
       `;
+      }
     }
 
     const sql = `
-        UPDATE "Users" AS t 
+        UPDATE uos_accounts_properties AS t 
         SET
+            current_rate = properties.scaled_social_rate
             current_rate = properties.scaled_social_rate
         FROM (VALUES
                   ('vladvladvlad', 77777),
