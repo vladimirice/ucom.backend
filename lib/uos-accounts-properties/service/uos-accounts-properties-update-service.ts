@@ -44,101 +44,124 @@ class UosAccountsPropertiesUpdateService {
     // @ts-ignore
     response: UosAccountsResponseDto,
   ): Promise<void> {
-    const accountsProperties: UosAccountPropertiesDto[] = response.accounts;
+    const fields = {
+      account_name: {
+        key: 'account_name',
+        type: 'string',
+      },
+      staked_balance: {
+        key: 'staked_balance',
+        type: 'number',
+      },
+      validity: {
+        key: 'validity',
+        type: 'number',
+      },
+      importance: {
+        key: 'importance',
+        type: 'number',
+      },
+      scaled_importance: {
+        key: 'scaled_importance',
+        type: 'number',
+      },
+      stake_rate: {
+        key: 'stake_rate',
+        type: 'number',
+      },
+      scaled_stake_rate: {
+        key: 'scaled_stake_rate',
+        type: 'number',
+      },
+      social_rate: {
+        key: 'social_rate',
+        type: 'number',
+      },
+      scaled_social_rate: {
+        key: 'scaled_social_rate',
+        type: 'number',
+      },
+      transfer_rate: {
+        key: 'transfer_rate',
+        type: 'number',
+      },
+      scaled_transfer_rate: {
+        key: 'scaled_transfer_rate',
+        type: 'number',
+      },
+      previous_cumulative_emission: {
+        key: 'previous_cumulative_emission',
+        type: 'number',
+      },
+      current_emission: {
+        key: 'current_emission',
+        type: 'number',
+      },
+      current_cumulative_emission: {
+        key: 'current_cumulative_emission',
+        type: 'number',
+      },
+    };
 
-    let values = '';
+    const accountsProperties: UosAccountPropertiesDto[] = response.accounts;
+    if (response.accounts.length === 0) {
+      return;
+    }
+
+    const manyAccountsValues: any[] = [];
     // @ts-ignore
     for (const propertiesList of accountsProperties) {
       const properties: UosAccountPropertiesValuesDto = propertiesList.values;
 
-      const fields = {
-        account_name: {
-          key: 'name',
-          type: 'string',
-        },
-        staked_balance: {
-          key: 'staked_balance',
-          type: 'number',
-        },
-        validity: {
-          key: 'validity',
-          type: 'number',
-        },
-        importance: {
-          key: 'importance',
-          type: 'number',
-        },
-        scaled_importance: {
-          key: 'scaled_importance',
-          type: 'number',
-        },
-        stake_rate: {
-          key: 'stake_rate',
-          type: 'number',
-        },
-        scaled_stake_rate: {
-          key: 'scaled_stake_rate',
-          type: 'number',
-        },
-        social_rate: {
-          key: 'social_rate',
-          type: 'number',
-        },
-        scaled_social_rate: {
-          key: 'scaled_social_rate',
-          type: 'number',
-        },
-        transfer_rate: {
-          key: 'transfer_rate',
-          type: 'number',
-        },
-        scaled_transfer_rate: {
-          key: 'scaled_transfer_rate',
-          type: 'number',
-        },
-        previous_cumulative_emission: {
-          key: 'previous_cumulative_emission',
-          type: 'number',
-        },
-        current_emission: {
-          key: 'current_emission',
-          type: 'number',
-        },
-        current_cumulative_emission: {
-          key: 'current_cumulative_emission',
-          type: 'number',
-        },
-      };
+      // @ts-ignore
+      properties.account_name = propertiesList.name;
 
+      const oneAccountValues: any[] = [];
+      for (const index in fields) {
+        if (!fields.hasOwnProperty(index)) {
+          continue;
+        }
 
-      // TODO
-      for (const oneField of fields) {
-        values += `
-        (
-          '${propertiesList.name}', 
-          ${properties.staked_balance},
-          ${properties.validity},
-         
-        )
-      `;
+        const oneFieldSet = fields[index];
+
+        if (oneFieldSet.type === 'string') {
+          oneAccountValues.push(`'${properties[oneFieldSet.key]}'`);
+        } else {
+          oneAccountValues.push(properties[oneFieldSet.key]);
+        }
       }
+
+      manyAccountsValues.push(`(${oneAccountValues.join(', ')})`);
+    }
+
+
+    const arrayToSet: string[] = [];
+    for (const key in fields) {
+      if (!fields.hasOwnProperty(key)) {
+        continue;
+      }
+      arrayToSet.push(`${key} = EXCLUDED.${key}`);
     }
 
     const sql = `
-        UPDATE uos_accounts_properties AS t 
-        SET
-            current_rate = properties.scaled_social_rate
-            current_rate = properties.scaled_social_rate
-        FROM (VALUES
-                  ('vladvladvlad', 77777),
-                  ('janejanejane', 55555)
-             ) AS properties (account_name, scaled_social_rate)
-            WHERE t.account_name = properties.account_name;
+        INSERT INTO blockchain.uos_accounts_properties
+      (${Object.keys(fields).join(', ')})
+    VALUES ${manyAccountsValues.join(',\n')}
+    ON CONFLICT (account_name) DO
+    UPDATE
+        SET ${arrayToSet.join(',\n')}
+    ;
     `;
 
-    if (values.length > 0) {
-      await knex.raw(sql);
-    }
+    // const sql = `
+    //     UPDATE blockchain.uos_accounts_properties AS t
+    //     SET ${`\n${arrayToSet.join(',\n')}`}
+    //     FROM (${`\nVALUES ${manyAccountsValues.join(',\n')}`}
+    //          ) AS p (${Object.keys(fields).join(', ')})
+    //         WHERE t.account_name = p.account_name;
+    //`;
+
+    await knex.raw(sql);
 
     // const promises: Promise<any>[] = [];
 

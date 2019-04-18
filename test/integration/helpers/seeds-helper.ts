@@ -51,6 +51,7 @@ const minorTablesToSkipSequences = [
   'tags_current_params_id_seq',
   'irreversible_traces_id_seq',
   'outgoing_transactions_log_id_seq',
+  'uos_accounts_properties_id_seq',
   `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
   `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
   `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
