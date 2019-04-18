@@ -10,6 +10,7 @@ import PostsGenerator = require('../../generators/posts-generator');
 import CommentsGenerator = require('../../generators/comments-generator');
 import PostService = require('../../../lib/posts/post-service');
 import CommentsRepository = require('../../../lib/comments/comments-repository');
+import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 
 const request = require('supertest');
 const server = require('../../../app');
@@ -108,7 +109,9 @@ describe('#comments create update', () => {
       const res = await request(server)
         .post(RequestHelper.getCommentsUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
-        .field('description', fieldsToSet.description);
+        .field('description', fieldsToSet.description)
+        .field(EntityImagesModelProvider.entityImagesColumn(), '{}');
+
       ResponseHelper.expectStatusCreated(res);
 
       const { body } = res;

@@ -7,10 +7,18 @@ import EntityImagesModelProvider = require('./entity-images-model-provider');
 const fieldName = EntityImagesModelProvider.entityImagesColumn();
 
 class EntityImageInputService {
+  public static setEmptyEntityImages(model: any): void {
+    model[fieldName] = {};
+  }
+
   public static addEntityImageFieldFromBodyOrException(
     model: ModelWithEntityImages,
     body: any,
   ): void {
+    if (typeof body.main_image_filename !== 'undefined') {
+      throw new BadRequestError('main_image_filename field is forbidden for the given case. Do not provide it at all');
+    }
+
     this.addEntityImageFieldOrException(model, body[fieldName]);
   }
 
@@ -19,7 +27,7 @@ class EntityImageInputService {
     inputValue: string | undefined,
   ): void {
     if (typeof inputValue === 'undefined') {
-      return;
+      throw new BadRequestError('entity_images field must be provided. For empty value please provide empty object {}');
     }
 
     EntityImagesInputValidator.validateStringInput(inputValue);

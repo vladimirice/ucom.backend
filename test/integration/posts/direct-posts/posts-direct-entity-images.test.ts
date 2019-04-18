@@ -40,7 +40,6 @@ describe('direct posts entity images', () => {
         const givenFields = {
           description: 'Our super post description',
           [fieldName]: {},
-          main_image_filename: '',
         };
 
         const directPost =
@@ -100,8 +99,6 @@ describe('direct posts entity images', () => {
         const newPost = posts.data.find(data => data.id === directPost.id);
         ResponseHelper.expectNotEmpty(newPost);
 
-        expect(newPost!.main_image_filename).toBeNull();
-
         PostsHelper.checkEntityImages(newPost!);
 
         expect(newPost).toMatchObject(givenFields);
@@ -154,7 +151,6 @@ describe('direct posts entity images', () => {
             success: true,
           },
         },
-        main_image_filename: '',
       };
 
       const firstPostBefore =
@@ -199,7 +195,6 @@ describe('direct posts entity images', () => {
             success: true,
           },
         },
-        main_image_filename: '',
       };
 
       const firstPostBefore =

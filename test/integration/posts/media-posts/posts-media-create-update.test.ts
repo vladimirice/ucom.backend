@@ -1,4 +1,3 @@
-import FileToUploadHelper = require('../../helpers/file-to-upload-helper');
 import RequestHelper = require('../../helpers/request-helper');
 import MockHelper = require('../../helpers/mock-helper');
 import SeedsHelper = require('../../helpers/seeds-helper');
@@ -21,8 +20,6 @@ const server = require('../../../../app');
 const ActivityGroupDictionary   = require('../../../../lib/activity/activity-group-dictionary');
 
 const PostsService            = require('./../../../../lib/posts/post-service');
-
-const avatarPath = FileToUploadHelper.getSamplePngPath();
 
 const postOfferUrl  = RequestHelper.getPostsUrl();
 const rootUrl       = RequestHelper.getPostsUrl();
@@ -75,7 +72,7 @@ describe('Posts API', () => {
           .field('description', newPostFields.description)
           .field('post_type_id', newPostFields.post_type_id)
           .field('leading_text', newPostFields.leading_text)
-          .attach('main_image_filename', avatarPath)
+          .field('entity_images', '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -88,8 +85,6 @@ describe('Posts API', () => {
 
         expect(body.id).toBe(newPost.id);
 
-        await FileToUploadHelper.isFileUploaded(newPost.main_image_filename);
-
         const postStatsModel = await PostStatsRepository.findOneByPostId(newPost.id, true);
         expect(postStatsModel).toBeDefined();
 
@@ -99,8 +94,6 @@ describe('Posts API', () => {
           entity_id_for:    `${myself.id}`,
           entity_name_for:  UsersModelProvider.getEntityName(),
         });
-
-        newPost.entity_images = JSON.parse(newPost.entity_images);
 
         PostsHelper.checkEntityImages(newPost);
       });
@@ -127,7 +120,6 @@ describe('Posts API', () => {
           .field('description', newPostFields.description)
           .field('post_type_id', newPostFields.post_type_id)
           .field('leading_text', newPostFields.leading_text)
-          .attach('main_image_filename', avatarPath)
         ;
 
         ResponseHelper.expectStatusBadRequest(res);
@@ -152,7 +144,6 @@ describe('Posts API', () => {
           .field('description', newPostFields.description)
           .field('post_type_id', newPostFields.post_type_id)
           .field('leading_text', newPostFields.leading_text)
-          .attach('main_image_filename', avatarPath)
         ;
 
         ResponseHelper.expectStatusBadRequest(res);
@@ -187,6 +178,7 @@ describe('Posts API', () => {
           .field('title',         fieldsToChange.title)
           .field('description',   fieldsToChange.description)
           .field('leading_text',  fieldsToChange.leading_text)
+          .field('entity_images',  '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -204,11 +196,7 @@ describe('Posts API', () => {
       it('Update Media Post by its author', async () => {
         await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-        let firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
-        await PostsHelper.makeFieldNull(firstPostBefore.id, 'main_image_filename');
-        firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
-
-        expect(firstPostBefore.main_image_filename).toBeNull();
+        const firstPostBefore = await PostsRepository.findLastMediaPostByAuthor(userVlad.id);
 
         const fieldsToChange = {
           title: 'This is title to change',
@@ -222,7 +210,7 @@ describe('Posts API', () => {
           .field('title',         fieldsToChange.title)
           .field('description',   fieldsToChange.description)
           .field('leading_text',  fieldsToChange.leading_text)
-          .attach('main_image_filename', avatarPath)
+          .field('entity_images',  '{}')
         ;
 
         ResponseHelper.expectStatusOk(res);
@@ -233,9 +221,6 @@ describe('Posts API', () => {
         PostsHelper.validatePatchResponse(res, postAfter);
 
         ResponseHelper.expectValuesAreExpected(fieldsToChange, postAfter);
-
-        expect(postAfter.main_image_filename).toBeDefined();
-        await FileToUploadHelper.isFileUploaded(postAfter.main_image_filename);
 
         PostsHelper.checkEntityImages(postAfter);
       });
@@ -261,8 +246,7 @@ describe('Posts API', () => {
     it('Media post. Should create valid activity record', async () => {
       const user = userVlad;
 
-      // noinspection JSDeprecatedSymbols
-      const newPostId = await PostsHelper.requestToCreateMediaPost(user);
+      const newPostId = await PostsGenerator.createMediaPostByUserHimself(user);
       const activity =
         await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newPostId);
       expect(activity).not.toBeNull();
@@ -300,6 +284,7 @@ describe('Posts API', () => {
         .patch(RequestHelper.getOnePostUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description',   fieldsToChange.description)
+        .field('entity_images',   '{}')
       ;
 
       ResponseHelper.expectStatusOk(res);
@@ -331,6 +316,7 @@ describe('Posts API', () => {
         .patch(RequestHelper.getOnePostUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description',   fieldsToChange.description)
+        .field('entity_images',   '{}')
       ;
 
       ResponseHelper.expectStatusOk(res);
@@ -357,6 +343,7 @@ describe('Posts API', () => {
         .field('title',         fieldsToChange.title)
         .field('description',   fieldsToChange.description)
         .field('leading_text',  fieldsToChange.leading_text)
+        .field('entity_images',  '{}')
       ;
 
       ResponseHelper.expectStatusOk(res);
@@ -398,7 +385,6 @@ describe('Posts API', () => {
         .field('post_type_id', newPostFields.post_type_id)
         .field('action_button_title', newPostOfferFields.action_button_title)
         .field('post_users_team[]', '') // this is to catch and fix bug by TDD
-        .attach('main_image_filename', avatarPath)
       ;
 
       ResponseHelper.expectStatusOk(res);
@@ -413,8 +399,6 @@ describe('Posts API', () => {
       // @ts-ignore
       newPostOfferFields.post_id = res.body.id;
       PostsHelper.validateDbEntity(newPostOfferFields, lastPost.post_offer);
-
-      await FileToUploadHelper.isFileUploaded(lastPost.main_image_filename);
 
       const postUsersTeam = lastPost.post_users_team;
       expect(postUsersTeam).toBeDefined();
@@ -450,8 +434,7 @@ describe('Posts API', () => {
     it.skip('Post-offer. Should create valid activity record', async () => {
       const user = userVlad;
 
-      // noinspection JSDeprecatedSymbols
-      const newPostId = await PostsHelper.requestToCreatePostOffer(user);
+      const newPostId = await PostsGenerator.createPostOfferByUserHimself(user);
       const activity  = await UsersActivityRepository.findLastByUserIdAndEntityId(
         userVlad.id,
         newPostId,
@@ -554,7 +537,6 @@ describe('Posts API', () => {
         .field('action_duration_in_days', newPostOfferFields.action_duration_in_days)
         .field('post_users_team[0][id]', newPostUsersTeamFields[0].user_id)
         .field('post_users_team[1][id]', newPostUsersTeamFields[1].user_id)
-        .attach('main_image_filename', avatarPath)
       ;
 
       ResponseHelper.expectStatusOk(res);
@@ -569,8 +551,6 @@ describe('Posts API', () => {
       // @ts-ignore
       newPostOfferFields.post_id = res.body.id;
       PostsHelper.validateDbEntity(newPostOfferFields, lastPost.post_offer);
-
-      await FileToUploadHelper.isFileUploaded(lastPost.main_image_filename);
 
       const postUsersTeam = lastPost.post_users_team;
       expect(postUsersTeam).toBeDefined();

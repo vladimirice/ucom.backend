@@ -9,6 +9,7 @@ module.exports = [
     user_id: 3,
     path: [1],
     depth: 0,
+    entity_images: {},
   },
   {
     // id = 2
@@ -20,6 +21,7 @@ module.exports = [
     user_id: 4,
     path: [2],
     depth: 0,
+    entity_images: {},
   },
   {
     // id = 3
@@ -29,9 +31,10 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id3',
     parent_id: 2,
     user_id: 2,
-    path: [2,3],
+    path: [2, 3],
     depth: 1,
-    organization_id: 1
+    organization_id: 1,
+    entity_images: {},
   },
   {
     // id = 4
@@ -41,8 +44,9 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id4',
     parent_id: 3,
     user_id: 4,
-    path: [2,3,4],
+    path: [2, 3, 4],
     depth: 2,
+    entity_images: {},
   },
   {
     // id = 5
@@ -52,9 +56,10 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id5',
     parent_id: 4,
     user_id: 2,
-    path: [2,3,4,5],
+    path: [2, 3, 4, 5],
     depth: 3,
     organization_id: 1,
+    entity_images: {},
   },
   {
     // id = 6
@@ -66,6 +71,7 @@ module.exports = [
     user_id: 2,
     path: [6],
     depth: 0,
+    entity_images: {},
   },
   {
     // id = 7
@@ -75,8 +81,9 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id6',
     parent_id: 3,
     user_id: 2,
-    path: [2,3,7],
+    path: [2, 3, 7],
     depth: 2,
+    entity_images: {},
   },
   {
     // id = 8
@@ -86,7 +93,8 @@ module.exports = [
     blockchain_id: 'sample_comment_blockchain_id6',
     parent_id: 4,
     user_id: 2,
-    path: [2,3,4,8],
+    path: [2, 3, 4, 8],
     depth: 3,
-  }
+    entity_images: {},
+  },
 ];

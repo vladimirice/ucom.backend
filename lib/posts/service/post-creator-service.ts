@@ -2,7 +2,6 @@
 
 import { IdOnlyDto } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
-import { PostModelInput } from '../interfaces/model-interfaces';
 
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import PostSanitizer = require('../post-sanitizer');
@@ -13,11 +12,8 @@ import UsersTeamRepository = require('../../users/repository/users-team-reposito
 import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
-import EntityImagesModelProvider = require('../../entity-images/service/entity-images-model-provider');
-import EnvHelper = require('../../common/helper/env-helper');
 
 const _ = require('lodash');
-const config = require('config');
 
 const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const { AppError } = require('../../../lib/api/errors');
@@ -26,9 +22,6 @@ const db = require('../../../models').sequelize;
 
 const { BadRequestError } = require('../../../lib/api/errors');
 
-const backendConfig = config.host;
-
-const httpImagesFolder = `${backendConfig.root_url}${backendConfig.profile_files_upload_dir}`;
 const eosTransactionService = require('../../eos/eos-transaction-service');
 
 const usersActivityService  = require('../../users/user-activity-service');
@@ -40,8 +33,6 @@ const usersActivityRepository = require('../../users/repository/users-activity-r
 const postsRepository         = require('../posts-repository');
 
 const models = require('../../../models');
-
-const entityImagesField: string = EntityImagesModelProvider.entityImagesColumn();
 
 /**
  * beginning of refactoring
@@ -86,13 +77,10 @@ class PostCreatorService {
     // noinspection JSDeprecatedSymbols
     PostSanitizer.sanitisePost(body);
 
-    // noinspection OverlyComplexBooleanExpressionJS
-    // #legacy backward compatibility - should be changed to entity_images
-    if (files && files.main_image_filename && files.main_image_filename[0] && files.main_image_filename[0].filename) {
-      body.main_image_filename = files.main_image_filename[0].filename;
+    // legacy code usage check
+    if (!_.isEmpty(files)) {
+      throw new BadRequestError('it is not allowed to upload files. Please consider to use a entity_images');
     }
-
-    this.legacyProcessEntityImagesWhileCreation(body);
 
     const { newPost, newActivity } = await models.sequelize
       .transaction(async (transaction) => {
@@ -124,24 +112,6 @@ class PostCreatorService {
   }
 
   /**
-   * In future - make private
-   *
-   * @param {Object} model
-   */
-  public static legacyProcessEntityImagesWhileUpdating(model) {
-    // legacy compatibility. Main image filename rewrites entity_images if set
-    if (model.main_image_filename) {
-      model.entity_images = {
-        article_title: [
-          {
-            url: `${httpImagesFolder}/${model.main_image_filename}`,
-          },
-        ],
-      };
-    }
-  }
-
-  /**
    *
    * @param {Object} givenBody
    * @param {number} postId
@@ -157,6 +127,8 @@ class PostCreatorService {
 
     body.entity_id_for    = user.id;
     body.entity_name_for  = usersModelProvider.getEntityName();
+
+    EntityImageInputService.setEmptyEntityImages(body);
 
     await eosTransactionService.appendSignedUserCreatesRepost(body, user, parentPost.blockchain_id);
     const eventId = eventIdDictionary.getRepostEventId(parentPost.organization_id);
@@ -187,31 +159,6 @@ class PostCreatorService {
     return {
       id: newPost.id,
     };
-  }
-
-  // #legacy compatibility
-  private static legacyProcessEntityImagesWhileCreation(body) {
-    if (body.main_image_filename && body.entity_images) {
-      throw new BadRequestError('It is not possible to create post using both main_image_filename and entity_images');
-    }
-
-    if (body.main_image_filename) {
-      const entityImagesObject = {
-        article_title: [
-          {
-            url: `${httpImagesFolder}/${body.main_image_filename}`,
-          },
-        ],
-      };
-
-      body[entityImagesField] = JSON.stringify(entityImagesObject);
-
-      return;
-    }
-
-    if (!body[entityImagesField]) {
-      body[entityImagesField] = '{}';
-    }
   }
 
   /**
@@ -380,38 +327,25 @@ class PostCreatorService {
   }
 
   private static async createPostByPostType(postTypeId, body, transaction, currentUserId: number) {
-    // #task - provide body validation form via Joi
-    let newPost: PostModelInput = {
-      entity_images: {},
-    };
+    // #task - legacy. Pick beforehand required fields
+    const data = _.cloneDeep(body);
+    delete data.entity_images;
 
-    // TODO - remove, backward compatibility
-    if (typeof body.entity_images !== 'string' && EnvHelper.isProductionEnv()) {
-      if (body.entity_images
-        && body.entity_images.article_title
-        && body.entity_images.article_title[0]
-        && body.entity_images.article_title[0].url
-      ) {
-        body.entity_images = `{"article_title": [{"url": "${body.entity_images.article_title[0].url}"}]}`;
-      } else {
-        body.entity_images = '{}';
-      }
-    }
+    EntityImageInputService.addEntityImageFieldFromBodyOrException(data, body);
 
-    EntityImageInputService.addEntityImageFieldFromBodyOrException(newPost, body);
-
+    let newPost;
     switch (postTypeId) {
       case ContentTypeDictionary.getTypeMediaPost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
+        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeOffer():
-        newPost = await PostOfferRepository.createNewOffer(body, currentUserId, transaction);
+        newPost = await PostOfferRepository.createNewOffer(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeDirectPost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
+        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeRepost():
-        newPost = await postsRepository.createNewPost(body, currentUserId, transaction);
+        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
         break;
       default:
         throw new BadRequestError({

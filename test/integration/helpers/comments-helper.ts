@@ -4,7 +4,6 @@ import { CommentModelResponse } from '../../../lib/comments/interfaces/model-int
 
 import CommentsModelProvider = require('../../../lib/comments/service/comments-model-provider');
 import ResponseHelper = require('./response-helper');
-import RequestHelper = require('./request-helper');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -118,46 +117,6 @@ class CommentsHelper {
     models.comments.apiResponseFields().forEach((field) => {
       expect(actual[field]).toBeDefined();
     });
-  }
-
-  /**
-   * @deprecated
-   * @see CommentsGenerator
-   * @param {number} postId
-   * @param {Object} user
-   * @returns {Promise<Object>}
-   */
-  static async requestToCreateComment(postId, user) {
-    const res = await request(server)
-      .post(RequestHelper.getCommentsUrl(postId))
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('description', 'comment description')
-    ;
-
-    ResponseHelper.expectStatusCreated(res);
-
-    return res.body;
-  }
-
-  /**
-   * @deprecated
-   * @see generator
-   *
-   * @param {number} postId
-   * @param {number} parentCommentId
-   * @param {Object} user
-   * @returns {Promise<Object>}
-   */
-  static async requestToCreateCommentOnComment(postId, parentCommentId, user) {
-    const res = await request(server)
-      .post(RequestHelper.getCommentOnCommentUrl(postId, parentCommentId))
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('description', 'comment description')
-    ;
-
-    ResponseHelper.expectStatusCreated(res);
-
-    return res.body;
   }
 
   public static checkOneCommentItself(model: CommentModelResponse, options: any) {
