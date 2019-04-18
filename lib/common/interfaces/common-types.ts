@@ -2,6 +2,10 @@ interface StringToNumberCollection {
   [index: string]: number;
 }
 
+interface NumberToStringCollection {
+  [index: number]: string;
+}
+
 interface NumberToNumberCollection {
   [index: number]: number;
 }
@@ -29,6 +33,7 @@ interface IdOnlyDto {
 export {
   StringToNumberCollection,
   StringToAnyCollection,
+  NumberToStringCollection,
   NumberToNumberCollection,
   NumberToAnyCollection,
   IdToPropsCollection,

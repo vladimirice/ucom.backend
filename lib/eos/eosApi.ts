@@ -1,8 +1,9 @@
+/* eslint-disable unicorn/filename-case */
 import { AppError } from '../api/errors';
 
 import EnvHelper = require('../common/helper/env-helper');
 
-const { WalletApi } = require('ucom-libs-wallet');
+const { WalletApi, ConfigService } = require('ucom-libs-wallet');
 
 const ecc = require('eosjs-ecc');
 
@@ -52,13 +53,17 @@ class EosApi {
 
   public static initWalletApi(): void {
     WalletApi.setNodeJsEnv();
+    ConfigService.initNodeJsEnv();
 
     if (EnvHelper.isProductionEnv()) {
       WalletApi.initForProductionEnv();
+      ConfigService.initForProductionEnv();
     } else if (EnvHelper.isStagingEnv()) {
       WalletApi.initForStagingEnv();
+      ConfigService.initForStagingEnv();
     } else if (EnvHelper.isTestEnv()) {
       WalletApi.initForTestEnv();
+      ConfigService.initForTestEnv();
     } else {
       throw new AppError(`Unsupported env: ${EnvHelper.getNodeEnv()}`);
     }

@@ -10,6 +10,7 @@ interface UserModel {
 
 interface UserModelCard {
   readonly id: number;
+  readonly account_name: string;
 
   [index: string]: string | number,
 }

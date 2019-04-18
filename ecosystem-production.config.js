@@ -7,6 +7,7 @@ const WEBSOCKET_SERVER_PORT = 5000;
 const UPLOADER_SERVER_PORT  = 5010;
 
 const CRON_PATTERN_EVERY_FIVE_MINUTES = '*/5 * * * *';
+const CRON_PATTERN_EVERY_MINUTE       = '* * * * *';
 
 const clusterConfig = {
   instances: 'max',
@@ -109,6 +110,15 @@ module.exports = {
       },
     },
     {
+      name: `${NODE_ENV}_uos_accounts_properties_update_worker`,
+      script: 'lib/uos-accounts-properties/worker/uos-accounts-properties-update-worker.js',
+      watch: false,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      env: {
+        NODE_ENV,
+      },
+    },
+    {
       name: `${NODE_ENV}_worker_airdrops_users_to_waiting`,
       script: 'bin/workers-airdrops/airdrops-users-to-waiting.js',
       watch: false,
@@ -148,7 +158,7 @@ module.exports = {
       name: `${NODE_ENV}_worker_update_blockchain_nodes`,
       script: 'bin/worker-update-blockchain-nodes.js',
       watch: false,
-      cron_restart: '* * * * *',
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
         NODE_ENV,
       },

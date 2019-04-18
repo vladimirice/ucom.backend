@@ -32,8 +32,15 @@ interface UosAccountPropertiesValuesDto {
   // previous_cumulative_emission + current_emission = current_cumulative_emission
 }
 
+interface UosAccountPropertiesModelDto extends UosAccountPropertiesValuesDto {
+  account_name: string;
+  entity_id: number;
+  entity_name: string;
+}
+
 export {
   UosAccountsResponseDto,
   UosAccountPropertiesDto,
   UosAccountPropertiesValuesDto,
+  UosAccountPropertiesModelDto,
 };

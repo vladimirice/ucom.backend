@@ -122,25 +122,18 @@ class UsersRepository {
     return +res.rows[0].amount;
   }
 
-  /**
-   *
-   * @param {string[]} accountNames
-   * @return {Promise<Object>}
-   */
-  static async findUserIdsByAccountNames(accountNames) {
-    const data = await model.findAll({
-      attributes: ['id', 'account_name'],
-      where: {
-        account_name: {
-          [Op.in]: accountNames,
-        },
-      },
-      raw: true,
-    });
+  public static async findUserIdsByAccountNames(
+    accountNames: string[],
+    key: string = 'account_name',
+    value: string = 'id',
+  ): Promise<any> {
+    const data = await knex(TABLE_NAME)
+      .select(['id', 'account_name'])
+      .whereIn('account_name', accountNames);
 
     const result = {};
     data.forEach((user) => {
-      result[user.account_name] = user.id;
+      result[user[key]] = user[value];
     });
 
     return result;

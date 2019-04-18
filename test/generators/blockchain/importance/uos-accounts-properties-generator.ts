@@ -87,6 +87,24 @@ class UosAccountsPropertiesGenerator {
           current_cumulative_emission: '0',
         },
       },
+      {
+        name: 'notexistatall',
+        values: {
+          staked_balance: '20000',
+          validity: '0.0000000098',
+          stake_rate: '0.0000000098',
+          importance: '0.0000000078',
+          social_rate: '0',
+          scaled_social_rate: '0',
+          transfer_rate: '0',
+          scaled_transfer_rate: '0',
+          scaled_stake_rate: '0.0000037828',
+          scaled_importance: '0.0000030108',
+          current_emission: '0',
+          previous_cumulative_emission: '0',
+          current_cumulative_emission: '0',
+        },
+      },
     ];
   }
 }

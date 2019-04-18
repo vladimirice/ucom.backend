@@ -12,6 +12,7 @@ import UsersExternalModelProvider = require('../../../lib/users-external/service
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 import AccountsModelProvider = require('../../../lib/accounts/service/accounts-model-provider');
 import CloseHandlersHelper = require('../../../lib/common/helper/close-handlers-helper');
+import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
 // import MongoGenerator = require('../../generators/common/mongo-generator');
 
 const models = require('../../../models');
@@ -63,6 +64,8 @@ const minorTables = [
   usersRepositories.UsersTeam.getModelName(),
 
   UsersModelProvider.getUsersActivityTrustTableName(),
+
+  UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
   'airdrops_users_external_data',
   'airdrops_users_external_data',

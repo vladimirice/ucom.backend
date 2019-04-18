@@ -14,21 +14,20 @@ class WorkerHelper {
   private static workerDecorator(toExecute: Function, options: WorkerOptionsDto): Function {
     return async (): Promise<any> => {
       const m = MeasurementHelper.startWithMessage(options.processName);
+      let totalResponse;
       try {
-        return await toExecute.apply(
+        totalResponse = await toExecute.apply(
           this,
           // eslint-disable-next-line prefer-rest-params
           arguments,
         );
       } catch (error) {
         ConsoleHelper.logWorkerError(error);
-
-        return null;
       } finally {
         await CloseHandlersHelper.closeDbConnections();
-
-        m.printWithDurationChecking(options.processName, options.durationInSecondsToAlert);
       }
+
+      m.printWithDurationChecking(options.processName, options.durationInSecondsToAlert, totalResponse);
     };
   }
 }
