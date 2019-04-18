@@ -39,7 +39,6 @@ describe('Users activity stats', () => {
     it('Post Offer team users rate must be normalized', async () => {
       const sampleRate = 0.456;
 
-      // noinspection JSCheckFunctionSignatures
       const [expectedVladRate, expectedJaneRate] = await Promise.all([
         helpers.UserHelper.setSampleRateToUser(userVlad),
         helpers.UserHelper.setSampleRateToUser(userJane, sampleRate),

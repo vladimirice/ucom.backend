@@ -672,6 +672,7 @@ class PostsHelper {
       .set('Authorization', `Bearer ${user.token}`)
       .field('post_users_team[0][id]', boardToChange[0].user_id)
       .field('post_users_team[1][id]', boardToChange[1].user_id)
+      .field(EntityImagesModelProvider.entityImagesColumn(), '{}')
     ;
 
     ResponseHelper.expectStatusOk(res);
