@@ -1,36 +1,41 @@
-const blockchainModelProvider = require('../service/blockchain-model-provider');
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
-const model       = blockchainModelProvider.getModel();
-const TABLE_NAME  = blockchainModelProvider.getTableName();
-
-const db = require('../../../models').sequelize;
-const { Op } = db.Sequelize;
+import BlockchainModelProvider = require('../service/blockchain-model-provider');
+import knex = require('../../../config/knex');
+import InsertUpdateRepositoryHelper = require('../../common/helper/repository/insert-update-repository-helper');
 
 const _ = require('lodash');
 
+const blockchainModelProvider = require('../service/blockchain-model-provider');
+
+const model       = blockchainModelProvider.getModel();
+
+const TABLE_NAME  = BlockchainModelProvider.getTableName();
+
+const db = require('../../../models').sequelize;
+
+const { Op } = db.Sequelize;
+
 class BlockchainNodesRepository {
-  /**
-   *
-   * @param {string[]} accountNames
-   * @return {Promise<Object>}
-   */
-  static async findBlockchainNodeIdsByAccountNames(accountNames) {
-    const data = await model.findAll({
-      attributes: ['id', 'title'],
-      where: {
-        title: {
-          [Op.in]: accountNames,
-        },
-      },
-      raw: true,
+  public static async findBlockchainNodeIdsByAccountNames(
+    accountNames: string[],
+  ): Promise<any> {
+    const data = await knex(TABLE_NAME)
+      .select(['id', 'title'])
+      .whereIn('title', accountNames);
+
+    const indexed = {};
+    data.forEach((item) => {
+      indexed[item.title] = item.id;
     });
 
-    const result = {};
-    data.forEach((model) => {
-      result[model.title] = model.id;
-    });
+    return indexed;
+  }
 
-    return result;
+  public static async findBlockchainNodeIdsByObjectIndexedByTitle(
+    indexedObject: StringToAnyCollection,
+  ): Promise<any> {
+    return this.findBlockchainNodeIdsByAccountNames(Object.keys(indexedObject));
   }
 
   /**
@@ -39,9 +44,7 @@ class BlockchainNodesRepository {
    * @return {Promise<*>}
    */
   static async setDeletedAtNotExisted(existedTitles) {
-    const prepared = existedTitles.map((item) => {
-      return `'${item}'`;
-    });
+    const prepared = existedTitles.map(item => `'${item}'`);
 
     const sql = `
       UPDATE ${TABLE_NAME}
@@ -55,47 +58,29 @@ class BlockchainNodesRepository {
     return db.query(sql);
   }
 
-  /**
-   *
-   * @param {Object} data
-   * @return {Promise<void>}
-   */
-  static async createOrUpdateNodes(data) {
-    const keys = Object.keys(data[0]).join(', ');
+  public static async createOrUpdateNodes(indexedData: any, blockchainNodesType: number) {
+    for (const key in indexedData) {
+      if (!indexedData.hasOwnProperty(key)) {
+        continue;
+      }
 
-    const values: any = [];
-    for (let i = 0; i < data.length; i += 1) {
-
-      const m: any = [];
-      Object.values(data[i]).forEach((item) => {
-        if (typeof item === 'string') {
-          m.push(`'${item}'`);
-        } else {
-          m.push(item);
-        }
-      });
-
-      values.push(`(${m.join(', ')})`);
+      indexedData[key].blockchain_nodes_type = blockchainNodesType;
     }
 
-    let valuesString = values.join(', ');
-    valuesString = valuesString.substring(1);
-    valuesString = valuesString.slice(0, -1);
+    const insertSqlPart: string = InsertUpdateRepositoryHelper.getInsertManyRawSqlFromIndexed(indexedData, TABLE_NAME);
 
     const sql = `
-    INSERT INTO ${TABLE_NAME}
-      (${keys})
-    VALUES (${valuesString})
+    ${insertSqlPart}
     ON CONFLICT (title) DO
     UPDATE
-        SET votes_count   = EXCLUDED.votes_count,
-            votes_amount  = EXCLUDED.votes_amount,
-            currency      = EXCLUDED.currency,
-            bp_status     = EXCLUDED.bp_status
+        SET votes_count                 = EXCLUDED.votes_count,
+            votes_amount                = EXCLUDED.votes_amount,
+            scaled_importance_amount    = EXCLUDED.scaled_importance_amount,
+            currency                    = EXCLUDED.currency,
+            bp_status                   = EXCLUDED.bp_status
     `;
 
-    await db.query(sql);
-    await db.query(`SELECT setval('${TABLE_NAME}_id_seq', MAX(id), true) FROM ${TABLE_NAME}`);
+    await knex.raw(sql);
   }
 
   /**

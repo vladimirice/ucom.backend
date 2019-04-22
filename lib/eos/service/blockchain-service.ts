@@ -1,5 +1,6 @@
-const blockchainCacheService          = require('./blockchain-cache-service');
-const blockchainApiFetchService       = require('./blockchain-api-fetch-service');
+import BlockchainCacheService = require('./blockchain-cache-service');
+import BlockchainApiFetchService = require('./blockchain-api-fetch-service');
+
 const blockchainTrTracesFetchService  =
   require('./tr-traces-service/blockchain-tr-traces-fetch-service');
 
@@ -22,7 +23,7 @@ class BlockchainService {
   async getAndProcessMyselfBlockchainTransactions(query) {
     const accountName = this.currentUser.user.account_name;
 
-    return await blockchainTrTracesFetchService.getAndProcessOneUserTraces(query, accountName);
+    return blockchainTrTracesFetchService.getAndProcessOneUserTraces(query, accountName);
   }
 
   /**
@@ -32,11 +33,11 @@ class BlockchainService {
   async getAndProcessNodes(query) {
     const userId = this.currentUser.id;
 
-    return await blockchainApiFetchService.getAndProcessNodes(query, userId);
+    return BlockchainApiFetchService.getAndProcessNodes(query, userId);
   }
 
-  static async updateBlockchainNodesByBlockchain() {
-    return await blockchainCacheService.updateBlockchainNodesByBlockchain();
+  public static async updateBlockchainNodesByBlockchain() {
+    return BlockchainCacheService.updateBlockchainNodesByBlockchain();
   }
 }
 

@@ -86,6 +86,7 @@ class BlockchainApiFetchService {
       }
 
       model.votes_percentage = +((model.votes_count / totalVotesCount * 100).toFixed(3));
+      model.scaled_importance_amount = +model.scaled_importance_amount;
 
       data.push(model);
     }

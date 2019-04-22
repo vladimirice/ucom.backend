@@ -1,52 +1,58 @@
 /* tslint:disable:max-line-length */
+import { AppError } from '../../api/errors';
+
+import UsersRepository = require('../../users/users-repository');
+import BlockchainNodesRepository = require('../repository/blockchain-nodes-repository');
+import UsersActivityRepository = require('../../users/repository/users-activity-repository');
+
 const _             = require('lodash');
-const { WalletApi } = require('ucom-libs-wallet');
+const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
 const { WorkerLogger } = require('../../../config/winston');
 
 const usersActivityService      = require('../../../lib/users/user-activity-service');
 
-const usersRepository           = require('../../../lib/users/repository').Main;
-const usersActivityRepository   = require('../../../lib/users/repository').Activity;
-const blockchainNodesRepository = require('../repository').Main;
-
 class BlockchainCacheService {
   static async updateBlockchainNodesByBlockchain() {
-    const { producerData, voters } = await WalletApi.getBlockchainNodes();
-    const votersAccounts    = Object.keys(voters);
-    const producersAccounts = Object.keys(producerData);
+    const { blockProducersWithVoters, calculatorsWithVoters } = await BlockchainNodes.getAll();
 
-    await Promise.all([
-      blockchainNodesRepository.createOrUpdateNodes(Object.values(producerData)),
-      blockchainNodesRepository.setDeletedAtNotExisted(producersAccounts),
-    ]);
+    await this.processSingleBlockchainNodesType(
+      blockProducersWithVoters,
+      Dictionary.BlockchainNodes.typeBlockProducer(),
+    );
+
+    await this.processSingleBlockchainNodesType(
+      calculatorsWithVoters,
+      Dictionary.BlockchainNodes.typeCalculator(),
+    );
+  }
+
+  private static async processSingleBlockchainNodesType(
+    data: {indexedNodes, indexedVoters},
+    blockchainNodesType: number,
+  ): Promise<void> {
+    await BlockchainNodesRepository.createOrUpdateNodes(
+      Object.values(data.indexedNodes),
+      blockchainNodesType,
+    );
 
     const [userAccountNameToId, blockchainTitleToId, currentActivities] = await Promise.all([
-      usersRepository.findUserIdsByAccountNames(votersAccounts),
-      blockchainNodesRepository.findBlockchainNodeIdsByAccountNames(producersAccounts),
-      usersActivityRepository.findAllUpvoteUsersBlockchainNodesActivity(),
+      UsersRepository.findUserIdsByObjectIndexedByAccountNames(data.indexedVoters, 'account_name', 'id'),
+      BlockchainNodesRepository.findBlockchainNodeIdsByObjectIndexedByTitle(data.indexedNodes),
+      UsersActivityRepository.findAllUpvoteUsersBlockchainNodesActivity(blockchainNodesType),
     ]);
 
     const votersToProcess = this.prepareVotersToProcess(
       userAccountNameToId,
       blockchainTitleToId,
       currentActivities,
-      _.cloneDeep(voters),
+      _.cloneDeep(data.indexedVoters),
     );
 
     const promises = this.prepareUsersActivityPromises(votersToProcess);
 
-    return await Promise.all(promises);
+    await Promise.all(promises);
   }
 
-  // noinspection FunctionWithMultipleLoopsJS
-  /**
-   *
-   * @param {Object} userAccountNameToId
-   * @param {Object} blockchainTitleToId
-   * @param {Object[]} currentActivities
-   * @param {object} voters
-   * @private
-   */
   private static prepareVotersToProcess(
     userAccountNameToId,
     blockchainTitleToId,
@@ -55,6 +61,10 @@ class BlockchainCacheService {
   ) {
     const votersToProcess = {};
     for (const voterAccountName in voters) {
+      if (!voters.hasOwnProperty(voterAccountName)) {
+        continue;
+      }
+
       const voter = voters[voterAccountName];
       if (!userAccountNameToId[voterAccountName]) {
         // here is account which does exist in blockchain but does not exist for our web app
@@ -63,30 +73,31 @@ class BlockchainCacheService {
 
       voter.user_id = userAccountNameToId[voterAccountName];
 
-      const producers: any = [];
-      for (let i = 0; i < voter.producers.length; i += 1) {
-        const producerTitle = voter.producers[i];
+      const nodes: any = [];
 
-        if (!blockchainTitleToId[producerTitle]) {
+      if (!Array.isArray(voter.nodes)) {
+        throw new AppError(`There is no field nodes inside the voter: ${JSON.stringify(voter)}`);
+      }
+
+      for (const nodeTitle of voter.nodes) {
+        if (!blockchainTitleToId[nodeTitle]) {
           WorkerLogger.error(
-            `There is node title ${producerTitle} which is not present in db. Probably it is deleted. Skipped... Db set is: ${JSON.stringify(blockchainTitleToId)}`,
+            `There is node title ${nodeTitle} which is not present in db. Probably it is deleted. Skipped... Db set is: ${JSON.stringify(blockchainTitleToId)}`,
           );
 
           continue;
         }
 
-        producers.push(blockchainTitleToId[producerTitle]);
+        nodes.push(blockchainTitleToId[nodeTitle]);
       }
 
-      voter.producers = producers;
+      voter.nodes = nodes;
 
       votersToProcess[voter.user_id] = voter;
-      votersToProcess[voter.user_id].old_producers = [];
+      votersToProcess[voter.user_id].old_nodes = [];
     }
 
-    for (let m = 0; m < currentActivities.length; m += 1) {
-      const activity = currentActivities[m];
-
+    for (const activity of currentActivities) {
       if (!votersToProcess[activity.user_id_from]) {
         WorkerLogger.error(
           `There is no such user Id ${activity.user_id_from} in votersToProcess. Lets skip activity with ID: ${activity.id}`,
@@ -95,7 +106,7 @@ class BlockchainCacheService {
         continue;
       }
 
-      votersToProcess[activity.user_id_from].old_producers.push(+activity.entity_id_to);
+      votersToProcess[activity.user_id_from].old_nodes.push(+activity.entity_id_to);
     }
 
     return votersToProcess;
@@ -110,10 +121,14 @@ class BlockchainCacheService {
   private static prepareUsersActivityPromises(votersToProcess) {
     const promises: any = [];
     for (const voterId in votersToProcess) {
+      if (!votersToProcess.hasOwnProperty(voterId)) {
+        continue;
+      }
+
       const voterData = votersToProcess[voterId];
 
-      const producersToCreate = _.difference(voterData.producers, voterData.old_producers);
-      const producersToCancel = _.difference(voterData.old_producers, voterData.producers);
+      const producersToCreate = _.difference(voterData.nodes, voterData.old_nodes);
+      const producersToCancel = _.difference(voterData.old_nodes, voterData.nodes);
 
       if (producersToCreate.length > 0) {
         promises.push(
@@ -130,7 +145,6 @@ class BlockchainCacheService {
 
     return promises;
   }
-
 }
 
 export = BlockchainCacheService;

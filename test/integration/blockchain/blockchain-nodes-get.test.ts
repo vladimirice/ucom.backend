@@ -1,8 +1,7 @@
-export {};
+import BlockchainHelper = require('../helpers/blockchain-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
 
-const helpers = require('../helpers');
-
-const { WalletApi } = require('ucom-libs-wallet');
+const { BlockchainNodes, WalletApi } = require('ucom-libs-wallet');
 const _ = require('lodash');
 
 let userVlad;
@@ -10,28 +9,30 @@ let userVlad;
 WalletApi.initForStagingEnv();
 WalletApi.setNodeJsEnv();
 
-const initialMockFunction = WalletApi.getBlockchainNodes;
+const initialMockFunction = BlockchainNodes.getAll;
 
-const accountName = helpers.Blockchain.getTesterAccountName();
-const privateKey  = helpers.Blockchain.getTesterPrivateKey();
+const accountName = BlockchainHelper.getTesterAccountName();
+const privateKey  = BlockchainHelper.getTesterPrivateKey();
+
+const JEST_TIMEOUT = 5000;
 
 describe('Blockchain nodes get', () => {
   beforeAll(async () => {
-    [userVlad] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad] = await SeedsHelper.beforeAllRoutine();
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    await SeedsHelper.initUsersOnly();
 
-    WalletApi.getBlockchainNodes = initialMockFunction;
-    await helpers.Blockchain.updateBlockchainNodes();
+    BlockchainNodes.getAll = initialMockFunction;
+    await BlockchainHelper.updateBlockchainNodes();
   });
 
   afterEach(() => {
-    WalletApi.getBlockchainNodes = initialMockFunction;
+    BlockchainNodes.getAll = initialMockFunction;
   });
 
-  afterAll(async () => { await helpers.Seeds.doAfterAll(); });
+  afterAll(async () => { await SeedsHelper.doAfterAll(); });
 
   describe('Sorting smoke tests', () => {
     it('order by different fields', async () => {
@@ -40,58 +41,57 @@ describe('Blockchain nodes get', () => {
       ];
 
       const queryString = `?sort_by=${fieldsToSort.join(',')}`;
-      const data = await helpers.Blockchain.requestToGetNodesList(null, false, 200, queryString);
+      const data = await BlockchainHelper.requestToGetNodesList(null, false, 200, queryString);
 
-      helpers.Blockchain.checkManyProducers(data, false);
+      BlockchainHelper.checkManyNodes(data, false);
     });
   });
 
   describe('Positive', () => {
     it('Get nodes list without filters for guest', async () => {
-      const data = await helpers.Blockchain.requestToGetNodesList();
+      const data = await BlockchainHelper.requestToGetNodesList();
 
-      helpers.Blockchain.checkManyProducers(data, false);
+      BlockchainHelper.checkManyNodes(data, false, 1);
     });
 
     it('should contain myself data for user who did not vote yet', async () => {
+      await BlockchainHelper.resetVotingState(accountName, privateKey);
+      await BlockchainHelper.updateBlockchainNodes();
 
-      await helpers.Blockchain.resetVotingState(accountName, privateKey);
-      await helpers.Blockchain.updateBlockchainNodes();
-
-      const data = await helpers.Blockchain.requestToGetNodesList(userVlad);
-      helpers.Blockchain.checkManyProducers(data, true);
+      const data = await BlockchainHelper.requestToGetNodesList(userVlad);
+      BlockchainHelper.checkManyNodes(data, true);
 
       data.forEach((model) => {
         expect(model.myselfData).toBeDefined();
         expect(model.myselfData.bp_vote).toBeFalsy();
       });
-    }, 10000);
+    }, JEST_TIMEOUT * 2);
 
     it('Get nodes list without filters for myself', async () => {
-      const accountName   = helpers.Blockchain.getTesterAccountName();
-      const producersList = helpers.Blockchain.getBlockProducersList();
+      const { blockProducersWithVoters } = await BlockchainNodes.getAll();
+      const nodesListFromBlockchain = Object.keys(blockProducersWithVoters.indexedNodes);
 
-      const producers = [
-        producersList[1],
-        producersList[4],
-        producersList[3],
+      const nodes = [
+        nodesListFromBlockchain[1],
+        nodesListFromBlockchain[4],
+        nodesListFromBlockchain[3],
       ];
 
       const replaceFor = {
         [accountName]: {
-          producers,
+          nodes,
           owner: accountName,
         },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
-      await helpers.Blockchain.updateBlockchainNodes();
+      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
+      await BlockchainHelper.updateBlockchainNodes();
 
-      const nodesList = await helpers.Blockchain.requestToGetNodesList(userVlad);
-      helpers.Blockchain.checkManyProducers(nodesList, true);
+      const nodesList = await BlockchainHelper.requestToGetNodesList(userVlad);
+      BlockchainHelper.checkManyNodes(nodesList, true);
 
       nodesList.forEach((node) => {
-        if (~producers.indexOf(node.title)) {
+        if (~nodes.indexOf(node.title)) {
           expect(node.myselfData.bp_vote).toBeTruthy();
         } else {
           expect(node.myselfData.bp_vote).toBeFalsy();
@@ -100,43 +100,43 @@ describe('Blockchain nodes get', () => {
     });
 
     it('Get nodes list with myself_bp_vote=true filter - voted only', async () => {
-      const accountName   = helpers.Blockchain.getTesterAccountName();
-      const producersList = helpers.Blockchain.getBlockProducersList();
+      const { blockProducersWithVoters } = await BlockchainNodes.getAll();
+      const nodesListFromBlockchain = Object.keys(blockProducersWithVoters.indexedNodes);
 
       const nodeTitlesToVote = [
-        producersList[1],
-        producersList[4],
-        producersList[3],
+        nodesListFromBlockchain[1],
+        nodesListFromBlockchain[4],
+        nodesListFromBlockchain[3],
       ];
 
       const replaceFor = {
         [accountName]: {
           owner: accountName,
-          producers: nodeTitlesToVote,
+          nodes: nodeTitlesToVote,
         },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
-      await helpers.Blockchain.updateBlockchainNodes();
+      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
+      await BlockchainHelper.updateBlockchainNodes();
 
-      const data = await helpers.Blockchain.requestToGetNodesList(userVlad, true);
-      helpers.Blockchain.checkManyProducers(data, true);
+      const data = await BlockchainHelper.requestToGetNodesList(userVlad, true);
+      BlockchainHelper.checkManyNodes(data, true);
 
       expect(data.length).toBe(nodeTitlesToVote.length);
 
       nodeTitlesToVote.forEach((title) => {
         expect(data.some(
-          producer => producer.title === title && producer.myselfData.bp_vote === true),
-        ).toBeTruthy();
+          item => item.title === title && item.myselfData.bp_vote === true,
+        )).toBeTruthy();
       });
-    }, 30000);
+    }, JEST_TIMEOUT * 2);
 
     it('Get nodes which match only search criteria', async () => {
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod({}, false);
-      await helpers.Blockchain.updateBlockchainNodes();
+      await BlockchainHelper.mockGetBlockchainNodesWalletMethod({}, false);
+      await BlockchainHelper.updateBlockchainNodes();
 
       const data =
-        await helpers.Blockchain.requestToGetNodesList(userVlad, false, 200, '?&search=_sUp');
+        await BlockchainHelper.requestToGetNodesList(userVlad, false, 200, '?&search=_sUp');
 
       const expectedTitles = [
         'z_super_new1',
@@ -146,13 +146,13 @@ describe('Blockchain nodes get', () => {
       expect(data.length).toBe(expectedTitles.length);
 
       expectedTitles.forEach((title) => {
-        expect(data.some(data => data.title === title)).toBeTruthy();
+        expect(data.some(item => item.title === title)).toBeTruthy();
       });
     });
 
     it('should find nothing because nothing matches search request', async () => {
-      await helpers.Blockchain.updateBlockchainNodes();
-      const data = await helpers.Blockchain.requestToGetNodesList(
+      await BlockchainHelper.updateBlockchainNodes();
+      const data = await BlockchainHelper.requestToGetNodesList(
         userVlad,
         false,
         200,
@@ -166,7 +166,9 @@ describe('Blockchain nodes get', () => {
 
   describe('Negative', () => {
     it('Not possible to ask for myself_bp_vote=true without auth token', async () => {
-      await helpers.Blockchain.requestToGetNodesList(null, true, 401);
+      await BlockchainHelper.requestToGetNodesList(null, true, 401);
     });
   });
 });
+
+export {};

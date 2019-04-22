@@ -1,29 +1,30 @@
+/* eslint-disable no-console */
 /* tslint:disable:max-line-length */
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
+import BlockchainService = require('../../../lib/eos/service/blockchain-service');
+import RequestHelper = require('./request-helper');
+import ResponseHelper = require('./response-helper');
+import UsersHelper = require('./users-helper');
+
+const { TransactionSender } = require('ucom-libs-social-transactions');
+const { BlockchainNodes, WalletApi } = require('ucom-libs-wallet');
+const blockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
+
+
 const request = require('supertest');
 const server = require('../../../app');
 
-const reqHelper = require('./request-helper');
-const resHelper = require('./response-helper');
-
 const accountsData = require('../../../config/accounts-data');
 
-const blockchainService       = require('../../../lib/eos/service').Blockchain;
 const blockchainModelProvider = require('../../../lib/eos/service').ModelProvider;
 
 const blockchainNodesRepository = require('../../../lib/eos/repository').Main;
-const { TransactionSender } = require('ucom-libs-social-transactions');
-
-const { WalletApi } = require('ucom-libs-wallet');
-
-const blockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
-
-const usersHelper = require('./users-helper');
 
 const accountAlias = 'vlad';
 const privateKey = accountsData[accountAlias].activePk;
 
 class BlockchainHelper {
-
   /**
    *
    * @param {string} userAlias
@@ -730,6 +731,7 @@ class BlockchainHelper {
       },
     ];
   }
+
   static getEtalonVladStakeWithUnstake() {
     return [
       {
@@ -1577,9 +1579,10 @@ class BlockchainHelper {
 
       const rawTrData = model.raw_tr_data;
 
+      // eslint-disable-next-line no-underscore-dangle
       delete rawTrData._id;
+      // eslint-disable-next-line no-underscore-dangle
       delete rawTrData._id;
-
     });
   }
 
@@ -2393,6 +2396,7 @@ class BlockchainHelper {
   static getTesterAccountName() {
     return accountsData[accountAlias].account_name;
   }
+
   /**
    *
    * @return {string}
@@ -2405,10 +2409,10 @@ class BlockchainHelper {
   /**
    *
    * @param {string} accountName
-   * @param {string} privateKey
+   * @param {string} activePrivateKey
    * @return {Promise<void>}
    */
-  static async rollbackAllUnstakingRequests(accountName, privateKey) {
+  static async rollbackAllUnstakingRequests(accountName, activePrivateKey) {
     const state = await WalletApi.getAccountState(accountName);
 
     if (state.resources.net.unstaking_request.amount === 0 && state.resources.cpu.unstaking_request.amount === 0) {
@@ -2420,7 +2424,7 @@ class BlockchainHelper {
     const net = state.resources.net.tokens.self_delegated + state.resources.net.unstaking_request.amount;
     const cpu = state.resources.cpu.tokens.self_delegated + state.resources.cpu.unstaking_request.amount;
 
-    await TransactionSender.stakeOrUnstakeTokens(accountName, privateKey, net, cpu);
+    await TransactionSender.stakeOrUnstakeTokens(accountName, activePrivateKey, net, cpu);
 
     const stateAfter = await WalletApi.getAccountInfo(accountName);
 
@@ -2432,30 +2436,34 @@ class BlockchainHelper {
   /**
    *
    * @param {string} accountName
-   * @param {string} privateKey
+   * @param {string} activePrivateKey
    * @return {Promise<void>}
    */
-  static async stakeSomethingIfNecessary(accountName, privateKey) {
+  static async stakeSomethingIfNecessary(accountName, activePrivateKey) {
     const accountState = await WalletApi.getAccountState(accountName);
 
     if (accountState.tokens.staked === 0) {
-      await WalletApi.stakeOrUnstakeTokens(accountName, privateKey, 10, 10);
+      await WalletApi.stakeOrUnstakeTokens(accountName, activePrivateKey, 10, 10);
     }
   }
 
   /**
    *
    * @param {string} accountName
-   * @param {string} privateKey
+   * @param {string} activePrivateKey
    * @return {Promise<Object>}
    */
-  static resetVotingState(accountName, privateKey) {
-    return WalletApi.voteForBlockProducers(accountName, privateKey, []);
+  static resetVotingState(accountName, activePrivateKey) {
+    return WalletApi.voteForBlockProducers(accountName, activePrivateKey, []);
   }
 
   static async mockGetBlockchainNodesWalletMethod(addToVote = {}, toDelete = true) {
     // tslint:disable-next-line:prefer-const
-    let { producerData:initialData, voters } = await WalletApi.getBlockchainNodes();
+
+    const { blockProducersWithVoters, calculatorsWithVoters } = await BlockchainNodes.getAll();
+
+    const initialData = blockProducersWithVoters.indexedNodes;
+    let voters = blockProducersWithVoters.indexedVoters;
 
     voters = {
       ...voters,
@@ -2466,6 +2474,7 @@ class BlockchainHelper {
       title: 'z_super_new1',
       votes_count: 5,
       votes_amount: 100,
+      scaled_importance_amount: 10.02,
       currency: 'UOS',
       bp_status: 1,
     };
@@ -2474,6 +2483,7 @@ class BlockchainHelper {
       title: 'z_super_new2',
       votes_count: 5,
       votes_amount: 100,
+      scaled_importance_amount: 10.02,
       currency: 'UOS',
       bp_status: 1,
     };
@@ -2507,12 +2517,13 @@ class BlockchainHelper {
       delete initialData[index];
     });
 
-    WalletApi.getBlockchainNodes = async function () {
-      return {
-        voters,
-        producerData: initialData,
-      };
-    };
+    BlockchainNodes.getAll = async (): Promise<{ blockProducersWithVoters, calculatorsWithVoters }> => ({
+      blockProducersWithVoters: {
+        indexedVoters: voters,
+        indexedNodes: initialData,
+      },
+      calculatorsWithVoters,
+    });
 
     return {
       created,
@@ -2536,49 +2547,45 @@ class BlockchainHelper {
    *
    */
   static async updateBlockchainNodes() {
-    return await blockchainService.updateBlockchainNodesByBlockchain();
+    return BlockchainService.updateBlockchainNodesByBlockchain();
   }
 
   /**
    * @return {Promise<Object>}
-   *
-   * @link blockchainService#getAndProcessNodes
    */
   static async requestToGetNodesList(
-    myself = null,
+    myself: UserModel | null = null,
     withMyselfBpVote = false,
     expectedStatus = 200,
     searchString = '',
     allowEmpty = false,
   ) {
     const queryString = withMyselfBpVote ? '?myself_bp_vote=true' : '';
-    const url = reqHelper.getBlockchainNodesListUrl() + queryString + searchString;
+    const url = RequestHelper.getBlockchainNodesListUrl() + queryString + searchString;
 
     const req = request(server)
       .get(url)
     ;
 
     if (myself) {
-      reqHelper.addAuthToken(req, myself);
+      RequestHelper.addAuthToken(req, myself);
     }
 
     const res = await req;
 
-    resHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus !== 200) {
       return res.body;
     }
 
-    resHelper.expectValidListResponse(res, allowEmpty);
+    ResponseHelper.expectValidListResponse(res, allowEmpty);
 
     return res.body.data;
   }
 
   /**
    * @return {Promise<Object>}
-   *
-   * @link blockchainService#getAndProcessMyselfBlockchainTransactions
    */
   static async requestToGetMyselfBlockchainTransactions(
     myself,
@@ -2586,7 +2593,7 @@ class BlockchainHelper {
     queryString = '',
     allowEmpty = false,
   ) {
-    let url = reqHelper.getMyselfBlockchainTransactionsUrl();
+    let url = RequestHelper.getMyselfBlockchainTransactionsUrl();
 
     if (queryString) {
       url += `${queryString}`;
@@ -2596,18 +2603,18 @@ class BlockchainHelper {
       .get(url)
     ;
 
-    reqHelper.addAuthToken(req, myself);
+    RequestHelper.addAuthToken(req, myself);
 
     const res = await req;
 
-    resHelper.expectStatusToBe(res, expectedStatus);
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     if (expectedStatus !== 200) {
       return res.body;
     }
 
     // #task validate response list
-    resHelper.expectValidListResponse(res, allowEmpty);
+    ResponseHelper.expectValidListResponse(res, allowEmpty);
 
     return res.body.data;
   }
@@ -2661,7 +2668,7 @@ class BlockchainHelper {
     expect(typeof model.tokens.active).toBe('number');
     expect(model.tokens.currency).toBe('UOS');
 
-    usersHelper.checkIncludedUserPreview(model);
+    UsersHelper.checkIncludedUserPreview(model);
   }
 
   /**
@@ -2756,8 +2763,8 @@ class BlockchainHelper {
     expect(model.tr_type).toBe(blockchainTrTypesDictionary.getTypeVoteForBp());
 
     expect(Array.isArray(model.producers)).toBeTruthy();
-
   }
+
   /**
    *
    * @param {Object} model
@@ -2814,26 +2821,24 @@ class BlockchainHelper {
     expect(Object.keys(model.raw_tr_data).length).toBeGreaterThan(0);
   }
 
-  /**
-   *
-   * @param {Object[]} models
-   * @param {boolean} isMyselfDataRequired
-   */
-  static checkManyProducers(models, isMyselfDataRequired = false) {
+  static checkManyNodes(models, isMyselfDataRequired, blockchainNodesType: number | null = null) {
     models.forEach((model) => {
-      this.checkOneProducer(model, isMyselfDataRequired);
+      this.checkOneProducer(model, isMyselfDataRequired, blockchainNodesType);
     });
   }
 
-  /**
-   *
-   * @param {Object} model
-   * @param {boolean} isMyselfDataRequired
-   */
-  static checkOneProducer(model, isMyselfDataRequired = false) {
+  static checkOneProducer(
+    model: any,
+    isMyselfDataRequired: boolean,
+    blockchainNodesType: number | null = null,
+  ): void {
     expect(model).toBeDefined();
     expect(model).not.toBeNull();
     expect(typeof model).toBe('object');
+
+    if (blockchainNodesType !== null) {
+      expect(model.blockchain_nodes_type).toBe(blockchainNodesType);
+    }
 
     const expected = blockchainModelProvider.getFieldsForPreview().concat(
       blockchainModelProvider.getModel().getPostProcessingFields(),
@@ -2858,7 +2863,12 @@ class BlockchainHelper {
     expect(typeof model.votes_amount).toBe('number');
     expect(model.votes_amount).toBeGreaterThanOrEqual(0);
 
+    expect(typeof model.scaled_importance_amount).toBe('number');
+    expect(model.scaled_importance_amount).toBeGreaterThanOrEqual(0);
+
     expect(model.currency).toBe('UOS');
+
+    expect([1, 2]).toContain(model.blockchain_nodes_type);
 
     expect([1, 2]).toContain(model.bp_status);
     expect(model.votes_percentage).toBeDefined();

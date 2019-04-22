@@ -1,6 +1,32 @@
 import { InsertUpdateHelperFields } from '../../interfaces/options-dto';
 
 class InsertUpdateRepositoryHelper {
+  public static getInsertManyRawSqlFromIndexed(data: any, tableName: string): string {
+    const keys = Object.keys(data[0]);
+
+    const values: any = [];
+    for (const object of data) {
+      const m: any = [];
+
+      for (const field of keys) {
+        const value = object[field];
+        if (typeof value === 'string') {
+          m.push(`'${value}'`);
+        } else {
+          m.push(value);
+        }
+      }
+
+      values.push(`(${m.join(', ')})`);
+    }
+
+    const valuesString = values.join(', ');
+
+    return `
+      INSERT INTO ${tableName} (${keys}) VALUES ${valuesString}
+    `;
+  }
+
   public static getUpsertManyRawSql(
     manyItems: any[],
     tableName: string,

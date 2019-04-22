@@ -11,6 +11,7 @@ import RepositoryHelper = require('../common/repository/repository-helper');
 import UsersExternalModelProvider = require('../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
+import { StringToAnyCollection } from '../common/interfaces/common-types';
 
 const _ = require('lodash');
 
@@ -137,6 +138,18 @@ class UsersRepository {
     });
 
     return result;
+  }
+
+  public static async findUserIdsByObjectIndexedByAccountNames(
+    indexedObject: StringToAnyCollection,
+    key: string = 'account_name',
+    value: string = 'id',
+  ): Promise<any> {
+    return this.findUserIdsByAccountNames(
+      Object.keys(indexedObject),
+      key,
+      value,
+    );
   }
 
   /**

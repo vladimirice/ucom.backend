@@ -18,6 +18,10 @@ class RepositoryHelper {
     return res.length === 0 ? 0 : +res[0].amount;
   }
 
+  public static getKnexRawData(result: any): any[] {
+    return result.rows;
+  }
+
   public static getKnexOneIdReturningOrException(res: any): number {
     if (res.length !== 1) {
       throw new AppError('It is supposed that getKnexOneIdReturning res contains one element');

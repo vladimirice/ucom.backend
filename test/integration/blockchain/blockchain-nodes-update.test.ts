@@ -1,17 +1,20 @@
-export {};
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-const helpers = require('../helpers');
+import SeedsHelper = require('../helpers/seeds-helper');
+import BlockchainHelper = require('../helpers/blockchain-helper');
+import EosApi = require('../../../lib/eos/eosApi');
+import BlockchainService = require('../../../lib/eos/service/blockchain-service');
 
-const { WalletApi } = require('ucom-libs-wallet');
+const { BlockchainNodes, WalletApi } = require('ucom-libs-wallet');
 
-let userPetr;
-let userRokky;
+let userPetr: UserModel;
+let userRokky: UserModel;
 
-WalletApi.initForStagingEnv();
-WalletApi.setNodeJsEnv();
+EosApi.initWalletApi();
 
 const _ = require('lodash');
-const initialMockFunction = WalletApi.getBlockchainNodes;
+
+const initialMockFunction = BlockchainNodes.getAll;
 
 const { TransactionSender } = require('ucom-libs-social-transactions');
 
@@ -20,18 +23,21 @@ TransactionSender.initForStagingEnv();
 const usersActivityRepository = require('../../../lib/users/repository').Activity;
 const blockchainNodesRepository = require('../../../lib/eos/repository').Main;
 
+const JEST_TIMEOUT = 5000;
+
 describe('Blockchain nodes updating', () => {
   beforeAll(async () => {
-    [, , userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+    // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
+    [, , userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    await SeedsHelper.initUsersOnly();
 
     WalletApi.getBlockchainNodes = initialMockFunction;
   });
 
-  afterAll(async () => { await helpers.Seeds.doAfterAll(); });
+  afterAll(async () => { await SeedsHelper.doAfterAll(); });
 
   describe('Some use cases not covered by tests yet', () => {
     it.skip('I voted for node but node is deleted from voters list', async () => {
@@ -41,14 +47,17 @@ describe('Blockchain nodes updating', () => {
 
   describe('Update users activity', () => {
     it('should create basic users activity of bp votes', async () => {
-      const petrAccountName   = helpers.Blockchain.getAccountNameByUserAlias('petr');
-      const rokkyAccountName  = helpers.Blockchain.getAccountNameByUserAlias('rokky');
-      const producers = helpers.Blockchain.getBlockProducersList();
+      const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
+      const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
+
+      const { blockProducersWithVoters } = await BlockchainNodes.getAll();
+
+      const producers = Object.keys(blockProducersWithVoters.indexedNodes);
 
       const addToVote = {
         [petrAccountName]: {
           owner: petrAccountName,
-          producers: [
+          nodes: [
             producers[0],
             producers[2],
             producers[3],
@@ -57,7 +66,7 @@ describe('Blockchain nodes updating', () => {
         },
         [rokkyAccountName]: {
           owner: rokkyAccountName,
-          producers: [
+          nodes: [
             producers[1],
             producers[3],
             'z_super_new1',
@@ -66,31 +75,23 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
-      await helpers.Blockchain.updateBlockchainNodes();
+      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
+      await BlockchainService.updateBlockchainNodesByBlockchain();
 
       const nodes = await blockchainNodesRepository.findAllBlockchainNodes();
 
-      const petrMustVoteTo = nodes.filter((data) => {
-        return ~addToVote[petrAccountName].producers.indexOf(data.title);
-      });
+      const petrMustVoteTo = nodes.filter(data => ~addToVote[petrAccountName].nodes.indexOf(data.title));
 
       expect(petrMustVoteTo.length).toBeGreaterThan(0);
 
-      const rokkyMustVoteTo = nodes.filter((data) => {
-        return ~addToVote[rokkyAccountName].producers.indexOf(data.title);
-      });
+      const rokkyMustVoteTo = nodes.filter(data => ~addToVote[rokkyAccountName].nodes.indexOf(data.title));
       expect(rokkyMustVoteTo.length).toBeGreaterThan(0);
 
       const res = await usersActivityRepository.findAllUpvoteUsersBlockchainNodesActivity();
 
-      const petrActivity = res.filter((data) => {
-        return data.user_id_from === userPetr.id;
-      });
+      const petrActivity = res.filter(data => data.user_id_from === userPetr.id);
 
-      const rokkyActivity = res.filter((data) => {
-        return data.user_id_from === userRokky.id;
-      });
+      const rokkyActivity = res.filter(data => data.user_id_from === userRokky.id);
 
       expect(petrActivity.length).toBe(Object.keys(petrMustVoteTo).length);
       expect(rokkyActivity.length).toBe(rokkyMustVoteTo.length);
@@ -102,17 +103,19 @@ describe('Blockchain nodes updating', () => {
       rokkyMustVoteTo.forEach((data) => {
         expect(rokkyActivity.some(activity => +activity.entity_id_to === data.id)).toBeTruthy();
       });
-    }, 10000);
+    }, JEST_TIMEOUT * 20);
 
     it('should update users activity if somebody votes', async () => {
-      const petrAccountName   = helpers.Blockchain.getAccountNameByUserAlias('petr');
-      const rokkyAccountName  = helpers.Blockchain.getAccountNameByUserAlias('rokky');
-      const producers         = helpers.Blockchain.getBlockProducersList();
+      const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
+      const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
+
+      const { blockProducersWithVoters } = await BlockchainNodes.getAll();
+      const producers = Object.keys(blockProducersWithVoters.indexedNodes);
 
       const addToVote = {
         [petrAccountName]: {
           owner: petrAccountName,
-          producers: [
+          nodes: [
             producers[1],
             producers[4],
             producers[3],
@@ -121,7 +124,7 @@ describe('Blockchain nodes updating', () => {
         },
         [rokkyAccountName]: {
           owner: rokkyAccountName,
-          producers: [
+          nodes: [
             producers[2],
             producers[3],
             'z_super_new1',
@@ -130,8 +133,8 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
-      await helpers.Blockchain.updateBlockchainNodes();
+      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
+      await BlockchainHelper.updateBlockchainNodes();
 
       const nodes = await blockchainNodesRepository.findAllBlockchainNodes();
 
@@ -142,7 +145,7 @@ describe('Blockchain nodes updating', () => {
       const addToVoteAfter = {
         [petrAccountName]: {
           owner: petrAccountName,
-          producers: [
+          nodes: [
             // add these ones
             'z_super_new1',
             producers[2],
@@ -158,7 +161,7 @@ describe('Blockchain nodes updating', () => {
         },
         [rokkyAccountName]: {
           owner: rokkyAccountName,
-          producers: [
+          nodes: [
             // add these ones
             producers[1],
             'z_super_new2',
@@ -174,25 +177,17 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      await helpers.Blockchain.mockGetBlockchainNodesWalletMethod(
+      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(
         _.cloneDeep(addToVoteAfter),
         false,
       );
-      await helpers.Blockchain.updateBlockchainNodes();
+      await BlockchainHelper.updateBlockchainNodes();
 
-      const petrMustVoteTo = nodes.filter((data) => {
-        return ~addToVoteAfter[petrAccountName].producers.indexOf(data.title);
-      });
-      const petrMustNotContain = nodes.filter((data) => {
-        return ~[producers[1], producers[4]].indexOf(data.title);
-      });
+      const petrMustVoteTo = nodes.filter(data => ~addToVoteAfter[petrAccountName].nodes.indexOf(data.title));
+      const petrMustNotContain = nodes.filter(data => ~[producers[1], producers[4]].indexOf(data.title));
 
-      const rokkyMustVoteTo = nodes.filter((data) => {
-        return ~addToVoteAfter[rokkyAccountName].producers.indexOf(data.title);
-      });
-      const rokkyMustNotContain = nodes.filter((data) => {
-        return ~['z_super_new1', producers[4]].indexOf(data.title);
-      });
+      const rokkyMustVoteTo = nodes.filter(data => ~addToVoteAfter[rokkyAccountName].nodes.indexOf(data.title));
+      const rokkyMustNotContain = nodes.filter(data => ~['z_super_new1', producers[4]].indexOf(data.title));
 
       const res = await usersActivityRepository.findAllUpvoteUsersBlockchainNodesActivity();
 
@@ -200,22 +195,18 @@ describe('Blockchain nodes updating', () => {
         await usersActivityRepository.findAllUpvoteCancelUsersBlockchainNodesActivity();
       petrMustNotContain.forEach((node) => {
         expect(resCancel.some(
-          data => +data.entity_id_to === node.id && data.user_id_from === userPetr.id),
-        ).toBeTruthy();
+          data => +data.entity_id_to === node.id && data.user_id_from === userPetr.id,
+        )).toBeTruthy();
       });
       rokkyMustNotContain.forEach((node) => {
         expect(resCancel.some(
-          data => +data.entity_id_to === node.id && data.user_id_from === userRokky.id),
-        ).toBeTruthy();
+          data => +data.entity_id_to === node.id && data.user_id_from === userRokky.id,
+        )).toBeTruthy();
       });
 
-      const petrActivity = res.filter((data) => {
-        return data.user_id_from === userPetr.id;
-      });
+      const petrActivity = res.filter(data => data.user_id_from === userPetr.id);
 
-      const rokkyActivity = res.filter((data) => {
-        return data.user_id_from === userRokky.id;
-      });
+      const rokkyActivity = res.filter(data => data.user_id_from === userRokky.id);
 
       expect(petrActivity.length).toBe(petrMustVoteTo.length);
       expect(rokkyActivity.length).toBe(rokkyMustVoteTo.length);
@@ -233,26 +224,18 @@ describe('Blockchain nodes updating', () => {
       rokkyMustVoteTo.forEach((node) => {
         expect(rokkyActivity.some(data => +data.entity_id_to === node.id)).toBeTruthy();
       });
-    });
+    }, JEST_TIMEOUT * 2);
   });
 
   describe('Update nodes', () => {
-    it('should create new node records for empty database', async () => {
-      await helpers.Blockchain.updateBlockchainNodes();
+    it('should update node records - some nodes are added', async () => {
+      await BlockchainHelper.updateBlockchainNodes();
 
-      await helpers.Blockchain.requestToGetNodesList();
-    });
+      const { created, updated } =
+        await BlockchainHelper.mockGetBlockchainNodesWalletMethod();
 
-    it('should update node records - some nodes are added and some are removed', async () => {
-      await helpers.Blockchain.updateBlockchainNodes();
-
-      const { created, updated, deleted } =
-        await helpers.Blockchain.mockGetBlockchainNodesWalletMethod();
-      expect(deleted.length).toBeGreaterThan(0);
-
-      // new state
-      await helpers.Blockchain.updateBlockchainNodes();
-      const res = await helpers.Blockchain.requestToGetNodesList();
+      await BlockchainHelper.updateBlockchainNodes();
+      const res = await BlockchainHelper.requestToGetNodesList();
 
       updated.forEach((expected) => {
         const actual = res.find(data => data.title === expected.title);
@@ -263,19 +246,8 @@ describe('Blockchain nodes updating', () => {
         const actual = res.find(data => data.title === expected.title);
         expect(actual).toMatchObject(expected);
       });
-
-      deleted.forEach((noExpectedTitle) => {
-        expect(res.some(data => data.title === noExpectedTitle)).toBeFalsy();
-      });
-
-      // restore removed node
-      WalletApi.getBlockchainNodes = initialMockFunction;
-      await helpers.Blockchain.updateBlockchainNodes();
-
-      const resAfterRestore = await helpers.Blockchain.requestToGetNodesList();
-      deleted.forEach((noExpectedTitle) => {
-        expect(resAfterRestore.some(data => data.title === noExpectedTitle)).toBeTruthy();
-      });
     });
   });
 });
+
+export {};

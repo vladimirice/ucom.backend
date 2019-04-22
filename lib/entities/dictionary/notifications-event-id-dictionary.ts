@@ -34,6 +34,9 @@ const USER_REPOSTS_ORG_POST               = 93;
 const USER_VOTES_FOR_BLOCKCHAIN_NODE            = 110;
 const USER_CANCEL_VOTE_FOR_BLOCKCHAIN_NODE      = 111;
 
+const USER_VOTES_FOR_CALCULATOR_NODE            = 112;
+const USER_CANCEL_VOTE_FOR_CALCULATOR_NODE      = 113;
+
 const USER_HAS_MENTIONED_YOU_IN_POST         = 120;
 const USER_HAS_MENTIONED_YOU_IN_COMMENT      = 121;
 
@@ -62,12 +65,16 @@ class NotificationsEventIdDictionary {
     return USER_VOTES_FOR_BLOCKCHAIN_NODE;
   }
 
-  /**
-   *
-   * @return {number}
-   */
-  static getUserCancelVoteForBlockchainNode() {
+  public static getUserCancelVoteForBlockchainNode(): number {
     return USER_CANCEL_VOTE_FOR_BLOCKCHAIN_NODE;
+  }
+
+  public static getUserVotesForCalculatorNode(): number {
+    return USER_VOTES_FOR_CALCULATOR_NODE;
+  }
+
+  public static getUserCancelVoteForCalculatorNode(): number {
+    return USER_CANCEL_VOTE_FOR_CALCULATOR_NODE;
   }
 
   /**
