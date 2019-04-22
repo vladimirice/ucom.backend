@@ -51,24 +51,6 @@ describe('Organizations create,update related entities', () => {
     });
 
     describe('Negative', () => {
-      it('Error if post is not a post of organization', async () => {
-        const firstOrgId = await OrganizationsGenerator.createOrgWithTeam(userVlad, [userJane]);
-        const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
-        const res = await OrganizationsHelper.validateOneDiscussion(userVlad, firstOrgId, postId);
-
-        ResponseHelper.expectErrorMatchMessage(res, 'Post should be made by organization member');
-      });
-
-      it('Error if post is a post of different organization', async () => {
-        const firstOrgId = await OrganizationsGenerator.createOrgWithTeam(userVlad, [userJane]);
-        const secondOrgId = await OrganizationsGenerator.createOrgWithTeam(userVlad, [userJane]);
-
-        const secondOrgPostId = await PostsGenerator.createMediaPostOfOrganization(userVlad, secondOrgId);
-        const res = await OrganizationsHelper.validateOneDiscussion(userVlad, firstOrgId, secondOrgPostId);
-
-        ResponseHelper.expectErrorMatchMessage(res, 'Post should be made by organization member');
-      });
-
       it('organization id does not exist', async () => {
         const firstOrgId = await OrganizationsGenerator.createOrgWithTeam(userVlad, [userJane]);
         const postId = await PostsGenerator.createDirectPostForOrganizationV2AndGetId(userVlad, firstOrgId);

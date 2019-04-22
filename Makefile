@@ -18,6 +18,9 @@ DB_KNEX_MIGRATE_MONOLITH_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=monolith
 
 ENV_VALUE_TEST=test
 
+UPDATE_HOSTS_COMMAND=sudo /bin/bash ./etc/docker/etchosts.sh update
+LINUX_HOSTS_FILENAME=/etc/hosts
+
 init-project ip:
 	make docker-rebuild
 	npm ci
@@ -169,3 +172,9 @@ staging-config-from-server-to-local:
 
 deploy-local-config-to-staging:
 	scp ./config/staging.json gt:/var/www/ucom.backend.staging/config/staging.json
+
+docker-set-hosts-linux:
+	${UPDATE_HOSTS_COMMAND} uos-backend-postgres-test.dev   173.18.212.11 ${LINUX_HOSTS_FILENAME}
+	${UPDATE_HOSTS_COMMAND} uos-backend-rabbitmq.dev        173.18.212.20 ${LINUX_HOSTS_FILENAME}
+	${UPDATE_HOSTS_COMMAND} uos-backend-redis.dev           173.18.212.30 ${LINUX_HOSTS_FILENAME}
+	${UPDATE_HOSTS_COMMAND} irreversible-traces-mongodb.dev 173.18.212.50 ${LINUX_HOSTS_FILENAME}
