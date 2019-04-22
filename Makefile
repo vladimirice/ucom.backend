@@ -47,6 +47,7 @@ docker-check-project:
 	make docker-compile-typescript
 	make docker-check-by-eslint
 	make docker-check-project-script
+	snyk test
 
 docker-compile-typescript:
 	${DOCKER_B_EXEC_CMD} npm run compile-ts

@@ -33,6 +33,10 @@ class EnvHelper {
     return this.isNotExpectedEnv(ENV__TEST);
   }
 
+  public static isNotAProductionEnv(): boolean {
+    return this.isNotExpectedEnv(ENV__PRODUCTION);
+  }
+
   private static isExpectedEnv(env: string): boolean {
     return process.env.NODE_ENV === env;
   }
