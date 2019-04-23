@@ -31,6 +31,10 @@ Because of this, some of the conventions are not satisfied by the "old code", on
 
 * TODO is not allowed for code pushed to master. It is allowed only during development stage.
 
+### Project structure
+* All blockchain related code should be placed to `ucom.libs.wallet` library.
+
+
 ### Autotests
 * **Do** write autotests for new functions. TDD style is preferable.
 
