@@ -100,6 +100,10 @@ class BlockchainNodesRepository {
       [Op.eq]: null,
     };
 
+    params.where.bp_status = {
+      [Op.in]: [1, 2],
+    };
+
     const data = await model.findAll({
       attributes: blockchainModelProvider.getFieldsForPreview(),
       ...params,

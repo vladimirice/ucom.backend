@@ -116,7 +116,7 @@ describe('Blockchain nodes updating', () => {
     }, JEST_TIMEOUT);
   });
 
-  describe('Update users activity for block producers', () => {
+  describe('Block producers processing', () => {
     it('should create basic users activity of bp votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
