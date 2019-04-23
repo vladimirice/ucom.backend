@@ -4,7 +4,7 @@ exports.up = (knex) => {
   const sql = `
     SELECT setval('migrations_knex_id_seq', MAX(id), true) FROM migrations_knex;
 
-    ALTER TABLE "${TABLE_NAME}" ADD COLUMN scaled_importance_amount NUMERIC(20, 10) NOT NULL;
+    ALTER TABLE "${TABLE_NAME}" ADD COLUMN scaled_importance_amount NUMERIC(20, 10) NOT NULL DEFAULT 0;
     ALTER TABLE "${TABLE_NAME}" ADD COLUMN blockchain_nodes_type    SMALLINT NOT NULL DEFAULT 1;
 
     ALTER TABLE ${TABLE_NAME} 
