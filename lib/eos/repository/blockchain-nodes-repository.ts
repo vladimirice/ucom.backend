@@ -136,6 +136,12 @@ class BlockchainNodesRepository {
       'scaled_importance_amount',
     ];
   }
+
+  public static getAllowedOrderBy() {
+    return [
+      'id', 'title', 'votes_count', 'votes_amount', 'bp_status',
+    ];
+  }
 }
 
 export = BlockchainNodesRepository;

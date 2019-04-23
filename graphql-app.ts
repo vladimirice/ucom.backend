@@ -15,6 +15,7 @@ import TagsFetchService = require('./lib/tags/service/tags-fetch-service');
 import UsersFetchService = require('./lib/users/service/users-fetch-service');
 import UsersAirdropService = require('./lib/airdrops/service/airdrop-users-service');
 import OneUserInputProcessor = require('./lib/users/input-processor/one-user-input-processor');
+import BlockchainApiFetchService = require('./lib/eos/service/blockchain-api-fetch-service');
 
 const cookieParser = require('cookie-parser');
 const express = require('express');
@@ -319,6 +320,16 @@ const resolvers = {
     },
     // @ts-ignore
     async many_blockchain_nodes(parent, args, ctx) {
+      const query: RequestQueryDto = {
+        page: args.page,
+        per_page: args.per_page,
+        sort_by: args.order_by,
+      };
+
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+
+      return BlockchainApiFetchService.getAndProcessNodes(query, currentUserId);
+
       const bpNodes: any[] = [];
       const calcNodes: any[] = [];
 

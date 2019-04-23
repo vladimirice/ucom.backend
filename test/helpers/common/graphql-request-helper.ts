@@ -34,6 +34,18 @@ export class GraphqlRequestHelper {
     return this.makeRequestAsMyself(myself, query);
   }
 
+  public static async makeRequestFromOneQueryPartAsMyself(
+    myself: UserModel,
+    queryPart: string,
+    key: string,
+  ): Promise<any> {
+    const query = GraphQLSchema.getQueryMadeFromParts([queryPart]);
+
+    const response = await this.makeRequestAsMyself(myself, query);
+
+    return response.data[key];
+  }
+
   public static async makeRequestAsMyself(
     myself: UserModel,
     query: string,

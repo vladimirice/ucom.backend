@@ -84,7 +84,7 @@ describe('Blockchain nodes get - graphql', () => {
 
       const response = await GraphqlHelper.getManyBlockchainNodesAsMyself(userVlad, ordering, page, perPage);
 
-      expect(response).toMatchObject(getSampleNodes());
+      expect(response).toEqual(getSampleNodes());
     }, JEST_TIMEOUT);
   });
 });

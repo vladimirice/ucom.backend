@@ -105,11 +105,17 @@ export class GraphqlHelper {
     page: number = 1,
     perPage: number = 10,
   ): Promise<PostsListResponse> {
-    const query: string = GraphQLSchema.getManyBlockchainNodes(ordering, page, perPage);
+    const params = {
+      page,
+      order_by: ordering,
+      per_page: perPage,
+    };
+
+    const part = GraphQLSchema.getManyBlockchainNodesQueryPart(params);
 
     const key: string = 'many_blockchain_nodes';
 
-    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
+    return GraphqlRequestHelper.makeRequestFromOneQueryPartAsMyself(myself, part, key);
   }
 
   public static async getManyOrgsDataOnlyAsMyself(

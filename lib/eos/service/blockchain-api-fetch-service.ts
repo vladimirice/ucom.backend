@@ -1,3 +1,5 @@
+import BlockchainNodesRepository = require('../repository/blockchain-nodes-repository');
+
 const { HttpForbiddenError, BadRequestError }    = require('../../api/errors');
 const blockchainNodesRepository = require('../repository').Main;
 const { Op } = require('../../../models').Sequelize;
@@ -15,7 +17,7 @@ class BlockchainApiFetchService {
    * @param {Object} query
    * @param {number|null} userId
    */
-  static async getAndProcessNodes(query, userId) {
+  static async getAndProcessNodesLegacy(query, userId) {
     this.checkQueryParams(query, userId);
 
     const queryParams = queryFilterService.getQueryParameters(
@@ -28,6 +30,22 @@ class BlockchainApiFetchService {
     const { dataObjects, votedNodes } = await this.getApiDbData(queryParams, userId);
 
     return this.getDataForApiResponse(dataObjects, votedNodes, !!query.myself_bp_vote, userId);
+  }
+
+  /**
+   *
+   * @param {Object} query
+   * @param {number|null} userId
+   */
+  // @ts-ignore
+  static async getAndProcessNodes(query, userId) {
+    const queryParams = queryFilterService.getQueryParameters(
+      query,
+      {},
+      BlockchainNodesRepository.getAllowedOrderBy(),
+    );
+
+    return BlockchainNodesRepository.findAllBlockchainNodes(queryParams);
   }
 
   /**

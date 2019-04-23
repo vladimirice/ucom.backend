@@ -4,6 +4,8 @@ import { AppError } from '../../api/errors';
 import UsersRepository = require('../../users/users-repository');
 import BlockchainNodesRepository = require('../repository/blockchain-nodes-repository');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
+import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 
 const _             = require('lodash');
 const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
@@ -48,7 +50,7 @@ class BlockchainCacheService {
       _.cloneDeep(data.indexedVoters),
     );
 
-    const promises = this.prepareUsersActivityPromises(votersToProcess);
+    const promises = this.prepareUsersActivityPromises(votersToProcess, blockchainNodesType);
 
     await Promise.all(promises);
   }
@@ -113,12 +115,12 @@ class BlockchainCacheService {
   }
 
   /**
-   *
-   * @param {Object} votersToProcess
-   * @return {Array}
    * @private
    */
-  private static prepareUsersActivityPromises(votersToProcess) {
+  private static prepareUsersActivityPromises(
+    votersToProcess: StringToAnyCollection,
+    blockchainNodesType: number,
+  ) {
     const promises: any = [];
     for (const voterId in votersToProcess) {
       if (!votersToProcess.hasOwnProperty(voterId)) {
@@ -130,15 +132,19 @@ class BlockchainCacheService {
       const producersToCreate = _.difference(voterData.nodes, voterData.old_nodes);
       const producersToCancel = _.difference(voterData.old_nodes, voterData.nodes);
 
+
+      const { eventIdUp, eventIdDown } =
+        NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
+
       if (producersToCreate.length > 0) {
         promises.push(
-          usersActivityService.processUserVotesChangingForBlockProducers(voterData.user_id, producersToCreate, null),
+          usersActivityService.processUserVotesChangingForBlockProducers(voterData.user_id, producersToCreate, null, eventIdUp),
         );
       }
 
       if (producersToCancel.length > 0) {
         promises.push(
-          usersActivityService.processUserCancelVotesForBlockProducers(voterData.user_id, producersToCancel, null),
+          usersActivityService.processUserCancelVotesForBlockProducers(voterData.user_id, producersToCancel, null, eventIdDown),
         );
       }
     }

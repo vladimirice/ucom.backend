@@ -2457,17 +2457,23 @@ class BlockchainHelper {
     return WalletApi.voteForBlockProducers(accountName, activePrivateKey, []);
   }
 
-  static async mockGetBlockchainNodesWalletMethod(addToVote = {}, toDelete = true) {
+  static async mockGetBlockchainNodesWalletMethod(addToVote = {}, toDelete = true, addCalculatorsToVote = {}) {
     const { blockProducersWithVoters, calculatorsWithVoters } = await BlockchainNodes.getAll();
 
     const initialCalculatorsData = calculatorsWithVoters.indexedNodes;
 
     const initialData = blockProducersWithVoters.indexedNodes;
     let voters = blockProducersWithVoters.indexedVoters;
-
     voters = {
       ...voters,
       ...addToVote,
+    };
+
+    let calculatorsVoters = calculatorsWithVoters.indexedVoters;
+
+    calculatorsVoters = {
+      ...calculatorsVoters,
+      ...addCalculatorsToVote,
     };
 
     initialData.z_super_new1 = {
@@ -2545,7 +2551,10 @@ class BlockchainHelper {
         indexedVoters: voters,
         indexedNodes: initialData,
       },
-      calculatorsWithVoters,
+      calculatorsWithVoters: {
+        indexedVoters: calculatorsVoters,
+        indexedNodes: initialCalculatorsData,
+      }
     });
 
     return {

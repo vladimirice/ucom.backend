@@ -33,7 +33,7 @@ class BlockchainService {
   async getAndProcessNodes(query) {
     const userId = this.currentUser.id;
 
-    return BlockchainApiFetchService.getAndProcessNodes(query, userId);
+    return BlockchainApiFetchService.getAndProcessNodesLegacy(query, userId);
   }
 
   public static async updateBlockchainNodesByBlockchain() {

@@ -29,15 +29,7 @@ const ACTIVITY_TYPE__UPVOTE_NODE = 20;
 const ACTIVITY_TYPE__CANCEL_NODE_UPVOTING_NODE = 30;
 
 class UserActivityService {
-
-  /**
-   *
-   * @param {number} userId
-   * @param {number[]} blockchainNodeIds
-   * @param {Object} transaction
-   * @return {Promise<Object>}
-   */
-  static async processUserVotesChangingForBlockProducers(userId, blockchainNodeIds, transaction) {
+  public static async processUserVotesChangingForBlockProducers(userId, blockchainNodeIds, transaction, eventId: number) {
     const data: any = [];
 
     for (let i = 0; i < blockchainNodeIds.length; i += 1) {
@@ -49,7 +41,7 @@ class UserActivityService {
         entity_id_to: blockchainNodeIds[i],
 
         entity_name:  blockchainModelProvider.getEntityName(),
-        event_id:     eventIdDictionary.getUserVotesForBlockchainNode(),
+        event_id:     eventId,
 
         // Not required fields
         signed_transaction: '',
@@ -70,7 +62,7 @@ class UserActivityService {
    * @param {Object} transaction
    * @return {Promise<Object>}
    */
-  static async processUserCancelVotesForBlockProducers(userId, blockchainNodeIds, transaction) {
+  static async processUserCancelVotesForBlockProducers(userId, blockchainNodeIds, transaction, eventId: number) {
     const data: any = [];
 
     for (let i = 0; i < blockchainNodeIds.length; i += 1) {
@@ -82,7 +74,7 @@ class UserActivityService {
         entity_id_to: blockchainNodeIds[i],
 
         entity_name:  blockchainModelProvider.getEntityName(),
-        event_id:     eventIdDictionary.getUserCancelVoteForBlockchainNode(),
+        event_id:     eventId,
 
         // Not required fields
         signed_transaction: '',
