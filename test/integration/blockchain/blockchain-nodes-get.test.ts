@@ -1,13 +1,15 @@
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import BlockchainHelper = require('../helpers/blockchain-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
+import EosApi = require('../../../lib/eos/eosApi');
 
-const { BlockchainNodes, WalletApi } = require('ucom-libs-wallet');
+const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
 const _ = require('lodash');
 
-let userVlad;
+let userVlad: UserModel;
 
-WalletApi.initForStagingEnv();
-WalletApi.setNodeJsEnv();
+EosApi.initWalletApi();
 
 const initialMockFunction = BlockchainNodes.getAll;
 
@@ -15,6 +17,8 @@ const accountName = BlockchainHelper.getTesterAccountName();
 const privateKey  = BlockchainHelper.getTesterPrivateKey();
 
 const JEST_TIMEOUT = 5000;
+
+const blockchainNodesType = Dictionary.BlockchainNodes.typeBlockProducer();
 
 describe('Blockchain nodes get', () => {
   beforeAll(async () => {
@@ -43,7 +47,7 @@ describe('Blockchain nodes get', () => {
       const queryString = `?sort_by=${fieldsToSort.join(',')}`;
       const data = await BlockchainHelper.requestToGetNodesList(null, false, 200, queryString);
 
-      BlockchainHelper.checkManyNodes(data, false);
+      BlockchainHelper.checkManyNodes(data, false, blockchainNodesType);
     });
   });
 
@@ -51,7 +55,7 @@ describe('Blockchain nodes get', () => {
     it('Get nodes list without filters for guest', async () => {
       const data = await BlockchainHelper.requestToGetNodesList();
 
-      BlockchainHelper.checkManyNodes(data, false, 1);
+      BlockchainHelper.checkManyNodes(data, false, blockchainNodesType);
     });
 
     it('should contain myself data for user who did not vote yet', async () => {
@@ -59,7 +63,7 @@ describe('Blockchain nodes get', () => {
       await BlockchainHelper.updateBlockchainNodes();
 
       const data = await BlockchainHelper.requestToGetNodesList(userVlad);
-      BlockchainHelper.checkManyNodes(data, true);
+      BlockchainHelper.checkManyNodes(data, true, blockchainNodesType);
 
       data.forEach((model) => {
         expect(model.myselfData).toBeDefined();
@@ -88,7 +92,7 @@ describe('Blockchain nodes get', () => {
       await BlockchainHelper.updateBlockchainNodes();
 
       const nodesList = await BlockchainHelper.requestToGetNodesList(userVlad);
-      BlockchainHelper.checkManyNodes(nodesList, true);
+      BlockchainHelper.checkManyNodes(nodesList, true, blockchainNodesType);
 
       nodesList.forEach((node) => {
         if (~nodes.indexOf(node.title)) {
@@ -120,7 +124,7 @@ describe('Blockchain nodes get', () => {
       await BlockchainHelper.updateBlockchainNodes();
 
       const data = await BlockchainHelper.requestToGetNodesList(userVlad, true);
-      BlockchainHelper.checkManyNodes(data, true);
+      BlockchainHelper.checkManyNodes(data, true, blockchainNodesType);
 
       expect(data.length).toBe(nodeTitlesToVote.length);
 

@@ -1,3 +1,7 @@
+import { AppError } from '../../api/errors';
+
+const { Dictionary } = require('ucom-libs-wallet');
+
 const ORG_USERS_TEAM_INVITATION   = 10;
 
 const USER_FOLLOWS_YOU            = 30;
@@ -59,6 +63,29 @@ class NotificationsEventIdDictionary {
       USER_REPOSTS_OTHER_USER_POST,
       USER_REPOSTS_ORG_POST,
     ];
+  }
+
+  public static getUpDownEventsByBlockchainNodesType(type: number): { eventIdUp, eventIdDown } {
+    let eventIdUp: number;
+    let eventIdDown: number;
+
+    switch (type) {
+      case Dictionary.BlockchainNodes.typeBlockProducer():
+        eventIdUp   = NotificationsEventIdDictionary.getUserVotesForBlockchainNode();
+        eventIdDown = NotificationsEventIdDictionary.getUserCancelVoteForBlockchainNode();
+        break;
+      case Dictionary.BlockchainNodes.typeCalculator():
+        eventIdUp   = NotificationsEventIdDictionary.getUserVotesForCalculatorNode();
+        eventIdDown = NotificationsEventIdDictionary.getUserCancelVoteForCalculatorNode();
+        break;
+      default:
+        throw new AppError(`Unsupported blockchain node type: ${type}`);
+    }
+
+    return {
+      eventIdUp,
+      eventIdDown,
+    };
   }
 
   public static getUserVotesForBlockchainNode(): number {

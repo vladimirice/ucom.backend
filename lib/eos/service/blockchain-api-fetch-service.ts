@@ -49,7 +49,6 @@ class BlockchainApiFetchService {
         nodePromise,
         activityPromise,
       ]);
-
     } else {
       dataObjects = await blockchainNodesRepository.findAllBlockchainNodes(queryParams);
     }
@@ -72,9 +71,7 @@ class BlockchainApiFetchService {
     const data: any = [];
     const totalVotesCount = dataObjects.reduce((prev, cur) => prev + cur.votes_count, 0);
 
-    for (let m = 0; m < dataObjects.length; m += 1) {
-      const model = dataObjects[m];
-
+    for (const model of dataObjects) {
       if (userId) {
         model.myselfData = {
           bp_vote: !!(~votedNodes.indexOf(model.id)),
@@ -114,6 +111,9 @@ class BlockchainApiFetchService {
       queryParams.where.title = {
         [Op.iLike]: `%${query.search}%`,
       };
+    }
+    if (query.blockchain_nodes_type) {
+      queryParams.where.blockchain_nodes_type = +query.blockchain_nodes_type;
     }
   }
 

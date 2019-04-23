@@ -3,6 +3,7 @@ import { StringToAnyCollection } from '../../common/interfaces/common-types';
 import BlockchainModelProvider = require('../service/blockchain-model-provider');
 import knex = require('../../../config/knex');
 import InsertUpdateRepositoryHelper = require('../../common/helper/repository/insert-update-repository-helper');
+import RepositoryHelper = require('../../common/repository/repository-helper');
 
 const _ = require('lodash');
 
@@ -104,9 +105,7 @@ class BlockchainNodesRepository {
       ...params,
     });
 
-    data.forEach((item) => {
-      item.votes_amount = +item.votes_amount;
-    });
+    RepositoryHelper.convertStringFieldsToNumbersForArray(data, this.getNumericalFields());
 
     return data;
   }
@@ -123,6 +122,14 @@ class BlockchainNodesRepository {
     return [
       ['bp_status', 'ASC'],
       ['title', 'ASC'],
+    ];
+  }
+
+  private static getNumericalFields(): string[] {
+    return [
+      'id',
+      'votes_amount',
+      'scaled_importance_amount',
     ];
   }
 }

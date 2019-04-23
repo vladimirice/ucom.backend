@@ -18,8 +18,10 @@ class RepositoryHelper {
     return res.length === 0 ? 0 : +res[0].amount;
   }
 
-  public static getKnexRawData(result: any): any[] {
-    return result.rows;
+  public static async getKnexRawData(sql: string): Promise<any[]> {
+    const data = await knex.raw(sql);
+
+    return data.rows;
   }
 
   public static getKnexOneIdReturningOrException(res: any): number {

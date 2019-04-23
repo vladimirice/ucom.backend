@@ -1,7 +1,6 @@
 /* tslint:disable:max-line-length */
 import { EntityParamAggregatesDto } from '../../stats/interfaces/dto-interfaces';
 import { UsersActivityModelDto } from '../interfaces/users-activity/model-interfaces';
-import { AppError } from '../../api/errors';
 
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import knex = require('../../../config/knex');
@@ -9,7 +8,6 @@ import RepositoryHelper = require('../../common/repository/repository-helper');
 import UsersActivityWhere = require('./users-activity/users-activity-where');
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
-const { Dictionary } = require('ucom-libs-wallet');
 
 const models = require('../../../models');
 
@@ -301,7 +299,7 @@ class UsersActivityRepository {
                                   event_id,
                                   id
                   FROM
-                       users_activity
+                       ${TABLE_NAME}
                   WHERE
                       user_id_from  = ${+userId}
                       AND event_id IN (${eventIdUp}, ${eventIdDown})
@@ -319,21 +317,8 @@ class UsersActivityRepository {
   public static async findAllUpvoteUsersBlockchainNodesActivity(
     blockchainNodesType: number,
   ): Promise<any> {
-    let eventIdUp: number;
-    let eventIdDown: number;
-
-    switch (blockchainNodesType) {
-      case Dictionary.BlockchainNodes.typeBlockProducer():
-        eventIdUp   = NotificationsEventIdDictionary.getUserVotesForBlockchainNode();
-        eventIdDown = NotificationsEventIdDictionary.getUserCancelVoteForBlockchainNode();
-        break;
-      case Dictionary.BlockchainNodes.typeCalculator():
-        eventIdUp   = NotificationsEventIdDictionary.getUserVotesForCalculatorNode();
-        eventIdDown = NotificationsEventIdDictionary.getUserCancelVoteForCalculatorNode();
-        break;
-      default:
-        throw new AppError(`Unsupported blockchain node type: ${blockchainNodesType}`);
-    }
+    const { eventIdUp, eventIdDown } =
+      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT id, user_id_from, entity_id_to FROM (
@@ -356,18 +341,14 @@ class UsersActivityRepository {
 
     `;
 
-    const data = await knex.raw(sql);
-
-    return RepositoryHelper.getKnexRawData(data);
+    return RepositoryHelper.getKnexRawData(sql);
   }
 
-  /**
-   *
-   * @return {Promise<Object>}
-   */
-  static async findAllUpvoteCancelUsersBlockchainNodesActivity() {
-    const eventIdUp   = eventIdDictionary.getUserVotesForBlockchainNode();
-    const eventIdDown = eventIdDictionary.getUserCancelVoteForBlockchainNode();
+  public static async findAllUpvoteCancelUsersBlockchainNodesActivity(
+    blockchainNodesType: number,
+  ): Promise<any> {
+    const { eventIdUp, eventIdDown } =
+      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT id, user_id_from, entity_id_to FROM (
@@ -380,7 +361,7 @@ class UsersActivityRepository {
                                   user_id_from,
                                   id
                   FROM
-                       users_activity
+                       ${TABLE_NAME}
                   WHERE
                       event_id IN (${eventIdUp}, ${eventIdDown})
                   ORDER BY user_id_from, entity_id_to, entity_name, activity_group_id, id DESC
@@ -390,7 +371,7 @@ class UsersActivityRepository {
 
     `;
 
-    return models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    return RepositoryHelper.getKnexRawData(sql);
   }
 
   static async setIsSentToBlockchainAndResponse(id, blockchainResponse) {

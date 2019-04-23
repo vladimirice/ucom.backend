@@ -2458,9 +2458,9 @@ class BlockchainHelper {
   }
 
   static async mockGetBlockchainNodesWalletMethod(addToVote = {}, toDelete = true) {
-    // tslint:disable-next-line:prefer-const
-
     const { blockProducersWithVoters, calculatorsWithVoters } = await BlockchainNodes.getAll();
+
+    const initialCalculatorsData = calculatorsWithVoters.indexedNodes;
 
     const initialData = blockProducersWithVoters.indexedNodes;
     let voters = blockProducersWithVoters.indexedVoters;
@@ -2488,9 +2488,32 @@ class BlockchainHelper {
       bp_status: 1,
     };
 
+    initialCalculatorsData.z_calculator_super_new1 = {
+      title: 'z_calculator_super_new1',
+      votes_count: 6,
+      votes_amount: 64,
+      scaled_importance_amount: 15.02,
+      currency: 'UOS',
+      bp_status: 1,
+    };
+
+    initialCalculatorsData.z_calculator_super_new2 = {
+      title: 'z_calculator_super_new2',
+      votes_count: 7,
+      votes_amount: 95,
+      scaled_importance_amount: 8.02,
+      currency: 'UOS',
+      bp_status: 1,
+    };
+
     const created = [
       initialData.z_super_new1,
       initialData.z_super_new2,
+    ];
+
+    const createdCalculators = [
+      initialCalculatorsData.z_calculator_super_new1,
+      initialCalculatorsData.z_calculator_super_new2,
     ];
 
     // lets also change something
@@ -2529,6 +2552,8 @@ class BlockchainHelper {
       created,
       updated,
       deleted,
+
+      createdCalculators,
     };
   }
 

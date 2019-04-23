@@ -1,11 +1,22 @@
 const express = require('express');
+
+const {  Dictionary } = require('ucom-libs-wallet');
+
 const router  = express.Router();
 const eosBlockchainUniqId = require('../../lib/eos/eos-blockchain-uniqid');
 const { BadRequestError } = require('../../lib/api/errors');
+
 const { formDataParser }  = require('../../lib/api/middleware/form-data-parser-middleware');
+
+function getBlockchainService(req) {
+  return req.container.get('blockchain-service');
+}
 
 router.get('/nodes', async (req, res) => {
   const service = getBlockchainService(req);
+
+  // backward compatibility
+  req.query.blockchain_nodes_type = Dictionary.BlockchainNodes.typeBlockProducer();
 
   const response = await service.getAndProcessNodes(req.query);
 
@@ -13,7 +24,7 @@ router.get('/nodes', async (req, res) => {
 });
 
 router.post('/content/uniqid', [formDataParser], async (req, res) => {
-  const scope = req.body.scope;
+  const { scope } = req.body;
 
   if (!scope) {
     throw new BadRequestError([
@@ -31,9 +42,5 @@ router.post('/content/uniqid', [formDataParser], async (req, res) => {
     uniqid_signature: 'sample_signature',
   });
 });
-
-function getBlockchainService(req) {
-  return req['container'].get('blockchain-service');
-}
 
 export = router;
