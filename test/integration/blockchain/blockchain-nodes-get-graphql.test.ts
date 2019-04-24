@@ -1,7 +1,11 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { GraphqlHelper } from '../helpers/graphql-helper';
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import SeedsHelper = require('../helpers/seeds-helper');
+import BlockchainCacheService = require('../../../lib/eos/service/blockchain-cache-service');
+
+const { Dictionary } = require('ucom-libs-wallet');
+const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 let userVlad: UserModel;
 
@@ -78,11 +82,44 @@ describe('Blockchain nodes get - graphql', () => {
 
   describe('Positive', () => {
     it('Test trending - only test for graphql client error', async () => {
-      const ordering = '-bp_status';
+      await BlockchainCacheService.updateBlockchainNodesByBlockchain();
+
+      const orderBy = '-bp_status';
       const page = 1;
       const perPage = 10;
 
-      const response = await GraphqlHelper.getManyBlockchainNodesAsMyself(userVlad, ordering, page, perPage);
+      const commonParams = {
+        page,
+        order_by: orderBy,
+        per_page: perPage,
+      };
+
+      const partsWithAliases = {
+        block_producers: GraphQLSchema.getManyBlockchainNodesQueryPart({
+          ...commonParams,
+          filters: {
+            myself_votes_only: false,
+            blockchain_nodes_type: Dictionary.BlockchainNodes.typeBlockProducer(),
+          },
+        }),
+        myself_block_producers: GraphQLSchema.getManyBlockchainNodesQueryPart({
+          ...commonParams,
+          filters: {
+            myself_votes_only: true,
+            user_id: userVlad.id,
+            blockchain_nodes_type: Dictionary.BlockchainNodes.typeBlockProducer(),
+          },
+        }),
+        calculators: GraphQLSchema.getManyBlockchainNodesQueryPart({
+          ...commonParams,
+          filters: {
+            myself_votes_only: false,
+            blockchain_nodes_type: Dictionary.BlockchainNodes.typeCalculator(),
+          },
+        }),
+      };
+
+      const response = await GraphqlRequestHelper.makeRequestFromQueryPartsWithAliasesAsMyself(userVlad, partsWithAliases);
 
       expect(response).toEqual(getSampleNodes());
     }, JEST_TIMEOUT);

@@ -1,9 +1,12 @@
 import { StringToAnyCollection } from '../../common/interfaces/common-types';
+import { QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 
 import BlockchainModelProvider = require('../service/blockchain-model-provider');
 import knex = require('../../../config/knex');
 import InsertUpdateRepositoryHelper = require('../../common/helper/repository/insert-update-repository-helper');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import { QueryBuilder } from 'knex';
+import { RequestQueryBlockchainNodes } from '../interfaces/blockchain-nodes-interfaces';
 
 const _ = require('lodash');
 
@@ -17,7 +20,12 @@ const db = require('../../../models').sequelize;
 
 const { Op } = db.Sequelize;
 
-class BlockchainNodesRepository {
+// @ts-ignore - static fields are not allowed to be inside interface. Waiting for typescript updating.
+class BlockchainNodesRepository implements QueryFilteredRepository {
+  public static getQueryBuilder(): QueryBuilder {
+    return knex(TABLE_NAME);
+  }
+
   public static async findBlockchainNodeIdsByAccountNames(
     accountNames: string[],
   ): Promise<any> {
@@ -89,7 +97,7 @@ class BlockchainNodesRepository {
    *
    * @return {Promise<Object>}
    */
-  static async findAllBlockchainNodes(queryParameters = {}) {
+  static async findAllBlockchainNodesLegacy(queryParameters = {}) {
     const params = _.defaults(queryParameters, this.getDefaultListParams());
 
     if (!params.where) {
@@ -114,12 +122,28 @@ class BlockchainNodesRepository {
     return data;
   }
 
-  private static getDefaultListParams() {
+  public static getDefaultListParams() {
     return {
+      attributes: this.getFieldsForPreview(),
       where: {},
       order: this.getDefaultOrderBy(),
-      raw: true,
+      limit: 10,
+      offset: 0,
     };
+  }
+
+  public  static getFieldsForPreview() {
+    return [
+      'id',
+      'title',
+      'votes_count',
+      'votes_amount',
+
+      'currency',
+      'bp_status',
+      'blockchain_nodes_type',
+      'scaled_importance_amount',
+    ];
   }
 
   private static getDefaultOrderBy() {
@@ -141,6 +165,36 @@ class BlockchainNodesRepository {
     return [
       'id', 'title', 'votes_count', 'votes_amount', 'bp_status',
     ];
+  }
+
+  // noinspection JSUnusedGlobalSymbols
+  public static getOrderByRelationMap() {
+    return {};
+  }
+
+  public static addWhere(query: RequestQueryBlockchainNodes, queryBuilder: QueryBuilder) {
+    if (!query.filters) {
+      return;
+    }
+
+    if (query.filters.search) {
+      // noinspection JSIgnoredPromiseFromCall
+      queryBuilder.andWhere('title', 'ilike', `%${query.filters.search}%`);
+    }
+
+    if (query.filters.blockchain_nodes_type) {
+      // noinspection JSIgnoredPromiseFromCall
+      queryBuilder.andWhere('blockchain_nodes_type', '=', +query.filters.blockchain_nodes_type);
+    }
+
+    if (query.filters.deleted_at === false) {
+      queryBuilder.whereNotNull('deleted_at');
+    }
+  }
+
+  public static getWhereProcessor(): Function {
+    // @ts-ignore
+    return (query, params) => {};
   }
 }
 

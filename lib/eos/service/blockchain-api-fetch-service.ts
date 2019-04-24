@@ -1,4 +1,9 @@
+import { QueryBuilder } from 'knex';
+import { RequestQueryBlockchainNodes } from '../interfaces/blockchain-nodes-interfaces';
+import { QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
+
 import BlockchainNodesRepository = require('../repository/blockchain-nodes-repository');
+import QueryFilterService = require('../../api/filters/query-filter-service');
 
 const { HttpForbiddenError, BadRequestError }    = require('../../api/errors');
 const blockchainNodesRepository = require('../repository').Main;
@@ -35,17 +40,18 @@ class BlockchainApiFetchService {
   /**
    *
    * @param {Object} query
-   * @param {number|null} userId
    */
-  // @ts-ignore
-  static async getAndProcessNodes(query, userId) {
-    const queryParams = queryFilterService.getQueryParameters(
-      query,
-      {},
-      BlockchainNodesRepository.getAllowedOrderBy(),
-    );
+  static async getAndProcessNodes(query: RequestQueryBlockchainNodes) {
+    const repository: QueryFilteredRepository = BlockchainNodesRepository;
 
-    return BlockchainNodesRepository.findAllBlockchainNodes(queryParams);
+    const knex: QueryBuilder = BlockchainNodesRepository.getQueryBuilder();
+
+    QueryFilterService.addQueryParamsToKnex(query, repository, knex);
+
+    // @ts-ignore
+    const sql = knex.toSQL();
+
+    return await knex;
   }
 
   /**
@@ -60,7 +66,7 @@ class BlockchainApiFetchService {
     let dataObjects = [];
 
     if (userId) {
-      const nodePromise     = blockchainNodesRepository.findAllBlockchainNodes(queryParams);
+      const nodePromise     = blockchainNodesRepository.findAllBlockchainNodesLegacy(queryParams);
       const activityPromise = usersActivityRepository.findOneUserBlockchainNodesActivity(userId);
 
       [dataObjects, votedNodes] = await Promise.all([
@@ -68,7 +74,7 @@ class BlockchainApiFetchService {
         activityPromise,
       ]);
     } else {
-      dataObjects = await blockchainNodesRepository.findAllBlockchainNodes(queryParams);
+      dataObjects = await blockchainNodesRepository.findAllBlockchainNodesLegacy(queryParams);
     }
 
     return {

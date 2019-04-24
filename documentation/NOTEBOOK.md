@@ -113,3 +113,22 @@ Extra:
 * Registration
 * Vote for calculators
 * Unstake resources as result (delayed action)
+
+
+### GraphQL as a constructor:
+* There is a query:
+
+query {
+
+}
+
+* inside it you can pass any `nodes`
+* there is a myselfData for blockchain nodes. Do not pass it inside blockchain nodes
+* create separate `node` - many_blockchain_nodes with the different filter
+* you can combine `nodes` as you want to create different web pages
+* inside a server you can parse overall query and decide to merge requests into one if appreciable (via JOIN)
+etc without any changes of a interface
+
+
+About aliases:
+* https://medium.com/graphql-mastery/graphql-quick-tip-aliases-567303a9ddc5

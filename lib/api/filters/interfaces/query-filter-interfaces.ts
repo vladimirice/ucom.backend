@@ -1,3 +1,14 @@
+// This is a new version of RequestQueryDto
+interface InputQueryDto {
+  readonly order_by: string;
+
+  readonly page: number;
+  readonly per_page: number;
+  readonly filters: any;
+}
+
+
+// see InputQueryDto - this is deprecated interface
 interface RequestQueryDto {
   readonly sort_by?: string;
 
@@ -43,6 +54,7 @@ interface QueryFilteredRepository {
 }
 
 export {
+  InputQueryDto,
   RequestQueryDto,
   DbParamsDto,
   RequestQueryComments,

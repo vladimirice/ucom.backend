@@ -1,5 +1,6 @@
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
@@ -30,6 +31,15 @@ export class GraphqlRequestHelper {
     parts: string[],
   ): Promise<any> {
     const query = GraphQLSchema.getQueryMadeFromParts(parts);
+
+    return this.makeRequestAsMyself(myself, query);
+  }
+
+  public static async makeRequestFromQueryPartsWithAliasesAsMyself(
+    myself: UserModel,
+    partsWithAliases: StringToAnyCollection,
+  ): Promise<any> {
+    const query = GraphQLSchema.getQueryMadeFromPartsWithAliases(partsWithAliases);
 
     return this.makeRequestAsMyself(myself, query);
   }

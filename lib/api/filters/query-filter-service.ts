@@ -1,6 +1,11 @@
 /* tslint:disable:max-line-length */
 import { QueryBuilder } from 'knex';
-import { DbParamsDto, QueryFilteredRepository, RequestQueryDto } from './interfaces/query-filter-interfaces';
+import {
+  DbParamsDto,
+  InputQueryDto,
+  QueryFilteredRepository,
+  RequestQueryDto,
+} from './interfaces/query-filter-interfaces';
 import { ListMetadata } from '../../common/interfaces/lists-interfaces';
 
 const _ = require('lodash');
@@ -80,12 +85,31 @@ class QueryFilterService {
     ;
   }
 
+  public static addQueryParamsToKnex(
+    query: InputQueryDto,
+    repository: QueryFilteredRepository,
+    knex: QueryBuilder,
+  ): void {
+    knex.select(repository.getFieldsForPreview());
+
+    const { offset, limit } = this.getOffsetLimit(query);
+
+    knex.offset(offset);
+    knex.limit(limit);
+
+    const sequelizeOrderBy = this.getSequelizeOrderBy(query, {}, repository.getAllowedOrderBy());
+    knex.orderByRaw(this.sequelizeOrderByToKnexRaw(sequelizeOrderBy));
+
+    repository.addWhere(query, knex);
+  }
+
   public static getQueryParametersWithRepository(
-    query: RequestQueryDto,
+    query: RequestQueryDto | InputQueryDto,
     repository: QueryFilteredRepository,
     processAttributes = false, // hardcoded variable in order to reduce refactoring at the beginning
     processInclude = false, // hardcoded variable in order to reduce refactoring at the beginning
     processOrderByRaw = false,
+    forKnexOnly = false,
   ): DbParamsDto {
     const orderByRelationMap    = repository.getOrderByRelationMap();
     const allowedOrderBy        = repository.getAllowedOrderBy();
@@ -111,6 +135,10 @@ class QueryFilterService {
 
     if (processOrderByRaw) {
       params.orderByRaw = this.sequelizeOrderByToKnexRaw(params.order);
+    }
+
+    if (forKnexOnly) {
+      delete params.order;
     }
 
     return params;
@@ -199,6 +227,36 @@ class QueryFilterService {
     };
   }
 
+  private static getOffsetLimit(query: RequestQueryDto): {offset: number, limit: number} {
+    const response = {
+      offset: 0,
+      limit: PER_PAGE_LIMIT,
+    };
+
+    const page = +query.page;
+    let perPage = +query.per_page;
+
+    if (!page || page < 0) {
+      return response;
+    }
+
+    if (!perPage || perPage < 0) {
+      return response;
+    }
+
+    if (perPage > PER_PAGE_LIMIT) {
+      perPage = PER_PAGE_LIMIT;
+    }
+
+    if (page > 1) {
+      response.offset = this.getOffsetByPagePerPage(page, perPage);
+    }
+
+    response.limit = perPage;
+
+    return response;
+  }
+
   /**
    *
    * @param {Object} query
@@ -206,49 +264,26 @@ class QueryFilterService {
    * @private
    */
   private static setOffsetLimit(query, params) {
-    const page = +query.page;
-    let perPage = +query.per_page;
-
-    if (!page || page < 0) {
-      return;
-    }
-
-    if (!perPage || perPage < 0) {
-      return;
-    }
-
-    if (perPage > PER_PAGE_LIMIT) {
-      perPage = PER_PAGE_LIMIT;
-    }
-
-    let offset = 0;
-    if (page > 1) {
-      offset = this.getOffsetByPagePerPage(page, perPage);
-    }
+    const { offset, limit } = this.getOffsetLimit(query);
 
     params.offset = offset;
-    params.limit = perPage;
+    params.limit = limit;
   }
 
   public static getOffsetByPagePerPage(page: number, perPage: number): number {
     return (page - 1) * perPage;
   }
 
-  /**
-   *
-   * @param {Object} query - parsed query string
-   * @param {Object} params
-   * @param {Object} orderByRelationMap
-   * @param {string[]} allowedSortBy
-   * @returns {void}
-   */
-  private static setOrderBy(query, params, orderByRelationMap, allowedSortBy: any = null) {
-    if (!query.sort_by) {
-      return;
+  private static getSequelizeOrderBy(query, orderByRelationMap, allowedSortBy: any = null): any {
+    // backward compatibility
+    const indexKey = query.sort_by ? 'sort_by' : 'order_by';
+
+    if (!query[indexKey]) {
+      return null;
     }
 
     const sorting: string[][] = [];
-    query.sort_by.split(',').forEach((value) => {
+    query[indexKey].split(',').forEach((value) => {
       let sortOrder = 'ASC';
       let valueToSort: string = value;
 
@@ -278,7 +313,19 @@ class QueryFilterService {
       sorting.push(toPush);
     });
 
-    params.order = sorting;
+    return sorting;
+  }
+
+  /**
+   *
+   * @param {Object} query - parsed query string
+   * @param {Object} params
+   * @param {Object} orderByRelationMap
+   * @param {string[]} allowedSortBy
+   * @returns {void}
+   */
+  private static setOrderBy(query, params, orderByRelationMap, allowedSortBy: any = null) {
+    params.order = this.getSequelizeOrderBy(query, orderByRelationMap, allowedSortBy);
   }
 }
 

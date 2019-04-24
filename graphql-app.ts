@@ -15,7 +15,10 @@ import TagsFetchService = require('./lib/tags/service/tags-fetch-service');
 import UsersFetchService = require('./lib/users/service/users-fetch-service');
 import UsersAirdropService = require('./lib/airdrops/service/airdrop-users-service');
 import OneUserInputProcessor = require('./lib/users/input-processor/one-user-input-processor');
+// @ts-ignore
 import BlockchainApiFetchService = require('./lib/eos/service/blockchain-api-fetch-service');
+import GraphQlInputService = require('./lib/api/graph-ql/service/graph-ql-input-service');
+import { RequestQueryBlockchainNodes } from './lib/eos/interfaces/blockchain-nodes-interfaces';
 
 const cookieParser = require('cookie-parser');
 const express = require('express');
@@ -55,7 +58,7 @@ const typeDefs = gql`
     one_user(filters: one_user_filtering): JSON
     one_user_trusted_by(filters: one_user_filtering, order_by: String!, page: Int!, per_page: Int!): users!
     
-    many_blockchain_nodes(order_by: String!, page: Int!, per_page: Int!): JSON
+    many_blockchain_nodes(filters: many_blockchain_nodes_filtering, order_by: String!, page: Int!, per_page: Int!): JSON
   }
 
   scalar JSON
@@ -307,6 +310,12 @@ const typeDefs = gql`
     user_id: Int
     user_identity: String
   }
+
+  input many_blockchain_nodes_filtering {
+    myself_votes_only: Boolean!
+    blockchain_nodes_type: Int!
+    user_id: Int
+  }
 `;
 
 // @ts-ignore
@@ -320,15 +329,11 @@ const resolvers = {
     },
     // @ts-ignore
     async many_blockchain_nodes(parent, args, ctx) {
-      const query: RequestQueryDto = {
-        page: args.page,
-        per_page: args.per_page,
-        sort_by: args.order_by,
-      };
+      const query: RequestQueryBlockchainNodes = GraphQlInputService.getQueryFromArgs(args);
 
-      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+      query.filters.deleted_at = false;
 
-      return BlockchainApiFetchService.getAndProcessNodes(query, currentUserId);
+      return BlockchainApiFetchService.getAndProcessNodes(query);
 
       const bpNodes: any[] = [];
       const calcNodes: any[] = [];
@@ -364,8 +369,8 @@ const resolvers = {
         });
       }
 
-      return {
-        [BlockchainNodesTypes.BLOCK_PRODUCERS]: {
+      if (query.filters.blockchain_nodes_type === 1) {
+        return {
           data: bpNodes,
           metadata: {
             has_more: true,
@@ -373,15 +378,16 @@ const resolvers = {
             per_page: args.per_page,
             total_amount: 12,
           },
-        },
-        [BlockchainNodesTypes.CALCULATOR_NODES]: {
-          data: calcNodes,
-          metadata: {
-            has_more: false,
-            page: +args.page,
-            per_page: args.per_page,
-            total_amount: 8,
-          },
+        };
+      }
+
+      return {
+        data: calcNodes,
+        metadata: {
+          has_more: false,
+          page: +args.page,
+          per_page: args.per_page,
+          total_amount: 8,
         },
       };
     },

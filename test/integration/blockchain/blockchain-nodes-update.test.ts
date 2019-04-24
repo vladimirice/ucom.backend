@@ -42,7 +42,7 @@ describe('Blockchain nodes updating', () => {
 
       const { blockProducersWithVoters, calculatorsWithVoters } = await BlockchainNodes.getAll();
 
-      const actualNodes = await BlockchainNodesRepository.findAllBlockchainNodes();
+      const actualNodes = await BlockchainNodesRepository.findAllBlockchainNodesLegacy();
 
       const total = Object.keys(blockProducersWithVoters.indexedNodes).length +
         Object.keys(calculatorsWithVoters.indexedNodes).length;
@@ -91,7 +91,7 @@ describe('Blockchain nodes updating', () => {
         await BlockchainHelper.mockGetBlockchainNodesWalletMethod();
 
       await BlockchainHelper.updateBlockchainNodes();
-      const response = await BlockchainNodesRepository.findAllBlockchainNodes();
+      const response = await BlockchainNodesRepository.findAllBlockchainNodesLegacy();
 
       for (const expected of updated) {
         const actual = response.find(data => data.title === expected.title);
@@ -149,7 +149,7 @@ describe('Blockchain nodes updating', () => {
       await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
       await BlockchainService.updateBlockchainNodesByBlockchain();
 
-      const nodes = await BlockchainNodesRepository.findAllBlockchainNodes();
+      const nodes = await BlockchainNodesRepository.findAllBlockchainNodesLegacy();
 
       const petrMustVoteTo = nodes.filter(data => ~addToVote[petrAccountName].nodes.indexOf(data.title));
 
@@ -209,7 +209,7 @@ describe('Blockchain nodes updating', () => {
       await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
       await BlockchainHelper.updateBlockchainNodes();
 
-      const nodes = await BlockchainNodesRepository.findAllBlockchainNodes();
+      const nodes = await BlockchainNodesRepository.findAllBlockchainNodesLegacy();
 
       // restore mocked function
       BlockchainNodes.getAl = initialMockFunction;
@@ -344,7 +344,7 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      const nodes = await BlockchainNodesRepository.findAllBlockchainNodes(params);
+      const nodes = await BlockchainNodesRepository.findAllBlockchainNodesLegacy(params);
 
       const petrMustVoteTo = nodes.filter(data => ~addToVote[petrAccountName].nodes.indexOf(data.title));
 
@@ -409,7 +409,7 @@ describe('Blockchain nodes updating', () => {
           blockchain_nodes_type: Dictionary.BlockchainNodes.typeCalculator(),
         },
       };
-      const nodes = await BlockchainNodesRepository.findAllBlockchainNodes(params);
+      const nodes = await BlockchainNodesRepository.findAllBlockchainNodesLegacy(params);
 
       // restore mocked function
       BlockchainNodes.getAl = initialMockFunction;
