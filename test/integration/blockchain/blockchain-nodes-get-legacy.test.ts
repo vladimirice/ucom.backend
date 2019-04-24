@@ -20,7 +20,7 @@ const JEST_TIMEOUT = 5000;
 
 const blockchainNodesType = Dictionary.BlockchainNodes.typeBlockProducer();
 
-describe('Blockchain nodes get', () => {
+describe('Blockchain nodes get - legacy', () => {
   beforeAll(async () => {
     [userVlad] = await SeedsHelper.beforeAllRoutine();
   });
@@ -170,7 +170,7 @@ describe('Blockchain nodes get', () => {
 
   describe('Negative', () => {
     it('Not possible to ask for myself_bp_vote=true without auth token', async () => {
-      await BlockchainHelper.requestToGetNodesList(null, true, 401);
+      await BlockchainHelper.requestToGetNodesList(null, true, 400);
     });
   });
 });

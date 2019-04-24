@@ -41,7 +41,9 @@ export class GraphqlRequestHelper {
   ): Promise<any> {
     const query = GraphQLSchema.getQueryMadeFromPartsWithAliases(partsWithAliases);
 
-    return this.makeRequestAsMyself(myself, query);
+    const response = await this.makeRequestAsMyself(myself, query);
+
+    return response.data;
   }
 
   public static async makeRequestFromOneQueryPartAsMyself(

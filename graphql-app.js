@@ -9,6 +9,9 @@ const TagsFetchService = require("./lib/tags/service/tags-fetch-service");
 const UsersFetchService = require("./lib/users/service/users-fetch-service");
 const UsersAirdropService = require("./lib/airdrops/service/airdrop-users-service");
 const OneUserInputProcessor = require("./lib/users/input-processor/one-user-input-processor");
+// @ts-ignore
+const BlockchainApiFetchService = require("./lib/eos/service/blockchain-api-fetch-service");
+const GraphQlInputService = require("./lib/api/graph-ql/service/graph-ql-input-service");
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const { BlockchainNodesTypes } = require('ucom.libs.common').Governance.Dictionary;
@@ -41,7 +44,7 @@ const typeDefs = gql `
     one_user(filters: one_user_filtering): JSON
     one_user_trusted_by(filters: one_user_filtering, order_by: String!, page: Int!, per_page: Int!): users!
     
-    many_blockchain_nodes(order_by: String!, page: Int!, per_page: Int!): JSON
+    many_blockchain_nodes(filters: many_blockchain_nodes_filtering, order_by: String!, page: Int!, per_page: Int!): JSON
   }
 
   scalar JSON
@@ -293,17 +296,29 @@ const typeDefs = gql `
     user_id: Int
     user_identity: String
   }
+
+  input many_blockchain_nodes_filtering {
+    myself_votes_only: Boolean!
+    blockchain_nodes_type: Int!
+    user_id: Int
+  }
 `;
 // @ts-ignore
 const resolvers = {
     JSON: graphQLJSON,
     Query: {
+        async one_user_airdrop(
         // @ts-ignore
-        async one_user_airdrop(parent, args, ctx) {
+        parent, args, ctx) {
             return UsersAirdropService.getOneUserAirdrop(ctx.req, args.filters);
         },
+        async many_blockchain_nodes(
         // @ts-ignore
-        async many_blockchain_nodes(parent, args, ctx) {
+        parent, args, 
+        // @ts-ignore
+        ctx) {
+            const query = GraphQlInputService.getQueryFromArgs(args);
+            return BlockchainApiFetchService.getAndProcessNodes(query);
             const bpNodes = [];
             const calcNodes = [];
             for (let i = 1; i <= 12; i += 1) {
@@ -336,8 +351,8 @@ const resolvers = {
                     votes_percentage: 23.81 + i * 2,
                 });
             }
-            return {
-                [BlockchainNodesTypes.BLOCK_PRODUCERS]: {
+            if (query.filters.blockchain_nodes_type === 1) {
+                return {
                     data: bpNodes,
                     metadata: {
                         has_more: true,
@@ -345,15 +360,15 @@ const resolvers = {
                         per_page: args.per_page,
                         total_amount: 12,
                     },
-                },
-                [BlockchainNodesTypes.CALCULATOR_NODES]: {
-                    data: calcNodes,
-                    metadata: {
-                        has_more: false,
-                        page: +args.page,
-                        per_page: args.per_page,
-                        total_amount: 8,
-                    },
+                };
+            }
+            return {
+                data: calcNodes,
+                metadata: {
+                    has_more: false,
+                    page: +args.page,
+                    per_page: args.per_page,
+                    total_amount: 8,
                 },
             };
         },

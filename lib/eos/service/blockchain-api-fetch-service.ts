@@ -4,8 +4,10 @@ import { QueryFilteredRepository } from '../../api/filters/interfaces/query-filt
 
 import BlockchainNodesRepository = require('../repository/blockchain-nodes-repository');
 import QueryFilterService = require('../../api/filters/query-filter-service');
+import KnexQueryBuilderHelper = require('../../common/helper/repository/knex-query-builder-helper');
+import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 
-const { HttpForbiddenError, BadRequestError }    = require('../../api/errors');
+const { BadRequestError }    = require('../../api/errors');
 const blockchainNodesRepository = require('../repository').Main;
 const { Op } = require('../../../models').Sequelize;
 
@@ -42,16 +44,49 @@ class BlockchainApiFetchService {
    * @param {Object} query
    */
   static async getAndProcessNodes(query: RequestQueryBlockchainNodes) {
+    this.checkQueryParams(query, query.filters.user_id);
+    query.filters.deleted_at = true;
+
     const repository: QueryFilteredRepository = BlockchainNodesRepository;
 
-    const knex: QueryBuilder = BlockchainNodesRepository.getQueryBuilder();
+    const knexForList: QueryBuilder = BlockchainNodesRepository.getQueryBuilder();
+    const knexForCount: QueryBuilder = BlockchainNodesRepository.getQueryBuilder();
 
-    QueryFilterService.addQueryParamsToKnex(query, repository, knex);
+    const { offset, limit } = QueryFilterService.addQueryParamsToKnex(query, repository, knexForList);
 
-    // @ts-ignore
-    const sql = knex.toSQL();
+    if (query.filters.myself_votes_only && query.filters.user_id) {
+      const nodeIdsVotedFor = await UsersActivityRepository.findOneUserBlockchainNodesActivity(query.filters.user_id);
+      knexForList.whereIn('id', nodeIdsVotedFor);
+      knexForCount.whereIn('id', nodeIdsVotedFor);
+    }
 
-    return await knex;
+    const [data, totalAmount] = await Promise.all([
+      KnexQueryBuilderHelper.getListByQueryBuilder(repository, knexForList),
+      KnexQueryBuilderHelper.countByQueryBuilder(query, repository, knexForCount),
+    ]);
+
+    this.addVotesPercentage(data);
+
+    const metadata = QueryFilterService.getMetadataByOffsetLimit(
+      totalAmount,
+      query.page,
+      query.per_page,
+      offset,
+      limit,
+    );
+
+    return {
+      data,
+      metadata,
+    };
+  }
+
+  private static addVotesPercentage(data: any): void {
+    const totalVotesCount = data.reduce((prev, cur) => prev + cur.votes_count, 0);
+
+    for (const model of data) {
+      model.votes_percentage = +((model.votes_count / totalVotesCount * 100).toFixed(3));
+    }
   }
 
   /**
@@ -148,15 +183,16 @@ class BlockchainApiFetchService {
    * @private
    */
   private static checkQueryParams(query, userId) {
+    // backward compatibility for legacy
     if (!!query.myself_bp_vote && !userId) {
-      throw new HttpForbiddenError(
-        'myself_bp_vote = true parameter is allowed for auth users only',
+      throw new BadRequestError(
+        'myself_bp_vote = true parameter is allowed for auth users only or if user_id is given',
       );
     }
 
-    if (query.page || query.per_page) {
+    if (query.filters && query.filters.myself_votes_only && !userId) {
       throw new BadRequestError(
-        'Pagination is not supported yet. It is forbidden to send page and per_page',
+        'myself_bp_vote = true parameter is allowed for auth users only or if user_id is given',
       );
     }
   }

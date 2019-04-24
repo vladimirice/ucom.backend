@@ -89,7 +89,7 @@ class QueryFilterService {
     query: InputQueryDto,
     repository: QueryFilteredRepository,
     knex: QueryBuilder,
-  ): void {
+  ): {offset, limit} {
     knex.select(repository.getFieldsForPreview());
 
     const { offset, limit } = this.getOffsetLimit(query);
@@ -101,6 +101,11 @@ class QueryFilterService {
     knex.orderByRaw(this.sequelizeOrderByToKnexRaw(sequelizeOrderBy));
 
     repository.addWhere(query, knex);
+
+    return {
+      offset,
+      limit,
+    };
   }
 
   public static getQueryParametersWithRepository(
@@ -219,11 +224,28 @@ class QueryFilterService {
     query: RequestQueryDto,
     params: DbParamsDto,
   ): ListMetadata {
+    return this.getMetadataByOffsetLimit(
+      totalAmount,
+      +query.page,
+      +query.per_page,
+
+      params.offset,
+      params.limit,
+    );
+  }
+
+  public static getMetadataByOffsetLimit(
+    totalAmount: number,
+    page: number,
+    perPage: number,
+    offset: number,
+    limit: number,
+  ): ListMetadata {
     return {
+      page,
       total_amount: totalAmount,
-      page: +query.page,
-      per_page: +query.per_page,
-      has_more: params.offset + params.limit < totalAmount,
+      per_page: perPage,
+      has_more: offset + limit < totalAmount,
     };
   }
 

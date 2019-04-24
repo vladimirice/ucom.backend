@@ -82,7 +82,7 @@ describe('Blockchain nodes updating', () => {
 
         expect(actual).toEqual(expected);
       }
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 100);
 
     it('should update node records - some nodes are added', async () => {
       await BlockchainHelper.updateBlockchainNodes();

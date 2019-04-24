@@ -3,6 +3,9 @@ import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helpe
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import BlockchainCacheService = require('../../../lib/eos/service/blockchain-cache-service');
+import EosApi = require('../../../lib/eos/eosApi');
+import ResponseHelper = require('../helpers/response-helper');
+import BlockchainNodesChecker = require('../../helpers/blockchain/blockchain-nodes-checker');
 
 const { Dictionary } = require('ucom-libs-wallet');
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
@@ -16,62 +19,29 @@ const options = {
   workersMocking: 'all',
 };
 
-function getSampleNodes() {
-  const bpNodes: any[] = [];
-  const calcNodes: any[] = [];
+EosApi.initWalletApi();
 
-  for (let i = 1; i <= 12; i += 1) {
-    bpNodes.push({
-      id: i,
-      title: `bp_node_${i}`,
-      votes_count: i * 5,
-      votes_amount: i * 10003509,
-      currency: 'UOS',
-      bp_status: i % 2 === 0 ? 1 : 2,
-      blockchain_nodes_type: 1,
-      myselfData: {
-        bp_vote: i % 2 === 0,
-      },
-      votes_percentage: 23.81 + i * 4,
-    });
-  }
-  for (let i = 13; i <= 21; i += 1) {
-    calcNodes.push({
-      id: i,
-      title: `calc_node_${i}`,
-      votes_count: i * 5,
-      votes_amount: i * 10003509,
-      currency: 'importance',
-      bp_status: i % 2 === 0 ? 1 : 2,
-      blockchain_nodes_type: 2,
-      myselfData: {
-        bp_vote: i % 2 === 0,
-      },
-      votes_percentage: 23.81 + i * 2,
-    });
-  }
-
-  return {
-    1: {
-      data: bpNodes,
-      metadata: {
-        has_more: true,
-        page: 1,
-        per_page: 10,
-        total_amount: 12,
-      },
-    },
-    2: {
-      data: calcNodes,
-      metadata: {
-        has_more: false,
-        page: 1,
-        per_page: 10,
-        total_amount: 8,
-      },
-    },
-  };
-}
+/**
+ * interface checker - as for blockchain nodes
+ *
+ * get for guest
+ * no myself data at all
+ * condition - user does not have votes - use reset
+ * condition - votes for bp only - use mock function
+ * condition - votes for calculators - use mock function
+ * condition - votes for both - use mock function
+ * check search filter - case insensitive
+ * check search filter - find nothing
+ *
+ * check pagination for nodes fetcher
+ * check pagination for myself fetcher
+ *
+ * check ordering for nodes fetcher
+ * check ordering for myself fetcher
+ *
+ * some bps or calculators are in backup status
+ * some bps or calculators are in suspended status
+ */
 
 describe('Blockchain nodes get - graphql', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(options); });
@@ -95,6 +65,14 @@ describe('Blockchain nodes get - graphql', () => {
       };
 
       const partsWithAliases = {
+        myself_calculators: GraphQLSchema.getManyBlockchainNodesQueryPart({
+          ...commonParams,
+          filters: {
+            myself_votes_only: true,
+            user_id: userVlad.id,
+            blockchain_nodes_type: Dictionary.BlockchainNodes.typeCalculator(),
+          },
+        }),
         block_producers: GraphQLSchema.getManyBlockchainNodesQueryPart({
           ...commonParams,
           filters: {
@@ -121,7 +99,13 @@ describe('Blockchain nodes get - graphql', () => {
 
       const response = await GraphqlRequestHelper.makeRequestFromQueryPartsWithAliasesAsMyself(userVlad, partsWithAliases);
 
-      expect(response).toEqual(getSampleNodes());
+      ResponseHelper.checkEmptyResponseList(response.myself_block_producers);
+      ResponseHelper.checkEmptyResponseList(response.myself_calculators);
+      ResponseHelper.checkListResponseStructure(response.block_producers);
+      ResponseHelper.checkListResponseStructure(response.calculators);
+
+      BlockchainNodesChecker.checkManyBlockchainNodesInterface(response.block_producers.data);
+      BlockchainNodesChecker.checkManyBlockchainNodesInterface(response.calculators.data);
     }, JEST_TIMEOUT);
   });
 });

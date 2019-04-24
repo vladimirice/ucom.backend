@@ -1,12 +1,12 @@
+import { QueryBuilder } from 'knex';
 import { StringToAnyCollection } from '../../common/interfaces/common-types';
 import { QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
+import { RequestQueryBlockchainNodes } from '../interfaces/blockchain-nodes-interfaces';
 
 import BlockchainModelProvider = require('../service/blockchain-model-provider');
 import knex = require('../../../config/knex');
 import InsertUpdateRepositoryHelper = require('../../common/helper/repository/insert-update-repository-helper');
 import RepositoryHelper = require('../../common/repository/repository-helper');
-import { QueryBuilder } from 'knex';
-import { RequestQueryBlockchainNodes } from '../interfaces/blockchain-nodes-interfaces';
 
 const _ = require('lodash');
 
@@ -100,6 +100,8 @@ class BlockchainNodesRepository implements QueryFilteredRepository {
   static async findAllBlockchainNodesLegacy(queryParameters = {}) {
     const params = _.defaults(queryParameters, this.getDefaultListParams());
 
+    params.limit = 1000;
+
     if (!params.where) {
       params.where = {};
     }
@@ -113,7 +115,7 @@ class BlockchainNodesRepository implements QueryFilteredRepository {
     };
 
     const data = await model.findAll({
-      attributes: blockchainModelProvider.getFieldsForPreview(),
+      attributes: this.getFieldsForPreview(),
       ...params,
     });
 
@@ -129,6 +131,7 @@ class BlockchainNodesRepository implements QueryFilteredRepository {
       order: this.getDefaultOrderBy(),
       limit: 10,
       offset: 0,
+      raw: true,
     };
   }
 
@@ -161,6 +164,12 @@ class BlockchainNodesRepository implements QueryFilteredRepository {
     ];
   }
 
+  public static getFieldsToDisallowZero(): string[] {
+    return [
+      'id',
+    ];
+  }
+
   public static getAllowedOrderBy() {
     return [
       'id', 'title', 'votes_count', 'votes_amount', 'bp_status',
@@ -187,8 +196,8 @@ class BlockchainNodesRepository implements QueryFilteredRepository {
       queryBuilder.andWhere('blockchain_nodes_type', '=', +query.filters.blockchain_nodes_type);
     }
 
-    if (query.filters.deleted_at === false) {
-      queryBuilder.whereNotNull('deleted_at');
+    if (query.filters.deleted_at !== true) {
+      queryBuilder.whereNull('deleted_at');
     }
   }
 
