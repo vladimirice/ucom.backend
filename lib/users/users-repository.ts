@@ -12,6 +12,7 @@ import UsersExternalModelProvider = require('../users-external/service/users-ext
 import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
 import { StringToAnyCollection } from '../common/interfaces/common-types';
+import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
 
 const _ = require('lodash');
 
@@ -249,6 +250,12 @@ class UsersRepository {
     // Get user following data with related users
 
     const include = [
+      {
+        model: models[UosAccountsModelProvider.uosAccountsPropertiesTableNameWithoutSchema()],
+        attributes: ['scaled_importance'],
+        required: false,
+        as: 'uos_accounts_properties',
+      },
       {
         model: models.users_education,
         as: 'users_education',

@@ -1,6 +1,10 @@
 class UosAccountsModelProvider {
   public static uosAccountsPropertiesTableName(): string {
-    return 'blockchain.uos_accounts_properties';
+    return `blockchain.${this.uosAccountsPropertiesTableNameWithoutSchema()}`;
+  }
+
+  public static uosAccountsPropertiesTableNameWithoutSchema(): string {
+    return 'uos_accounts_properties';
   }
 }
 

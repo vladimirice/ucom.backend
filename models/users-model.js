@@ -88,6 +88,7 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'Users',
     timestamps: false,
   });
+
   Users.associate = function(models) {
     models[TABLE_NAME].hasMany(models.users_education, {
       foreignKey: 'user_id',
@@ -116,6 +117,8 @@ module.exports = (sequelize, DataTypes) => {
         plural: "users_sources"
       }
     });
+
+    models[TABLE_NAME].hasOne(models['uos_accounts_properties'], { foreignKey: 'entity_id', as: 'uos_accounts_properties' });
 
     /**
      *

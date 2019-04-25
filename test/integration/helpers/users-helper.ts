@@ -343,9 +343,11 @@ class UsersHelper {
     expect(body.hasOwnProperty('account_name')).toBeTruthy();
     expect(body.account_name).toBe(expectedUser.account_name);
 
-    expect(body.scaled_importance).toBeDefined();
-    expect(typeof body.scaled_importance).toBe('number');
-    expect(body.scaled_importance).toBeGreaterThanOrEqual(0);
+    ResponseHelper.expectNotEmpty(body.uos_accounts_properties);
+
+    expect(body.uos_accounts_properties.scaled_importance).toBeDefined();
+    expect(typeof body.uos_accounts_properties.scaled_importance).toBe('number');
+    expect(body.uos_accounts_properties.scaled_importance).toBeGreaterThanOrEqual(0);
 
     const fieldsToCheck = [
       'users_education',

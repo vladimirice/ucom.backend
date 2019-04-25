@@ -6,16 +6,15 @@ import ActivityHelper = require('../helpers/activity-helper');
 import PostsGenerator = require('../../generators/posts-generator');
 import ResponseHelper = require('../helpers/response-helper');
 import UsersRepository = require('../../../lib/users/users-repository');
+import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
+import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 
 const request = require('supertest');
 
-const usersRepository = require('./../../../lib/users/users-repository');
 const server = require('../../../app');
 
 MockHelper.mockAllBlockchainPart();
 MockHelper.mockAllTransactionSigning();
-
-const usersActivityRepository = require('../../../lib/users/repository').Activity;
 
 const JEST_TIMEOUT = 5000;
 
@@ -38,17 +37,39 @@ describe('Myself. Get requests', () => {
   });
 
   describe('Get myself data', () => {
-    it('myself data should include scaled importance', async () => {
-      const response = await request(server)
-        .get(RequestHelper.getMyselfUrl())
-        .set('Authorization', `Bearer ${userVlad.token}`);
 
-      const { body } = response;
+    describe('scaled importance', () => {
+      it('myself data should include scaled importance greater than zero', async () => {
+        MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
+        await UosAccountsPropertiesUpdateService.updateAll();
 
-      const dbUser = await UsersRepository.getUserById(userVlad.id);
+        const response = await request(server)
+          .get(RequestHelper.getMyselfUrl())
+          .set('Authorization', `Bearer ${userVlad.token}`);
 
-      UsersHelper.validateUserJson(body, userVlad, dbUser);
-    }, JEST_TIMEOUT * 10);
+        const { body } = response;
+
+        const dbUser = await UsersRepository.getUserById(userVlad.id);
+
+        UsersHelper.validateUserJson(body, userVlad, dbUser);
+
+        expect(body.uos_accounts_properties.scaled_importance).toBeGreaterThan(0);
+      }, JEST_TIMEOUT * 10);
+
+      it('myself data should include zero scaled importance if no stats yet', async () => {
+        const response = await request(server)
+          .get(RequestHelper.getMyselfUrl())
+          .set('Authorization', `Bearer ${userVlad.token}`);
+
+        const { body } = response;
+
+        const dbUser = await UsersRepository.getUserById(userVlad.id);
+
+        UsersHelper.validateUserJson(body, userVlad, dbUser);
+
+        expect(body.uos_accounts_properties.scaled_importance).toBe(0);
+      }, JEST_TIMEOUT);
+    });
 
     it('should be field unread_messages_count', async () => {
       const res = await request(server)
@@ -70,7 +91,7 @@ describe('Myself. Get requests', () => {
         .get(RequestHelper.getMyselfUrl())
         .set('Authorization', `Bearer ${userVlad.token}`);
       expect(res.status).toBe(200);
-      const user = await usersRepository.getUserById(userVlad.id);
+      const user = await UsersRepository.getUserById(userVlad.id);
 
       UsersHelper.validateUserJson(res.body, userVlad, user);
     });
@@ -100,7 +121,7 @@ describe('Myself. Get requests', () => {
         orgIdsToUnfollow,
       );
 
-      const { usersIds, orgIds } = await usersActivityRepository.findOneUserFollowActivity(myself.id);
+      const { usersIds, orgIds } = await UsersActivityRepository.findOneUserFollowActivity(myself.id);
 
       expect(usersIds.sort()).toEqual(usersIdsToFollow.sort());
       expect(orgIds.sort()).toEqual(orgIdsToFollow.sort());

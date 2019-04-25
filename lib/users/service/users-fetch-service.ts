@@ -42,6 +42,9 @@ class UsersFetchService {
     }
 
     const userJson = user.toJSON();
+
+    this.processUosAccountsProperties(userJson);
+
     userJson.organizations = userOrganizations;
 
 
@@ -66,6 +69,7 @@ class UsersFetchService {
 
     return userJson;
   }
+
 
   public static async findOneAndProcessForCard(
     userId: number,
@@ -169,6 +173,19 @@ class UsersFetchService {
       promises,
       params,
     };
+  }
+
+  private static processUosAccountsProperties(userJson) {
+    if (userJson.uos_accounts_properties && userJson.uos_accounts_properties.scaled_importance) {
+      userJson.uos_accounts_properties.scaled_importance =
+        +(+userJson.uos_accounts_properties.scaled_importance).toFixed(10);
+    }
+
+    if (userJson.uos_accounts_properties === null) {
+      userJson.uos_accounts_properties = {
+        scaled_importance: 0,
+      };
+    }
   }
 
   private static getManyUsersListPromises(query: RequestQueryDto): { promises: Promise<any>[], params: DbParamsDto } {
