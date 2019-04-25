@@ -88,6 +88,27 @@ class NotificationsEventIdDictionary {
     };
   }
 
+  public static getAllBlockchainNodesVoteForEvents(): number[] {
+    return [
+      this.getUserVotesForBlockchainNode(),
+      this.getUserVotesForCalculatorNode(),
+    ];
+  }
+
+  public static getAllBlockchainNodesCancelVoteEvents(): number[] {
+    return [
+      this.getUserCancelVoteForBlockchainNode(),
+      this.getUserCancelVoteForCalculatorNode(),
+    ];
+  }
+
+  public static getAllBlockchainNodesVotingEvents(): number[] {
+    return Array.prototype.concat(
+      this.getAllBlockchainNodesVoteForEvents(),
+      this.getAllBlockchainNodesCancelVoteEvents(),
+    );
+  }
+
   public static getUserVotesForBlockchainNode(): number {
     return USER_VOTES_FOR_BLOCKCHAIN_NODE;
   }

@@ -1,20 +1,19 @@
 /* tslint:disable:max-line-length */
 import { AppError } from '../../api/errors';
+import { VotersToProcessDto } from '../interfaces/blockchain-nodes-interfaces';
 
 import UsersRepository = require('../../users/users-repository');
 import BlockchainNodesRepository = require('../repository/blockchain-nodes-repository');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
-import { StringToAnyCollection } from '../../common/interfaces/common-types';
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
+import UserActivityService = require('../../users/user-activity-service');
 
 const _             = require('lodash');
 const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
 const { WorkerLogger } = require('../../../config/winston');
 
-const usersActivityService      = require('../../../lib/users/user-activity-service');
-
 class BlockchainCacheService {
-  static async updateBlockchainNodesByBlockchain() {
+  public static async updateBlockchainNodesByBlockchain() {
     const { blockProducersWithVoters, calculatorsWithVoters } = await BlockchainNodes.getAll();
 
     await this.processSingleBlockchainNodesType(
@@ -43,7 +42,7 @@ class BlockchainCacheService {
       UsersActivityRepository.findAllUpvoteUsersBlockchainNodesActivity(blockchainNodesType),
     ]);
 
-    const votersToProcess = this.prepareVotersToProcess(
+    const votersToProcess: VotersToProcessDto = this.prepareVotersToProcess(
       userAccountNameToId,
       blockchainTitleToId,
       currentActivities,
@@ -60,8 +59,8 @@ class BlockchainCacheService {
     blockchainTitleToId,
     currentActivities,
     voters,
-  ) {
-    const votersToProcess = {};
+  ): VotersToProcessDto {
+    const votersToProcess: VotersToProcessDto = {};
     for (const voterAccountName in voters) {
       if (!voters.hasOwnProperty(voterAccountName)) {
         continue;
@@ -101,11 +100,7 @@ class BlockchainCacheService {
 
     for (const activity of currentActivities) {
       if (!votersToProcess[activity.user_id_from]) {
-        WorkerLogger.error(
-          `There is no such user Id ${activity.user_id_from} in votersToProcess. Lets skip activity with ID: ${activity.id}`,
-        );
-
-        continue;
+        this.addNewVoterWithEmptyNodes(votersToProcess, +activity.user_id_from);
       }
 
       votersToProcess[activity.user_id_from].old_nodes.push(+activity.entity_id_to);
@@ -114,11 +109,19 @@ class BlockchainCacheService {
     return votersToProcess;
   }
 
+  private static addNewVoterWithEmptyNodes(votersToProcess: VotersToProcessDto, userId: number) {
+    votersToProcess[userId] = {
+      user_id: userId,
+      nodes: [],
+      old_nodes: [],
+    };
+  }
+
   /**
    * @private
    */
   private static prepareUsersActivityPromises(
-    votersToProcess: StringToAnyCollection,
+    votersToProcess: VotersToProcessDto,
     blockchainNodesType: number,
   ) {
     const promises: any = [];
@@ -138,13 +141,13 @@ class BlockchainCacheService {
 
       if (producersToCreate.length > 0) {
         promises.push(
-          usersActivityService.processUserVotesChangingForBlockProducers(voterData.user_id, producersToCreate, null, eventIdUp),
+          UserActivityService.processUserVotesChangingForBlockProducers(voterData.user_id, producersToCreate, null, eventIdUp),
         );
       }
 
       if (producersToCancel.length > 0) {
         promises.push(
-          usersActivityService.processUserCancelVotesForBlockProducers(voterData.user_id, producersToCancel, null, eventIdDown),
+          UserActivityService.processUserCancelVotesForBlockProducers(voterData.user_id, producersToCancel, null, eventIdDown),
         );
       }
     }

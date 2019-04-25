@@ -6,20 +6,16 @@ import BlockchainService = require('../../../lib/eos/service/blockchain-service'
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import UsersHelper = require('./users-helper');
+import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 
 const { TransactionSender } = require('ucom-libs-social-transactions');
-const { BlockchainNodes, WalletApi } = require('ucom-libs-wallet');
+const { WalletApi } = require('ucom-libs-wallet');
 const blockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
-
 
 const request = require('supertest');
 const server = require('../../../app');
 
 const accountsData = require('../../../config/accounts-data');
-
-const blockchainModelProvider = require('../../../lib/eos/service').ModelProvider;
-
-const blockchainNodesRepository = require('../../../lib/eos/repository').Main;
 
 const accountAlias = 'vlad';
 const privateKey = accountsData[accountAlias].activePk;
@@ -2457,123 +2453,6 @@ class BlockchainHelper {
     return WalletApi.voteForBlockProducers(accountName, activePrivateKey, []);
   }
 
-  static async mockGetBlockchainNodesWalletMethod(addToVote = {}, toDelete = true, addCalculatorsToVote = {}) {
-    const { blockProducersWithVoters, calculatorsWithVoters } = await BlockchainNodes.getAll();
-
-    const initialCalculatorsData = calculatorsWithVoters.indexedNodes;
-
-    const initialData = blockProducersWithVoters.indexedNodes;
-    let voters = blockProducersWithVoters.indexedVoters;
-    voters = {
-      ...voters,
-      ...addToVote,
-    };
-
-    let calculatorsVoters = calculatorsWithVoters.indexedVoters;
-
-    calculatorsVoters = {
-      ...calculatorsVoters,
-      ...addCalculatorsToVote,
-    };
-
-    initialData.z_super_new1 = {
-      title: 'z_super_new1',
-      votes_count: 5,
-      votes_amount: 100,
-      scaled_importance_amount: 10.02,
-      currency: 'UOS',
-      bp_status: 1,
-    };
-
-    initialData.z_super_new2 = {
-      title: 'z_super_new2',
-      votes_count: 5,
-      votes_amount: 100,
-      scaled_importance_amount: 10.02,
-      currency: 'UOS',
-      bp_status: 1,
-    };
-
-    initialCalculatorsData.z_calculator_super_new1 = {
-      title: 'z_calculator_super_new1',
-      votes_count: 6,
-      votes_amount: 64,
-      scaled_importance_amount: 15.02,
-      currency: 'UOS',
-      bp_status: 1,
-    };
-
-    initialCalculatorsData.z_calculator_super_new2 = {
-      title: 'z_calculator_super_new2',
-      votes_count: 7,
-      votes_amount: 95,
-      scaled_importance_amount: 8.02,
-      currency: 'UOS',
-      bp_status: 1,
-    };
-
-    const created = [
-      initialData.z_super_new1,
-      initialData.z_super_new2,
-    ];
-
-    const createdCalculators = [
-      initialCalculatorsData.z_calculator_super_new1,
-      initialCalculatorsData.z_calculator_super_new2,
-    ];
-
-    // lets also change something
-    const dataKeys = Object.keys(initialData);
-
-    const deleted: any = [];
-    if (toDelete) {
-      deleted.push(dataKeys[0]);
-    }
-
-    const updated = [
-      initialData[dataKeys[1]],
-      initialData[dataKeys[2]],
-    ];
-
-    initialData[dataKeys[1]].votes_count = 10;
-    initialData[dataKeys[1]].votes_amount = 250;
-
-    initialData[dataKeys[2]].bp_status = 2;
-    initialData[dataKeys[2]].votes_amount = 0;
-    initialData[dataKeys[2]].votes_count = 0;
-
-    deleted.forEach((index) => {
-      delete initialData[index];
-    });
-
-    BlockchainNodes.getAll = async (): Promise<{ blockProducersWithVoters, calculatorsWithVoters }> => ({
-      blockProducersWithVoters: {
-        indexedVoters: voters,
-        indexedNodes: initialData,
-      },
-      calculatorsWithVoters: {
-        indexedVoters: calculatorsVoters,
-        indexedNodes: initialCalculatorsData,
-      }
-    });
-
-    return {
-      created,
-      updated,
-      deleted,
-
-      createdCalculators,
-    };
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {Promise<Object>}
-   */
-  static async getAllBlockchainNodes() {
-    return blockchainNodesRepository.findAllBlockchainNodes();
-  }
 
   /**
    *
@@ -2874,8 +2753,8 @@ class BlockchainHelper {
       expect(model.blockchain_nodes_type).toBe(blockchainNodesType);
     }
 
-    const expected = blockchainModelProvider.getFieldsForPreview().concat(
-      blockchainModelProvider.getModel().getPostProcessingFields(),
+    const expected = BlockchainModelProvider.getFieldsForPreview().concat(
+      BlockchainModelProvider.getModel().getPostProcessingFields(),
     );
 
     if (isMyselfDataRequired) {

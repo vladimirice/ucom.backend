@@ -1,5 +1,5 @@
-import BlockchainCacheService = require('./blockchain-cache-service');
-import BlockchainApiFetchService = require('./blockchain-api-fetch-service');
+import BlockchainCacheService = require('../../blockchain-nodes/service/blockchain-cache-service');
+import BlockchainApiFetchService = require('../../blockchain-nodes/service/blockchain-api-fetch-service');
 
 const blockchainTrTracesFetchService  =
   require('./tr-traces-service/blockchain-tr-traces-fetch-service');

@@ -5,7 +5,7 @@ import { CommentsListResponse } from './lib/comments/interfaces/model-interfaces
 import { UserModel, UsersListResponse, UsersRequestQueryDto } from './lib/users/interfaces/model-interfaces';
 import { OneUserAirdropDto } from './lib/airdrops/interfaces/dto-interfaces';
 import { BadRequestError } from './lib/api/errors';
-import { RequestQueryBlockchainNodes } from './lib/eos/interfaces/blockchain-nodes-interfaces';
+import { RequestQueryBlockchainNodes } from './lib/blockchain-nodes/interfaces/blockchain-nodes-interfaces';
 
 import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
 import AuthService = require('./lib/auth/authService');
@@ -16,7 +16,7 @@ import TagsFetchService = require('./lib/tags/service/tags-fetch-service');
 import UsersFetchService = require('./lib/users/service/users-fetch-service');
 import UsersAirdropService = require('./lib/airdrops/service/airdrop-users-service');
 import OneUserInputProcessor = require('./lib/users/input-processor/one-user-input-processor');
-import BlockchainApiFetchService = require('./lib/eos/service/blockchain-api-fetch-service');
+import BlockchainApiFetchService = require('./lib/blockchain-nodes/service/blockchain-api-fetch-service');
 import GraphQlInputService = require('./lib/api/graph-ql/service/graph-ql-input-service');
 
 const cookieParser = require('cookie-parser');
@@ -312,6 +312,7 @@ const typeDefs = gql`
     myself_votes_only: Boolean!
     blockchain_nodes_type: Int!
     user_id: Int
+    title_like: String
   }
 `;
 
@@ -333,7 +334,13 @@ const resolvers = {
       parent,
       args,
     ) {
-      const query: RequestQueryBlockchainNodes = GraphQlInputService.getQueryFromArgs(args);
+      const customQuery = {
+        filters: {
+          deleted_at: false,
+        },
+      };
+
+      const query: RequestQueryBlockchainNodes = GraphQlInputService.getQueryFromArgs(args, customQuery);
 
       return BlockchainApiFetchService.getAndProcessNodes(query);
     },

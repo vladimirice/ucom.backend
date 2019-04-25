@@ -5,6 +5,7 @@ import UsersHelper = require('../helpers/users-helper');
 import ActivityHelper = require('../helpers/activity-helper');
 import PostsGenerator = require('../../generators/posts-generator');
 import ResponseHelper = require('../helpers/response-helper');
+import UsersRepository = require('../../../lib/users/users-repository');
 
 const request = require('supertest');
 
@@ -15,6 +16,8 @@ MockHelper.mockAllBlockchainPart();
 MockHelper.mockAllTransactionSigning();
 
 const usersActivityRepository = require('../../../lib/users/repository').Activity;
+
+const JEST_TIMEOUT = 5000;
 
 let userVlad;
 let userJane;
@@ -35,6 +38,18 @@ describe('Myself. Get requests', () => {
   });
 
   describe('Get myself data', () => {
+    it('myself data should include scaled importance', async () => {
+      const response = await request(server)
+        .get(RequestHelper.getMyselfUrl())
+        .set('Authorization', `Bearer ${userVlad.token}`);
+
+      const { body } = response;
+
+      const dbUser = await UsersRepository.getUserById(userVlad.id);
+
+      UsersHelper.validateUserJson(body, userVlad, dbUser);
+    }, JEST_TIMEOUT * 10);
+
     it('should be field unread_messages_count', async () => {
       const res = await request(server)
         .get(RequestHelper.getMyselfUrl())

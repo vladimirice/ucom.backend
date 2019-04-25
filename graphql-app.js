@@ -9,12 +9,10 @@ const TagsFetchService = require("./lib/tags/service/tags-fetch-service");
 const UsersFetchService = require("./lib/users/service/users-fetch-service");
 const UsersAirdropService = require("./lib/airdrops/service/airdrop-users-service");
 const OneUserInputProcessor = require("./lib/users/input-processor/one-user-input-processor");
-// @ts-ignore
-const BlockchainApiFetchService = require("./lib/eos/service/blockchain-api-fetch-service");
+const BlockchainApiFetchService = require("./lib/blockchain-nodes/service/blockchain-api-fetch-service");
 const GraphQlInputService = require("./lib/api/graph-ql/service/graph-ql-input-service");
 const cookieParser = require('cookie-parser');
 const express = require('express');
-const { BlockchainNodesTypes } = require('ucom.libs.common').Governance.Dictionary;
 const { ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
 const { ApiLogger } = require('./config/winston');
@@ -301,6 +299,7 @@ const typeDefs = gql `
     myself_votes_only: Boolean!
     blockchain_nodes_type: Int!
     user_id: Int
+    title_like: String
   }
 `;
 // @ts-ignore
@@ -314,63 +313,14 @@ const resolvers = {
         },
         async many_blockchain_nodes(
         // @ts-ignore
-        parent, args, 
-        // @ts-ignore
-        ctx) {
-            const query = GraphQlInputService.getQueryFromArgs(args);
-            return BlockchainApiFetchService.getAndProcessNodes(query);
-            const bpNodes = [];
-            const calcNodes = [];
-            for (let i = 1; i <= 12; i += 1) {
-                bpNodes.push({
-                    id: i,
-                    title: `bp_node_${i}`,
-                    votes_count: i * 5,
-                    votes_amount: i * 10003509,
-                    currency: 'UOS',
-                    bp_status: i % 2 === 0 ? 1 : 2,
-                    blockchain_nodes_type: BlockchainNodesTypes.BLOCK_PRODUCERS,
-                    myselfData: {
-                        bp_vote: i % 2 === 0,
-                    },
-                    votes_percentage: 23.81 + i * 4,
-                });
-            }
-            for (let i = 13; i <= 21; i += 1) {
-                calcNodes.push({
-                    id: i,
-                    title: `calc_node_${i}`,
-                    votes_count: i * 5,
-                    votes_amount: i * 10003509,
-                    currency: 'importance',
-                    bp_status: i % 2 === 0 ? 1 : 2,
-                    blockchain_nodes_type: BlockchainNodesTypes.CALCULATOR_NODES,
-                    myselfData: {
-                        bp_vote: i % 2 === 0,
-                    },
-                    votes_percentage: 23.81 + i * 2,
-                });
-            }
-            if (query.filters.blockchain_nodes_type === 1) {
-                return {
-                    data: bpNodes,
-                    metadata: {
-                        has_more: true,
-                        page: +args.page,
-                        per_page: args.per_page,
-                        total_amount: 12,
-                    },
-                };
-            }
-            return {
-                data: calcNodes,
-                metadata: {
-                    has_more: false,
-                    page: +args.page,
-                    per_page: args.per_page,
-                    total_amount: 8,
+        parent, args) {
+            const customQuery = {
+                filters: {
+                    deleted_at: false,
                 },
             };
+            const query = GraphQlInputService.getQueryFromArgs(args, customQuery);
+            return BlockchainApiFetchService.getAndProcessNodes(query);
         },
         // @ts-ignore
         async one_user(parent, args, ctx) {

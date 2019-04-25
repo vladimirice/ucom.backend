@@ -3,16 +3,14 @@ import { StringToAnyCollection } from '../../common/interfaces/common-types';
 import { QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 import { RequestQueryBlockchainNodes } from '../interfaces/blockchain-nodes-interfaces';
 
-import BlockchainModelProvider = require('../service/blockchain-model-provider');
 import knex = require('../../../config/knex');
 import InsertUpdateRepositoryHelper = require('../../common/helper/repository/insert-update-repository-helper');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import BlockchainModelProvider = require('../../eos/service/blockchain-model-provider');
 
 const _ = require('lodash');
 
-const blockchainModelProvider = require('../service/blockchain-model-provider');
-
-const model       = blockchainModelProvider.getModel();
+const model       = BlockchainModelProvider.getModel();
 
 const TABLE_NAME  = BlockchainModelProvider.getTableName();
 
@@ -186,17 +184,15 @@ class BlockchainNodesRepository implements QueryFilteredRepository {
       return;
     }
 
-    if (query.filters.search) {
-      // noinspection JSIgnoredPromiseFromCall
-      queryBuilder.andWhere('title', 'ilike', `%${query.filters.search}%`);
+    if (query.filters.title_like) {
+      queryBuilder.andWhere('title', 'ilike', `%${query.filters.title_like}%`);
     }
 
     if (query.filters.blockchain_nodes_type) {
-      // noinspection JSIgnoredPromiseFromCall
       queryBuilder.andWhere('blockchain_nodes_type', '=', +query.filters.blockchain_nodes_type);
     }
 
-    if (query.filters.deleted_at !== true) {
+    if (!query.filters.deleted_at) {
       queryBuilder.whereNull('deleted_at');
     }
   }

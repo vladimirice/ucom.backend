@@ -6,6 +6,7 @@ import NotificationsEventIdDictionary = require('../../entities/dictionary/notif
 import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import UsersActivityWhere = require('./users-activity/users-activity-where');
+import BlockchainModelProvider = require('../../eos/service/blockchain-model-provider');
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -282,34 +283,32 @@ class UsersActivityRepository {
     return posts;
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @return {Promise<Object>}
-   */
-  static async findOneUserBlockchainNodesActivity(userId) {
-    const eventIdUpBlockProducer   = eventIdDictionary.getUserVotesForBlockchainNode();
-    const eventIdDownBlockProducer = eventIdDictionary.getUserCancelVoteForBlockchainNode();
+  public static async findOneUserBlockchainNodesActivity(
+    userId: number,
+    blockchainNodesType: number,
+  ): Promise<number[]> {
+    const { eventIdUp, eventIdDown } =
+      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT entity_id_to FROM (
                   SELECT
-                      DISTINCT ON (user_id_from, entity_id_to, entity_name, activity_group_id)
+                      DISTINCT ON (user_id_from, entity_id_to)
                                   entity_id_to,
-                                  event_id,
-                                  id
+                                  event_id
                   FROM
                        ${TABLE_NAME}
                   WHERE
                       user_id_from  = ${+userId}
-                      AND event_id IN (${eventIdUpBlockProducer}, ${eventIdDownBlockProducer})
-                  ORDER BY user_id_from, entity_id_to, entity_name, activity_group_id, id DESC
-                  ) AS I_vote
+                      AND entity_name = '${BlockchainModelProvider.getEntityName()}'
+                      AND event_id IN (${eventIdUp}, ${eventIdDown})
+                  ORDER BY user_id_from, entity_id_to, id DESC
+                  ) AS t
         WHERE
-          event_id = ${eventIdUpBlockProducer};
+          t.event_id = ${eventIdUp};
     `;
 
-    const data = await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    const data = await RepositoryHelper.getKnexRawData(sql);
 
     return data.map(item => +item.entity_id_to);
   }

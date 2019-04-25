@@ -297,6 +297,8 @@ class ResponseHelper {
   public static checkListResponseStructure(
     response: ListResponse,
   ): void {
+    this.expectNotEmpty(response);
+
     expect(response.data).toBeDefined();
     expect(Array.isArray(response.data)).toBeTruthy();
     expect(response.metadata).toBeDefined();

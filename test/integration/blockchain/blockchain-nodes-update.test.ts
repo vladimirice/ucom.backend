@@ -6,8 +6,9 @@ import BlockchainHelper = require('../helpers/blockchain-helper');
 import EosApi = require('../../../lib/eos/eosApi');
 import BlockchainService = require('../../../lib/eos/service/blockchain-service');
 import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
-import BlockchainNodesRepository = require('../../../lib/eos/repository/blockchain-nodes-repository');
+import BlockchainNodesRepository = require('../../../lib/blockchain-nodes/repository/blockchain-nodes-repository');
 import ResponseHelper = require('../helpers/response-helper');
+import BlockchainNodesMock = require('../../helpers/blockchain/blockchain-nodes-mock');
 
 const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
 
@@ -15,6 +16,9 @@ let userPetr: UserModel;
 let userRokky: UserModel;
 
 EosApi.initWalletApi();
+
+const typeBlockProducer: number = Dictionary.BlockchainNodes.typeBlockProducer();
+const typeCalculator: number = Dictionary.BlockchainNodes.typeCalculator();
 
 const _ = require('lodash');
 
@@ -76,7 +80,7 @@ describe('Blockchain nodes updating', () => {
         const actual = actualNodes.find(item => item.title === expected.title);
 
         delete actual.id;
-        expect(actual.blockchain_nodes_type).toBe(Dictionary.BlockchainNodes.typeCalculator());
+        expect(actual.blockchain_nodes_type).toBe(typeCalculator);
 
         delete actual.blockchain_nodes_type;
 
@@ -88,7 +92,7 @@ describe('Blockchain nodes updating', () => {
       await BlockchainHelper.updateBlockchainNodes();
 
       const { created, updated, createdCalculators } =
-        await BlockchainHelper.mockGetBlockchainNodesWalletMethod();
+        await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod();
 
       await BlockchainHelper.updateBlockchainNodes();
       const response = await BlockchainNodesRepository.findAllBlockchainNodesLegacy();
@@ -114,40 +118,19 @@ describe('Blockchain nodes updating', () => {
       }
     }, JEST_TIMEOUT);
   });
+
   describe('Block producers processing', () => {
-    const blockchainNodesType: number = Dictionary.BlockchainNodes.typeBlockProducer();
+    const blockchainNodesType: number = typeBlockProducer;
 
     it('should create basic users activity of bp votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
 
-      const { blockProducersWithVoters } = await BlockchainNodes.getAll();
-
-      const producers = Object.keys(blockProducersWithVoters.indexedNodes);
-
-      const addToVote = {
-        [petrAccountName]: {
-          owner: petrAccountName,
-          nodes: [
-            producers[0],
-            producers[2],
-            producers[3],
-            'z_super_new2',
-          ],
-        },
-        [rokkyAccountName]: {
-          owner: rokkyAccountName,
-          nodes: [
-            producers[1],
-            producers[3],
-            'z_super_new1',
-            producers[4],
-          ],
-        },
-      };
-
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
-      await BlockchainService.updateBlockchainNodesByBlockchain();
+      const { addToVoteBlockProducers:addToVote } = await BlockchainNodesMock.mockBlockchainNodesProvider(
+        petrAccountName,
+        rokkyAccountName,
+        blockchainNodesType,
+      );
 
       const nodes = await BlockchainNodesRepository.findAllBlockchainNodesLegacy();
 
@@ -206,7 +189,7 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
+      await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod(_.cloneDeep(addToVote), false);
       await BlockchainHelper.updateBlockchainNodes();
 
       const nodes = await BlockchainNodesRepository.findAllBlockchainNodesLegacy();
@@ -250,7 +233,7 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(
+      await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod(
         _.cloneDeep(addToVoteAfter),
         false,
       );
@@ -303,7 +286,7 @@ describe('Blockchain nodes updating', () => {
   });
 
   describe('Calculators processing', () => {
-    const blockchainNodesType: number = Dictionary.BlockchainNodes.typeCalculator();
+    const blockchainNodesType: number = typeCalculator;
 
     it('should create basic users activity of calculators votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
@@ -334,13 +317,13 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod({}, false, _.cloneDeep(addToVote));
+      await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod({}, false, _.cloneDeep(addToVote));
       await BlockchainService.updateBlockchainNodesByBlockchain();
 
 
       const params = {
         where: {
-          blockchain_nodes_type: Dictionary.BlockchainNodes.typeCalculator(),
+          blockchain_nodes_type: typeCalculator,
         },
       };
 
@@ -401,12 +384,12 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod({}, false, _.cloneDeep(addToVote));
+      await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod({}, false, _.cloneDeep(addToVote));
       await BlockchainHelper.updateBlockchainNodes();
 
       const params = {
         where: {
-          blockchain_nodes_type: Dictionary.BlockchainNodes.typeCalculator(),
+          blockchain_nodes_type: typeCalculator,
         },
       };
       const nodes = await BlockchainNodesRepository.findAllBlockchainNodesLegacy(params);
@@ -450,7 +433,7 @@ describe('Blockchain nodes updating', () => {
         },
       };
 
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(
+      await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod(
         {},
         false,
         _.cloneDeep(addToVoteAfter),

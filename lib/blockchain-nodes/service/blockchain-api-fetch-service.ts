@@ -2,18 +2,15 @@ import { QueryBuilder } from 'knex';
 import { RequestQueryBlockchainNodes } from '../interfaces/blockchain-nodes-interfaces';
 import { QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 
+const { Dictionary } = require('ucom-libs-wallet');
+
 import BlockchainNodesRepository = require('../repository/blockchain-nodes-repository');
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import KnexQueryBuilderHelper = require('../../common/helper/repository/knex-query-builder-helper');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 
 const { BadRequestError }    = require('../../api/errors');
-const blockchainNodesRepository = require('../repository').Main;
 const { Op } = require('../../../models').Sequelize;
-
-const usersActivityRepository = require('../../../lib/users/repository').Activity;
-
-const queryFilterService = require('../../api/filters/query-filter-service');
 
 /**
  * Fetch-only class. This class should not change anything, only read
@@ -24,28 +21,27 @@ class BlockchainApiFetchService {
    * @param {Object} query
    * @param {number|null} userId
    */
-  static async getAndProcessNodesLegacy(query, userId) {
+  public static async getAndProcessNodesLegacy(query, userId) {
     this.checkQueryParams(query, userId);
 
-    const queryParams = queryFilterService.getQueryParameters(
+    const queryParams = QueryFilterService.getQueryParameters(
       query,
       {},
-      usersActivityRepository.getAllowedOrderBy(),
+      UsersActivityRepository.getAllowedOrderBy(),
     );
-    this.setWhereByRequestQuery(queryParams, query);
+    this.setWhereByRequestQueryLegacy(queryParams, query);
 
-    const { dataObjects, votedNodes } = await this.getApiDbData(queryParams, userId);
+    const { dataObjects, votedNodes } = await this.getApiDbDataLegacy(queryParams, userId);
 
-    return this.getDataForApiResponse(dataObjects, votedNodes, !!query.myself_bp_vote, userId);
+    return this.getDataForApiResponseLegacy(dataObjects, votedNodes, !!query.myself_bp_vote, userId);
   }
 
   /**
    *
    * @param {Object} query
    */
-  static async getAndProcessNodes(query: RequestQueryBlockchainNodes) {
+  public static async getAndProcessNodes(query: RequestQueryBlockchainNodes) {
     this.checkQueryParams(query, query.filters.user_id);
-    query.filters.deleted_at = true;
 
     const repository: QueryFilteredRepository = BlockchainNodesRepository;
 
@@ -55,7 +51,10 @@ class BlockchainApiFetchService {
     const { offset, limit } = QueryFilterService.addQueryParamsToKnex(query, repository, knexForList);
 
     if (query.filters.myself_votes_only && query.filters.user_id) {
-      const nodeIdsVotedFor = await UsersActivityRepository.findOneUserBlockchainNodesActivity(query.filters.user_id);
+      const nodeIdsVotedFor: number[] = await UsersActivityRepository.findOneUserBlockchainNodesActivity(
+        query.filters.user_id,
+        query.filters.blockchain_nodes_type,
+      );
       knexForList.whereIn('id', nodeIdsVotedFor);
       knexForCount.whereIn('id', nodeIdsVotedFor);
     }
@@ -96,20 +95,23 @@ class BlockchainApiFetchService {
    * @return {Promise<{dataObjects: Array, votedNodes: Array}>}
    * @private
    */
-  private static async getApiDbData(queryParams, userId) {
-    let votedNodes  = [];
-    let dataObjects = [];
+  private static async getApiDbDataLegacy(queryParams, userId) {
+    let votedNodes: any  = [];
+    let dataObjects: any = [];
 
     if (userId) {
-      const nodePromise     = blockchainNodesRepository.findAllBlockchainNodesLegacy(queryParams);
-      const activityPromise = usersActivityRepository.findOneUserBlockchainNodesActivity(userId);
+      const nodePromise     = BlockchainNodesRepository.findAllBlockchainNodesLegacy(queryParams);
+      const activityPromise = UsersActivityRepository.findOneUserBlockchainNodesActivity(
+        userId,
+        Dictionary.BlockchainNodes.typeBlockProducer(),
+      );
 
       [dataObjects, votedNodes] = await Promise.all([
         nodePromise,
         activityPromise,
       ]);
     } else {
-      dataObjects = await blockchainNodesRepository.findAllBlockchainNodesLegacy(queryParams);
+      dataObjects = await BlockchainNodesRepository.findAllBlockchainNodesLegacy(queryParams);
     }
 
     return {
@@ -126,7 +128,7 @@ class BlockchainApiFetchService {
    * @param {number|null} userId
    * @private
    */
-  private static getDataForApiResponse(dataObjects, votedNodes, myselfBpVoteFilter, userId) {
+  private static getDataForApiResponseLegacy(dataObjects, votedNodes, myselfBpVoteFilter, userId) {
     const data: any = [];
     const totalVotesCount = dataObjects.reduce((prev, cur) => prev + cur.votes_count, 0);
 
@@ -165,7 +167,7 @@ class BlockchainApiFetchService {
    * @param {Object} queryParams
    * @param {Object} query
    */
-  private static setWhereByRequestQuery(queryParams, query) {
+  private static setWhereByRequestQueryLegacy(queryParams, query) {
     if (query.search) {
       queryParams.where.title = {
         [Op.iLike]: `%${query.search}%`,

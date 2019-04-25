@@ -3,6 +3,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import BlockchainHelper = require('../helpers/blockchain-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import EosApi = require('../../../lib/eos/eosApi');
+import BlockchainNodesMock = require('../../helpers/blockchain/blockchain-nodes-mock');
 
 const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
 const _ = require('lodash');
@@ -88,7 +89,7 @@ describe('Blockchain nodes get - legacy', () => {
         },
       };
 
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
+      await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
       await BlockchainHelper.updateBlockchainNodes();
 
       const nodesList = await BlockchainHelper.requestToGetNodesList(userVlad);
@@ -120,7 +121,7 @@ describe('Blockchain nodes get - legacy', () => {
         },
       };
 
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
+      await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod(_.cloneDeep(replaceFor), false);
       await BlockchainHelper.updateBlockchainNodes();
 
       const data = await BlockchainHelper.requestToGetNodesList(userVlad, true);
@@ -136,7 +137,7 @@ describe('Blockchain nodes get - legacy', () => {
     }, JEST_TIMEOUT * 2);
 
     it('Get nodes which match only search criteria', async () => {
-      await BlockchainHelper.mockGetBlockchainNodesWalletMethod({}, false);
+      await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod({}, false);
       await BlockchainHelper.updateBlockchainNodes();
 
       const data =

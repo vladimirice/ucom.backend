@@ -326,7 +326,7 @@ class UsersHelper {
 
   /**
    *
-   * @param {integer} userId
+   * @param {number} userId
    * @returns {Promise<string|*|string|HTMLElement|BodyInit|ReadableStream>}
    */
   static async requestUserById(userId) {
@@ -342,6 +342,10 @@ class UsersHelper {
   static validateUserJson(body, expectedUser, userFromDb) {
     expect(body.hasOwnProperty('account_name')).toBeTruthy();
     expect(body.account_name).toBe(expectedUser.account_name);
+
+    expect(body.scaled_importance).toBeDefined();
+    expect(typeof body.scaled_importance).toBe('number');
+    expect(body.scaled_importance).toBeGreaterThanOrEqual(0);
 
     const fieldsToCheck = [
       'users_education',
