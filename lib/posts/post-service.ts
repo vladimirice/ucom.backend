@@ -9,6 +9,7 @@ import PostCreatorService = require('./service/post-creator-service');
 import UserActivityService = require('../users/user-activity-service');
 import PostsRepository = require('./posts-repository');
 import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
+import UserInputSanitizer = require('../api/sanitizers/user-input-sanitizer');
 
 const _ = require('lodash');
 
@@ -130,6 +131,7 @@ class PostService {
 
     // noinspection JSDeprecatedSymbols
     postSanitizer.sanitisePost(params);
+    UserInputSanitizer.unescapeObjectValues(params, ['title', 'leading_text', 'description']);
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({
