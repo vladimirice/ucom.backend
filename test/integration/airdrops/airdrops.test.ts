@@ -33,15 +33,46 @@ const JEST_TIMEOUT = 1000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = 1000 * 1000;
 
+let generatedForVlad;
+// @ts-ignore
+let generatedForJane;
+
 describe('Airdrops create-get', () => {
   beforeAll(async () => {
     await SeedsHelper.beforeAllSetting(beforeAfterOptions);
   });
+
   afterAll(async () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+
+    [generatedForVlad, generatedForJane] = await AirdropsUsersGenerator.generateForVladAndJane();
+  });
+
+  describe('Airdrops users data from github raw data table', () => {
+    it('Check validity', async () => {
+      const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+
+      const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
+      const headers = RequestHelper.getGithubAuthHeader(sampleToken);
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
+
+      AirdropsUsersChecker.checkAirdropsStructure(oneUserAirdrop);
+
+      expect(oneUserAirdrop.score).toBe(generatedForVlad.score);
+      expect(oneUserAirdrop.tokens[0].amount_claim).toBe(generatedForVlad.amount);
+      expect(oneUserAirdrop.tokens[1].amount_claim).toBe(generatedForVlad.amount);
+
+      // fetch again - no error
+      const oneUserAirdropSecond = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
+      AirdropsUsersChecker.checkAirdropsStructure(oneUserAirdropSecond);
+
+      expect(oneUserAirdrop.score).toBe(generatedForVlad.score);
+      expect(oneUserAirdrop.tokens[0].amount_claim).toBe(generatedForVlad.amount);
+      expect(oneUserAirdrop.tokens[1].amount_claim).toBe(generatedForVlad.amount);
+    });
   });
 
   describe('Github airdrop participants', () => {
@@ -97,7 +128,7 @@ describe('Airdrops create-get', () => {
       await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
       await AirdropsUsersToPendingService.process(airdropId);
 
-      const manyUsersFirstPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, 'score', 1, 1);
+      const manyUsersFirstPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score', 1, 1);
 
       expect(manyUsersFirstPage.data.length).toBe(1);
 
@@ -109,7 +140,7 @@ describe('Airdrops create-get', () => {
       expect(manyUsersFirstPage.metadata.page).toBe(1);
       expect(manyUsersFirstPage.metadata.per_page).toBe(1);
 
-      const manyUsersSecondPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, 'score', 2, 1);
+      const manyUsersSecondPage = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score', 2, 1);
 
       expect(manyUsersFirstPage.data.length).toBe(1);
 
@@ -130,7 +161,7 @@ describe('Airdrops create-get', () => {
       await AirdropsUsersToPendingService.process(airdropId);
 
       const manyUsersVladIsFirst =
-        await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, '-score');
+        await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId, 'score');
 
       expect(manyUsersVladIsFirst.data[0].account_name).toBe(userJane.account_name);
       expect(manyUsersVladIsFirst.data[1].account_name).toBe(userVlad.account_name);
@@ -241,7 +272,7 @@ describe('Airdrops create-get', () => {
       );
 
       expect(postOfferWithTeam.data.one_post_offer.users_team.data.length).toBe(2);
-    });
+    }, JEST_TIMEOUT_DEBUG);
 
     it('get both post offer data and airdrop state via github token', async () => {
       const { postId, airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);

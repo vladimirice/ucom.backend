@@ -67,6 +67,7 @@ const minorTables = [
 
   UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
+  'airdrops_users_github_raw',
   'airdrops_users_external_data',
   'airdrops_users_external_data',
 

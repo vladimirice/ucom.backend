@@ -30,6 +30,8 @@ describe('Airdrops users to waiting', () => {
   });
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+
+    await AirdropsUsersGenerator.generateForVladAndJane();
   });
 
   it('process two pending users', async () => {

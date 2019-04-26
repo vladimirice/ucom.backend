@@ -116,7 +116,7 @@ class UsersExternalRepository {
       return null;
     }
 
-    RepositoryHelper.convertStringFieldsToNumbers(res, this.getNumericalFields());
+    RepositoryHelper.convertStringFieldsToNumbers(res, this.getNumericalFields(), this.getNumericalFields());
 
     return res;
   }
@@ -124,6 +124,7 @@ class UsersExternalRepository {
   private static getNumericalFields(): string[] {
     return [
       'id',
+      'external_id',
     ];
   }
 }
