@@ -12,8 +12,10 @@ import UsersTeamRepository = require('../../users/repository/users-team-reposito
 import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
+import UserInputSanitizer = require('../../api/sanitizers/user-input-sanitizer');
 
 const _ = require('lodash');
+
 
 const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const { AppError } = require('../../../lib/api/errors');
@@ -76,6 +78,7 @@ class PostCreatorService {
     await this.addAttributesOfEntityFor(body, currentUser);
     // noinspection JSDeprecatedSymbols
     PostSanitizer.sanitisePost(body);
+    UserInputSanitizer.unescapeObjectValues(body, ['title', 'leading_text', 'description']);
 
     // legacy code usage check
     if (!_.isEmpty(files)) {

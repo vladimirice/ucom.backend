@@ -30,6 +30,8 @@ let userJane;
 
 MockHelper.mockAllBlockchainPart();
 
+const JEST_TIMEOUT = 5000;
+
 // #this test cases should be refactored. Use generators, helper-checkers, etc.
 describe('Posts API', () => {
   beforeAll(async () => {
@@ -44,6 +46,19 @@ describe('Posts API', () => {
 
   describe('Media post creation', () => {
     describe('Positive', () => {
+      it('Create with ampersand - should be no encoding', async () => {
+        const values = {
+          title: 'Hello from & <>',
+          description: 'Post & harry',
+        };
+
+        const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad, values);
+        const onePost = await PostsRepository.findOneById(postId);
+
+        expect(onePost.title).toBe(values.title);
+        expect(onePost.description).toBe(values.description);
+      }, JEST_TIMEOUT);
+
       it('Post current params row should be created during post creation', async () => {
         const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 

@@ -58,6 +58,7 @@
     "ucom-libs-social-transactions": "^1.1.4",
     "ucom-libs-wallet": "^2.3.0",
     "ucom.libs.common": "^1.8.0",
+    "unescape": "^1.0.1",
     "uniqid": "5.0.3",
     "util": "^0.11.1",
     "winston": "^3.2.1",

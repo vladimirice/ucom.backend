@@ -46,6 +46,7 @@ class PostSanitizer {
     postRepository.getModel().getHtmlFields().forEach((field) => {
       if (params[field]) {
         params[field] = sanitizeHtml(params[field], {
+          decodeEntities: false,
           allowedTags,
           allowedAttributes: {
             div: allowedAttributes,
