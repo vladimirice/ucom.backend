@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import UsersFetchService = require('./service/users-fetch-service');
+import UsersRepository = require('./users-repository');
 
 const joi = require('joi');
 const _ = require('lodash');
@@ -85,7 +86,12 @@ class UsersService {
         await usersRepository.updateUserById(userId, requestData, transaction);
       });
 
-    return usersRepository.getUserById(userId);
+    const userModel = await UsersRepository.getUserById(userId);
+    const userJson = userModel.toJSON();
+
+    UsersFetchService.processUosAccountsProperties(userJson);
+
+    return userJson;
   }
 
   /**

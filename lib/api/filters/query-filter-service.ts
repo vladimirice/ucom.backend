@@ -347,7 +347,11 @@ class QueryFilterService {
    * @returns {void}
    */
   private static setOrderBy(query, params, orderByRelationMap, allowedSortBy: any = null) {
-    params.order = this.getSequelizeOrderBy(query, orderByRelationMap, allowedSortBy);
+    const orderBy = this.getSequelizeOrderBy(query, orderByRelationMap, allowedSortBy);
+
+    if (orderBy !== null) {
+      params.order = this.getSequelizeOrderBy(query, orderByRelationMap, allowedSortBy);
+    }
   }
 }
 
