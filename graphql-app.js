@@ -15,6 +15,7 @@ const OneUserInputProcessor = require("./lib/users/input-processor/one-user-inpu
 const BlockchainApiFetchService = require("./lib/blockchain-nodes/service/blockchain-api-fetch-service");
 const GraphQlInputService = require("./lib/api/graph-ql/service/graph-ql-input-service");
 const MaintenanceHelper = require("./lib/common/helper/maintenance-helper");
+const EnvHelper = require("./lib/common/helper/env-helper");
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const { ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError, } = require('apollo-server-express');
@@ -539,22 +540,27 @@ const server = new ApolloServer({
     },
 });
 exports.server = server;
-// @ts-ignore
 app.use((req, res, next) => {
-    // const allowedOrigins = config.cors.allowed_origins;
-    // const { origin } = req.headers;
-    // if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
-    // }
+    const allowedOrigins = config.cors.allowed_origins;
+    const { origin } = req.headers;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
+    }
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     res.setHeader('Access-Control-Allow-Headers', `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`);
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
 });
+function determineOrigin() {
+    if (EnvHelper.isProductionEnv()) {
+        return 'https://u.community';
+    }
+    return 'https://staging.u.community';
+}
 server.applyMiddleware({
     app,
     cors: {
-        origin: 'https://staging.u.community',
+        origin: determineOrigin(),
     },
 });
 // @ts-ignore

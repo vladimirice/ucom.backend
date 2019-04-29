@@ -23,6 +23,7 @@ import OneUserInputProcessor = require('./lib/users/input-processor/one-user-inp
 import BlockchainApiFetchService = require('./lib/blockchain-nodes/service/blockchain-api-fetch-service');
 import GraphQlInputService = require('./lib/api/graph-ql/service/graph-ql-input-service');
 import MaintenanceHelper = require('./lib/common/helper/maintenance-helper');
+import EnvHelper = require('./lib/common/helper/env-helper');
 
 const cookieParser = require('cookie-parser');
 const express = require('express');
@@ -664,16 +665,13 @@ const server = new ApolloServer({
   },
 });
 
-
-
-// @ts-ignore
 app.use((req, res, next) => {
-  // const allowedOrigins = config.cors.allowed_origins;
+  const allowedOrigins = config.cors.allowed_origins;
 
-  // const { origin } = req.headers;
-  // if (allowedOrigins.includes(origin)) {
-  res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
-  // }
+  const { origin } = req.headers;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
+  }
 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
@@ -687,10 +685,18 @@ app.use((req, res, next) => {
   next();
 });
 
+function determineOrigin() {
+  if (EnvHelper.isProductionEnv()) {
+    return 'https://u.community';
+  }
+
+  return 'https://staging.u.community';
+}
+
 server.applyMiddleware({
   app,
   cors: {
-    origin: 'https://staging.u.community',
+    origin: determineOrigin(),
   },
 });
 
