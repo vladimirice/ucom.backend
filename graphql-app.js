@@ -500,6 +500,11 @@ const resolvers = {
 const app = express();
 exports.app = app;
 app.use(cookieParser());
+// @ts-ignore
+const corsOptions = {
+    origin: 'http://localhost:3000',
+    credentials: true,
+};
 // noinspection JSUnusedGlobalSymbols
 const server = new ApolloServer({
     typeDefs,
@@ -539,6 +544,7 @@ const server = new ApolloServer({
     },
 });
 exports.server = server;
+server.applyMiddleware({ app, cors: false });
 // @ts-ignore
 app.use((req, res, next) => {
     // const allowedOrigins = config.cors.allowed_origins;
@@ -551,4 +557,3 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
 });
-server.applyMiddleware({ app, cors: false });

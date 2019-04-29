@@ -623,6 +623,12 @@ const resolvers = {
 const app = express();
 app.use(cookieParser());
 
+// @ts-ignore
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true,
+};
+
 // noinspection JSUnusedGlobalSymbols
 const server = new ApolloServer({
   typeDefs,
@@ -663,6 +669,8 @@ const server = new ApolloServer({
   },
 });
 
+server.applyMiddleware({ app, cors: false });
+
 // @ts-ignore
 app.use((req, res, next) => {
   // const allowedOrigins = config.cors.allowed_origins;
@@ -684,7 +692,6 @@ app.use((req, res, next) => {
   next();
 });
 
-server.applyMiddleware({ app, cors: false });
 
 export {
   app,
