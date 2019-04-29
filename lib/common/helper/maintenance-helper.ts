@@ -8,7 +8,20 @@ class MaintenanceHelper {
       return;
     }
 
-    if ((postId === 6137 || postId === 6530) && !req.headers.cookie.includes('test_airdrop=true')) {
+    const postIdsToHide = [6137, 6530];
+    if (!postIdsToHide.includes(postId)) {
+      return;
+    }
+
+    if (!req.headers) {
+      throw new BadRequestError('Not found', 404);
+    }
+
+    if (!req.headers.cookie) {
+      throw new BadRequestError('Not found', 404);
+    }
+
+    if (!req.headers.cookie.includes('test_airdrop=true')) {
       throw new BadRequestError('Not found', 404);
     }
   }
