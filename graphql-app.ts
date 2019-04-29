@@ -7,6 +7,7 @@ import { OneUserAirdropDto } from './lib/airdrops/interfaces/dto-interfaces';
 import { BadRequestError } from './lib/api/errors';
 import { RequestQueryBlockchainNodes } from './lib/blockchain-nodes/interfaces/blockchain-nodes-interfaces';
 
+// @ts-ignore
 const config = require('config');
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -662,13 +663,14 @@ const server = new ApolloServer({
   },
 });
 
+// @ts-ignore
 app.use((req, res, next) => {
-  const allowedOrigins = config.cors.allowed_origins;
+  // const allowedOrigins = config.cors.allowed_origins;
 
-  const { origin } = req.headers;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
+  // const { origin } = req.headers;
+  // if (allowedOrigins.includes(origin)) {
+  res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
+  // }
 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
