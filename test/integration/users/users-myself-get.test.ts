@@ -37,7 +37,6 @@ describe('Myself. Get requests', () => {
   });
 
   describe('Get myself data', () => {
-
     describe('scaled importance', () => {
       it('myself data should include scaled importance greater than zero', async () => {
         MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
@@ -76,14 +75,6 @@ describe('Myself. Get requests', () => {
         .get(RequestHelper.getMyselfUrl())
         .set('Authorization', `Bearer ${userVlad.token}`);
       expect(res.body.unread_messages_count).toBeDefined();
-    });
-
-    it('should be field current_importance', async () => {
-      const res = await request(server)
-        .get(RequestHelper.getMyselfUrl())
-        .set('Authorization', `Bearer ${userVlad.token}`);
-
-      expect(res.body.current_importance).toBeDefined();
     });
 
     it('Get logged user data', async () => {
