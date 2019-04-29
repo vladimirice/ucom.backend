@@ -284,7 +284,7 @@ describe('Posts API', () => {
 
       const fieldsToChange = {
         // tslint:disable-next-line
-        description: '<div><strike>this is strike</strike><i>extra_text</i><div><a href="https://example.com">test href</a><p>1000 UOS tokens as is.</p><p>&lt;/p&gt;&lt;script&gt;alert(\'123\')&lt;/script&gt;2</p><div><figure>\n' +
+        description: '<div><strike>this is strike</strike><i>extra_text</i><div><a href="https://example.com">test href</a><p>1000 UOS tokens as is.</p><p></p><script>alert(\'123\')</script>2</p><div><figure>\n' +
           '    <img src="https://backend.u.community/upload/post-image-1537444720877.jpg" />\n' +
           '        \n' +
           '</figure></div><p> </p><p></p><div>\n' +
@@ -294,6 +294,16 @@ describe('Posts API', () => {
           '    </ul>\n' +
           '</div></div></div>',
       };
+
+      const expected = '<div><strike>this is strike</strike><i>extra_text</i><div><a href="https://example.com">test href</a><p>1000 UOS tokens as is.</p><p></p>2<p></p><div><figure>\n' +
+        '    <img src="https://backend.u.community/upload/post-image-1537444720877.jpg" />\n' +
+        '        \n' +
+        '</figure></div><p> </p><p></p><div>\n' +
+        '    <ul>\n' +
+        '            <li></li>\n' +
+        '            <li></li>\n' +
+        '    </ul>\n' +
+        '</div></div></div>';
 
       const res = await request(server)
         .patch(RequestHelper.getOnePostUrl(postId))
@@ -308,7 +318,7 @@ describe('Posts API', () => {
 
       const updatedPost = await PostsRepository.findOnlyPostItselfById(updatedPostId);
 
-      expect(updatedPost.description).toBe(fieldsToChange.description);
+      expect(updatedPost.description).toBe(expected);
     });
 
     it('Should preserve iframe and attributes', async () => {
@@ -320,7 +330,7 @@ describe('Posts API', () => {
           `<div class="medium-insert-embeds">
  <figure>
   <div class="medium-insert-embed">
-   <div><div style="left:0;width:100%;height:0;position:relative;padding-bottom:56.2493%;"><iframe src="https://www.youtube.com/embed/FYNsYz-nOsI?feature=oembed" style="border:0;top:0;left:0;width:100%;height:100%;position:absolute;" allowfullscreen scrolling="no"></iframe></div></div>
+   <div><div style="left:0;width:100%;height:0;position:relative;padding-bottom:56.2493%"><iframe src="https://www.youtube.com/embed/FYNsYz-nOsI?feature=oembed" style="border:0;top:0;left:0;width:100%;height:100%;position:absolute" allowfullscreen scrolling="no"></iframe></div></div>
   </div>
  </figure>
 
