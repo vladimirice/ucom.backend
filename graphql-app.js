@@ -504,6 +504,13 @@ app.use(cookieParser());
 const server = new ApolloServer({
     typeDefs,
     resolvers,
+    cors: {
+        origin: 'https://staging.u.community',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        preflightContinue: false,
+        optionsSuccessStatus: 204,
+        credentials: true,
+    },
     context: ({ req }) => ({ req }),
     formatError: (error) => {
         const { originalError } = error;
