@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("./lib/api/errors");
+const config = require('config');
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
@@ -537,4 +539,15 @@ const server = new ApolloServer({
     },
 });
 exports.server = server;
+app.use((req, res, next) => {
+    const allowedOrigins = config.cors.allowed_origins;
+    const { origin } = req.headers;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`);
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+});
 server.applyMiddleware({ app });
