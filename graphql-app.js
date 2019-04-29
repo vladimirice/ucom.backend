@@ -11,6 +11,7 @@ const UsersAirdropService = require("./lib/airdrops/service/airdrop-users-servic
 const OneUserInputProcessor = require("./lib/users/input-processor/one-user-input-processor");
 const BlockchainApiFetchService = require("./lib/blockchain-nodes/service/blockchain-api-fetch-service");
 const GraphQlInputService = require("./lib/api/graph-ql/service/graph-ql-input-service");
+const MaintenanceHelper = require("./lib/common/helper/maintenance-helper");
 const cookieParser = require('cookie-parser');
 const express = require('express');
 const { ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError, } = require('apollo-server-express');
@@ -386,6 +387,7 @@ const resolvers = {
         },
         // @ts-ignore
         async one_post_offer(parent, args, ctx) {
+            MaintenanceHelper.hideAirdropsOfferIfRequired(ctx.req, args.id);
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const commentsQuery = args.comments_query;
             commentsQuery.depth = 0;
@@ -394,6 +396,7 @@ const resolvers = {
         },
         // @ts-ignore
         async one_post(parent, args, ctx) {
+            MaintenanceHelper.hideAirdropsOfferIfRequired(ctx.req, args.id);
             const currentUserId = AuthService.extractCurrentUserByToken(ctx.req);
             const commentsQuery = args.comments_query;
             commentsQuery.depth = 0;

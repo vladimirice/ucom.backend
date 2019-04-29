@@ -295,7 +295,7 @@ describe('Airdrops create-get', () => {
     it('get both post offer data and airdrop state via auth token', async () => {
       const { postId, airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
-      const headers = RequestHelper.getAuthBearerHeader(<string>userVlad.token);
+      const headers: any = RequestHelper.getAuthBearerHeader(<string>userVlad.token);
       const res = await GraphqlHelper.getOnePostOfferWithUserAirdrop(
         airdropId,
         postId,
@@ -306,7 +306,7 @@ describe('Airdrops create-get', () => {
       PostsOfferChecker.checkGithubAirdropOfferStructure(res.data.one_post_offer, options);
 
       AirdropsUsersChecker.checkAirdropsStructure(res.data.one_user_airdrop);
-    });
+    }, JEST_TIMEOUT_DEBUG);
   });
 
   describe('User himself state', () => {

@@ -28,7 +28,7 @@ app.use((req, res, next) => {
 
   res.setHeader(
     'Access-Control-Allow-Headers',
-    `content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB}`,
+    `content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},test_airdrop`,
   );
 
   next();
