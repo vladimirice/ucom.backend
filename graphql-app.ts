@@ -626,7 +626,6 @@ app.use(cookieParser());
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  cors: false,
   context: ({ req }) => ({ req }),
   formatError: (error: GraphQLError) => {
     const { originalError } = error;
