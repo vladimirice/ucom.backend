@@ -3,13 +3,38 @@ const { WalletApi, TransactionSender } = require('ucom-libs-wallet');
 
 const EosApi = require('../../../lib/eos/eosApi');
 
-async function printCurrentBalances(accountName: string) {
-  const holderUosTestAfter = await WalletApi.getAccountBalance(accountName, 'UOSTEST');
-  const holderGhTestAfter = await WalletApi.getAccountBalance(accountName, 'GHTEST');
-  console.log(`${accountName} balance: ${holderUosTestAfter} UOSTEST, ${holderGhTestAfter} GHTEST`);
+async function printCurrentBalances(accountName: string, manySymbols: string[]) {
+  for (const symbol of manySymbols) {
+    const holderUosTestAfter = await WalletApi.getAccountBalance(accountName, symbol);
+    console.log(`${accountName} balance: ${holderUosTestAfter} ${symbol}`);
+  }
+}
+
+async function sendManyTokens(
+  accountNameFrom: string,
+  privateKey: string,
+  accountNameTo: string,
+  manySymbols: string[],
+  amount: number,
+) {
+  for (const symbol of manySymbols) {
+    await TransactionSender.sendTokens(
+      accountNameFrom,
+      privateKey,
+      accountNameTo,
+      amount,
+      '',
+      symbol,
+    );
+  }
 }
 
 (async () => {
+  const manySymbols = [
+    'UOSF',
+    'UOS',
+  ];
+
   WalletApi.setNodeJsEnv();
   WalletApi.initForProductionEnv();
 
@@ -18,31 +43,21 @@ async function printCurrentBalances(accountName: string) {
 
   const accountNameTo = EosApi.getGithubAirdropAccountName();
 
-  await printCurrentBalances(accountNameFrom);
-  await printCurrentBalances(accountNameTo);
+  await printCurrentBalances(accountNameFrom, manySymbols);
+  await printCurrentBalances(accountNameTo, manySymbols);
 
-  const amount = 1;
+  const amount = 1000000;
 
-  await TransactionSender.sendTokens(
+  await sendManyTokens(
     accountNameFrom,
     privateKey,
     accountNameTo,
+    manySymbols,
     amount,
-    '',
-    'UOSTEST',
   );
 
-  await TransactionSender.sendTokens(
-    accountNameFrom,
-    privateKey,
-    accountNameTo,
-    amount,
-    '',
-    'GHTEST',
-  );
-
-  await printCurrentBalances(accountNameFrom);
-  await printCurrentBalances(accountNameTo);
+  await printCurrentBalances(accountNameFrom, manySymbols);
+  await printCurrentBalances(accountNameTo, manySymbols);
 })();
 
 export {};
