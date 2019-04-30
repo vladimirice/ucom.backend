@@ -1,7 +1,6 @@
-const express = require('express');
-const config = require('config');
+import CorsHelper = require('../api/helpers/cors-helper');
 
-const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
+const express = require('express');
 const imagesRouter = require('./router/uploader-images-router');
 
 const ApiErrorAndLoggingHelper = require('../api/helpers/api-error-and-logging-helper');
@@ -16,25 +15,7 @@ const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
 
 app.use(diContainerMiddleware);
 
-app.use((req, res, next) => {
-  const allowedOrigins = config.cors.allowed_origins;
-
-  const { origin } = req.headers;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    `content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`,
-  );
-
-  res.setHeader('Access-Control-Allow-Credentials', true);
-
-  next();
-});
+CorsHelper.addRegularCors(app);
 
 ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 
