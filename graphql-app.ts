@@ -632,7 +632,7 @@ app.use(cookieParser());
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => ({ req }),
+  context: ({ req, res }) => ({ req, res }),
   formatError: (error: GraphQLError) => {
     const { originalError } = error;
 
@@ -701,13 +701,14 @@ const corsOptionsDelegate = (req, callback) => {
 
 app.use(corsLib(corsOptionsDelegate));
 
+// @ts-ignore
 app.use((req, res, next) => {
-  const allowedOrigins = config.cors.allowed_origins;
+  // const allowedOrigins = config.cors.allowed_origins;
 
-  const { origin } = req.headers;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
-  }
+  // const { origin } = req.headers;
+  // if (allowedOrigins.includes(origin)) {
+  res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
+  // }
 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
@@ -722,7 +723,7 @@ app.use((req, res, next) => {
 });
 
 
-server.applyMiddleware({ app });
+server.applyMiddleware({ app, cors: false });
 
 // @ts-ignore
 const corsOptions = {
