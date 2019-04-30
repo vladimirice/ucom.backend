@@ -7,9 +7,6 @@ import { OneUserAirdropDto } from './lib/airdrops/interfaces/dto-interfaces';
 import { BadRequestError } from './lib/api/errors';
 import { RequestQueryBlockchainNodes } from './lib/blockchain-nodes/interfaces/blockchain-nodes-interfaces';
 
-// @ts-ignore
-const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
-
 import PostsFetchService = require('./lib/posts/service/posts-fetch-service');
 import AuthService = require('./lib/auth/authService');
 import CommentsFetchService = require('./lib/comments/service/comments-fetch-service');

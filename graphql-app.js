@@ -1,8 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("./lib/api/errors");
-// @ts-ignore
-const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
 const CommentsFetchService = require("./lib/comments/service/comments-fetch-service");
