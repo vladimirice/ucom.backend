@@ -718,12 +718,9 @@ const corsOptionsDelegate = (req, callback) => {
   callback(null, corsOptions);
 };
 
-// server.applyMiddleware({
-//   app,
-//   cors: corsLib(corsOptionsDelegate),
-// });
-
 app.use(corsLib(corsOptionsDelegate));
+
+server.applyMiddleware({ app });
 
 // @ts-ignore
 const corsOptions = {
