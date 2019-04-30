@@ -698,15 +698,21 @@ function determineOrigin() {
 }
 
 const corsOptionsDelegate = (req, callback) => {
-  let corsOptions;
+  const corsOptions = {
+    origin: '*',
+    methods: 'GET,POST,OPTIONS,PUT,PATCH,DELETE',
+    allowedHeaders: `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`,
+    credentials: true,
+  };
 
   const allowedOrigins = config.cors.allowed_origins;
 
   const { origin } = req.headers;
   if (allowedOrigins.includes(origin)) {
-    corsOptions = { origin };
+    corsOptions.origin = origin;
   } else {
-    corsOptions = { origin: false };
+    // @ts-ignore
+    corsOptions.origin = false;
   }
 
   callback(null, corsOptions);
