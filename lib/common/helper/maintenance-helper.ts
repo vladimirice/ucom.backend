@@ -3,6 +3,7 @@ import { BadRequestError } from '../../api/errors';
 import EnvHelper = require('./env-helper');
 
 class MaintenanceHelper {
+  // #task - delete after airdrop run
   public static hideAirdropsOfferIfRequired(req, postId: number) {
     if (EnvHelper.isNotAProductionEnv()) {
       return;

@@ -18,7 +18,7 @@ import UsersAirdropService = require('./lib/airdrops/service/airdrop-users-servi
 import OneUserInputProcessor = require('./lib/users/input-processor/one-user-input-processor');
 import BlockchainApiFetchService = require('./lib/blockchain-nodes/service/blockchain-api-fetch-service');
 import GraphQlInputService = require('./lib/api/graph-ql/service/graph-ql-input-service');
-import MaintenanceHelper = require('./lib/common/helper/maintenance-helper');
+// import MaintenanceHelper = require('./lib/common/helper/maintenance-helper');
 import CorsHelper = require('./lib/api/helpers/cors-helper');
 
 const cookieParser = require('cookie-parser');
@@ -465,7 +465,7 @@ const resolvers = {
     },
     // @ts-ignore
     async one_post_offer(parent, args, ctx): PostModelResponse {
-      MaintenanceHelper.hideAirdropsOfferIfRequired(ctx.req, args.id);
+      // MaintenanceHelper.hideAirdropsOfferIfRequired(ctx.req, args.id);
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
       const commentsQuery: RequestQueryComments = args.comments_query;
@@ -482,7 +482,7 @@ const resolvers = {
     },
     // @ts-ignore
     async one_post(parent, args, ctx): PostModelResponse {
-      MaintenanceHelper.hideAirdropsOfferIfRequired(ctx.req, args.id);
+      // MaintenanceHelper.hideAirdropsOfferIfRequired(ctx.req, args.id);
 
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
