@@ -11,7 +11,8 @@ const { app, server } = require('../../../graphql-app');
 
 const PORT = 4007;
 
-const GRAPHQL_URI = `http://127.0.0.1:${PORT}${server.graphqlPath}`;
+const GRAPHQL_HOST = `http://127.0.0.1:${PORT}`;
+const GRAPHQL_URI = `${GRAPHQL_HOST}${server.graphqlPath}`;
 
 let serverApp;
 

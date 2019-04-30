@@ -246,7 +246,7 @@ describe('Airdrops create-get', () => {
 
         expect(token.amount_left).toBe(token.amount_claim - claimed);
       }
-    });
+    }, JEST_TIMEOUT_DEBUG);
 
     it('get both post offer data and airdrop state with users_team data', async () => {
       const { postId, airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);

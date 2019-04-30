@@ -22,6 +22,7 @@
     "bookshelf": "^0.14.2",
     "config": "^3.1.0",
     "cookie-parser": "^1.4.4",
+    "cors": "^2.8.5",
     "eosjs": "^16.0.2",
     "eosjs-ecc": "^4.0.3",
     "express": "~4.16.0",

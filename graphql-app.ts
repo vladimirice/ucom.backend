@@ -27,6 +27,8 @@ import EnvHelper = require('./lib/common/helper/env-helper');
 
 const cookieParser = require('cookie-parser');
 const express = require('express');
+// @ts-ignore
+const corsLib = require('cors');
 
 const {
   ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError,
@@ -685,6 +687,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// @ts-ignore
 function determineOrigin() {
   if (EnvHelper.isProductionEnv()) {
     return 'https://u.community';
@@ -695,9 +698,7 @@ function determineOrigin() {
 
 server.applyMiddleware({
   app,
-  cors: {
-    origin: determineOrigin(),
-  },
+  cors: false,
 });
 
 // @ts-ignore

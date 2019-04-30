@@ -18,6 +18,8 @@ const MaintenanceHelper = require("./lib/common/helper/maintenance-helper");
 const EnvHelper = require("./lib/common/helper/env-helper");
 const cookieParser = require('cookie-parser');
 const express = require('express');
+// @ts-ignore
+const corsLib = require('cors');
 const { ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
 const { ApiLogger } = require('./config/winston');
@@ -551,6 +553,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
 });
+// @ts-ignore
 function determineOrigin() {
     if (EnvHelper.isProductionEnv()) {
         return 'https://u.community';
@@ -559,9 +562,7 @@ function determineOrigin() {
 }
 server.applyMiddleware({
     app,
-    cors: {
-        origin: determineOrigin(),
-    },
+    cors: false,
 });
 // @ts-ignore
 const corsOptions = {};
