@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const errors_1 = require("./lib/api/errors");
 // @ts-ignore
-const config = require('config');
-// @ts-ignore
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 const PostsFetchService = require("./lib/posts/service/posts-fetch-service");
 const AuthService = require("./lib/auth/authService");
@@ -16,11 +14,9 @@ const OneUserInputProcessor = require("./lib/users/input-processor/one-user-inpu
 const BlockchainApiFetchService = require("./lib/blockchain-nodes/service/blockchain-api-fetch-service");
 const GraphQlInputService = require("./lib/api/graph-ql/service/graph-ql-input-service");
 const MaintenanceHelper = require("./lib/common/helper/maintenance-helper");
-const EnvHelper = require("./lib/common/helper/env-helper");
+const CorsHelper = require("./lib/api/helpers/cors-helper");
 const cookieParser = require('cookie-parser');
 const express = require('express');
-// @ts-ignore
-const corsLib = require('cors');
 const { ApolloServer, gql, AuthenticationError, UserInputError, ForbiddenError, } = require('apollo-server-express');
 const graphQLJSON = require('graphql-type-json');
 const { ApiLogger } = require('./config/winston');
@@ -543,42 +539,8 @@ const server = new ApolloServer({
     },
 });
 exports.server = server;
-// @ts-ignore
-function determineOrigin() {
-    if (EnvHelper.isProductionEnv()) {
-        return 'https://u.community';
-    }
-    return 'https://staging.u.community';
-}
-const corsOptionsDelegate = (req, callback) => {
-    const corsOptions = {
-        origin: '*',
-        methods: 'GET,POST,OPTIONS,PUT,PATCH,DELETE',
-        allowedHeaders: `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`,
-        credentials: true,
-    };
-    const allowedOrigins = config.cors.allowed_origins;
-    const { origin } = req.headers;
-    if (allowedOrigins.includes(origin)) {
-        corsOptions.origin = origin;
-    }
-    else {
-        // @ts-ignore
-        corsOptions.origin = false;
-    }
-    callback(null, corsOptions);
-};
-app.use(corsLib(corsOptionsDelegate));
-// @ts-ignore
-app.use((req, res, next) => {
-    const allowedOrigins = config.cors.allowed_origins;
-    const { origin } = req.headers;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`);
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    next();
-});
+// #task - working only with this two assignations. Required to research
+CorsHelper.addCorsLibMiddleware(app);
+CorsHelper.addRegularCors(app);
+// it is required to pass cors = false in order to avoid reassign origin to *
 server.applyMiddleware({ app, cors: false });
