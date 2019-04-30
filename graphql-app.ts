@@ -667,6 +667,20 @@ const server = new ApolloServer({
   },
 });
 
+// @ts-ignore
+function determineOrigin() {
+  if (EnvHelper.isProductionEnv()) {
+    return 'https://u.community';
+  }
+
+  return 'https://staging.u.community';
+}
+
+server.applyMiddleware({
+  app,
+  cors: true,
+});
+
 app.use((req, res, next) => {
   const allowedOrigins = config.cors.allowed_origins;
 
@@ -685,20 +699,6 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Credentials', true);
 
   next();
-});
-
-// @ts-ignore
-function determineOrigin() {
-  if (EnvHelper.isProductionEnv()) {
-    return 'https://u.community';
-  }
-
-  return 'https://staging.u.community';
-}
-
-server.applyMiddleware({
-  app,
-  cors: true,
 });
 
 // @ts-ignore
