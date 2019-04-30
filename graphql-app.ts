@@ -668,25 +668,25 @@ const server = new ApolloServer({
   },
 });
 
-// app.use((req, res, next) => {
-//   const allowedOrigins = config.cors.allowed_origins;
-//
-//   const { origin } = req.headers;
-//   if (allowedOrigins.includes(origin)) {
-//     res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
-//   }
-//
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-//
-//   res.setHeader(
-//     'Access-Control-Allow-Headers',
-//     `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`,
-//   );
-//
-//   res.setHeader('Access-Control-Allow-Credentials', true);
-//
-//   next();
-// });
+app.use((req, res, next) => {
+  const allowedOrigins = config.cors.allowed_origins;
+
+  const { origin } = req.headers;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', 'https://staging.u.community');
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`,
+  );
+
+  res.setHeader('Access-Control-Allow-Credentials', true);
+
+  next();
+});
 
 // @ts-ignore
 function determineOrigin() {
