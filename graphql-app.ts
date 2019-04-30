@@ -698,7 +698,7 @@ function determineOrigin() {
 
 server.applyMiddleware({
   app,
-  cors: false,
+  cors: true,
 });
 
 // @ts-ignore
