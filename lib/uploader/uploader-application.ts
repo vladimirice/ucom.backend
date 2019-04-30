@@ -31,6 +31,8 @@ app.use((req, res, next) => {
     `content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`,
   );
 
+  res.setHeader('Access-Control-Allow-Credentials', true);
+
   next();
 });
 
