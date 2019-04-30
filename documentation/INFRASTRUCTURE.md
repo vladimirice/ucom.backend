@@ -7,8 +7,8 @@
 description | destination
 --- | ---
 MongoDB | 95.216.207.224
-Blockchain API load balancer | https://mini-mongo.u.community:7889
-Calculator API load balancer | https://web-calculator-node.u.community:7889
+Blockchain API load balancer to access UOS nodes (push transactions, fetch user data, etc) | https://mini-mongo.u.community:7889
+Calculator API load balancer to access UOS calculator-specific API | https://web-calculator-node.u.community:7889
 
 ### Staging
 
