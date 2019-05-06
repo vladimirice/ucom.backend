@@ -31,7 +31,7 @@ class AirdropsUsersExternalDataService {
     }
 
     if (data.primary_key && data.json_data === null) {
-      return this.createSampleUsersExternalData(airdropId, data.primary_key, data.external_id);
+      return this.createUsersExternalData(airdropId, data.primary_key, data.external_id);
     }
 
     throw new AppError(`Malformed response: ${JSON.stringify(data)}`, 500);
@@ -51,26 +51,11 @@ class AirdropsUsersExternalDataService {
       };
     }
 
-    return this.createSampleUsersExternalData(
+    return this.createUsersExternalData(
       airdropId,
       userExternalDto.id,
       userExternalDto.external_id,
     );
-  }
-
-  private static async createSampleUsersExternalData(
-    airdropId: number,
-    usersExternalId: number,
-    githubUserId: number,
-  ): Promise<any> {
-    const jsonData = await this.getSampleUsersExternalData(airdropId, usersExternalId, githubUserId);
-
-    await AirdropsUsersExternalDataRepository.insertOneData(airdropId, usersExternalId, jsonData.score, jsonData);
-
-    return {
-      ...jsonData,
-      status: AirdropStatuses.NEW,
-    };
   }
 
   public static async getSampleUsersExternalData(
@@ -139,6 +124,39 @@ class AirdropsUsersExternalDataService {
     });
 
     return data;
+  }
+
+  private static async createUsersExternalData(
+    airdropId: number,
+    usersExternalId: number,
+    githubUserId: number,
+  ): Promise<any> {
+    const jsonData = await this.getSampleUsersExternalData(airdropId, usersExternalId, githubUserId);
+
+    const status: number = this.getStatusByTokensForCreation(jsonData.tokens);
+
+    await AirdropsUsersExternalDataRepository.insertOneData(
+      airdropId,
+      usersExternalId,
+      jsonData.score,
+      jsonData,
+      status,
+    );
+
+    return {
+      status,
+      ...jsonData,
+    };
+  }
+
+  private static getStatusByTokensForCreation(manyTokens): number {
+    for (const token of manyTokens) {
+      if (token.amount_claim > 0) {
+        return AirdropStatuses.NEW;
+      }
+    }
+
+    return AirdropStatuses.NO_PARTICIPATION;
   }
 }
 

@@ -131,9 +131,6 @@ class UsersFetchService {
     const params: DbParamsDto =
       QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
 
-    // @ts-ignore
-    const knexPromise = UsersRepository.findAllAirdropParticipants(query.airdrops!.id, params);
-
     const promises = [
       UsersRepository.findAllAirdropParticipants(query.airdrops!.id, params),
       AirdropsUsersRepository.countAllAirdropParticipants(query.airdrops!.id),

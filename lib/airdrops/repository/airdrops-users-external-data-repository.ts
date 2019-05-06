@@ -55,10 +55,12 @@ class AirdropsUsersExternalDataRepository {
     usersExternalId: number,
     score: number,
     jsonData: any,
+    status: number,
   ): Promise<void> {
     await knex(TABLE_NAME)
       .insert({
         score,
+        status,
         airdrop_id:         airdropId,
         users_external_id:  usersExternalId,
         json_data:          JSON.stringify(jsonData),
