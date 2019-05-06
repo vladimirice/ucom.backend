@@ -8,9 +8,8 @@ const githubConfig = require('config').github;
 class GithubRequest {
   public static async sendSampleGithubCallbackAndGetToken(
     code: string,
-    mockExternalId: boolean = false,
   ): Promise<string> {
-    const res = await GithubRequest.sendSampleGithubCallback(code, mockExternalId);
+    const res = await GithubRequest.sendSampleGithubCallback(code);
 
     expect(Array.isArray(res.headers['set-cookie'])).toBeTruthy();
     expect(res.headers['set-cookie'].length).toBe(1);
@@ -20,14 +19,10 @@ class GithubRequest {
     return githubTokenCookie[1];
   }
 
-  public static async sendSampleGithubCallback(code: string, mockExternalId: boolean = false) {
+  public static async sendSampleGithubCallback(code: string) {
     const url = this.getBackendCallbackUrl();
 
-    let redirectLocation = 'https://staging.u.community/';
-    // let redirectLocation = 'https://staging.u.community/?mock_external_id=true';
-    if (mockExternalId) {
-      redirectLocation += '?mock_external_id=true';
-    }
+    const redirectLocation = 'https://staging.u.community/';
 
     const qs = `?redirect_uri=${redirectLocation}&code=${code}&state=${githubConfig.state}`;
 

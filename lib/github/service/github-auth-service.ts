@@ -5,8 +5,6 @@ import UsersExternalRepository = require('../../users-external/repository/users-
 import ExternalTypeIdDictionary = require('../../users-external/dictionary/external-type-id-dictionary');
 import UsersExternalAuthLogRepository = require('../../users-external/repository/users-external-auth-log-repository');
 import AuthService = require('../../auth/authService');
-import NumbersHelper = require('../../common/helper/numbers-helper');
-import EnvHelper = require('../../common/helper/env-helper');
 
 const request = require('request-promise-native');
 
@@ -75,11 +73,7 @@ class GithubAuthService {
   }
 
   private static async saveDataToDb(req, userData): Promise<number> {
-    let externalId: number = userData.id;
-    // #task - disable this after testing
-    if (EnvHelper.isNotAProductionEnv() && req.query.redirect_uri.includes('mock_external_id')) {
-      externalId = NumbersHelper.generateRandomInteger(1, 10000000);
-    }
+    const externalId: number = userData.id;
 
     const usersExternalId: number = await UsersExternalRepository.upsertExternalUser(
       ExternalTypeIdDictionary.github(),

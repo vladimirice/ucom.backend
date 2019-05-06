@@ -10,13 +10,10 @@ import _ = require('lodash');
 import UsersExternalAuthLogRepository = require('../../../lib/users-external/repository/users-external-auth-log-repository');
 import AuthService = require('../../../lib/auth/authService');
 import UsersExternalRequest = require('../../helpers/users-external-request');
-import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-users-generator');
-import AirdropsGenerator = require('../../generators/airdrops/airdrops-generator');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 let userVlad: UserModel;
-let userJane: UserModel;
 
 const beforeAfterOptions = {
   isGraphQl: true,
@@ -33,31 +30,10 @@ describe('Github airdrop auth', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Positive', () => {
-    it('Sample point in order to simplify manual testing', async () => {
-      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
-
-      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
-      await AirdropsUsersGenerator.fulfillAirdropCondition(
-        airdropId,
-        userJane,
-        orgId,
-        true,
-        <string>userVlad.github_code,
-        true,
-      );
-
-      const userVladExternal = await UsersExternalRepository.findGithubUserExternalByUserId(userVlad.id);
-      const userJaneExternal = await UsersExternalRepository.findGithubUserExternalByUserId(userJane.id);
-
-      expect(userVladExternal!.external_login).toBe(userJaneExternal!.external_login);
-      expect(userVladExternal!.json_value.id).toBe(userJaneExternal!.json_value.id);
-      expect(userVladExternal!.external_id).not.toBe(userJaneExternal!.external_id);
-    }, JEST_TIMEOUT * 100);
-
     it('Github callback endpoint', async () => {
       await GithubRequest.sendSampleGithubCallback(<string>userVlad.github_code);
       const vladSampleData = GithubSampleValues.getVladSampleExternalData();
