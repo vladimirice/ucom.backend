@@ -2,6 +2,7 @@ import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces'
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
 import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
 import { AppError } from '../api/errors';
+import { StringToAnyCollection } from '../common/interfaces/common-types';
 
 import knex = require('../../config/knex');
 import PostsModelProvider = require('../posts/service/posts-model-provider');
@@ -11,8 +12,8 @@ import RepositoryHelper = require('../common/repository/repository-helper');
 import UsersExternalModelProvider = require('../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
-import { StringToAnyCollection } from '../common/interfaces/common-types';
 import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
+import AirdropsUsersRepository = require('../airdrops/repository/airdrops-users-repository');
 
 const _ = require('lodash');
 
@@ -53,7 +54,8 @@ class UsersRepository {
           .distinct('user_id')
           .select()
           .from(airdropsUsers)
-          .where('airdrop_id', '=', airdropId);
+          .where('airdrop_id', '=', airdropId)
+          .whereNotIn('user_id', AirdropsUsersRepository.getAirdropParticipantsIdsToHide());
       })
       .andWhere(`${usersExternal}.external_type_id`, '=', ExternalTypeIdDictionary.github())
       .orderByRaw(params.orderByRaw)

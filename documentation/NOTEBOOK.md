@@ -132,3 +132,36 @@ etc without any changes of a interface
 
 About aliases:
 * https://medium.com/graphql-mastery/graphql-quick-tip-aliases-567303a9ddc5
+
+======
+
+Airdrops resetting workflow:
+* disable all airdrops workers
+production_worker_airdrops_users_to_pending
+production_worker_airdrops_users_to_waiting
+production_worker_airdrops_users_to_received
+
+Clear tables data:
+ALTER SEQUENCE airdrops_id_seq RESTART;
+
+
+
+TRUNCATE TABLE airdrops_users_external_data;
+TRUNCATE TABLE airdrops_users;
+TRUNCATE TABLE accounts_transactions_parts;
+
+DELETE FROM airdrops_tokens WHERE 1=1;
+
+DELETE FROM accounts_transactions WHERE 1=1;
+
+DELETE FROM accounts WHERE 1=1;
+
+DELETE FROM airdrops WHERE 1=1;
+
+DELETE FROM users_external_auth_log WHERE 1=1;
+DELETE FROM users_external WHERE 1=1;
+
+DELETE FROM blockchain.outgoing_transactions_log WHERE 1=1;
+
+Reset airdrops sequence in order to create airdrop with an ID = 1
+
