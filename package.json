@@ -6,7 +6,9 @@
     "check-by-eslint": "eslint **/*.ts --fix",
     "test-all": "jest --verbose --runInBand",
     "compile-ts": "tsc",
-    "compile-ts-watch": "tsc --watch"
+    "compile-ts-watch": "tsc --watch",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "engines": {
     "node": ">=10.6.0"
@@ -61,7 +63,8 @@
     "uniqid": "5.0.3",
     "util": "^0.11.1",
     "winston": "^3.2.1",
-    "winston-sentry-raven-transport": "1.0.2"
+    "winston-sentry-raven-transport": "1.0.2",
+    "snyk": "^1.161.1"
   },
   "devDependencies": {
     "@types/amqplib": "^0.5.11",
@@ -106,5 +109,6 @@
     "tsutils": "^3.10.0",
     "typescript": "^3.4.3",
     "ucom-libs-graphql-schemas": "^1.11.0"
-  }
+  },
+  "snyk": true
 }
