@@ -16,6 +16,10 @@
 * [Problems and solutions](documentation/PROBLEMS_AND_SOLUTIONS.md)
 * [For reference](documentation/FOR_REFERENCE.md)
 
+## Schemas
+* [Production infrastructure](documentation/jpeg/production-infrastructure.jpg)
+* [Current workflows](documentation/jpeg/current-workflows.jpg)
+
 ## Main goals
 
 * User authentication (via JWT tokens, stateless).
