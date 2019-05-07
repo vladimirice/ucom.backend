@@ -1,5 +1,14 @@
 # Infrastructure
 
+## Schema
+
+[JPEG Schema](jpg/production-infrastructure.jpg)
+
+Notes:
+* CloudFlare filters all incoming requests to the backend application, except manager's access to PostgreSQL replication servers
+* Frontend application can work in two states - server-side-rendering and single-page-application.
+* An access to the blockchain nodes is provided through NGINX balancer.
+
 ## External resources
 
 ### Production

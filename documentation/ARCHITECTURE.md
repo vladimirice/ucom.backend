@@ -11,6 +11,19 @@ Table of contents
 
 ## Common information
 
+
+### Libraries
+library | description
+--- | ---
+[ucom.libs.wallet](https://github.com/UOSnetwork/ucom.libs.wallet) | All blockchain-related business logic must be placed to this library.
+[ucom.libs.common](https://github.com/UOSnetwork/ucom.libs.common) | Methods, dictionaries, etc. that are used both by frontend and backend applications.
+[ucom.libs.social.transactions](https://github.com/UOSnetwork/ucom.libs.social.transactions) | Deprecated library which contains methods to create social transactions.
+[ucom.libs.graphql-schemas](https://github.com/UOSnetwork/ucom.libs.graphql-schemas) | A library of methods to make GraphQL requests.
+[ucom.web.devops](https://github.com/UOSnetwork/ucom.web.devops) | A repository of DevOps config files related to web application
+
+
+All blockchain-related business logic must be placed 
+
 ### List of main technologies:
 * NodeJs
 * GraphQL
@@ -148,20 +161,6 @@ Beforehand - `debt` and `income` accounts must be created.
 
 Please observe the migrations. 
 The first one is [create-tables-airdrops-and-accounts](../migrations_knex_monolith/20190320083713_create-tables-airdrops-and-accounts.js)
-
-#### Future requests (for reference in the future)
-
------- Airdrop state --------
-
---- How to calc already distributed amounts
-SELECT
-    COUNT(wallet_account.current_balance) AS distributed_amount,
-    users_tokens.symbol_id AS symbol_id
-FROM
-    users_tokens
-INNER JOIN accounts AS wallet_account ON accounts.id = users_token.wallet_account_id
-WHERE airdrop_id = ${airdropId}
-GROUP BY users_tokens.symbol_id
 
 ## Images uploader
 
