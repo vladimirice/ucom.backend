@@ -116,7 +116,7 @@ describe('Blockchain nodes updating', () => {
         ResponseHelper.expectNotEmpty(actual);
         expect(actual).toMatchObject(expected);
       }
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 10);
   });
 
   describe('Block producers processing', () => {

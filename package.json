@@ -57,7 +57,7 @@
     "socket.io": "^2.2.0",
     "statuses": "1.5.0",
     "ucom-libs-social-transactions": "^1.1.4",
-    "ucom-libs-wallet": "^2.4.0",
+    "ucom-libs-wallet": "^2.5.0",
     "ucom.libs.common": "^1.8.0",
     "unescape": "^1.0.1",
     "uniqid": "5.0.3",
