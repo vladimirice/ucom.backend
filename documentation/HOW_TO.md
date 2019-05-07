@@ -20,3 +20,6 @@ NAME='migration-file-name' make docker-db-create-migration-monolith
 ## How to add new transaction method
 
 Please add it to the ucom.libs.wallet library.
+
+## Helpers
+* [BatchProcessingHelper](../lib/common/helper/batch-processing-helper.ts)
