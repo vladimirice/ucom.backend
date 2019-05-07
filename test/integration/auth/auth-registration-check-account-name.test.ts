@@ -1,7 +1,9 @@
+import RequestHelper = require('../helpers/request-helper');
+
 export {};
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 const responseHelper = require('../helpers/response-helper');
 const requestHelper = require('../helpers/request-helper');
 

@@ -13,7 +13,7 @@ import PostsRepository = require('../../../../lib/posts/posts-repository');
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
 
-const server = require('../../../../app');
+const server = RequestHelper.getApiApplication();
 
 let userVlad: UserModel;
 // @ts-ignore

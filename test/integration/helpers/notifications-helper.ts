@@ -1,9 +1,10 @@
 /* tslint:disable:max-line-length */
 import { AppError } from '../../../lib/api/errors';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import RequestHelper = require('./request-helper');
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 const requestHelper = require('./request-helper');
 const responseHelper = require('./response-helper');
 

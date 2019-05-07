@@ -5,12 +5,12 @@ import WorkerHelper = require('../../common/helper/worker-helper');
 import EosApi = require('../../eos/eosApi');
 
 const options: WorkerOptionsDto = {
-  processName: 'update_blockchain_nodes',
-  durationInSecondsToAlert: 60,
+  processName: 'update-blockchain-nodes',
+  durationInSecondsToAlert: 40,
 };
 
 async function toExecute() {
-  EosApi.initWalletApi();
+  EosApi.initBlockchainLibraries();
   await BlockchainCacheService.updateBlockchainNodesByBlockchain();
 }
 

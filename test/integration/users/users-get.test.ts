@@ -7,7 +7,7 @@ import UsersRepository = require('../../../lib/users/users-repository');
 import ResponseHelper = require('../helpers/response-helper');
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 require('jest-expect-message');
 

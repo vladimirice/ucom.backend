@@ -1,9 +1,10 @@
 import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
+import RequestHelper = require('../helpers/request-helper');
 
 export {};
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 const helpers = require('../helpers');
 
 const userHelper = require('../helpers/users-helper');

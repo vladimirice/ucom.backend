@@ -3,6 +3,8 @@ import UserActivityService = require('../lib/users/user-activity-service');
 
 const express = require('express');
 
+require('express-async-errors');
+
 const usersRouter = express.Router();
 const status = require('statuses');
 

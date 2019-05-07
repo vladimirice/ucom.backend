@@ -15,7 +15,7 @@ import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const request = require('supertest');
-const server = require('../../../../app');
+const server = RequestHelper.getApiApplication();
 
 const ActivityGroupDictionary   = require('../../../../lib/activity/activity-group-dictionary');
 

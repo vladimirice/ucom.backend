@@ -1,5 +1,6 @@
 "use strict";
 const express = require('express');
+require('express-async-errors');
 const router = express.Router();
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const { cpUpload } = require('../lib/users/avatar-upload-middleware');

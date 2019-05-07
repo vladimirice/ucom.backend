@@ -1,8 +1,10 @@
+import RequestHelper = require('../helpers/request-helper');
+
 export {};
 
 const request = require('supertest');
 const models = require('../../../models');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 const expect = require('expect');
 
 const helpers = require('../helpers');

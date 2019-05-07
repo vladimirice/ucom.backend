@@ -1,5 +1,6 @@
 /* eslint-disable no-param-reassign */
 const express = require('express');
+require('express-async-errors');
 
 const router = express.Router();
 

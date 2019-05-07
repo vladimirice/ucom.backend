@@ -14,7 +14,7 @@ const accountsData = require('../../../config/accounts-data');
 const authService = require('../../../lib/auth/authService');
 const usersRepository = require('../../../lib/users/users-repository');
 const eosImportance = require('../../../lib/eos/eos-importance');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 const usersTeamRepository = require('../../../lib/users/repository').UsersTeam;
 const orgModelProvider    = require('../../../lib/organizations/service').ModelProvider;

@@ -6,7 +6,7 @@ import ResponseHelper = require('../integration/helpers/response-helper');
 const request = require('supertest');
 const faker   = require('faker');
 
-const server          = require('../../app');
+const server          = RequestHelper.getApiApplication();
 
 class OrganizationsGenerator {
   public static async changeDiscussionsState(

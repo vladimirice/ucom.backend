@@ -10,7 +10,7 @@ const _ = require('lodash');
 
 let userVlad: UserModel;
 
-EosApi.initWalletApi();
+EosApi.initBlockchainLibraries();
 
 const initialMockFunction = BlockchainNodes.getAll;
 

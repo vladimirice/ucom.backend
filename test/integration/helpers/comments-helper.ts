@@ -4,10 +4,11 @@ import { CommentModelResponse } from '../../../lib/comments/interfaces/model-int
 
 import CommentsModelProvider = require('../../../lib/comments/service/comments-model-provider');
 import ResponseHelper = require('./response-helper');
+import RequestHelper = require('./request-helper');
 
 const request = require('supertest');
 const _ = require('lodash');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 const models = require('../../../models');
 

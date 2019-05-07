@@ -1,6 +1,7 @@
 "use strict";
 /* eslint-disable no-param-reassign */
 const express = require('express');
+require('express-async-errors');
 const router = express.Router();
 const orgRepository = require('../lib/organizations/repository').Main;
 const usersRepository = require('../lib/users/repository').Main;

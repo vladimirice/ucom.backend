@@ -11,7 +11,7 @@ import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-p
 
 const request = require('supertest');
 
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 MockHelper.mockAllBlockchainPart();
 MockHelper.mockAllTransactionSigning();

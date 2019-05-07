@@ -15,7 +15,7 @@ const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
 let userPetr: UserModel;
 let userRokky: UserModel;
 
-EosApi.initWalletApi();
+EosApi.initBlockchainLibraries();
 
 const typeBlockProducer: number = Dictionary.BlockchainNodes.typeBlockProducer();
 const typeCalculator: number = Dictionary.BlockchainNodes.typeCalculator();

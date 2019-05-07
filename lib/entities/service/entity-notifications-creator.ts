@@ -1,4 +1,4 @@
-const axios = require('axios');
+const superagent = require('superagent');
 
 const config    = require('config');
 
@@ -33,6 +33,7 @@ class EntityNotificationsCreator {
 
     if (!executor) {
       this.logNotProcessed(activity);
+      // eslint-disable-next-line no-console
       console.log('Not required to process');
 
       return;
@@ -398,11 +399,13 @@ class EntityNotificationsCreator {
       unread_messages_count: unreadMessagesCount,
     };
 
-    // noinspection JSUnresolvedFunction
-    await axios.post(`${websocketHost}/emit_to_user`, {
-      userId,
-      payload,
-    });
+    await superagent
+      .post(`${websocketHost}/emit_to_user`)
+      .send({
+        userId,
+        payload,
+      })
+    ;
   }
 
   /**

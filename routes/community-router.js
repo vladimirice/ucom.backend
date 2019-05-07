@@ -1,5 +1,6 @@
 "use strict";
 const express = require('express');
+require('express-async-errors');
 const communityRouter = express.Router();
 const orgRepository = require('../lib/organizations/repository').Main;
 const orgModelProvider = require('../lib/organizations/service/organizations-model-provider');

@@ -1,5 +1,7 @@
+import RequestHelper = require('../helpers/request-helper');
+
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 const helpers = require('../helpers');
 
 describe('Test registration workflow', () => {
@@ -29,3 +31,5 @@ describe('Test registration workflow', () => {
 
   });
 });
+
+export {};

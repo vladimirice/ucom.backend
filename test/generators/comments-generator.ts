@@ -6,7 +6,7 @@ const request = require('supertest');
 
 const requestHelper = require('../integration/helpers/request-helper.ts');
 const responseHelper = require('../integration/helpers/response-helper.ts');
-const server = require('../../app');
+const server = RequestHelper.getApiApplication();
 
 class CommentsGenerator {
   static async createManyCommentsForPost(

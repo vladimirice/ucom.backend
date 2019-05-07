@@ -13,7 +13,7 @@ const { WalletApi } = require('ucom-libs-wallet');
 const blockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 const accountsData = require('../../../config/accounts-data');
 

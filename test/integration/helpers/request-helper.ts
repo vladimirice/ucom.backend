@@ -8,7 +8,7 @@ import EntityImagesModelProvider = require('../../../lib/entity-images/service/e
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = require('../../../lib/api/applications/api-application');
 
 const apiV1Prefix = '/api/v1';
 const apiV2Prefix = '/api/v2';
@@ -32,6 +32,10 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getApiApplication() {
+    return server;
+  }
+
   public static async makePostRequest(
     url: string,
     fields: any,

@@ -1,5 +1,6 @@
 "use strict";
 const express = require('express');
+require('express-async-errors');
 const router = express.Router();
 const _ = require('lodash');
 const eosJsEcc = require('../lib/crypto/eosjs-ecc');

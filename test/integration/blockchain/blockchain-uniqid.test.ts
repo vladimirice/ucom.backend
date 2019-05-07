@@ -1,9 +1,11 @@
+import RequestHelper = require('../helpers/request-helper');
+
 export {};
 
 const helpers = require('../helpers');
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 describe('Blockchain uniqid generator', () => {
 

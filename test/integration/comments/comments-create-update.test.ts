@@ -13,7 +13,7 @@ import CommentsRepository = require('../../../lib/comments/comments-repository')
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 let userVlad: UserModel;
 let userJane: UserModel;

@@ -1,10 +1,12 @@
+import RequestHelper = require('../helpers/request-helper');
+
 export {};
 
 const helpers = require('../helpers');
 const gen     = require('../../generators');
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 const userHelper = require('../helpers/users-helper');
 
 const seedsHelper = require('../helpers/seeds-helper');

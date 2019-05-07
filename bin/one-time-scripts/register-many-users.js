@@ -9,7 +9,7 @@ const fs = require('fs');
 const eosJsEcc = require('eosjs-ecc');
 const outputFile = `${appRoot}/logs/register-many-users-result.csv`;
 const eosApi = require('../../lib/eos/eosApi');
-eosApi.initTransactionFactory();
+eosApi.initBlockchainLibraries();
 function getUrl() {
     let host;
     if (EnvHelper.isTestEnv()) {

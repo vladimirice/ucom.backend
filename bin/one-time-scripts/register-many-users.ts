@@ -13,7 +13,7 @@ const outputFile = `${appRoot}/logs/register-many-users-result.csv`;
 
 const eosApi = require('../../lib/eos/eosApi');
 
-eosApi.initTransactionFactory();
+eosApi.initBlockchainLibraries();
 
 function getUrl(): string {
   let host;

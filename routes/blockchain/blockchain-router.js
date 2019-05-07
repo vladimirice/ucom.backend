@@ -1,5 +1,6 @@
 "use strict";
 const express = require('express');
+require('express-async-errors');
 const { Dictionary } = require('ucom-libs-wallet');
 const router = express.Router();
 const eosBlockchainUniqId = require('../../lib/eos/eos-blockchain-uniqid');

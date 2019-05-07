@@ -11,7 +11,7 @@ import CommonHelper = require('../helpers/common-helper');
 const request = require('supertest');
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 const postsService = require('./../../../lib/posts/post-service');
 const postsRepository = require('./../../../lib/posts/posts-repository');

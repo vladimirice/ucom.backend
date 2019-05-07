@@ -1,6 +1,4 @@
 /* eslint-disable unicorn/filename-case */
-import { AppError } from '../api/errors';
-
 import EnvHelper = require('../common/helper/env-helper');
 
 const { WalletApi, ConfigService } = require('ucom-libs-wallet');
@@ -21,6 +19,30 @@ const ACCOUNT_NAME_LENGTH = 12;
 const AIRDROPS_GITHUB_SENDER = 'airdrops_github_sender';
 const AIRDROPS_GITHUB_HOLDER = 'airdrops_github_holder';
 
+const initBlockchainExecutors = {
+  [EnvHelper.testEnv()]: () => {
+    WalletApi.initForTestEnv();
+    ConfigService.initForTestEnv();
+
+    TransactionFactory.initForTestEnv();
+    TransactionSender.initForTestEnv();
+  },
+  [EnvHelper.stagingEnv()]: () => {
+    WalletApi.initForStagingEnv();
+    ConfigService.initForStagingEnv();
+
+    TransactionFactory.initForStagingEnv();
+    TransactionSender.initForStagingEnv();
+  },
+  [EnvHelper.productionEnv()]: () => {
+    WalletApi.initForProductionEnv();
+    ConfigService.initForProductionEnv();
+
+    TransactionFactory.initForProductionEnv();
+    TransactionSender.initForProductionEnv();
+  },
+};
+
 class EosApi {
   public static getGithubAirdropAccountName(): string {
     return accountsData[AIRDROPS_GITHUB_SENDER].account_name;
@@ -38,35 +60,11 @@ class EosApi {
     return accountsData[AIRDROPS_GITHUB_HOLDER].activePk;
   }
 
-  static initTransactionFactory() {
-    if (process.env.NODE_ENV === 'production') {
-      TransactionFactory.initForProductionEnv();
-      TransactionSender.initForProductionEnv();
-    } else if (process.env.NODE_ENV === 'staging') {
-      TransactionFactory.initForStagingEnv();
-      TransactionSender.initForStagingEnv();
-    } else {
-      TransactionFactory.initForTestEnv();
-      TransactionSender.initForTestEnv();
-    }
-  }
-
-  public static initWalletApi(): void {
+  public static initBlockchainLibraries(): void {
     WalletApi.setNodeJsEnv();
     ConfigService.initNodeJsEnv();
 
-    if (EnvHelper.isProductionEnv()) {
-      WalletApi.initForProductionEnv();
-      ConfigService.initForProductionEnv();
-    } else if (EnvHelper.isStagingEnv()) {
-      WalletApi.initForStagingEnv();
-      ConfigService.initForStagingEnv();
-    } else if (EnvHelper.isTestEnv()) {
-      WalletApi.initForTestEnv();
-      ConfigService.initForTestEnv();
-    } else {
-      throw new AppError(`Unsupported env: ${EnvHelper.getNodeEnv()}`);
-    }
+    EnvHelper.executeByEnvironment(initBlockchainExecutors);
   }
 
   /**
@@ -90,30 +88,6 @@ class EosApi {
 
     return !result;
   }
-
-  // static getAbi(accountName) {
-  //   // noinspection JSUnresolvedFunction
-  //   eos.getAbi(accountName).then((res) => {
-  //
-  //     console.dir(res);
-  //
-  //     // const structs = res.abi.structs;
-  //     //
-  //     // const utc = structs.find(data => data.name === 'usertocont');
-  //     //
-  //     // console.log(utc);
-  //     //
-  //
-  //     console.log('Success: ', JSON.stringify(res.abi.structs, null, 2));
-  //   }).catch((err) => {
-  //     console.log('Error of get abi: ', err);
-  //   })
-  // }
-
-  // static async getAccountInfo(accountName) {
-  //   // noinspection JSUnresolvedFunction
-  //   return await eos.getAccount(accountName);
-  // }
 
   // noinspection JSUnusedGlobalSymbols
   static generateBrainkey() {

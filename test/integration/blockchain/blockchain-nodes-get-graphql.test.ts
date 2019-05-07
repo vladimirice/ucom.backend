@@ -32,7 +32,7 @@ const options = {
   workersMocking: 'all',
 };
 
-EosApi.initWalletApi();
+EosApi.initBlockchainLibraries();
 
 describe('Blockchain nodes get - graphql', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(options); });

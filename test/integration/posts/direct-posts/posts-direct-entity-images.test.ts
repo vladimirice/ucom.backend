@@ -11,7 +11,7 @@ import PostsGenerator = require('../../../generators/posts-generator');
 
 const request = require('supertest');
 
-const server = require('../../../../app');
+const server = RequestHelper.getApiApplication();
 
 let userVlad: UserModel;
 let userJane: UserModel;

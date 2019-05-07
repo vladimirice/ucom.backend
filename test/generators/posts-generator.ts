@@ -11,7 +11,7 @@ const _ = require('lodash');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
-const server = require('../../app');
+const server = RequestHelper.getApiApplication();
 
 const entityImagesField: string = EntityImagesModelProvider.entityImagesColumn();
 

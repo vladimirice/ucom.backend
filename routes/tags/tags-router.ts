@@ -7,6 +7,7 @@ import QueryFilterService = require('../../lib/api/filters/query-filter-service'
 import OrganizationsFetchService = require('../../lib/organizations/service/organizations-fetch-service');
 
 const express = require('express');
+require('express-async-errors');
 
 const tagsRouter  = express.Router();
 

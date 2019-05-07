@@ -7,7 +7,7 @@ const { gql } = require('apollo-boost');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
-const { app, server } = require('../../../graphql-app');
+const { app, server } = require('../../../lib/graphql/applications/graphql-application');
 
 const PORT = 4007;
 

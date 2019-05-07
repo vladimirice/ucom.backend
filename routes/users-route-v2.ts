@@ -1,6 +1,7 @@
 import ApiPostProcessor = require('../lib/common/service/api-post-processor');
 
 const express = require('express');
+require('express-async-errors');
 
 const usersRouterV2 = express.Router();
 
@@ -9,7 +10,6 @@ const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
 const usersApiMiddleware = require('../lib/users/middleware/users-api-middleware');
 
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
-
 /**
  *
  * @param {Object} req
