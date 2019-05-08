@@ -1,7 +1,21 @@
 # HOW TO
 
-Table of contents
-* [How to create new table](#how-to-create-new-table)
+
+## How are blockchain nodes `amounts` calculated
+
+* Fetch all blockchain nodes with the votes.
+* Fetch voters scaled_importance and stake.
+* Total node `scaled_importance_amount` is a sum of current `scaled_importance` values of voters.
+* Total node `stake_amount` is a sum of current `stake` values of voters.
+
+## How to reload all services
+
+* Reload backend infrastructure services. See [uos_backend_deploy_production](../uos_backend_deploy_production.sh)
+* Reload iframely service
+```
+make pm2-reload-iframely
+```
+* Reload frontend application (server site rendering)
 
 ## How to create new table
 * Run the following command:

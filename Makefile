@@ -99,6 +99,9 @@ deploy-staging deploy:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
+pm2-reload-iframely:
+	ssh gt 'bash -s' < ./ifamely_reload.sh
+
 deploy-staging-no-check deploy-no-check:
 	git checkout staging
 	git push
