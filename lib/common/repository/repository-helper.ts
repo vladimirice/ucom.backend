@@ -81,7 +81,7 @@ class RepositoryHelper {
       model[field] = NumbersHelper.processFieldToBeNumeric(
         model[field],
         field,
-        0,
+        20,
         fieldsToDisallowZero.includes(field),
         false,
       );

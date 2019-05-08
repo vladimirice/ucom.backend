@@ -76,6 +76,8 @@ class UsersActivityRepository {
     return data.rows;
   }
 
+  // Should be used only for the statistics when you add-subtract total numbers.
+  // It is not suitable for `current state` tasks
   public static async getManyOrgsFollowers(): Promise<EntityParamAggregatesDto[]> {
     const paramField = 'event_id';
     const entityIdFields = 'entity_id_to';
