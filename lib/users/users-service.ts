@@ -164,7 +164,8 @@ class UsersService {
     ];
 
     arrayFields.forEach((field) => {
-      requestData[field] = Array.prototype.filter(requestData[field]);
+      // eslint-disable-next-line you-dont-need-lodash-underscore/filter
+      requestData[field] = _.filter(requestData[field]);
     });
 
     requestData.users_sources.forEach((source) => {
@@ -172,7 +173,8 @@ class UsersService {
     });
 
     for (const field of arrayFields) {
-      const set = Array.prototype.filter(requestData[field]);
+      // eslint-disable-next-line you-dont-need-lodash-underscore/filter
+      const set = _.filter(requestData[field]);
 
       if (!set || _.isEmpty(set)) {
         continue;
