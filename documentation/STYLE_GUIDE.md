@@ -41,6 +41,8 @@ Because of this, some of the conventions are not satisfied by the "old code", on
 * **Don't** use `pre-defined seeds`. Some old-written autotests are still using them.
 * **Do** use `generators` - [generators folder](../test/generators), [usage example](../test/integration/tags/tags-get.test.ts)
 
+**Do** use blockchain application mock methods. Example - [mockUosAccountsPropertiesFetchService method](../test/integration/helpers/mock-helper.ts)
+
 ### Naming
 * **Do** use `entity` prefix for objects like `team`, `tags`, etc. which might be used for several entities
 (for example, both `organization` and `post` might have `tags`, so the proper table name should be `entity_tags`, not
@@ -76,3 +78,7 @@ TODO - This section is not ready yet. This will populated with links to files th
 Don't use | Do use
 --- | ---
 Create tables inside the public (default) schema | All new tables should be created inside the schemas different from public. [Example](../migrations_knex_monolith/20190401121234-create-table-blockchain-irreversible-traces.js)
+camelCase, uppercase and plural naming rules for database objects | snake_case, lowercase (users_activity, blockchain_nodes, etc) 
+
+## Error handling
+* Avoid 500 responses, add extra validation.

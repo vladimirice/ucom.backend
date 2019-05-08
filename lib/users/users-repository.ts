@@ -316,20 +316,8 @@ class UsersRepository {
    * @param {string} query
    * @returns {Promise<Array<Object>>}
    */
-  static async findByNameFields(query) {
-    const where = {
-      [Op.or]: {
-        account_name: {
-          [Op.iLike]: `%${query}%`,
-        },
-        first_name: {
-          [Op.iLike]: `%${query}%`,
-        },
-        last_name: {
-          [Op.iLike]: `%${query}%`,
-        },
-      },
-    };
+  public static async findByNameFields(query) {
+    const where = this.getSearchUserQueryWhere(query);
 
     // noinspection JSUnusedGlobalSymbols
     return this.getModel().findAll({
@@ -516,19 +504,7 @@ class UsersRepository {
       params.where = {};
 
       if (query.user_name) {
-        params.where = {
-          [Op.or]: {
-            account_name: {
-              [Op.iLike]: `%${query.user_name}%`,
-            },
-            first_name: {
-              [Op.iLike]: `%${query.user_name}%`,
-            },
-            last_name: {
-              [Op.iLike]: `%${query.user_name}%`,
-            },
-          },
-        };
+        params.where = this.getSearchUserQueryWhere(query.user_name);
       }
     };
   }
@@ -627,6 +603,22 @@ class UsersRepository {
 
   static getModel() {
     return models.Users;
+  }
+
+  private static getSearchUserQueryWhere(query: string) {
+    return {
+      [Op.or]: {
+        account_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+        first_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+        last_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      },
+    };
   }
 }
 
