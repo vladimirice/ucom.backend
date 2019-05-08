@@ -10,7 +10,7 @@ EosApi.initBlockchainLibraries();
 
 const options: WorkerOptionsDto = {
   processName: 'update-importance',
-  durationInSecondsToAlert: 50,
+  durationInSecondsToAlert: 120,
 };
 
 async function toExecute() {
