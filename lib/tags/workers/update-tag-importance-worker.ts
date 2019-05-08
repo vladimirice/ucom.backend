@@ -14,7 +14,7 @@ const options: WorkerOptionsDto = {
 async function toExecute() {
   EosApi.initBlockchainLibraries();
 
-  TagsCurrentRateProcessor.process();
+  await TagsCurrentRateProcessor.process();
 }
 
 (async () => {
