@@ -1,4 +1,4 @@
-import { Transaction } from 'knex';
+import { QueryBuilder, Transaction } from 'knex';
 import _ from 'lodash';
 import { UsersActivityIndexModelDto } from '../../interfaces/users-activity/model-interfaces';
 
@@ -116,6 +116,25 @@ class UsersActivityFollowRepository {
       .first();
 
     return res || null;
+  }
+
+  public static addWhereInOrgsEntityId(
+    queryBuilder: QueryBuilder,
+    tableName: string,
+    userId: number,
+  ) {
+    queryBuilder
+    // eslint-disable-next-line func-names
+      .whereIn(`${tableName}.id`, function () {
+        // @ts-ignore
+        this
+          .select('entity_id')
+          .from(TABLE_NAME)
+          .where({
+            user_id: userId,
+            entity_name: orgsEntityName,
+          });
+      });
   }
 }
 

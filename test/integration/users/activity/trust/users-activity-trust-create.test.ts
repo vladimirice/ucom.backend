@@ -2,15 +2,15 @@ import _ from 'lodash';
 import {
   UsersActivityModelDto,
   UsersActivityIndexModelDto,
-} from '../../../../lib/users/interfaces/users-activity/model-interfaces';
-import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+} from '../../../../../lib/users/interfaces/users-activity/model-interfaces';
+import { UserModel } from '../../../../../lib/users/interfaces/model-interfaces';
 
-import SeedsHelper = require('../../helpers/seeds-helper');
-import UsersActivityRequestHelper = require('../../../helpers/users/activity/users-activity-request-helper');
-import UsersActivityRepository = require('../../../../lib/users/repository/users-activity-repository');
-import UsersActivityTrustRepository = require('../../../../lib/users/repository/users-activity/users-activity-trust-repository');
-import UsersModelProvider = require('../../../../lib/users/users-model-provider');
-import CommonChecker = require('../../../helpers/common/common-checker');
+import SeedsHelper = require('../../../helpers/seeds-helper');
+import UsersActivityRequestHelper = require('../../../../helpers/users/activity/users-activity-request-helper');
+import UsersActivityRepository = require('../../../../../lib/users/repository/users-activity-repository');
+import UsersActivityTrustRepository = require('../../../../../lib/users/repository/users-activity/users-activity-trust-repository');
+import UsersModelProvider = require('../../../../../lib/users/users-model-provider');
+import CommonChecker = require('../../../../helpers/common/common-checker');
 
 require('jest-expect-message');
 

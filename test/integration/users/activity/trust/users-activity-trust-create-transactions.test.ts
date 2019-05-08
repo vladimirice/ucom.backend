@@ -1,13 +1,13 @@
-import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
-import { UsersActivityModelDto } from '../../../../lib/users/interfaces/users-activity/model-interfaces';
+import { UserModel } from '../../../../../lib/users/interfaces/model-interfaces';
+import { UsersActivityModelDto } from '../../../../../lib/users/interfaces/users-activity/model-interfaces';
 
-import SeedsHelper = require('../../helpers/seeds-helper');
-import RabbitMqService = require('../../../../lib/jobs/rabbitmq-service');
-import UsersActivityRequestHelper = require('../../../helpers/users/activity/users-activity-request-helper');
-import UsersActivityCommonHelper = require('../../../helpers/users/activity/users-activity-common-helper');
-import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
-import TransactionsHelper = require('../../../helpers/common/transactions-helper');
-import TransactionsPushResponseChecker = require('../../../helpers/common/transactions-push-response-checker');
+import SeedsHelper = require('../../../helpers/seeds-helper');
+import RabbitMqService = require('../../../../../lib/jobs/rabbitmq-service');
+import UsersActivityRequestHelper = require('../../../../helpers/users/activity/users-activity-request-helper');
+import UsersActivityCommonHelper = require('../../../../helpers/users/activity/users-activity-common-helper');
+import NotificationsEventIdDictionary = require('../../../../../lib/entities/dictionary/notifications-event-id-dictionary');
+import TransactionsHelper = require('../../../../helpers/common/transactions-helper');
+import TransactionsPushResponseChecker = require('../../../../helpers/common/transactions-push-response-checker');
 
 require('jest-expect-message');
 

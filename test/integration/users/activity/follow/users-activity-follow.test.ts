@@ -1,17 +1,17 @@
-import MockHelper = require('../helpers/mock-helper');
+import MockHelper = require('../../../helpers/mock-helper');
 
 const request = require('supertest');
 
-import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
-import RequestHelper = require('../helpers/request-helper');
+import UsersActivityRepository = require('../../../../../lib/users/repository/users-activity-repository');
+import RequestHelper = require('../../../helpers/request-helper');
 
-import ActivityHelper = require('../helpers/activity-helper');
-import SeedsHelper = require('../helpers/seeds-helper');
-import PostsHelper = require('../helpers/posts-helper');
-import ResponseHelper = require('../helpers/response-helper');
-import UsersHelper = require('../helpers/users-helper');
-import PostsRepository = require('../../../lib/posts/posts-repository');
-import CommonChecker = require('../../helpers/common/common-checker');
+import ActivityHelper = require('../../../helpers/activity-helper');
+import SeedsHelper = require('../../../helpers/seeds-helper');
+import PostsHelper = require('../../../helpers/posts-helper');
+import ResponseHelper = require('../../../helpers/response-helper');
+import UsersHelper = require('../../../helpers/users-helper');
+import PostsRepository = require('../../../../../lib/posts/posts-repository');
+import CommonChecker = require('../../../../helpers/common/common-checker');
 // @ts-ignore
 import UsersActivityFollowRepository = require('../../../lib/users/repository/users-activity/users-activity-follow-repository');
 const server = RequestHelper.getApiApplication();

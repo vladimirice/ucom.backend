@@ -1,11 +1,11 @@
-import MockHelper = require('../helpers/mock-helper');
-import SeedsHelper = require('../helpers/seeds-helper');
-import OrganizationsHelper = require('../helpers/organizations-helper');
-import UsersHelper = require('../helpers/users-helper');
-import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
-import OrganizationsGenerator = require('../../generators/organizations-generator');
-import UsersActivityFollowRepository = require('../../../lib/users/repository/users-activity/users-activity-follow-repository');
-import CommonChecker = require('../../helpers/common/common-checker');
+import MockHelper = require('../../../helpers/mock-helper');
+import SeedsHelper = require('../../../helpers/seeds-helper');
+import OrganizationsHelper = require('../../../helpers/organizations-helper');
+import UsersHelper = require('../../../helpers/users-helper');
+import UsersActivityRepository = require('../../../../../lib/users/repository/users-activity-repository');
+import OrganizationsGenerator = require('../../../../generators/organizations-generator');
+import UsersActivityFollowRepository = require('../../../../../lib/users/repository/users-activity/users-activity-follow-repository');
+import CommonChecker = require('../../../../helpers/common/common-checker');
 
 let userVlad;
 let userJane;

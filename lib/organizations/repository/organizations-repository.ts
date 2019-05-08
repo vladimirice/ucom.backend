@@ -1,8 +1,10 @@
 /* tslint:disable:max-line-length */
 
+import { QueryBuilder } from 'knex';
 import { OrgIdToOrgModelCard, OrgModel, OrgModelResponse } from '../interfaces/model-interfaces';
 import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
 import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
+import { RequestQueryBlockchainNodes } from '../../blockchain-nodes/interfaces/blockchain-nodes-interfaces';
 
 import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
@@ -535,6 +537,10 @@ class OrganizationsRepository implements QueryFilteredRepository {
     return models.sequelize.query(sql, { type: db.QueryTypes.SELECT });
   }
 
+  public static getQueryBuilder(): QueryBuilder {
+    return knex(TABLE_NAME);
+  }
+
   public static async findAllOrgForList(
     params: DbParamsDto,
   ): Promise<OrgModelResponse[]> {
@@ -726,6 +732,31 @@ class OrganizationsRepository implements QueryFilteredRepository {
    */
   static getModelSimpleTextFields() {
     return model.getSimpleTextFields();
+  }
+
+  public static addWhere(query: RequestQueryBlockchainNodes, queryBuilder: QueryBuilder) {
+    if (!query.filters) {
+      return;
+    }
+
+    if (query.filters.title_like) {
+      queryBuilder.andWhere('title', 'ilike', `%${query.filters.title_like}%`);
+    }
+  }
+
+  public static getNumericalFields(): string[] {
+    return [
+      'id',
+      'user_id',
+      'current_rate',
+    ];
+  }
+
+  public static getFieldsToDisallowZero(): string[] {
+    return [
+      'id',
+      'user_id',
+    ];
   }
 }
 

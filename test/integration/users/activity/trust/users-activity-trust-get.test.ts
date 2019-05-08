@@ -1,14 +1,14 @@
 import _ from 'lodash';
-import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+import { UserModel } from '../../../../../lib/users/interfaces/model-interfaces';
 
-import SeedsHelper = require('../../helpers/seeds-helper');
-import OneUserRequestHelper = require('../../../helpers/users/one-user-request-helper');
-import ResponseHelper = require('../../helpers/response-helper');
-import CommonHelper = require('../../helpers/common-helper');
-import UsersRepository = require('../../../../lib/users/users-repository');
-import UsersHelper = require('../../helpers/users-helper');
-import UsersActivityRequestHelper = require('../../../helpers/users/activity/users-activity-request-helper');
-import ActivityHelper = require('../../helpers/activity-helper');
+import SeedsHelper = require('../../../helpers/seeds-helper');
+import OneUserRequestHelper = require('../../../../helpers/users/one-user-request-helper');
+import ResponseHelper = require('../../../helpers/response-helper');
+import CommonHelper = require('../../../helpers/common-helper');
+import UsersRepository = require('../../../../../lib/users/users-repository');
+import UsersHelper = require('../../../helpers/users-helper');
+import UsersActivityRequestHelper = require('../../../../helpers/users/activity/users-activity-request-helper');
+import ActivityHelper = require('../../../helpers/activity-helper');
 
 require('jest-expect-message');
 

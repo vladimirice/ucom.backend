@@ -1,11 +1,16 @@
 import { GraphQLError } from 'graphql';
-import { RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import {
+  InputQueryDto,
+  RequestQueryComments,
+  RequestQueryDto,
+} from '../../api/filters/interfaces/query-filter-interfaces';
 import { PostModelResponse, PostRequestQueryDto, PostsListResponse } from '../../posts/interfaces/model-interfaces';
 import { CommentsListResponse } from '../../comments/interfaces/model-interfaces';
 import { UserModel, UsersListResponse, UsersRequestQueryDto } from '../../users/interfaces/model-interfaces';
 import { OneUserAirdropDto } from '../../airdrops/interfaces/dto-interfaces';
 import { BadRequestError } from '../../api/errors';
 import { RequestQueryBlockchainNodes } from '../../blockchain-nodes/interfaces/blockchain-nodes-interfaces';
+import { OrgListResponse } from '../../organizations/interfaces/model-interfaces';
 
 import PostsFetchService = require('../../posts/service/posts-fetch-service');
 import AuthService = require('../../auth/authService');
@@ -56,6 +61,8 @@ const typeDefs = gql`
     one_user_airdrop(filters: one_user_airdrop_state_filtering): JSON
     one_user(filters: one_user_filtering): JSON
     one_user_trusted_by(filters: one_user_filtering, order_by: String!, page: Int!, per_page: Int!): users!
+
+    one_user_follows_organizations(filters: one_user_filtering!, order_by: String!, page: Int!, per_page: Int!): organizations!
     
     many_blockchain_nodes(filters: many_blockchain_nodes_filtering, order_by: String!, page: Int!, per_page: Int!): JSON
   }
@@ -318,6 +325,7 @@ const typeDefs = gql`
   }
 `;
 
+// @ts-ignore
 const resolvers = {
   JSON: graphQLJSON,
 
@@ -371,8 +379,12 @@ const resolvers = {
       return UsersFetchService.findAllAndProcessForList(usersQuery, currentUserId);
     },
 
-    // @ts-ignore
-    async one_user_trusted_by(parent, args, ctx): Promise<UsersListResponse> {
+    async one_user_trusted_by(
+      // @ts-ignore
+      parent,
+      args,
+      ctx,
+    ): Promise<UsersListResponse> {
       const usersQuery: UsersRequestQueryDto = {
         page: args.page,
         per_page: args.per_page,
@@ -384,6 +396,17 @@ const resolvers = {
       const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
 
       return UsersFetchService.findOneUserTrustedByAndProcessForList(userId, usersQuery, currentUserId);
+    },
+
+    async one_user_follows_organizations(
+      // @ts-ignore
+      parent,
+      args,
+    ): Promise<OrgListResponse> {
+      const query: InputQueryDto = GraphQlInputService.getQueryFromArgs(args);
+      const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+
+      return OrganizationsFetchService.findAllFollowedByUserAndProcess(userId, query);
     },
 
     // @ts-ignore
