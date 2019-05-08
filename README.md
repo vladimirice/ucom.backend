@@ -7,6 +7,7 @@
 ## Content
 * [Main goals](#main-goals)
 * [Installation](documentation/INSTALLATION.md)
+* [Services and applications](documentation/SERVICES_AND_APPLICATIONS.md)
 * [How-to](documentation/HOW_TO.md)
 * [Architecture](documentation/ARCHITECTURE.md)
 * [Current workflow](documentation/CURRENT_WORKFLOW.md)
