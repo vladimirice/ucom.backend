@@ -233,6 +233,22 @@ class NotificationsEventIdDictionary {
     return value === this.getUserTrustsYou();
   }
 
+  public static doesUserFollowOrg(value: number): boolean {
+    return value === this.getUserFollowsOrg();
+  }
+
+  public static doesUserUnfollowOrg(value: number): boolean {
+    return value === this.getUserUnfollowsOrg();
+  }
+
+  public static doesUserFollowOtherUser(value: number): boolean {
+    return value === this.getUserFollowsYou();
+  }
+
+  public static doesUserUnfollowOtherUser(value: number): boolean {
+    return value === this.getUserUnfollowsYou();
+  }
+
   public static isUserUntrustsYou(value: number): boolean {
     return value === this.getUserUntrustsYou();
   }

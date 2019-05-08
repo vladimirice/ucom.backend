@@ -1,30 +1,51 @@
-export {};
-
-const helpers = require('../helpers');
-const userActivityRepository = require('../../../lib/users/repository').Activity;
+import MockHelper = require('../helpers/mock-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import UsersHelper = require('../helpers/users-helper');
+import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import UsersActivityFollowRepository = require('../../../lib/users/repository/users-activity/users-activity-follow-repository');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 let userVlad;
 let userJane;
 let userRokky;
 
-helpers.Mock.mockAllBlockchainPart();
+MockHelper.mockAllBlockchainPart();
 
 describe('User follows-unfollows organizations. Without transaction checking.', () => {
   beforeAll(async ()  => {
-    [userVlad, userJane, , userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, , userRokky] = await SeedsHelper.beforeAllRoutine();
   });
-  afterAll(async ()   => { await helpers.SeedsHelper.sequelizeAfterAll(); });
+  afterAll(async ()   => { await SeedsHelper.sequelizeAfterAll(); });
   beforeEach(async () => {
-    await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
+    await SeedsHelper.resetOrganizationRelatedSeeds();
+  });
+
+
+  describe('Users activity follow index table', () => {
+    it('users activity follow index record is created and then deleted after unfollow activity', async () => {
+      const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+
+      await OrganizationsHelper.requestToCreateOrgFollowHistory(userJane, orgId);
+      const followRecord = await UsersActivityFollowRepository.getUserFollowsOrg(userJane.id, orgId);
+
+      CommonChecker.expectNotEmpty(followRecord);
+
+      await OrganizationsHelper.requestToUnfollowOrganization(orgId, userJane);
+
+      const nullableRecord = await UsersActivityFollowRepository.getUserFollowsOrg(userJane.id, orgId);
+
+      expect(nullableRecord).toBe(null);
+    });
   });
 
   describe('Single organization. Follow inside myselfData', () => {
     it('MyselfData contains follow', async () => {
-      const orgId = 1;
-      const user = userRokky;
+      const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
-      await helpers.Org.requestToCreateOrgFollowHistory(user, orgId);
-      const org = await helpers.Org.requestToGetOneOrganizationAsMyself(user, orgId);
+      await OrganizationsHelper.requestToCreateOrgFollowHistory(userRokky, orgId);
+      const org = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userRokky, orgId);
 
       expect(org.myselfData).toBeDefined();
       expect(org.myselfData.follow).toBeTruthy();
@@ -36,13 +57,13 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
       const user = userRokky;
 
       // In order to disturb conditions somehow
-      await helpers.Org.requestToCreateOrgFollowHistory(userJane, orgId);
-      await helpers.Org.requestToCreateOrgFollowHistory(userVlad, orgId);
+      await OrganizationsHelper.requestToCreateOrgFollowHistory(userJane, orgId);
+      await OrganizationsHelper.requestToCreateOrgFollowHistory(userVlad, orgId);
 
-      await helpers.Org.requestToCreateOrgFollowHistory(user, otherOrgId);
-      await helpers.Org.requestToCreateOrgUnfollowHistory(user, orgId);
+      await OrganizationsHelper.requestToCreateOrgFollowHistory(user, otherOrgId);
+      await OrganizationsHelper.requestToCreateOrgUnfollowHistory(user, orgId);
 
-      const org = await helpers.Org.requestToGetOneOrganizationAsMyself(user, orgId);
+      const org = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(user, orgId);
 
       expect(org.myselfData).toBeDefined();
       expect(org.myselfData.follow).toBeFalsy();
@@ -60,10 +81,10 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         ];
 
         for (let i = 0; i < followedByExpected.length; i += 1) {
-          await helpers.Org.requestToCreateOrgFollowHistory(followedByExpected[i], orgId);
+          await OrganizationsHelper.requestToCreateOrgFollowHistory(followedByExpected[i], orgId);
         }
 
-        const org = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+        const org = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
 
         const followedBy = org.followed_by;
         expect(followedBy).toBeTruthy();
@@ -71,7 +92,7 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
 
         followedByExpected.forEach((expected) => {
           const actual = followedBy.find(data => data.id === expected.id);
-          helpers.Users.checkUserPreview(actual);
+          UsersHelper.checkUserPreview(actual);
         });
       });
 
@@ -84,10 +105,10 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         ];
 
         for (let i = 0; i < followedByExpected.length; i += 1) {
-          await helpers.Org.requestToCreateOrgFollowHistory(followedByExpected[i], orgId);
+          await OrganizationsHelper.requestToCreateOrgFollowHistory(followedByExpected[i], orgId);
         }
 
-        const org = await helpers.Org.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+        const org = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, orgId);
 
         const followedBy = org.followed_by;
         expect(followedBy).toBeTruthy();
@@ -95,7 +116,7 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
 
         followedByExpected.forEach((expected) => {
           const actual = followedBy.find(data => data.id === expected.id);
-          helpers.Users.checkUserPreview(actual);
+          UsersHelper.checkUserPreview(actual);
         });
       });
     });
@@ -105,9 +126,9 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         const orgId = 1;
         const otherOrgId = 2;
 
-        await helpers.Org.requestToCreateOrgFollowHistory(userVlad, otherOrgId); // to disturb data
+        await OrganizationsHelper.requestToCreateOrgFollowHistory(userVlad, otherOrgId); // to disturb data
 
-        const org = await helpers.Org.requestToGetOneOrganizationAsGuest(orgId);
+        const org = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
 
         const followedBy = org.followed_by;
         expect(followedBy).toBeTruthy();
@@ -118,9 +139,9 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         const orgId = 1;
         const otherOrgId = 2;
 
-        await helpers.Org.requestToCreateOrgFollowHistory(userVlad, otherOrgId); // to disturb data
+        await OrganizationsHelper.requestToCreateOrgFollowHistory(userVlad, otherOrgId); // to disturb data
 
-        const org = await helpers.Org.requestToGetOneOrganizationAsMyself(userVlad, orgId);
+        const org = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, orgId);
 
         const followedBy = org.followed_by;
         expect(followedBy).toBeTruthy();
@@ -135,9 +156,9 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         const orgId = 1;
         const user = userJane;
 
-        await helpers.Org.requestToFollowOrganization(orgId, user);
+        await OrganizationsHelper.requestToFollowOrganization(orgId, user);
 
-        const activity = await userActivityRepository.findLastByUserId(user.id);
+        const activity = await UsersActivityRepository.findLastByUserId(user.id);
         expect(activity).toBeTruthy();
 
         // #task - check activity structure
@@ -149,8 +170,8 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         const orgId = 1;
         const user = userJane;
 
-        await helpers.Org.requestToFollowOrganization(orgId, user);
-        await helpers.Org.requestToFollowOrganization(orgId, user, 400);
+        await OrganizationsHelper.requestToFollowOrganization(orgId, user);
+        await OrganizationsHelper.requestToFollowOrganization(orgId, user, 400);
       });
 
       it.skip('should not be possible to follow organization which does not exist', async () => {
@@ -164,10 +185,10 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         const orgId = 1;
         const user = userJane;
 
-        await helpers.Org.requestToFollowOrganization(orgId, user);
-        await helpers.Org.requestToUnfollowOrganization(orgId, user);
+        await OrganizationsHelper.requestToFollowOrganization(orgId, user);
+        await OrganizationsHelper.requestToUnfollowOrganization(orgId, user);
 
-        const activity = await userActivityRepository.findLastByUserId(user.id);
+        const activity = await UsersActivityRepository.findLastByUserId(user.id);
         expect(activity).toBeTruthy();
 
         // #task - check activity structure
@@ -180,10 +201,10 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
         const orgId = 1;
 
         // tslint:disable-next-line:max-line-length
-        await helpers.Org.requestToFollowOrganization(orgId, userVlad); // this is an activity of other user
+        await OrganizationsHelper.requestToFollowOrganization(orgId, userVlad); // this is an activity of other user
         // tslint:disable-next-line:max-line-length
-        await helpers.Org.requestToFollowOrganization(2, userJane); // this is an activity to follow other org
-        const body = await helpers.Org.requestToUnfollowOrganization(orgId, userJane, 400);
+        await OrganizationsHelper.requestToFollowOrganization(2, userJane); // this is an activity to follow other org
+        const body = await OrganizationsHelper.requestToUnfollowOrganization(orgId, userJane, 400);
 
         expect(body.errors.general).toMatch('unfollow before follow');
       });
@@ -193,3 +214,5 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
     });
   });
 });
+
+export {};

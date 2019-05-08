@@ -1,15 +1,25 @@
 /* tslint:disable:max-line-length */
+import { Transaction } from 'knex';
+import { AppError } from '../api/errors';
+import { UserModel } from './interfaces/model-interfaces';
+
+import knex = require('../../config/knex');
+import UsersActivityRepository = require('./repository/users-activity-repository');
+import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
+import UsersActivityFollowRepository = require('./repository/users-activity/users-activity-follow-repository');
+import ActivityGroupDictionary = require('../activity/activity-group-dictionary');
+import UsersModelProvider = require('./users-model-provider');
+
 const status = require('statuses');
 const _ = require('lodash');
 
+// tslint:disable-next-line:max-line-length
+const { TransactionFactory, ContentTypeDictionary, InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const usersRepository = require('../users/users-repository');
-const models = require('../../models');
+
 const { BadRequestError } = require('../api/errors');
 
 const usersActivityRepository = require('../users/repository').Activity;
-
-// tslint:disable-next-line:max-line-length
-const { TransactionFactory, ContentTypeDictionary, InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const activityGroupDictionary = require('../activity/activity-group-dictionary');
 
 const userActivitySerializer = require('./job/user-activity-serializer');
@@ -22,8 +32,6 @@ const orgModelProvider        = require('../organizations/service').ModelProvide
 const blockchainModelProvider = require('../eos/service/blockchain-model-provider');
 
 const eventIdDictionary = require('../entities/dictionary').EventId;
-
-const db = models.sequelize;
 
 const ACTIVITY_TYPE__UPVOTE_NODE = 20;
 const ACTIVITY_TYPE__CANCEL_NODE_UPVOTING_NODE = 30;
@@ -55,13 +63,6 @@ class UserActivityService {
     return usersActivityRepository.bulkCreateNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @param {number[]} blockchainNodeIds
-   * @param {Object} transaction
-   * @return {Promise<Object>}
-   */
   static async processUserCancelVotesForBlockProducers(userId, blockchainNodeIds, transaction, eventId: number) {
     const data: any = [];
 
@@ -106,7 +107,7 @@ class UserActivityService {
       signed_transaction: signedTransaction,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -132,42 +133,7 @@ class UserActivityService {
       event_id:           eventIdDictionary.getOrgUsersTeamInvitation(),
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
-  }
-
-  /**
-   *
-   * @param {number} activityTypeId
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} userIdTo
-   * @param {Object} transaction
-   * @return {Promise<Object>}
-   */
-  static async processUserFollowsOrUnfollowsUser(
-    activityTypeId,
-    signedTransaction,
-    currentUserId,
-    userIdTo,
-    transaction,
-  ) {
-    const activityGroupId = activityGroupDictionary.getGroupUserUserInteraction();
-    const entityName      = usersModelProvider.getEntityName();
-    const eventId         = activityTypeId === InteractionTypeDictionary.getFollowId() ?
-      eventIdDictionary.getUserFollowsYou() : eventIdDictionary.getUserUnfollowsYou();
-
-    const data = {
-      activity_type_id:   activityTypeId,
-      activity_group_id:  activityGroupId,
-      user_id_from:       currentUserId,
-      entity_id_to:       userIdTo,
-      entity_name:        entityName,
-      signed_transaction: signedTransaction,
-
-      event_id:           eventId,
-    };
-
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -180,7 +146,7 @@ class UserActivityService {
    * @param {Object} transaction
    * @return {Promise<void|Object|*>}
    */
-  static async createForUserVotesPost(
+  public static async createForUserVotesPost(
     activityTypeId,
     signedTransaction,
     currentUserId,
@@ -215,7 +181,7 @@ class UserActivityService {
    * @param {Object} transaction
    * @return {Promise<void|Object|*>}
    */
-  static async createForUserVotesComment(
+  public static async createForUserVotesComment(
     activityTypeId,
     signedTransaction,
     currentUserId,
@@ -249,14 +215,13 @@ class UserActivityService {
    * @param {Object|null} transaction
    * @return {Promise<void|Object|*>}
    */
-  static async processOrganizationCreatesPost(
+  public static async processOrganizationCreatesPost(
     newPost,
     eventId,
     signedTransaction,
     currentUserId,
     transaction = null,
   ) {
-
     const activityGroupId = activityGroupDictionary.getGroupContentCreationByOrganization();
     const entityName      = postsModelProvider.getEntityName();
 
@@ -273,7 +238,7 @@ class UserActivityService {
       entity_name_on:     newPost.entity_name_for,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -283,12 +248,11 @@ class UserActivityService {
    * @param {Object} transaction
    * @returns {Promise<Object>}
    */
-  static async processPostIsUpdated(
+  public static async processPostIsUpdated(
     updatedPost,
     currentUserId,
     transaction,
   ) {
-
     const activityGroupId = activityGroupDictionary.getGroupContentUpdating();
     const entityName      = postsModelProvider.getEntityName();
 
@@ -302,7 +266,7 @@ class UserActivityService {
       signed_transaction: '',
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -321,7 +285,6 @@ class UserActivityService {
     currentUserId,
     transaction = null,
   ) {
-
     const activityGroupId = activityGroupDictionary.getGroupContentCreationByOrganization();
     const entityName      = postsModelProvider.getEntityName();
 
@@ -340,7 +303,7 @@ class UserActivityService {
       entity_name_on:     entityNameOn,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -359,7 +322,6 @@ class UserActivityService {
     currentUserId,
     transaction = null,
   ) {
-
     const activityGroupId = activityGroupDictionary.getGroupContentCreation();
     const entityName      = postsModelProvider.getEntityName();
 
@@ -376,7 +338,7 @@ class UserActivityService {
       entity_name_on:     newPost.entity_name_for,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -393,7 +355,6 @@ class UserActivityService {
     mentionedUserId,
     transaction = null,
   ) {
-
     const activityGroupId     = activityGroupDictionary.getGroupTagEvent();
     const postEntityName      = postsModelProvider.getEntityName();
     const userEntityName      = usersModelProvider.getEntityName();
@@ -413,7 +374,7 @@ class UserActivityService {
       entity_name_on:     postEntityName,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -430,7 +391,6 @@ class UserActivityService {
     mentionedUserId,
     transaction = null,
   ) {
-
     const activityGroupId     = activityGroupDictionary.getGroupTagEvent();
     const entityNameOn        = commentsModelProvider.getEntityName();
     const userEntityName      = usersModelProvider.getEntityName();
@@ -450,8 +410,9 @@ class UserActivityService {
       entity_name_on:     entityNameOn,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
+
   /**
    *
    * @param {Object} newPost
@@ -461,14 +422,13 @@ class UserActivityService {
    * @param {Object|null} transaction
    * @return {Promise<void|Object|*>}
    */
-  static async processUserHimselfCreatesRepost(
+  public static async processUserHimselfCreatesRepost(
     newPost,
     eventId,
     signedTransaction,
     currentUserId,
     transaction = null,
   ) {
-
     const activityGroupId = activityGroupDictionary.getGroupContentCreation();
     const entityName      = postsModelProvider.getEntityName();
     const entityNameOn    = postsModelProvider.getEntityName();
@@ -486,7 +446,7 @@ class UserActivityService {
       entity_name_on:     entityNameOn,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -535,7 +495,7 @@ class UserActivityService {
       event_id:           eventId,
     };
 
-    return await usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -592,10 +552,10 @@ class UserActivityService {
    * @param {Object} body
    * @returns {Promise<Object>}
    */
-  static async userUnfollowsUser(userFrom, userIdTo, body) {
+  public static async userUnfollowsUser(userFrom, userIdTo, body): Promise<void> {
     const activityTypeId = InteractionTypeDictionary.getUnfollowId();
 
-    return await this.userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body);
+    await this.userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body);
   }
 
   /**
@@ -606,7 +566,7 @@ class UserActivityService {
    */
   static async createAndSignOrganizationCreationTransaction(userFrom, newOrganizationBlockchainId) {
     // noinspection JSUnresolvedFunction
-    return await TransactionFactory.createSignedUserCreatesOrganization(
+    return TransactionFactory.createSignedUserCreatesOrganization(
       userFrom.account_name,
       userFrom.private_key,
       newOrganizationBlockchainId,
@@ -622,39 +582,37 @@ class UserActivityService {
    * @returns {Promise<boolean>}
    * @private
    */
-  private static async userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body) {
-    // TODO - different current state logic in order to check follow requirements
+  private static async userFollowOrUnfollowUser(
+    userFrom: UserModel,
+    userIdTo: number,
+    activityTypeId: number,
+    body: any,
+  ) {
     await this.checkPreconditions(userFrom, userIdTo, activityTypeId);
-
     const userToAccountName = await usersRepository.findAccountNameById(userIdTo);
 
-    const activity = await db
-      .transaction(async (transaction) => {
-        let signed = null;
-        if (body && !_.isEmpty(body) && body.signed_transaction) {
-          signed = body.signed_transaction;
-        } else {
-          signed = await this.getSignedFollowTransaction(
-            userFrom, userToAccountName, activityTypeId,
-          );
-        }
+    let signed: string;
+    if (body && !_.isEmpty(body) && body.signed_transaction) {
+      signed = body.signed_transaction;
+    } else {
+      signed = await this.getSignedFollowTransaction(
+        userFrom, userToAccountName, activityTypeId,
+      );
+    }
 
-        return await this.processUserFollowsOrUnfollowsUser(
-          activityTypeId,
-          signed,
-          userFrom.id,
-          userIdTo,
-          transaction,
-        );
-      });
+    const activity = await this.processUserFollowsOrUnfollowsUser(
+      activityTypeId,
+      signed,
+      userFrom.id,
+      userIdTo,
+    );
 
     await this.sendPayloadToRabbit(activity);
-
-    return true;
   }
 
   private static async getSignedFollowTransaction(userFrom, userToAccountName, activityTypeId) {
-    return await TransactionFactory._getSignedUserToUser(
+    // eslint-disable-next-line no-underscore-dangle
+    return TransactionFactory._getSignedUserToUser(
       userFrom.account_name,
       userFrom.private_key,
       userToAccountName,
@@ -684,7 +642,7 @@ class UserActivityService {
    * @param {Object} activity
    * @returns {Promise<void>}
    */
-  static async sendContentUpdatingPayloadToRabbit(activity) {
+  public static async sendContentUpdatingPayloadToRabbit(activity) {
     const jsonPayload = userActivitySerializer.getActivityDataToCreateJob(activity.id);
 
     await activityProducer.publishWithContentUpdating(jsonPayload);
@@ -723,6 +681,59 @@ class UserActivityService {
         general: 'It is not possible to unfollow before follow',
       },                        status('400'));
     }
+  }
+
+  private static async processUserFollowsOrUnfollowsUser(
+    activityTypeId: number,
+    signedTransaction: string,
+    currentUserId: number,
+    userIdTo: number,
+  ): Promise<any> {
+    const activityGroupId = ActivityGroupDictionary.getGroupUserUserInteraction();
+    const entityName      = UsersModelProvider.getEntityName();
+    const eventId         = activityTypeId === InteractionTypeDictionary.getFollowId() ?
+      NotificationsEventIdDictionary.getUserFollowsYou() : NotificationsEventIdDictionary.getUserUnfollowsYou();
+
+    return knex.transaction(async (trx) => {
+      await this.createFollowIndex(eventId, currentUserId, userIdTo, trx);
+
+      const data = {
+        activity_type_id: activityTypeId,
+        activity_group_id: activityGroupId,
+        user_id_from: currentUserId,
+        entity_id_to: userIdTo,
+        entity_name: entityName,
+        signed_transaction: signedTransaction,
+
+        event_id: eventId,
+      };
+
+      return UsersActivityRepository.createNewKnexActivity(data, trx);
+    });
+  }
+
+  private static async createFollowIndex(
+    eventId: number,
+    userIdFrom: number,
+    userIdTo: number,
+    trx: Transaction,
+  ): Promise<void> {
+    if (NotificationsEventIdDictionary.doesUserFollowOtherUser(eventId)) {
+      await UsersActivityFollowRepository.insertOneFollowsOtherUser(userIdFrom, userIdTo, trx);
+
+      return;
+    }
+
+    if (NotificationsEventIdDictionary.doesUserUnfollowOtherUser(eventId)) {
+      const deleteRes = await UsersActivityFollowRepository.deleteOneFollowsOtherUser(userIdFrom, userIdTo, trx);
+      if (deleteRes === null) {
+        throw new AppError(`No record to delete. It is possible that it is a concurrency issue. User ID from: ${userIdFrom}, user ID to ${userIdTo}`);
+      }
+
+      return;
+    }
+
+    throw new AppError(`Unsupported eventId: ${eventId}`);
   }
 }
 

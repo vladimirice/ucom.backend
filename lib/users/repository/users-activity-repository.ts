@@ -121,8 +121,10 @@ class UsersActivityRepository {
     return this.getModel().create(data, { transaction });
   }
 
-  public static async createNewKnexActivity(row, trx) {
-    return trx(TABLE_NAME).insert(row).returning('*');
+  public static async createNewKnexActivity(row, trx): Promise<any> {
+    const data = await trx(TABLE_NAME).insert(row).returning('*');
+
+    return data[0];
   }
 
   /**

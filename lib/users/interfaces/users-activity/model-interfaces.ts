@@ -1,4 +1,4 @@
-interface UsersActivityTrustModelDto {
+interface UsersActivityIndexModelDto {
   id:           number;
   user_id:      number;
   entity_id:    number;
@@ -30,6 +30,6 @@ interface UsersActivityModelDto {
 }
 
 export {
-  UsersActivityTrustModelDto,
+  UsersActivityIndexModelDto,
   UsersActivityModelDto,
 };

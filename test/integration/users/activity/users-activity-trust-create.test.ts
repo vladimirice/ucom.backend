@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import {
   UsersActivityModelDto,
-  UsersActivityTrustModelDto,
+  UsersActivityIndexModelDto,
 } from '../../../../lib/users/interfaces/users-activity/model-interfaces';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
@@ -10,6 +10,7 @@ import UsersActivityRequestHelper = require('../../../helpers/users/activity/use
 import UsersActivityRepository = require('../../../../lib/users/repository/users-activity-repository');
 import UsersActivityTrustRepository = require('../../../../lib/users/repository/users-activity/users-activity-trust-repository');
 import UsersModelProvider = require('../../../../lib/users/users-model-provider');
+import CommonChecker = require('../../../helpers/common/common-checker');
 
 require('jest-expect-message');
 
@@ -72,9 +73,10 @@ describe('Users activity trust creation', () => {
           entity_name: UsersModelProvider.getEntityName(),
         };
 
-        const trustIndexRow: UsersActivityTrustModelDto | null =
+        const trustIndexRow: UsersActivityIndexModelDto | null =
             await UsersActivityTrustRepository.getUserTrustUser(userVlad.id, userJane.id);
-        expect(_.isEmpty(trustIndexRow)).toBeFalsy();
+
+        CommonChecker.expectNotEmpty(trustIndexRow);
         expect(trustIndexRow).toMatchObject(trustIndexRowExpected);
       });
     });
@@ -129,7 +131,7 @@ describe('Users activity trust creation', () => {
 
         expect(dbActivity).toMatchObject(dbActivityExpected);
 
-        const trustIndexRow: UsersActivityTrustModelDto | null =
+        const trustIndexRow: UsersActivityIndexModelDto | null =
             await UsersActivityTrustRepository.getUserTrustUser(userVlad.id, userJane.id);
 
         expect(_.isEmpty(trustIndexRow)).toBeTruthy();

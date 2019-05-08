@@ -1,18 +1,20 @@
+import MockHelper = require('../helpers/mock-helper');
+
+const request = require('supertest');
+
 import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
 import RequestHelper = require('../helpers/request-helper');
 
-export {};
-
-const request = require('supertest');
+import ActivityHelper = require('../helpers/activity-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import PostsHelper = require('../helpers/posts-helper');
+import ResponseHelper = require('../helpers/response-helper');
+import UsersHelper = require('../helpers/users-helper');
+import PostsRepository = require('../../../lib/posts/posts-repository');
+import CommonChecker = require('../../helpers/common/common-checker');
+// @ts-ignore
+import UsersActivityFollowRepository = require('../../../lib/users/repository/users-activity/users-activity-follow-repository');
 const server = RequestHelper.getApiApplication();
-const helpers = require('../helpers');
-
-const userHelper = require('../helpers/users-helper');
-
-const requestHelper = require('../helpers/request-helper');
-const responseHelper = require('../helpers/response-helper');
-const activityHelper = require('../helpers/activity-helper');
-const postRepository = require('../../../lib/posts/posts-repository');
 
 require('jest-expect-message');
 
@@ -21,72 +23,87 @@ let userJane;
 let userPetr;
 let userRokky;
 
-helpers.Mock.mockAllBlockchainPart();
+MockHelper.mockAllBlockchainPart();
 
 const JEST_TIMEOUT = 5000;
 
 describe('User to user activity', () => {
   beforeEach(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
 
-    await helpers.SeedsHelper.seedOrganizations();
-    await helpers.SeedsHelper.seedPosts();
+    await SeedsHelper.seedOrganizations();
+    await SeedsHelper.seedPosts();
   });
 
-  afterAll(async () => { await helpers.SeedsHelper.sequelizeAfterAll(); });
+  afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
+
+  describe('Users activity follow index table', () => {
+    it('users activity follow index record is created and then deleted after unfollow activity', async () => {
+      await ActivityHelper.requestToCreateFollowHistory(userVlad, userJane);
+      const followRecord = await UsersActivityFollowRepository.getUserFollowsOtherUser(userVlad.id, userJane.id);
+
+      CommonChecker.expectNotEmpty(followRecord);
+      await ActivityHelper.requestToCreateUnfollow(userVlad, userJane);
+
+      const nullableRecord = await UsersActivityFollowRepository.getUserFollowsOtherUser(userVlad.id, userJane.id);
+
+      expect(nullableRecord).toBe(null);
+    });
+  });
 
   describe('Follow and unfollow activity itself', () => {
     describe('Follow workflow', () => {
       describe('Follow Positive scenarios', () => {
         it('Vlad follows Jane - should create correct activity record', async () => {
-          await helpers.ActivityHelper.requestToCreateFollow(userVlad, userJane);
+          await ActivityHelper.requestToCreateFollow(userVlad, userJane);
 
           const activity =
             await UsersActivityRepository.getLastFollowActivityForUser(userVlad.id, userJane.id);
-          expect(activity).not.toBeNull();
+
+          CommonChecker.expectNotEmpty(activity);
         });
 
         it('should be possible to follow having follow history', async () => {
-          await helpers.ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane);
+          await ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane);
 
-          await helpers.ActivityHelper.requestToCreateFollow(userVlad, userJane);
+          await ActivityHelper.requestToCreateFollow(userVlad, userJane);
         }, JEST_TIMEOUT);
       });
 
       describe('Follow Negative scenarios', () => {
         it('should not be possible to follow yourself', async () => {
-          await helpers.ActivityHelper.requestToCreateFollow(userVlad, userVlad, 400);
+          await ActivityHelper.requestToCreateFollow(userVlad, userVlad, 400);
         });
 
         it('should not be possible to follow twice', async () => {
           const whoActs   = userVlad;
           const targetUser = userJane;
 
-          await helpers.ActivityHelper.requestToCreateFollow(whoActs, targetUser);
-          await helpers.ActivityHelper.requestToCreateFollow(whoActs, targetUser, 400);
+          await ActivityHelper.requestToCreateFollow(whoActs, targetUser);
+          await ActivityHelper.requestToCreateFollow(whoActs, targetUser, 400);
         }, JEST_TIMEOUT);
 
         it('should not be possible to follow twice having follow history', async () => {
           const whoActs   = userVlad;
           const targetUser = userJane;
 
-          await helpers.ActivityHelper.requestToCreateFollowHistory(whoActs, targetUser);
-          await helpers.ActivityHelper.requestToCreateFollow(whoActs, targetUser, 400);
+          await ActivityHelper.requestToCreateFollowHistory(whoActs, targetUser);
+          await ActivityHelper.requestToCreateFollow(whoActs, targetUser, 400);
         }, JEST_TIMEOUT);
 
         it('should not be possible to follow without token', async () => {
           const res = await request(server)
-            .post(helpers.RequestHelper.getFollowUrl(userJane.id))
+            .post(RequestHelper.getFollowUrl(userJane.id))
           ;
 
-          responseHelper.expectStatusUnauthorized(res);
+          ResponseHelper.expectStatusUnauthorized(res);
         }, JEST_TIMEOUT);
       });
     });
     describe('Unfollow workflow', () => {
       describe('Positive scenarios', () => {
         it('should create correct activity record in DB', async () => {
-          await helpers.ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane);
+          await ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane);
 
           const activity =
             await UsersActivityRepository.getLastUnfollowActivityForUser(userVlad.id, userJane.id);
@@ -95,9 +112,9 @@ describe('User to user activity', () => {
         }, JEST_TIMEOUT);
 
         it('should allow to create Unfollow record after follow-unfollow workflow', async () => {
-          await helpers.ActivityHelper.requestToCreateFollowHistory(userVlad, userPetr);
+          await ActivityHelper.requestToCreateFollowHistory(userVlad, userPetr);
 
-          await helpers.ActivityHelper.requestToCreateUnfollow(userVlad, userPetr);
+          await ActivityHelper.requestToCreateUnfollow(userVlad, userPetr);
         }, JEST_TIMEOUT);
       });
 
@@ -106,39 +123,39 @@ describe('User to user activity', () => {
           const whoActs = userVlad;
           const targetUser = userJane;
 
-          await helpers.ActivityHelper.requestToCreateFollow(whoActs, targetUser);
-          await helpers.ActivityHelper.requestToCreateUnfollow(whoActs, targetUser);
+          await ActivityHelper.requestToCreateFollow(whoActs, targetUser);
+          await ActivityHelper.requestToCreateUnfollow(whoActs, targetUser);
 
-          await helpers.ActivityHelper.requestToCreateUnfollow(whoActs, targetUser, 400);
+          await ActivityHelper.requestToCreateUnfollow(whoActs, targetUser, 400);
         }, JEST_TIMEOUT);
 
         it('should not be possible to UNfollow twice having UNfollow history', async () => {
           const whoActs = userVlad;
           const targetUser = userJane;
 
-          await helpers.ActivityHelper.requestToCreateUnfollowHistory(whoActs, targetUser);
-          await helpers.ActivityHelper.requestToCreateUnfollow(whoActs, targetUser, 400);
+          await ActivityHelper.requestToCreateUnfollowHistory(whoActs, targetUser);
+          await ActivityHelper.requestToCreateUnfollow(whoActs, targetUser, 400);
         }, JEST_TIMEOUT);
 
         it('should not be possible to unfollow yourself', async () => {
-          await helpers.ActivityHelper.requestToCreateUnfollow(userVlad, userVlad, 400);
+          await ActivityHelper.requestToCreateUnfollow(userVlad, userVlad, 400);
         }, JEST_TIMEOUT);
 
         it('should not be possible to unfollow user you do not follow', async () => {
-          await helpers.ActivityHelper.requestToCreateFollow(
+          await ActivityHelper.requestToCreateFollow(
             userVlad,
             userJane,
           ); // to disturb somehow
 
-          await helpers.ActivityHelper.requestToCreateUnfollow(userVlad, userPetr, 400);
+          await ActivityHelper.requestToCreateUnfollow(userVlad, userPetr, 400);
         });
 
         it('should not be possible to follow without token', async () => {
           const res = await request(server)
-            .post(helpers.RequestHelper.getUnfollowUrl(userJane.id))
+            .post(RequestHelper.getUnfollowUrl(userJane.id))
           ;
 
-          responseHelper.expectStatusUnauthorized(res);
+          ResponseHelper.expectStatusUnauthorized(res);
         });
       });
     });
@@ -146,14 +163,14 @@ describe('User to user activity', () => {
 
   describe('User list. MyselfData', () => {
     it('MyselfData. User list must contain myselfData with actual follow status', async () => {
-      await activityHelper.requestToCreateFollowHistory(userPetr, userVlad);
+      await ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad);
 
       await Promise.all([
-        activityHelper.requestToCreateFollow(userPetr, userJane),
-        activityHelper.requestToCreateFollow(userJane, userPetr),
+        ActivityHelper.requestToCreateFollow(userPetr, userJane),
+        ActivityHelper.requestToCreateFollow(userJane, userPetr),
       ]);
 
-      const usersResponse = await userHelper.requestUserListByMyself(userPetr);
+      const usersResponse = await UsersHelper.requestUserListByMyself(userPetr);
       const users = usersResponse.data;
 
       const responseVlad = users.find(data => data.id === userVlad.id);
@@ -171,12 +188,12 @@ describe('User to user activity', () => {
     describe('Negative scenarios', () => {
       it('MyselfData. There is no myself data if user is not logged in', async () => {
         await Promise.all([
-          activityHelper.requestToCreateFollow(userPetr, userVlad),
-          activityHelper.requestToCreateFollow(userPetr, userJane),
+          ActivityHelper.requestToCreateFollow(userPetr, userVlad),
+          ActivityHelper.requestToCreateFollow(userPetr, userJane),
         ]);
 
         const queryString = '?v2=true';
-        const users = await userHelper.requestUserListAsGuest(queryString);
+        const users = await UsersHelper.requestUserListAsGuest(queryString);
 
         const userWithMyself = users.some(user => user.myselfData !== undefined);
 
@@ -198,31 +215,31 @@ describe('User to user activity', () => {
       ];
 
       await Promise.all([
-        activityHelper.requestToCreateFollowHistory(userPetr, userVlad),
-        activityHelper.requestToCreateFollowHistory(userPetr, userRokky),
-        activityHelper.requestToCreateFollowHistory(userJane, userPetr),
-        activityHelper.requestToCreateFollowHistory(userVlad, userPetr),
+        ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad),
+        ActivityHelper.requestToCreateFollowHistory(userPetr, userRokky),
+        ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
+        ActivityHelper.requestToCreateFollowHistory(userVlad, userPetr),
       ]);
 
-      const janeSampleRate = await userHelper.setSampleRateToUser(userJane);
-      const userRokkySampleRate = await userHelper.setSampleRateToUser(userRokky);
+      const janeSampleRate = await UsersHelper.setSampleRateToUser(userJane);
+      const userRokkySampleRate = await UsersHelper.setSampleRateToUser(userRokky);
 
-      const user = await requestHelper.requestUserByIdAsGuest(userPetr);
+      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
 
       const followedBy = user.followed_by;
       expect(followedBy).toBeDefined();
-      followedByExpected.forEach((user) => {
-        expect(followedBy.some(data => data.id === user.id)).toBeTruthy();
+      followedByExpected.forEach((item) => {
+        expect(followedBy.some(data => data.id === item.id)).toBeTruthy();
       });
 
       const iFollow = user.I_follow;
       expect(iFollow).toBeDefined();
-      iFollowExpected.forEach((user) => {
-        expect(iFollow.some(data => data.id === user.id)).toBeTruthy();
+      iFollowExpected.forEach((item) => {
+        expect(iFollow.some(data => data.id === item.id)).toBeTruthy();
       });
 
       followedBy.forEach((follower) => {
-        userHelper.checkIncludedUserPreview({
+        UsersHelper.checkIncludedUserPreview({
           User: follower,
         });
       });
@@ -235,7 +252,7 @@ describe('User to user activity', () => {
     }, JEST_TIMEOUT);
 
     it('I_follow and followed_by of single user - does not exist', async () => {
-      const user = await helpers.Req.requestUserByIdAsGuest(userPetr);
+      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
 
       const followedBy = user.followed_by;
       expect(followedBy).toBeDefined();
@@ -248,12 +265,12 @@ describe('User to user activity', () => {
 
     it('Myself - I follow but not my follower', async () => {
       await Promise.all([
-        helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
-        helpers.ActivityHelper.requestToCreateUnfollowHistory(userPetr, userJane),  // disturbance
-        helpers.ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad),  // disturbance
+        ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
+        ActivityHelper.requestToCreateUnfollowHistory(userPetr, userJane),  // disturbance
+        ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad),  // disturbance
       ]);
 
-      const user = await helpers.Req.requestUserByIdAsMyself(userJane, userPetr);
+      const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
 
       const { myselfData } = user;
 
@@ -264,12 +281,12 @@ describe('User to user activity', () => {
 
     it('Myself - My follower but I do not follow', async () => {
       await Promise.all([
-        helpers.ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
-        helpers.ActivityHelper.requestToCreateUnfollowHistory(userJane, userPetr),  // disturbance
-        helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userVlad), // disturbance
+        ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
+        ActivityHelper.requestToCreateUnfollowHistory(userJane, userPetr),  // disturbance
+        ActivityHelper.requestToCreateFollowHistory(userJane, userVlad), // disturbance
       ]);
 
-      const user = await helpers.Req.requestUserByIdAsMyself(userJane, userPetr);
+      const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
 
       const { myselfData } = user;
 
@@ -280,12 +297,12 @@ describe('User to user activity', () => {
 
     it('Myself both follow and my follower', async () => {
       await Promise.all([
-        helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
-        helpers.ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
-        helpers.ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane), // disturbance
+        ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
+        ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
+        ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane), // disturbance
       ]);
 
-      const user = await helpers.Req.requestUserByIdAsMyself(userJane, userPetr);
+      const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
 
       const { myselfData } = user;
 
@@ -295,8 +312,8 @@ describe('User to user activity', () => {
     }, JEST_TIMEOUT);
 
     it('MyselfData. Does not exist if no token', async () => {
-      await helpers.ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
-      const user = await requestHelper.requestUserByIdAsGuest(userPetr);
+      await ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
+      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
 
       expect(user.myselfData).not.toBeDefined();
     }, JEST_TIMEOUT);
@@ -305,13 +322,13 @@ describe('User to user activity', () => {
   describe('Post author myself activity', () => {
     it('Myself data in post User info - following', async () => {
       await Promise.all([
-        activityHelper.requestToCreateFollowHistory(userVlad, userJane),
-        activityHelper.requestToCreateUnfollowHistory(userVlad, userPetr), // disturb
+        ActivityHelper.requestToCreateFollowHistory(userVlad, userJane),
+        ActivityHelper.requestToCreateUnfollowHistory(userVlad, userPetr), // disturb
       ]);
 
-      const postId = await postRepository.findLastMediaPostIdByAuthor(userJane.id);
+      const postId = await PostsRepository.findLastMediaPostIdByAuthor(userJane.id);
 
-      const body = await helpers.PostHelper.requestToGetOnePostAsMyself(postId, userVlad);
+      const body = await PostsHelper.requestToGetOnePostAsMyself(postId, userVlad);
 
       const author = body.User;
       expect(author).toBeDefined();
@@ -322,11 +339,11 @@ describe('User to user activity', () => {
 
     it('Myself data in post User info - not following', async () => {
       const [postId] = await Promise.all([
-        postRepository.findLastMediaPostIdByAuthor(userVlad.id),
-        helpers.ActivityHelper.requestToCreateUnfollowHistory(userJane, userVlad),
+        PostsRepository.findLastMediaPostIdByAuthor(userVlad.id),
+        ActivityHelper.requestToCreateUnfollowHistory(userJane, userVlad),
       ]);
 
-      const body = await helpers.PostHelper.requestToGetOnePostAsMyself(postId, userJane);
+      const body = await PostsHelper.requestToGetOnePostAsMyself(postId, userJane);
 
       const author = body.User;
 
@@ -342,20 +359,22 @@ describe('User to user activity', () => {
     it('Not possible to follow user which does not exist', async () => {
       // noinspection MagicNumberJS
       const res = await request(server)
-        .post(requestHelper.getFollowUrl(100500))
+        .post(RequestHelper.getFollowUrl(100500))
         .set('Authorization', `Bearer ${userVlad.token}`)
       ;
 
-      responseHelper.expectStatusNotFound(res);
+      ResponseHelper.expectStatusNotFound(res);
     }, JEST_TIMEOUT);
 
     it('Not possible to follow user if userId is malformed', async () => {
       const res = await request(server)
-        .post(requestHelper.getFollowUrl('invalidID'))
+        .post(RequestHelper.getFollowUrl('invalidID'))
         .set('Authorization', `Bearer ${userVlad.token}`)
       ;
 
-      responseHelper.expectStatusNotFound(res);
+      ResponseHelper.expectStatusNotFound(res);
     });
   });
 });
+
+export {};

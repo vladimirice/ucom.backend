@@ -56,6 +56,7 @@ const minorTablesToSkipSequences = [
   `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
   `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
   `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
+  `${UsersModelProvider.getUsersActivityFollowTableName()}_id_seq`,
 ];
 
 // Truncated async
@@ -64,6 +65,7 @@ const minorTables = [
   usersRepositories.UsersTeam.getModelName(),
 
   UsersModelProvider.getUsersActivityTrustTableName(),
+  UsersModelProvider.getUsersActivityFollowTableName(),
 
   UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
