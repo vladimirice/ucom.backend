@@ -28,6 +28,8 @@ class CommonChecker {
     objectInterfaceRules: ObjectInterfaceRulesDto,
     options: CheckManyObjectsOptionsDto,
   ) {
+    this.expectNotEmpty(oneObject);
+
     if (options.exactKeysAmount) {
       expect(Object.keys(oneObject).sort()).toEqual(Object.keys(objectInterfaceRules).sort());
     }

@@ -43,7 +43,7 @@ class UsersFetchService {
 
     const userJson = user.toJSON();
 
-    this.processUosAccountsProperties(userJson);
+    UserPostProcessor.processUosAccountsProperties(userJson);
 
     userJson.organizations = userOrganizations;
 
@@ -137,19 +137,6 @@ class UsersFetchService {
     ];
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
-  }
-
-  public static processUosAccountsProperties(userJson) {
-    if (userJson.uos_accounts_properties && userJson.uos_accounts_properties.scaled_importance) {
-      userJson.uos_accounts_properties.scaled_importance =
-        +(+userJson.uos_accounts_properties.scaled_importance).toFixed(10);
-    }
-
-    if (userJson.uos_accounts_properties === null) {
-      userJson.uos_accounts_properties = {
-        scaled_importance: 0,
-      };
-    }
   }
 
   private static getManyUsersListAsRelatedToEntityPromises(

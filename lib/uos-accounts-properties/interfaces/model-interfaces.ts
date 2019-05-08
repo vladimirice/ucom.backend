@@ -10,6 +10,7 @@ interface UosAccountPropertiesDto {
   readonly values: UosAccountPropertiesValuesDto;
 }
 
+// this is a structure which is provided by a blockchain API
 interface UosAccountPropertiesValuesDto {
   readonly staked_balance:                string;
   readonly validity:                      string;

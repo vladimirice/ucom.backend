@@ -2,6 +2,7 @@
 /* tslint:disable:max-line-length */
 import UsersFetchService = require('./service/users-fetch-service');
 import UsersRepository = require('./users-repository');
+import UserPostProcessor = require('./user-post-processor');
 
 const joi = require('joi');
 const _ = require('lodash');
@@ -89,7 +90,7 @@ class UsersService {
     const userModel = await UsersRepository.getUserById(userId);
     const userJson = userModel.toJSON();
 
-    UsersFetchService.processUosAccountsProperties(userJson);
+    UserPostProcessor.processUosAccountsProperties(userJson);
 
     return userJson;
   }
@@ -163,17 +164,15 @@ class UsersService {
     ];
 
     arrayFields.forEach((field) => {
-      requestData[field] = _.filter(requestData[field]);
+      requestData[field] = Array.prototype.filter(requestData[field]);
     });
 
     requestData.users_sources.forEach((source) => {
       source.source_type_id = source.source_type_id ? source.source_type_id : null;
     });
 
-    for (let i = 0; i < arrayFields.length; i += 1) {
-      const field = arrayFields[i];
-
-      const set = _.filter(requestData[field]);
+    for (const field of arrayFields) {
+      const set = Array.prototype.filter(requestData[field]);
 
       if (!set || _.isEmpty(set)) {
         continue;
@@ -239,9 +238,7 @@ class UsersService {
     const existed = await usersRepository.findWithUniqueFields(toFind);
 
     const errors: any = [];
-    for (let i = 0; i < existed.length; i += 1) {
-      const current = existed[i];
-
+    for (const current of existed) {
       if (current.id === currentUserId) {
         // this is model itself
         continue;

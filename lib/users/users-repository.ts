@@ -254,7 +254,7 @@ class UsersRepository {
     const include = [
       {
         model: models[UosAccountsModelProvider.uosAccountsPropertiesTableNameWithoutSchema()],
-        attributes: ['scaled_importance'],
+        attributes: UosAccountsModelProvider.getFieldsToSelect(),
         required: false,
         as: 'uos_accounts_properties',
       },

@@ -4,6 +4,7 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 
 import _ = require('lodash');
+import UsersChecker = require('../../helpers/users/users-checker');
 
 const eosJsEcc = require('eosjs-ecc');
 
@@ -14,6 +15,7 @@ const accountsData = require('../../../config/accounts-data');
 const authService = require('../../../lib/auth/authService');
 const usersRepository = require('../../../lib/users/users-repository');
 const eosImportance = require('../../../lib/eos/eos-importance');
+
 const server = RequestHelper.getApiApplication();
 
 const usersTeamRepository = require('../../../lib/users/repository').UsersTeam;
@@ -339,15 +341,11 @@ class UsersHelper {
     return res.body;
   }
 
-  static validateUserJson(body, expectedUser, userFromDb) {
+  public static validateUserJson(body, expectedUser, userFromDb) {
     expect(body.hasOwnProperty('account_name')).toBeTruthy();
     expect(body.account_name).toBe(expectedUser.account_name);
 
-    ResponseHelper.expectNotEmpty(body.uos_accounts_properties);
-
-    expect(body.uos_accounts_properties.scaled_importance).toBeDefined();
-    expect(typeof body.uos_accounts_properties.scaled_importance).toBe('number');
-    expect(body.uos_accounts_properties.scaled_importance).toBeGreaterThanOrEqual(0);
+    UsersChecker.checkUosAccountsPropertiesStructure(body);
 
     const fieldsToCheck = [
       'users_education',
