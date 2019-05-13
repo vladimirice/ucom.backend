@@ -199,7 +199,7 @@ describe('Blockchain nodes get - graphql', () => {
       BlockchainNodesChecker.checkManyBlockchainNodesInterface(
         response[BlockchainNodesCommon.getGraphQlNodeAlias(userRokky, typeBlockProducer)].data,
       );
-    });
+    }, JEST_TIMEOUT * 2);
 
     it('should be the correct interface', async () => {
       await BlockchainCacheService.updateBlockchainNodesByBlockchain();
