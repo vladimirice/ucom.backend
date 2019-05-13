@@ -22,6 +22,12 @@ class PostsPostProcessor {
       default:
       // do nothing
     }
+
+    if (post.entity_images && typeof post.entity_images === 'string') {
+      post.entity_images = JSON.parse(post.entity_images);
+    } else if (!post.entity_images)  {
+      post.entity_images = {};
+    }
   }
 
   private static makeFieldsNumeric(post: PostModelResponse): void {

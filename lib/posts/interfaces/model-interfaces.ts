@@ -4,6 +4,9 @@ import { ListResponse } from '../../common/interfaces/lists-interfaces';
 import { RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 import { OrgModelCard } from '../../organizations/interfaces/model-interfaces';
 import { UserModelCard } from '../../users/interfaces/model-interfaces';
+import { ModelWithEntityImages } from '../../entity-images/interfaces/model-interfaces';
+
+interface PostModelInterface {}
 
 interface PostModel {
   readonly id: number;
@@ -41,10 +44,16 @@ interface PostRequestQueryDto extends RequestQueryDto {
   readonly created_at?: string;
 }
 
+interface PostModelInput extends PostModelInterface, ModelWithEntityImages {
+  [index: string]: any;
+}
+
 export {
   PostModel,
   PostModelResponse,
   PostModelMyselfResponse,
   PostsListResponse,
   PostRequestQueryDto,
+  PostModelInput,
+  PostModelInterface,
 };

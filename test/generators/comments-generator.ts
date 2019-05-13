@@ -6,7 +6,7 @@ const request = require('supertest');
 
 const requestHelper = require('../integration/helpers/request-helper.ts');
 const responseHelper = require('../integration/helpers/response-helper.ts');
-const server = require('../../app');
+const server = RequestHelper.getApiApplication();
 
 class CommentsGenerator {
   static async createManyCommentsForPost(
@@ -45,19 +45,22 @@ class CommentsGenerator {
     return res;
   }
 
+  // @ts-ignore
   public static async createCommentForPost(
     postId: number,
     user: UserModel,
     description: string  = 'comment description',
-    entityImages: any = null,
+    entityImages: any = undefined,
     expectedStatus: number = 201,
   ): Promise<CommentModelResponse> {
     const req = request(server)
       .post(requestHelper.getCommentsUrl(postId))
       .field('description', description);
 
-    if (entityImages !== null) {
+    if (typeof entityImages !== 'undefined') {
       RequestHelper.addEntityImagesField(req, entityImages);
+    } else {
+      RequestHelper.addEntityImagesField(req, {});
     }
 
     requestHelper.addAuthToken(req, user);
@@ -94,6 +97,8 @@ class CommentsGenerator {
 
     if (entityImages !== null) {
       RequestHelper.addEntityImagesField(req, entityImages);
+    } else {
+      RequestHelper.addEntityImagesField(req, {});
     }
 
     const res = await req;

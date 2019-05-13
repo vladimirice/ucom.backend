@@ -2,13 +2,17 @@
 import { CommentsCreatorService } from '../../../lib/comments/service/comments-creator-service';
 import {
   AirdropsReceiptTableRowsDto,
-  AirdropsUserToChangeStatusDto
+  AirdropsUserToChangeStatusDto,
 } from '../../../lib/airdrops/interfaces/dto-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { UosAccountPropertiesDto, UosAccountsResponseDto } from '../../../lib/uos-accounts-properties/interfaces/model-interfaces';
 
 import PostCreatorService = require('../../../lib/posts/service/post-creator-service');
 import AirdropsTransactionsSender = require('../../../lib/airdrops/service/blockchain/airdrops-transactions-sender');
 import AirdropsFetchTableRowsService = require('../../../lib/airdrops/service/blockchain/airdrops-fetch-table-rows-service');
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
+import ImportanceGenerator = require('../../generators/blockchain/importance/uos-accounts-properties-generator');
+import UosAccountsPropertiesFetchService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-fetch-service');
 
 // @ts-ignore
 const uniqid = require('uniqid');
@@ -24,6 +28,43 @@ let orgCounter = 1;
 let postCreationCounter = 1;
 
 class MockHelper {
+  public static mockUosAccountsPropertiesFetchService(
+    firstUser: UserModel,
+    secondUser: UserModel,
+    thirdUser: UserModel,
+    fourthUser: UserModel,
+  ) {
+    const sampleData: UosAccountPropertiesDto[]
+      = ImportanceGenerator.getSampleProperties(
+        firstUser.account_name,
+        secondUser.account_name,
+        thirdUser.account_name,
+        fourthUser.account_name,
+      );
+
+    UosAccountsPropertiesFetchService.getData = async (
+      lowerBound: number,
+      limit: number,
+    ): Promise<UosAccountsResponseDto> => {
+      const accounts: UosAccountPropertiesDto[] = [];
+
+      for (let i = lowerBound; i < lowerBound + limit; i += 1) {
+        if (!sampleData[i]) {
+          break;
+        }
+
+        accounts.push(sampleData[i]);
+      }
+
+      return {
+        limit,
+        lower_bound: lowerBound,
+        total: sampleData.length,
+        accounts,
+      };
+    };
+  }
+
   public static mockAirdropsTransactionsSenderForSuccess() {
     AirdropsTransactionsSender.sendTransaction = async (
       // @ts-ignore

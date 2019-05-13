@@ -8,9 +8,7 @@ import EntityImagesModelProvider = require('../../../lib/entity-images/service/e
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 const request = require('supertest');
-const server = require('../../../app');
-
-const fileToUploadHelper = require('./file-to-upload-helper.ts');
+const server = require('../../../lib/api/applications/api-application');
 
 const apiV1Prefix = '/api/v1';
 const apiV2Prefix = '/api/v2';
@@ -34,6 +32,26 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getApiApplication() {
+    return server;
+  }
+
+  public static async makePostRequest(
+    url: string,
+    fields: any,
+    myself: UserModel | null = null,
+  ): Promise<any> {
+    const req = this.getRequestObjForPost(url);
+
+    if (myself) {
+      this.addAuthToken(req, myself);
+    }
+
+    this.addFieldsToRequest(req, fields);
+
+    return req;
+  }
+
   public static addEntityImagesField(req: any, entityImages: any): void {
     const value = typeof entityImages === 'string' ? entityImages : JSON.stringify(entityImages);
 
@@ -255,16 +273,6 @@ class RequestHelper {
     for (const field in fields) {
       req.field(field, fields[field]);
     }
-  }
-
-  /**
-   *
-   * @param {Object} req
-   * @param {string} field
-   */
-  static addSampleMainImageFilename(req, field = 'main_image_filename') {
-    req
-      .attach(field, fileToUploadHelper.getSampleFilePathToUpload());
   }
 
   public static attachImage(req: any, field: string, imagePath: string): void {

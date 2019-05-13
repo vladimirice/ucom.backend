@@ -1,3 +1,7 @@
+import { AppError } from '../../api/errors';
+
+const { Dictionary } = require('ucom-libs-wallet');
+
 const ORG_USERS_TEAM_INVITATION   = 10;
 
 const USER_FOLLOWS_YOU            = 30;
@@ -34,6 +38,9 @@ const USER_REPOSTS_ORG_POST               = 93;
 const USER_VOTES_FOR_BLOCKCHAIN_NODE            = 110;
 const USER_CANCEL_VOTE_FOR_BLOCKCHAIN_NODE      = 111;
 
+const USER_VOTES_FOR_CALCULATOR_NODE            = 112;
+const USER_CANCEL_VOTE_FOR_CALCULATOR_NODE      = 113;
+
 const USER_HAS_MENTIONED_YOU_IN_POST         = 120;
 const USER_HAS_MENTIONED_YOU_IN_COMMENT      = 121;
 
@@ -58,16 +65,64 @@ class NotificationsEventIdDictionary {
     ];
   }
 
+  public static getUpDownEventsByBlockchainNodesType(type: number): { eventIdUp, eventIdDown } {
+    let eventIdUp: number;
+    let eventIdDown: number;
+
+    switch (type) {
+      case Dictionary.BlockchainNodes.typeBlockProducer():
+        eventIdUp   = NotificationsEventIdDictionary.getUserVotesForBlockchainNode();
+        eventIdDown = NotificationsEventIdDictionary.getUserCancelVoteForBlockchainNode();
+        break;
+      case Dictionary.BlockchainNodes.typeCalculator():
+        eventIdUp   = NotificationsEventIdDictionary.getUserVotesForCalculatorNode();
+        eventIdDown = NotificationsEventIdDictionary.getUserCancelVoteForCalculatorNode();
+        break;
+      default:
+        throw new AppError(`Unsupported blockchain node type: ${type}`);
+    }
+
+    return {
+      eventIdUp,
+      eventIdDown,
+    };
+  }
+
+  public static getAllBlockchainNodesVoteForEvents(): number[] {
+    return [
+      this.getUserVotesForBlockchainNode(),
+      this.getUserVotesForCalculatorNode(),
+    ];
+  }
+
+  public static getAllBlockchainNodesCancelVoteEvents(): number[] {
+    return [
+      this.getUserCancelVoteForBlockchainNode(),
+      this.getUserCancelVoteForCalculatorNode(),
+    ];
+  }
+
+  public static getAllBlockchainNodesVotingEvents(): number[] {
+    return Array.prototype.concat(
+      this.getAllBlockchainNodesVoteForEvents(),
+      this.getAllBlockchainNodesCancelVoteEvents(),
+    );
+  }
+
   public static getUserVotesForBlockchainNode(): number {
     return USER_VOTES_FOR_BLOCKCHAIN_NODE;
   }
 
-  /**
-   *
-   * @return {number}
-   */
-  static getUserCancelVoteForBlockchainNode() {
+  public static getUserCancelVoteForBlockchainNode(): number {
     return USER_CANCEL_VOTE_FOR_BLOCKCHAIN_NODE;
+  }
+
+  public static getUserVotesForCalculatorNode(): number {
+    return USER_VOTES_FOR_CALCULATOR_NODE;
+  }
+
+  public static getUserCancelVoteForCalculatorNode(): number {
+    return USER_CANCEL_VOTE_FOR_CALCULATOR_NODE;
   }
 
   /**
@@ -176,6 +231,22 @@ class NotificationsEventIdDictionary {
 
   public static isUserTrustsYou(value: number): boolean {
     return value === this.getUserTrustsYou();
+  }
+
+  public static doesUserFollowOrg(value: number): boolean {
+    return value === this.getUserFollowsOrg();
+  }
+
+  public static doesUserUnfollowOrg(value: number): boolean {
+    return value === this.getUserUnfollowsOrg();
+  }
+
+  public static doesUserFollowOtherUser(value: number): boolean {
+    return value === this.getUserFollowsYou();
+  }
+
+  public static doesUserUnfollowOtherUser(value: number): boolean {
+    return value === this.getUserUnfollowsYou();
   }
 
   public static isUserUntrustsYou(value: number): boolean {

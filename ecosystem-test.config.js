@@ -18,8 +18,8 @@ module.exports = {
   apps: [
     // ================ Apps (interaction with user) =============
     {
-      name: `${NODE_ENV}_backend`,
-      script: 'bin/www.js',
+      name: `${NODE_ENV}-app-backend`,
+      script: 'lib/api/bin/api-bin.js',
 
       ...defaultConfig,
 
@@ -29,8 +29,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_app_graphql`,
-      script: 'bin/app-graphql.js',
+      name: `${NODE_ENV}-app-graphql`,
+      script: 'lib/graphql/bin/graphql-bin.js',
 
       ...defaultConfig,
 
@@ -40,8 +40,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_app_websocket`,
-      script: 'bin/app-websocket.js',
+      name: `${NODE_ENV}-app-websocket`,
+      script: 'lib/websockets/bin/websockets-bin.js',
 
       ...defaultConfig,
 
@@ -51,8 +51,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_app_uploader`,
-      script: 'bin/app-uploader.js',
+      name: `${NODE_ENV}-app-uploader`,
+      script: 'lib/uploader/bin/uploader-bin.js',
 
       ...defaultConfig,
 
@@ -63,8 +63,8 @@ module.exports = {
     },
     // ================ Consumers ======================
     {
-      name: `${NODE_ENV}_consumer_tags_parser`,
-      script: 'bin/consumer-tags-parser.js',
+      name: `${NODE_ENV}-consumer-tags-parser`,
+      script: 'lib/tags/consumers/tags-parser-consumer.js',
 
       ...defaultConfig,
 
@@ -73,8 +73,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_consumer_transaction_sender`,
-      script: 'bin/consumer-transaction-sender.js',
+      name: `${NODE_ENV}-consumer-transaction-sender`,
+      script: 'lib/eos/consumers/transaction-sender-consumer.js',
 
       ...defaultConfig,
 
@@ -83,8 +83,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_consumer_notifications_sender`,
-      script: 'bin/consumer-notifications-sender.js',
+      name: `${NODE_ENV}-consumer-notifications-sender`,
+      script: 'lib/entities/consumers/notifications-sender-consumer.js',
 
       ...defaultConfig,
 

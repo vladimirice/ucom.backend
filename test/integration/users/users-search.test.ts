@@ -1,7 +1,8 @@
-export {};
+import RequestHelper = require('../helpers/request-helper');
 
 const request = require('supertest');
-const server = require('../../../app');
+
+const server = RequestHelper.getApiApplication();
 const requestHelper = require('../helpers/request-helper');
 const responseHelper = require('../helpers/response-helper');
 
@@ -28,7 +29,6 @@ describe('Users API', () => {
   });
 
   it('GET two users by searching shortcut', async () => {
-
     const res = await request(server)
       .get(requestHelper.getUserSearchUrl('a'))
     ;
@@ -77,3 +77,5 @@ describe('Users API', () => {
     expect(res.body.length).toBe(0);
   });
 });
+
+export {};

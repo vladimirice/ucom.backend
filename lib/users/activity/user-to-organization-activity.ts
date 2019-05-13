@@ -1,19 +1,25 @@
 /* tslint:disable:max-line-length */
+import { Transaction } from 'knex';
+
+import UsersActivityRepository = require('../repository/users-activity-repository');
+import knex = require('../../../config/knex');
+import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
+import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
+
 const status = require('statuses');
 
+const { TransactionFactory, InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const usersActivityRepository = require('../../users/repository').Activity;
-const orgModelProvider = require('../../organizations/service').ModelProvider;
 
+const orgModelProvider = require('../../organizations/service').ModelProvider;
 const activityGroupDictionary = require('../../activity/activity-group-dictionary');
-const models = require('../../../models');
-const db = models.sequelize;
+
 const { BadRequestError, AppError } = require('../../api/errors');
 const organizationsRepositories = require('../../organizations/repository');
+
 const userActivityService = require('../../users/user-activity-service');
 
 const eventIdDictionary = require('../../entities/dictionary').EventId;
-
-const { TransactionFactory, InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const ENTITY_NAME = orgModelProvider.getEntityName();
 
@@ -39,7 +45,7 @@ class UserToOrganizationActivity {
   static async userUnfollowsOrganization(userFrom, orgIdTo, body) {
     const activityTypeId = InteractionTypeDictionary.getUnfollowId();
 
-    return await this.userFollowsOrUnfollowsOrganization(userFrom, orgIdTo, activityTypeId, body);
+    return this.userFollowsOrUnfollowsOrganization(userFrom, orgIdTo, activityTypeId, body);
   }
 
   /**
@@ -57,29 +63,53 @@ class UserToOrganizationActivity {
     const activityGroupId = activityGroupDictionary.getGroupContentInteraction();
     await this.checkFollowPreconditions(userFrom, orgId, activityTypeId, activityGroupId);
 
-    const activity = await db
-      .transaction(async (transaction) => {
+    const activity = await knex.transaction(async (trx) => {
+      const eventId = activityTypeId === InteractionTypeDictionary.getFollowId() ?
+        eventIdDictionary.getUserFollowsOrg() : eventIdDictionary.getUserUnfollowsOrg();
 
-        const eventId = activityTypeId === InteractionTypeDictionary.getFollowId() ?
-          eventIdDictionary.getUserFollowsOrg() : eventIdDictionary.getUserUnfollowsOrg();
+      await this.createFollowIndex(eventId, userFrom.id, orgId, trx);
 
-        const newActivityData = {
-          activity_type_id:   activityTypeId,
-          user_id_from:       userFrom.id,
-          entity_id_to:       orgId,
-          signed_transaction: body.signed_transaction,
-          entity_name:        ENTITY_NAME,
-          activity_group_id:  activityGroupId,
+      const newActivityData = {
+        activity_type_id:   activityTypeId,
+        user_id_from:       userFrom.id,
+        entity_id_to:       orgId,
+        signed_transaction: body.signed_transaction,
+        entity_name:        ENTITY_NAME,
+        activity_group_id:  activityGroupId,
 
-          event_id:           eventId,
-        };
+        event_id:           eventId,
+      };
 
-        return await usersActivityRepository.createNewActivity(newActivityData, transaction);
-      });
+      return UsersActivityRepository.createNewKnexActivity(newActivityData, trx);
+    });
 
     await userActivityService.sendPayloadToRabbit(activity);
 
     return true;
+  }
+
+  private static async createFollowIndex(
+    eventId: number,
+    userIdFrom: number,
+    orgIdTo: number,
+    trx: Transaction,
+  ): Promise<void> {
+    if (NotificationsEventIdDictionary.doesUserFollowOrg(eventId)) {
+      await UsersActivityFollowRepository.insertOneFollowsOrganization(userIdFrom, orgIdTo, trx);
+
+      return;
+    }
+
+    if (NotificationsEventIdDictionary.doesUserUnfollowOrg(eventId)) {
+      const deleteRes = await UsersActivityFollowRepository.deleteOneFollowsOrg(userIdFrom, orgIdTo, trx);
+      if (deleteRes === null) {
+        throw new AppError(`No record to delete. It is possible that it is a concurrency issue. User ID from: ${userIdFrom}, org ID to ${orgIdTo}`);
+      }
+
+      return;
+    }
+
+    throw new AppError(`Unsupported eventId: ${eventId}`);
   }
 
   /**
@@ -92,12 +122,6 @@ class UserToOrganizationActivity {
    * @private
    */
   private static async checkFollowPreconditions(userFrom, orgIdTo, activityTypeId, activityGroupId) {
-    // if (userFrom.id === userIdTo) {
-    //   throw new BadRequestError({
-    //     'general': 'It is not possible to follow your own organization'
-    //   }, status('400'));
-    // }
-
     const currentFollowStatus = await usersActivityRepository.getCurrentActivity(
       activityGroupId,
       userFrom.id,

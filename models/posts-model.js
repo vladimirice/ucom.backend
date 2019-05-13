@@ -11,9 +11,6 @@ module.exports = (sequelize, DataTypes) => {
     description: {
       type: DataTypes.TEXT,
     },
-    main_image_filename: {
-      type: DataTypes.STRING,
-    },
     current_vote: {
       type: DataTypes.STRING,
     },
@@ -74,7 +71,6 @@ module.exports = (sequelize, DataTypes) => {
       'title',
       'description',
 
-      'main_image_filename', // deprecated
       'entity_images',
 
       'current_vote',
@@ -120,7 +116,6 @@ module.exports = (sequelize, DataTypes) => {
       'current_vote',
       'current_rate',
 
-      'main_image_filename', // deprecated
       'entity_images',
       'entity_tags',
 
@@ -140,7 +135,6 @@ module.exports = (sequelize, DataTypes) => {
     'id',
     'title',
     'entity_images',
-    'main_image_filename', // @deprecated
     'comments_count',
 
     'user_id',
@@ -233,7 +227,6 @@ module.exports = (sequelize, DataTypes) => {
     'leading_text',
     'description',
     'user_id', // better to use account name
-    'main_image_filename', // better to store full url and save image to ipfs
     'post_type_id',
     'blockchain_id',
     'created_at',

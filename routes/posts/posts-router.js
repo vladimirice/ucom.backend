@@ -1,6 +1,6 @@
 "use strict";
 const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
-const config = require('config');
+const _ = require("lodash");
 const postsRouter = require('./comments-router');
 const { AppError, BadRequestError } = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
@@ -60,17 +60,12 @@ postsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req
     const response = await service.processRepostCreation(req.body, req.post_id);
     res.status(201).send(response);
 });
-/* Upload post picture (for description) */
-postsRouter.post('/image', [descriptionParser], async (req, res) => {
-    const { filename } = req.files.image[0];
-    const rootUrl = config.get('host').root_url;
-    res.send({
-        files: [
-            {
-                url: `${rootUrl}/upload/${filename}`,
-            },
-        ],
-    });
+postsRouter.post('/image', [descriptionParser], async (
+// @ts-ignore
+req, 
+// @ts-ignore
+res) => {
+    throw new BadRequestError('Legacy uploader is switched off. Consider to use a new uploader');
 });
 /* Create new post */
 postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
@@ -85,15 +80,8 @@ postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 postsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const userId = req.user.id;
     const postId = req.post_id;
-    // Lets change file
-    const { files } = req;
-    // noinspection OverlyComplexBooleanExpressionJS
-    if (files && files.main_image_filename && files.main_image_filename[0] && files.main_image_filename[0].filename) {
-        req.body.main_image_filename = files.main_image_filename[0].filename;
-    }
-    else {
-        // Not required to update main_image_filename if there is not uploaded file
-        delete req.body.main_image_filename;
+    if (!_.isEmpty(req.files)) {
+        throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
     }
     const params = req.body;
     const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);

@@ -41,6 +41,8 @@ describe('Organizations. Get requests', () => {
           const wallOwner = userVlad;
           await PostsGenerator.generateUsersPostsForUserWall(wallOwner, userJane, 3);
 
+          return;
+
           const page    = 1;
           const perPage = 2;
 

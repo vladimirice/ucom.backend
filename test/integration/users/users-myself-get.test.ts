@@ -4,18 +4,19 @@ import SeedsHelper = require('../helpers/seeds-helper');
 import UsersHelper = require('../helpers/users-helper');
 import ActivityHelper = require('../helpers/activity-helper');
 import PostsGenerator = require('../../generators/posts-generator');
-import PostsHelper = require('../helpers/posts-helper');
 import ResponseHelper = require('../helpers/response-helper');
+import UsersRepository = require('../../../lib/users/users-repository');
+import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
+import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 
 const request = require('supertest');
 
-const usersRepository = require('./../../../lib/users/users-repository');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 MockHelper.mockAllBlockchainPart();
 MockHelper.mockAllTransactionSigning();
 
-const usersActivityRepository = require('../../../lib/users/repository').Activity;
+const JEST_TIMEOUT = 5000;
 
 let userVlad;
 let userJane;
@@ -36,6 +37,39 @@ describe('Myself. Get requests', () => {
   });
 
   describe('Get myself data', () => {
+    describe('scaled importance', () => {
+      it('myself data should include scaled importance greater than zero', async () => {
+        MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
+        await UosAccountsPropertiesUpdateService.updateAll();
+
+        const response = await request(server)
+          .get(RequestHelper.getMyselfUrl())
+          .set('Authorization', `Bearer ${userVlad.token}`);
+
+        const { body } = response;
+
+        const dbUser = await UsersRepository.getUserById(userVlad.id);
+
+        UsersHelper.validateUserJson(body, userVlad, dbUser);
+
+        expect(body.uos_accounts_properties.scaled_importance).toBeGreaterThan(0);
+      }, JEST_TIMEOUT);
+
+      it('myself data should include zero scaled importance if no stats yet', async () => {
+        const response = await request(server)
+          .get(RequestHelper.getMyselfUrl())
+          .set('Authorization', `Bearer ${userVlad.token}`);
+
+        const { body } = response;
+
+        const dbUser = await UsersRepository.getUserById(userVlad.id);
+
+        UsersHelper.validateUserJson(body, userVlad, dbUser);
+
+        expect(body.uos_accounts_properties.scaled_importance).toBe(0);
+      }, JEST_TIMEOUT);
+    });
+
     it('should be field unread_messages_count', async () => {
       const res = await request(server)
         .get(RequestHelper.getMyselfUrl())
@@ -43,20 +77,12 @@ describe('Myself. Get requests', () => {
       expect(res.body.unread_messages_count).toBeDefined();
     });
 
-    it('should be field current_importance', async () => {
-      const res = await request(server)
-        .get(RequestHelper.getMyselfUrl())
-        .set('Authorization', `Bearer ${userVlad.token}`);
-
-      expect(res.body.current_importance).toBeDefined();
-    });
-
     it('Get logged user data', async () => {
       const res = await request(server)
         .get(RequestHelper.getMyselfUrl())
         .set('Authorization', `Bearer ${userVlad.token}`);
       expect(res.status).toBe(200);
-      const user = await usersRepository.getUserById(userVlad.id);
+      const user = await UsersRepository.getUserById(userVlad.id);
 
       UsersHelper.validateUserJson(res.body, userVlad, user);
     });
@@ -86,7 +112,7 @@ describe('Myself. Get requests', () => {
         orgIdsToUnfollow,
       );
 
-      const { usersIds, orgIds } = await usersActivityRepository.findOneUserFollowActivity(myself.id);
+      const { usersIds, orgIds } = await UsersActivityRepository.findOneUserFollowActivity(myself.id);
 
       expect(usersIds.sort()).toEqual(usersIdsToFollow.sort());
       expect(orgIds.sort()).toEqual(orgIdsToFollow.sort());
@@ -148,45 +174,45 @@ describe('Myself. Get requests', () => {
         const janeOrgIdTwo = 4;
 
         // Myself posts
-        const promisesToCreatePosts = [
+        const promisesToCreatePosts: any[] = [
           // Vlad wall
           PostsGenerator.createMediaPostByUserHimself(userVlad), // User himself creates posts
           PostsGenerator.createPostOfferByUserHimself(userVlad),
-          PostsHelper.requestToCreateDirectPostForUser(
+          PostsGenerator.createUserDirectPostForOtherUserV2(
             userJane,
             userVlad,
           ), // somebody creates post in users wall
 
           // Jane wall
-          PostsHelper.requestToCreateMediaPost(userJane), // User himself creates posts
-          PostsHelper.requestToCreatePostOffer(userJane),
-          PostsHelper.requestToCreateDirectPostForUser(
+          PostsGenerator.createMediaPostByUserHimself(userJane), // User himself creates posts
+          PostsGenerator.createPostOfferByUserHimself(userJane),
+          PostsGenerator.createUserDirectPostForOtherUser(
             userVlad,
             userJane,
           ), // somebody creates post in users wall
 
           // Peter wall
-          PostsHelper.requestToCreateMediaPost(userPetr), // User himself creates posts
-          PostsHelper.requestToCreatePostOffer(userPetr),
+          PostsGenerator.createMediaPostByUserHimself(userPetr), // User himself creates posts
+          PostsGenerator.createPostOfferByUserHimself(userPetr),
 
-          PostsHelper.requestToCreateDirectPostForUser(
+          PostsGenerator.createUserDirectPostForOtherUserV2(
             userRokky,
             userPetr,
           ), // somebody creates post in users wall
 
           // Rokky wall
-          PostsHelper.requestToCreateMediaPost(userRokky), // User himself creates posts
-          PostsHelper.requestToCreatePostOffer(userRokky),
-          PostsHelper.requestToCreateDirectPostForUser(
+          PostsGenerator.createMediaPostByUserHimself(userRokky), // User himself creates posts
+          PostsGenerator.createPostOfferByUserHimself(userRokky),
+          PostsGenerator.createUserDirectPostForOtherUserV2(
             userPetr,
             userRokky,
           ), // somebody creates post in users wall
 
           // Jane Org wall
-          PostsHelper.requestToCreateMediaPostOfOrganization(userJane, janeOrgIdOne),
-          PostsHelper.requestToCreatePostOfferOfOrganization(userJane, janeOrgIdTwo),
+          PostsGenerator.createMediaPostOfOrganization(userJane, janeOrgIdOne),
+          PostsGenerator.createPostOfferOfOrganization(userJane, janeOrgIdTwo),
 
-          PostsHelper.requestToCreateDirectPostForOrganization(userVlad, janeOrgIdTwo),
+          PostsGenerator.createDirectPostForOrganizationV2(userVlad, janeOrgIdTwo),
         ];
 
         const usersToFollow = [
@@ -211,7 +237,7 @@ describe('Myself. Get requests', () => {
         // Vlad is following jane and petr but not rokky
         // News feed should consist of vlad wall + jane wall + petr wall
 
-        // noinspection JSUnusedLocalSymbols
+        // eslint-disable-next-line unicorn/no-unreadable-array-destructuring
         const [
           vladMediaPost, vladPostOffer, vladDirectPost,
           janeMediaPost, janePostOffer, janeDirectPost,
@@ -240,7 +266,7 @@ describe('Myself. Get requests', () => {
         expect(posts.some(post => post.id === petrPostOffer)).toBeTruthy();
         expect(posts.some(post => post.id === petrDirectPost.id)).toBeTruthy();
 
-        expect(posts.some(post => post.id === janeMediaPostOrg.id)).toBeTruthy();
+        expect(posts.some(post => post.id === janeMediaPostOrg)).toBeTruthy();
         expect(posts.some(post => post.id === janePostOfferOrg)).toBeTruthy();
         expect(posts.some(post => post.id === janeDirectPostOrg.id)).toBeTruthy();
       });

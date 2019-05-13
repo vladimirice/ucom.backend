@@ -1,4 +1,5 @@
 const express = require('express');
+require('express-async-errors');
 
 const router = express.Router();
 
@@ -34,8 +35,6 @@ function getUserService(req) {
 router.get('/', [authTokenMiddleWare], async (req, res) => {
   const currentUserId = req.user.id;
   const user = await getUserService(req).getUserByIdAndProcess(currentUserId);
-  // TODO - fake data
-  user.current_importance = user.current_rate;
 
   res.send(user);
 });

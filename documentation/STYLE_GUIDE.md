@@ -7,6 +7,7 @@ Table of contents:
     * [Autotests](#autotests)
     * [Naming](#naming)
     * [Commenting](#commenting)
+    * [Database](#database)
     
 
 
@@ -30,11 +31,17 @@ Because of this, some of the conventions are not satisfied by the "old code", on
 
 * TODO is not allowed for code pushed to master. It is allowed only during development stage.
 
+### Project structure
+* All blockchain related code should be placed to `ucom.libs.wallet` library.
+
+
 ### Autotests
 * **Do** write autotests for new functions. TDD style is preferable.
 
 * **Don't** use `pre-defined seeds`. Some old-written autotests are still using them.
 * **Do** use `generators` - [generators folder](../test/generators), [usage example](../test/integration/tags/tags-get.test.ts)
+
+**Do** use blockchain application mock methods. Example - [mockUosAccountsPropertiesFetchService method](../test/integration/helpers/mock-helper.ts)
 
 ### Naming
 * **Do** use `entity` prefix for objects like `team`, `tags`, etc. which might be used for several entities
@@ -65,3 +72,13 @@ title | description
 #tech-debt | technical debt
 
 TODO - This section is not ready yet. This will populated with links to files that represent project conventions
+
+## Database
+
+Don't use | Do use
+--- | ---
+Create tables inside the public (default) schema | All new tables should be created inside the schemas different from public. [Example](../migrations_knex_monolith/20190401121234-create-table-blockchain-irreversible-traces.js)
+camelCase, uppercase and plural naming rules for database objects | snake_case, lowercase (users_activity, blockchain_nodes, etc) 
+
+## Error handling
+* Avoid 500 responses, add extra validation.

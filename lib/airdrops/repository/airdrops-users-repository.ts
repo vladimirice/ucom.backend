@@ -17,6 +17,13 @@ const users = UsersModelProvider.getUsersTableName();
 const usersExternal = UsersExternalModelProvider.usersExternalTableName();
 
 class AirdropsUsersRepository {
+  public static getAirdropParticipantsIdsToHide(): number[] {
+    return [
+      928,
+      1913,
+    ];
+  }
+
   public static async findFirstIdWithStatus(
     airdropId: number,
     status: number,
@@ -42,7 +49,9 @@ class AirdropsUsersRepository {
   ): Promise<number> {
     const res = await knex(TABLE_NAME)
       .countDistinct(`${TABLE_NAME}.user_id AS amount`)
-      .where('airdrop_id', '=', airdropId);
+      .where('airdrop_id', '=', airdropId)
+      .whereNotIn('user_id', this.getAirdropParticipantsIdsToHide())
+    ;
 
     return RepositoryHelper.getKnexCountAsNumber(res);
   }

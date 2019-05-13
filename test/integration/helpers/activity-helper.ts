@@ -6,7 +6,7 @@ import UsersActivityRepository = require('../../../lib/users/repository/users-ac
 
 const delay = require('delay');
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 class ActivityHelper {
   static async requestToCreateFollow(

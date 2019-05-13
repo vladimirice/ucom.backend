@@ -42,6 +42,9 @@ class UsersFetchService {
     }
 
     const userJson = user.toJSON();
+
+    UserPostProcessor.processUosAccountsProperties(userJson);
+
     userJson.organizations = userOrganizations;
 
 
@@ -66,6 +69,7 @@ class UsersFetchService {
 
     return userJson;
   }
+
 
   public static async findOneAndProcessForCard(
     userId: number,
@@ -170,6 +174,7 @@ class UsersFetchService {
       params,
     };
   }
+
 
   private static getManyUsersListPromises(query: RequestQueryDto): { promises: Promise<any>[], params: DbParamsDto } {
     // preparation for universal class-fetching processor

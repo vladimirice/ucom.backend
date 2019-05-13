@@ -13,11 +13,12 @@ import PostsCurrentParamsRepository = require('../../../lib/posts/repository/pos
 import knex = require('../../../config/knex');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
+import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 
 const request = require('supertest');
 const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
 
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 const postRepository = require('../../../lib/posts/posts-repository');
 
 const postStatsRepository = require('../../../lib/posts/stats/post-stats-repository');
@@ -241,6 +242,7 @@ class PostsHelper {
     this.checkWrongPostProcessingSmell(post);
 
     expect(post.post_type_id).toBeTruthy();
+    expect(typeof post.entity_images).toBe('object');
 
     switch (post.post_type_id) {
       case ContentTypeDictionary.getTypeMediaPost():
@@ -264,16 +266,10 @@ class PostsHelper {
    *
    * @param {Object} model
    */
-  static checkEntityImages(model) {
-    expect(model.entity_images).toBeDefined();
+  public static checkEntityImages(model: PostModelResponse) {
+    const field: string = EntityImagesModelProvider.entityImagesColumn();
 
-    if (model.main_image_filename === null && model.entity_images === null) {
-      return;
-    }
-
-    expect(model.entity_images.article_title).toBeDefined();
-    expect(Array.isArray(model.entity_images.article_title)).toBeTruthy();
-    expect(model.entity_images.article_title.length).toBe(1);
+    ResponseHelper.expectToBeObject(model[field]);
   }
 
   /**
@@ -346,7 +342,6 @@ class PostsHelper {
       ResponseHelper.expectFieldsDoesNotExist(post, toExclude); // check for not allowed fields
 
       const mustBeNotNull = postsModelProvider.getModel().getDirectPostNotNullFields();
-      expect(post.main_image_filename).toBeDefined();
 
       if (options.postProcessing === 'notification') {
         const commentsCountIndex = mustBeNotNull.indexOf('comments_count');
@@ -423,6 +418,7 @@ class PostsHelper {
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
+      .field(EntityImagesModelProvider.entityImagesColumn(),  '{}')
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -454,6 +450,7 @@ class PostsHelper {
       .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
+      .field(EntityImagesModelProvider.entityImagesColumn(),   '{}')
     ;
 
     ResponseHelper.expectStatusOk(res);
@@ -477,121 +474,12 @@ class PostsHelper {
       .patch(RequestHelper.getOnePostV2Url(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
+      .field('entity_images',   '{}')
     ;
 
     ResponseHelper.expectStatusOk(res);
 
     return res.body;
-  }
-
-  /**
-   * @deprecated
-   * @see PostsGenerator
-   * @param {Object} user
-   * @returns {Promise<number>}
-   */
-  static async requestToCreateMediaPost(user) {
-    const newPostFields = {
-      title: 'Extremely new post',
-      description: 'Our super post description',
-      leading_text: 'extremely leading text',
-      post_type_id: ContentTypeDictionary.getTypeMediaPost(),
-      user_id: user.id,
-      current_rate: 0.0000000000,
-      current_vote: 0,
-    };
-
-    const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('title',         newPostFields.title)
-      .field('description',   newPostFields.description)
-      .field('leading_text',  newPostFields.leading_text)
-      .field('post_type_id',  newPostFields.post_type_id)
-      .field('user_id',       newPostFields.user_id)
-      .field('current_rate',  newPostFields.current_rate)
-      .field('current_vote',  newPostFields.current_vote)
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    return +res.body.id;
-  }
-
-  /**
-   * @deprecated
-   * @see PostsGenerator
-   * @param {Object} user
-   * @returns {Promise<number>}
-   */
-  static async requestToCreatePostOffer(user) {
-    const newPostFields = {
-      title: 'Extremely new post',
-      description: 'Our super post description',
-      leading_text: 'extremely leading text',
-      user_id: user.id,
-      post_type_id: ContentTypeDictionary.getTypeOffer(),
-      current_rate: '0.0000000000',
-      current_vote: 0,
-      action_button_title: 'TEST_BUTTON_CONTENT',
-    };
-
-    const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('title',               newPostFields.title)
-      .field('description',         newPostFields.description)
-      .field('leading_text',        newPostFields.leading_text)
-      .field('user_id',             newPostFields.user_id)
-      .field('post_type_id',        newPostFields.post_type_id)
-      .field('current_rate',        newPostFields.current_rate)
-      .field('current_vote',        newPostFields.current_vote)
-      .field('action_button_title', newPostFields.action_button_title)
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    return +res.body.id;
-  }
-
-  /**
-   * @deprecated
-   * @see PostsGenerator
-   *
-   * @param {Object} user
-   * @param {number} orgId
-   * @returns {Promise<number>}
-   */
-  static async requestToCreatePostOfferOfOrganization(user, orgId) {
-    const newPostFields = {
-      title: 'Extremely new post',
-      description: 'Our super post description',
-      leading_text: 'extremely leading text',
-      user_id: user.id,
-      post_type_id: ContentTypeDictionary.getTypeOffer(),
-      current_rate: '0.0000000000',
-      current_vote: 0,
-      action_button_title: 'TEST_BUTTON_CONTENT',
-      organization_id: orgId,
-    };
-
-    const res = await request(server)
-      .post(RequestHelper.getPostsUrl())
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('title',               newPostFields.title)
-      .field('description',         newPostFields.description)
-      .field('leading_text',        newPostFields.leading_text)
-      .field('user_id',             newPostFields.user_id)
-      .field('post_type_id',        newPostFields.post_type_id)
-      .field('current_rate',        newPostFields.current_rate)
-      .field('current_vote',        newPostFields.current_vote)
-      .field('action_button_title', newPostFields.action_button_title)
-      .field('organization_id',     newPostFields.organization_id)
-    ;
-
-    ResponseHelper.expectStatusOk(res);
-
-    return +res.body.id;
   }
 
   /**
@@ -784,6 +672,7 @@ class PostsHelper {
       .set('Authorization', `Bearer ${user.token}`)
       .field('post_users_team[0][id]', boardToChange[0].user_id)
       .field('post_users_team[1][id]', boardToChange[1].user_id)
+      .field(EntityImagesModelProvider.entityImagesColumn(), '{}')
     ;
 
     ResponseHelper.expectStatusOk(res);

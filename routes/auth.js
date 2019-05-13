@@ -1,5 +1,6 @@
 "use strict";
 const express = require('express');
+require('express-async-errors');
 const router = express.Router();
 const _ = require('lodash');
 const eosJsEcc = require('../lib/crypto/eosjs-ecc');
@@ -24,7 +25,7 @@ router.post('/login', [formDataParser], async (req, res, next) => {
             errors: [
                 {
                     field: 'account_name',
-                    message: 'Such account does not exist in blockchain',
+                    message: 'Incorrect Brainkey or Account name',
                 },
             ],
         });
@@ -41,7 +42,7 @@ router.post('/login', [formDataParser], async (req, res, next) => {
                 errors: [
                     {
                         field: 'account_name',
-                        message: 'Such account does not exist in blockchain',
+                        message: 'Incorrect Brainkey or Account name',
                     },
                 ],
             });

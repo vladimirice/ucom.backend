@@ -60,7 +60,7 @@ class UsersTrustService {
         throw new AppError(`Unsupported eventId: ${eventId}`);
       }
 
-      return newActivity[0];
+      return newActivity;
     });
 
 

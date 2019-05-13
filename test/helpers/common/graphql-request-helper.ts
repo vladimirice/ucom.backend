@@ -1,16 +1,18 @@
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
-const { app, server } = require('../../../graphql-app');
+const { app, server } = require('../../../lib/graphql/applications/graphql-application');
 
 const PORT = 4007;
 
-const GRAPHQL_URI = `http://127.0.0.1:${PORT}${server.graphqlPath}`;
+const GRAPHQL_HOST = `http://127.0.0.1:${PORT}`;
+const GRAPHQL_URI = `${GRAPHQL_HOST}${server.graphqlPath}`;
 
 let serverApp;
 
@@ -34,6 +36,29 @@ export class GraphqlRequestHelper {
     return this.makeRequestAsMyself(myself, query);
   }
 
+  public static async makeRequestFromQueryPartsWithAliasesAsMyself(
+    myself: UserModel,
+    partsWithAliases: StringToAnyCollection,
+  ): Promise<any> {
+    const query = GraphQLSchema.getQueryMadeFromPartsWithAliases(partsWithAliases);
+
+    const response = await this.makeRequestAsMyself(myself, query);
+
+    return response.data;
+  }
+
+  public static async makeRequestFromOneQueryPartAsMyself(
+    myself: UserModel,
+    queryPart: string,
+    key: string,
+  ): Promise<any> {
+    const query = GraphQLSchema.getQueryMadeFromParts([queryPart]);
+
+    const response = await this.makeRequestAsMyself(myself, query);
+
+    return response.data[key];
+  }
+
   public static async makeRequestAsMyself(
     myself: UserModel,
     query: string,
@@ -41,7 +66,14 @@ export class GraphqlRequestHelper {
     dataOnly = true,
   ): Promise<any> {
     const myselfClient = this.getClientWithToken(myself);
-    const response = await myselfClient.query({ query: gql(query) });
+
+    let response;
+
+    try {
+      response = await myselfClient.query({ query: gql(query) });
+    } catch (error) {
+      throw new Error('GraphQL error');
+    }
 
     if (keyToReturn) {
       return dataOnly ? response.data[keyToReturn].data : response.data[keyToReturn];

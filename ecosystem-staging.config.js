@@ -25,8 +25,8 @@ module.exports = {
   apps: [
     // ================ Apps (interaction with user) =============
     {
-      name: `${NODE_ENV}_app_backend`,
-      script: 'bin/www.js',
+      name: `${NODE_ENV}-app-backend`,
+      script: 'lib/api/bin/api-bin.js',
 
       ...clusterConfig,
       ...defaultConfig,
@@ -37,8 +37,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_app_graphql`,
-      script: 'bin/app-graphql.js',
+      name: `${NODE_ENV}-app-graphql`,
+      script: 'lib/graphql/bin/graphql-bin.js',
 
       ...clusterConfig,
       ...defaultConfig,
@@ -49,9 +49,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_app_websocket`,
-      instance_var: 'INSTANCE_ID',
-      script: 'bin/app-websocket.js',
+      name: `${NODE_ENV}-app-websocket`,
+      script: 'lib/websockets/bin/websockets-bin.js',
 
       // no cluster due to condition existence (connected users list)
       ...defaultConfig,
@@ -62,8 +61,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_app_uploader`,
-      script: 'bin/app-uploader.js',
+      name: `${NODE_ENV}-app-uploader`,
+      script: 'lib/uploader/bin/uploader-bin.js',
 
       ...clusterConfig,
       ...defaultConfig,
@@ -75,8 +74,8 @@ module.exports = {
     },
     // ================ Consumers ======================
     {
-      name: `${NODE_ENV}_consumer_tags_parser`,
-      script: 'bin/consumer-tags-parser.js',
+      name: `${NODE_ENV}-consumer-tags-parser`,
+      script: 'lib/tags/consumers/tags-parser-consumer.js',
 
       ...defaultConfig,
 
@@ -85,8 +84,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_consumer_transaction_sender`,
-      script: 'bin/consumer-transaction-sender.js',
+      name: `${NODE_ENV}-consumer-transaction-sender`,
+      script: 'lib/eos/consumers/transaction-sender-consumer.js',
 
       ...defaultConfig,
 
@@ -95,8 +94,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_consumer_notifications_sender`,
-      script: 'bin/consumer-notifications-sender.js',
+      name: `${NODE_ENV}-consumer-notifications-sender`,
+      script: 'lib/entities/consumers/notifications-sender-consumer.js',
 
       ...defaultConfig,
 
@@ -106,8 +105,9 @@ module.exports = {
     },
     // ================ Workers (CRON) ======================
     {
-      name: `${NODE_ENV}_worker_airdrops_users_to_pending`,
-      script: 'bin/workers-airdrops/airdrops-users-to-pending.js',
+      name: `${NODE_ENV}-worker-airdrops-users-to-pending`,
+      script: 'lib/airdrops/workers/airdrops-users-to-pending.js',
+
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
@@ -115,8 +115,9 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_airdrops_users_to_waiting`,
-      script: 'bin/workers-airdrops/airdrops-users-to-waiting.js',
+      name: `${NODE_ENV}-worker-airdrops-users-to-waiting`,
+      script: 'lib/airdrops/workers/airdrops-users-to-waiting.js',
+
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
@@ -124,8 +125,9 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_airdrops_users_to_received`,
-      script: 'bin/workers-airdrops/airdrops-users-to-received.js',
+      name: `${NODE_ENV}-worker-airdrops-users-to-received`,
+      script: 'lib/airdrops/workers/airdrops-users-to-received.js',
+
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
@@ -133,8 +135,19 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_update_importance`,
-      script: 'bin/worker-update-importance.js',
+      name: `${NODE_ENV}-uos-accounts-properties-update-worker`,
+      script: 'lib/uos-accounts-properties/worker/uos-accounts-properties-update-worker.js',
+
+      watch: false,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      env: {
+        NODE_ENV,
+      },
+    },
+    {
+      name: `${NODE_ENV}-worker-update-importance`,
+      script: 'lib/eos/workers/update-importance-worker.js',
+
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
       env: {
@@ -142,8 +155,9 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_update_tags_importance`,
-      script: 'bin/worker-update-tag-importance.js',
+      name: `${NODE_ENV}-worker-update-tags-importance`,
+      script: 'lib/tags/workers/update-tag-importance-worker.js',
+
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
       env: {
@@ -151,8 +165,8 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_update_blockchain_nodes`,
-      script: 'bin/worker-update-blockchain-nodes.js',
+      name: `${NODE_ENV}-worker-update-blockchain-nodes`,
+      script: 'lib/blockchain-nodes/worker/update-blockchain-nodes-worker.js',
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
@@ -160,8 +174,9 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_save_current_params`,
-      script: 'bin/worker-save-current-params.js',
+      name: `${NODE_ENV}-worker-save-current-params`,
+      script: 'lib/stats/workers/save-current-params-worker.js',
+
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_HOUR,
       env: {
@@ -169,8 +184,9 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_stats_calculate_event_params`,
-      script: 'bin/worker-stats-calculate-event-params.js',
+      name: `${NODE_ENV}-worker-stats-calculate-event-params`,
+      script: 'lib/stats/workers/stats-calculate-event-params-worker.js',
+
       watch: false,
       cron_restart: '30 */1 * * *',
       env: {
@@ -178,8 +194,9 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}_worker_sync_tr_traces`,
-      script: 'bin/worker-sync-tr-traces.js',
+      name: `${NODE_ENV}-worker-sync-tr-traces`,
+      script: 'lib/eos/workers/sync-tr-traces-worker.js',
+
       watch: false,
       cron_restart: CRON_PATTERN_EVERY_HOUR,
       env: {

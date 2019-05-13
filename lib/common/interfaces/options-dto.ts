@@ -3,6 +3,14 @@ interface WorkerOptionsDto {
   readonly durationInSecondsToAlert: number;
 }
 
+interface InsertUpdateHelperFields {
+  [index: string]: {
+    key: string,
+    type: string,
+  }
+}
+
 export {
   WorkerOptionsDto,
+  InsertUpdateHelperFields,
 };

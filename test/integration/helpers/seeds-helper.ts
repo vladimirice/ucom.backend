@@ -12,6 +12,7 @@ import UsersExternalModelProvider = require('../../../lib/users-external/service
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 import AccountsModelProvider = require('../../../lib/accounts/service/accounts-model-provider');
 import CloseHandlersHelper = require('../../../lib/common/helper/close-handlers-helper');
+import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
 // import MongoGenerator = require('../../generators/common/mongo-generator');
 
 const models = require('../../../models');
@@ -51,9 +52,11 @@ const minorTablesToSkipSequences = [
   'tags_current_params_id_seq',
   'irreversible_traces_id_seq',
   'outgoing_transactions_log_id_seq',
+  'uos_accounts_properties_id_seq',
   `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
   `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
   `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
+  `${UsersModelProvider.getUsersActivityFollowTableName()}_id_seq`,
 ];
 
 // Truncated async
@@ -62,7 +65,11 @@ const minorTables = [
   usersRepositories.UsersTeam.getModelName(),
 
   UsersModelProvider.getUsersActivityTrustTableName(),
+  UsersModelProvider.getUsersActivityFollowTableName(),
 
+  UosAccountsModelProvider.uosAccountsPropertiesTableName(),
+
+  'airdrops_users_github_raw',
   'airdrops_users_external_data',
   'airdrops_users_external_data',
 
@@ -144,7 +151,6 @@ class SeedsHelper {
       post_type_id: 1,
       title: 'EOS core library update',
       description: 'We are happy to announce a new major version of our EOS core library. A several cool features are successfully implemented',
-      main_image_filename: 'sample_filename_1.jpg',
       user_id: user.id,
       leading_text: 'Special update for our EOS people',
       created_at: new Date(),
@@ -152,6 +158,7 @@ class SeedsHelper {
       blockchain_id: 'sample_post_blockchain_id',
       entity_id_for: user.id,
       entity_name_for: UsersModelProvider.getEntityName(),
+      entity_images: {},
     };
 
     const model = await models.posts.create(data);
@@ -175,6 +182,7 @@ class SeedsHelper {
       user_id:        user.id,
       path:           [1], // Will be malformed if you create several comments
       depth: 0,
+      entity_images: {},
     };
 
     const model = await models.comments.create(data);
@@ -188,6 +196,33 @@ class SeedsHelper {
    */
   static async purgeAllQueues() {
     await rabbitMqService.purgeAllQueues();
+  }
+
+  public static async noGraphQlMockBlockchainOnly() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      workersMocking: 'blockchainOnly',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
+  }
+
+  public static async noGraphQlMockAllWorkers() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      workersMocking: 'all',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
+  }
+
+  public static async withGraphQlMockAllWorkers() {
+    const beforeAfterOptions = {
+      isGraphQl: true,
+      workersMocking: 'all',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
   }
 
   public static async beforeAllSetting(options) {
@@ -397,6 +432,22 @@ class SeedsHelper {
     await models.posts.bulkCreate(postsSeeds);
     await models.post_offer.bulkCreate(postsOffersSeeds);
     await models.post_users_team.bulkCreate(postUsersTeamSeeds);
+  }
+
+  public static async afterAllWithoutGraphQl() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+    };
+
+    return this.doAfterAll(beforeAfterOptions);
+  }
+
+  public static async afterAllWithGraphQl() {
+    const beforeAfterOptions = {
+      isGraphQl: true,
+    };
+
+    return this.doAfterAll(beforeAfterOptions);
   }
 
   public static async doAfterAll(

@@ -1,4 +1,5 @@
 import EnvHelper = require('../../common/helper/env-helper');
+import ConsoleHelper = require('../../common/helper/console-helper');
 
 const morgan      = require('morgan');
 const helmet      = require('helmet');
@@ -40,7 +41,7 @@ class ApiErrorAndLoggingHelper {
     const port = EnvHelper.getPortOrException();
     app.set('port', port);
 
-    server.listen(port);
+    server.listen(port, () => ConsoleHelper.printApplicationIsStarted(port));
     server.on('error', ApiErrorAndLoggingHelper.httpServerOnError);
   }
 

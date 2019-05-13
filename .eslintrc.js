@@ -14,7 +14,8 @@ module.exports = {
     "plugin:security/recommended",
     "plugin:promise/recommended",
     "plugin:jest/recommended",
-    "plugin:node/recommended",
+    // TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received type undefined - after updating
+    // "plugin:node/recommended",
     "plugin:import/errors",
     "plugin:import/warnings",
     "plugin:sonarjs/recommended",

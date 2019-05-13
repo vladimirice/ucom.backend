@@ -103,7 +103,7 @@ class PostsFetchService {
     const post = await PostsRepository.findOneByIdV2(postId, true);
 
     if (!post) {
-      return null;
+      throw new BadRequestError(`There is no post with ID: ${postId}`, 404);
     }
 
     const entityFor = await this.getEntityFor(post);

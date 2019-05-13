@@ -1,31 +1,30 @@
-export {};
+import RequestHelper = require('../helpers/request-helper');
+import FileToUploadHelper = require('../helpers/file-to-upload-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
+import UsersRepository = require('../../../lib/users/users-repository');
+import UsersHelper = require('../helpers/users-helper');
+import ResponseHelper = require('../helpers/response-helper');
+const expect = require('expect');
 
 const request = require('supertest');
 const models = require('../../../models');
-const server = require('../../../app');
-const expect = require('expect');
 
-const helpers = require('../helpers');
+const server = RequestHelper.getApiApplication();
 
-const usersHelper = require('../helpers/users-helper');
-const seedsHelper = require('../helpers/seeds-helper');
-const responseHelper = require('../helpers/response-helper');
-const fileToUploadHelper = require('../helpers/file-to-upload-helper');
-const usersRepository = require('./../../../lib/users/users-repository');
-
-const myselfUrl = helpers.Req.getMyselfUrl();
+const myselfUrl = RequestHelper.getMyselfUrl();
 
 let userVlad;
 let userJane;
 
-describe('Myself API', () => {
+const JEST_TIMEOUT = 5000;
 
+describe('Myself API', () => {
   beforeEach(async () => {
-    [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
-    await seedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   describe('Update user', () => {
@@ -41,7 +40,7 @@ describe('Myself API', () => {
         // update title of one of the education
         // add new education
         const fieldsToChange = {
-          ... userHimselfFieldsToChange,
+          ...userHimselfFieldsToChange,
 
           users_education: [{
             id: 1,
@@ -71,17 +70,17 @@ describe('Myself API', () => {
         ;
 
         expect(res.status).toBe(200);
-        const body = res.body;
+        const { body } = res;
 
-        const updatedUser = await usersRepository.getUserById(userVlad.id);
+        const updatedUser = await UsersRepository.getUserById(userVlad.id);
 
         // check jobs
         const userJobs = updatedUser.users_jobs;
-        const changedJob = userJobs.find(data => data.id === fieldsToChange['users_jobs'][0]['id']);
-        expect(changedJob.title).toBe(fieldsToChange['users_jobs'][0]['title']);
+        const changedJob = userJobs.find(data => data.id === fieldsToChange.users_jobs[0].id);
+        expect(changedJob.title).toBe(fieldsToChange.users_jobs[0].title);
 
         const newJob =
-          userJobs.find(data => data.title === fieldsToChange['users_jobs'][2]['title']);
+          userJobs.find(data => data.title === fieldsToChange.users_jobs[2].title);
         expect(newJob).toBeDefined();
         expect(newJob.user_id).toBe(userVlad.id);
         expect(userJobs.length).toBe(3);
@@ -110,12 +109,10 @@ describe('Myself API', () => {
           }
         }
 
-        usersHelper.validateUserJson(res.body, userVlad, updatedUser);
-      });
+        UsersHelper.validateUserJson(res.body, userVlad, updatedUser);
+      }, JEST_TIMEOUT * 100);
 
       it('Update users sources', async () => {
-        const userVlad = await usersHelper.getUserVlad();
-
         // sources of user are fixed - now only 4 sources
         // request - find all users sources by includes
 
@@ -144,23 +141,23 @@ describe('Myself API', () => {
           .field('users_sources[0][id]',              fieldsToChange.users_sources[0].id)
           .field('users_sources[0][source_url]',      fieldsToChange.users_sources[0].source_url)
           .field('users_sources[0][source_type_id]',
-                 fieldsToChange.users_sources[0].source_type_id)
+            fieldsToChange.users_sources[0].source_type_id)
 
           .field('users_sources[1][source_url]',      fieldsToChange.users_sources[1].source_url)
           .field('users_sources[1][source_type_id]',
-                 fieldsToChange.users_sources[1].source_type_id)
+            fieldsToChange.users_sources[1].source_type_id)
         ;
 
         expect(res.status).toBe(200);
 
-        const body = res.body;
-        const updatedUser = await usersRepository.getUserById(userVlad.id);
+        const { body } = res;
+        const updatedUser = await UsersRepository.getUserById(userVlad.id);
 
-        usersHelper.validateUserJson(body, userVlad, updatedUser);
+        UsersHelper.validateUserJson(body, userVlad, updatedUser);
 
-        const actualUserSources = updatedUser['users_sources'];
+        const actualUserSources = updatedUser.users_sources;
 
-        const expectedUserSources = fieldsToChange['users_sources'];
+        const expectedUserSources = fieldsToChange.users_sources;
 
         expectedUserSources.forEach((expectedSource) => {
           const actualSource =
@@ -171,44 +168,38 @@ describe('Myself API', () => {
         });
 
         expect(actualUserSources.find(data => data.id === 2)).not.toBeDefined();
-
       });
 
       it('Test avatar uploading', async () => {
-
         const fileUploadField = 'avatar_filename';
-        const userVlad = await usersHelper.getUserVlad();
 
         const res = await request(server)
           .patch(myselfUrl)
           .set('Authorization', `Bearer ${userVlad.token}`)
-          .attach(fileUploadField, helpers.FileToUpload.getSampleFilePathToUpload())
+          .attach(fileUploadField, FileToUploadHelper.getSamplePngPath())
         ;
 
-        responseHelper.expectStatusOk(res);
-        const body = res.body;
+        ResponseHelper.expectStatusOk(res);
+        const { body } = res;
 
-        await fileToUploadHelper.isFileUploaded(body[fileUploadField]);
-        await usersHelper.validateFilenameIsSaved(body, fileUploadField, userVlad.id);
+        await FileToUploadHelper.isFileUploaded(body[fileUploadField]);
+        await UsersHelper.validateFilenameIsSaved(body, fileUploadField, userVlad.id);
       });
 
       it('Test achievements upload', async () => {
-
         const fileUploadField = 'achievements_filename';
-
-        const userVlad = await usersHelper.getUserVlad();
 
         const res = await request(server)
           .patch(myselfUrl)
           .set('Authorization', `Bearer ${userVlad.token}`)
-          .attach(fileUploadField, helpers.FileToUpload.getSampleFilePathToUpload())
+          .attach(fileUploadField, FileToUploadHelper.getSamplePngPath())
         ;
 
-        responseHelper.expectStatusOk(res);
-        const body = res.body;
+        ResponseHelper.expectStatusOk(res);
+        const { body } = res;
 
-        await fileToUploadHelper.isFileUploaded(body[fileUploadField]);
-        await usersHelper.validateFilenameIsSaved(body, fileUploadField, userVlad.id);
+        await FileToUploadHelper.isFileUploaded(body[fileUploadField]);
+        await UsersHelper.validateFilenameIsSaved(body, fileUploadField, userVlad.id);
       });
 
       it('should be possible to update two users with empty emails - no unique error', async () => {
@@ -217,8 +208,8 @@ describe('Myself API', () => {
           phone_number: '',
         };
 
-        await helpers.Users.requestToUpdateMyself(userJane, fieldsToUpdate);
-        await helpers.Users.requestToUpdateMyself(userVlad, fieldsToUpdate);
+        await UsersHelper.requestToUpdateMyself(userJane, fieldsToUpdate);
+        await UsersHelper.requestToUpdateMyself(userVlad, fieldsToUpdate);
       });
 
       it('Empty values of unique fields must be written to DB as nulls', async () => {
@@ -228,7 +219,7 @@ describe('Myself API', () => {
         };
 
         const userFromResponse =
-          await helpers.Users.requestToUpdateMyself(userVlad, fieldsToUpdate);
+          await UsersHelper.requestToUpdateMyself(userVlad, fieldsToUpdate);
 
         expect(userFromResponse.email).toBeNull();
         expect(userFromResponse.phone_number).toBeNull();
@@ -245,7 +236,7 @@ describe('Myself API', () => {
           account_name: `${userVlad.account_name}12345`,
         };
 
-        const user = await helpers.Users.requestToUpdateMyself(myself, fieldsToChange);
+        const user = await UsersHelper.requestToUpdateMyself(myself, fieldsToChange);
 
         expect(user.last_name).toBe(fieldsToChange.last_name);
         expect(user.nickname).toBe(userVlad.nickname);
@@ -258,18 +249,18 @@ describe('Myself API', () => {
           phone_number: '+19161234567',
         };
 
-        await helpers.Users.requestToUpdateMyself(userJane, fieldsToUpdate);
+        await UsersHelper.requestToUpdateMyself(userJane, fieldsToUpdate);
         const badRequestResponse =
-          await helpers.Users.requestToUpdateMyself(userVlad, fieldsToUpdate, 400);
+          await UsersHelper.requestToUpdateMyself(userVlad, fieldsToUpdate, 400);
 
-        const errors = badRequestResponse.errors;
+        const { errors } = badRequestResponse;
         expect(errors).toBeDefined();
         expect(errors.length).toBe(2);
 
         expect(errors.some(error => error.field === 'phone_number')).toBeTruthy();
         expect(errors.some(error => error.field === 'email')).toBeTruthy();
 
-        const oneFieldRes = await helpers.Users.requestToUpdateMyself(userVlad, {
+        const oneFieldRes = await UsersHelper.requestToUpdateMyself(userVlad, {
           email: fieldsToUpdate.email,
         },                                                            400);
 
@@ -280,7 +271,7 @@ describe('Myself API', () => {
         expect(oneFieldErrors.some(error => error.field === 'email')).toBeTruthy();
         expect(oneFieldErrors.some(error => error.field === 'phone')).toBeFalsy();
 
-        const oneFieldEmail = await helpers.Users.requestToUpdateMyself(userVlad, {
+        const oneFieldEmail = await UsersHelper.requestToUpdateMyself(userVlad, {
           phone_number: fieldsToUpdate.phone_number,
         },                                                              400);
 
@@ -302,3 +293,5 @@ describe('Myself API', () => {
     });
   });
 });
+
+export {};

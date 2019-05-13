@@ -1,6 +1,13 @@
 const sanitizeHtml = require('sanitize-html');
+const unescape = require('unescape');
 
 class UserInputSanitizer {
+  public static unescapeObjectValues(object: any, manyFields: string[]): void {
+    for (const field of manyFields) {
+      object[field] = unescape(object[field]);
+    }
+  }
+
   /**
    *
    * @param {Object} body - parameters to sanitize

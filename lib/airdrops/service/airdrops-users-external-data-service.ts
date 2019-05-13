@@ -1,10 +1,14 @@
 import { currentUserDataDto, userExternalDataDto } from '../../auth/interfaces/auth-interfaces-dto';
 import { AppError } from '../../api/errors';
 import { AccountsSymbolsModel } from '../../accounts/interfaces/accounts-model-interfaces';
+import { AirdropsUsersGithubRawItem } from '../interfaces/model-interfaces';
 
 import AirdropsUsersExternalDataRepository = require('../repository/airdrops-users-external-data-repository');
 import UsersExternalRepository = require('../../users-external/repository/users-external-repository');
 import AccountsSymbolsRepository = require('../../accounts/repository/accounts-symbols-repository');
+import AirdropsUsersGithubRawRepository = require('../repository/airdrops-users-github-raw-repository');
+
+import AirdropsTokensRepository = require('../repository/airdrops-tokens-repository');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
@@ -27,7 +31,7 @@ class AirdropsUsersExternalDataService {
     }
 
     if (data.primary_key && data.json_data === null) {
-      return this.createSampleUsersExternalData(airdropId, data.primary_key, data.external_id);
+      return this.createUsersExternalData(airdropId, data.primary_key, data.external_id);
     }
 
     throw new AppError(`Malformed response: ${JSON.stringify(data)}`, 500);
@@ -47,26 +51,11 @@ class AirdropsUsersExternalDataService {
       };
     }
 
-    return this.createSampleUsersExternalData(
+    return this.createUsersExternalData(
       airdropId,
       userExternalDto.id,
       userExternalDto.external_id,
     );
-  }
-
-  private static async createSampleUsersExternalData(
-    airdropId: number,
-    usersExternalId: number,
-    githubUserId: number,
-  ): Promise<any> {
-    const jsonData = await this.getSampleUsersExternalData(airdropId, usersExternalId, githubUserId);
-
-    await AirdropsUsersExternalDataRepository.insertOneData(airdropId, usersExternalId, jsonData.score, jsonData);
-
-    return {
-      ...jsonData,
-      status: AirdropStatuses.NEW,
-    };
   }
 
   public static async getSampleUsersExternalData(
@@ -88,25 +77,36 @@ class AirdropsUsersExternalDataService {
     usersExternalId: number,
     majorTokens: boolean,
   ) {
-    const scoreArg: number = 55 * usersExternalId;
-    const tokenArg: number = 5.5 * usersExternalId;
+    const externalData = await UsersExternalRepository.findGithubUserExternalByPkId(usersExternalId);
+
+    if (externalData === null) {
+      throw new AppError(`There is no external data with pk: ${usersExternalId}`);
+    }
+
+    const rawData: AirdropsUsersGithubRawItem | null =
+      await AirdropsUsersGithubRawRepository.getScoreAndAmountByGithubId(+externalData.external_id);
+
+    const resultScore = rawData === null ? 0 : rawData.score;
+    const resultAmount = rawData === null ? 0 : rawData.amount;
+
+    const airdropsTokens = await AirdropsTokensRepository.getAirdropsAccountDataById(airdropId);
+
+    const tokensForUser: {amount_claim: number, symbol: string}[] = [];
+
+    for (const oneToken of airdropsTokens) {
+      tokensForUser.push({
+        amount_claim: resultAmount,
+        symbol: oneToken.symbol,
+      });
+    }
 
     const data = {
       airdrop_id: airdropId,
-      score: 147399 + scoreArg,
-      tokens: [
-        {
-          amount_claim: +(50 + tokenArg).toFixed(4),
-          symbol: 'UOSTEST',
-        },
-        {
-          amount_claim: +(10 + tokenArg).toFixed(4),
-          symbol: 'GHTEST',
-        },
-      ],
+      score: resultScore,
+      tokens: tokensForUser,
     };
 
-    if (majorTokens) {
+    if (!majorTokens) {
       return data;
     }
 
@@ -120,10 +120,43 @@ class AirdropsUsersExternalDataService {
         throw new AppError(`There is no symbol with title: ${token.symbol}`, 500);
       }
 
-      token.amount_claim *= 10 ** symbol.precision;
+      token.amount_claim /= 10 ** symbol.precision;
     });
 
     return data;
+  }
+
+  private static async createUsersExternalData(
+    airdropId: number,
+    usersExternalId: number,
+    githubUserId: number,
+  ): Promise<any> {
+    const jsonData = await this.getSampleUsersExternalData(airdropId, usersExternalId, githubUserId);
+
+    const status: number = this.getStatusByTokensForCreation(jsonData.tokens);
+
+    await AirdropsUsersExternalDataRepository.insertOneData(
+      airdropId,
+      usersExternalId,
+      jsonData.score,
+      jsonData,
+      status,
+    );
+
+    return {
+      status,
+      ...jsonData,
+    };
+  }
+
+  private static getStatusByTokensForCreation(manyTokens): number {
+    for (const token of manyTokens) {
+      if (token.amount_claim > 0) {
+        return AirdropStatuses.NEW;
+      }
+    }
+
+    return AirdropStatuses.NO_PARTICIPATION;
   }
 }
 

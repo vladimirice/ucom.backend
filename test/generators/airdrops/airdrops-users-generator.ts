@@ -1,5 +1,6 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../../integration/helpers/graphql-helper';
+import { AirdropsUsersGithubRawItem } from '../../../lib/airdrops/interfaces/model-interfaces';
 
 import GithubRequest = require('../../helpers/github-request');
 
@@ -9,8 +10,44 @@ import AirdropsUsersExternalDataService = require('../../../lib/airdrops/service
 import UsersExternalRequest = require('../../helpers/users-external-request');
 import OrganizationsHelper = require('../../integration/helpers/organizations-helper');
 import RequestHelper = require('../../integration/helpers/request-helper');
+import knex = require('../../../config/knex');
 
 class AirdropsUsersGenerator {
+  public static generateForVladAndJane() {
+    return Promise.all([
+      AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(13485690),
+      AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(10195782),
+    ]);
+  }
+
+  public static async generateAirdropsUsersGithubRawDataForUser(
+    githubId: number,
+    getInMajor: boolean = true,
+  ): Promise<AirdropsUsersGithubRawItem> {
+    const generated = {
+      id: githubId,
+      score: githubId + 43.424145,
+      amount: githubId + 5020,
+    };
+
+    const sql = `
+      INSERT INTO airdrops_users_github_raw (id, score, amount) 
+      VALUES (${generated.id}, ${generated.score}, ${generated.amount})
+    `;
+
+    await knex.raw(sql);
+
+    if (getInMajor) {
+      return {
+        id: generated.id,
+        score: generated.score,
+        amount: generated.amount / (10 ** 4),
+      };
+    }
+
+    return generated;
+  }
+
   public static async fulfillAllAirdropConditionForManyUsers(
     airdropId: number,
     orgId: number,
@@ -18,7 +55,7 @@ class AirdropsUsersGenerator {
   ): Promise<void> {
     const promises: any[] = [];
     for (const oneUser of users) {
-      promises.push(AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, oneUser, orgId, true))
+      promises.push(AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, oneUser, orgId, true));
     }
 
     await Promise.all(promises);
@@ -30,7 +67,6 @@ class AirdropsUsersGenerator {
     orgId: number,
     alsoFollow: boolean = true,
     customGithubCode: string | null = null,
-    mockExternalId: boolean = false,
   ) {
     if (!user.github_code) {
       throw new Error('Code is required to use this generator function');
@@ -38,7 +74,7 @@ class AirdropsUsersGenerator {
 
     const githubCode: string = customGithubCode || <string>user.github_code;
 
-    const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(githubCode, mockExternalId);
+    const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(githubCode);
 
     await UsersExternalRequest.sendPairExternalUserWithUser(user, githubToken);
 

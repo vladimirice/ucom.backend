@@ -4,7 +4,6 @@ import { OrgIdToOrgModelCard, OrgModel, OrgModelCard } from '../interfaces/model
 const eosImportance = require('../../eos/eos-importance');
 
 class OrganizationPostProcessor {
-
   /**
    *
    * @param {Object[]} models
@@ -25,28 +24,27 @@ class OrganizationPostProcessor {
     });
   }
 
-  /**
-   *
-   * @param {Object[]} models
-   */
-  static processManyOrganizations(models) {
-    models.forEach((model) => {
-      this.processOneOrg(model);
-    });
+  public static processManyOrganizations(models, options: any = {}) {
+    for (const model of models) {
+      this.processOneOrg(model, [], options);
+    }
   }
 
   public static processOneOrg(
     model: OrgModel,
     activityData: any = [],
+    options: any = {},
   ): void {
     if (!model) {
       return;
     }
 
     this.processOneOrgModelCard(model);
-    this.addFollowedBy(model, activityData);
-  }
 
+    if (!options.skipFollowedBy) {
+      this.addFollowedBy(model, activityData);
+    }
+  }
 
   public static processOrgIdToOrgModelCard(modelsSet: OrgIdToOrgModelCard): void {
     for (const orgId in modelsSet) {
@@ -78,7 +76,7 @@ class OrganizationPostProcessor {
   private static normalizeMultiplier(model) {
     const multiplier = eosImportance.getImportanceMultiplier();
 
-    model.current_rate = (model.current_rate * multiplier);
+    model.current_rate *= multiplier;
     model.current_rate = +model.current_rate.toFixed();
   }
 
@@ -89,7 +87,7 @@ class OrganizationPostProcessor {
    * @private
    */
   private static addFollowedBy(org, activityData) {
-    org['followed_by'] = [];
+    org.followed_by = [];
 
     activityData.forEach((activity) => {
       org.followed_by.push(activity);
@@ -121,8 +119,7 @@ class OrganizationPostProcessor {
         org.users_team.some(user => user.User.id === currentUserId && user.status === 1);
     }
 
-    for (let i = 0; i < activityData.length; i += 1) {
-      const activity = activityData[i];
+    for (const activity of activityData) {
       if (activity.id === currentUserId) {
         myselfData.follow = true;
         break;

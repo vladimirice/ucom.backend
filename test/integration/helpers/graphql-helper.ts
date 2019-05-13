@@ -99,19 +99,6 @@ export class GraphqlHelper {
     );
   }
 
-  public static async getManyBlockchainNodesAsMyself(
-    myself: UserModel,
-    ordering: string,
-    page: number = 1,
-    perPage: number = 10,
-  ): Promise<PostsListResponse> {
-    const query: string = GraphQLSchema.getManyBlockchainNodes(ordering, page, perPage);
-
-    const key: string = 'many_blockchain_nodes';
-
-    return GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
-  }
-
   public static async getManyOrgsDataOnlyAsMyself(
     myself: UserModel,
     ordering: string = '-id',

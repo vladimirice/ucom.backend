@@ -1,6 +1,9 @@
 import { MyselfDataDto } from '../common/interfaces/post-processing-dto';
 import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
 
+import NumbersHelper = require('../common/helper/numbers-helper');
+import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
+
 const _ = require('lodash');
 const eosImportance = require('../eos/eos-importance');
 
@@ -56,15 +59,13 @@ class UserPostProcessor {
       return;
     }
 
-    const processedUsersTeam = model.users_team.map((record) => {
+    model.users_team = model.users_team.map((record) => {
       this.processUser(record.User);
 
       record.User.users_team_status = record.status;
 
       return record.User;
     });
-
-    model.users_team = processedUsersTeam;
   }
 
   /**
@@ -182,15 +183,38 @@ class UserPostProcessor {
         myFollower: false,
       };
 
-      if (activityData.IFollow.indexOf(user.id) !== -1) {
+      if (activityData.IFollow.includes(user.id)) {
         myselfData.follow = true;
       }
-      if (activityData.myFollowers.indexOf(user.id) !== -1) {
+      if (activityData.myFollowers.includes(user.id)) {
         myselfData.myFollower = true;
       }
 
       user.myselfData = myselfData;
     });
+  }
+
+  public static processUosAccountsProperties(userJson) {
+    if (!userJson.uos_accounts_properties) {
+      userJson.uos_accounts_properties = {};
+
+      // this is a case when the user is a newcomer and worker didn't process him yet
+      for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
+        userJson.uos_accounts_properties[field] = 0;
+      }
+
+      return;
+    }
+
+    for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
+      userJson.uos_accounts_properties[field] = NumbersHelper.processFieldToBeNumeric(
+        userJson.uos_accounts_properties[field],
+        field,
+        10,
+        false,
+        true,
+      );
+    }
   }
 
   /**

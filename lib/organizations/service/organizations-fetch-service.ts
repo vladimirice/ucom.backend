@@ -1,5 +1,6 @@
+import { QueryBuilder } from 'knex';
 import {
-  DbParamsDto,
+  DbParamsDto, InputQueryDto,
   QueryFilteredRepository,
   RequestQueryDto,
 } from '../../api/filters/interfaces/query-filter-interfaces';
@@ -16,6 +17,8 @@ import OrganizationsModelProvider = require('./organizations-model-provider');
 import _ = require('lodash');
 import PostsModelProvider = require('../../posts/service/posts-model-provider');
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
+import UsersActivityFollowRepository = require('../../users/repository/users-activity/users-activity-follow-repository');
+import KnexQueryBuilderHelper = require('../../common/helper/repository/knex-query-builder-helper');
 
 const QueryFilterService      = require('../../api/filters/query-filter-service');
 const OrganizationsRepository = require('../repository/organizations-repository');
@@ -47,6 +50,50 @@ class OrganizationsFetchService {
     }
 
     return this.findAndProcessAllByParams(data.promises, query, data.params);
+  }
+
+  public static async findAllFollowedByUserAndProcess(
+    userId: number,
+    query: InputQueryDto,
+  ): Promise<OrgListResponse> {
+    const repository: QueryFilteredRepository = OrganizationsRepository;
+
+    const knexForList: QueryBuilder = OrganizationsRepository.getQueryBuilder();
+    const knexForCount: QueryBuilder = OrganizationsRepository.getQueryBuilder();
+
+    const { offset, limit } = QueryFilterService.addQueryParamsToKnex(query, repository, knexForList);
+
+    UsersActivityFollowRepository.addWhereInOrgsEntityId(
+      knexForList,
+      OrganizationsModelProvider.getTableName(),
+      userId,
+    );
+
+    UsersActivityFollowRepository.addWhereInOrgsEntityId(
+      knexForCount,
+      OrganizationsModelProvider.getTableName(),
+      userId,
+    );
+
+    const [data, totalAmount] = await Promise.all([
+      KnexQueryBuilderHelper.getListByQueryBuilder(repository, knexForList),
+      KnexQueryBuilderHelper.countByQueryBuilder(query, repository, knexForCount),
+    ]);
+
+    OrganizationPostProcessor.processManyOrganizations(data, { skipFollowedBy: false });
+
+    const metadata = QueryFilterService.getMetadataByOffsetLimit(
+      totalAmount,
+      query.page,
+      query.per_page,
+      offset,
+      limit,
+    );
+
+    return {
+      data,
+      metadata,
+    };
   }
 
   public static async findOneAndProcessForCard(

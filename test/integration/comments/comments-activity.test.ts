@@ -1,7 +1,11 @@
+import CommentsGenerator = require('../../generators/comments-generator');
+import PostsGenerator = require('../../generators/posts-generator');
+import RequestHelper = require('../helpers/request-helper');
+
 export {};
 
 const request = require('supertest');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 const gen = require('../../generators');
 
 const helpers = require('../helpers');
@@ -46,14 +50,14 @@ describe('Comments', () => {
       it('should be myself data about comments in post comments list', async () => {
         const postId = 1;
 
-        const commentToUpvote = await commentsHelper.requestToCreateComment(postId, userJane);
+        const commentToUpvote = await CommentsGenerator.createCommentForPost(postId, userJane);
         await commentsHelper.requestToUpvoteComment(postId, commentToUpvote.id, userVlad);
 
-        const commentToDownvote = await commentsHelper.requestToCreateComment(postId, userPetr);
+        const commentToDownvote = await CommentsGenerator.createCommentForPost(postId, userPetr);
         await commentsHelper.requestToDownvoteComment(postId, commentToDownvote.id, userVlad);
 
         const post = await postHelper.requestToGetOnePostAsMyself(postId, userVlad);
-        const comments = post['comments'];
+        const { comments } = post;
 
         const upvotedCommentOne = comments.find(comment => comment.id === commentToUpvote.id);
         expect(upvotedCommentOne.myselfData).toBeDefined();
@@ -74,7 +78,7 @@ describe('Comments', () => {
         const postId = 1;
 
         const post = await postHelper.requestToGetOnePostAsGuest(postId);
-        const comments = post['comments'];
+        const { comments } = post;
 
         comments.forEach((comment) => {
           expect(comment.myselfData).not.toBeDefined();
@@ -157,7 +161,6 @@ describe('Comments', () => {
           await usersActivityRepository.findLastByUserIdAndEntityId(userJane.id, comment.id);
         expect(activity.event_id).toBe(eventIdDictionary.getUserUpvotesCommentOfOrg());
       });
-
     });
     describe('Negative scenarios', () => {
       it('should not be possible to upvote without auth token', async () => {
@@ -186,12 +189,12 @@ describe('Comments', () => {
       });
 
       it('should not be possible to upvote own comment', async () => {
-        const postId = 1;
-        const newComment = await commentsHelper.requestToCreateComment(postId, userVlad);
+        const postId = await PostsGenerator.createMediaPostByUserHimself(userJane);
+        const newComment = await CommentsGenerator.createCommentForPost(postId, userVlad);
 
         const res = await request(server)
-            .post(`/api/v1/posts/${postId}/comments/${newComment.id}/upvote`)
-            .set('Authorization', `Bearer ${userVlad.token}`)
+          .post(`/api/v1/posts/${postId}/comments/${newComment.id}/upvote`)
+          .set('Authorization', `Bearer ${userVlad.token}`)
         ;
 
         responseHelper.expectStatusBadRequest(res);
@@ -229,7 +232,6 @@ describe('Comments', () => {
         const activity =
           await usersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newComment.id);
         expect(activity.event_id).toBe(eventIdDictionary.getUserDownvotesCommentOfOtherUser());
-
       }, 10000);
 
       it('User DOWNVOTES comment of ORG', async () => {
@@ -272,8 +274,8 @@ describe('Comments', () => {
       });
 
       it('should not be possible to downvote own comment', async () => {
-        const postId = 1;
-        const newComment = await commentsHelper.requestToCreateComment(postId, userVlad);
+        const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+        const newComment = await CommentsGenerator.createCommentForPost(postId, userVlad);
 
         const res = await request(server)
           .post(`/api/v1/posts/${postId}/comments/${newComment.id}/downvote`)

@@ -6,6 +6,7 @@ import NotificationsEventIdDictionary = require('../../entities/dictionary/notif
 import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import UsersActivityWhere = require('./users-activity/users-activity-where');
+import BlockchainModelProvider = require('../../eos/service/blockchain-model-provider');
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -75,6 +76,8 @@ class UsersActivityRepository {
     return data.rows;
   }
 
+  // Should be used only for the statistics when you add-subtract total numbers.
+  // It is not suitable for `current state` tasks
   public static async getManyOrgsFollowers(): Promise<EntityParamAggregatesDto[]> {
     const paramField = 'event_id';
     const entityIdFields = 'entity_id_to';
@@ -118,8 +121,10 @@ class UsersActivityRepository {
     return this.getModel().create(data, { transaction });
   }
 
-  public static async createNewKnexActivity(row, trx) {
-    return trx(TABLE_NAME).insert(row).returning('*');
+  public static async createNewKnexActivity(row, trx): Promise<any> {
+    const data = await trx(TABLE_NAME).insert(row).returning('*');
+
+    return data[0];
   }
 
   /**
@@ -250,9 +255,7 @@ class UsersActivityRepository {
     const dbData = await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
 
     const posts = {};
-    for (let i = 0; i < dbData.length; i += 1) {
-      const data = dbData[i];
-
+    for (const data of dbData) {
       let postId;
       if (data.activity_group_id === groupIdContentCreation) {
         if (data.entity_id_on === null) {
@@ -284,45 +287,41 @@ class UsersActivityRepository {
     return posts;
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @return {Promise<Object>}
-   */
-  static async findOneUserBlockchainNodesActivity(userId) {
-    const eventIdUp   = eventIdDictionary.getUserVotesForBlockchainNode();
-    const eventIdDown = eventIdDictionary.getUserCancelVoteForBlockchainNode();
+  public static async findOneUserBlockchainNodesActivity(
+    userId: number,
+    blockchainNodesType: number,
+  ): Promise<number[]> {
+    const { eventIdUp, eventIdDown } =
+      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT entity_id_to FROM (
                   SELECT
-                      DISTINCT ON (user_id_from, entity_id_to, entity_name, activity_group_id)
+                      DISTINCT ON (user_id_from, entity_id_to)
                                   entity_id_to,
-                                  event_id,
-                                  id
+                                  event_id
                   FROM
-                       users_activity
+                       ${TABLE_NAME}
                   WHERE
                       user_id_from  = ${+userId}
+                      AND entity_name = '${BlockchainModelProvider.getEntityName()}'
                       AND event_id IN (${eventIdUp}, ${eventIdDown})
-                  ORDER BY user_id_from, entity_id_to, entity_name, activity_group_id, id DESC
-                  ) AS I_vote
+                  ORDER BY user_id_from, entity_id_to, id DESC
+                  ) AS t
         WHERE
-          event_id = ${eventIdUp};
+          t.event_id = ${eventIdUp};
     `;
 
-    const data = await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    const data = await RepositoryHelper.getKnexRawData(sql);
 
     return data.map(item => +item.entity_id_to);
   }
 
-  /**
-   *
-   * @return {Promise<Object>}
-   */
-  static async findAllUpvoteUsersBlockchainNodesActivity() {
-    const eventIdUp   = eventIdDictionary.getUserVotesForBlockchainNode();
-    const eventIdDown = eventIdDictionary.getUserCancelVoteForBlockchainNode();
+  public static async findAllUpvoteUsersBlockchainNodesActivity(
+    blockchainNodesType: number,
+  ): Promise<any> {
+    const { eventIdUp, eventIdDown } =
+      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT id, user_id_from, entity_id_to FROM (
@@ -335,7 +334,7 @@ class UsersActivityRepository {
                                   user_id_from,
                                   id
                   FROM
-                       users_activity
+                       ${TABLE_NAME}
                   WHERE
                       event_id IN (${eventIdUp}, ${eventIdDown})
                   ORDER BY user_id_from, entity_id_to, entity_name, activity_group_id, id DESC
@@ -345,16 +344,14 @@ class UsersActivityRepository {
 
     `;
 
-    return models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    return RepositoryHelper.getKnexRawData(sql);
   }
 
-  /**
-   *
-   * @return {Promise<Object>}
-   */
-  static async findAllUpvoteCancelUsersBlockchainNodesActivity() {
-    const eventIdUp   = eventIdDictionary.getUserVotesForBlockchainNode();
-    const eventIdDown = eventIdDictionary.getUserCancelVoteForBlockchainNode();
+  public static async findAllUpvoteCancelUsersBlockchainNodesActivity(
+    blockchainNodesType: number,
+  ): Promise<any> {
+    const { eventIdUp, eventIdDown } =
+      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT id, user_id_from, entity_id_to FROM (
@@ -367,7 +364,7 @@ class UsersActivityRepository {
                                   user_id_from,
                                   id
                   FROM
-                       users_activity
+                       ${TABLE_NAME}
                   WHERE
                       event_id IN (${eventIdUp}, ${eventIdDown})
                   ORDER BY user_id_from, entity_id_to, entity_name, activity_group_id, id DESC
@@ -377,7 +374,7 @@ class UsersActivityRepository {
 
     `;
 
-    return models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
+    return RepositoryHelper.getKnexRawData(sql);
   }
 
   static async setIsSentToBlockchainAndResponse(id, blockchainResponse) {

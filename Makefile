@@ -18,6 +18,9 @@ DB_KNEX_MIGRATE_MONOLITH_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=monolith
 
 ENV_VALUE_TEST=test
 
+UPDATE_HOSTS_COMMAND=sudo /bin/bash ./etc/docker/etchosts.sh update
+LINUX_HOSTS_FILENAME=/etc/hosts
+
 init-project ip:
 	make docker-rebuild
 	npm ci
@@ -96,6 +99,9 @@ deploy-staging deploy:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
+pm2-reload-iframely:
+	ssh gt 'bash -s' < ./ifamely_reload.sh
+
 deploy-staging-no-check deploy-no-check:
 	git checkout staging
 	git push
@@ -110,6 +116,14 @@ deploy-production:
 	git checkout master
 	make docker-check-project
 	git push
+	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
+
+prepare-deploy-production:
+	git checkout master
+	make docker-check-project
+	git push
+
+run-deploy-production-script:
 	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
 
 deploy-frontend-staging deploy-frontend:
@@ -158,14 +172,20 @@ docker-init-test-db ditd:
 	make docker-recreate-monolith-db
 	make docker-recreate-events-db
 
-update-local-production-config:
+production-config-from-server-to-local:
 	scp gt:/var/www/ucom.backend/config/production.json ./config/production.json
 
-copy-local-production-config-to-server:
+deploy-local-config-to-production:
 	scp ./config/production.json gt:/var/www/ucom.backend/config/production.json
 
-update-local-staging-config:
+staging-config-from-server-to-local:
 	scp gt:/var/www/ucom.backend.staging/config/staging.json ./config/staging.json
 
-copy-local-staging-config-to-server:
+deploy-local-config-to-staging:
 	scp ./config/staging.json gt:/var/www/ucom.backend.staging/config/staging.json
+
+docker-set-hosts-linux:
+	${UPDATE_HOSTS_COMMAND} uos-backend-postgres-test.dev   173.18.212.11 ${LINUX_HOSTS_FILENAME}
+	${UPDATE_HOSTS_COMMAND} uos-backend-rabbitmq.dev        173.18.212.20 ${LINUX_HOSTS_FILENAME}
+	${UPDATE_HOSTS_COMMAND} uos-backend-redis.dev           173.18.212.30 ${LINUX_HOSTS_FILENAME}
+	${UPDATE_HOSTS_COMMAND} irreversible-traces-mongodb.dev 173.18.212.50 ${LINUX_HOSTS_FILENAME}

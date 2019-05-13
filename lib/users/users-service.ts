@@ -1,6 +1,8 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import UsersFetchService = require('./service/users-fetch-service');
+import UsersRepository = require('./users-repository');
+import UserPostProcessor = require('./user-post-processor');
 
 const joi = require('joi');
 const _ = require('lodash');
@@ -85,7 +87,12 @@ class UsersService {
         await usersRepository.updateUserById(userId, requestData, transaction);
       });
 
-    return usersRepository.getUserById(userId);
+    const userModel = await UsersRepository.getUserById(userId);
+    const userJson = userModel.toJSON();
+
+    UserPostProcessor.processUosAccountsProperties(userJson);
+
+    return userJson;
   }
 
   /**
@@ -157,6 +164,7 @@ class UsersService {
     ];
 
     arrayFields.forEach((field) => {
+      // eslint-disable-next-line you-dont-need-lodash-underscore/filter
       requestData[field] = _.filter(requestData[field]);
     });
 
@@ -164,9 +172,8 @@ class UsersService {
       source.source_type_id = source.source_type_id ? source.source_type_id : null;
     });
 
-    for (let i = 0; i < arrayFields.length; i += 1) {
-      const field = arrayFields[i];
-
+    for (const field of arrayFields) {
+      // eslint-disable-next-line you-dont-need-lodash-underscore/filter
       const set = _.filter(requestData[field]);
 
       if (!set || _.isEmpty(set)) {
@@ -233,9 +240,7 @@ class UsersService {
     const existed = await usersRepository.findWithUniqueFields(toFind);
 
     const errors: any = [];
-    for (let i = 0; i < existed.length; i += 1) {
-      const current = existed[i];
-
+    for (const current of existed) {
       if (current.id === currentUserId) {
         // this is model itself
         continue;

@@ -5,6 +5,7 @@ const PostsFetchService = require("../../lib/posts/service/posts-fetch-service")
 const QueryFilterService = require("../../lib/api/filters/query-filter-service");
 const OrganizationsFetchService = require("../../lib/organizations/service/organizations-fetch-service");
 const express = require('express');
+require('express-async-errors');
 const tagsRouter = express.Router();
 /**
  *

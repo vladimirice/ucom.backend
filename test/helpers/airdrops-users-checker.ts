@@ -15,7 +15,7 @@ const githubAirdropGuestState = {
   airdrop_id: 1,
   user_id: null, // null only if airdrop_status = new
   score: 0,
-  airdrop_status: 1, // new
+  airdrop_status: AirdropStatuses.NEW, // new
   conditions: {
     auth_github: false,
     auth_myself: false,
@@ -33,7 +33,27 @@ const githubAirdropGuestState = {
   ],
 };
 
+const githubAirdropNoParticipationState = {
+  airdrop_id: 1,
+  score: 0,
+  airdrop_status: AirdropStatuses.NO_PARTICIPATION,
+  tokens: [
+    {
+      amount_claim: 0,
+      symbol: 'UOSTEST',
+    },
+    {
+      amount_claim: 0,
+      symbol: 'GHTEST',
+    },
+  ],
+};
+
 class AirdropsUsersChecker {
+  public static checkGithubAirdropNoParticipationState(actual: OneUserAirdropDto): void {
+    expect(actual).toMatchObject(githubAirdropNoParticipationState);
+  }
+
   public static async checkReservedToWaitingTransfer(
     userId: number,
     airdropId: number,

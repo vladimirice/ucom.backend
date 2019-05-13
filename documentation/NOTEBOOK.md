@@ -2,16 +2,28 @@
 
 Goal - just to save workflow before implementation.
 
----- Worker - Change user status to pending ----
+-----------------
+Script to migrate from main_image_filename to the entity_images
 
+SELECT
+       main_image_filename,
+       entity_images,
+       post_type_id,
+       created_at,
+       concat('http://backend.u.community/upload/', main_image_filename)
+FROM posts
+WHERE
+      main_image_filename IS NOT NULL
+  AND main_image_filename != ''
+  AND (
+    entity_images = '""'
+    OR entity_images IS NULL
+  )
+ORDER BY main_image_filename ASC
 
-Step 2: Users-tokens and airdrop state:
-fetch status from external_data, not hardcoded NEW
+--------------
 
-Step 3:
-Add new worker to pm2 env
-
------------ Activity data provider -------------
+Activity data provider 
 
 workflow
 
@@ -101,3 +113,55 @@ Extra:
 * Registration
 * Vote for calculators
 * Unstake resources as result (delayed action)
+
+
+### GraphQL as a constructor:
+* There is a query:
+
+query {
+
+}
+
+* inside it you can pass any `nodes`
+* there is a myselfData for blockchain nodes. Do not pass it inside blockchain nodes
+* create separate `node` - many_blockchain_nodes with the different filter
+* you can combine `nodes` as you want to create different web pages
+* inside a server you can parse overall query and decide to merge requests into one if appreciable (via JOIN)
+etc without any changes of a interface
+
+
+About aliases:
+* https://medium.com/graphql-mastery/graphql-quick-tip-aliases-567303a9ddc5
+
+======
+
+Airdrops resetting workflow:
+* disable all airdrops workers
+production_worker_airdrops_users_to_pending
+production_worker_airdrops_users_to_waiting
+production_worker_airdrops_users_to_received
+
+Clear tables data:
+ALTER SEQUENCE airdrops_id_seq RESTART;
+
+
+
+TRUNCATE TABLE airdrops_users_external_data;
+TRUNCATE TABLE airdrops_users;
+TRUNCATE TABLE accounts_transactions_parts;
+
+DELETE FROM airdrops_tokens WHERE 1=1;
+
+DELETE FROM accounts_transactions WHERE 1=1;
+
+DELETE FROM accounts WHERE 1=1;
+
+DELETE FROM airdrops WHERE 1=1;
+
+DELETE FROM users_external_auth_log WHERE 1=1;
+DELETE FROM users_external WHERE 1=1;
+
+DELETE FROM blockchain.outgoing_transactions_log WHERE 1=1;
+
+Reset airdrops sequence in order to create airdrop with an ID = 1
+

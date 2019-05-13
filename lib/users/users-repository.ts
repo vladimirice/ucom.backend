@@ -2,6 +2,7 @@ import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces'
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
 import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
 import { AppError } from '../api/errors';
+import { StringToAnyCollection } from '../common/interfaces/common-types';
 
 import knex = require('../../config/knex');
 import PostsModelProvider = require('../posts/service/posts-model-provider');
@@ -11,6 +12,8 @@ import RepositoryHelper = require('../common/repository/repository-helper');
 import UsersExternalModelProvider = require('../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
+import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
+import AirdropsUsersRepository = require('../airdrops/repository/airdrops-users-repository');
 
 const _ = require('lodash');
 
@@ -51,7 +54,8 @@ class UsersRepository {
           .distinct('user_id')
           .select()
           .from(airdropsUsers)
-          .where('airdrop_id', '=', airdropId);
+          .where('airdrop_id', '=', airdropId)
+          .whereNotIn('user_id', AirdropsUsersRepository.getAirdropParticipantsIdsToHide());
       })
       .andWhere(`${usersExternal}.external_type_id`, '=', ExternalTypeIdDictionary.github())
       .orderByRaw(params.orderByRaw)
@@ -122,28 +126,33 @@ class UsersRepository {
     return +res.rows[0].amount;
   }
 
-  /**
-   *
-   * @param {string[]} accountNames
-   * @return {Promise<Object>}
-   */
-  static async findUserIdsByAccountNames(accountNames) {
-    const data = await model.findAll({
-      attributes: ['id', 'account_name'],
-      where: {
-        account_name: {
-          [Op.in]: accountNames,
-        },
-      },
-      raw: true,
-    });
+  public static async findUserIdsByAccountNames(
+    accountNames: string[],
+    key: string = 'account_name',
+    value: string = 'id',
+  ): Promise<any> {
+    const data = await knex(TABLE_NAME)
+      .select(['id', 'account_name'])
+      .whereIn('account_name', accountNames);
 
     const result = {};
     data.forEach((user) => {
-      result[user.account_name] = user.id;
+      result[user[key]] = user[value];
     });
 
     return result;
+  }
+
+  public static async findUserIdsByObjectIndexedByAccountNames(
+    indexedObject: StringToAnyCollection,
+    key: string = 'account_name',
+    value: string = 'id',
+  ): Promise<any> {
+    return this.findUserIdsByAccountNames(
+      Object.keys(indexedObject),
+      key,
+      value,
+    );
   }
 
   /**
@@ -244,6 +253,12 @@ class UsersRepository {
 
     const include = [
       {
+        model: models[UosAccountsModelProvider.uosAccountsPropertiesTableNameWithoutSchema()],
+        attributes: UosAccountsModelProvider.getFieldsToSelect(),
+        required: false,
+        as: 'uos_accounts_properties',
+      },
+      {
         model: models.users_education,
         as: 'users_education',
       },
@@ -301,20 +316,8 @@ class UsersRepository {
    * @param {string} query
    * @returns {Promise<Array<Object>>}
    */
-  static async findByNameFields(query) {
-    const where = {
-      [Op.or]: {
-        account_name: {
-          [Op.iLike]: `%${query}%`,
-        },
-        first_name: {
-          [Op.iLike]: `%${query}%`,
-        },
-        last_name: {
-          [Op.iLike]: `%${query}%`,
-        },
-      },
-    };
+  public static async findByNameFields(query) {
+    const where = this.getSearchUserQueryWhere(query);
 
     // noinspection JSUnusedGlobalSymbols
     return this.getModel().findAll({
@@ -501,19 +504,7 @@ class UsersRepository {
       params.where = {};
 
       if (query.user_name) {
-        params.where = {
-          [Op.or]: {
-            account_name: {
-              [Op.iLike]: `%${query.user_name}%`,
-            },
-            first_name: {
-              [Op.iLike]: `%${query.user_name}%`,
-            },
-            last_name: {
-              [Op.iLike]: `%${query.user_name}%`,
-            },
-          },
-        };
+        params.where = this.getSearchUserQueryWhere(query.user_name);
       }
     };
   }
@@ -612,6 +603,22 @@ class UsersRepository {
 
   static getModel() {
     return models.Users;
+  }
+
+  private static getSearchUserQueryWhere(query: string) {
+    return {
+      [Op.or]: {
+        account_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+        first_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+        last_name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      },
+    };
   }
 }
 

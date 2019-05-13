@@ -1,6 +1,6 @@
 import { Transaction } from 'knex';
 import _ from 'lodash';
-import { UsersActivityTrustModelDto } from '../../interfaces/users-activity/model-interfaces';
+import { UsersActivityIndexModelDto } from '../../interfaces/users-activity/model-interfaces';
 
 import knex = require('../../../../config/knex');
 import UsersModelProvider = require('../../users-model-provider');
@@ -53,7 +53,7 @@ class UsersActivityTrustRepository {
   public static async getUserTrustUser(
     userIdFrom: number,
     userIdTo: number,
-  ): Promise<UsersActivityTrustModelDto | null> {
+  ): Promise<UsersActivityIndexModelDto | null> {
     const res = await knex(TABLE_NAME)
       .where({
         user_id: userIdFrom,

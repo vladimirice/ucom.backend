@@ -1,6 +1,7 @@
 import { OneUserAirdropDto, OneUserAirdropFilter } from '../interfaces/dto-interfaces';
 import { AppError, BadRequestError } from '../../api/errors';
 import { CurrentUserDataDto, IdsFromTokensDto } from '../../auth/interfaces/auth-interfaces-dto';
+import { ApiLogger } from '../../../config/winston';
 
 import AuthService = require('../../auth/authService');
 import UsersExternalRepository = require('../../users-external/repository/users-external-repository');
@@ -120,6 +121,18 @@ class AirdropUsersService {
 
   private static processWithExternalData(data, externalData, userTokens, airdropState): void {
     AirdropUsersValidator.checkTokensConsistency(userTokens, externalData.tokens);
+
+    for (const token of externalData.tokens) {
+      if (externalData.score === 0 && token.amount_claim > 0) {
+        ApiLogger.error('Consistency check is failed. If score is 0 then all amount_claim must be 0', {
+          data,
+          external_data: JSON.stringify(externalData),
+          service: 'airdrops',
+        });
+
+        throw new AppError('Internal server error');
+      }
+    }
 
     data.score = externalData.score;
     data.tokens = externalData.tokens;

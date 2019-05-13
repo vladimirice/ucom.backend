@@ -1,14 +1,14 @@
 const models = require('../../models');
 
-const USERS_TABLE_NAME                = 'Users';
-const USERS_TEAM_TABLE_NAME           = 'users_team';
-const USERS_ACTIVITY_TABLE_NAME       = 'users_activity';
-const USERS_ACTIVITY_TRUST_TABLE_NAME = 'users_activity_trust';
+const USERS_TABLE_NAME                  = 'Users';
+const USERS_TEAM_TABLE_NAME             = 'users_team';
+const USERS_ACTIVITY_TABLE_NAME         = 'users_activity';
+const USERS_ACTIVITY_TRUST_TABLE_NAME   = 'users_activity_trust';
+const USERS_ACTIVITY_FOLLOW_TABLE_NAME  = 'users_activity_follow';
 
-const USERS_ENTITY_NAME               = 'users     '; // in db there is a fixed char length of 10
+const USERS_ENTITY_NAME = 'users     '; // in db there is a fixed char length of 10
 
 class UsersModelProvider {
-
   /**
    * alias
    * @return {string}
@@ -57,6 +57,10 @@ class UsersModelProvider {
     return USERS_ACTIVITY_TRUST_TABLE_NAME;
   }
 
+  public static getUsersActivityFollowTableName(): string {
+    return USERS_ACTIVITY_FOLLOW_TABLE_NAME;
+  }
+
   /**
    *
    * @return {Object}
@@ -96,12 +100,13 @@ class UsersModelProvider {
   static getUserFieldsForPreview() {
     return this.getUsersModel().getFieldsForPreview();
   }
+
   /**
    *
    * @param {string|null} alias
    * @return {Object}
    */
-  static getIncludeUsersPreview(alias = null) {
+  public static getIncludeUsersPreview(alias = null) {
     const include: any = {
       model:      this.getUsersModel(),
       attributes: this.getUsersModel().getFieldsForPreview(),

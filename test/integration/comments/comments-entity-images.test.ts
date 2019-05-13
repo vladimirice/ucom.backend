@@ -7,6 +7,7 @@ import PostsGenerator = require('../../generators/posts-generator');
 import CommentsGenerator = require('../../generators/comments-generator');
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 import EntityImagesGenerator = require('../../generators/common/entity-images-generator');
+import RequestHelper = require('../helpers/request-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -81,6 +82,22 @@ describe('Comments entity images', () => {
   });
 
   describe('Negative', () => {
+    it('empty string is not allowed', async () => {
+      const malformed = '';
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
+    });
+
+    it('null is not allowed', async () => {
+      const malformed = null;
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
+    });
+
+    it.skip('undefined is not allowed', async () => {
+      // tested manually
+    });
+
     it('Malformed entity_images JSON', async () => {
       const malformed = '{ { ]malformed]';
 
@@ -100,6 +117,43 @@ describe('Comments entity images', () => {
       const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
       await CommentsGenerator.createCommentForPost(postId, userJane, undefined, sampleEntityImages, 400);
     });
+
+    it('Empty array is not allowed', async () => {
+      const malformed = '[]';
+
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
+    }, JEST_TIMEOUT);
+
+    it('Array as root element is not allowed', async () => {
+      const malformed = [
+        {
+          success: true,
+        },
+        {
+          another_object: { success: 12345 },
+        },
+      ];
+
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      await CommentsGenerator.createCommentForPost(postId, userJane, undefined, malformed, 400);
+    }, JEST_TIMEOUT);
+
+    it('Correct bad request error if entity_images added as form data field', async () => {
+      const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+      const url: string = RequestHelper.getCommentsUrl(postId);
+
+      const fields = {
+        description: 'sample description',
+        'entity_images[article_title][0][url]': 'https://example.com',
+      };
+
+      const response = await RequestHelper.makePostRequest(url, fields, userJane);
+
+      ResponseHelper.expectStatusToBe(response, 400);
+
+      expect(response.body.errors).toMatch('required to provide entity_images as serialized JSON');
+    }, JEST_TIMEOUT);
   });
 
   describe('Skipped', () => {

@@ -21,7 +21,7 @@ const entitySourceRepository = require('../../../lib/entities/repository').Sourc
 const orgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 
 
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 let userVlad: UserModel;
 let userJane: UserModel;

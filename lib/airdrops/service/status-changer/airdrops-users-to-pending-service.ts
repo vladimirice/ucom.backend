@@ -60,6 +60,8 @@ class AirdropsUsersToPendingService {
         }
 
         if (userTokenData.amount_claim === 0) {
+          await AirdropsUsersExternalDataRepository.changeStatusToNoParticipation(user.users_external_id, trx);
+
           WorkerLogger.info(`There is no tokens with symbol ${airdropDebt.symbol} for user with ID: ${user.user_id}`);
           continue;
         }

@@ -47,10 +47,6 @@ class OrganizationsValidateDiscussions {
     if (!~allowedDiscussionsTypes.indexOf(post.post_type_id)) {
       throw new BadRequestError(`Post type ID is not allowed. Allowed types are: ${allowedDiscussionsTypes.join(', ')}`);
     }
-
-    if (post.organization_id === null || post.organization_id !== orgModel.id) {
-      throw new BadRequestError('Post should be made by organization member');
-    }
   }
 }
 

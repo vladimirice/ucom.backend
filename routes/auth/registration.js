@@ -1,5 +1,6 @@
 "use strict";
 const express = require('express');
+require('express-async-errors');
 const router = express.Router();
 const authValidator = require('../../lib/auth/validators');
 const usersAuthService = require('../../lib/users/service/users-auth-service');
@@ -11,7 +12,7 @@ router.post('/', [formDataParser], async (req, res) => {
 });
 /* Check is account_name valid */
 router.post('/validate-account-name', [formDataParser], async (req, res) => {
-    const account_name = req.body.account_name;
+    const { account_name } = req.body;
     await authValidator.validateNewAccountName(account_name);
     res.send({
         status: 'ok',

@@ -1,14 +1,21 @@
 import { ListResponse } from '../../common/interfaces/lists-interfaces';
 import { RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import {
+  UosAccountPropertiesValuesDto,
+} from '../../uos-accounts-properties/interfaces/model-interfaces';
 
 interface UserModel {
   readonly id: number;
+  readonly account_name: string;
 
-  [index: string]: string | number,
+  readonly uos_accounts_properties?: UosAccountPropertiesValuesDto
+
+  [index: string]: any
 }
 
 interface UserModelCard {
   readonly id: number;
+  readonly account_name: string;
 
   [index: string]: string | number,
 }

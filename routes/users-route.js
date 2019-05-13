@@ -2,6 +2,7 @@
 const UsersTrustService = require("../lib/users/service/users-trust-service");
 const UserActivityService = require("../lib/users/user-activity-service");
 const express = require('express');
+require('express-async-errors');
 const usersRouter = express.Router();
 const status = require('statuses');
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');

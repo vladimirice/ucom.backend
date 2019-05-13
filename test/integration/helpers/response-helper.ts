@@ -197,12 +197,20 @@ class ResponseHelper {
   public static expectEmptyObject(value: any): void {
     expect(value).toBeDefined();
     expect(value).not.toBeNull();
+    expect(typeof value).toBe('object');
 
     expect(value).toMatchObject({});
   }
 
   public static expectNotEmpty(actual: any): void {
     expect(_.isEmpty(actual)).toBeFalsy();
+  }
+
+  public static expectToBeObject(actual: any): void {
+    expect(actual).toBeDefined();
+    expect(actual).not.toBeNull();
+
+    expect(typeof actual).toBe('object');
   }
 
   static expectValuesAreExpected(expected, actual, skipFields: string[] = []) {
@@ -289,6 +297,8 @@ class ResponseHelper {
   public static checkListResponseStructure(
     response: ListResponse,
   ): void {
+    this.expectNotEmpty(response);
+
     expect(response.data).toBeDefined();
     expect(Array.isArray(response.data)).toBeTruthy();
     expect(response.metadata).toBeDefined();

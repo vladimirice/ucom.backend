@@ -5,12 +5,15 @@ import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
 import UsersHelper = require('../integration/helpers/users-helper');
 import OrganizationsGenerator = require('./organizations-generator');
+import EntityImagesModelProvider = require('../../lib/entity-images/service/entity-images-model-provider');
 
 const _ = require('lodash');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
-const server = require('../../app');
+const server = RequestHelper.getApiApplication();
+
+const entityImagesField: string = EntityImagesModelProvider.entityImagesColumn();
 
 class PostsGenerator {
   /**
@@ -89,7 +92,8 @@ class PostsGenerator {
       .field('description', newPostFields.description)
       .field('post_type_id', newPostFields.post_type_id)
       .field('leading_text', newPostFields.leading_text)
-      .field('organization_id', orgId);
+      .field('organization_id', orgId)
+      .field('entity_images', '{}');
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -125,10 +129,41 @@ class PostsGenerator {
       .field('current_rate', newPostFields.current_rate)
       .field('current_vote', newPostFields.current_vote)
       .field('action_button_title', newPostFields.action_button_title)
-      .field('organization_id', newPostFields.organization_id);
+      .field('organization_id', newPostFields.organization_id)
+      .field(EntityImagesModelProvider.entityImagesColumn(), '{}');
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
+  }
+
+  public static async createRepostWithFields(
+    myself: UserModel,
+    postId: number,
+    givenFields: any,
+    expectedStatus: number = 201,
+  ): Promise<PostModelResponse> {
+    const url: string = RequestHelper.getCreateRepostUrl(postId);
+
+    const fields = {
+      ...givenFields,
+      post_type_id: ContentTypeDictionary.getTypeRepost(),
+    };
+
+    if (typeof fields[entityImagesField] === 'object') {
+      fields[entityImagesField] = JSON.stringify(fields[entityImagesField]);
+    }
+
+    const req = request(server)
+      .post(url);
+
+    RequestHelper.addAuthToken(req, myself);
+    RequestHelper.addFieldsToRequest(req, fields);
+
+    const res = await req;
+
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res.body;
   }
 
   static async createRepostOfUserPost(
@@ -239,15 +274,9 @@ class PostsGenerator {
     return Promise.all(promises);
   }
 
-  /**
-   *
-   * @param {Object} user
-   * @param {Object} values
-   * @returns {Promise<number>}
-   */
-  static async createMediaPostByUserHimself(
-    user: any,
-    values: Object = {},
+  public static async createMediaPostByUserHimself(
+    user: UserModel,
+    values: any = {},
   ): Promise<number> {
     const defaultValues = {
       title: 'Extremely new post',
@@ -255,8 +284,9 @@ class PostsGenerator {
       leading_text: 'extremely leading text',
       post_type_id: ContentTypeDictionary.getTypeMediaPost(),
       user_id: user.id,
-      current_rate: 0.0000000000,
+      current_rate: 0,
       current_vote: 0,
+      entity_images: '{}',
     };
 
     const newPostFields = _.defaults(values, defaultValues);
@@ -270,18 +300,14 @@ class PostsGenerator {
       .field('post_type_id', newPostFields.post_type_id)
       .field('user_id', newPostFields.user_id)
       .field('current_rate', newPostFields.current_rate)
-      .field('current_vote', newPostFields.current_vote);
+      .field('current_vote', newPostFields.current_vote)
+      .field('entity_images', newPostFields.entity_images);
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
 
-  /**
-   *
-   * @param {Object} user
-   * @return {Promise<number>}
-   */
-  static async createPostOfferByUserHimself(user: UserModel): Promise<number> {
+  public static async createPostOfferByUserHimself(user: UserModel): Promise<number> {
     const newPostFields = {
       title: 'Extremely new post',
       description: 'Our super post description',
@@ -303,7 +329,8 @@ class PostsGenerator {
       .field('post_type_id', newPostFields.post_type_id)
       .field('current_rate', newPostFields.current_rate)
       .field('current_vote', newPostFields.current_vote)
-      .field('action_button_title', newPostFields.action_button_title);
+      .field('action_button_title', newPostFields.action_button_title)
+      .field('entity_images', '{}');
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -438,10 +465,41 @@ class PostsGenerator {
     return Promise.all(promises);
   }
 
+  public static async createDirectPostForUserWithFields(
+    myself: UserModel,
+    wallOwner: UserModel,
+    givenFields: any,
+  ): Promise<PostModelResponse> {
+    const url: string = RequestHelper.getUserDirectPostUrlV2(wallOwner);
+
+    const fields = {
+      [EntityImagesModelProvider.entityImagesColumn()]: '{}',
+      ...givenFields,
+      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+    };
+
+    if (typeof fields[entityImagesField] === 'object') {
+      fields[entityImagesField] = JSON.stringify(fields[entityImagesField]);
+    }
+
+    const req = request(server)
+      .post(url);
+
+    RequestHelper.addAuthToken(req, myself);
+    RequestHelper.addFieldsToRequest(req, fields);
+
+    const res = await req;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
   static async createDirectPost(
     url: string,
     myself: UserModel,
     givenDescription: string | null = null,
+    // @ts-ignore
     withImage: boolean = false,
     idOnly: boolean = false,
   ): Promise<PostModelResponse> {
@@ -453,14 +511,11 @@ class PostsGenerator {
     const fields = {
       description,
       post_type_id: postTypeId,
+      entity_images: '{}',
     };
 
     RequestHelper.addAuthToken(req, myself);
     RequestHelper.addFieldsToRequest(req, fields);
-
-    if (withImage) {
-      RequestHelper.addSampleMainImageFilename(req);
-    }
 
     const res = await req;
 

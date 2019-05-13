@@ -1,5 +1,6 @@
 import PostsHelper = require('../integration/helpers/posts-helper');
 import _ = require('lodash');
+import ResponseHelper = require('../integration/helpers/response-helper');
 
 class PostsOfferChecker {
   public static checkGithubAirdropOffer(
@@ -11,7 +12,14 @@ class PostsOfferChecker {
   ): void {
     expect(postOffer.offer_data).toBeDefined();
     expect(postOffer.offer_data.airdrop_id).toBe(airdropId);
-    expect(postOffer.offer_data.tokens).toMatchObject(expectedTokens);
+
+    expect(postOffer.offer_data.tokens.length).toBe(expectedTokens.length);
+    for (const actual of postOffer.offer_data.tokens) {
+      const expected = expectedTokens.find(item => item.symbol === actual.symbol);
+      ResponseHelper.expectNotEmpty(expected);
+
+      expect(actual).toMatchObject(expected);
+    }
 
     expect(postOffer.started_at).toBe(startedAt);
     expect(postOffer.finished_at).toBe(finishedAt);

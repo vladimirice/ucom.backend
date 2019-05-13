@@ -19,7 +19,7 @@ import OrgsCurrentParamsRepository = require('../../../lib/organizations/reposit
 const request = require('supertest');
 const _ = require('lodash');
 const faker = require('faker');
-const server = require('../../../app');
+const server = RequestHelper.getApiApplication();
 
 const { orgImageStoragePath } =
   require('../../../lib/organizations/middleware/organization-create-edit-middleware');

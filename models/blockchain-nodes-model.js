@@ -59,6 +59,8 @@ module.exports = (db, Sequelize) => {
 
       'currency',
       'bp_status',
+      'blockchain_nodes_type',
+      'scaled_importance_amount',
     ];
   };
 

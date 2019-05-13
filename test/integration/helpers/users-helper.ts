@@ -4,6 +4,7 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 
 import _ = require('lodash');
+import UsersChecker = require('../../helpers/users/users-checker');
 
 const eosJsEcc = require('eosjs-ecc');
 
@@ -14,7 +15,8 @@ const accountsData = require('../../../config/accounts-data');
 const authService = require('../../../lib/auth/authService');
 const usersRepository = require('../../../lib/users/users-repository');
 const eosImportance = require('../../../lib/eos/eos-importance');
-const server = require('../../../app');
+
+const server = RequestHelper.getApiApplication();
 
 const usersTeamRepository = require('../../../lib/users/repository').UsersTeam;
 const orgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
@@ -326,7 +328,7 @@ class UsersHelper {
 
   /**
    *
-   * @param {integer} userId
+   * @param {number} userId
    * @returns {Promise<string|*|string|HTMLElement|BodyInit|ReadableStream>}
    */
   static async requestUserById(userId) {
@@ -339,9 +341,11 @@ class UsersHelper {
     return res.body;
   }
 
-  static validateUserJson(body, expectedUser, userFromDb) {
+  public static validateUserJson(body, expectedUser, userFromDb) {
     expect(body.hasOwnProperty('account_name')).toBeTruthy();
     expect(body.account_name).toBe(expectedUser.account_name);
+
+    UsersChecker.checkUosAccountsPropertiesStructure(body);
 
     const fieldsToCheck = [
       'users_education',
