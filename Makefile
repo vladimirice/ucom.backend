@@ -118,6 +118,14 @@ deploy-production:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
 
+prepare-deploy-production:
+	git checkout master
+	make docker-check-project
+	git push
+
+run-deploy-production-script:
+	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
+
 deploy-frontend-staging deploy-frontend:
 	ssh gt bash /var/www/ucom.frontend/deploy_frontend_staging
 
