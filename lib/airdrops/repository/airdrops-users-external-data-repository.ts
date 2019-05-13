@@ -11,6 +11,14 @@ const TABLE_NAME = AirdropsModelProvider.airdropsUsersExternalDataTableName();
 const usersExternal: string = UsersExternalModelProvider.usersExternalTableName();
 
 class AirdropsUsersExternalDataRepository {
+  public static async makeAreConditionsFulfilledTruthy(usersExternalId: number): Promise<void> {
+    await knex(TABLE_NAME)
+      .update({
+        are_conditions_fulfilled: true,
+      })
+      .where('users_external_id', '=', usersExternalId);
+  }
+
   public static async changeStatusToPending(usersExternalId: number, trx: Transaction): Promise<void> {
     await trx(TABLE_NAME)
       .update({
@@ -38,16 +46,29 @@ class AirdropsUsersExternalDataRepository {
   public static async getManyUsersWithStatusNew(
     airdropId: number,
   ): Promise<FreshUserDto[]> {
+    // #hardcore - it is a dirty solution of the participants issue. Pending worker here does too much work
+    const whereRawSql = `
+      ${TABLE_NAME}.airdrop_id = ${airdropId}
+      AND ${usersExternal}.user_id IS NOT NULL
+      AND (
+        ${TABLE_NAME}.status = ${AirdropStatuses.NEW} 
+        OR (
+          ${TABLE_NAME}.status = ${AirdropStatuses.NO_PARTICIPATION} 
+          AND ${TABLE_NAME}.are_conditions_fulfilled = false
+        )
+      )
+    `;
+
     return knex(TABLE_NAME)
       .select([
+        `${TABLE_NAME}.id AS primary_key`,
         `${TABLE_NAME}.json_data AS json_data`,
         `${TABLE_NAME}.users_external_id AS users_external_id`,
+        `${TABLE_NAME}.status AS status`,
         `${usersExternal}.user_id AS user_id`,
       ])
       .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
-      .where(`${TABLE_NAME}.airdrop_id`, '=', airdropId)
-      .andWhere(`${TABLE_NAME}.status`, '=', AirdropStatuses.NEW)
-      .andWhereRaw(`${usersExternal}.user_id IS NOT NULL`);
+      .whereRaw(whereRawSql);
   }
 
   public static async insertOneData(
@@ -86,6 +107,15 @@ class AirdropsUsersExternalDataRepository {
         `${TABLE_NAME}.json_data`,
         `${TABLE_NAME}.status`,
       ])
+      .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
+      .where(`${usersExternal}.user_id`, userId)
+      .first();
+
+    return data || null;
+  }
+
+  public static async getOneFullyByUserId(userId: number) {
+    const data = await knex(TABLE_NAME)
       .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
       .where(`${usersExternal}.user_id`, userId)
       .first();

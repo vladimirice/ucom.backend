@@ -10,6 +10,7 @@ import AirdropsUsersChecker = require('../../helpers/airdrops-users-checker');
 import AirdropsUsersRepository = require('../../../lib/airdrops/repository/airdrops-users-repository');
 import GithubRequest = require('../../helpers/github-request');
 import RequestHelper = require('../helpers/request-helper');
+import AirdropsUsersExternalDataRepository = require('../../../lib/airdrops/repository/airdrops-users-external-data-repository');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -20,6 +21,8 @@ const beforeAfterOptions = {
 };
 
 const JEST_TIMEOUT = 5000;
+// @ts-ignore
+const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
 describe('Airdrops users to pending', () => {
   beforeAll(async () => {
@@ -51,6 +54,32 @@ describe('Airdrops users to pending', () => {
       const userVladState = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userVlad.id, airdropId);
       expect(userVladState.length).toBe(0);
     });
+  });
+
+  describe('Users with no participation', () => {
+    it('User fulfills all conditions and have a zero claim. He should be in participants list', async () => {
+      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, false);
+
+      // await AirdropsUsersToPendingService.process(airdropId);
+      const manyUsersEmpty = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId);
+      expect(manyUsersEmpty.data.length).toBe(0);
+
+      const externalStateBefore = await AirdropsUsersExternalDataRepository.getOneFullyByUserId(userVlad.id);
+      expect(externalStateBefore.are_conditions_fulfilled).toBeFalsy();
+
+      await OrganizationsHelper.requestToFollowOrganization(orgId, userVlad);
+      await AirdropsUsersToPendingService.process(airdropId);
+
+      const externalState = await AirdropsUsersExternalDataRepository.getOneFullyByUserId(userVlad.id);
+
+      expect(externalState.are_conditions_fulfilled).toBeTruthy();
+
+      const manyUsersFilled = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId);
+      expect(manyUsersFilled.data.length).toBe(1);
+
+      expect(manyUsersFilled.data[0].id).toBe(userVlad.id);
+    }, JEST_TIMEOUT_DEBUG);
   });
 
   describe('Positive', () => {
