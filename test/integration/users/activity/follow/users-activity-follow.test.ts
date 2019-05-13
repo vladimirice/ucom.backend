@@ -12,8 +12,8 @@ import ResponseHelper = require('../../../helpers/response-helper');
 import UsersHelper = require('../../../helpers/users-helper');
 import PostsRepository = require('../../../../../lib/posts/posts-repository');
 import CommonChecker = require('../../../../helpers/common/common-checker');
+import UsersActivityFollowRepository = require('../../../../../lib/users/repository/users-activity/users-activity-follow-repository');
 // @ts-ignore
-import UsersActivityFollowRepository = require('../../../lib/users/repository/users-activity/users-activity-follow-repository');
 const server = RequestHelper.getApiApplication();
 
 require('jest-expect-message');
