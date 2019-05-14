@@ -6,6 +6,7 @@ const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 import UsersExternalModelProvider = require('../../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../service/airdrops-model-provider');
+import RepositoryHelper = require('../../common/repository/repository-helper');
 
 const TABLE_NAME = AirdropsModelProvider.airdropsUsersExternalDataTableName();
 const usersExternal: string = UsersExternalModelProvider.usersExternalTableName();
@@ -112,6 +113,16 @@ class AirdropsUsersExternalDataRepository {
       .first();
 
     return data || null;
+  }
+
+  public static async countAllParticipants(airdropId: number) {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where('airdrop_id', airdropId)
+      .andWhere('are_conditions_fulfilled', true)
+      .whereNotIn(`${TABLE_NAME}.users_external_id`, [36, 38]);
+
+    return RepositoryHelper.getKnexCountAsNumber(res);
   }
 
   public static async getOneFullyByUserId(userId: number) {

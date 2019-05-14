@@ -18,13 +18,13 @@ import EntityListCategoryDictionary = require('../../stats/dictionary/entity-lis
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import UsersModelProvider = require('../users-model-provider');
 import PostsRepository = require('../../posts/posts-repository');
-import AirdropsUsersRepository = require('../../airdrops/repository/airdrops-users-repository');
 import OrganizationPostProcessor = require('../../organizations/service/organization-post-processor');
 import EntityNotificationsRepository = require('../../entities/repository/entity-notifications-repository');
 import UsersActivityRepository = require('../repository/users-activity-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import UserActivityService = require('../user-activity-service');
 import UsersActivityTrustRepository = require('../repository/users-activity/users-activity-trust-repository');
+import AirdropsUsersExternalDataRepository = require('../../airdrops/repository/airdrops-users-external-data-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -133,7 +133,7 @@ class UsersFetchService {
 
     const promises = [
       UsersRepository.findAllAirdropParticipants(query.airdrops!.id, params),
-      AirdropsUsersRepository.countAllAirdropParticipants(query.airdrops!.id),
+      AirdropsUsersExternalDataRepository.countAllParticipants(query.airdrops!.id),
     ];
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
