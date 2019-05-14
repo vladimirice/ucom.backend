@@ -4,7 +4,6 @@ import { IdOnlyDto } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
-import PostSanitizer = require('../post-sanitizer');
 import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 import PostOfferRepository = require('../repository/post-offer-repository');
@@ -12,7 +11,6 @@ import UsersTeamRepository = require('../../users/repository/users-team-reposito
 import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
-import UserInputSanitizer = require('../../api/sanitizers/user-input-sanitizer');
 
 const _ = require('lodash');
 
@@ -76,9 +74,6 @@ class PostCreatorService {
 
     await this.makeOrganizationRelatedChecks(body, currentUser);
     await this.addAttributesOfEntityFor(body, currentUser);
-    // noinspection JSDeprecatedSymbols
-    PostSanitizer.sanitisePost(body);
-    UserInputSanitizer.unescapeObjectValues(body, ['title', 'leading_text', 'description']);
 
     // legacy code usage check
     if (!_.isEmpty(files)) {

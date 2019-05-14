@@ -1,37 +1,95 @@
+import { AppError } from '../errors';
+import { IModelFieldsSet } from '../../common/interfaces/models-dto';
+
 const sanitizeHtml = require('sanitize-html');
 const unescape = require('unescape');
 
 class UserInputSanitizer {
-  public static unescapeObjectValues(object: any, manyFields: string[]): void {
-    for (const field of manyFields) {
-      object[field] = unescape(object[field]);
+  public static sanitizeInputWithModelProvider(body: any, fieldsSet: IModelFieldsSet): void {
+    for (const fieldName in fieldsSet) {
+      if (!fieldsSet.hasOwnProperty(fieldName)) {
+        continue;
+      }
+
+      if (!body[fieldName]) {
+        continue;
+      }
+
+      const rules = fieldsSet[fieldName];
+      if (!rules.request) {
+        delete body[fieldName];
+
+        continue;
+      }
+
+      const toSanitize = body[fieldName];
+      let sanitized: any;
+      switch (rules.request.sanitizationType) {
+        case 'any':
+          sanitized = toSanitize;
+          break;
+        case 'number':
+          sanitized = this.sanitizeNumberValue(toSanitize);
+          break;
+        case 'text':
+          sanitized = this.sanitizeTextValue(toSanitize, true);
+          break;
+        case 'html':
+          sanitized = this.sanitizeHtmlValue(toSanitize, true);
+          break;
+        default:
+          throw new AppError(`Unsupported sanitizationType: ${rules.request.sanitizationType}`);
+      }
+
+      body[fieldName] = sanitized;
     }
   }
 
   /**
-   *
-   * @param {Object} body - parameters to sanitize
-   * @param {string[]} textOnlyFields - list of field names to strip all tags
-   * @param {string[]} htmlFields - list of fields to strip all but allowed tags
+   * @deprecated
+   * @see sanitizeInputWithModelProvider
+   * @param body
+   * @param textOnlyFields
+   * @param htmlFields
    */
-  static sanitizeRequestBody(body, textOnlyFields = [], htmlFields = []) {
-    textOnlyFields.forEach((field) => {
+  public static sanitizeInput(
+    body: any,
+    textOnlyFields: string[] = [],
+    htmlFields: string[] = [],
+  ): void {
+    for (const field of textOnlyFields) {
       if (body[field]) {
-        body[field] = sanitizeHtml(body[field], {
-          allowedTags: [],
-          allowedAttributes: [],
-        });
+        body[field] = this.sanitizeTextValue(body[field], true);
       }
+    }
+
+    for (const field of htmlFields) {
+      if (body[field]) {
+        body[field] = this.sanitizeHtmlValue(body[field], true);
+      }
+    }
+  }
+
+  private static sanitizeNumberValue(value: any): number {
+    return +value;
+  }
+
+  private static sanitizeTextValue(value: string, toUnescape: boolean): string {
+    const sanitized = sanitizeHtml(value, {
+      allowedTags: [],
+      allowedAttributes: [],
     });
 
-    htmlFields.forEach((field) => {
-      if (body[field]) {
-        body[field] = sanitizeHtml(body[field], {
-          allowedTags: Object.keys(this.getAllowedAttributes()),
-          allowedAttributes: this.getAllowedAttributes(),
-        });
-      }
+    return toUnescape ? unescape(sanitized) : sanitized;
+  }
+
+  private static sanitizeHtmlValue(value: string, toUnescape: boolean): string {
+    const sanitized = sanitizeHtml(value, {
+      allowedTags: Object.keys(this.getAllowedAttributes()),
+      allowedAttributes: this.getAllowedAttributes(),
     });
+
+    return toUnescape ? unescape(sanitized) : sanitized;
   }
 
   /**
@@ -67,7 +125,7 @@ class UserInputSanitizer {
 
       figure: commonAllowedAttributes,
       iframe: Array.prototype.concat(commonAllowedAttributes, ['src', 'allowfullscreen', 'scrolling']),
-      img: Array.prototype.concat(commonAllowedAttributes, ['src']),
+      img: Array.prototype.concat(commonAllowedAttributes, ['src', 'alt']),
       a: Array.prototype.concat(commonAllowedAttributes, ['href']),
     };
   }

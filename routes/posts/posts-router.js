@@ -1,6 +1,7 @@
 "use strict";
 const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
 const _ = require("lodash");
+const PostsInputProcessor = require("../../lib/posts/validators/posts-input-processor");
 const postsRouter = require('./comments-router');
 const { AppError, BadRequestError } = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
@@ -56,6 +57,7 @@ postsRouter.post('/:post_id/downvote', activityMiddlewareSet, async (req, res) =
     return res.status(201).send(result);
 });
 postsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    PostsInputProcessor.process(req.body);
     const service = getPostService(req);
     const response = await service.processRepostCreation(req.body, req.post_id);
     res.status(201).send(response);
@@ -69,6 +71,7 @@ res) => {
 });
 /* Create new post */
 postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    PostsInputProcessor.process(req.body);
     const newPost = await getPostService(req).processNewPostCreation(req);
     const response = postService.isDirectPost(newPost) ? newPost : {
         id: newPost.id,
@@ -84,6 +87,7 @@ postsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res)
         throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
     }
     const params = req.body;
+    PostsInputProcessor.process(req.body);
     const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);
     if (postService.isDirectPost(updatedPost)) {
         res.send(updatedPost);

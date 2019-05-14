@@ -3,6 +3,7 @@
 const OrganizationsFetchService = require("../../lib/organizations/service/organizations-fetch-service");
 const OrganizationsValidateDiscussions = require("../../lib/organizations/discussions/service/organizations-validate-discussions");
 const OrganizationsModifyDiscussions = require("../../lib/organizations/discussions/service/organizations-modify-discussions");
+const PostsInputProcessor = require("../../lib/posts/validators/posts-input-processor");
 const express = require('express');
 const status = require('statuses');
 require('express-async-errors');
@@ -47,6 +48,7 @@ orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) =
 });
 /* Create post for this organization */
 orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], async (req, res) => {
+    PostsInputProcessor.process(req.body);
     const response = await getPostService(req).processNewDirectPostCreationForOrg(req);
     res.send(response);
 });

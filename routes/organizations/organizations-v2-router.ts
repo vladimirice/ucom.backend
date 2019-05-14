@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 import ApiPostProcessor = require('../../lib/common/service/api-post-processor');
+import PostsInputProcessor = require('../../lib/posts/validators/posts-input-processor');
 
 const express = require('express');
 require('express-async-errors');
@@ -23,6 +24,7 @@ function getPostService(req) {
 
 /* Create post for this organization */
 orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], async (req, res) => {
+  PostsInputProcessor.process(req.body);
   const response = await getPostService(req).processNewDirectPostCreationForOrg(req);
 
   // backward compatibility injection

@@ -1,5 +1,6 @@
 import UsersTrustService = require('../lib/users/service/users-trust-service');
 import UserActivityService = require('../lib/users/user-activity-service');
+import PostsInputProcessor = require('../lib/posts/validators/posts-input-processor');
 
 const express = require('express');
 
@@ -59,6 +60,7 @@ usersRouter.get('/:user_id', async (req, res) => {
 
 /* Create post for this user */
 usersRouter.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  PostsInputProcessor.process(req.body);
   const response = await getPostService(req).processNewDirectPostCreationForUser(req);
 
   res.send(response);

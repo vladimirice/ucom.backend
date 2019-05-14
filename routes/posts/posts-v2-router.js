@@ -2,6 +2,7 @@
 /* eslint-disable max-len */
 const ApiPostProcessor = require("../../lib/common/service/api-post-processor");
 const _ = require("lodash");
+const PostsInputProcessor = require("../../lib/posts/validators/posts-input-processor");
 const express = require('express');
 const PostsV2Router = express.Router();
 const { AppError, BadRequestError } = require('../../lib/api/errors');
@@ -19,6 +20,7 @@ function getPostService(req) {
 }
 /* Create new post */
 PostsV2Router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    PostsInputProcessor.process(req.body);
     const newPost = await getPostService(req).processNewPostCreation(req);
     const response = postService.isDirectPost(newPost) ? newPost : {
         id: newPost.id,
@@ -34,6 +36,7 @@ PostsV2Router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, re
         throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
     }
     const params = req.body;
+    PostsInputProcessor.process(params);
     const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);
     if (postService.isDirectPost(updatedPost)) {
         ApiPostProcessor.deleteCommentsFromModel(updatedPost);

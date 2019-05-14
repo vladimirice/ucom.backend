@@ -5,6 +5,7 @@ import { IdOnlyDto } from '../../lib/common/interfaces/common-types';
 
 import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 import _ = require('lodash');
+import PostsInputProcessor = require('../../lib/posts/validators/posts-input-processor');
 
 const postsRouter = require('./comments-router');
 const { AppError, BadRequestError } = require('../../lib/api/errors');
@@ -85,6 +86,8 @@ postsRouter.post('/:post_id/downvote', activityMiddlewareSet, async (req, res) =
 });
 
 postsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  PostsInputProcessor.process(req.body);
+
   const service = getPostService(req);
   const response: IdOnlyDto = await service.processRepostCreation(req.body, req.post_id);
 
@@ -102,6 +105,8 @@ postsRouter.post('/image', [descriptionParser], async (
 
 /* Create new post */
 postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  PostsInputProcessor.process(req.body);
+
   const newPost = await getPostService(req).processNewPostCreation(req);
 
   const response = postService.isDirectPost(newPost) ? newPost : {
@@ -123,6 +128,7 @@ postsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res)
 
   const params = req.body;
 
+  PostsInputProcessor.process(req.body);
   const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);
 
   if (postService.isDirectPost(updatedPost)) {

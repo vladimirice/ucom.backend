@@ -1,6 +1,7 @@
 "use strict";
 /* tslint:disable:max-line-length */
 const ApiPostProcessor = require("../../lib/common/service/api-post-processor");
+const PostsInputProcessor = require("../../lib/posts/validators/posts-input-processor");
 const express = require('express');
 require('express-async-errors');
 const orgRouter = express.Router();
@@ -16,6 +17,7 @@ function getPostService(req) {
 }
 /* Create post for this organization */
 orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], async (req, res) => {
+    PostsInputProcessor.process(req.body);
     const response = await getPostService(req).processNewDirectPostCreationForOrg(req);
     // backward compatibility injection
     ApiPostProcessor.setEmptyCommentsForOnePost(response, true);

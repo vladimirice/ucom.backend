@@ -1,6 +1,7 @@
 "use strict";
 const UsersTrustService = require("../lib/users/service/users-trust-service");
 const UserActivityService = require("../lib/users/user-activity-service");
+const PostsInputProcessor = require("../lib/posts/validators/posts-input-processor");
 const express = require('express');
 require('express-async-errors');
 const usersRouter = express.Router();
@@ -44,6 +45,7 @@ usersRouter.get('/:user_id', async (req, res) => {
 });
 /* Create post for this user */
 usersRouter.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    PostsInputProcessor.process(req.body);
     const response = await getPostService(req).processNewDirectPostCreationForUser(req);
     res.send(response);
 });

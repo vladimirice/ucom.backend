@@ -1,5 +1,6 @@
 "use strict";
 const ApiPostProcessor = require("../lib/common/service/api-post-processor");
+const PostsInputProcessor = require("../lib/posts/validators/posts-input-processor");
 const express = require('express');
 require('express-async-errors');
 const usersRouterV2 = express.Router();
@@ -16,6 +17,7 @@ function getPostService(req) {
 }
 /* Create post for this user */
 usersRouterV2.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    PostsInputProcessor.process(req.body);
     const response = await getPostService(req).processNewDirectPostCreationForUser(req);
     // backward compatibility injection
     ApiPostProcessor.setEmptyCommentsForOnePost(response, true);

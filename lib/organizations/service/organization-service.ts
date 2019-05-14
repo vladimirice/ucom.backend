@@ -370,7 +370,7 @@ class OrganizationService {
     const body = OrganizationService.getRequestBodyWithFilenames(req);
 
     const simpleTextFields = organizationsRepositories.Main.getModelSimpleTextFields();
-    userInputSanitizer.sanitizeRequestBody(body, simpleTextFields);
+    userInputSanitizer.sanitizeInput(body, simpleTextFields);
 
     const { error, value } = joi.validate(body, CreateOrUpdateOrganizationSchema, {
       allowUnknown: true,
@@ -414,9 +414,7 @@ class OrganizationService {
     const existed = await organizationsRepositories.Main.findWithUniqueFields(toFind);
 
     const errors: any = [];
-    for (let i = 0; i < existed.length; i += 1) {
-      const current = existed[i];
-
+    for (const current of existed) {
       if (organizationId && current.id === organizationId) {
         // this is model itself
         continue;

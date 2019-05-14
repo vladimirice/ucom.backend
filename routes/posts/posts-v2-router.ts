@@ -2,6 +2,7 @@
 
 import ApiPostProcessor = require('../../lib/common/service/api-post-processor');
 import _ = require('lodash');
+import PostsInputProcessor = require('../../lib/posts/validators/posts-input-processor');
 
 const express = require('express');
 
@@ -26,6 +27,7 @@ function getPostService(req) {
 
 /* Create new post */
 PostsV2Router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  PostsInputProcessor.process(req.body);
   const newPost = await getPostService(req).processNewPostCreation(req);
 
   const response = postService.isDirectPost(newPost) ? newPost : {
@@ -47,6 +49,7 @@ PostsV2Router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, re
 
   const params = req.body;
 
+  PostsInputProcessor.process(params);
   const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);
 
   if (postService.isDirectPost(updatedPost)) {
