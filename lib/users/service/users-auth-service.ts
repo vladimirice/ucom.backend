@@ -33,19 +33,16 @@ class UsersAuthService {
 
     const newUser = await db
       .transaction(async (transaction) => {
-        const newUser = await usersRepository.createNewUser(newUserData, transaction);
-
-        // eslint-disable-next-line no-console
-        console.log(`account name: ${newUser.account_name}, owner: ${newUser.owner_public_key}, active: ${newUser.public_key}`);
+        const user = await usersRepository.createNewUser(newUserData, transaction);
 
         await eosApi.transactionToCreateNewAccount(
-          newUser.account_name,
-          newUser.owner_public_key,
-          newUser.public_key,
+          user.account_name,
+          user.owner_public_key,
+          user.public_key,
         );
-        await usersService.setBlockchainRegistrationIsSent(newUser, transaction);
+        await usersService.setBlockchainRegistrationIsSent(user, transaction);
 
-        return newUser;
+        return user;
       });
 
     const token = authService.getNewJwtToken(newUser);
