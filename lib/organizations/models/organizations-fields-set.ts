@@ -29,7 +29,7 @@ const fieldsSet: IModelFieldsSet = {
   about: {
     type: 'string',
     request: {
-      sanitizationType: 'html',
+      sanitizationType: 'text',
     },
   },
   nickname: {
