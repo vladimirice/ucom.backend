@@ -141,8 +141,11 @@ staging-error-logs sl:
 prod-console:
 	ssh gt 'bash -s' < ./pm2_console_logs.sh production_app_backend
 
-blockchain-nodes-worker-production-console:
+worker-console-blockchain-nodes-production-console:
 	ssh gt 'bash -s' < ./pm2_console_logs.sh production-worker-update-blockchain-nodes
+
+worker-console-uos-accounts-properties-update-production-console:
+	ssh gt 'bash -s' < ./pm2_console_logs.sh production-uos-accounts-properties-update-worker
 
 staging-console:
 	ssh gt 'bash -s' < ./pm2_console_logs.sh staging_app_backend

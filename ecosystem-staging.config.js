@@ -8,6 +8,7 @@ const UPLOADER_SERVER_PORT  = 5011;
 
 const CRON_PATTERN_EVERY_HOUR         = '0 */1 * * *';
 const CRON_PATTERN_EVERY_MINUTE       = '* * * * *';
+const CRON_PATTERN_EVERY_TWO_MINUTES  = '*/2 * * * *';
 const CRON_PATTERN_EVERY_FIVE_MINUTES = '*/5 * * * *';
 
 const clusterConfig = {
@@ -139,7 +140,7 @@ module.exports = {
       script: 'lib/uos-accounts-properties/worker/uos-accounts-properties-update-worker.js',
 
       watch: false,
-      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      cron_restart: CRON_PATTERN_EVERY_TWO_MINUTES,
       env: {
         NODE_ENV,
       },

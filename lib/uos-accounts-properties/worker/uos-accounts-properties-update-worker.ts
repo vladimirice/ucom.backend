@@ -8,7 +8,7 @@ const EosApi = require('../../eos/eosApi');
 
 const options: WorkerOptionsDto = {
   processName: 'uos-accounts-properties-update',
-  durationInSecondsToAlert: 40,
+  durationInSecondsToAlert: 80,
 };
 
 async function toExecute() {
