@@ -167,7 +167,7 @@ module.exports = {
       script: 'lib/blockchain-nodes/worker/update-blockchain-nodes-worker.js',
 
       watch: false,
-      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      cron_restart: CRON_PATTERN_EVERY_TWO_MINUTES,
       env: {
         NODE_ENV,
       },
