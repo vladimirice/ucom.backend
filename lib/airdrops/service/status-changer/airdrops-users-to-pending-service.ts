@@ -13,6 +13,8 @@ import AccountsCreatorService = require('../../../accounts/service/accounts-crea
 import AccountsTransactionsCreatorService = require('../../../accounts/service/accounts-transactions-creator-service');
 import AirdropsUsersRepository = require('../../repository/airdrops-users-repository');
 
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
+
 class AirdropsUsersToPendingService {
   public static async process(airdropId: number) {
     const manyFreshUsers: FreshUserDto[] =
@@ -30,6 +32,10 @@ class AirdropsUsersToPendingService {
         await this.areAllConditionsFulfilledByUserId(freshUser.user_id, airdrop.conditions.community_id_to_follow);
 
       if (isOk) {
+        await AirdropsUsersExternalDataRepository.makeAreConditionsFulfilledTruthy(freshUser.users_external_id);
+      }
+
+      if (isOk && freshUser.status === AirdropStatuses.NEW) {
         usersToProcess.push(freshUser);
       }
     }

@@ -28,7 +28,6 @@ const model = userModelProvider.getUsersModel();
 const TABLE_NAME = 'Users';
 const usersExternal = UsersExternalModelProvider.usersExternalTableName();
 const airdropsUsersExternalData = AirdropsModelProvider.airdropsUsersExternalDataTableName();
-const airdropsUsers = AirdropsModelProvider.airdropsUsersTableName();
 
 const taggableRepository = require('../common/repository/taggable-repository');
 
@@ -48,16 +47,16 @@ class UsersRepository {
       .innerJoin(usersExternal, `${usersExternal}.user_id`, `${TABLE_NAME}.id`)
       .innerJoin(airdropsUsersExternalData, `${airdropsUsersExternalData}.users_external_id`, `${usersExternal}.id`)
       // eslint-disable-next-line func-names
-      .whereIn(`${TABLE_NAME}.id`, function () {
+      .whereIn(`${usersExternal}.id`, function () {
         // @ts-ignore
         this
-          .distinct('user_id')
-          .select()
-          .from(airdropsUsers)
-          .where('airdrop_id', '=', airdropId)
-          .whereNotIn('user_id', AirdropsUsersRepository.getAirdropParticipantsIdsToHide());
+          .select('users_external_id')
+          .from(airdropsUsersExternalData)
+          .where('airdrop_id', airdropId)
+          .andWhere('are_conditions_fulfilled', true);
       })
       .andWhere(`${usersExternal}.external_type_id`, '=', ExternalTypeIdDictionary.github())
+      .whereNotIn(`${TABLE_NAME}.id`, AirdropsUsersRepository.getAirdropParticipantsIdsToHide())
       .orderByRaw(params.orderByRaw)
       .limit(params.limit)
       .offset(params.offset)

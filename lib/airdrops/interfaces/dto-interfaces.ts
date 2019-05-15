@@ -23,9 +23,11 @@ interface OneUserAirdropToken {
 }
 
 interface FreshUserDto {
+  readonly primary_key: number;
   readonly user_id: number;
   readonly json_data: any;
   readonly users_external_id: number;
+  readonly status: number;
 }
 
 interface AirdropDebtDto {
