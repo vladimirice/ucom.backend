@@ -1,8 +1,13 @@
+/* eslint-disable you-dont-need-lodash-underscore/filter */
 /* tslint:disable:max-line-length */
+import EntityModelProvider = require('./entity-model-provider');
+import EntityInputProcessor = require('../validator/entity-input-processor');
+
 const _ = require('lodash');
 
 const models = require('../../../models');
-const TABLE_NAME = 'entity_sources'; // TODO - use ModelProvider
+
+const TABLE_NAME = EntityModelProvider.getSourcesTableName();
 const repository = require('../repository').Sources;
 // tslint:disable-next-line
 const UpdateManyToManyHelper = require('../../api/helpers/UpdateManyToManyHelper');
@@ -23,8 +28,8 @@ const SOURCE_GROUP__PARTNERSHIP     = 3;
 const SOURCE_TYPE__INTERNAL = 'internal';
 const SOURCE_TYPE__EXTERNAL = 'external';
 
-// TODO - provide dictionary
-const sourceTypes = {
+// #task - provide dictionary
+const sourceTypes: any = {
   social_networks: {
     source_group_id : SOURCE_GROUP__SOCIAL_NETWORKS,
     body_key        : 'social_networks',
@@ -50,10 +55,81 @@ class EntitySourceService {
    *
    * @param {number} entityId
    * @param {string} entityName
+   * @param {Object[]} body - request body
+   * @param {Object} transaction
+   */
+  public static async processCreationRequest(entityId, entityName, body, transaction) {
+    // #task - validate request by Joi
+    EntityInputProcessor.processEntitySources(body);
+
+    for (const source in sourceTypes) {
+      if (!sourceTypes.hasOwnProperty(source)) {
+        continue;
+      }
+
+      let entities = body[source];
+      if (!entities) {
+        continue;
+      }
+
+      entities = _.filter(entities);
+      if (_.isEmpty(entities)) {
+        continue;
+      }
+
+      const sourceSet = sourceTypes[source];
+
+      let toInsert = [];
+      if (sourceSet.source_group_id === SOURCE_GROUP__SOCIAL_NETWORKS) {
+        toInsert = this.getDataForSocialNetworks(entityId, entityName, entities, sourceSet);
+      } else {
+        toInsert = this.getDataForCommunityAndPartnership(entityId, entityName, entities, sourceSet);
+      }
+
+      await models[TABLE_NAME].bulkCreate(toInsert, { transaction });
+    }
+
+    return true;
+  }
+
+  /**
+   *
+   * @param {number} entityId
+   * @param {string} entityName
+   * @param {Object} body
+   * @param {Object} transaction
    * @return {Promise<void>}
    */
-  static async findAndGroupAllEntityRelatedSources(entityId, entityName) {
-    // TODO entity name allowed values - provide dictionary
+  public static async processSourcesUpdating(
+    entityId,
+    entityName,
+    body,
+    transaction,
+  ) {
+    EntityInputProcessor.processEntitySources(body);
+
+    for (const sourceType in sourceTypes) {
+      if (!sourceTypes.hasOwnProperty(sourceType)) {
+        continue;
+      }
+
+      const sourceTypeSet = sourceTypes[sourceType];
+      const sources = body[sourceType];
+
+      if (sources) {
+        await this.processOneSourceKey(entityId, entityName, body, sourceType, sourceTypeSet.source_group_id, transaction);
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {number} entityId
+   * @param {string} entityName
+   * @return {Promise<void>}
+   */
+  public static async findAndGroupAllEntityRelatedSources(entityId, entityName) {
+    // #task - entity name allowed values - provide dictionary
     const sources = await repository.findAllEntityRelatedSources(entityId, entityName);
 
     const result = {
@@ -67,15 +143,13 @@ class EntitySourceService {
       if external source then provide basic set of fields as for creation + id of record
      */
 
-    for (let i = 0; i < sources.length; i += 1) {
-      const source = sources[i];
-
+    for (const source of sources) {
       const group = sourceGroupIdToType[source.source_group_id];
       let toPush: any = {};
 
       if (source.source_group_id === SOURCE_GROUP__SOCIAL_NETWORKS) {
         toPush = source;
-        // TODO - restrict output. Only required fields
+        // #task - restrict output. Only required fields
       } else if (source.source_entity_id !== null) {
         toPush = await this.fillInternalSource(source);
       } else {
@@ -89,8 +163,6 @@ class EntitySourceService {
   }
 
   /**
-   * @deprecated way to add org prefix is used
-   *
    * @param {Object} source
    * @return {Object}
    * @private
@@ -118,30 +190,30 @@ class EntitySourceService {
    */
   private static async fillInternalSource(source) {
     let entity;
-    let title;
+    let processedTitle;
 
     switch (source.source_entity_name) {
       case orgModelProvider.getEntityName():
-        entity = await orgRepository.findOnlyItselfById(source.source_entity_id); // TODO - use JOIN
-        title = entity.title;
+        entity = await orgRepository.findOnlyItselfById(source.source_entity_id); // #task - use JOIN
+        processedTitle = entity.title;
         orgPostProcessor.processOneOrg(entity);
         break;
       case usersModelProvider.getEntityName():
         entity = await usersRepository.findOnlyItselfById(source.source_entity_id);
-        title = `${entity.first_name} ${entity.last_name}`; // TODO - move to separate place
+        processedTitle = `${entity.first_name} ${entity.last_name}`;
         break;
       default:
-        // TODO do something
+        // do nothing
         break;
     }
 
     if (!entity) {
-      // TODO - log error, this is inconsistency
+      // #task - log error, this is inconsistency
       return null;
     }
 
     return {
-      title,
+      title:            processedTitle,
       id:               source.id,
       entity_name:      source.source_entity_name,
 
@@ -151,76 +223,6 @@ class EntitySourceService {
 
       source_type:      'internal',
     };
-  }
-
-  /**
-   *
-   * @param {number} entityId
-   * @param {string} entityName
-   * @param {Object[]} body - request body
-   * @param {Object} transaction
-   */
-  static async processCreationRequest(entityId, entityName, body, transaction) {
-    // TODO - validate request by Joi
-    // TODO - sanitize input
-
-    // How to write down these sources
-
-    // internal source - must be fetched as preview
-    // external resource - must be fetched as full another set
-
-    for (const source in sourceTypes) {
-      let entities = body[source];
-      if (!entities) {
-        continue;
-      }
-
-      entities = _.filter(entities);
-      if (_.isEmpty(entities)) {
-        continue;
-      }
-
-      const sourceSet = sourceTypes[source];
-
-      // Here is required to split to external and internal
-
-      let toInsert = [];
-      if (sourceSet.source_group_id === SOURCE_GROUP__SOCIAL_NETWORKS) {
-        toInsert = this.getDataForSocialNetworks(entityId, entityName, entities, sourceSet);
-      } else {
-        toInsert = this.getDataForCommunityAndPartnership(entityId, entityName, entities, sourceSet);
-      }
-
-      // TODO Use promises because of kinds of sources
-      await models[TABLE_NAME].bulkCreate(toInsert, { transaction });
-    }
-
-    return true;
-  }
-
-  /**
-   *
-   * @param {number} entityId
-   * @param {string} entityName
-   * @param {Object} data
-   * @param {Object} transaction
-   * @return {Promise<void>}
-   */
-  static async processSourcesUpdating(
-    entityId,
-    entityName,
-    data,
-    transaction,
-  ) {
-
-    for (const sourceType in sourceTypes) {
-      const sourceTypeSet = sourceTypes[sourceType];
-      const sources = data[sourceType];
-
-      if (sources) {
-        await this.processOneSourceKey(entityId, entityName, data, sourceType, sourceTypeSet.source_group_id, transaction);
-      }
-    }
   }
 
   /**
@@ -242,13 +244,13 @@ class EntitySourceService {
           is_official:        false,
           source_type_id:     null,
 
-          source_group_id:    sourceSet['source_group_id'],
+          source_group_id:    sourceSet.source_group_id,
 
           entity_id:          parentEntityId,
           entity_name:        parentEntityName,
 
-          source_entity_id:   +source.entity_id, // TODO - validate consistency
-          source_entity_name: source['entity_name'], // TODO - filter, only concrete collection is allowed
+          source_entity_id:   +source.entity_id, // #task - validate consistency
+          source_entity_name: source.entity_name, // #task - filter, only concrete collection is allowed
 
           text_data: '',
         });
@@ -263,7 +265,7 @@ class EntitySourceService {
           is_official:        false,
           source_type_id:     null,
 
-          source_group_id:    sourceSet['source_group_id'],
+          source_group_id:    sourceSet.source_group_id,
           entity_id:          parentEntityId,
           entity_name:        parentEntityName,
 
@@ -273,8 +275,8 @@ class EntitySourceService {
       } else {
         throw new BadRequestError({
           source_type :
-            `Source type ${source.source_type} is not supported. Only ${SOURCE_TYPE__INTERNAL} or ${SOURCE_TYPE__EXTERNAL}`},
-        );
+            `Source type ${source.source_type} is not supported. Only ${SOURCE_TYPE__INTERNAL} or ${SOURCE_TYPE__EXTERNAL}`,
+        });
       }
     });
 
@@ -294,7 +296,7 @@ class EntitySourceService {
     const result: any = [];
 
     const appendData = {
-      source_group_id:  sourceSet['source_group_id'],
+      source_group_id:  sourceSet.source_group_id,
       entity_id:        parentEntityId,
       entity_name:      parentEntityName,
     };
@@ -313,7 +315,7 @@ class EntitySourceService {
   private static async processOneSourceKey(entityId, entityName, data, key, sourceGroupId, transaction) {
     const updatedModels = _.filter(data[key]);
     if (!updatedModels || _.isEmpty(updatedModels)) {
-      // TODO NOT possible to remove all users because of this. Wil be fixed later
+      // #task - NOT possible to remove all users because of this. Wil be fixed later
       return null;
     }
 
@@ -341,8 +343,8 @@ class EntitySourceService {
     );
   }
 
-  private static processExternalTextDataBeforeSave(models) {
-    models.forEach((model) => {
+  private static processExternalTextDataBeforeSave(manyModels) {
+    manyModels.forEach((model) => {
       if (model.source_type === 'external') {
         const json = {
           title: model.title || '',

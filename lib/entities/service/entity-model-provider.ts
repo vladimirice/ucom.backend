@@ -1,10 +1,13 @@
+import { IModelFieldsSet } from '../../common/interfaces/models-dto';
+
+import EntityFieldsSet = require('../models/entity-fields-set');
+
 const models = require('../../../models');
 
 const SOURCES_TABLE_NAME        = 'entity_sources';
 const NOTIFICATIONS_TABLE_NAME  = 'entity_notifications';
 
 class EntityModelProvider {
-
   /**
    *
    * @return {string}
@@ -51,6 +54,10 @@ class EntityModelProvider {
    */
   static getSourcesModel() {
     return models[SOURCES_TABLE_NAME];
+  }
+
+  public static getEntitySourcesFieldsSet(): IModelFieldsSet {
+    return EntityFieldsSet.getEntitySourcesFieldsSet();
   }
 }
 

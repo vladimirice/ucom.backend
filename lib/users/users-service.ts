@@ -1,4 +1,4 @@
-/* eslint-disable max-len */
+/* eslint-disable max-len,you-dont-need-lodash-underscore/filter */
 /* tslint:disable:max-line-length */
 import { BadRequestError } from '../api/errors';
 
@@ -9,6 +9,7 @@ import UsersInputProcessor = require('./validator/users-input-processor');
 import EosBlockchainStatusDictionary = require('../eos/eos-blockchain-status-dictionary');
 import UsersModelProvider = require('./users-model-provider');
 import UpdateManyToManyHelper = require('../api/helpers/UpdateManyToManyHelper');
+import UserInputSanitizer = require('../api/sanitizers/user-input-sanitizer');
 
 const _ = require('lodash');
 
@@ -138,29 +139,33 @@ class UsersService {
    * @return {Promise<void>}
    * @private
    */
-  private static async processArrayFields(user, requestData, transaction) {
+  private static async processArrayFields(user, requestData, transaction): Promise<void> {
+    if (requestData.users_sources) {
+      requestData.users_sources.forEach((source) => {
+        source.source_type_id = source.source_type_id ? source.source_type_id : null;
+      });
+    }
+
     const arrayFields = [
       'users_education',
       'users_jobs',
       'users_sources',
     ];
 
-    arrayFields.forEach((field) => {
-      // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-      requestData[field] = _.filter(requestData[field]);
-    });
-
-    requestData.users_sources.forEach((source) => {
-      source.source_type_id = source.source_type_id ? source.source_type_id : null;
-    });
-
     for (const field of arrayFields) {
-      // eslint-disable-next-line you-dont-need-lodash-underscore/filter
-      const set = _.filter(requestData[field]);
-
-      if (!set || _.isEmpty(set)) {
+      if (!requestData[field]) {
         continue;
       }
+
+      const set = _.filter(requestData[field]);
+      if (_.isEmpty(set)) {
+        continue;
+      }
+
+      UserInputSanitizer.sanitizeInputWithModelProvider(
+        set,
+        UsersModelProvider.getFieldsSetByFieldName(field),
+      );
 
       const deltaData = UpdateManyToManyHelper.getCreateUpdateDeleteDelta(user[field], set);
 

@@ -1,6 +1,10 @@
 import { IModelFieldsSet } from '../common/interfaces/models-dto';
 
 import UsersFieldsSet = require('./models/users-fields-set');
+import UsersEducationFieldsSet = require('./models/users-education-fields-set');
+import UsersJobsFields = require('./models/users-jobs-fields-set');
+import UsersSourcesFields = require('./models/users-sources-fields-set');
+import ErrorsHelper = require('../common/helper/errors/errors-helper');
 
 const models = require('../../models');
 
@@ -171,6 +175,32 @@ class UsersModelProvider {
 
   public static getUsersRelatedFieldsSet(): IModelFieldsSet {
     return UsersFieldsSet.getAllFieldsSet();
+  }
+
+  public static getUsersEducationRelatedFieldsSet(): IModelFieldsSet {
+    return UsersEducationFieldsSet.getAllFieldsSet();
+  }
+
+  public static getUsersJobsRelatedFieldsSet(): IModelFieldsSet {
+    return UsersJobsFields.getAllFieldsSet();
+  }
+
+  public static getUsersSourcesRelatedFieldsSet(): IModelFieldsSet {
+    return UsersSourcesFields.getAllFieldsSet();
+  }
+
+  public static getFieldsSetByFieldName(fieldName: string): IModelFieldsSet {
+    const set = {
+      users_education: this.getUsersEducationRelatedFieldsSet,
+      users_jobs: this.getUsersJobsRelatedFieldsSet,
+      users_sources: this.getUsersSourcesRelatedFieldsSet,
+    };
+
+    if (!set[fieldName]) {
+      ErrorsHelper.throwUnsupportedParamAppError(fieldName);
+    }
+
+    return set[fieldName];
   }
 }
 
