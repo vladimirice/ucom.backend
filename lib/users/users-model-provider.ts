@@ -1,3 +1,7 @@
+import { IModelFieldsSet } from '../common/interfaces/models-dto';
+
+import UsersFieldsSet = require('./models/users-fields-set');
+
 const models = require('../../models');
 
 const USERS_TABLE_NAME                  = 'Users';
@@ -163,6 +167,10 @@ class UsersModelProvider {
         this.getIncludeUsersPreview(),
       ],
     };
+  }
+
+  public static getUsersRelatedFieldsSet(): IModelFieldsSet {
+    return UsersFieldsSet.getAllFieldsSet();
   }
 }
 

@@ -1,3 +1,7 @@
+import { IModelFieldsSet } from '../../common/interfaces/models-dto';
+
+import OrganizationsFieldsSet = require('../models/organizations-fields-set');
+
 const models = require('../../../models');
 
 const ENTITY_NAME = 'org       ';
@@ -66,6 +70,10 @@ class OrganizationsModelProvider {
       model: this.getModel(),
       attributes: this.getModel().getFieldsForPreview(),
     };
+  }
+
+  public static getOrganizationsRelatedFieldsSet(): IModelFieldsSet {
+    return OrganizationsFieldsSet.getAllFieldsSet();
   }
 }
 

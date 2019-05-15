@@ -1,25 +1,18 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+import { BadRequestError } from '../api/errors';
+
 import UsersFetchService = require('./service/users-fetch-service');
 import UsersRepository = require('./users-repository');
 import UserPostProcessor = require('./user-post-processor');
+import UsersInputProcessor = require('./validator/users-input-processor');
+import EosBlockchainStatusDictionary = require('../eos/eos-blockchain-status-dictionary');
+import UsersModelProvider = require('./users-model-provider');
+import UpdateManyToManyHelper = require('../api/helpers/UpdateManyToManyHelper');
 
-const joi = require('joi');
 const _ = require('lodash');
 
-const usersRepository = require('./users-repository');
-const blockchainStatusDictionary = require('../eos/eos-blockchain-status-dictionary');
 const models = require('../../models');
-const userPostProcessor = require('./user-post-processor');
-const { BadRequestError } = require('../api/errors');
-
-const usersModelProvider = require('./users-model-provider');
-
-const usersFetchService = require('./service/users-fetch-service');
-
-const { UpdateManyToMany } = require('../../lib/api/helpers');
-const { JoiBadRequestError } = require('../api/errors');
-const { UsersUpdatingSchema } = require('../validator').Schemas;
 
 class UsersService {
   private currentUser: any;
@@ -33,8 +26,8 @@ class UsersService {
    * @param {string} query
    * @returns {Promise<Array<Object>>}
    */
-  static async findByNameFields(query) {
-    return usersRepository.findByNameFields(query);
+  public static async findByNameFields(query) {
+    return UsersRepository.findByNameFields(query);
   }
 
   /**
@@ -42,31 +35,20 @@ class UsersService {
    * @param {Object} req
    * @return {Promise<void>}
    */
-  async processUserUpdating(req) {
+  public async processUserUpdating(req) {
     const { body }  = req;
     const { files } = req;
 
-    const userId = this.currentUser.id;
-    const user = await usersRepository.getUserById(userId);
-
-    // console.log('Patch request body is: ', JSON.stringify(req.body, null, 2));
-
-    const { error, value:requestData } = joi.validate(body, UsersUpdatingSchema, {
-      allowUnknown: true,
-      stripUnknown: true,
-      abortEarly:   false,
-    });
-
-    if (error) {
-      throw new JoiBadRequestError(error);
-    }
-
+    const requestData = UsersInputProcessor.processWithValidation(body);
     // #task #refactor
     for (const field in requestData) {
       if (requestData[field] === '') {
         requestData[field] = null;
       }
     }
+
+    const userId = this.currentUser.id;
+    const user = await UsersRepository.getUserById(userId);
 
     await UsersService.checkUniqueFields(requestData, userId);
 
@@ -84,7 +66,7 @@ class UsersService {
     await models.sequelize
       .transaction(async (transaction) => {
         await UsersService.processArrayFields(user, requestData, transaction);
-        await usersRepository.updateUserById(userId, requestData, transaction);
+        await UsersRepository.updateUserById(userId, requestData, transaction);
       });
 
     const userModel = await UsersRepository.getUserById(userId);
@@ -105,10 +87,10 @@ class UsersService {
     return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
   }
 
-  static async findOneByAccountName(accountName: string) {
+  public static async findOneByAccountName(accountName: string) {
     const user = await models.Users.findOne({ where: { account_name: accountName } });
 
-    userPostProcessor.processUser(user);
+    UserPostProcessor.processUser(user);
 
     return user;
   }
@@ -117,10 +99,10 @@ class UsersService {
    * @param {Object} query
    * @return {Promise<Object[]>}
    */
-  async findAllAndProcessForList(query) {
+  public async findAllAndProcessForList(query) {
     const currentUserId = this.currentUser.id;
 
-    return usersFetchService.findAllAndProcessForList(query, currentUserId);
+    return UsersFetchService.findAllAndProcessForList(query, currentUserId);
   }
 
   /**
@@ -128,10 +110,10 @@ class UsersService {
    * @param {Object} query
    * @return {Promise<Object[]>}
    */
-  async findAllAndProcessForListByTagTitle(tagTitle, query) {
+  public async findAllAndProcessForListByTagTitle(tagTitle, query) {
     const currentUserId = this.currentUser.id;
 
-    return usersFetchService.findAllAndProcessForListByTagTitle(tagTitle, query, currentUserId);
+    return UsersFetchService.findAllAndProcessForListByTagTitle(tagTitle, query, currentUserId);
   }
 
   /**
@@ -140,9 +122,9 @@ class UsersService {
    * @param {Object} transaction
    * @return {Promise<void>}
    */
-  static async setBlockchainRegistrationIsSent(user, transaction) {
+  public static async setBlockchainRegistrationIsSent(user, transaction) {
     await user.update({
-      blockchain_registration_status: blockchainStatusDictionary.getStatusIsSent(),
+      blockchain_registration_status: EosBlockchainStatusDictionary.getStatusIsSent(),
     },                {
       transaction,
     });
@@ -180,7 +162,7 @@ class UsersService {
         continue;
       }
 
-      const deltaData = UpdateManyToMany.getCreateUpdateDeleteDelta(user[field], set);
+      const deltaData = UpdateManyToManyHelper.getCreateUpdateDeleteDelta(user[field], set);
 
       await UsersService.updateRelations(user, deltaData, field, transaction);
     }
@@ -194,7 +176,7 @@ class UsersService {
    * @param {Object} transaction
    * @return {Promise<boolean>}
    */
-  static async updateRelations(user, deltaData, modelName, transaction) {
+  private static async updateRelations(user, deltaData, modelName, transaction) {
     // Update addresses
     await Promise.all([
       deltaData.deleted.map(async (data) => {
@@ -228,7 +210,7 @@ class UsersService {
    * @private
    */
   private static async checkUniqueFields(values, currentUserId) {
-    const uniqueFields = usersModelProvider.getUsersModel().getUsersUniqueFields();
+    const uniqueFields = UsersModelProvider.getUsersModel().getUsersUniqueFields();
 
     const toFind = {};
     uniqueFields.forEach((field) => {
@@ -237,7 +219,7 @@ class UsersService {
       }
     });
 
-    const existed = await usersRepository.findWithUniqueFields(toFind);
+    const existed = await UsersRepository.findWithUniqueFields(toFind);
 
     const errors: any = [];
     for (const current of existed) {

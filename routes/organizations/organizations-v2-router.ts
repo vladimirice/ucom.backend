@@ -1,6 +1,7 @@
 /* tslint:disable:max-line-length */
 import ApiPostProcessor = require('../../lib/common/service/api-post-processor');
 import PostsInputProcessor = require('../../lib/posts/validators/posts-input-processor');
+import DiServiceLocator = require('../../lib/api/services/di-service-locator');
 
 const express = require('express');
 require('express-async-errors');
@@ -13,19 +14,11 @@ const { cpUpload:cpPostUpload } = require('../../lib/posts/post-edit-middleware'
 const orgIdParamMiddleware  =
   require('../../lib/organizations/middleware/organization-id-param-middleware');
 
-
-/**
- * @param {Object} req
- * @returns {PostService}
- */
-function getPostService(req) {
-  return req.container.get('post-service');
-}
-
 /* Create post for this organization */
 orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], async (req, res) => {
   PostsInputProcessor.process(req.body);
-  const response = await getPostService(req).processNewDirectPostCreationForOrg(req);
+
+  const response = await DiServiceLocator.getPostsService(req).processNewDirectPostCreationForOrg(req);
 
   // backward compatibility injection
   ApiPostProcessor.setEmptyCommentsForOnePost(response, true);

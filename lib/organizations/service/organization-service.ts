@@ -2,6 +2,7 @@
 /* tslint:disable:max-line-length */
 import OrgsCurrentParamsRepository = require('../repository/organizations-current-params-repository');
 import OrganizationsFetchDiscussions = require('../discussions/service/organizations-fetch-discussions');
+import OrganizationsInputProcessor = require('../validator/organizations-input-processor');
 
 const status  = require('statuses');
 const _       = require('lodash');
@@ -17,7 +18,6 @@ const { AppError, BadRequestError, HttpForbiddenError } = require('../../../lib/
 
 const db = models.sequelize;
 
-const userInputSanitizer = require('../../api/sanitizers/user-input-sanitizer');
 const { CreateOrUpdateOrganizationSchema } =
   require('../validator/organization-create-update-schema');
 const authValidator = require('../../auth/validators');
@@ -52,7 +52,9 @@ class OrganizationService {
    * @param {Object} req
    * @return {Promise<Object>}
    */
-  async processNewOrganizationCreation(req) {
+  public async processNewOrganizationCreation(req) {
+    OrganizationsInputProcessor.process(req.body);
+
     await OrganizationService.addSignedTransactionsForOrganizationCreation(req);
 
     const body = await this.processUserRequest(req);
@@ -146,7 +148,9 @@ class OrganizationService {
    * @param {Object} req
    * @returns {Promise<void>}
    */
-  async updateOrganization(req) {
+  public async updateOrganization(req) {
+    OrganizationsInputProcessor.process(req.body);
+
     if (_.isEmpty(req.body) && _.isEmpty(req.files)) {
       throw new BadRequestError({
         general: 'Updating by empty body and empty file uploading is not allowed',
@@ -366,11 +370,8 @@ class OrganizationService {
    * @return {Object}
    * @private
    */
-  private async  processUserRequest(req) {
+  private async processUserRequest(req) {
     const body = OrganizationService.getRequestBodyWithFilenames(req);
-
-    const simpleTextFields = organizationsRepositories.Main.getModelSimpleTextFields();
-    userInputSanitizer.sanitizeInput(body, simpleTextFields);
 
     const { error, value } = joi.validate(body, CreateOrUpdateOrganizationSchema, {
       allowUnknown: true,

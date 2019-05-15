@@ -37,36 +37,14 @@ class UserInputSanitizer {
         case 'html':
           sanitized = this.sanitizeHtmlValue(toSanitize, true);
           break;
+        case 'boolean':
+          sanitized = this.sanitizeBooleanValue(toSanitize);
+          break;
         default:
           throw new AppError(`Unsupported sanitizationType: ${rules.request.sanitizationType}`);
       }
 
       body[fieldName] = sanitized;
-    }
-  }
-
-  /**
-   * @deprecated
-   * @see sanitizeInputWithModelProvider
-   * @param body
-   * @param textOnlyFields
-   * @param htmlFields
-   */
-  public static sanitizeInput(
-    body: any,
-    textOnlyFields: string[] = [],
-    htmlFields: string[] = [],
-  ): void {
-    for (const field of textOnlyFields) {
-      if (body[field]) {
-        body[field] = this.sanitizeTextValue(body[field], true);
-      }
-    }
-
-    for (const field of htmlFields) {
-      if (body[field]) {
-        body[field] = this.sanitizeHtmlValue(body[field], true);
-      }
     }
   }
 
@@ -90,6 +68,10 @@ class UserInputSanitizer {
     });
 
     return toUnescape ? unescape(sanitized) : sanitized;
+  }
+
+  private static sanitizeBooleanValue(value: any): boolean {
+    return !!value;
   }
 
   /**

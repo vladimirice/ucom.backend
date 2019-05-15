@@ -6,7 +6,6 @@ const userService = require('../users/users-service');
 const organizationsService = require('../organizations/service/organization-service');
 const entityNotificationsService = require('../entities/service/entity-notifications-service');
 const blockchainService = require('../eos/service/blockchain-service');
-const commentsService = require('../comments/comments-service');
 
 class ContainerModel {
   private readonly container;
@@ -25,11 +24,6 @@ class ContainerModel {
     // noinspection JSUnresolvedFunction
     container
       .register('user-service', userService)
-      .addArgument(new Reference('current-user'));
-
-    // noinspection JSUnresolvedFunction
-    container
-      .register('comments-service', commentsService)
       .addArgument(new Reference('current-user'));
 
     // noinspection JSUnresolvedFunction

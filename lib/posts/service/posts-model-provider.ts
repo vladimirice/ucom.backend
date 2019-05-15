@@ -1,5 +1,7 @@
 import { IModelFieldsSet } from '../../common/interfaces/models-dto';
 
+import PostsFieldsSet = require('../models/posts-fields-set');
+
 const models = require('../../../models');
 
 const ENTITY_NAME = 'posts     ';
@@ -246,83 +248,7 @@ class PostsModelProvider {
   }
 
   public static getPostRelatedFieldsSet(): IModelFieldsSet {
-    return {
-      post_type_id: {
-        type: 'number',
-        request: {
-          sanitizationType: 'number',
-        },
-      },
-      title: {
-        type: 'string',
-        request: {
-          sanitizationType: 'text',
-        },
-      },
-      description: {
-        type: 'string',
-        request: {
-          sanitizationType: 'html',
-        },
-      },
-      main_image_filename: { // deprecated
-        type: 'string',
-      },
-      current_vote: {
-        type: 'number',
-      },
-      current_rate: {
-        type: 'number',
-      },
-      created_at: {
-        type: 'datetime',
-      },
-      updated_at: {
-        type: 'datetime',
-      },
-      user_id: {
-        type: 'number',
-      },
-      leading_text: {
-        type: 'string',
-        request: {
-          sanitizationType: 'text',
-        },
-      },
-      blockchain_id: {
-        type: 'string',
-        request: {
-          sanitizationType: 'text',
-        },
-      },
-      blockchain_status: { // @deprecated
-        type: 'string',
-      },
-      organization_id: {
-        type: 'number',
-        request: {
-          sanitizationType: 'number',
-        },
-      },
-      entity_id_for: {
-        type: 'number',
-      },
-      entity_name_for: {
-        type: 'number',
-      },
-      parent_id: {
-        type: 'number',
-      },
-      entity_images: {
-        type: 'any',
-        request: {
-          sanitizationType: 'any',
-        },
-      },
-      entity_tags: {
-        type: 'any',
-      },
-    };
+    return PostsFieldsSet.getAllFieldsSet();
   }
 }
 

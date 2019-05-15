@@ -1,42 +1,52 @@
-class CurrentUser {
+import { UserModel } from '../users/interfaces/model-interfaces';
+import { AppError } from '../api/errors';
 
-  private user;
-  private id;
+class CurrentUser {
+  private user: UserModel | null = null;
+
+  private id: number | null = null;
+
   /**
    *
    * @param {Object} value
    */
-  setCurrentUser(value) {
+  setCurrentUser(value): void {
     this.user = value;
     this.setCurrentUserId(value.id);
   }
 
-  setCurrentUserId(value) {
+  setCurrentUserId(value: number): void {
     this.id = value;
   }
 
-  /**
-   *
-   * @returns {boolean}
-   */
-  isCurrentUser() {
+  isCurrentUser(): boolean {
     return !!this.id;
   }
 
-  getUser() {
+  getUser(): UserModel | null {
     return this.user;
   }
 
-  /**
-   *
-   * @return {number}
-   */
-  getId() {
+  getUserOrException(): UserModel {
+    if (!this.user) {
+      throw new AppError('User must be defined or AuthMiddleware should be used beforehand');
+    }
+
+    return this.user;
+  }
+
+  getId(): number | null {
     return this.id;
   }
 
   getCurrentUserId(): number | null {
     return this.id;
+  }
+
+  getCurrentUserIdOrException(): number {
+    const currentUser = this.getUserOrException();
+
+    return currentUser.id;
   }
 }
 
