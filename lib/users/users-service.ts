@@ -141,6 +141,8 @@ class UsersService {
    */
   private static async processArrayFields(user, requestData, transaction): Promise<void> {
     if (requestData.users_sources) {
+      requestData.users_sources = _.filter(requestData.users_sources);
+
       requestData.users_sources.forEach((source) => {
         source.source_type_id = source.source_type_id ? source.source_type_id : null;
       });
