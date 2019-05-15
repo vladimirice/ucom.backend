@@ -84,7 +84,8 @@ class BlockchainNodesRepository implements QueryFilteredRepository {
             votes_amount                = EXCLUDED.votes_amount,
             scaled_importance_amount    = EXCLUDED.scaled_importance_amount,
             currency                    = EXCLUDED.currency,
-            bp_status                   = EXCLUDED.bp_status
+            bp_status                   = EXCLUDED.bp_status,
+            updated_at                  = NOW()
     `;
 
     await knex.raw(sql);
