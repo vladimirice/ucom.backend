@@ -39,7 +39,7 @@ class UsersExternalRepository {
   ): Promise<number> {
     const sql = `
       INSERT INTO ${TABLE_NAME} (external_type_id, external_id, external_login, json_value, user_id) VALUES
-      (${+externalTypeId}, ${+externalId}, '${externalLogin}', '${JSON.stringify(jsonValue)}', ${user_id})
+      (${+externalTypeId}, ${+externalId}, '${externalLogin}', $$${JSON.stringify(jsonValue)}$$, ${user_id})
       ON CONFLICT (external_type_id, external_id) DO
       UPDATE
           SET json_value        = EXCLUDED.json_value,
