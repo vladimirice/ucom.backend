@@ -30,6 +30,8 @@ let userRokky: UserModel;
 
 MockHelper.mockAllBlockchainPart();
 
+const JEST_TIMEOUT = 5000;
+
 describe('Organizations. Create-update requests', () => {
   afterAll(async () => { await SeedsHelper.doAfterAll(); });
 
@@ -80,7 +82,7 @@ describe('Organizations. Create-update requests', () => {
 
         expect(sources.length).toBe(socialNetworks.length);
 
-        socialNetworks.forEach((expected) => {
+        for (const expected of socialNetworks) {
           const actual = sources.find(data => data.source_url === expected.source_url);
 
           expect(actual.source_type_id).toBe(expected.source_type_id);
@@ -91,8 +93,8 @@ describe('Organizations. Create-update requests', () => {
           expect(actual.is_official).toBe(false);
           expect(actual.source_entity_id).toBeNull();
           expect(actual.source_entity_name).toBeNull();
-        });
-      });
+        }
+      }, JEST_TIMEOUT);
 
       it('Should allow empty fields when creation', async () => {
         const user = userVlad;
@@ -424,7 +426,7 @@ describe('Organizations. Create-update requests', () => {
 
         await OrganizationsGenerator.createOrgWithoutTeam(user);
 
-        const orgId = await organizationsRepositories.Main.findFirstIdByAuthorId(user.id);
+        const orgId = await OrganizationsRepository.findFirstIdByAuthorId(user.id);
         await OrganizationsHelper.createSocialNetworksDirectly(orgId);
 
         const sources =
@@ -505,7 +507,7 @@ describe('Organizations. Create-update requests', () => {
           is_official:  sourceToModify.is_official,
           entity_id:    `${orgId}`, // should not be changed because of restrictions
         },                                  modifiedSource);
-      });
+      }, JEST_TIMEOUT);
 
       // tslint:disable-next-line:max-line-length
       it.skip('If ID of different entity is provided - new one will be created and id will be ignored', async () => {

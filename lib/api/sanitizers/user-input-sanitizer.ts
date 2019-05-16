@@ -71,7 +71,15 @@ class UserInputSanitizer {
   }
 
   private static sanitizeBooleanValue(value: any): boolean {
-    return !!value;
+    switch (typeof value) {
+      case 'boolean':
+        return value;
+      case 'string':
+        return value === 'false' ? false : !!value; // form-data might pass false as string
+      case 'number':
+      default:
+        return !!value;
+    }
   }
 
   /**

@@ -1,6 +1,6 @@
 import { IModelFieldsSet } from '../../common/interfaces/models-dto';
 
-const fieldsSet: IModelFieldsSet = {
+const entitySourcesFieldsSet: IModelFieldsSet = {
   avatar_filename: {
     type: 'string',
     request: {
@@ -67,10 +67,14 @@ const fieldsSet: IModelFieldsSet = {
       sanitizationType: 'boolean',
     },
   },
-  // not editable by user request
   source_type_id: {
     type: 'number',
+    request: {
+      sanitizationType: 'number',
+    },
   },
+
+  // not editable by user request
   source_group_id: {
     type: 'number',
   },
@@ -93,7 +97,7 @@ const fieldsSet: IModelFieldsSet = {
 
 class EntityFieldsSet {
   public static getEntitySourcesFieldsSet(): IModelFieldsSet {
-    return fieldsSet;
+    return entitySourcesFieldsSet;
   }
 }
 
