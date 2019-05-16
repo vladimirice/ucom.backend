@@ -60,7 +60,7 @@ class EntitySourceService {
    */
   public static async processCreationRequest(entityId, entityName, body, transaction) {
     // #task - validate request by Joi
-    EntityInputProcessor.processEntitySources(body);
+
 
     for (const source in sourceTypes) {
       if (!sourceTypes.hasOwnProperty(source)) {
@@ -68,6 +68,7 @@ class EntitySourceService {
       }
 
       let entities = body[source];
+
       if (!entities) {
         continue;
       }
@@ -76,6 +77,8 @@ class EntitySourceService {
       if (_.isEmpty(entities)) {
         continue;
       }
+
+      EntityInputProcessor.processManyEntitySources(entities);
 
       const sourceSet = sourceTypes[source];
 
@@ -106,8 +109,6 @@ class EntitySourceService {
     body,
     transaction,
   ) {
-    EntityInputProcessor.processEntitySources(body);
-
     for (const sourceType in sourceTypes) {
       if (!sourceTypes.hasOwnProperty(sourceType)) {
         continue;
@@ -312,12 +313,13 @@ class EntitySourceService {
   }
 
   // noinspection OverlyComplexFunctionJS
-  private static async processOneSourceKey(entityId, entityName, data, key, sourceGroupId, transaction) {
-    const updatedModels = _.filter(data[key]);
+  private static async processOneSourceKey(entityId, entityName, body, sourceKey, sourceGroupId, transaction) {
+    const updatedModels = _.filter(body[sourceKey]);
     if (!updatedModels || _.isEmpty(updatedModels)) {
       // #task - NOT possible to remove all users because of this. Wil be fixed later
       return null;
     }
+    EntityInputProcessor.processManyEntitySources(updatedModels);
 
     const sourceData  = await repository.findAllRelatedToEntityWithGroupId(entityId, entityName, sourceGroupId);
     const deltaData   = UpdateManyToManyHelper.getCreateUpdateDeleteDelta(sourceData, updatedModels);

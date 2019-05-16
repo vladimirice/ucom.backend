@@ -3,6 +3,10 @@
 import OrgsCurrentParamsRepository = require('../repository/organizations-current-params-repository');
 import OrganizationsFetchDiscussions = require('../discussions/service/organizations-fetch-discussions');
 import OrganizationsInputProcessor = require('../validator/organizations-input-processor');
+import OrganizationsRepository = require('../repository/organizations-repository');
+import UsersTeamService = require('../../users/users-team-service');
+import UserActivityService = require('../../users/user-activity-service');
+import EntitySourceService = require('../../entities/service/entity-sources-service');
 
 const status  = require('statuses');
 const _       = require('lodash');
@@ -63,9 +67,9 @@ class OrganizationService {
     const { newOrganization, newUserActivity, boardInvitationActivity } = await db
       .transaction(async (transaction) => {
         const newModel =
-          await organizationsRepositories.Main.createNewOrganization(body, transaction);
+          await OrganizationsRepository.createNewOrganization(body, transaction);
 
-        const usersTeam = await usersTeamService.processNewModelWithTeam(
+        const usersTeam = await UsersTeamService.processNewModelWithTeam(
           newModel.id,
           OrganizationService.getEntityName(),
           body,
@@ -73,10 +77,10 @@ class OrganizationService {
           transaction,
         );
 
-        const usersTeamIds = usersTeamService.getUsersTeamIds(usersTeam);
+        const usersTeamIds = UsersTeamService.getUsersTeamIds(usersTeam);
 
         // eslint-disable-next-line no-shadow
-        const newUserActivity = await usersActivity.processNewOrganization(
+        const newUserActivity = await UserActivityService.processNewOrganization(
           req.signed_transaction,
           this.currentUser.id,
           newModel.id,
@@ -97,7 +101,7 @@ class OrganizationService {
         }
 
         const entityName = organizationsModelProvider.getEntityName();
-        await entitySourceService.processCreationRequest(
+        await EntitySourceService.processCreationRequest(
           newModel.id,
           entityName,
           body,
@@ -206,16 +210,7 @@ class OrganizationService {
         };
       });
 
-    // Send to rabbit
-
     await OrganizationService.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
-
-    // try {
-    //   await this._processNotifications(deltaData.added);
-    // } catch (err) {
-    //   console.warn('Error related to sockets. Not possible to send notifications properly. But rest of the code will be processed.');
-    //   console.dir(err);
-    // }
 
     return updatedModel;
   }

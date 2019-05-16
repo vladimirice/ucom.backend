@@ -1,4 +1,6 @@
 /* eslint-disable max-len */
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import MockHelper = require('../helpers/mock-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
@@ -6,11 +8,10 @@ import ResponseHelper = require('../helpers/response-helper');
 import FileToUploadHelper = require('../helpers/file-to-upload-helper');
 import EntitySourcesRepository = require('../../../lib/entities/repository/entity-sources-repository');
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
 
-const orgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
-const usersModelProvider = require('../../../lib/users/users-model-provider');
-
-let userVlad;
+let userVlad: UserModel;
 
 MockHelper.mockAllBlockchainPart();
 
@@ -36,9 +37,9 @@ describe('Organizations. Entity source related creation-updating', () => {
         const body = await OrganizationsHelper.requestToSearchCommunity('inc');
         expect(body.length).toBe(2);
         expect(body.some(data => data.entity_id === vladIncId
-          && data.entity_name === orgModelProvider.getEntityName())).toBeTruthy();
+          && data.entity_name === OrganizationsModelProvider.getEntityName())).toBeTruthy();
         expect(body.some(data => data.entity_id === janeIncId
-          && data.entity_name === orgModelProvider.getEntityName())).toBeTruthy();
+          && data.entity_name === OrganizationsModelProvider.getEntityName())).toBeTruthy();
 
         const expectedFields = [
           'entity_id',
@@ -73,8 +74,8 @@ describe('Organizations. Entity source related creation-updating', () => {
         expect(vladIncFromResponse).toBeDefined();
         expect(userVladFromResponse).toBeDefined();
 
-        expect(vladIncFromResponse.entity_name).toBe(orgModelProvider.getEntityName());
-        expect(userVladFromResponse.entity_name).toBe(usersModelProvider.getEntityName());
+        expect(vladIncFromResponse.entity_name).toBe(OrganizationsModelProvider.getEntityName());
+        expect(userVladFromResponse.entity_name).toBe(UsersModelProvider.getEntityName());
 
         OrganizationsHelper.checkIsPostProcessedSmell(vladIncFromResponse);
 
@@ -106,7 +107,6 @@ describe('Organizations. Entity source related creation-updating', () => {
   });
 
   describe('Community and partnership sources', () => {
-    // tslint:disable-next-line:max-line-length
     it('should create organization with community and partnership - different kinds of links.', async () => {
       // #task - provide avatar uploading for external links only
       const user = userVlad;
@@ -114,11 +114,11 @@ describe('Organizations. Entity source related creation-updating', () => {
       // Internal link example
       const communitySourceOrg = {
         entity_id:           '1',
-        entity_name:  orgModelProvider.getEntityName(), // const
+        entity_name:  OrganizationsModelProvider.getEntityName(),
         source_type:  'internal',
       };
 
-      const sampleAvatarFile = FileToUploadHelper.getSampleFilePathToUpload();
+      const sampleAvatarFile = FileToUploadHelper.getSamplePngPath();
 
       // external link example
       const communitySourceExternal = {
@@ -133,14 +133,14 @@ describe('Organizations. Entity source related creation-updating', () => {
       // Internal link example
       const partnershipSourceOrg = {
         entity_id:           '2',
-        entity_name:  orgModelProvider.getEntityName(), // fetch this type from API response
+        entity_name:  OrganizationsModelProvider.getEntityName(), // fetch this type from API response
 
         source_type:  'internal',
       };
 
       const partnershipSourceUsers = {
         entity_id:           '1',
-        entity_name:  usersModelProvider.getEntityName(), // fetch this type from API response
+        entity_name:  UsersModelProvider.getEntityName(), // fetch this type from API response
         source_type:  'internal',
       };
 
@@ -169,7 +169,7 @@ describe('Organizations. Entity source related creation-updating', () => {
       const body = await OrganizationsHelper.requestToCreateNew(user, {}, sourcesToInsert);
 
       const sources =
-        await EntitySourcesRepository.findAllByEntity(body.id, orgModelProvider.getEntityName());
+        await EntitySourcesRepository.findAllByEntity(body.id, OrganizationsModelProvider.getEntityName());
       expect(sources.length).toBe(5);
 
       const communitySourceOrgActual = sources.find(data => data.source_group_id === 2
@@ -178,7 +178,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
-        entity_name:        orgModelProvider.getEntityName(),
+        entity_name:        OrganizationsModelProvider.getEntityName(),
 
         source_entity_id:   communitySourceOrg.entity_id,
         source_entity_name: communitySourceOrg.entity_name,
@@ -205,7 +205,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
-        entity_name:        orgModelProvider.getEntityName(),
+        entity_name:        OrganizationsModelProvider.getEntityName(),
 
         source_entity_id:   null,
         source_entity_name: null,
@@ -224,7 +224,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
-        entity_name:        orgModelProvider.getEntityName(),
+        entity_name:        OrganizationsModelProvider.getEntityName(),
 
         source_entity_id:   partnershipSourceOrg.entity_id,
         source_entity_name: partnershipSourceOrg.entity_name,
@@ -248,7 +248,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
-        entity_name:        orgModelProvider.getEntityName(),
+        entity_name:        OrganizationsModelProvider.getEntityName(),
 
         source_entity_id:   null,
         source_entity_name: null,
@@ -270,7 +270,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       ResponseHelper.expectValuesAreExpected({
         entity_id:          `${body.id}`,
-        entity_name:        orgModelProvider.getEntityName(),
+        entity_name:        OrganizationsModelProvider.getEntityName(),
 
         source_entity_id:   partnershipSourceUsers.entity_id,
         source_entity_name: partnershipSourceUsers.entity_name,
@@ -285,7 +285,7 @@ describe('Organizations. Entity source related creation-updating', () => {
       const org = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(body.id);
 
       org.partnership_sources.forEach((model) => {
-        if (model.entity_name === orgModelProvider.getEntityName()) {
+        if (model.entity_name === OrganizationsModelProvider.getEntityName()) {
           OrganizationsHelper.checkIsPostProcessedSmell(model);
         }
       });

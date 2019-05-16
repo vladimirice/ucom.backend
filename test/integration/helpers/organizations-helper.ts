@@ -19,6 +19,7 @@ import OrgsCurrentParamsRepository = require('../../../lib/organizations/reposit
 const request = require('supertest');
 const _ = require('lodash');
 const faker = require('faker');
+
 const server = RequestHelper.getApiApplication();
 
 const { orgImageStoragePath } =
@@ -88,8 +89,7 @@ class OrganizationsHelper {
     modelsIds: number[],
   ): Promise<NumberToNumberCollection> {
     const set: NumberToNumberCollection = {};
-    for (let i = 0; i < modelsIds.length; i += 1) {
-      const modelId = modelsIds[i];
+    for (const modelId of modelsIds) {
       set[modelId] = RequestHelper.generateRandomImportance();
 
       await this.setSampleRateToOrg(modelId, set[modelId]);
