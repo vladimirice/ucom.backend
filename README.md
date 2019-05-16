@@ -11,6 +11,8 @@
 * [How-to](documentation/HOW_TO.md)
 * [Architecture](documentation/ARCHITECTURE.md)
 * [Current workflow](documentation/CURRENT_WORKFLOW.md)
+* Features
+    * [Referral program](documentation/features/REFERRAL_PROGRAM.md)
 * [Infrastructure](documentation/INFRASTRUCTURE.md)
 * [Improvements and scaling strategies](documentation/IMPROVEMENTS_AND_SCALING_STRATEGIES.md)
 * [Style guide](documentation/STYLE_GUIDE.md)
