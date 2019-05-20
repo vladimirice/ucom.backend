@@ -22,6 +22,11 @@ const accountAlias = 'vlad';
 const privateKey = accountsData[accountAlias].activePk;
 
 class BlockchainHelper {
+  public static async voteForNobody(voterAccountName: string, voterPrivateKey: string): Promise<void> {
+    await WalletApi.voteForCalculatorNodes(voterAccountName, voterPrivateKey, []);
+    await WalletApi.voteForBlockProducers(voterAccountName, voterPrivateKey, []);
+  }
+
   /**
    *
    * @param {string} userAlias

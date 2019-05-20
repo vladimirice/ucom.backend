@@ -202,6 +202,11 @@ describe('Blockchain nodes get - graphql', () => {
     }, JEST_TIMEOUT * 2);
 
     it('should be the correct interface', async () => {
+      await BlockchainHelper.voteForNobody(
+        BlockchainHelper.getTesterAccountName(),
+        BlockchainHelper.getTesterPrivateKey(),
+      );
+
       await BlockchainCacheService.updateBlockchainNodesByBlockchain();
 
       const commonParams = BlockchainNodesRequest.getCommonParams();
@@ -248,7 +253,7 @@ describe('Blockchain nodes get - graphql', () => {
 
       BlockchainNodesChecker.checkManyBlockchainNodesInterface(response.block_producers.data);
       BlockchainNodesChecker.checkManyBlockchainNodesInterface(response.calculators.data);
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 2);
 
     it('Vote for block producers via mock and receive result', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');

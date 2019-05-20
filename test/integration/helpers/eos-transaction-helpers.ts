@@ -31,7 +31,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -59,7 +59,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -87,7 +87,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -115,7 +115,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -143,7 +143,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -172,7 +172,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -200,7 +200,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -438,10 +438,9 @@ class EosTransactionHelper {
    *
    * @param {string} accountName
    * @param {string} blockchainId
-   * @param {number} interactionTypeId
    * @return {{processed: {receipt: {status: string}, scheduled: boolean, action_traces: {receipt: {receiver: string}, act: {account: string, name: string, authorization: {actor: string, permission: string}[], data: {acc: string, content_id: *}}, cpu_usage: number, total_cpu_usage: number, inline_traces: Array}[], except: null}}}
    */
-  static getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(accountName, blockchainId, interactionTypeId) {
+  static getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(accountName, blockchainId) {
     return {
       processed: {
         receipt: {
@@ -467,7 +466,7 @@ class EosTransactionHelper {
                 content_id: blockchainId,
               },
             },
-            console: `usertocont acc = ${accountName} content_id = ${blockchainId} interaction_type_id = ${interactionTypeId}`,
+
             inline_traces: [],
           },
         ],
