@@ -1,11 +1,10 @@
-const accountsData = require('../../config/accounts-data');
 const { WalletApi } = require('ucom-libs-wallet');
+const accountsData = require('../../../secrets/accounts-data');
 
 WalletApi.setNodeJsEnv();
 WalletApi.initForTestEnv();
 
 class BlockchainTrGenerator {
-
   /**
    *
    * @param {string} accountAlias
@@ -13,11 +12,11 @@ class BlockchainTrGenerator {
    * @returns {Promise<string>} transaction ID
    */
   static async createVoteForBp(accountAlias, producers) {
-    const accountsData = await this.checkUser(accountAlias);
+    const userAccountData = await this.checkUser(accountAlias);
 
     const res = await WalletApi.voteForBlockProducers(
-      accountsData.account_name,
-      accountsData.activePk,
+      userAccountData.account_name,
+      userAccountData.activePk,
       producers,
     );
     this.checkIsTransactionOk(res);
@@ -32,11 +31,11 @@ class BlockchainTrGenerator {
    * @returns {Promise<string>}
    */
   static async createBuyRam(accountAlias, bytesAmount) {
-    const accountsData = await this.checkUser(accountAlias);
+    const userAccountData = await this.checkUser(accountAlias);
 
     const res = await WalletApi.buyRam(
-      accountsData.account_name,
-      accountsData.activePk,
+      userAccountData.account_name,
+      userAccountData.activePk,
       bytesAmount,
     );
     this.checkIsTransactionOk(res);
@@ -51,11 +50,11 @@ class BlockchainTrGenerator {
    * @returns {Promise<string>}
    */
   static async createSellRam(accountAlias, bytesAmount) {
-    const accountsData = await this.checkUser(accountAlias);
+    const userAccountData = await this.checkUser(accountAlias);
 
     const res = await WalletApi.sellRam(
-      accountsData.account_name,
-      accountsData.activePk,
+      userAccountData.account_name,
+      userAccountData.activePk,
       bytesAmount,
     );
     this.checkIsTransactionOk(res);

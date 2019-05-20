@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-const accountsData = require('../../../config/accounts-data');
+const accountsData = require('../../../../secrets/accounts-data');
 
 const rabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
@@ -107,8 +107,8 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
+
   static getPartOfSignedUserCreatesDirectPostOfOrg() {
     return {
       broadcast: false,
@@ -135,7 +135,6 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
 
   static getPartOfSignedUserCreatesRepost(actorAccountName) {
@@ -164,8 +163,9 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
+
+  // eslint-disable-next-line sonarjs/no-identical-functions
   static getPartOfSignedUserHimselfCreatesMediaPostTransaction() {
     return {
       broadcast: false,
@@ -192,8 +192,8 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
+
   static getPartOfSignedUserVotesPostOfOtherUser() {
     return {
       broadcast: false,
@@ -220,8 +220,8 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
+
   /**
    *
    * @return {Object}
@@ -329,6 +329,7 @@ class EosTransactionHelper {
       },
     };
   }
+
   static getPartOfBlockchainResponseOnUserCreatesDirectPostOfOrg() {
     return {
       processed: {
@@ -397,6 +398,7 @@ class EosTransactionHelper {
       },
     };
   }
+
   static getPartOfBlockchainResponseOnUserCreatesMediaPost(postTypeId) {
     return {
       processed: {

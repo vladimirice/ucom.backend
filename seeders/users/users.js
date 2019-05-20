@@ -1,4 +1,4 @@
-const accountsData = require('../../config/accounts-data');
+const accountsData = require('../../../secrets/accounts-data');
 
 const usersSeeds = [{
     // id = 1

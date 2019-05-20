@@ -10,7 +10,7 @@ const eosJsEcc = require('eosjs-ecc');
 
 const request = require('supertest');
 const usersSeeds = require('../../../seeders/users/users');
-const accountsData = require('../../../config/accounts-data');
+const accountsData = require('../../../../secrets/accounts-data');
 
 const authService = require('../../../lib/auth/authService');
 const usersRepository = require('../../../lib/users/users-repository');

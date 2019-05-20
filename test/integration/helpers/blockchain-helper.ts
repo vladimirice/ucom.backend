@@ -13,9 +13,10 @@ const { WalletApi } = require('ucom-libs-wallet');
 const blockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 
-const accountsData = require('../../../config/accounts-data');
+const accountsData = require('../../../../secrets/accounts-data');
 
 const accountAlias = 'vlad';
 const privateKey = accountsData[accountAlias].activePk;
