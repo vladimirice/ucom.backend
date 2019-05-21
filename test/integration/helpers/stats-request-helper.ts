@@ -2,7 +2,8 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 
 const request = require('supertest');
-const server  = require('../../../app');
+
+const server  = RequestHelper.getApiApplication();
 
 const apiV1Prefix: string = RequestHelper.getApiV1Prefix();
 
