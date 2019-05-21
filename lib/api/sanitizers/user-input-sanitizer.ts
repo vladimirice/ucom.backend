@@ -141,10 +141,15 @@ class UserInputSanitizer {
       set[tag] = commonAllowedAttributes;
     }
 
-    return {
-      iframe: Array.prototype.concat(commonAllowedAttributes, ['scrolling']),
-      img: Array.prototype.concat(commonAllowedAttributes, ['alt']),
-    };
+    set.iframe = Array.prototype.concat(commonAllowedAttributes, [
+      'scrolling',
+    ]);
+
+    set.img = Array.prototype.concat(commonAllowedAttributes, [
+      'alt',
+    ]);
+
+    return set;
   }
 }
 
