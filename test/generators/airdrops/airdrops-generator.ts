@@ -5,8 +5,25 @@ import PostsGenerator = require('../posts-generator');
 import OrganizationsGenerator = require('../organizations-generator');
 import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-creator-service');
 
+import _ = require('lodash');
+import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
+
 class AirdropsGenerator {
-  public static async createNewAirdrop(postAuthor: UserModel) {
+  public static async createNewGithubRoundTwoAirdrop(
+    postAuthor: UserModel,
+  ): Promise<any> {
+    const givenConditions = {
+      zero_score_incentive_tokens_amount: 100,
+      source_table_name: AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName(),
+    };
+
+    return this.createNewAirdrop(postAuthor, givenConditions);
+  }
+
+  public static async createNewAirdrop(
+    postAuthor: UserModel,
+    givenConditions = {},
+  ): Promise<any> {
     const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(postAuthor);
     const postId = await PostsGenerator.createMediaPostOfOrganization(postAuthor, orgId);
 
@@ -25,11 +42,15 @@ class AirdropsGenerator {
     ];
 
     const title = 'github_airdrop';
-    const conditions = {
+
+    const defaultConditions = {
       auth_github: true,
       auth_myself: true,
       community_id_to_follow: orgId,
+      source_table_name: AirdropsModelProvider.airdropsUsersGithubRawTableName(),
     };
+
+    const conditions = _.defaults(givenConditions, defaultConditions);
 
     const startedAt = '2019-04-01T14:51:35Z';
     const finishedAt = '2019-05-30T14:51:35Z';

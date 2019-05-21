@@ -13,7 +13,9 @@ import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-mo
 import AccountsModelProvider = require('../../../lib/accounts/service/accounts-model-provider');
 import CloseHandlersHelper = require('../../../lib/common/helper/close-handlers-helper');
 import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
-// import MongoGenerator = require('../../generators/common/mongo-generator');
+import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
+import UsersTeamRepository = require('../../../lib/users/repository/users-team-repository');
+import EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -31,7 +33,6 @@ const organizationsRepositories = require('../../../lib/organizations/repository
 const usersRepositories = require('../../../lib/users/repository');
 const postRepositories = require('../../../lib/posts/repository');
 const usersModelProvider =  require('../../../lib/users/service').ModelProvider;
-const entityModelProvider = require('../../../lib/entities/service').ModelProvider;
 
 const rabbitMqService     = require('../../../lib/jobs/rabbitmq-service.js');
 
@@ -61,27 +62,26 @@ const minorTablesToSkipSequences = [
 
 // Truncated async
 const minorTables = [
-  entityModelProvider.getNotificationsTableName(),
-  usersRepositories.UsersTeam.getModelName(),
+  EntityModelProvider.getNotificationsTableName(),
+  UsersTeamRepository.getModelName(),
 
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
 
   UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
-  'airdrops_users_github_raw',
-  'airdrops_users_external_data',
-  'airdrops_users_external_data',
-
-  'accounts_transactions_parts',
-
-  'airdrops_tokens',
-  'airdrops_users',
+  AirdropsModelProvider.airdropsUsersGithubRawTableName(),
+  AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName(),
+  AirdropsModelProvider.airdropsUsersExternalDataTableName(),
+  AirdropsModelProvider.airdropsTokensTableName(),
+  AirdropsModelProvider.airdropsUsersTableName(),
 
   'entity_tags',
   'entity_state_log',
 
   'users_external_auth_log',
+
+  'accounts_transactions_parts',
 
   'posts_current_params',
   'organizations_current_params',
@@ -118,7 +118,7 @@ const minorTables = [
 const majorTables = [
   usersRepositories.Activity.getModelName(),
 
-  'airdrops',
+  AirdropsModelProvider.airdropsTableName(),
 
   AccountsModelProvider.accountsTableName(),
   AccountsModelProvider.accountsTransactionsTableName(),

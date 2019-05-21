@@ -2,8 +2,9 @@ import { AirdropsUsersGithubRawItem } from '../interfaces/model-interfaces';
 
 import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import AirdropsModelProvider = require('../service/airdrops-model-provider');
 
-const TABLE_NAME = 'airdrops_users_github_raw';
+const TABLE_NAME = AirdropsModelProvider.airdropsUsersGithubRawTableName();
 
 class AirdropsUsersGithubRawRepository {
   public static async getScoreAndAmountByGithubId(

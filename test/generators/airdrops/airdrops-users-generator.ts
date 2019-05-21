@@ -11,6 +11,7 @@ import UsersExternalRequest = require('../../helpers/users-external-request');
 import OrganizationsHelper = require('../../integration/helpers/organizations-helper');
 import RequestHelper = require('../../integration/helpers/request-helper');
 import knex = require('../../../config/knex');
+import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
 
 class AirdropsUsersGenerator {
   public static generateForVladAndJane() {
@@ -23,6 +24,7 @@ class AirdropsUsersGenerator {
   public static async generateAirdropsUsersGithubRawDataForUser(
     githubId: number,
     getInMajor: boolean = true,
+    sourceTableName = AirdropsModelProvider.airdropsUsersGithubRawTableName(),
   ): Promise<AirdropsUsersGithubRawItem> {
     const generated = {
       id: githubId,
@@ -31,7 +33,7 @@ class AirdropsUsersGenerator {
     };
 
     const sql = `
-      INSERT INTO airdrops_users_github_raw (id, score, amount) 
+      INSERT INTO ${sourceTableName} (id, score, amount) 
       VALUES (${generated.id}, ${generated.score}, ${generated.amount})
     `;
 
