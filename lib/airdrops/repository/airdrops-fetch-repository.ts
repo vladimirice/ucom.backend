@@ -1,6 +1,10 @@
+import { IAirdrop } from '../interfaces/model-interfaces';
+import { AppError } from '../../api/errors';
+
 import AirdropsModelProvider = require('../service/airdrops-model-provider');
 import knex = require('../../../config/knex');
 import AccountsModelProvider = require('../../accounts/service/accounts-model-provider');
+import RepositoryHelper = require('../../common/repository/repository-helper');
 
 class AirdropsFetchRepository {
   public static async getAirdropStateByPostId(
@@ -29,14 +33,23 @@ class AirdropsFetchRepository {
 
   public static async getAirdropByPk(
     id: number,
-  ) {
+  ): Promise<IAirdrop> {
     const where = {
       id,
     };
 
-    return knex(AirdropsModelProvider.airdropsTableName())
+    const data = await  knex(AirdropsModelProvider.airdropsTableName())
+      .select(this.getFieldsForSelect())
       .where(where)
       .first();
+
+    if (!data) {
+      throw new AppError(`There is no such airdrop with ID: ${id}`);
+    }
+
+    RepositoryHelper.convertStringFieldsToNumbers(data, this.getNumericalFields(), this.getFieldsToDisallowZero());
+
+    return data;
   }
 
   private static async getAirdropStateByTokensWhere(
@@ -78,6 +91,42 @@ class AirdropsFetchRepository {
       startedAt: res[0].started_at,
       finishedAt: res[0].finished_at,
     };
+  }
+
+  private static getFieldsForSelect(): string[] {
+    return [
+      'id',
+
+      'created_at',
+      'updated_at',
+
+      'started_at',
+      'finished_at',
+
+      'title',
+      'status',
+      'post_id',
+      'conditions',
+    ];
+  }
+
+  private static getNumericalFields(): string[] {
+    return [
+      'id',
+
+      'status',
+      'post_id',
+    ];
+  }
+
+  // eslint-disable-next-line sonarjs/no-identical-functions
+  private static getFieldsToDisallowZero(): string[] {
+    return [
+      'id',
+
+      'status',
+      'post_id',
+    ];
   }
 }
 

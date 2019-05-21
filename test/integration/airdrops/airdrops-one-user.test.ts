@@ -61,9 +61,10 @@ describe('Airdrops one user', () => {
         following_devExchange: false,
       };
 
-      expect(response).toMatchObject(
-        AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditions, userVlad.id),
-      );
+      const expectedAirdrop =
+        await AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditions, userVlad.id);
+
+      expect(response).toMatchObject(expectedAirdrop);
     });
 
     it('get user airdrop conditions and modify them step by step', async () => {
@@ -86,8 +87,11 @@ describe('Airdrops one user', () => {
         following_devExchange: false,
       };
 
+      const expectedUserAirdropWithGithub =
+        await AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditions);
+
       expect(userAirdropWithGithub).toMatchObject(
-        AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditions),
+        expectedUserAirdropWithGithub,
       );
 
       RequestHelper.addAuthBearerHeader(headers, <string>userVlad.token);
@@ -101,9 +105,10 @@ describe('Airdrops one user', () => {
         following_devExchange: false,
       };
 
-      expect(userAirdropWithAllAuth).toMatchObject(
-        AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditionsAllAuth, userVlad.id),
-      );
+      const expectedAirdropSecond =
+        await AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditionsAllAuth, userVlad.id);
+
+      expect(userAirdropWithAllAuth).toMatchObject(expectedAirdropSecond);
 
       // make pairing and check again
       await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, githubToken);
@@ -117,9 +122,10 @@ describe('Airdrops one user', () => {
         following_devExchange: false,
       };
 
-      expect(userAirdropWithPairing).toMatchObject(
-        AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditionsAllAuthAndPairing, userVlad.id),
-      );
+      const expectedAirdropWithPairing =
+        await AirdropsUsersGenerator.getExpectedUserAirdrop(airdropId, usersExternalId, conditionsAllAuthAndPairing, userVlad.id);
+
+      expect(userAirdropWithPairing).toMatchObject(expectedAirdropWithPairing);
 
       // Lets follow required community and expect following condition = true
       await OrganizationsHelper.requestToCreateOrgFollowHistory(userVlad, orgId);
@@ -133,39 +139,42 @@ describe('Airdrops one user', () => {
         following_devExchange: true,
       };
 
-      expect(userAirdropWithAllTrue).toMatchObject(
-        AirdropsUsersGenerator.getExpectedUserAirdrop(
+      const expectedUserAirdropWithAllTrue =
+        await AirdropsUsersGenerator.getExpectedUserAirdrop(
           airdropId,
           usersExternalId,
           conditionsAllTrue,
           userVlad.id,
           AirdropStatuses.PENDING,
-        ),
-      );
+        );
+
+      expect(userAirdropWithAllTrue).toMatchObject(expectedUserAirdropWithAllTrue);
 
       // Lets UNfollow required community and expect following condition = true
       await OrganizationsHelper.requestToUnfollowOrganization(orgId, userVlad);
       const userAirdropWithUnfollowedOrg = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
 
-      expect(userAirdropWithUnfollowedOrg).toMatchObject(
-        AirdropsUsersGenerator.getExpectedUserAirdrop(
-          airdropId,
-          usersExternalId,
-          conditionsAllAuthAndPairing,
-          userVlad.id,
-          AirdropStatuses.PENDING, // after processing it is not possible to change status to new
-        ),
+
+      const expectedUserAirdropWithUnfollowedOrg = await AirdropsUsersGenerator.getExpectedUserAirdrop(
+        airdropId,
+        usersExternalId,
+        conditionsAllAuthAndPairing,
+        userVlad.id,
+        AirdropStatuses.PENDING, // after processing it is not possible to change status to new
       );
+
+
+      expect(userAirdropWithUnfollowedOrg).toMatchObject(expectedUserAirdropWithUnfollowedOrg);
     }, JEST_TIMEOUT);
 
     it('get user state via github token', async () => {
-      const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId, airdrop } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(sampleToken);
 
       const sampleAirdropData = await AirdropsUsersExternalDataService.getSampleUsersExternalData(
-        airdropId,
+        airdrop,
         usersExternalId,
         AirdropsUsersRequest.getVladGithubId(),
         true,
@@ -196,7 +205,7 @@ describe('Airdrops one user', () => {
     });
 
     it('get user state WITH pairing via auth token', async () => {
-      const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId, airdrop } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(githubToken);
@@ -204,7 +213,7 @@ describe('Airdrops one user', () => {
       await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, githubToken);
 
       const sampleAirdropData = await AirdropsUsersExternalDataService.getSampleUsersExternalData(
-        airdropId,
+        airdrop,
         usersExternalId,
         AirdropsUsersRequest.getVladGithubId(),
         true,
@@ -218,7 +227,7 @@ describe('Airdrops one user', () => {
       const oneUserAirdropAgain = await GraphqlHelper.getOneUserAirdropViaAuthToken(userVlad, airdropId);
       AirdropsUsersChecker.checkAirdropsStructure(oneUserAirdropAgain);
       AirdropsUsersChecker.checkGithubAirdropState(oneUserAirdropAgain, sampleAirdropData);
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT_DEBUG);
   });
 
   describe('Negative', () => {

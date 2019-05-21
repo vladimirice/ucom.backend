@@ -2,6 +2,7 @@ import { OneUserAirdropDto, OneUserAirdropFilter } from '../interfaces/dto-inter
 import { AppError, BadRequestError } from '../../api/errors';
 import { CurrentUserDataDto, IdsFromTokensDto } from '../../auth/interfaces/auth-interfaces-dto';
 import { ApiLogger } from '../../../config/winston';
+import { IAirdrop } from '../interfaces/model-interfaces';
 
 import AuthService = require('../../auth/authService');
 import UsersExternalRepository = require('../../users-external/repository/users-external-repository');
@@ -19,17 +20,17 @@ class AirdropUsersService {
   ): Promise<OneUserAirdropDto> {
     const currentUserDto: CurrentUserDataDto = await this.getCurrentUserDto(req);
 
-    const airdrop = await AirdropsFetchRepository.getAirdropByPk(filters.airdrop_id);
+    const airdrop: IAirdrop = await AirdropsFetchRepository.getAirdropByPk(+filters.airdrop_id);
 
     if (!airdrop) {
       throw new BadRequestError(`There is no airdrop with ID: ${filters.airdrop_id}`, 404);
     }
 
-    const airdropData = await this.getUserAirdropData(currentUserDto, filters.airdrop_id);
+    const airdropData = await this.getUserAirdropData(currentUserDto, airdrop);
     const conditions = await this.getConditions(currentUserDto, +airdrop.conditions.community_id_to_follow);
 
     return {
-      airdrop_id: filters.airdrop_id,
+      airdrop_id: airdrop.id,
       user_id: currentUserDto.currentUser ? currentUserDto.currentUser.id : null,
       conditions,
       ...airdropData,
@@ -74,9 +75,9 @@ class AirdropUsersService {
 
   private static async getUserAirdropData(
     currentUserDto: CurrentUserDataDto,
-    airdropId: number,
+    airdrop: IAirdrop,
   ) {
-    const airdropState = await AirdropsFetchRepository.getAirdropStateById(airdropId);
+    const airdropState = await AirdropsFetchRepository.getAirdropStateById(airdrop.id);
 
     const userTokens: any[] = [];
     airdropState.tokens.forEach((item) => {
@@ -100,12 +101,12 @@ class AirdropUsersService {
     if (currentUserDto.userExternal) {
       // If token exists then it is possible to fetch token distribution data
       const externalData =
-        await AirdropsUsersExternalDataService.processForUsersExternalId(airdropId, currentUserDto.userExternal);
+        await AirdropsUsersExternalDataService.processForUsersExternalId(airdrop, currentUserDto.userExternal);
 
       this.processWithExternalData(data, externalData, userTokens, airdropState);
     } else if (currentUserDto.currentUser) {
       const externalData =
-        await AirdropsUsersExternalDataService.processForCurrentUserId(airdropId, currentUserDto.currentUser);
+        await AirdropsUsersExternalDataService.processForCurrentUserId(airdrop, currentUserDto.currentUser);
 
       if (externalData) {
         this.processWithExternalData(data, externalData, userTokens, airdropState);

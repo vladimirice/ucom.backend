@@ -1,7 +1,7 @@
 import { currentUserDataDto, userExternalDataDto } from '../../auth/interfaces/auth-interfaces-dto';
 import { AppError } from '../../api/errors';
 import { AccountsSymbolsModel } from '../../accounts/interfaces/accounts-model-interfaces';
-import { AirdropsUsersGithubRawItem } from '../interfaces/model-interfaces';
+import { AirdropsUsersGithubRawItem, IAirdrop } from '../interfaces/model-interfaces';
 
 import AirdropsUsersExternalDataRepository = require('../repository/airdrops-users-external-data-repository');
 import UsersExternalRepository = require('../../users-external/repository/users-external-repository');
@@ -14,7 +14,7 @@ const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 class AirdropsUsersExternalDataService {
   public static async processForCurrentUserId(
-    airdropId: number,
+    airdrop: IAirdrop,
     currentUserDto: currentUserDataDto,
   ) {
     const data = await UsersExternalRepository.getUserExternalWithExternalAirdropData(currentUserDto.id);
@@ -31,14 +31,14 @@ class AirdropsUsersExternalDataService {
     }
 
     if (data.primary_key && data.json_data === null) {
-      return this.createUsersExternalData(airdropId, data.primary_key, data.external_id);
+      return this.createUsersExternalData(airdrop, data.primary_key, data.external_id);
     }
 
     throw new AppError(`Malformed response: ${JSON.stringify(data)}`, 500);
   }
 
   public static async processForUsersExternalId(
-    airdropId: number,
+    airdrop: IAirdrop,
     userExternalDto: userExternalDataDto,
   ) {
     const externalData =
@@ -52,19 +52,19 @@ class AirdropsUsersExternalDataService {
     }
 
     return this.createUsersExternalData(
-      airdropId,
+      airdrop,
       userExternalDto.id,
       userExternalDto.external_id,
     );
   }
 
   public static async getSampleUsersExternalData(
-    airdropId: number,
+    airdrop: IAirdrop,
     usersExternalId: number,
     githubUserId: number,
     majorTokens: boolean = false,
   ) {
-    const commonData = await this.getUserAirdropCommonData(airdropId, usersExternalId, majorTokens);
+    const commonData = await this.getUserAirdropCommonData(airdrop, usersExternalId, majorTokens);
 
     return {
       ...commonData,
@@ -73,7 +73,7 @@ class AirdropsUsersExternalDataService {
   }
 
   public static async getUserAirdropCommonData(
-    airdropId: number,
+    airdrop: IAirdrop,
     usersExternalId: number,
     majorTokens: boolean,
   ) {
@@ -84,12 +84,17 @@ class AirdropsUsersExternalDataService {
     }
 
     const rawData: AirdropsUsersGithubRawItem | null =
-      await AirdropsUsersGithubRawRepository.getScoreAndAmountByGithubId(+externalData.external_id);
+      await AirdropsUsersGithubRawRepository.getScoreAndAmountByGithubId(
+        +externalData.external_id,
+        airdrop.conditions.source_table_name,
+      );
 
-    const resultScore = rawData === null ? 0 : rawData.score;
-    const resultAmount = rawData === null ? 0 : rawData.amount;
+    const resultScore = rawData === null ?
+      airdrop.conditions.zero_score_incentive_tokens_amount : rawData.score;
+    const resultAmount = rawData === null ?
+      airdrop.conditions.zero_score_incentive_tokens_amount : rawData.amount;
 
-    const airdropsTokens = await AirdropsTokensRepository.getAirdropsAccountDataById(airdropId);
+    const airdropsTokens = await AirdropsTokensRepository.getAirdropsAccountDataById(airdrop.id);
 
     const tokensForUser: {amount_claim: number, symbol: string}[] = [];
 
@@ -101,7 +106,7 @@ class AirdropsUsersExternalDataService {
     }
 
     const data = {
-      airdrop_id: airdropId,
+      airdrop_id: airdrop.id,
       score: resultScore,
       tokens: tokensForUser,
     };
@@ -127,16 +132,16 @@ class AirdropsUsersExternalDataService {
   }
 
   private static async createUsersExternalData(
-    airdropId: number,
+    airdrop: IAirdrop,
     usersExternalId: number,
     githubUserId: number,
   ): Promise<any> {
-    const jsonData = await this.getSampleUsersExternalData(airdropId, usersExternalId, githubUserId);
+    const jsonData = await this.getSampleUsersExternalData(airdrop, usersExternalId, githubUserId);
 
     const status: number = this.getStatusByTokensForCreation(jsonData.tokens);
 
     await AirdropsUsersExternalDataRepository.insertOneData(
-      airdropId,
+      airdrop.id,
       usersExternalId,
       jsonData.score,
       jsonData,

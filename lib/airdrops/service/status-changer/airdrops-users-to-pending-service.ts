@@ -2,6 +2,7 @@ import { Transaction } from 'knex';
 import { AirdropDebtDto, FreshUserDto, TokensToClaim } from '../../interfaces/dto-interfaces';
 import { AppError } from '../../../api/errors';
 import { WorkerLogger } from '../../../../config/winston';
+import { IAirdrop } from '../../interfaces/model-interfaces';
 
 import AirdropsUsersExternalDataRepository = require('../../repository/airdrops-users-external-data-repository');
 import AirdropsFetchRepository = require('../../repository/airdrops-fetch-repository');
@@ -24,12 +25,12 @@ class AirdropsUsersToPendingService {
       return;
     }
 
-    const airdrop = await AirdropsFetchRepository.getAirdropByPk(airdropId);
+    const airdrop: IAirdrop = await AirdropsFetchRepository.getAirdropByPk(airdropId);
 
     const usersToProcess: FreshUserDto[] = [];
     for (const freshUser of manyFreshUsers) {
       const isOk: boolean =
-        await this.areAllConditionsFulfilledByUserId(freshUser.user_id, airdrop.conditions.community_id_to_follow);
+        await this.areAllConditionsFulfilledByUserId(freshUser.user_id, +airdrop.conditions.community_id_to_follow);
 
       if (isOk) {
         await AirdropsUsersExternalDataRepository.makeAreConditionsFulfilledTruthy(freshUser.users_external_id);

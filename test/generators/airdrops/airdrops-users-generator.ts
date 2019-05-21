@@ -1,6 +1,6 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../../integration/helpers/graphql-helper';
-import { AirdropsUsersGithubRawItem } from '../../../lib/airdrops/interfaces/model-interfaces';
+import { AirdropsUsersGithubRawItem, IAirdrop } from '../../../lib/airdrops/interfaces/model-interfaces';
 
 import GithubRequest = require('../../helpers/github-request');
 
@@ -12,6 +12,7 @@ import OrganizationsHelper = require('../../integration/helpers/organizations-he
 import RequestHelper = require('../../integration/helpers/request-helper');
 import knex = require('../../../config/knex');
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
+import AirdropsFetchRepository = require('../../../lib/airdrops/repository/airdrops-fetch-repository');
 
 class AirdropsUsersGenerator {
   public static generateForVladAndJane() {
@@ -89,14 +90,15 @@ class AirdropsUsersGenerator {
     return GraphqlHelper.getOneUserAirdrop(airdropId, headers);
   }
 
-  public static getExpectedUserAirdrop(
+  public static async getExpectedUserAirdrop(
     airdropId: number,
     usersExternalId: number,
     conditions: any,
     userId: number | null = null,
     airdropStatus: number = AirdropStatuses.NEW,
   ) {
-    const commonData = AirdropsUsersExternalDataService.getUserAirdropCommonData(airdropId, usersExternalId, false);
+    const airdrop: IAirdrop = await AirdropsFetchRepository.getAirdropByPk(airdropId);
+    const commonData = await AirdropsUsersExternalDataService.getUserAirdropCommonData(airdrop, usersExternalId, true);
 
     return {
       user_id: userId,

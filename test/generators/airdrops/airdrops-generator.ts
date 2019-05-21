@@ -1,4 +1,5 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { IAirdrop } from '../../../lib/airdrops/interfaces/model-interfaces';
 
 import PostsGenerator = require('../posts-generator');
 
@@ -7,6 +8,8 @@ import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-cr
 
 import _ = require('lodash');
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
+
+import AirdropsFetchRepository = require('../../../lib/airdrops/repository/airdrops-fetch-repository');
 
 class AirdropsGenerator {
   public static async createNewGithubRoundTwoAirdrop(
@@ -23,7 +26,15 @@ class AirdropsGenerator {
   public static async createNewAirdrop(
     postAuthor: UserModel,
     givenConditions = {},
-  ): Promise<any> {
+  ): Promise<{
+    airdropId: number,
+    airdrop: IAirdrop
+    postId: number,
+    orgId: number,
+    startedAt: any,
+    finishedAt: any,
+    expectedTokens: any,
+  }> {
     const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(postAuthor);
     const postId = await PostsGenerator.createMediaPostOfOrganization(postAuthor, orgId);
 
@@ -48,6 +59,7 @@ class AirdropsGenerator {
       auth_myself: true,
       community_id_to_follow: orgId,
       source_table_name: AirdropsModelProvider.airdropsUsersGithubRawTableName(),
+      zero_score_incentive_tokens_amount: 0,
     };
 
     const conditions = _.defaults(givenConditions, defaultConditions);
@@ -64,6 +76,8 @@ class AirdropsGenerator {
       tokens,
     );
 
+    const airdrop: IAirdrop = await AirdropsFetchRepository.getAirdropByPk(airdropId);
+
     const expectedTokens = [
       {
         symbol: 'UOSTEST',
@@ -79,6 +93,7 @@ class AirdropsGenerator {
 
     return {
       airdropId,
+      airdrop,
       postId,
       orgId,
       startedAt,
