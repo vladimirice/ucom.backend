@@ -16,8 +16,8 @@ const SOURCE_TABLE_NAME = AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTa
 const ZERO_SCORE_INCENTIVE_TOKENS_AMOUNT_IN_MAJOR = 100;
 const EMISSION_IN_MAJOR = 1000000;
 const title = 'github_airdrop_round_two';
-const startedAt = '2019-05-25T12:00:00Z';
-const finishedAt = '2019-06-25T12:00:00Z';
+const startedAt = '2019-05-21T12:00:00Z';
+const finishedAt = '2019-06-21T12:00:00Z';
 (async () => {
     let postId;
     let orgId;
