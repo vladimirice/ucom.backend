@@ -2,6 +2,8 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
+import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
+
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
 
@@ -9,7 +11,7 @@ const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 const { app, server } = require('../../../lib/graphql/applications/graphql-application');
 
-const PORT = 4007;
+const PORT = NumbersHelper.generateRandomInteger(4100, 4800);
 
 const GRAPHQL_HOST = `http://127.0.0.1:${PORT}`;
 const GRAPHQL_URI = `${GRAPHQL_HOST}${server.graphqlPath}`;

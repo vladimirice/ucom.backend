@@ -12,20 +12,23 @@ import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-m
 import AirdropsFetchRepository = require('../../../lib/airdrops/repository/airdrops-fetch-repository');
 
 class AirdropsGenerator {
-  public static async createNewGithubRoundTwoAirdrop(
+  public static async createNewGithubRoundTwoAirdropWithTheSecond(
     postAuthor: UserModel,
   ): Promise<any> {
+    await AirdropsGenerator.createNewAirdrop(postAuthor);
+
     const givenConditions = {
-      zero_score_incentive_tokens_amount: 100,
+      zero_score_incentive_tokens_amount: 100 * (10 ** 4),
       source_table_name: AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName(),
     };
 
-    return this.createNewAirdrop(postAuthor, givenConditions);
+    return this.createNewAirdrop(postAuthor, givenConditions, 1000000);
   }
 
   public static async createNewAirdrop(
     postAuthor: UserModel,
     givenConditions = {},
+    tokensEmission = 2000000,
   ): Promise<{
     airdropId: number,
     airdrop: IAirdrop
@@ -38,8 +41,8 @@ class AirdropsGenerator {
     const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(postAuthor);
     const postId = await PostsGenerator.createMediaPostOfOrganization(postAuthor, orgId);
 
-    const firstSymbolAmount = 1000000 * (10 ** 4);
-    const secondSymbolAmount = 2000000 * (10 ** 4);
+    const firstSymbolAmount = tokensEmission * (10 ** 4);
+    const secondSymbolAmount = tokensEmission * (10 ** 4);
 
     const tokens = [
       {

@@ -58,7 +58,7 @@ class AirdropsUsersExternalDataService {
     );
   }
 
-  public static async getSampleUsersExternalData(
+  public static async getUsersExternalData(
     airdrop: IAirdrop,
     usersExternalId: number,
     githubUserId: number,
@@ -89,8 +89,7 @@ class AirdropsUsersExternalDataService {
         airdrop.conditions.source_table_name,
       );
 
-    const resultScore = rawData === null ?
-      airdrop.conditions.zero_score_incentive_tokens_amount : rawData.score;
+    const resultScore = rawData === null ? 0 : rawData.score;
     const resultAmount = rawData === null ?
       airdrop.conditions.zero_score_incentive_tokens_amount : rawData.amount;
 
@@ -136,7 +135,7 @@ class AirdropsUsersExternalDataService {
     usersExternalId: number,
     githubUserId: number,
   ): Promise<any> {
-    const jsonData = await this.getSampleUsersExternalData(airdrop, usersExternalId, githubUserId);
+    const jsonData = await this.getUsersExternalData(airdrop, usersExternalId, githubUserId);
 
     const status: number = this.getStatusByTokensForCreation(jsonData.tokens);
 

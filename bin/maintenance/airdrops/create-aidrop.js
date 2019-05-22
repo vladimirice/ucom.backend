@@ -13,7 +13,7 @@ const PRODUCTION_ORG_ID = 105;
 const PRODUCTION_FIRST_SYMBOL_ID = 1;
 const PRODUCTION_SECOND_SYMBOL_ID = 4;
 const SOURCE_TABLE_NAME = AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName();
-const ZERO_SCORE_INCENTIVE_TOKENS_AMOUNT = 100;
+const ZERO_SCORE_INCENTIVE_TOKENS_AMOUNT_IN_MAJOR = 100;
 const EMISSION_IN_MAJOR = 1000000;
 const title = 'github_airdrop_round_two';
 const startedAt = '2019-05-25T12:00:00Z';
@@ -50,7 +50,7 @@ const finishedAt = '2019-06-25T12:00:00Z';
     ];
     const conditions = {
         source_table_name: SOURCE_TABLE_NAME,
-        zero_score_incentive_tokens_amount: ZERO_SCORE_INCENTIVE_TOKENS_AMOUNT,
+        zero_score_incentive_tokens_amount: ZERO_SCORE_INCENTIVE_TOKENS_AMOUNT_IN_MAJOR * (10 ** 4),
         auth_github: true,
         auth_myself: true,
         community_id_to_follow: orgId,

@@ -173,7 +173,7 @@ describe('Airdrops one user', () => {
       const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(sampleToken);
 
-      const sampleAirdropData = await AirdropsUsersExternalDataService.getSampleUsersExternalData(
+      const sampleAirdropData = await AirdropsUsersExternalDataService.getUsersExternalData(
         airdrop,
         usersExternalId,
         AirdropsUsersRequest.getVladGithubId(),
@@ -212,7 +212,7 @@ describe('Airdrops one user', () => {
 
       await UsersExternalRequest.sendPairExternalUserWithUser(userVlad, githubToken);
 
-      const sampleAirdropData = await AirdropsUsersExternalDataService.getSampleUsersExternalData(
+      const sampleAirdropData = await AirdropsUsersExternalDataService.getUsersExternalData(
         airdrop,
         usersExternalId,
         AirdropsUsersRequest.getVladGithubId(),

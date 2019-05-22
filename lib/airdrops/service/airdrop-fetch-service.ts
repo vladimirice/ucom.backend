@@ -28,8 +28,17 @@ class AirdropFetchService {
     post.post_offer_type_id = 1; // #task - reserved for future uses
     post.users_team = usersTeam;
 
+    const conditions: any = {};
+
+    for (const condition in state.conditions) {
+      if (condition !== 'source_table_name') {
+        conditions[condition] = state.conditions[condition];
+      }
+    }
+
     post.offer_data = {
       airdrop_id: state.airdropId,
+      conditions,
       tokens,
     };
   }

@@ -80,6 +80,7 @@ class AirdropsFetchRepository {
         `${airdrops}.id as airdrop_id`,
         `${airdrops}.started_at as started_at`,
         `${airdrops}.finished_at as finished_at`,
+        `${airdrops}.conditions as conditions`,
       ])
       .where(where)
       .innerJoin(`${airdrops}`, `${t}.airdrop_id`, `${airdrops}.id`)
@@ -100,6 +101,8 @@ class AirdropsFetchRepository {
       airdropId: +res[0].airdrop_id,
       startedAt: res[0].started_at,
       finishedAt: res[0].finished_at,
+
+      conditions: res[0].conditions,
     };
   }
 

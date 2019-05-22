@@ -12,6 +12,7 @@ import AirdropsGenerator = require('../../generators/airdrops/airdrops-generator
 import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-users-generator');
 import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
 import _ = require('lodash');
+import ResponseHelper = require('../helpers/response-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -210,6 +211,9 @@ describe('Airdrops create-get', () => {
 
         expect(token.amount_left).toBe(token.amount_claim - claimed);
       }
+
+      // #task - move to the post_offer checker
+      ResponseHelper.expectNotEmpty(postOfferWithTeam.offer_data.conditions);
     }, JEST_TIMEOUT_DEBUG);
 
     it('get both post offer data and airdrop state with users_team data', async () => {

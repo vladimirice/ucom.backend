@@ -18,16 +18,19 @@ class AirdropUsersService {
     req: any,
     filters: OneUserAirdropFilter,
   ): Promise<OneUserAirdropDto> {
-    const currentUserDto: CurrentUserDataDto = await this.getCurrentUserDto(req);
-
-    const airdrop: IAirdrop = await AirdropsFetchRepository.getAirdropByPk(+filters.airdrop_id);
+    const [currentUserDto, airdrop]: [CurrentUserDataDto, IAirdrop] = await Promise.all([
+      this.getCurrentUserDto(req),
+      AirdropsFetchRepository.getAirdropByPk(+filters.airdrop_id),
+    ]);
 
     if (!airdrop) {
       throw new BadRequestError(`There is no airdrop with ID: ${filters.airdrop_id}`, 404);
     }
 
-    const airdropData = await this.getUserAirdropData(currentUserDto, airdrop);
-    const conditions = await this.getConditions(currentUserDto, +airdrop.conditions.community_id_to_follow);
+    const [airdropData, conditions] = await Promise.all([
+      this.getUserAirdropData(currentUserDto, airdrop),
+      this.getConditions(currentUserDto, +airdrop.conditions.community_id_to_follow),
+    ]);
 
     return {
       airdrop_id: airdrop.id,
@@ -103,13 +106,13 @@ class AirdropUsersService {
       const externalData =
         await AirdropsUsersExternalDataService.processForUsersExternalId(airdrop, currentUserDto.userExternal);
 
-      this.processWithExternalData(data, externalData, userTokens, airdropState);
+      this.processWithExternalData(data, externalData, userTokens, airdropState, airdrop);
     } else if (currentUserDto.currentUser) {
       const externalData =
         await AirdropsUsersExternalDataService.processForCurrentUserId(airdrop, currentUserDto.currentUser);
 
       if (externalData) {
-        this.processWithExternalData(data, externalData, userTokens, airdropState);
+        this.processWithExternalData(data, externalData, userTokens, airdropState, airdrop);
       }
 
       // else do nothing - zero tokens response
@@ -120,11 +123,14 @@ class AirdropUsersService {
     return data;
   }
 
-  private static processWithExternalData(data, externalData, userTokens, airdropState): void {
+  private static processWithExternalData(data, externalData, userTokens, airdropState, airdrop: IAirdrop): void {
     AirdropUsersValidator.checkTokensConsistency(userTokens, externalData.tokens);
 
     for (const token of externalData.tokens) {
-      if (externalData.score === 0 && token.amount_claim > 0) {
+      if (externalData.score === 0
+        && airdrop.conditions.zero_score_incentive_tokens_amount === 0
+        && token.amount_claim > 0
+      ) {
         ApiLogger.error('Consistency check is failed. If score is 0 then all amount_claim must be 0', {
           data,
           external_data: JSON.stringify(externalData),

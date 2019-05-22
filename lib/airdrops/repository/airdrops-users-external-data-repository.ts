@@ -44,6 +44,15 @@ class AirdropsUsersExternalDataRepository {
       .where('users_external_id', '=', usersExternalId);
   }
 
+  public static async findAllUsersExternalIdRelatedToAirdrop(airdropId: number): Promise<number[]> {
+    const data = await knex(TABLE_NAME)
+      .select(['users_external_id'])
+      .where('airdrop_id', airdropId)
+    ;
+
+    return data.map(item => +item.users_external_id);
+  }
+
   public static async getManyUsersWithStatusNew(
     airdropId: number,
   ): Promise<FreshUserDto[]> {

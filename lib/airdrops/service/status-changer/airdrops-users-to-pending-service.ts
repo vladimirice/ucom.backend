@@ -17,9 +17,27 @@ import AirdropsUsersRepository = require('../../repository/airdrops-users-reposi
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 class AirdropsUsersToPendingService {
-  public static async process(airdropId: number) {
-    const manyFreshUsers: FreshUserDto[] =
+  public static async process(airdropId: number, airdropIdToExclude: number | null = null) {
+    const manyFreshUsersBefore: FreshUserDto[] =
       await AirdropsUsersExternalDataRepository.getManyUsersWithStatusNew(airdropId);
+
+    // TODO - temp code
+    let usersExternalIdsToSkip: number[] = [];
+
+    if (airdropIdToExclude) {
+      usersExternalIdsToSkip = await AirdropsUsersExternalDataRepository.findAllUsersExternalIdRelatedToAirdrop(airdropIdToExclude);
+    }
+
+    const manyFreshUsers: FreshUserDto[] = [];
+
+    for (const oneUser of manyFreshUsersBefore) {
+      if (usersExternalIdsToSkip.includes(+oneUser.users_external_id)) {
+        continue;
+      }
+
+      manyFreshUsers.push(oneUser);
+    }
+    // TODO - end of the temp code
 
     if (manyFreshUsers.length === 0) {
       return;
