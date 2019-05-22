@@ -1,11 +1,12 @@
 "use strict";
 const errors_1 = require("../../lib/api/errors");
+const AirdropsUsersRequest = require("./airdrops-users-request");
 const VLAD_ACCESS_TOKEN = 'cb259e0f9ea2b0dc02323e74d3b6667e8ce6868e';
 const JANE_ACCESS_TOKEN = 'ab259e0f9ea2b0dc02323e74d3b6667e8ce6868f';
 const sampleData = {
     [VLAD_ACCESS_TOKEN]: {
         login: 'vladimirice',
-        id: 13485690,
+        id: AirdropsUsersRequest.getVladGithubId(),
         node_id: 'MDQ6VXNlcjEzNDg1Njkw',
         avatar_url: '',
         gravatar_id: '',
@@ -38,9 +39,9 @@ const sampleData = {
     },
     [JANE_ACCESS_TOKEN]: {
         login: 'akegaviar',
-        id: 10195782,
+        id: AirdropsUsersRequest.getJaneGithubId(),
         node_id: 'MDQ6VXNlcjEwMTk1Nzgy',
-        avatar_url: 'https://avatars1.githubusercontent.com/u/10195782?v=4',
+        avatar_url: `https://avatars1.githubusercontent.com/u/${AirdropsUsersRequest.getJaneGithubId()}?v=4`,
         gravatar_id: '',
         url: 'https://api.github.com/users/akegaviar',
         html_url: 'https://github.com/akegaviar',

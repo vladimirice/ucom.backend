@@ -44,6 +44,22 @@ class AirdropsUsersExternalDataRepository {
       .where('users_external_id', '=', usersExternalId);
   }
 
+  public static async getAllAirdropUsersByAirdropId(
+    airdropId: number,
+    blacklistedIds: number[] = [],
+  ): Promise<number[]> {
+    const data = await knex(TABLE_NAME)
+      .select([
+        `${usersExternal}.user_id AS user_id`,
+      ])
+      .where('airdrop_id', airdropId)
+      .whereIn('status', [AirdropStatuses.RECEIVED, AirdropStatuses.NO_PARTICIPATION])
+      .whereNotIn('id', blacklistedIds)
+      .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`);
+
+    return data.map(item => +item.user_id);
+  }
+
   public static async findAllUsersExternalIdRelatedToAirdrop(airdropId: number): Promise<number[]> {
     const data = await knex(TABLE_NAME)
       .select(['users_external_id'])

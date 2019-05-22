@@ -1,6 +1,10 @@
 const moment = require('moment');
 
 class DatetimeHelper {
+  public static getMomentInUtcString(datetime): string {
+    return datetime.utc().format();
+  }
+
   public static currentDatetime(): string {
     return moment().utc().format();
   }

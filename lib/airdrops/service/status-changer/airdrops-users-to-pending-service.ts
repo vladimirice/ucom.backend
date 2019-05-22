@@ -13,10 +13,20 @@ import knex = require('../../../../config/knex');
 import AccountsCreatorService = require('../../../accounts/service/accounts-creator-service');
 import AccountsTransactionsCreatorService = require('../../../accounts/service/accounts-transactions-creator-service');
 import AirdropsUsersRepository = require('../../repository/airdrops-users-repository');
+import DatetimeHelper = require('../../../common/helper/datetime-helper');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 class AirdropsUsersToPendingService {
+  public static async processAllInProcessAirdrop() {
+    const manyAirdrops: IAirdrop[] = await AirdropsFetchRepository.getAllAirdrops();
+    for (const airdrop of manyAirdrops) {
+      if (DatetimeHelper.isInProcess(airdrop.started_at, airdrop.finished_at)) {
+        await this.process(airdrop.id);
+      }
+    }
+  }
+
   public static async process(airdropId: number) {
     const manyFreshUsers: FreshUserDto[] =
       await AirdropsUsersExternalDataRepository.getManyUsersWithStatusNew(airdropId);

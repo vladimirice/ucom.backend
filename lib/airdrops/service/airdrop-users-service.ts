@@ -40,43 +40,7 @@ class AirdropUsersService {
     };
   }
 
-  private static async getCurrentUserDto(
-    req: any,
-  ): Promise<CurrentUserDataDto> {
-    const idsFromTokens: IdsFromTokensDto = AuthService.getIdsFromAuthTokens(req);
-
-    const res: CurrentUserDataDto = {
-      currentUser: null,
-      userExternal: null,
-    };
-
-    if (idsFromTokens.currentUserId) {
-      res.currentUser = {
-        id: idsFromTokens.currentUserId,
-      };
-    }
-
-    if (idsFromTokens.usersExternalId) {
-      const userExternal =
-        await UsersExternalRepository.findGithubUserExternalByPkId(idsFromTokens.usersExternalId);
-
-      if (!userExternal) {
-        throw new BadRequestError(
-          `Malformed userExternal ID inside token: ${idsFromTokens.usersExternalId}`,
-          400,
-        );
-      }
-
-      res.userExternal = {
-        id: idsFromTokens.usersExternalId,
-        external_id: userExternal.external_id,
-      };
-    }
-
-    return res;
-  }
-
-  private static async getUserAirdropData(
+  public static async getUserAirdropData(
     currentUserDto: CurrentUserDataDto,
     airdrop: IAirdrop,
   ) {
@@ -121,6 +85,42 @@ class AirdropUsersService {
     }
 
     return data;
+  }
+
+  private static async getCurrentUserDto(
+    req: any,
+  ): Promise<CurrentUserDataDto> {
+    const idsFromTokens: IdsFromTokensDto = AuthService.getIdsFromAuthTokens(req);
+
+    const res: CurrentUserDataDto = {
+      currentUser: null,
+      userExternal: null,
+    };
+
+    if (idsFromTokens.currentUserId) {
+      res.currentUser = {
+        id: idsFromTokens.currentUserId,
+      };
+    }
+
+    if (idsFromTokens.usersExternalId) {
+      const userExternal =
+        await UsersExternalRepository.findGithubUserExternalByPkId(idsFromTokens.usersExternalId);
+
+      if (!userExternal) {
+        throw new BadRequestError(
+          `Malformed userExternal ID inside token: ${idsFromTokens.usersExternalId}`,
+          400,
+        );
+      }
+
+      res.userExternal = {
+        id: idsFromTokens.usersExternalId,
+        external_id: userExternal.external_id,
+      };
+    }
+
+    return res;
   }
 
   private static processWithExternalData(data, externalData, userTokens, airdropState, airdrop: IAirdrop): void {

@@ -228,7 +228,7 @@ class AirdropsUsersRepository {
     });
   }
 
-  public static getAllOfAirdropForOneUser(
+  public static async getAllOfAirdropForOneUser(
     airdropId: number,
     userId: number,
   ) {

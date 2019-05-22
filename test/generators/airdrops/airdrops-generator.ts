@@ -10,10 +10,21 @@ import _ = require('lodash');
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
 
 import AirdropsFetchRepository = require('../../../lib/airdrops/repository/airdrops-fetch-repository');
+import moment = require('moment');
+import DatetimeHelper = require('../../../lib/common/helper/datetime-helper');
 
 class AirdropsGenerator {
   public static async createNewGithubRoundTwoAirdropWithTheSecond(
     postAuthor: UserModel,
+  ): Promise<any> {
+    await AirdropsGenerator.createNewAirdrop(postAuthor);
+
+    return this.createNewGithubRoundTwo(postAuthor);
+  }
+
+  public static async createNewGithubRoundTwo(
+    postAuthor: UserModel,
+    airdropInProcessType: number = 2,
   ): Promise<any> {
     await AirdropsGenerator.createNewAirdrop(postAuthor);
 
@@ -22,13 +33,14 @@ class AirdropsGenerator {
       source_table_name: AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName(),
     };
 
-    return this.createNewAirdrop(postAuthor, givenConditions, 1000000);
+    return this.createNewAirdrop(postAuthor, givenConditions, 1000000, airdropInProcessType);
   }
 
   public static async createNewAirdrop(
     postAuthor: UserModel,
     givenConditions = {},
     tokensEmission = 2000000,
+    airdropInProcessType: number = 2,
   ): Promise<{
     airdropId: number,
     airdrop: IAirdrop
@@ -67,8 +79,26 @@ class AirdropsGenerator {
 
     const conditions = _.defaults(givenConditions, defaultConditions);
 
-    const startedAt = '2019-04-01T14:51:35Z';
-    const finishedAt = '2019-05-30T14:51:35Z';
+    let startedAt;
+    let finishedAt;
+
+    switch (airdropInProcessType) {
+      case 1: // not started yet
+        startedAt = DatetimeHelper.getMomentInUtcString(moment().add(2, 'days'));
+        finishedAt = DatetimeHelper.getMomentInUtcString(moment().add(14, 'days'));
+        break;
+      case 2: // in process
+        startedAt = DatetimeHelper.getMomentInUtcString(moment().subtract(2, 'days'));
+        finishedAt = DatetimeHelper.getMomentInUtcString(moment().add(14, 'days'));
+        break;
+      case 3: // finished
+        startedAt = DatetimeHelper.getMomentInUtcString(moment().subtract(10, 'days'));
+        finishedAt = DatetimeHelper.getMomentInUtcString(moment().add(5, 'days'));
+        break;
+      default:
+        throw new TypeError(`Unsupported type ${airdropInProcessType}`);
+    }
+
 
     const { airdropId } = await AirdropCreatorService.createNewAirdrop(
       title,

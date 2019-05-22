@@ -1,11 +1,8 @@
 import { WorkerOptionsDto } from '../../common/interfaces/options-dto';
-import { IAirdrop } from '../interfaces/model-interfaces';
 
 import AirdropsUsersToPendingService = require('../service/status-changer/airdrops-users-to-pending-service');
 import WorkerHelper = require('../../common/helper/worker-helper');
 import EosApi = require('../../eos/eosApi');
-import AirdropsFetchRepository = require('../repository/airdrops-fetch-repository');
-import DatetimeHelper = require('../../common/helper/datetime-helper');
 
 const options: WorkerOptionsDto = {
   processName: 'airdrops-users-to-pending',
@@ -15,12 +12,7 @@ const options: WorkerOptionsDto = {
 async function toExecute() {
   EosApi.initBlockchainLibraries();
 
-  const manyAirdrops: IAirdrop[] = await AirdropsFetchRepository.getAllAirdrops();
-  for (const airdrop of manyAirdrops) {
-    if (DatetimeHelper.isInProcess(airdrop.started_at, airdrop.finished_at)) {
-      await AirdropsUsersToPendingService.process(airdrop.id);
-    }
-  }
+  await AirdropsUsersToPendingService.processAllInProcessAirdrop();
 }
 
 (async () => {

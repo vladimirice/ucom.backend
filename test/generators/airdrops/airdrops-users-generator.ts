@@ -13,13 +13,22 @@ import RequestHelper = require('../../integration/helpers/request-helper');
 import knex = require('../../../config/knex');
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
 import AirdropsFetchRepository = require('../../../lib/airdrops/repository/airdrops-fetch-repository');
+import AirdropsUsersRequest = require('../../helpers/airdrops-users-request');
 
 class AirdropsUsersGenerator {
   public static generateForVladAndJane() {
     return Promise.all([
-      AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(13485690),
-      AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(10195782),
+      this.generateGithubRawDataForVlad(),
+      this.generateGithubRawDataForJane(),
     ]);
+  }
+
+  public static async generateGithubRawDataForVlad() {
+    return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(AirdropsUsersRequest.getVladGithubId());
+  }
+
+  public static async generateGithubRawDataForJane() {
+    return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(AirdropsUsersRequest.getJaneGithubId());
   }
 
   public static async generateAirdropsUsersGithubRawDataForUser(
