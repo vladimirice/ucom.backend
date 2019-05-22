@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/* eslint-disable no-console */
 const errors_1 = require("../../../lib/api/errors");
 const AirdropCreatorService = require("../../../lib/airdrops/service/airdrop-creator-service");
 const EnvHelper = require("../../../lib/common/helper/env-helper");
@@ -55,5 +56,6 @@ const finishedAt = '2019-06-21T12:00:00Z';
         auth_myself: true,
         community_id_to_follow: orgId,
     };
-    await AirdropCreatorService.createNewAirdrop(title, postId, conditions, startedAt, finishedAt, tokens);
+    const { airdropId } = await AirdropCreatorService.createNewAirdrop(title, postId, conditions, startedAt, finishedAt, tokens);
+    console.log(`Airdrop is created. Airdrop ID is: ${airdropId}`);
 })();

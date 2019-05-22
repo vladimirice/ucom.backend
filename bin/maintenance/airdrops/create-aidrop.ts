@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { AppError } from '../../../lib/api/errors';
 import { IAirdropConditions } from '../../../lib/airdrops/interfaces/model-interfaces';
 
@@ -66,7 +67,7 @@ const finishedAt = '2019-06-21T12:00:00Z';
     community_id_to_follow: orgId,
   };
 
-  await AirdropCreatorService.createNewAirdrop(
+  const { airdropId } = await AirdropCreatorService.createNewAirdrop(
     title,
     postId,
     conditions,
@@ -74,4 +75,6 @@ const finishedAt = '2019-06-21T12:00:00Z';
     finishedAt,
     tokens,
   );
+
+  console.log(`Airdrop is created. Airdrop ID is: ${airdropId}`);
 })();
