@@ -7,6 +7,16 @@ import AccountsModelProvider = require('../../accounts/service/accounts-model-pr
 import RepositoryHelper = require('../../common/repository/repository-helper');
 
 class AirdropsFetchRepository {
+  public static async getAllAirdrops(): Promise<IAirdrop[]> {
+    const data = await  knex(AirdropsModelProvider.airdropsTableName())
+      .select(this.getFieldsForSelect())
+    ;
+
+    RepositoryHelper.convertStringFieldsToNumbersForArray(data, this.getNumericalFields(), this.getFieldsToDisallowZero());
+
+    return data;
+  }
+
   public static async getAirdropStateByPostId(
     postId: number,
   ) {

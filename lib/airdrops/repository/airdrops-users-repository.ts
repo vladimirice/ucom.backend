@@ -44,18 +44,6 @@ class AirdropsUsersRepository {
     return RepositoryHelper.getKnexOneIdReturningOrException(res);
   }
 
-  public static async countAllAirdropParticipants(
-    airdropId: number,
-  ): Promise<number> {
-    const res = await knex(TABLE_NAME)
-      .countDistinct(`${TABLE_NAME}.user_id AS amount`)
-      .where('airdrop_id', '=', airdropId)
-      .whereNotIn('user_id', this.getAirdropParticipantsIdsToHide())
-    ;
-
-    return RepositoryHelper.getKnexCountAsNumber(res);
-  }
-
   public static async isAirdropReceivedByUser(
     airdropId: number,
     userId: number,
@@ -197,7 +185,7 @@ class AirdropsUsersRepository {
       INNER JOIN accounts_symbols s ON reserved.symbol_id = s.id
       WHERE airdrops_users.airdrop_id = ${+airdropId}
       AND airdrops_users.user_id = ${+userId}
-      ORDER BY id ASC
+      ORDER BY id;
     `;
 
     const res = await knex.raw(sql);

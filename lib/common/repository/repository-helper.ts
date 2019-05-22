@@ -71,7 +71,9 @@ class RepositoryHelper {
     fields: string[],
     fieldsToDisallowZero: string[] = [],
   ): void {
-    models.forEach(model => this.convertStringFieldsToNumbers(model, fields, fieldsToDisallowZero));
+    for (const oneModel of models) {
+      this.convertStringFieldsToNumbers(oneModel, fields, fieldsToDisallowZero);
+    }
   }
 
   // It is required because big int fields from Postgresql are represented as string
