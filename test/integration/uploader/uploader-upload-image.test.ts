@@ -32,7 +32,7 @@ describe('Uploader - upload one image', () => {
 
   describe('Positive', () => {
     it('upload a lot of files at once but by different users', async () => {
-      // TODO - before all - clear uploader directory
+      // #task - before all - clear uploader directory
       const jpgPath: string = FileToUploadHelper.getSampleJpgPath();
       const gifPath: string = FileToUploadHelper.getSampleGifPath();
 
@@ -50,7 +50,7 @@ describe('Uploader - upload one image', () => {
         UploaderImagesRequestHelper.uploadOneSampleImage(gifPath, userRokky),
       ]);
 
-      // TODO - count files inside dir
+      // #task - count files inside dir
     });
 
     it('upload one jpg image', async () => {

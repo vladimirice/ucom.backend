@@ -28,7 +28,7 @@ class EntityNotificationsService {
    * @return {Promise<Object>}
    */
   async confirmPromptNotification(notificationId) {
-    // TODO validate request
+    // #task validate a request
 
     const userId = this.currentUser.id;
     const confirmed = notificationsStatusDictionary.getStatusConfirmed();
@@ -57,7 +57,7 @@ class EntityNotificationsService {
    * @return {Promise<Object>}
    */
   async markNotificationAsSeen(notificationId) {
-    // TODO validate request
+    // #task validate request
 
     const userId = this.currentUser.id;
 
@@ -82,7 +82,7 @@ class EntityNotificationsService {
    * @return {Promise<Object>}
    */
   async declinePromptNotification(notificationId) {
-    // TODO validate request
+    // #task validate request
 
     const userId = this.currentUser.id;
     const confirmed = notificationsStatusDictionary.getStatusDeclined();
@@ -111,13 +111,13 @@ class EntityNotificationsService {
    * @return {Promise<Object>}
    */
   async pendingPromptNotification(notificationId) {
-    // TODO validate request
+    // #task validate request
 
     const confirmed = NOTIFICATION_STATUS__PENDING;
     const seen = false;
     const finished = false;
 
-    // TODO - add userId
+    // #task - add userId
 
     const res = await notificationsRepo.setNotificationStatus(notificationId, confirmed, finished, seen);
 

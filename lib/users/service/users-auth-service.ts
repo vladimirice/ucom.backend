@@ -74,7 +74,7 @@ class UsersAuthService {
       });
     }
 
-    // TODO check is public key unique
+    // #task check is public key unique
     if (!eosJsEcc.verify(requestData.sign, requestData.account_name, requestData.public_key)) {
       throw new BadRequestError({
         account_name: 'sign is not valid',

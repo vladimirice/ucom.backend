@@ -1,23 +1,24 @@
-const models = require('../../../models');
+import UsersModelProvider = require('../../users/users-model-provider');
+
 const _ = require('lodash');
-
-const usersModelProvider = require('../../users/service').ModelProvider;
-const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
-const postStatsRepository = require('../stats/post-stats-repository');
-
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+
+const models = require('../../../models');
+
+const userPreviewAttributes = UsersModelProvider.getUserFieldsForPreview();
+
+const postStatsRepository = require('../stats/post-stats-repository');
 
 const POST_TYPE__OFFER = ContentTypeDictionary.getTypeOffer();
 
 class PostOfferRepository {
-
   /**
    *
    * @param {boolean} raw
    * @returns {Promise<Object>}
    */
   static async findAllPostOffers(raw = true) {
-    return await this.getMainModel().findAll({
+    return this.getMainModel().findAll({
       raw,
       where: {
         post_type_id: POST_TYPE__OFFER,
@@ -33,21 +34,22 @@ class PostOfferRepository {
    * @returns {Promise<Object>}
    */
   static async createNewOffer(data, userId, transaction) {
-    data['id'] = null;
-    data['user_id'] = userId;
-    data['current_rate'] = 0;
-    data['current_vote'] = 0;
-    data['post_type_id'] = POST_TYPE__OFFER;
+    data.id = null;
+    data.user_id = userId;
+    data.current_rate = 0;
+    data.current_vote = 0;
+    data.post_type_id = POST_TYPE__OFFER;
 
-    data['post_users_team'] = _.filter(data['post_users_team']);
+    // eslint-disable-next-line you-dont-need-lodash-underscore/filter
+    data.post_users_team = _.filter(data.post_users_team);
 
     const newPost = await PostOfferRepository.getMainModel().create(data, { transaction });
 
-    data['post_id'] = newPost.id;
+    data.post_id = newPost.id;
     await this.getPostOfferModel().create(data, { transaction });
 
-    if (data['post_users_team'] && !_.isEmpty(data['post_users_team'])) {
-      data['post_users_team'].forEach(async (user) => {
+    if (data.post_users_team && !_.isEmpty(data.post_users_team)) {
+      data.post_users_team.forEach(async (user) => {
         const usersTeam = {
           post_id: newPost.id,
           user_id: +user.id,
@@ -77,7 +79,7 @@ class PostOfferRepository {
           as: 'post_users_team',
           include: [
             {
-              model: models['Users'],
+              model: models.Users,
               attributes: userPreviewAttributes,
             },
           ],
@@ -92,10 +94,10 @@ class PostOfferRepository {
     return isRaw ? result.toJSON() : result;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   async updateRelations(user, deltaData, modelName, userData) {
     await models.sequelize
       .transaction(async (transaction) => {
-
         // Update addresses
         await Promise.all([
           deltaData.deleted.map(async (data) => {
@@ -103,11 +105,10 @@ class PostOfferRepository {
           }),
 
           deltaData.added.map(async (data) => {
-
-            data['user_id'] = user.id;
+            data.user_id = user.id;
 
             const newModel = models[modelName].build(data);
-            await newModel.save(); // TODO check is transaction work
+            await newModel.save();
           }),
 
           deltaData.changed.map(async (data) => {
@@ -117,7 +118,7 @@ class PostOfferRepository {
         ]);
 
         if (userData) {
-          return await user.update(userData, { transaction });
+          return user.update(userData, { transaction });
         }
 
         return true;
@@ -158,7 +159,7 @@ class PostOfferRepository {
           as: 'post_users_team',
           include: [
             {
-              model: models['Users'],
+              model: models.Users,
               attributes: userPreviewAttributes,
             },
           ],
@@ -178,15 +179,15 @@ class PostOfferRepository {
   }
 
   static getMainModel() {
-    return models['posts'];
+    return models.posts;
   }
 
   static getPostOfferModel() {
-    return models['post_offer'];
+    return models.post_offer;
   }
 
   static getPostUsersTeamModel() {
-    return models['post_users_team'];
+    return models.post_users_team;
   }
 }
 

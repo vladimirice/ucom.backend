@@ -15,12 +15,10 @@ const options: WorkerOptionsDto = {
 async function toExecute() {
   EosApi.initBlockchainLibraries();
 
-  const airdropIdToExclude = 1; // TODO - temp code for integration only
-
   const manyAirdrops: IAirdrop[] = await AirdropsFetchRepository.getAllAirdrops();
   for (const airdrop of manyAirdrops) {
     if (DatetimeHelper.isInProcess(airdrop.started_at, airdrop.finished_at)) {
-      await AirdropsUsersToPendingService.process(airdrop.id, airdropIdToExclude);
+      await AirdropsUsersToPendingService.process(airdrop.id);
     }
   }
 }
