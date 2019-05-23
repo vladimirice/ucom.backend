@@ -75,7 +75,7 @@ describe('Airdrops one user', () => {
 
       const headers = {};
       const guestAirdropState = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
-      AirdropsUsersChecker.checkGithubAirdropGuestState(guestAirdropState);
+      AirdropsUsersChecker.checkGithubAirdropGuestState(guestAirdropState, airdropId);
 
       RequestHelper.addGithubAuthHeader(headers, githubToken);
 
@@ -201,7 +201,7 @@ describe('Airdrops one user', () => {
 
       AirdropsUsersChecker.checkAirdropsStructure(oneUserAirdrop);
 
-      AirdropsUsersChecker.checkGithubAirdropNoTokensState(oneUserAirdrop, userVlad.id);
+      AirdropsUsersChecker.checkGithubAirdropNoTokensState(oneUserAirdrop, userVlad.id, airdropId);
     });
 
     it('get user state WITH pairing via auth token', async () => {
@@ -239,7 +239,7 @@ describe('Airdrops one user', () => {
       const headers = RequestHelper.getGithubAuthHeader(sampleToken);
       const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
 
-      AirdropsUsersChecker.checkGithubAirdropNoParticipationState(oneUserAirdrop);
+      AirdropsUsersChecker.checkGithubAirdropNoParticipationState(oneUserAirdrop, airdropId);
     }, JEST_TIMEOUT_DEBUG);
   });
 });

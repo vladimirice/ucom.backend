@@ -171,8 +171,8 @@ describe('Airdrops create-get', () => {
       const { postId, airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const postOfferWithEmptyTeam = await GraphqlHelper.getOnePostOfferWithoutUser(
-        airdropId,
         postId,
+        airdropId,
       );
 
       for (const token of postOfferWithEmptyTeam.offer_data.tokens) {
@@ -186,8 +186,8 @@ describe('Airdrops create-get', () => {
       await AirdropsUsersToPendingService.process(airdropId);
 
       const postOfferWithTeam = await GraphqlHelper.getOnePostOfferWithoutUser(
-        airdropId,
         postId,
+        airdropId,
       );
 
       expect(postOfferWithTeam.users_team.data.length).toBe(2);

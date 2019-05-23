@@ -50,7 +50,10 @@ const githubAirdropNoParticipationState = {
 };
 
 class AirdropsUsersChecker {
-  public static checkGithubAirdropNoParticipationState(actual: OneUserAirdropDto): void {
+  public static checkGithubAirdropNoParticipationState(actual: OneUserAirdropDto, airdropId: number): void {
+    const data = _.cloneDeep(githubAirdropNoParticipationState);
+    data.airdrop_id = airdropId;
+
     expect(actual).toMatchObject(githubAirdropNoParticipationState);
   }
 
@@ -176,12 +179,12 @@ class AirdropsUsersChecker {
     expect(actual.tokens).toMatchObject(expected.tokens);
   }
 
-  public static checkGithubAirdropGuestState(actual: OneUserAirdropDto): void {
-    expect(actual).toMatchObject(this.getGuestState());
+  public static checkGithubAirdropGuestState(actual: OneUserAirdropDto, airdropId: number): void {
+    expect(actual).toMatchObject(this.getGuestState(airdropId));
   }
 
-  public static checkGithubAirdropNoTokensState(actual: OneUserAirdropDto, userId: number): void {
-    expect(actual).toMatchObject(this.getNoTokensState(userId));
+  public static checkGithubAirdropNoTokensState(actual: OneUserAirdropDto, userId: number, airdropId: number): void {
+    expect(actual).toMatchObject(this.getNoTokensState(userId, airdropId));
   }
 
   public static checkAirdropsStructure(actual): void {
@@ -208,18 +211,23 @@ class AirdropsUsersChecker {
     expect(actual.tokens.length).toBe(2);
   }
 
-  private static getNoTokensState(userId: number) {
+  private static getNoTokensState(userId: number, airdropId: number) {
     const data = _.cloneDeep(githubAirdropGuestState);
 
     // @ts-ignore
     data.user_id = userId;
     data.conditions.auth_myself = true;
+    data.airdrop_id = airdropId;
 
     return data;
   }
 
-  private static getGuestState() {
-    return githubAirdropGuestState;
+  private static getGuestState(airdropId: number) {
+    const data = githubAirdropGuestState;
+
+    data.airdrop_id = airdropId;
+
+    return data;
   }
 }
 
