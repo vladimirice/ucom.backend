@@ -1,4 +1,5 @@
 import { CheckManyObjectsOptionsDto, ObjectInterfaceRulesDto } from '../../interfaces/options-interfaces';
+import { ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
 
 const _ = require('lodash');
 
@@ -7,6 +8,12 @@ require('jest-expect-message');
 class CommonChecker {
   public static expectNotEmpty(object: any) {
     expect(_.isEmpty(object)).toBeFalsy();
+  }
+
+  public static expectOnlyOneArrayItemForTheList(object: ListResponse) {
+    expect(object.data.length).toBe(1);
+    expect(object.metadata.total_amount).toBe(1);
+    expect(object.metadata.has_more).toBe(false);
   }
 
   public static checkArrayOfObjectsInterface(

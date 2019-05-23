@@ -8,7 +8,7 @@ interface ListMetadata {
 }
 
 interface ListResponse {
-  data: StringToAnyCollection,
+  data: StringToAnyCollection[],
   metadata: ListMetadata,
 }
 

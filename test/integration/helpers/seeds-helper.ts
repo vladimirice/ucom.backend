@@ -48,16 +48,17 @@ const tableToSeeds = {
 
 
 const minorTablesToSkipSequences = [
-  'posts_current_params_id_seq',
-  'organizations_current_params_id_seq',
-  'tags_current_params_id_seq',
-  'irreversible_traces_id_seq',
-  'outgoing_transactions_log_id_seq',
-  'uos_accounts_properties_id_seq',
-  `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
-  `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
-  `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
-  `${UsersModelProvider.getUsersActivityFollowTableName()}_id_seq`,
+  'posts_current_params',
+  'organizations_current_params',
+  'tags_current_params',
+  'irreversible_traces',
+  'outgoing_transactions_log',
+  'uos_accounts_properties',
+  UsersExternalModelProvider.usersExternalTableName(),
+  UsersExternalModelProvider.usersExternalAuthLogTableName(),
+  UsersModelProvider.getUsersActivityTrustTableName(),
+  UsersModelProvider.getUsersActivityFollowTableName(),
+  AirdropsModelProvider.airdropsTableName(),
 ];
 
 // Truncated async
@@ -307,21 +308,23 @@ class SeedsHelper {
   }
 
   static async destroyTables() {
+    const skipSequencesNames: string[] = [];
+
+    for (const table of minorTablesToSkipSequences) {
+      skipSequencesNames.push(`${table}_id_seq`);
+    }
+
     // noinspection SqlResolve
     const allSequences = await models.sequelize.query('SELECT sequence_name FROM information_schema.sequences;');
 
     const resetSequencePromises: any = [];
 
     allSequences[0].forEach((data) => {
-      let name = data.sequence_name;
+      const name = data.sequence_name;
 
-      if (name === 'Users_id_seq') {
-        name = '"Users_id_seq"';
-      }
-
-      if (!~minorTablesToSkipSequences.indexOf(name)) {
+      if (!skipSequencesNames.includes(name)) {
         // @deprecated - sequence reset was required for seeds, not for generators
-        resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`));
+        resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE "${name}" RESTART;`));
       }
     });
 

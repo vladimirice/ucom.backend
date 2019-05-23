@@ -17,7 +17,7 @@ class AirdropsUsersExternalDataService {
     airdrop: IAirdrop,
     currentUserDto: currentUserDataDto,
   ) {
-    const data = await UsersExternalRepository.getUserExternalWithExternalAirdropData(currentUserDto.id);
+    const data = await UsersExternalRepository.getUserExternalWithExternalAirdropData(currentUserDto.id, airdrop.id);
 
     if (!data) {
       return null;
@@ -42,7 +42,7 @@ class AirdropsUsersExternalDataService {
     userExternalDto: userExternalDataDto,
   ) {
     const externalData =
-      await AirdropsUsersExternalDataRepository.getOneByUsersExternalId(userExternalDto.id);
+      await AirdropsUsersExternalDataRepository.getOneByUsersExternalId(userExternalDto.id, airdrop.id);
 
     if (externalData) {
       return {

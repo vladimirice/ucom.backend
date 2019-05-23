@@ -7,6 +7,7 @@ const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 import UsersExternalModelProvider = require('../../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../service/airdrops-model-provider');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
 const TABLE_NAME = AirdropsModelProvider.airdropsUsersExternalDataTableName();
 const usersExternal: string = UsersExternalModelProvider.usersExternalTableName();
@@ -114,7 +115,10 @@ class AirdropsUsersExternalDataRepository {
       });
   }
 
-  public static async getOneByUsersExternalId(usersExternalId: number) {
+  public static async getOneByUsersExternalId(
+    usersExternalId: number,
+    airdropId: number,
+  ): Promise<StringToAnyCollection> {
     const data = await knex(TABLE_NAME)
       .select([
         `${TABLE_NAME}.json_data`,
@@ -122,6 +126,7 @@ class AirdropsUsersExternalDataRepository {
       ])
       .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
       .where(`${TABLE_NAME}.users_external_id`, usersExternalId)
+      .andWhere(`${TABLE_NAME}.airdrop_id`, airdropId)
       .first();
 
     return data || null;
@@ -130,6 +135,7 @@ class AirdropsUsersExternalDataRepository {
   public static async getOneByUserId(userId: number) {
     const data = await knex(TABLE_NAME)
       .select([
+        `${TABLE_NAME}.users_external_id as users_external_id`,
         `${TABLE_NAME}.json_data`,
         `${TABLE_NAME}.status`,
         `${TABLE_NAME}.personal_statuses`,
@@ -137,6 +143,8 @@ class AirdropsUsersExternalDataRepository {
       .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
       .where(`${usersExternal}.user_id`, userId)
       .first();
+
+    RepositoryHelper.convertStringFieldsToNumbers(data, ['users_external_id', 'status'], ['users_external_id', 'status']);
 
     return data || null;
   }

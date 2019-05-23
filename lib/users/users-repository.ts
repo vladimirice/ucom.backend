@@ -45,18 +45,13 @@ class UsersRepository {
     return knex(TABLE_NAME)
       .select(toSelect)
       .innerJoin(usersExternal, `${usersExternal}.user_id`, `${TABLE_NAME}.id`)
-      .innerJoin(airdropsUsersExternalData, `${airdropsUsersExternalData}.users_external_id`, `${usersExternal}.id`)
-      // eslint-disable-next-line func-names
-      .whereIn(`${usersExternal}.id`, function () {
+      .innerJoin(airdropsUsersExternalData, function () {
         // @ts-ignore
-        // noinspection JSIgnoredPromiseFromCall
-        this
-          .select('users_external_id')
-          .from(airdropsUsersExternalData)
-          .where('airdrop_id', airdropId)
-          .andWhere('are_conditions_fulfilled', true);
+        this.on(`${airdropsUsersExternalData}.users_external_id`, '=', `${usersExternal}.id`)
       })
-      .andWhere(`${usersExternal}.external_type_id`, '=', ExternalTypeIdDictionary.github())
+      .andWhere(`${usersExternal}.external_type_id`, ExternalTypeIdDictionary.github())
+      .andWhere(`${airdropsUsersExternalData}.airdrop_id`, airdropId)
+      .andWhere(`${airdropsUsersExternalData}.are_conditions_fulfilled`, true)
       .whereNotIn(`${TABLE_NAME}.id`, AirdropsUsersRepository.getAirdropParticipantsIdsToHide())
       .orderByRaw(params.orderByRaw)
       .limit(params.limit)
