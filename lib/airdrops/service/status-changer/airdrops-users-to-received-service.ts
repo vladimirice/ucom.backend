@@ -67,7 +67,7 @@ class AirdropsUsersToReceivedService {
       await AirdropsUsersRepository.getOneDataForStatusToReceived(airdropId, row.external_id);
 
     if (item === null) {
-      console.log(`There is no item inside Db with external_id = ${row.external_id} and airdrop_id = ${airdropId}. Skipping...`);
+      // console.log(`There is no item inside Db with external_id = ${row.external_id} and airdrop_id = ${airdropId}. Skipping...`);
       return false;
     }
 
