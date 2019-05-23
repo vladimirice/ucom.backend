@@ -42,10 +42,11 @@ describe('Airdrops one user', () => {
   describe('Positive', () => {
     beforeEach(async () => {
       await AirdropsUsersGenerator.generateForVladAndJane();
+      await AirdropsUsersGenerator.generateForVladAndJaneRoundTwo();
     });
 
     it('Auth conditions are true after pairing but without github token', async () => {
-      const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(githubToken);
@@ -68,7 +69,7 @@ describe('Airdrops one user', () => {
     });
 
     it('get user airdrop conditions and modify them step by step', async () => {
-      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const githubToken: string = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(githubToken);
@@ -168,7 +169,7 @@ describe('Airdrops one user', () => {
     }, JEST_TIMEOUT);
 
     it('get user state via github token', async () => {
-      const { airdropId, airdrop } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId, airdrop } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(sampleToken);
@@ -195,7 +196,7 @@ describe('Airdrops one user', () => {
     });
 
     it('get user state WITHOUT pairing via auth token', async () => {
-      const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const oneUserAirdrop = await GraphqlHelper.getOneUserAirdropViaAuthToken(userVlad, airdropId);
 
@@ -205,7 +206,7 @@ describe('Airdrops one user', () => {
     });
 
     it('get user state WITH pairing via auth token', async () => {
-      const { airdropId, airdrop } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId, airdrop } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
       const usersExternalId: number = AuthService.extractUsersExternalIdByTokenOrError(githubToken);
@@ -240,6 +241,17 @@ describe('Airdrops one user', () => {
       const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
 
       AirdropsUsersChecker.checkGithubAirdropNoParticipationState(oneUserAirdrop, airdropId);
+    }, JEST_TIMEOUT_DEBUG);
+
+    it('If there are no tokens to send then status should be new and tokens amount should be default for the round two', async () => {
+      const { airdrop } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
+
+      const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
+
+      const headers = RequestHelper.getGithubAuthHeader(sampleToken);
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdrop.id, headers);
+
+      AirdropsUsersChecker.checkGithubAirdropNoParticipationStateRoundTwo(oneUserAirdrop, airdrop);
     }, JEST_TIMEOUT_DEBUG);
   });
 });

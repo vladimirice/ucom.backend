@@ -11,6 +11,7 @@ import AccountsTransactionsRepository = require('../../lib/accounts/repository/a
 import { IAirdrop } from '../../lib/airdrops/interfaces/model-interfaces';
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
+import CurrencyHelper = require('../../lib/common/helper/CurrencyHelper');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
@@ -57,7 +58,19 @@ class AirdropsUsersChecker {
     const data = _.cloneDeep(githubAirdropNoParticipationState);
     data.airdrop_id = airdropId;
 
-    expect(actual).toMatchObject(githubAirdropNoParticipationState);
+    expect(actual).toMatchObject(data);
+  }
+
+  public static checkGithubAirdropNoParticipationStateRoundTwo(actual: OneUserAirdropDto, airdrop: IAirdrop): void {
+    const data = _.cloneDeep(githubAirdropNoParticipationState);
+    data.airdrop_id = airdrop.id;
+    data.airdrop_status = AirdropStatuses.NEW;
+
+    for (const token of data.tokens) {
+      token.amount_claim = CurrencyHelper.convertToMajor(airdrop.conditions.zero_score_incentive_tokens_amount, 4);
+    }
+
+    expect(actual).toMatchObject(data);
   }
 
   public static async checkReservedToWaitingTransfer(

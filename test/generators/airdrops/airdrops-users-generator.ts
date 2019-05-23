@@ -23,6 +23,13 @@ class AirdropsUsersGenerator {
     ]);
   }
 
+  public static generateForVladAndJaneRoundTwo() {
+    return Promise.all([
+      this.generateGithubRawDataForVladRoundTwo(),
+      this.generateGithubRawDataForJaneRoundTwo(),
+    ]);
+  }
+
   public static async generateGithubRawDataForVlad() {
     return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(AirdropsUsersRequest.getVladGithubId());
   }
@@ -30,6 +37,14 @@ class AirdropsUsersGenerator {
   public static async generateGithubRawDataForVladRoundTwo() {
     return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(
       AirdropsUsersRequest.getVladGithubId(),
+      true,
+      AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName()
+    );
+  }
+
+  public static async generateGithubRawDataForJaneRoundTwo() {
+    return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(
+      AirdropsUsersRequest.getJaneGithubId(),
       true,
       AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName()
     );

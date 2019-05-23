@@ -35,30 +35,9 @@ describe('Airdrops users to pending', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
-  describe('Negative', () => {
-    it('Mark user as zero score holder', async () => {
-      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
-
-      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
-
-      await AirdropsUsersToPendingService.process(airdropId);
-
-      const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
-      const headers = RequestHelper.getGithubAuthHeader(sampleToken);
-      // @ts-ignore
-      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
-
-      expect(oneUserAirdrop.score).toBe(0);
-      expect(oneUserAirdrop.airdrop_status).toBe(6);
-
-      const userVladState = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userVlad.id, airdropId);
-      expect(userVladState.length).toBe(0);
-    });
-  });
-
   describe('Users with no participation', () => {
     it('User fulfills all conditions and have a zero claim. He should be in participants list', async () => {
-      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
       await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, false);
 
       // await AirdropsUsersToPendingService.process(airdropId);
@@ -88,7 +67,7 @@ describe('Airdrops users to pending', () => {
     });
 
     it('Process users one by one', async () => {
-      const { airdrop, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdrop, orgId, postId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const userVladData =
         await AirdropsUsersGenerator.fulfillAirdropCondition(airdrop.id, userVlad, orgId, false);
@@ -125,7 +104,7 @@ describe('Airdrops users to pending', () => {
     }, JEST_TIMEOUT * 100);
 
     it('Process both users', async () => {
-      const { airdrop, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdrop, orgId, postId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const userVladData =
         await AirdropsUsersGenerator.fulfillAirdropCondition(airdrop.id, userVlad, orgId, true);
@@ -141,6 +120,27 @@ describe('Airdrops users to pending', () => {
       await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userVlad, postId, userVladData);
       await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userJane, postId, userJaneData);
     }, JEST_TIMEOUT);
+  });
+
+  describe('Negative', () => {
+    it('Mark user as zero score holder', async () => {
+      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+
+      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
+
+      await AirdropsUsersToPendingService.process(airdropId);
+
+      const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
+      const headers = RequestHelper.getGithubAuthHeader(sampleToken);
+      // @ts-ignore
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdropId, headers);
+
+      expect(oneUserAirdrop.score).toBe(0);
+      expect(oneUserAirdrop.airdrop_status).toBe(6);
+
+      const userVladState = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userVlad.id, airdropId);
+      expect(userVladState.length).toBe(0);
+    });
   });
 });
 

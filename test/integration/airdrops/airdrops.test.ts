@@ -13,6 +13,7 @@ import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-user
 import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
 import _ = require('lodash');
 import ResponseHelper = require('../helpers/response-helper');
+import AirdropsTestSet = require('../../helpers/airdrops/airdrops-test-set');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -38,56 +39,22 @@ describe('Airdrops create-get', () => {
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
     await AirdropsUsersGenerator.generateForVladAndJane();
+    await AirdropsUsersGenerator.generateForVladAndJaneRoundTwo();
   });
 
   describe('Github airdrop participants', () => {
-    it('Get many participants as separate request', async () => {
-      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
-      const manyUsersEmpty = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId);
-      expect(manyUsersEmpty.data.length).toBe(0);
+    it('Get many participants as separate request - first round', async () => {
+      const airdropCreationResponse = await AirdropsGenerator.createNewAirdrop(userVlad);
+      await AirdropsTestSet.getManyParticipantsAsSeparateRequest(userVlad, userJane, airdropCreationResponse);
+    }, JEST_TIMEOUT);
 
-      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
-      await AirdropsUsersToPendingService.process(airdropId);
-
-      const manyUsersVladOnly = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId);
-      expect(manyUsersVladOnly.data.length).toBe(1);
-
-      const options = {
-        author: {
-          myselfData: true,
-        },
-        airdrops: {},
-      };
-
-      CommonHelper.checkUsersListResponse(manyUsersVladOnly, options);
-
-      expect(manyUsersVladOnly.data[0].external_login).toBe('vladimirice');
-      expect(manyUsersVladOnly.data[0].score).toBeGreaterThan(0);
-
-      expect(manyUsersVladOnly.metadata.total_amount).toBe(1);
-      expect(manyUsersVladOnly.metadata.has_more).toBeFalsy();
-
-      await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
-      await AirdropsUsersToPendingService.process(airdropId);
-
-      const manyUsers = await GraphqlHelper.getManyUsersAsParticipantsAsMyself(userVlad, airdropId);
-      expect(manyUsers.data.length).toBe(2);
-
-      const vladResponse = manyUsers.data.find(item => item.account_name === userVlad.account_name);
-      const janeResponse = manyUsers.data.find(item => item.account_name === userJane.account_name);
-
-      expect(vladResponse.external_login).toBe('vladimirice');
-      expect(vladResponse.score).toBeGreaterThan(0);
-
-      expect(janeResponse.external_login).toBe('akegaviar');
-      expect(janeResponse.score).toBeGreaterThan(0);
-
-      expect(manyUsers.metadata.total_amount).toBe(2);
-      expect(manyUsers.metadata.has_more).toBeFalsy();
+    it('Get many participants as separate request - second round', async () => {
+      const airdropCreationResponse = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
+      await AirdropsTestSet.getManyParticipantsAsSeparateRequest(userVlad, userJane, airdropCreationResponse);
     }, JEST_TIMEOUT);
 
     it('Smoke - Check pagination', async () => {
-      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
       await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
@@ -119,7 +86,7 @@ describe('Airdrops create-get', () => {
     }, JEST_TIMEOUT);
 
     it('Smoke - Check ordering', async () => {
-      const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId);
       await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId);
@@ -149,7 +116,7 @@ describe('Airdrops create-get', () => {
     it('create valid airdrop with related accounts', async () => {
       const {
         airdropId, postId, startedAt, finishedAt, expectedTokens,
-      } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId, airdropId);
 
@@ -168,7 +135,7 @@ describe('Airdrops create-get', () => {
 
   describe('Get airdrop', () => {
     it('get only post offer itself with users_team data', async () => {
-      const { postId, airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { postId, airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const postOfferWithEmptyTeam = await GraphqlHelper.getOnePostOfferWithoutUser(
         postId,
@@ -217,7 +184,7 @@ describe('Airdrops create-get', () => {
     }, JEST_TIMEOUT_DEBUG);
 
     it('get both post offer data and airdrop state with users_team data', async () => {
-      const { postId, airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { postId, airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
       const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
 
       const headers = RequestHelper.getGithubAuthHeader(githubToken);
@@ -243,7 +210,7 @@ describe('Airdrops create-get', () => {
     }, JEST_TIMEOUT_DEBUG);
 
     it('get both post offer data and airdrop state via github token', async () => {
-      const { postId, airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { postId, airdropId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const githubToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
 
@@ -261,7 +228,7 @@ describe('Airdrops create-get', () => {
     });
 
     it('get both post offer data and airdrop state via auth token', async () => {
-      const { postId, airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { postId, airdropId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
       const headers: any = RequestHelper.getAuthBearerHeader(<string>userVlad.token);
       const res = await GraphqlHelper.getOnePostOfferWithUserAirdrop(

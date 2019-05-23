@@ -40,6 +40,10 @@ class AirdropsModelProvider {
 
     return [];
   }
+
+  public static getHardcodedCurrencyPrecision(): number {
+    return 10 ** 4;
+  }
 }
 
 export = AirdropsModelProvider;

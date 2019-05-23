@@ -13,11 +13,21 @@ import AirdropsFetchRepository = require('../../../lib/airdrops/repository/airdr
 import moment = require('moment');
 import DatetimeHelper = require('../../../lib/common/helper/datetime-helper');
 
+interface IAirdropCreationResponse {
+  airdropId: number,
+  airdrop: IAirdrop
+  postId: number,
+  orgId: number,
+  startedAt: any,
+  finishedAt: any,
+  expectedTokens: any,
+}
+
 class AirdropsGenerator {
   public static async createNewGithubRoundTwoAirdropWithTheSecond(
     postAuthor: UserModel,
-  ): Promise<any> {
-    const { orgId } = await AirdropsGenerator.createNewAirdrop(postAuthor);
+  ): Promise<IAirdropCreationResponse> {
+    const { orgId } = await AirdropsGenerator.createNewAirdrop(postAuthor, {}, 2000000, 3);
 
     return this.createNewGithubRoundTwo(postAuthor, 2, orgId);
   }
@@ -25,8 +35,8 @@ class AirdropsGenerator {
   public static async createNewGithubRoundTwo(
     postAuthor: UserModel,
     airdropInProcessType: number = 2,
-    orgId: number,
-  ): Promise<any> {
+    orgId: number | null = null,
+  ): Promise<IAirdropCreationResponse> {
     const givenConditions = {
       zero_score_incentive_tokens_amount: 100 * (10 ** 4),
       source_table_name: AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName(),
@@ -41,15 +51,7 @@ class AirdropsGenerator {
     tokensEmission = 2000000,
     airdropInProcessType: number = 2,
     givenOrgId: number | null = null,
-  ): Promise<{
-    airdropId: number,
-    airdrop: IAirdrop
-    postId: number,
-    orgId: number,
-    startedAt: any,
-    finishedAt: any,
-    expectedTokens: any,
-  }> {
+  ): Promise<IAirdropCreationResponse> {
     let orgId = givenOrgId;
 
     if (!orgId) {

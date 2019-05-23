@@ -35,12 +35,13 @@ describe('Airdrops users to received', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
 
     await AirdropsUsersGenerator.generateForVladAndJane();
+    await AirdropsUsersGenerator.generateForVladAndJaneRoundTwo();
   });
 
   it('process both users', async () => {
     MockHelper.mockAirdropsTransactionsSenderForSuccess();
 
-    const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+    const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
     await AirdropsUsersGenerator.fulfillAllAirdropConditionForManyUsers(
       airdropId,
@@ -77,12 +78,12 @@ describe('Airdrops users to received', () => {
     const janeHeaders = RequestHelper.getAuthBearerHeader(<string>userJane.token);
     const janeAirdropState = await GraphqlHelper.getOneUserAirdrop(airdropId, janeHeaders);
     expect(janeAirdropState.airdrop_status).toBe(AirdropStatuses.RECEIVED);
-  }, JEST_TIMEOUT * 100);
+  }, JEST_TIMEOUT);
 
   it('process two users step by step', async () => {
     MockHelper.mockAirdropsTransactionsSenderForSuccess();
 
-    const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+    const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
     await AirdropsUsersToReceivedService.process(airdropId);
 
 
@@ -137,7 +138,7 @@ describe('Airdrops users to received', () => {
     expect(janeAirdropStateReceived.airdrop_status).toBe(AirdropStatuses.RECEIVED);
 
     await AirdropsUsersToReceivedService.process(airdropId);
-  }, JEST_TIMEOUT * 10);
+  }, JEST_TIMEOUT);
 });
 
 export {};
