@@ -10,8 +10,17 @@ import knex = require('../../../../config/knex');
 import AccountsTransactionsCreatorService = require('../../../accounts/service/accounts-transactions-creator-service');
 import AirdropsTokensRepository = require('../../repository/airdrops-tokens-repository');
 import AirdropsUsersExternalDataRepository = require('../../repository/airdrops-users-external-data-repository');
+import { IAirdrop } from '../../interfaces/model-interfaces';
+import AirdropsFetchRepository = require('../../repository/airdrops-fetch-repository');
 
 class AirdropsUsersToReceivedService {
+  public static async processAllAirdrops() {
+    const manyAirdrops: IAirdrop[] = await AirdropsFetchRepository.getAllAirdrops();
+    for (const airdrop of manyAirdrops) {
+      await this.process(airdrop.id);
+    }
+  }
+
   public static async process(airdropId: number) {
     const lowerBoundExternalId: number | null =
       await AirdropsUsersRepository.findFirstIdWithStatus(airdropId, AirdropStatuses.WAITING);
