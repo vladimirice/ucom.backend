@@ -5,14 +5,16 @@ import EnvHelper = require('../../../lib/common/helper/env-helper');
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
 import { AppError } from '../../api/errors';
 import { IAirdropConditions } from '../interfaces/model-interfaces';
+import CurrencyHelper = require('../../common/helper/CurrencyHelper');
+import CloseHandlersHelper = require('../../common/helper/close-handlers-helper');
 
 const STAGING_POST_ID = 14317;
 const STAGING_ORG_ID = 107;
 const STAGING_FIRST_SYMBOL_ID = 2;
 const STAGING_SECOND_SYMBOL_ID = 3;
 
-const PRODUCTION_POST_ID = 5548;
-const PRODUCTION_ORG_ID = 105;
+const PRODUCTION_POST_ID = 8050;
+const PRODUCTION_ORG_ID = 101;
 
 const PRODUCTION_FIRST_SYMBOL_ID = 1;
 const PRODUCTION_SECOND_SYMBOL_ID = 4;
@@ -23,9 +25,9 @@ const ZERO_SCORE_INCENTIVE_TOKENS_AMOUNT_IN_MAJOR = 100;
 
 const EMISSION_IN_MAJOR = 1000000;
 
-const title = 'github_airdrop_round_two';
-const startedAt = '2019-05-21T12:00:00Z';
-const finishedAt = '2019-06-21T12:00:00Z';
+const title       = 'github_airdrop_round_two';
+const startedAt   = '2019-05-27T12:00:00Z';
+const finishedAt  = '2019-06-10T12:00:00Z';
 
 (async () => {
   let postId: number;
@@ -51,17 +53,17 @@ const finishedAt = '2019-06-21T12:00:00Z';
   const tokens = [
     {
       symbol_id: firstSymbolId,
-      amount: EMISSION_IN_MAJOR * (10 ** 4),
+      amount: CurrencyHelper.convertToUosMinor(EMISSION_IN_MAJOR),
     },
     {
       symbol_id: secondSymbolId,
-      amount: EMISSION_IN_MAJOR * (10 ** 4),
+      amount: CurrencyHelper.convertToUosMinor(EMISSION_IN_MAJOR),
     },
   ];
 
   const conditions: IAirdropConditions = {
     source_table_name: SOURCE_TABLE_NAME,
-    zero_score_incentive_tokens_amount: ZERO_SCORE_INCENTIVE_TOKENS_AMOUNT_IN_MAJOR * (10 ** 4),
+    zero_score_incentive_tokens_amount: CurrencyHelper.convertToUosMinor(ZERO_SCORE_INCENTIVE_TOKENS_AMOUNT_IN_MAJOR),
     auth_github: true,
     auth_myself: true,
     community_id_to_follow: orgId,
@@ -75,6 +77,8 @@ const finishedAt = '2019-06-21T12:00:00Z';
     finishedAt,
     tokens,
   );
+
+  await CloseHandlersHelper.closeDbConnections();
 
   console.log(`Airdrop is created. Airdrop ID is: ${airdropId}`);
 })();
