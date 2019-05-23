@@ -22,7 +22,10 @@ class AirdropsUsersToPendingService {
     const manyAirdrops: IAirdrop[] = await AirdropsFetchRepository.getAllAirdrops();
     for (const airdrop of manyAirdrops) {
       if (DatetimeHelper.isInProcess(airdrop.started_at, airdrop.finished_at)) {
+        console.log(`Let's process for airdrop with ID: ${airdrop.id}`);
         await this.process(airdrop.id);
+      } else {
+        console.log(`Let's skip airdrop with ID: ${airdrop.id}`);
       }
     }
   }
