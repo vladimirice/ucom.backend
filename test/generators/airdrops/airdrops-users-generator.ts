@@ -27,6 +27,14 @@ class AirdropsUsersGenerator {
     return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(AirdropsUsersRequest.getVladGithubId());
   }
 
+  public static async generateGithubRawDataForVladRoundTwo() {
+    return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(
+      AirdropsUsersRequest.getVladGithubId(),
+      true,
+      AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName()
+    );
+  }
+
   public static async generateGithubRawDataForJane() {
     return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(AirdropsUsersRequest.getJaneGithubId());
   }
@@ -36,10 +44,14 @@ class AirdropsUsersGenerator {
     getInMajor: boolean = true,
     sourceTableName = AirdropsModelProvider.airdropsUsersGithubRawTableName(),
   ): Promise<AirdropsUsersGithubRawItem> {
+
+    const amount = sourceTableName === AirdropsModelProvider.airdropsUsersGithubRawTableName() ?
+      githubId + 5020 : githubId + 102100;
+
     const generated = {
       id: githubId,
       score: githubId + 43.424145,
-      amount: githubId + 5020,
+      amount,
     };
 
     const sql = `

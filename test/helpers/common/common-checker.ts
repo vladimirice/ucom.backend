@@ -16,6 +16,12 @@ class CommonChecker {
     expect(object.metadata.has_more).toBe(false);
   }
 
+  public static expectOnlyTwoArrayItemForTheList(object: ListResponse) {
+    expect(object.data.length).toBe(2);
+    expect(object.metadata.total_amount).toBe(2);
+    expect(object.metadata.has_more).toBe(false);
+  }
+
   public static checkArrayOfObjectsInterface(
     manyActualObjects: any[],
     objectInterfaceRules: ObjectInterfaceRulesDto,

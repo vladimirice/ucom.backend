@@ -34,22 +34,22 @@ class AirdropUsersMigrateService {
 
       // @ts-ignore
       const userData = await AirdropUsersService.getUserAirdropData(currentUserDto, airdrop);
-      const externalDataUser = await AirdropsUsersExternalDataRepository.getOneByUserId(userId);
+      const externalDataUser = await AirdropsUsersExternalDataRepository.getOneByUserIdAndAirdropId(
+        userId,
+        secondRoundAirdropId,
+      );
 
-      await AirdropsUsersExternalDataRepository.makeAreConditionsFulfilledTruthy(externalDataUser.users_external_id);
+      const personalStatuses = userData.score === 0 ? [10, 11, 20, 30] : [10, 11, 30];
 
+      const toUpdate = {
+        are_conditions_fulfilled: true,
+        personal_statuses: personalStatuses,
+      };
 
-
-      // @ts-ignore
-      const dsdas= 0;
-      /*
-      // TODO
-      * make are conditions fulfilled truthy
-      * process personal_statuses
-          * IF score is zero THEN {10, 11, 20, 30}
-          * ELSE {10, 11, 30}
-      Note: in the future a pending worker will process them appropriately
-       */
+      await AirdropsUsersExternalDataRepository.updateOneByPrimaryKey(
+        externalDataUser.primary_key,
+        toUpdate,
+      );
     }
   }
 

@@ -21,6 +21,12 @@ class AirdropsUsersExternalDataRepository {
       .where('users_external_id', '=', usersExternalId);
   }
 
+  public static async updateOneByPrimaryKey(primaryKey: number, toUpdate): Promise<void> {
+    await knex(TABLE_NAME)
+      .update(toUpdate)
+      .where('id', primaryKey);
+  }
+
   public static async changeStatusToPending(usersExternalId: number, trx: Transaction): Promise<void> {
     await trx(TABLE_NAME)
       .update({
@@ -132,9 +138,10 @@ class AirdropsUsersExternalDataRepository {
     return data || null;
   }
 
-  public static async getOneByUserId(userId: number) {
+  public static async getOneByUserIdAndAirdropId(userId: number, airdropId: number) {
     const data = await knex(TABLE_NAME)
       .select([
+        `${TABLE_NAME}.id as primary_key`,
         `${TABLE_NAME}.users_external_id as users_external_id`,
         `${TABLE_NAME}.json_data`,
         `${TABLE_NAME}.status`,
@@ -142,6 +149,7 @@ class AirdropsUsersExternalDataRepository {
       ])
       .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`)
       .where(`${usersExternal}.user_id`, userId)
+      .where(`${TABLE_NAME}.airdrop_id`, airdropId)
       .first();
 
     RepositoryHelper.convertStringFieldsToNumbers(data, ['users_external_id', 'status'], ['users_external_id', 'status']);
