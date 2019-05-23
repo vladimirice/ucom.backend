@@ -61,12 +61,28 @@ class AirdropsUsersGenerator {
 
     await knex.raw(sql);
 
+    const response = {
+      id: generated.id,
+      score: generated.score,
+      amount: generated.amount,
+      tokens: [
+        {
+          amount_claim: generated.amount,
+          symbol: 'UOSTEST',
+        },
+        {
+          amount_claim: generated.amount,
+          symbol: 'GHTEST',
+        },
+      ]
+    };
+
     if (getInMajor) {
-      return {
-        id: generated.id,
-        score: generated.score,
-        amount: generated.amount / (10 ** 4),
-      };
+      response.amount /= (10 ** 4);
+      response.tokens[0].amount_claim /= (10 ** 4);
+      response.tokens[1].amount_claim /= (10 ** 4);
+
+      return response;
     }
 
     return generated;

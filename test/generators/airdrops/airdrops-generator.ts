@@ -17,23 +17,22 @@ class AirdropsGenerator {
   public static async createNewGithubRoundTwoAirdropWithTheSecond(
     postAuthor: UserModel,
   ): Promise<any> {
-    await AirdropsGenerator.createNewAirdrop(postAuthor);
+    const { orgId } = await AirdropsGenerator.createNewAirdrop(postAuthor);
 
-    return this.createNewGithubRoundTwo(postAuthor);
+    return this.createNewGithubRoundTwo(postAuthor, 2, orgId);
   }
 
   public static async createNewGithubRoundTwo(
     postAuthor: UserModel,
     airdropInProcessType: number = 2,
+    orgId: number,
   ): Promise<any> {
-    await AirdropsGenerator.createNewAirdrop(postAuthor);
-
     const givenConditions = {
       zero_score_incentive_tokens_amount: 100 * (10 ** 4),
       source_table_name: AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName(),
     };
 
-    return this.createNewAirdrop(postAuthor, givenConditions, 1000000, airdropInProcessType);
+    return this.createNewAirdrop(postAuthor, givenConditions, 1000000, airdropInProcessType, orgId);
   }
 
   public static async createNewAirdrop(
@@ -41,6 +40,7 @@ class AirdropsGenerator {
     givenConditions = {},
     tokensEmission = 2000000,
     airdropInProcessType: number = 2,
+    givenOrgId: number | null = null,
   ): Promise<{
     airdropId: number,
     airdrop: IAirdrop
@@ -50,7 +50,12 @@ class AirdropsGenerator {
     finishedAt: any,
     expectedTokens: any,
   }> {
-    const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(postAuthor);
+    let orgId = givenOrgId;
+
+    if (!orgId) {
+      orgId = await OrganizationsGenerator.createOrgWithoutTeam(postAuthor)
+    }
+
     const postId = await PostsGenerator.createMediaPostOfOrganization(postAuthor, orgId);
 
     const firstSymbolAmount = tokensEmission * (10 ** 4);

@@ -88,58 +88,58 @@ describe('Airdrops users to pending', () => {
     });
 
     it('Process users one by one', async () => {
-      const { airdropId, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdrop, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const userVladData =
-        await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, false);
+        await AirdropsUsersGenerator.fulfillAirdropCondition(airdrop.id, userVlad, orgId, false);
       const userJaneData =
-        await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, false);
+        await AirdropsUsersGenerator.fulfillAirdropCondition(airdrop.id, userJane, orgId, false);
 
-      await AirdropsUsersToPendingService.process(airdropId);
+      await AirdropsUsersToPendingService.process(airdrop.id);
 
       // Nothing - no records about tokens
-      await AirdropsUsersChecker.checkThatNoUserTokens(airdropId, userVlad.id);
-      await AirdropsUsersChecker.checkThatNoUserTokens(airdropId, userJane.id);
+      await AirdropsUsersChecker.checkThatNoUserTokens(airdrop.id, userVlad.id);
+      await AirdropsUsersChecker.checkThatNoUserTokens(airdrop.id, userJane.id);
 
       // Process vlad
       await OrganizationsHelper.requestToFollowOrganization(orgId, userVlad);
-      await AirdropsUsersToPendingService.process(airdropId);
+      await AirdropsUsersToPendingService.process(airdrop.id);
 
       // Vlad is processed but not Jane
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
-      await AirdropsUsersChecker.checkThatNoUserTokens(airdropId, userJane.id);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userVlad, postId, userVladData);
+      await AirdropsUsersChecker.checkThatNoUserTokens(airdrop.id, userJane.id);
 
       // Process Jane also
       await OrganizationsHelper.requestToFollowOrganization(orgId, userJane);
-      await AirdropsUsersToPendingService.process(airdropId);
+      await AirdropsUsersToPendingService.process(airdrop.id);
 
       // No changes for Vlad
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userVlad, postId, userVladData);
       // New state for Jane
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userJane, postId, userJaneData);
 
       // Process again - should be no errors and no new states
-      await AirdropsUsersToPendingService.process(airdropId);
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
+      await AirdropsUsersToPendingService.process(airdrop.id);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userVlad, postId, userVladData);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userJane, postId, userJaneData);
     }, JEST_TIMEOUT * 100);
 
     it('Process both users', async () => {
-      const { airdropId, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+      const { airdrop, orgId, postId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const userVladData =
-        await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
+        await AirdropsUsersGenerator.fulfillAirdropCondition(airdrop.id, userVlad, orgId, true);
       const userJaneData =
-        await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, true);
+        await AirdropsUsersGenerator.fulfillAirdropCondition(airdrop.id, userJane, orgId, true);
 
-      await AirdropsUsersToPendingService.process(airdropId);
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
+      await AirdropsUsersToPendingService.process(airdrop.id);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userVlad, postId, userVladData);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userJane, postId, userJaneData);
 
       // Try to process again - nothing new, no errors
-      await AirdropsUsersToPendingService.process(airdropId);
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userVlad.id, postId, userVladData);
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdropId, userJane.id, postId, userJaneData);
+      await AirdropsUsersToPendingService.process(airdrop.id);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userVlad, postId, userVladData);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(airdrop, userJane, postId, userJaneData);
     }, JEST_TIMEOUT);
   });
 });

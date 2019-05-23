@@ -37,36 +37,24 @@ describe('Airdrops users migrations', () => {
     it('migrations from github airdrop round one to round two', async () => {
       // Vlad has a tokens from the table, jane has a zero score.
       await AirdropsUsersGenerator.generateGithubRawDataForVlad();
-      await AirdropsUsersGenerator.generateGithubRawDataForVladRoundTwo();
+      const generatedForVladSecondRound = await AirdropsUsersGenerator.generateGithubRawDataForVladRoundTwo();
 
       // create two airdrops. first airdrop is run, second airdrop must be in `not started yet`
       const { airdrop: firstRoundAirdrop, postId, orgId } =
         await AirdropsGenerator.createNewAirdrop(userVlad);
 
       const { airdrop: secondRoundAirdrop } =
-        await AirdropsGenerator.createNewGithubRoundTwo(userVlad, 1);
+        await AirdropsGenerator.createNewGithubRoundTwo(userVlad, 1, orgId);
 
       const userVladData =
         await AirdropsUsersGenerator.fulfillAirdropCondition(firstRoundAirdrop.id, userVlad, orgId, true);
       // const userJaneData =
         await AirdropsUsersGenerator.fulfillAirdropCondition(firstRoundAirdrop.id, userJane, orgId, true);
 
-    /*
-        * Vlad and Jane participates only in the first airdrop - just run the process and ensure that all of them are in the participants list
-        * Set status received and no participation manually
-        * to-pending - No participation for the second airdrop but users are prepared and are in participants list
-        *
-        * TODO
-        * directly set started at in order to first airdrop to be in `in process`
-        * process by the pending worker again
-        * validate a correct pending state for the vlad and jane
-        *
-     */
-
       await AirdropsUsersToPendingService.processAllInProcessAirdrop();
 
       // Vlad is processed but not Jane
-      await AirdropsUsersChecker.checkGithubAirdropToPendingState(firstRoundAirdrop.id, userVlad.id, postId, userVladData);
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(firstRoundAirdrop, userVlad, postId, userVladData);
       await AirdropsUsersChecker.checkThatNoUserTokens(secondRoundAirdrop.id, userJane.id);
 
       await AirdropsDatabaseDirectChanges.setAirdropStatusReceived(userVlad);
@@ -78,7 +66,16 @@ describe('Airdrops users migrations', () => {
       await AirdropsUsersToPendingService.processAllInProcessAirdrop();
       await AirdropsUsersChecker.checkThatNoUserTokens(secondRoundAirdrop.id, userVlad.id);
       await AirdropsUsersChecker.checkThatNoUserTokens(secondRoundAirdrop.id, userJane.id);
-    }, JEST_TIMEOUT_DEBUG);
+
+      await Promise.all([
+        AirdropsDatabaseDirectChanges.setAirdropIsFinished(firstRoundAirdrop),
+        AirdropsDatabaseDirectChanges.setAirdropInProcess(secondRoundAirdrop),
+      ]);
+
+      await AirdropsUsersToPendingService.processAllInProcessAirdrop();
+
+      await AirdropsUsersChecker.checkGithubAirdropToPendingState(secondRoundAirdrop, userVlad, postId, generatedForVladSecondRound);
+    }, JEST_TIMEOUT);
   });
 });
 

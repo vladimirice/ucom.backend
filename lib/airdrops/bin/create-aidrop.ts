@@ -1,10 +1,10 @@
 /* eslint-disable no-console */
-import { AppError } from '../../../lib/api/errors';
-import { IAirdropConditions } from '../../../lib/airdrops/interfaces/model-interfaces';
 
 import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-creator-service');
 import EnvHelper = require('../../../lib/common/helper/env-helper');
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
+import { AppError } from '../../api/errors';
+import { IAirdropConditions } from '../interfaces/model-interfaces';
 
 const STAGING_POST_ID = 14317;
 const STAGING_ORG_ID = 107;

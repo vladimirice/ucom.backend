@@ -8,6 +8,9 @@ import AccountTypesDictionary = require('../../lib/accounts/dictionary/account-t
 import AirdropsUsersRepository = require('../../lib/airdrops/repository/airdrops-users-repository');
 import ResponseHelper = require('../integration/helpers/response-helper');
 import AccountsTransactionsRepository = require('../../lib/accounts/repository/accounts-transactions-repository');
+import { IAirdrop } from '../../lib/airdrops/interfaces/model-interfaces';
+import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
@@ -113,16 +116,16 @@ class AirdropsUsersChecker {
   }
 
   public static async checkGithubAirdropToPendingState(
-    airdropId: number,
-    userId: number,
+    airdrop: IAirdrop,
+    user: UserModel,
     postId: number,
-    userAirdropData,
+    userAirdropData: StringToAnyCollection,
   ) {
-    const userVladState = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(userId, airdropId);
+    const userVladState = await AirdropsUsersRepository.getAllAirdropsUsersDataByUserId(user.id, airdrop.id);
     expect(userVladState.length).toBe(2);
 
-    const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId, airdropId);
-    const manyAirdropDebts: AirdropDebtDto[] = await AirdropsTokensRepository.getAirdropsAccountDataById(airdropId);
+    const postOffer = await GraphqlHelper.getOnePostOfferWithoutUser(postId, airdrop.id);
+    const manyAirdropDebts: AirdropDebtDto[] = await AirdropsTokensRepository.getAirdropsAccountDataById(airdrop.id);
 
     const titleToSymbolId = await AccountsSymbolsRepository.findAllAccountsSymbolsIndexedByTitle();
 
@@ -134,20 +137,20 @@ class AirdropsUsersChecker {
           account_type:       AccountTypesDictionary.reserved(),
           current_balance:    `${vladExpectedToken.amount_claim * (10 ** 4)}`,
           symbol_id:          titleToSymbolId[vladExpectedToken.symbol],
-          user_id:            userId,
+          user_id:            user.id,
         },
         waiting: {
           account_type:       AccountTypesDictionary.waiting(),
           current_balance:    '0',
           symbol_id:          titleToSymbolId[vladExpectedToken.symbol],
-          user_id:            userId,
+          user_id:            user.id,
           last_transaction_id: null,
         },
         wallet: {
           account_type:       AccountTypesDictionary.wallet(),
           current_balance:    '0',
           symbol_id:          titleToSymbolId[vladExpectedToken.symbol],
-          user_id:            userId,
+          user_id:            user.id,
           last_transaction_id: null,
         },
       };
