@@ -3,9 +3,9 @@ import { CurrentUserDataDto } from '../../../auth/interfaces/auth-interfaces-dto
 import { AppError } from '../../../api/errors';
 
 import AirdropsUsersExternalDataRepository = require('../../repository/airdrops-users-external-data-repository');
-import EnvHelper = require('../../../common/helper/env-helper');
 import AirdropUsersService = require('../airdrop-users-service');
 import AirdropsFetchRepository = require('../../repository/airdrops-fetch-repository');
+import AirdropsModelProvider = require('../airdrops-model-provider');
 
 class AirdropUsersMigrateService {
   public static async migrateFromFirstRoundToSecond(
@@ -15,7 +15,7 @@ class AirdropUsersMigrateService {
     const airdropsUsersIds: number[] =
       await AirdropsUsersExternalDataRepository.getAllAirdropUsersByAirdropId(
         firstRoundAirdropId,
-        this.getUsersExternalDataBlacklistedIds(),
+        AirdropsModelProvider.getUsersExternalDataBlacklistedIds(),
       );
 
     if (airdropsUsersIds.length === 0) {
@@ -51,14 +51,6 @@ class AirdropUsersMigrateService {
         toUpdate,
       );
     }
-  }
-
-  private static getUsersExternalDataBlacklistedIds(): number[] {
-    if (EnvHelper.isStagingEnv()) {
-      return [1, 2, 25, 3, 4, 12, 13, 20, 22, 23, 27, 28, 29, 32, 33, 36, 39, 45, 42, 49, 43, 46, 44, 47, 53, 52, 51, 54, 56, 57, 66, 59, 60, 61, 68, 64, 65, 69, 70, 76, 75, 78, 80];
-    }
-
-    return [];
   }
 }
 

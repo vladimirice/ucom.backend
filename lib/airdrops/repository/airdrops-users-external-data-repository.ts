@@ -79,8 +79,11 @@ class AirdropsUsersExternalDataRepository {
   public static async getManyUsersWithStatusNew(
     airdropId: number,
   ): Promise<FreshUserDto[]> {
+
+    const blacklisted = AirdropsModelProvider.getUsersExternalDataBlacklistedIds();
+
     // #hardcore - it is a dirty solution of the participants issue. Pending worker here does too much work
-    const whereRawSql = `
+    let whereRawSql = `
       ${TABLE_NAME}.airdrop_id = ${airdropId}
       AND ${usersExternal}.user_id IS NOT NULL
       AND (
@@ -91,6 +94,10 @@ class AirdropsUsersExternalDataRepository {
         )
       )
     `;
+
+    if (blacklisted.length > 0) {
+      whereRawSql += ` AND ${TABLE_NAME}.id NOT IN (${blacklisted.join(', ')})`;
+    }
 
     return knex(TABLE_NAME)
       .select([
