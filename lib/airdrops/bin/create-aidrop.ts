@@ -8,6 +8,9 @@ import { IAirdropConditions } from '../interfaces/model-interfaces';
 import CurrencyHelper = require('../../common/helper/CurrencyHelper');
 import CloseHandlersHelper = require('../../common/helper/close-handlers-helper');
 
+const TEST_POST_ID = 2;
+const TEST_ORG_ID = 1;
+
 const STAGING_POST_ID = 14317;
 const STAGING_ORG_ID = 107;
 const STAGING_FIRST_SYMBOL_ID = 2;
@@ -35,7 +38,12 @@ const finishedAt  = '2019-06-10T12:00:00Z';
   let firstSymbolId: number;
   let secondSymbolId: number;
 
-  if (EnvHelper.isStagingEnv()) {
+  if (EnvHelper.isTestEnv()) {
+    postId = TEST_POST_ID;
+    orgId = TEST_ORG_ID;
+    firstSymbolId = STAGING_FIRST_SYMBOL_ID;
+    secondSymbolId = STAGING_SECOND_SYMBOL_ID;
+  } else if (EnvHelper.isStagingEnv()) {
     postId = STAGING_POST_ID;
     orgId = STAGING_ORG_ID;
     firstSymbolId = STAGING_FIRST_SYMBOL_ID;

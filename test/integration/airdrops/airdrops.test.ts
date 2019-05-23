@@ -14,6 +14,7 @@ import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/st
 import _ = require('lodash');
 import ResponseHelper = require('../helpers/response-helper');
 import AirdropsTestSet = require('../../helpers/airdrops/airdrops-test-set');
+import PostsGenerator = require('../../generators/posts-generator');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -46,6 +47,8 @@ describe('Airdrops create-get', () => {
     it('Get many participants as separate request - first round', async () => {
       const airdropCreationResponse = await AirdropsGenerator.createNewAirdrop(userVlad);
       await AirdropsTestSet.getManyParticipantsAsSeparateRequest(userVlad, userJane, airdropCreationResponse);
+
+      await PostsGenerator.createMediaPostByUserHimself(userVlad);
     }, JEST_TIMEOUT);
 
     it('Get many participants as separate request - second round', async () => {
