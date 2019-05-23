@@ -13,7 +13,7 @@ class AirdropUsersMigrateService {
     secondRoundAirdropId: number,
   ) {
     const airdropsUsersIds: number[] =
-      await AirdropsUsersExternalDataRepository.getAllAirdropUsersByAirdropId(
+      await AirdropsUsersExternalDataRepository.getAllAirdropUsersByAirdropIdForMigration(
         firstRoundAirdropId,
         AirdropsModelProvider.getUsersExternalDataBlacklistedIds(),
       );

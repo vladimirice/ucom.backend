@@ -51,7 +51,7 @@ class AirdropsUsersExternalDataRepository {
       .where('users_external_id', '=', usersExternalId);
   }
 
-  public static async getAllAirdropUsersByAirdropId(
+  public static async getAllAirdropUsersByAirdropIdForMigration(
     airdropId: number,
     blacklistedIds: number[] = [],
   ): Promise<number[]> {
@@ -61,6 +61,7 @@ class AirdropsUsersExternalDataRepository {
       ])
       .where('airdrop_id', airdropId)
       .whereIn('status', [AirdropStatuses.RECEIVED, AirdropStatuses.NO_PARTICIPATION])
+      .andWhere('are_conditions_fulfilled', true)
       .whereNotIn(`${TABLE_NAME}.id`, blacklistedIds)
       .innerJoin(`${usersExternal}`, `${TABLE_NAME}.users_external_id`, `${usersExternal}.id`);
 
