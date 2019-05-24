@@ -11,8 +11,8 @@ const options: WorkerOptionsDto = {
 };
 
 const executionOptions = {
-  alertLimit: 1000000,
-  uosHolderBalance: 8999998 - 100,
+  alertLimit: 200000,
+  uosHolderBalance: 8999998,
 };
 
 function triggerTooLowAlertIfRequired(balance: number, symbol: string): void {

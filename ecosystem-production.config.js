@@ -107,7 +107,7 @@ module.exports = {
       script: 'lib/airdrops/workers/monitoring/balances-monitoring.js',
 
       watch: false,
-      cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
         NODE_ENV,
       },
