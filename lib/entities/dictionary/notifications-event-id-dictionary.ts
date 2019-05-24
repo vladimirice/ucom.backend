@@ -44,12 +44,18 @@ const USER_CANCEL_VOTE_FOR_CALCULATOR_NODE      = 113;
 const USER_HAS_MENTIONED_YOU_IN_POST         = 120;
 const USER_HAS_MENTIONED_YOU_IN_COMMENT      = 121;
 
+const REGISTRATION                            = 130;
+
 const eventRequiresPrompt = [
   ORG_USERS_TEAM_INVITATION,
 ];
 
 // #task - it is not a notification events. Here is event_id dictionary for users_activity
 class NotificationsEventIdDictionary {
+  public static getRegistration(): number {
+    return REGISTRATION;
+  }
+
   public static getUserHasMentionedYouInPost(): number {
     return USER_HAS_MENTIONED_YOU_IN_POST;
   }

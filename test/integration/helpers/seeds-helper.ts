@@ -16,6 +16,7 @@ import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
 import UsersTeamRepository = require('../../../lib/users/repository/users-team-repository');
 import EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
+import AffiliatesModelProvider = require('../../../lib/affiliates/service/affiliates-model-provider');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -59,10 +60,17 @@ const minorTablesToSkipSequences = [
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
   AirdropsModelProvider.airdropsTableName(),
+
+  'offers',
+  'streams',
+  'clicks',
+  'conversions',
 ];
 
 // Truncated async
 const minorTables = [
+  AffiliatesModelProvider.getConversionsTableName(),
+
   EntityModelProvider.getNotificationsTableName(),
   UsersTeamRepository.getModelName(),
 
@@ -117,6 +125,10 @@ const minorTables = [
 
 // Truncated in order
 const majorTables = [
+  AffiliatesModelProvider.getClicksTableName(),
+  AffiliatesModelProvider.getStreamsTableName(),
+  AffiliatesModelProvider.getOffersTableName(),
+
   usersRepositories.Activity.getModelName(),
 
   AirdropsModelProvider.airdropsTableName(),
