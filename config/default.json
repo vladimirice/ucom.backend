@@ -9,7 +9,7 @@
       "dir_prefix": "/public/images_uploader",
       "validation_rules": {
         "gif": {
-          "max_size_in_bytes": 1048576
+          "max_size_in_bytes": 5242880
         },
         "jpg": {
           "max_size_in_bytes": 3145728

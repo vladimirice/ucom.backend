@@ -58,7 +58,9 @@ orgRouter.post('/:organization_id/discussions', [authTokenMiddleWare, cpUpload],
 /* Validate one discussion */
 orgRouter.get('/:organization_id/discussions/:post_id/validate', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const currentUserId = DiServiceLocator.getCurrentUserIdOrException(req);
-    await OrganizationsValidateDiscussions.validateOneDiscussion(req.organization_model, +req.params.post_id, currentUserId);
+    const orgModel = req.organization_model;
+    await OrganizationsValidateDiscussions.isItPossibleToAddOneMoreDiscussion(orgModel);
+    await OrganizationsValidateDiscussions.validateOneDiscussion(orgModel, +req.params.post_id, currentUserId);
     return res.status(200).send({
         success: true,
     });

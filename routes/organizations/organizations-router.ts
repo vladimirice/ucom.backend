@@ -5,6 +5,7 @@ import OrganizationsModifyDiscussions = require('../../lib/organizations/discuss
 import PostsInputProcessor = require('../../lib/posts/validators/posts-input-processor');
 import DiServiceLocator = require('../../lib/api/services/di-service-locator');
 import UserToOrganizationActivity = require('../../lib/users/activity/user-to-organization-activity');
+import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
 
 const express = require('express');
 const status  = require('statuses');
@@ -86,7 +87,9 @@ orgRouter.post('/:organization_id/discussions', [authTokenMiddleWare, cpUpload],
 orgRouter.get('/:organization_id/discussions/:post_id/validate', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const currentUserId: number = DiServiceLocator.getCurrentUserIdOrException(req);
 
-  await OrganizationsValidateDiscussions.validateOneDiscussion(req.organization_model, +req.params.post_id, currentUserId);
+  const orgModel: OrgModel = req.organization_model;
+  await OrganizationsValidateDiscussions.isItPossibleToAddOneMoreDiscussion(orgModel);
+  await OrganizationsValidateDiscussions.validateOneDiscussion(orgModel, +req.params.post_id, currentUserId);
 
   return res.status(200).send({
     success: true,

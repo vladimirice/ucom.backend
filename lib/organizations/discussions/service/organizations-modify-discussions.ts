@@ -1,40 +1,54 @@
 import { BadRequestError } from '../../../api/errors';
 
-import knex = require('../../../../config/knex');
 import OrganizationsDiscussionsRepository = require('../repository/organizations-discussions-repository');
 import OrganizationsValidateDiscussions = require('./organizations-validate-discussions');
+import { OrgModel } from '../../interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../../common/interfaces/common-types';
 
 class OrganizationsModifyDiscussions {
-  public static async deleteAllDiscussions(orgModel, currentUserId: number) {
+  public static async processNewDiscussionsState(
+    orgModel: OrgModel,
+    body: StringToAnyCollection,
+    currentUserId: number,
+  ): Promise<void> {
+    const postsIds: number[] = await this.extractPostsIdsFromBody(body, orgModel, currentUserId);
+
+    OrganizationsValidateDiscussions.throwErrorIfMaxNumberOfPostsExceeded(orgModel, postsIds.length);
+    await OrganizationsDiscussionsRepository.updateDiscussionsState(orgModel.id, postsIds);
+  }
+
+  public static async deleteAllDiscussions(orgModel: OrgModel, currentUserId: number): Promise<void> {
     await OrganizationsValidateDiscussions.validateDeleteRequest(orgModel, currentUserId);
 
     await OrganizationsDiscussionsRepository.deleteAllDiscussions(orgModel.id);
   }
 
-  public static async processNewDiscussionsState(orgModel, body: any, currentUserId: number) {
+  private static async extractPostsIdsFromBody(
+    body: StringToAnyCollection,
+    orgModel: OrgModel,
+    currentUserId: number,
+  ): Promise<number[]> {
     if (!body.discussions) {
       throw new BadRequestError('field "discussions" is required');
     }
 
     const postsIds: number[] = [];
     for (const obj of body.discussions) {
-      const id = +obj.id;
-      if (!id) {
+      const onePostId = +obj.id;
+      if (!onePostId) {
         throw new BadRequestError('Not all "discussions" objects have id field');
       }
 
-      await OrganizationsValidateDiscussions.validateOneDiscussion(orgModel, id, currentUserId);
+      await OrganizationsValidateDiscussions.validateOneDiscussion(orgModel, onePostId, currentUserId);
 
-      if (~postsIds.indexOf(id)) {
-        throw new BadRequestError(`All discussions must be unique. Duplicate ID is found: ${id}`);
+      if (postsIds.includes(onePostId)) {
+        throw new BadRequestError(`All discussions must be unique. Duplicate ID is found: ${onePostId}`);
       }
 
-      postsIds.push(id);
+      postsIds.push(onePostId);
     }
 
-    await knex.transaction(async (trx) => {
-      await OrganizationsDiscussionsRepository.updateDiscussionsState(orgModel.id, postsIds, trx);
-    });
+    return postsIds;
   }
 }
 
