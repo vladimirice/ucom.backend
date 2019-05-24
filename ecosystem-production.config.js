@@ -5,6 +5,7 @@ const HTTP_SERVER_PORT      = 3000;
 const GRAPHQL_SERVER_PORT   = 4000;
 const WEBSOCKET_SERVER_PORT = 5000;
 const UPLOADER_SERVER_PORT  = 5010;
+const REDIRECT_SERVER_PORT  = 5020;
 
 const CRON_PATTERN_EVERY_MINUTE       = '* * * * *';
 const CRON_PATTERN_EVERY_TWO_MINUTES  = '*/2 * * * *';
@@ -67,6 +68,18 @@ module.exports = {
 
       env: {
         PORT: UPLOADER_SERVER_PORT,
+        NODE_ENV,
+      },
+    },
+    {
+      name: `${NODE_ENV}-app-redirect`,
+      script: 'lib/affiliates/bin/redirect-bin.js',
+
+      ...defaultConfig,
+      ...clusterConfig,
+
+      env: {
+        PORT: REDIRECT_SERVER_PORT,
         NODE_ENV,
       },
     },
