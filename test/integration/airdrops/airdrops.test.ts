@@ -15,6 +15,13 @@ import _ = require('lodash');
 import ResponseHelper = require('../helpers/response-helper');
 import AirdropsTestSet = require('../../helpers/airdrops/airdrops-test-set');
 import PostsGenerator = require('../../generators/posts-generator');
+import OffersModel = require('../../../lib/affiliates/models/offers-model');
+import knex = require('../../../config/knex');
+
+import { Model } from 'objection';
+import DatetimeHelper = require('../../../lib/common/helper/datetime-helper');
+import moment = require('moment');
+import AffiliatesModelProvider = require('../../../lib/affiliates/service/affiliates-model-provider');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -42,6 +49,40 @@ describe('Airdrops create-get', () => {
     await AirdropsUsersGenerator.generateForVladAndJane();
     await AirdropsUsersGenerator.generateForVladAndJaneRoundTwo();
   });
+
+
+  it('sample', async () => {
+    const startedAt = DatetimeHelper.getMomentInUtcString(moment().add(2, 'days'));
+    const finishedAt = DatetimeHelper.getMomentInUtcString(moment().add(14, 'days'));
+
+    // @ts-ignore
+    const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+
+    // @ts-ignore
+    const fresh = await knex(AffiliatesModelProvider.getOffersTableName())
+      .insert({
+        started_at: startedAt,
+        finished_at: finishedAt,
+
+        // post_id: postId,
+        status: 1,
+        title: 'sample offer',
+        attribution_id: 1,
+        event_id: 1,
+        participation_id: 1,
+        url_template: 'sample_template',
+      });
+
+
+    Model.knex(knex);
+
+    // @ts-ignore
+    const model: OffersModel[] = await OffersModel.query();
+
+    // @ts-ignore
+    const a = 0;
+
+  }, JEST_TIMEOUT_DEBUG);
 
   describe('Github airdrop participants', () => {
     it('Get many participants as separate request - first round', async () => {

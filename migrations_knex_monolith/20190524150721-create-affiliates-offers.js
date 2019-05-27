@@ -24,7 +24,7 @@ exports.up = (knex) => {
 
         title                   VARCHAR(255) NOT NULL,
 
-        attribution__id    SMALLINT NOT NULL,
+        attribution_id    SMALLINT NOT NULL,
         event_id                SMALLINT NOT NULL,
         participation_id        SMALLINT NOT NULL,
 
@@ -41,7 +41,7 @@ exports.up = (knex) => {
                   AND status > 0
                   AND char_length(url_template) > 0 -- # {domain}/registration/?{query_string}
                   AND event_id = 1 -- 1 - registration, determines a blockchain interaction
-                  AND attribution__id IN (1, 2) -- 1 - first referrer wins, 2 - last referrer wins
+                  AND attribution_id IN (1, 2) -- 1 - first referrer wins, 2 - last referrer wins
                   AND participation_id = 1 -- all registered
               );
    `;
