@@ -5,7 +5,7 @@ const ApiErrorAndLoggingHelper = require('../../api/helpers/api-error-and-loggin
 
 const app = express();
 
-const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
+const { ApiLoggerStream, ApiLogger } = require('../../../config/winston');
 
 ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 
