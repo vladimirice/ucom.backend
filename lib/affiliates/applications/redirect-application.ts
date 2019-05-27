@@ -1,7 +1,7 @@
 const express = require('express');
 const redirectRouter = require('../router/redirect-router');
 
-const ApiErrorAndLoggingHelper = require('../api/helpers/api-error-and-logging-helper');
+const ApiErrorAndLoggingHelper = require('../../api/helpers/api-error-and-logging-helper');
 
 const app = express();
 
