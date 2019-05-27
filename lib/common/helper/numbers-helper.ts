@@ -12,9 +12,9 @@ class NumbersHelper {
   public static processFieldToBeNumeric(
     value: string | number,
     fieldName: string,
-    precision: number,
-    disallowZero: boolean,
-    disallowNegative: boolean,
+    precision: number = 0,
+    disallowZero: boolean = true,
+    disallowNegative: boolean = true,
   ): number {
     const processed = +(+value).toFixed(precision);
     if (!Number.isFinite(processed)) {

@@ -1,35 +1,47 @@
 import AffiliatesModelProvider = require('../service/affiliates-model-provider');
+import RepositoryHelper = require('../../common/repository/repository-helper');
+import { IModelDto } from '../../common/interfaces/common-model-interfaces';
 
 const { Model } = require('objection');
 
-class OffersModel extends Model {
-  readonly title!: string;
+class OffersModel extends Model implements IModelDto {
+  readonly id!:               number;
 
-  public static getTableName() {
+  readonly title!:            string;
+  readonly post_id!:          number;
+  readonly status!:           number;
+  readonly attribution_id!:   number;
+  readonly event_id!:         number;
+  readonly participation_id!: number;
+  readonly url_template!:     number;
+
+  readonly created_at!:       Date;
+  readonly updated_at!:       Date;
+  readonly started_at!:       Date;
+  readonly finished_at!:      Date;
+
+  $afterGet() {
+    RepositoryHelper.convertStringFieldsToNumbers(
+      this,
+      this.getNumericalFields(),
+      this.getNumericalFields(),
+    );
+  }
+
+  public static getTableName(): string {
     return AffiliatesModelProvider.getOffersTableName();
   }
 
-  public getSmile() {
-    return this.title + ':)';
+  public getNumericalFields(): string[] {
+    return [
+      'id',
+      'post_id',
+      'status',
+      'attribution_id',
+      'event_id',
+      'participation_id',
+    ];
   }
 }
 
 export = OffersModel;
-
-
-/*
-  readonly id: number;
-
-  readonly created_at: any;
-  readonly updated_at: any;
-  readonly started_at: any;
-  readonly finished_at: any;
-
-  readonly post_id: number;
-  readonly status: number;
-  readonly title: string;
-  readonly attribution_model_id: number;
-  readonly event_id: number;
-  readonly participation_id: number;
-  readonly url_template: number;
-*/

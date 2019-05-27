@@ -64,7 +64,7 @@ describe('Airdrops create-get', () => {
         started_at: startedAt,
         finished_at: finishedAt,
 
-        // post_id: postId,
+        post_id: postId,
         status: 1,
         title: 'sample offer',
         attribution_id: 1,
@@ -77,11 +77,11 @@ describe('Airdrops create-get', () => {
     Model.knex(knex);
 
     // @ts-ignore
-    const model: OffersModel[] = await OffersModel.query();
+    const models: OffersModel[] = await OffersModel.query();
 
-    // @ts-ignore
-    const a = 0;
+    const first: OffersModel = models[0];
 
+    console.log(first.title);
   }, JEST_TIMEOUT_DEBUG);
 
   describe('Github airdrop participants', () => {
