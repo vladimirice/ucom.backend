@@ -40,17 +40,9 @@ class AirdropsUsersToWaitingService {
     }
 
     try {
-      const { signedPayload, pushingResponse } = await AirdropsTransactionsSender.sendTransaction(item);
+      const externalTrId: number | null = await this.processBlockchainTransaction(item);
 
       await knex.transaction(async (trx) => {
-        const externalTrId = await OutgoingTransactionsLogRepository.insertOneRow(
-          pushingResponse.transaction_id,
-          signedPayload,
-          pushingResponse,
-          EosBlockchainStatusDictionary.getStatusIsSent(),
-          trx,
-        );
-
         await Promise.all([
           AccountsTransactionsCreatorService.createTrxBetweenTwoAccounts(
             item.account_id_from,
@@ -73,6 +65,31 @@ class AirdropsUsersToWaitingService {
       );
 
       WorkerLogger.error(toLog);
+    }
+  }
+
+  private static async processBlockchainTransaction(item: AirdropsUserToChangeStatusDto): Promise<number | null> {
+    try {
+      const { signedPayload, pushingResponse } = await AirdropsTransactionsSender.sendTransaction(item);
+
+      return OutgoingTransactionsLogRepository.insertOneRow(
+        pushingResponse.transaction_id,
+        signedPayload,
+        pushingResponse,
+        EosBlockchainStatusDictionary.getStatusIsSent(),
+      );
+    } catch (error) {
+      if (!error.json.error.details[0].message.includes('Already have the receipt with the same external_id')) {
+        throw error;
+      }
+
+      console.log(`
+        There is a receipt already written to the blockchain. 
+        Possibly worker had been interrupted after the pushing but before further steps.
+        Let's process the following steps as it was a transaction but without trxId
+      `);
+
+      return null;
     }
   }
 }

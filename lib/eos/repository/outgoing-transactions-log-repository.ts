@@ -1,5 +1,3 @@
-import { Transaction } from 'knex';
-
 import BlockchainModelProvider = require('../service/blockchain-model-provider');
 import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
@@ -12,9 +10,8 @@ class OutgoingTransactionsLogRepository {
     signedPayload: any,
     pushingResponse: any,
     status: number,
-    trx: Transaction,
   ): Promise<number> {
-    const data = await trx(TABLE_NAME)
+    const data = await knex(TABLE_NAME)
       .insert({
         status,
         tr_id: trId,
