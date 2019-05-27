@@ -2,6 +2,7 @@
 const UsersTrustService = require("../lib/users/service/users-trust-service");
 const UserActivityService = require("../lib/users/user-activity-service");
 const PostsInputProcessor = require("../lib/posts/validators/posts-input-processor");
+const ActivityApiMiddleware = require("../lib/activity/middleware/activity-api-middleware");
 const express = require('express');
 require('express-async-errors');
 const usersRouter = express.Router();
@@ -11,6 +12,11 @@ const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
 const userService = require('../lib/users/users-service');
 const usersApiMiddleware = require('../lib/users/middleware/users-api-middleware');
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
+const activityMiddlewareSet = [
+    authTokenMiddleWare,
+    cpUpload,
+    ActivityApiMiddleware.redlockBeforeActivity,
+];
 /**
  *
  * @param {Object} req
@@ -56,7 +62,7 @@ usersRouter.get('/:user_id/wall-feed', [bodyParser], async (req, res) => {
     const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId, query);
     res.send(response);
 });
-usersRouter.post('/:user_id/follow', [authTokenMiddleWare, bodyParser], async (req, res) => {
+usersRouter.post('/:user_id/follow', activityMiddlewareSet, async (req, res) => {
     const userFrom = req.user;
     const userToId = req.user_id;
     await UserActivityService.userFollowsAnotherUser(userFrom, userToId, req.body);
@@ -64,7 +70,7 @@ usersRouter.post('/:user_id/follow', [authTokenMiddleWare, bodyParser], async (r
         success: true,
     });
 });
-usersRouter.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser], async (req, res) => {
+usersRouter.post('/:user_id/unfollow', activityMiddlewareSet, async (req, res) => {
     const userFrom = req.user;
     const userIdTo = req.user_id;
     await UserActivityService.userUnfollowsUser(userFrom, userIdTo, req.body);
