@@ -1,6 +1,7 @@
 import UsersTrustService = require('../lib/users/service/users-trust-service');
 import UserActivityService = require('../lib/users/user-activity-service');
 import PostsInputProcessor = require('../lib/posts/validators/posts-input-processor');
+import ActivityApiMiddleware = require('../lib/activity/middleware/activity-api-middleware');
 
 const express = require('express');
 
@@ -16,6 +17,12 @@ const userService = require('../lib/users/users-service');
 const usersApiMiddleware = require('../lib/users/middleware/users-api-middleware');
 
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
+
+const activityMiddlewareSet: any = [
+  authTokenMiddleWare,
+  cpUpload,
+  ActivityApiMiddleware.redlockBeforeActivity,
+];
 
 /**
  *
@@ -76,7 +83,7 @@ usersRouter.get('/:user_id/wall-feed', [bodyParser], async (req, res) => {
   res.send(response);
 });
 
-usersRouter.post('/:user_id/follow', [authTokenMiddleWare, bodyParser], async (req, res) => {
+usersRouter.post('/:user_id/follow', activityMiddlewareSet, async (req, res) => {
   const userFrom = req.user;
   const userToId = req.user_id;
 
@@ -87,7 +94,7 @@ usersRouter.post('/:user_id/follow', [authTokenMiddleWare, bodyParser], async (r
   });
 });
 
-usersRouter.post('/:user_id/unfollow', [authTokenMiddleWare, bodyParser], async (req, res) => {
+usersRouter.post('/:user_id/unfollow', activityMiddlewareSet, async (req, res) => {
   const userFrom = req.user;
   const userIdTo = req.user_id;
 

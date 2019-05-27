@@ -6,6 +6,7 @@ const OrganizationsModifyDiscussions = require("../../lib/organizations/discussi
 const PostsInputProcessor = require("../../lib/posts/validators/posts-input-processor");
 const DiServiceLocator = require("../../lib/api/services/di-service-locator");
 const UserToOrganizationActivity = require("../../lib/users/activity/user-to-organization-activity");
+const ActivityApiMiddleware = require("../../lib/activity/middleware/activity-api-middleware");
 const express = require('express');
 const status = require('statuses');
 require('express-async-errors');
@@ -19,6 +20,11 @@ orgRouter.get('/', async (req, res) => {
     const response = await OrganizationsFetchService.findAndProcessAll(req.query);
     res.send(response);
 });
+const activityMiddlewareSet = [
+    authTokenMiddleWare,
+    cpUploadArray,
+    ActivityApiMiddleware.redlockBeforeActivity,
+];
 // @deprecated @see GraphQL
 orgRouter.get('/:organization_id', async (req, res) => {
     const targetId = req.organization_id;
@@ -80,7 +86,7 @@ orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req
     });
 });
 /* One user follows organization */
-orgRouter.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray], async (req, res) => {
+orgRouter.post('/:organization_id/follow', activityMiddlewareSet, async (req, res) => {
     const userFrom = req.user;
     const entityIdTo = req.organization_id;
     await UserToOrganizationActivity.userFollowsOrganization(userFrom, entityIdTo, req.body);
@@ -89,7 +95,7 @@ orgRouter.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray],
     });
 });
 /* One user unfollows organization */
-orgRouter.post('/:organization_id/unfollow', [authTokenMiddleWare, cpUploadArray], async (req, res) => {
+orgRouter.post('/:organization_id/unfollow', activityMiddlewareSet, async (req, res) => {
     const userFrom = req.user;
     const entityIdTo = req.organization_id;
     await UserToOrganizationActivity.userUnfollowsOrganization(userFrom, entityIdTo, req.body);

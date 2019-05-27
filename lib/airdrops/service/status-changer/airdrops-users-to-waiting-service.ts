@@ -40,17 +40,9 @@ class AirdropsUsersToWaitingService {
     }
 
     try {
-      const { signedPayload, pushingResponse } = await AirdropsTransactionsSender.sendTransaction(item);
+      const externalTrId: number = await this.processBlockchainTransaction(item);
 
       await knex.transaction(async (trx) => {
-        const externalTrId = await OutgoingTransactionsLogRepository.insertOneRow(
-          pushingResponse.transaction_id,
-          signedPayload,
-          pushingResponse,
-          EosBlockchainStatusDictionary.getStatusIsSent(),
-          trx,
-        );
-
         await Promise.all([
           AccountsTransactionsCreatorService.createTrxBetweenTwoAccounts(
             item.account_id_from,
@@ -66,6 +58,7 @@ class AirdropsUsersToWaitingService {
         ]);
       });
     } catch (error) {
+      console.error('an error is occurred. Item is skipped. See logs.');
       const toLog = new ErrorEventToLogDto(
         'An error is occurred. Lets skip this item',
         item,
@@ -73,6 +66,31 @@ class AirdropsUsersToWaitingService {
       );
 
       WorkerLogger.error(toLog);
+    }
+  }
+
+  private static async processBlockchainTransaction(item: AirdropsUserToChangeStatusDto): Promise<number> {
+    try {
+      const { signedPayload, pushingResponse } = await AirdropsTransactionsSender.sendTransaction(item);
+
+      return OutgoingTransactionsLogRepository.insertOneRow(
+        pushingResponse.transaction_id,
+        signedPayload,
+        pushingResponse,
+        EosBlockchainStatusDictionary.getStatusIsSent(),
+      );
+    } catch (error) {
+      if (!error.json.error.details[0].message.includes('Already have the receipt with the same external_id')) {
+        throw error;
+      }
+
+      console.log(`
+        There is a receipt already written to the blockchain. 
+        Possibly worker had been interrupted after the pushing but before further steps.
+        Let's trow an exception anyway. It is required to process such kind of error manually
+      `);
+
+      throw error;
     }
   }
 }

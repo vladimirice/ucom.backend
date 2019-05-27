@@ -6,6 +6,7 @@ import PostsInputProcessor = require('../../lib/posts/validators/posts-input-pro
 import DiServiceLocator = require('../../lib/api/services/di-service-locator');
 import UserToOrganizationActivity = require('../../lib/users/activity/user-to-organization-activity');
 import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
+import ActivityApiMiddleware = require('../../lib/activity/middleware/activity-api-middleware');
 
 const express = require('express');
 const status  = require('statuses');
@@ -28,6 +29,12 @@ orgRouter.get('/', async (req, res) => {
 
   res.send(response);
 });
+
+const activityMiddlewareSet: any = [
+  authTokenMiddleWare,
+  cpUploadArray,
+  ActivityApiMiddleware.redlockBeforeActivity,
+];
 
 // @deprecated @see GraphQL
 orgRouter.get('/:organization_id', async (req, res) => {
@@ -116,7 +123,7 @@ orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req
 });
 
 /* One user follows organization */
-orgRouter.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray], async (req, res) => {
+orgRouter.post('/:organization_id/follow', activityMiddlewareSet, async (req, res) => {
   const userFrom    = req.user;
   const entityIdTo  = req.organization_id;
 
@@ -128,7 +135,7 @@ orgRouter.post('/:organization_id/follow', [authTokenMiddleWare, cpUploadArray],
 });
 
 /* One user unfollows organization */
-orgRouter.post('/:organization_id/unfollow', [authTokenMiddleWare, cpUploadArray], async (req, res) => {
+orgRouter.post('/:organization_id/unfollow', activityMiddlewareSet, async (req, res) => {
   const userFrom    = req.user;
   const entityIdTo  = req.organization_id;
 
