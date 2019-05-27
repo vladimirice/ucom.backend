@@ -40,7 +40,7 @@ class AirdropsUsersToWaitingService {
     }
 
     try {
-      const externalTrId: number | null = await this.processBlockchainTransaction(item);
+      const externalTrId: number = await this.processBlockchainTransaction(item);
 
       await knex.transaction(async (trx) => {
         await Promise.all([
@@ -58,6 +58,7 @@ class AirdropsUsersToWaitingService {
         ]);
       });
     } catch (error) {
+      console.error('an error is occurred. Item is skipped. See logs.');
       const toLog = new ErrorEventToLogDto(
         'An error is occurred. Lets skip this item',
         item,
@@ -68,7 +69,7 @@ class AirdropsUsersToWaitingService {
     }
   }
 
-  private static async processBlockchainTransaction(item: AirdropsUserToChangeStatusDto): Promise<number | null> {
+  private static async processBlockchainTransaction(item: AirdropsUserToChangeStatusDto): Promise<number> {
     try {
       const { signedPayload, pushingResponse } = await AirdropsTransactionsSender.sendTransaction(item);
 
@@ -86,10 +87,10 @@ class AirdropsUsersToWaitingService {
       console.log(`
         There is a receipt already written to the blockchain. 
         Possibly worker had been interrupted after the pushing but before further steps.
-        Let's process the following steps as it was a transaction but without trxId
+        Let's trow an exception anyway. It is required to process such kind of error manually
       `);
 
-      return null;
+      throw error;
     }
   }
 }
