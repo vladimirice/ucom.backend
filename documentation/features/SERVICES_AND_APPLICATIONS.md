@@ -7,6 +7,7 @@ Applications:
 * REST API - for the CRUD operations
 * iframely
 * server-side rendering frontend application (see `ucom.frontend`)
+* redirect - a redirect part of the affiliate program.
 
 Consumers (queue):
 * Push already signed transactions to the blockchain
@@ -23,5 +24,5 @@ Background processes (CRON-like)
 * GitHub airdrop tokens sender
 * Fetch and save UOS accounts properties, for example, scaled_importance. Is used for the governance
 
-All of these processes are listed in PM2 ecosystem config files, for [staging](../ecosystem-staging.config.js),
-for [production](../ecosystem-production.config.js)
+All of these processes are listed in PM2 ecosystem config files, for [staging](../../ecosystem-staging.config.js),
+for [production](../../ecosystem-production.config.js)

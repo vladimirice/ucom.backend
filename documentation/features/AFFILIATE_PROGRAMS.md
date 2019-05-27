@@ -1,14 +1,20 @@
-Final tasks:
-* recheck all business cases
-* recheck frontend interfaces
+# Affiliate programs
 
-Support, monday
-* Change mini-mongo port for wallet lib
-* Change mini-mongo port for social transactions legacy lib
+[JPEG Schema](../jpg/referral-program-workflow.jpg)
 
-# Referral program
 
-referral_program_uri
+A referral program is a kind of affiliate programs.
+
+
+## Related services
+
+
+Name | Description
+--- | ---
+app-redirect | A separate application which provides affiliate program `click` conversion
+
+
+## A referral link
 
 A referral link structure:
 https://hello.u.community/{referral_program_id}/{referrer_identity}/?{utm_labels_query_string}
@@ -18,7 +24,8 @@ https://hello.u.community/Hv1a/spirinspirin/?utm_source=fb&utm_content=small&sub
 
 ----------------------------------------------
 
-A frontend part of the registration
+
+## A frontend part of the registration
 
 Step 1 - fetch a `referral program state`
 
@@ -26,7 +33,7 @@ Step 1 - fetch a `referral program state`
 POST /api/v1/myself/referral-program
 body {
     event_id: 'registration',
-}
+};
 
 Case 1 - there is a cookie
 Response:

@@ -1,6 +1,6 @@
 # Current workflow
 
-[JPEG Schema](jpg/current-workflows.jpg)
+[JPEG Schema](../jpg/current-workflows.jpg)
 
 Notes:
 * In every valuable business action frontend application, backend API application and blockchain application are involved.
