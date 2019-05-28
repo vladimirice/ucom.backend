@@ -1,4 +1,5 @@
 import { UserModel } from '../lib/users/interfaces/model-interfaces';
+import { ListResponse } from '../lib/common/interfaces/lists-interfaces';
 
 import DiServiceLocator = require('../lib/api/services/di-service-locator');
 import EntityNotificationsService = require('../lib/entities/service/entity-notifications-service');
@@ -28,7 +29,8 @@ router.get('/', [authTokenMiddleWare], async (req, res) => {
 router.get('/blockchain/transactions', [authTokenMiddleWare], async (req, res) => {
   const currentUser = DiServiceLocator.getCurrentUserOrException(req);
 
-  const response = BlockchainTrTracesFetchService.getAndProcessOneUserTraces(req.query, currentUser.account_name);
+  const response: ListResponse =
+    await BlockchainTrTracesFetchService.getAndProcessOneUserTraces(req.query, currentUser.account_name);
 
   res.send(response);
 });

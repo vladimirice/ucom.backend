@@ -4,11 +4,11 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import SeedsHelper = require('../helpers/seeds-helper');
 import BlockchainHelper = require('../helpers/blockchain-helper');
 import EosApi = require('../../../lib/eos/eosApi');
-import BlockchainService = require('../../../lib/eos/service/blockchain-service');
 import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
 import BlockchainNodesRepository = require('../../../lib/blockchain-nodes/repository/blockchain-nodes-repository');
 import ResponseHelper = require('../helpers/response-helper');
 import BlockchainNodesMock = require('../../helpers/blockchain/blockchain-nodes-mock');
+import BlockchainCacheService = require('../../../lib/blockchain-nodes/service/blockchain-cache-service');
 
 const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
 
@@ -42,7 +42,7 @@ describe('Blockchain nodes updating', () => {
 
   describe('blockchain nodes list', () => {
     it('should cache all blockchain nodes list', async () => {
-      await BlockchainService.updateBlockchainNodesByBlockchain();
+      await BlockchainCacheService.updateBlockchainNodesByBlockchain();
 
       const { blockProducersWithVoters, calculatorsWithVoters } = await BlockchainNodes.getAll();
 
@@ -318,7 +318,7 @@ describe('Blockchain nodes updating', () => {
       };
 
       await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod({}, false, _.cloneDeep(addToVote));
-      await BlockchainService.updateBlockchainNodesByBlockchain();
+      await BlockchainCacheService.updateBlockchainNodesByBlockchain();
 
 
       const params = {

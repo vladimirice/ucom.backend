@@ -7,6 +7,7 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import UsersHelper = require('./users-helper');
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
+import BlockchainCacheService = require('../../../lib/blockchain-nodes/service/blockchain-cache-service');
 
 const { TransactionSender } = require('ucom-libs-social-transactions');
 const { WalletApi } = require('ucom-libs-wallet');
@@ -2466,7 +2467,7 @@ class BlockchainHelper {
    *
    */
   static async updateBlockchainNodes() {
-    return BlockchainService.updateBlockchainNodesByBlockchain();
+    return BlockchainCacheService.updateBlockchainNodesByBlockchain();
   }
 
   /**

@@ -1,4 +1,6 @@
 import MongoIrreversibleTracesGenerator = require('../../generators/blockchain/irreversible_traces/mongo-irreversible-traces-generator');
+import BlockchainHelper = require('../helpers/blockchain-helper');
+import RequestHelper = require('../helpers/request-helper');
 
 
 const helpers = require('../helpers');
@@ -35,15 +37,13 @@ describe('Blockchain tr traces sync tests', () => {
 
   describe('Smoke test', () => {
     it('Smoke test', async () => {
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+      const queryString = RequestHelper.getPaginationQueryString(1, 10);
+      await BlockchainHelper.requestToGetMyselfBlockchainTransactions(
         userVlad,
         200,
         queryString,
+        true,
       );
-
-      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-
     }, JEST_TIMEOUT)
   });
 
