@@ -2,7 +2,7 @@
 /* tslint:disable:max-line-length */
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-import BlockchainService = require('../../../lib/eos/service/blockchain-service');
+// import BlockchainService = require('../../../lib/eos/service/blockchain-service');
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import UsersHelper = require('./users-helper');

@@ -33,6 +33,20 @@ describe('Blockchain tr traces sync tests', () => {
     });
   });
 
+  describe('Smoke test', () => {
+    it('Smoke test', async () => {
+      const queryString = helpers.Req.getPaginationQueryString(1, 10);
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+        userVlad,
+        200,
+        queryString,
+      );
+
+      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
+
+    }, JEST_TIMEOUT)
+  });
+
   describe('check sync', () => {
     it.skip('Check stakeResources sync and fetch', async () => {
       const accountAlias = 'vlad';
