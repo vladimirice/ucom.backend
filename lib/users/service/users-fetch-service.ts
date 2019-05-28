@@ -112,7 +112,10 @@ class UsersFetchService {
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
   }
 
-  public static async findAllAndProcessForList(query: RequestQueryDto, currentUserId): Promise<UsersListResponse> {
+  public static async findAllAndProcessForList(
+    query: RequestQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
     let data;
     if (query.overview_type && query.entity_name) {
       data = this.getManyUsersListAsRelatedToEntityPromises(query, query.entity_name);

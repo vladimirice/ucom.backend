@@ -2,7 +2,6 @@
 /* tslint:disable:max-line-length */
 import { BadRequestError } from '../api/errors';
 
-import UsersFetchService = require('./service/users-fetch-service');
 import UsersRepository = require('./users-repository');
 import UserPostProcessor = require('./user-post-processor');
 import UsersInputProcessor = require('./validator/users-input-processor');
@@ -10,18 +9,14 @@ import EosBlockchainStatusDictionary = require('../eos/eos-blockchain-status-dic
 import UsersModelProvider = require('./users-model-provider');
 import UpdateManyToManyHelper = require('../api/helpers/UpdateManyToManyHelper');
 import UserInputSanitizer = require('../api/sanitizers/user-input-sanitizer');
+import { UserModel } from './interfaces/model-interfaces';
+import { StringToAnyCollection } from '../common/interfaces/common-types';
 
 const _ = require('lodash');
 
 const models = require('../../models');
 
 class UsersService {
-  private currentUser: any;
-
-  constructor(currentUser) {
-    this.currentUser = currentUser;
-  }
-
   /**
    *
    * @param {string} query
@@ -31,12 +26,7 @@ class UsersService {
     return UsersRepository.findByNameFields(query);
   }
 
-  /**
-   *
-   * @param {Object} req
-   * @return {Promise<void>}
-   */
-  public async processUserUpdating(req) {
+  public static async processUserUpdating(req: StringToAnyCollection, currentUser: UserModel) {
     const { body }  = req;
     const { files } = req;
 
@@ -48,7 +38,7 @@ class UsersService {
       }
     }
 
-    const userId = this.currentUser.id;
+    const userId = currentUser.id;
     const user = await UsersRepository.getUserById(userId);
 
     await UsersService.checkUniqueFields(requestData, userId);
@@ -78,43 +68,12 @@ class UsersService {
     return userJson;
   }
 
-  /**
-   * @param {number} userId
-   * @returns {Promise<Object>}
-   */
-  public async getUserByIdAndProcess(userId) {
-    const currentUserId = this.currentUser.id;
-
-    return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
-  }
-
   public static async findOneByAccountName(accountName: string) {
     const user = await models.Users.findOne({ where: { account_name: accountName } });
 
     UserPostProcessor.processUser(user);
 
     return user;
-  }
-
-  /**
-   * @param {Object} query
-   * @return {Promise<Object[]>}
-   */
-  public async findAllAndProcessForList(query) {
-    const currentUserId = this.currentUser.id;
-
-    return UsersFetchService.findAllAndProcessForList(query, currentUserId);
-  }
-
-  /**
-   * @param {string} tagTitle
-   * @param {Object} query
-   * @return {Promise<Object[]>}
-   */
-  public async findAllAndProcessForListByTagTitle(tagTitle, query) {
-    const currentUserId = this.currentUser.id;
-
-    return UsersFetchService.findAllAndProcessForListByTagTitle(tagTitle, query, currentUserId);
   }
 
   /**

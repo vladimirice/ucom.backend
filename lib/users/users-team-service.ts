@@ -40,7 +40,7 @@ class UsersTeamService {
     entityId,
     entityName,
     data,
-    idToExclude = null,
+    idToExclude: number | null = null,
     transaction = null,
   ) {
     // eslint-disable-next-line you-dont-need-lodash-underscore/filter

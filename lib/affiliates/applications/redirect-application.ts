@@ -1,11 +1,11 @@
 const express = require('express');
 const redirectRouter = require('../router/redirect-router');
 
-const ApiErrorAndLoggingHelper = require('../api/helpers/api-error-and-logging-helper');
+const ApiErrorAndLoggingHelper = require('../../api/helpers/api-error-and-logging-helper');
 
 const app = express();
 
-const { ApiLoggerStream, ApiLogger } = require('../../config/winston');
+const { ApiLoggerStream, ApiLogger } = require('../../../config/winston');
 
 ApiErrorAndLoggingHelper.initBeforeRouters(app, ApiLogger, ApiLoggerStream);
 

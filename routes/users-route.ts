@@ -1,7 +1,13 @@
+import { UserModel } from '../lib/users/interfaces/model-interfaces';
+
 import UsersTrustService = require('../lib/users/service/users-trust-service');
 import UserActivityService = require('../lib/users/user-activity-service');
 import PostsInputProcessor = require('../lib/posts/validators/posts-input-processor');
 import ActivityApiMiddleware = require('../lib/activity/middleware/activity-api-middleware');
+import DiServiceLocator = require('../lib/api/services/di-service-locator');
+import UsersFetchService = require('../lib/users/service/users-fetch-service');
+import PostService = require('../lib/posts/post-service');
+import PostsFetchService = require('../lib/posts/service/posts-fetch-service');
 
 const express = require('express');
 
@@ -11,36 +17,18 @@ const usersRouter = express.Router();
 const status = require('statuses');
 
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
-const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
 const userService = require('../lib/users/users-service');
 
 const usersApiMiddleware = require('../lib/users/middleware/users-api-middleware');
 
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
+const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
 
 const activityMiddlewareSet: any = [
   authTokenMiddleWare,
   cpUpload,
   ActivityApiMiddleware.redlockBeforeActivity,
 ];
-
-/**
- *
- * @param {Object} req
- * @returns {PostService}
- */
-function getPostService(req) {
-  return req.container.get('post-service');
-}
-
-/**
- *
- * @param {Object} req
- * @returns {userService}
- */
-function getUserService(req) {
-  return req.container.get('user-service');
-}
 
 /* Find users by name fields - shortcut */
 usersRouter.get('/search', async (req, res) => {
@@ -53,14 +41,16 @@ usersRouter.get('/search', async (req, res) => {
 
 /* GET all users */
 usersRouter.get('/', async (req, res) => {
-  const users = await getUserService(req).findAllAndProcessForList(req.query);
+  const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
+  const users = await UsersFetchService.findAllAndProcessForList(req.query, currentUserId);
 
   res.send(users);
 });
 
 /* get one user */
 usersRouter.get('/:user_id', async (req, res) => {
-  const user = await getUserService(req).getUserByIdAndProcess(req.user_id);
+  const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
+  const user: UserModel = await UsersFetchService.findOneAndProcessFully(req.user_id, currentUserId);
 
   res.send(user);
 });
@@ -68,7 +58,9 @@ usersRouter.get('/:user_id', async (req, res) => {
 /* Create post for this user */
 usersRouter.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async (req, res) => {
   PostsInputProcessor.process(req.body);
-  const response = await getPostService(req).processNewDirectPostCreationForUser(req);
+
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+  const response = await PostService.processNewDirectPostCreationForUser(req, currentUser);
 
   res.send(response);
 });
@@ -78,7 +70,9 @@ usersRouter.get('/:user_id/wall-feed', [bodyParser], async (req, res) => {
   const userId = req.user_id;
   const { query } = req;
 
-  const response = await getPostService(req).findAndProcessAllForUserWallFeed(userId, query);
+  const currentUserId = DiServiceLocator.getCurrentUserIdOrNull(req);
+
+  const response = await PostsFetchService.findAndProcessAllForUserWallFeed(userId, currentUserId, query);
 
   res.send(response);
 });

@@ -1,4 +1,6 @@
 /* tslint:disable:max-line-length */
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
+
 const notificationsRepo = require('../repository').Notifications;
 const apiPostProcessor = require('../../common/service').PostProcessor;
 const { BadRequestError } = require('../../api/errors');
@@ -16,21 +18,8 @@ const NOTIFICATION_STATUS__PENDING      = 0;
 const db = require('../../../models').sequelize;
 
 class EntityNotificationsService {
-  private currentUser;
-
-  constructor(currentUser) {
-    this.currentUser = currentUser;
-  }
-
-  /**
-   *
-   * @param {number} notificationId
-   * @return {Promise<Object>}
-   */
-  async confirmPromptNotification(notificationId) {
+  public static async confirmPromptNotification(notificationId: number, userId: number) {
     // #task validate a request
-
-    const userId = this.currentUser.id;
     const confirmed = notificationsStatusDictionary.getStatusConfirmed();
     const seen = true;
     const finished = true;
@@ -48,18 +37,11 @@ class EntityNotificationsService {
         await usersTeamRepository.setStatusConfirmed(entityName, entityId, userId, transaction);
       });
 
-    return await this.getAndProcessOneNotification(notificationId);
+    return await this.getAndProcessOneNotification(notificationId, userId);
   }
 
-  /**
-   *
-   * @param {number} notificationId
-   * @return {Promise<Object>}
-   */
-  async markNotificationAsSeen(notificationId) {
+  public static async markNotificationAsSeen(notificationId: number, userId: number) {
     // #task validate request
-
-    const userId = this.currentUser.id;
 
     const notification = await notificationsRepo.findOneByRecipientIdAndId(notificationId, userId);
 
@@ -73,18 +55,11 @@ class EntityNotificationsService {
       await notificationsRepo.setStatusSeenAndFinished(notificationId);
     }
 
-    return await this.getAndProcessOneNotification(notificationId);
+    return await this.getAndProcessOneNotification(notificationId, userId);
   }
 
-  /**
-   *
-   * @param {number} notificationId
-   * @return {Promise<Object>}
-   */
-  async declinePromptNotification(notificationId) {
+  public static async declinePromptNotification(notificationId: number, userId: number) {
     // #task validate request
-
-    const userId = this.currentUser.id;
     const confirmed = notificationsStatusDictionary.getStatusDeclined();
     const seen = true;
     const finished = true;
@@ -102,7 +77,7 @@ class EntityNotificationsService {
         await usersTeamRepository.setStatusDeclined(entityName, entityId, userId, transaction);
       });
 
-    return await this.getAndProcessOneNotification(notificationId);
+    return await this.getAndProcessOneNotification(notificationId, userId);
   }
 
   /**
@@ -118,20 +93,10 @@ class EntityNotificationsService {
     const finished = false;
 
     // #task - add userId
-
-    const res = await notificationsRepo.setNotificationStatus(notificationId, confirmed, finished, seen);
-
-    return res;
+    return notificationsRepo.setNotificationStatus(notificationId, confirmed, finished, seen);
   }
 
-  /**
-   *
-   * @param {number} id
-   * @return {Promise<{data: Object[], metadata}>}
-   */
-  async getAndProcessOneNotification(id) {
-    const currentUserId = this.currentUser.id;
-
+  public static async getAndProcessOneNotification(id: number, currentUserId: number) {
     const data = await notificationsRepo.findOneByRecipientIdAndId(id, currentUserId);
     apiPostProcessor.processOneNotificationForResponse(data);
 
@@ -144,13 +109,7 @@ class EntityNotificationsService {
     return data;
   }
 
-  /**
-   * @param {Object} query
-   * @return {Promise<{data, metadata}>}
-   */
-  async getAllNotifications(query) {
-    const userId = this.currentUser.id;
-
+  public static async getAllNotifications(query: StringToAnyCollection, userId: number) {
     const params = queryFilterService.getQueryParameters(query);
 
     const data        = await notificationsRepo.findAllNotificationsListByUserId(userId, params);

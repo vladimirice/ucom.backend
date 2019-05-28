@@ -7,6 +7,10 @@ import DiServiceLocator = require('../../lib/api/services/di-service-locator');
 import UserToOrganizationActivity = require('../../lib/users/activity/user-to-organization-activity');
 import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
 import ActivityApiMiddleware = require('../../lib/activity/middleware/activity-api-middleware');
+import PostService = require('../../lib/posts/post-service');
+import OrganizationService = require('../../lib/organizations/service/organization-service');
+import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 
 const express = require('express');
 const status  = require('statuses');
@@ -40,35 +44,35 @@ const activityMiddlewareSet: any = [
 orgRouter.get('/:organization_id', async (req, res) => {
   const targetId = req.organization_id;
 
-  const service = DiServiceLocator.getOrganizationsService(req);
-  const response = await service.findOneOrgByIdAndProcess(targetId);
+  const currentUser = DiServiceLocator.getCurrentUserOrNull(req);
+  const response = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
 
   res.send(response);
 });
 
-// @deprecated @see GraphQL
 orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {
-  const service = DiServiceLocator.getPostsService(req);
+  const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
+
   const response =
-    await service.findAndProcessAllForOrgWallFeed(req.organization_id, req.query);
+    await PostsFetchService.findAndProcessAllForOrgWallFeed(req.organization_id, currentUserId, req.query);
 
   res.send(response);
 });
 
 /* Create post for this organization */
 orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], async (req, res) => {
-  const service = DiServiceLocator.getPostsService(req);
-
   PostsInputProcessor.process(req.body);
-  const response = await service.processNewDirectPostCreationForOrg(req);
+
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+  const response = await PostService.processNewDirectPostCreationForOrg(req, currentUser);
 
   res.send(response);
 });
 
 /* Create new organization */
 orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  const service = DiServiceLocator.getOrganizationsService(req);
-  const model = await service.processNewOrganizationCreation(req);
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+  const model = await OrganizationService.processNewOrganizationCreation(req, currentUser);
 
   return res.status(201).send({
     id: model.id,
@@ -114,8 +118,8 @@ orgRouter.delete('/:organization_id/discussions', [authTokenMiddleWare, cpUpload
 
 /* Update organization */
 orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  const service = DiServiceLocator.getOrganizationsService(req);
-  await service.updateOrganization(req);
+  const currentUser: UserModel = DiServiceLocator.getCurrentUserOrException(req);
+  await OrganizationService.updateOrganization(req, currentUser);
 
   return res.status(200).send({
     status: 'ok',

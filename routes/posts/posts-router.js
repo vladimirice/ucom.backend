@@ -2,6 +2,10 @@
 const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
 const _ = require("lodash");
 const PostsInputProcessor = require("../../lib/posts/validators/posts-input-processor");
+const DiServiceLocator = require("../../lib/api/services/di-service-locator");
+const PostCreatorService = require("../../lib/posts/service/post-creator-service");
+const PostActivityService = require("../../lib/posts/post-activity-service");
+const PostService = require("../../lib/posts/post-service");
 const postsRouter = require('./comments-router');
 const { AppError, BadRequestError } = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
@@ -11,20 +15,6 @@ const postService = require('../../lib/posts/post-service');
 const postRepository = require('../../lib/posts/posts-repository');
 const activityApiMiddleware = require('../../lib/activity/middleware/activity-api-middleware');
 require('express-async-errors');
-/**
- * @param {Object} req
- * @returns {postService}
- */
-function getPostService(req) {
-    return req.container.get('post-service');
-}
-function getUserService(req) {
-    return req.container.get('current-user');
-}
-function getCurrentUserId(req) {
-    const CurrentUserService = getUserService(req);
-    return CurrentUserService.getCurrentUserId();
-}
 const activityMiddlewareSet = [
     authTokenMiddleWare,
     cpUpload,
@@ -32,15 +22,15 @@ const activityMiddlewareSet = [
 ];
 /* Get all posts */
 postsRouter.get('/', async (req, res) => {
-    const currentUserId = getCurrentUserId(req);
+    const currentUserId = DiServiceLocator.getCurrentUserIdOrNull(req);
     const result = await PostsFetchService.findManyPosts(req.query, currentUserId);
     res.send(result);
 });
 /* Get one post by ID */
 postsRouter.get('/:post_id', async (req, res) => {
-    const service = getPostService(req);
     const postId = req.post_id;
-    const post = await service.findOnePostByIdAndProcess(postId);
+    const currentUserId = DiServiceLocator.getCurrentUserIdOrNull(req);
+    const post = await PostsFetchService.findOnePostByIdAndProcess(postId, currentUserId);
     res.send(post);
 });
 postsRouter.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (
@@ -49,17 +39,19 @@ req, res) => {
     res.status(404).send('Action is disabled');
 });
 postsRouter.post('/:post_id/upvote', activityMiddlewareSet, async (req, res) => {
-    const result = await getPostService(req).userUpvotesPost(req.post_id, req.body);
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+    const result = await PostActivityService.userUpvotesPost(currentUser, req.post_id, req.body);
     return res.status(201).send(result);
 });
 postsRouter.post('/:post_id/downvote', activityMiddlewareSet, async (req, res) => {
-    const result = await getPostService(req).userDownvotesPost(req.post_id, req.body);
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+    const result = await PostActivityService.userDownvotesPost(currentUser, req.post_id, req.body);
     return res.status(201).send(result);
 });
 postsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req, res) => {
     PostsInputProcessor.process(req.body);
-    const service = getPostService(req);
-    const response = await service.processRepostCreation(req.body, req.post_id);
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+    const response = await PostCreatorService.processRepostCreation(req.body, req.post_id, currentUser);
     res.status(201).send(response);
 });
 postsRouter.post('/image', [descriptionParser], async (
@@ -72,7 +64,8 @@ res) => {
 /* Create new post */
 postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     PostsInputProcessor.process(req.body);
-    const newPost = await getPostService(req).processNewPostCreation(req);
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+    const newPost = await PostCreatorService.processNewPostCreation(req, null, currentUser);
     const response = postService.isDirectPost(newPost) ? newPost : {
         id: newPost.id,
     };
@@ -83,12 +76,13 @@ postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 postsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const userId = req.user.id;
     const postId = req.post_id;
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
     if (!_.isEmpty(req.files)) {
         throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
     }
     const params = req.body;
     PostsInputProcessor.process(req.body);
-    const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);
+    const updatedPost = await PostService.updateAuthorPost(postId, userId, params, currentUser);
     if (postService.isDirectPost(updatedPost)) {
         res.send(updatedPost);
     }

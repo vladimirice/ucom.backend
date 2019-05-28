@@ -2,6 +2,7 @@
 import ApiPostProcessor = require('../../lib/common/service/api-post-processor');
 import PostsInputProcessor = require('../../lib/posts/validators/posts-input-processor');
 import DiServiceLocator = require('../../lib/api/services/di-service-locator');
+import PostService = require('../../lib/posts/post-service');
 
 const express = require('express');
 require('express-async-errors');
@@ -18,7 +19,8 @@ const orgIdParamMiddleware  =
 orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], async (req, res) => {
   PostsInputProcessor.process(req.body);
 
-  const response = await DiServiceLocator.getPostsService(req).processNewDirectPostCreationForOrg(req);
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+  const response = await PostService.processNewDirectPostCreationForOrg(req, currentUser);
 
   // backward compatibility injection
   ApiPostProcessor.setEmptyCommentsForOnePost(response, true);
