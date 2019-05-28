@@ -1,4 +1,5 @@
 "use strict";
+const errors_1 = require("../lib/api/errors");
 const UsersTrustService = require("../lib/users/service/users-trust-service");
 const UserActivityService = require("../lib/users/user-activity-service");
 const PostsInputProcessor = require("../lib/posts/validators/posts-input-processor");
@@ -7,7 +8,6 @@ const DiServiceLocator = require("../lib/api/services/di-service-locator");
 const UsersFetchService = require("../lib/users/service/users-fetch-service");
 const PostService = require("../lib/posts/post-service");
 const PostsFetchService = require("../lib/posts/service/posts-fetch-service");
-const errors_1 = require("../lib/api/errors");
 const express = require('express');
 require('express-async-errors');
 const usersRouter = express.Router();

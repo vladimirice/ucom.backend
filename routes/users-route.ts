@@ -1,4 +1,5 @@
 import { UserModel } from '../lib/users/interfaces/model-interfaces';
+import { AppError, BadRequestError } from '../lib/api/errors';
 
 import UsersTrustService = require('../lib/users/service/users-trust-service');
 import UserActivityService = require('../lib/users/user-activity-service');
@@ -8,7 +9,6 @@ import DiServiceLocator = require('../lib/api/services/di-service-locator');
 import UsersFetchService = require('../lib/users/service/users-fetch-service');
 import PostService = require('../lib/posts/post-service');
 import PostsFetchService = require('../lib/posts/service/posts-fetch-service');
-import { AppError, BadRequestError } from '../lib/api/errors';
 
 const express = require('express');
 
