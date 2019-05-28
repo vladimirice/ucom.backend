@@ -1,8 +1,9 @@
 import AffiliatesModelProvider = require('../service/affiliates-model-provider');
 import { IModelDto } from '../../common/interfaces/common-model-interfaces';
 import RepositoryHelper = require('../../common/repository/repository-helper');
-
 const { Model } = require('objection');
+
+const offersTableName = AffiliatesModelProvider.getOffersTableName();
 
 class StreamsModel extends Model implements IModelDto {
   readonly id!:           number;
@@ -27,15 +28,15 @@ class StreamsModel extends Model implements IModelDto {
   }
 
   static get relationMappings() {
-    const OffersModel = require('./offers-model');
+    const OffersModel = require('./offers-model.js');
 
     return {
-      offers: {
+      offer: {
         relation: Model.BelongsToOneRelation,
         modelClass: OffersModel,
         join: {
-          from: 'streams.offer_id',
-          to: 'offers.id',
+          from: `${this.getTableName()}.offer_id`,
+          to: `${offersTableName}.id`,
         }
       }
     }

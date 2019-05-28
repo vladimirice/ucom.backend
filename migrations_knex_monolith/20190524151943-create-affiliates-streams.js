@@ -19,9 +19,8 @@ exports.up = (knex) => {
         updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
     );  
             
-    CREATE INDEX ${STREAMS_CONSTRAINTS}_user_id_idx      ON ${STREAMS}(user_id);
-    CREATE INDEX ${STREAMS_CONSTRAINTS}_account_name_idx ON ${STREAMS}(account_name);
-    CREATE INDEX ${STREAMS_CONSTRAINTS}_offer_id_idx     ON ${STREAMS}(offer_id);
+    CREATE UNIQUE INDEX ${STREAMS_CONSTRAINTS}_user_id_account_id_offer_id_idx
+    ON ${STREAMS}(user_id, account_name, offer_id);
 
     ALTER TABLE ${STREAMS} ADD CONSTRAINT ${STREAMS_CONSTRAINTS}_check
         CHECK (created_at <= updated_at);
