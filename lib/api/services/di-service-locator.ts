@@ -1,26 +1,30 @@
 import { UserModel } from '../../users/interfaces/model-interfaces';
 
-import PostService = require('../../posts/post-service');
+import { AppError } from '../errors';
 
 class DiServiceLocator {
   public static getCurrentUserOrException(req): UserModel {
-    const service = req.container.get('current-user');
+    if (!req.currentUser) {
+      throw new AppError('User must be defined or AuthMiddleware should be used beforehand');
+    }
 
-    return service.getUserOrException();
+    return req.currentUser;
   }
 
   public static getCurrentUserIdOrException(req): number {
-    const service = req.container.get('current-user');
+    const currentUser = this.getCurrentUserOrException(req);
 
-    return service.getCurrentUserIdOrException();
+    return currentUser.id;
   }
 
-  public static getPostsService(req: any): PostService {
-    return req.container.get('post-service');
-  }
+  public static getCurrentUserIdOrNull(req): number | null{
+    const currentUser = req.currentUser;
 
-  public static getOrganizationsService(req) {
-    return req.container.get('organizations-service');
+    if (currentUser) {
+      return currentUser.id;
+    }
+
+    return null;
   }
 }
 

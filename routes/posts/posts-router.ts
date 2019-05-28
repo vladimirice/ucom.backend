@@ -6,6 +6,10 @@ import { IdOnlyDto } from '../../lib/common/interfaces/common-types';
 import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 import _ = require('lodash');
 import PostsInputProcessor = require('../../lib/posts/validators/posts-input-processor');
+import DiServiceLocator = require('../../lib/api/services/di-service-locator');
+import PostCreatorService = require('../../lib/posts/service/post-creator-service');
+import PostActivityService = require('../../lib/posts/post-activity-service');
+import PostService = require('../../lib/posts/post-service');
 
 const postsRouter = require('./comments-router');
 const { AppError, BadRequestError } = require('../../lib/api/errors');
@@ -21,25 +25,6 @@ const activityApiMiddleware   =
 
 require('express-async-errors');
 
-/**
- * @param {Object} req
- * @returns {postService}
- */
-function getPostService(req) {
-  return req.container.get('post-service');
-}
-
-function getUserService(req) {
-  return req.container.get('current-user');
-}
-
-function getCurrentUserId(req): number | null {
-  const CurrentUserService = getUserService(req);
-
-  return CurrentUserService.getCurrentUserId();
-}
-
-
 const activityMiddlewareSet: any = [
   authTokenMiddleWare,
   cpUpload,
@@ -48,7 +33,7 @@ const activityMiddlewareSet: any = [
 
 /* Get all posts */
 postsRouter.get('/', async (req, res) => {
-  const currentUserId: number | null = getCurrentUserId(req);
+  const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
   const result: PostsListResponse =
     await PostsFetchService.findManyPosts(req.query, currentUserId);
 
@@ -57,10 +42,10 @@ postsRouter.get('/', async (req, res) => {
 
 /* Get one post by ID */
 postsRouter.get('/:post_id', async (req, res) => {
-  const service = getPostService(req);
   const postId      = req.post_id;
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
 
-  const post = await service.findOnePostByIdAndProcess(postId);
+  const post = await PostsFetchService.findOnePostByIdAndProcess(postId, currentUser.id);
 
   res.send(post);
 });
@@ -74,13 +59,17 @@ postsRouter.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (
 });
 
 postsRouter.post('/:post_id/upvote', activityMiddlewareSet, async (req, res) => {
-  const result = await getPostService(req).userUpvotesPost(req.post_id, req.body);
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+
+  const result = await PostActivityService.userUpvotesPost(currentUser, req.post_id, req.body);
 
   return res.status(201).send(result);
 });
 
 postsRouter.post('/:post_id/downvote', activityMiddlewareSet, async (req, res) => {
-  const result = await getPostService(req).userDownvotesPost(req.post_id, req.body);
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+
+  const result = await PostActivityService.userDownvotesPost(currentUser, req.post_id, req.body);
 
   return res.status(201).send(result);
 });
@@ -88,8 +77,8 @@ postsRouter.post('/:post_id/downvote', activityMiddlewareSet, async (req, res) =
 postsRouter.post('/:post_id/repost', [authTokenMiddleWare, cpUpload], async (req, res) => {
   PostsInputProcessor.process(req.body);
 
-  const service = getPostService(req);
-  const response: IdOnlyDto = await service.processRepostCreation(req.body, req.post_id);
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+  const response: IdOnlyDto = await PostCreatorService.processRepostCreation(req.body, req.post_id, currentUser);
 
   res.status(201).send(response);
 });
@@ -107,7 +96,8 @@ postsRouter.post('/image', [descriptionParser], async (
 postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
   PostsInputProcessor.process(req.body);
 
-  const newPost = await getPostService(req).processNewPostCreation(req);
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+  const newPost = await PostCreatorService.processNewPostCreation(req, null, currentUser);
 
   const response = postService.isDirectPost(newPost) ? newPost : {
     id: newPost.id,
@@ -121,6 +111,7 @@ postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 postsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const userId = req.user.id;
   const postId = req.post_id;
+  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
 
   if (!_.isEmpty(req.files)) {
     throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
@@ -129,7 +120,7 @@ postsRouter.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res)
   const params = req.body;
 
   PostsInputProcessor.process(req.body);
-  const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);
+  const updatedPost = await PostService.updateAuthorPost(postId, userId, params, currentUser);
 
   if (postService.isDirectPost(updatedPost)) {
     res.send(updatedPost);

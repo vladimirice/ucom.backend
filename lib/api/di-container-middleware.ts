@@ -1,18 +1,11 @@
 /* eslint-disable promise/no-callback-in-promise */
 // tslint:disable-next-line:variable-name
-const ContainerModel = require('./di-container');
 const authService = require('../auth/authService');
 const userRepository = require('../users/users-repository');
 const { AppError } = require('../../lib/api/errors');
 
 // @ts-ignore
 export = (req, res, next) => {
-  // @ts-ignore
-  const containerModel = new ContainerModel();
-  const container = containerModel.getContainer();
-  req.container = container;
-
-  const currentUserService = container.get('current-user');
   const currentUserId = authService.extractCurrentUserByToken(req);
 
   if (!currentUserId) {
@@ -27,7 +20,7 @@ export = (req, res, next) => {
       }
 
       req.current_user_id = currentUserId;
-      currentUserService.setCurrentUser(user);
+      req.currentUser = user;
 
       next();
     }).catch(next);

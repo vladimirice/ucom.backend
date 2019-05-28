@@ -7,6 +7,8 @@ import OrganizationsRepository = require('../repository/organizations-repository
 import UsersTeamService = require('../../users/users-team-service');
 import UserActivityService = require('../../users/user-activity-service');
 import EntitySourceService = require('../../entities/service/entity-sources-service');
+import DiServiceLocator = require('../../api/services/di-service-locator');
+import { UserModel } from '../../users/interfaces/model-interfaces';
 
 const status  = require('statuses');
 const _       = require('lodash');
@@ -37,12 +39,6 @@ const activityGroupDictionary = require('../../activity/activity-group-dictionar
 const apiPostProcessor = require('../../common/service').PostProcessor;
 
 class OrganizationService {
-  private currentUser;
-
-  constructor(currentUser) {
-    this.currentUser = currentUser;
-  }
-
   /**
    *
    * @return {string}
@@ -51,17 +47,12 @@ class OrganizationService {
     return organizationsModelProvider.getEntityName();
   }
 
-  /**
-   *
-   * @param {Object} req
-   * @return {Promise<Object>}
-   */
-  public async processNewOrganizationCreation(req) {
+  public static async processNewOrganizationCreation(req, currentUser: UserModel) {
     OrganizationsInputProcessor.process(req.body);
 
     await OrganizationService.addSignedTransactionsForOrganizationCreation(req);
 
-    const body = await this.processUserRequest(req);
+    const body = await this.processUserRequest(req, currentUser);
     body.blockchain_id = req.blockchain_id;
 
     const { newOrganization, newUserActivity, boardInvitationActivity } = await db
@@ -73,7 +64,7 @@ class OrganizationService {
           newModel.id,
           OrganizationService.getEntityName(),
           body,
-          this.currentUser.id,
+          currentUser.id,
           transaction,
         );
 
@@ -82,7 +73,7 @@ class OrganizationService {
         // eslint-disable-next-line no-shadow
         const newUserActivity = await UserActivityService.processNewOrganization(
           req.signed_transaction,
-          this.currentUser.id,
+          currentUser.id,
           newModel.id,
           transaction,
         );
@@ -91,7 +82,7 @@ class OrganizationService {
         const boardInvitationActivity: any = [];
         for (let i = 0; i < usersTeamIds.length; i += 1) {
           const res = await usersActivity.processUsersBoardInvitation(
-            this.currentUser.id,
+            currentUser.id,
             usersTeamIds[i],
             newModel.id,
             transaction,
@@ -147,12 +138,7 @@ class OrganizationService {
     }
   }
 
-  /**
-   *
-   * @param {Object} req
-   * @returns {Promise<void>}
-   */
-  public async updateOrganization(req) {
+  public static async updateOrganization(req, currentUser: UserModel) {
     OrganizationsInputProcessor.process(req.body);
 
     if (_.isEmpty(req.body) && _.isEmpty(req.files)) {
@@ -162,10 +148,10 @@ class OrganizationService {
     }
 
     const orgId = req.organization_id;
-    const userId = this.currentUser.id;
+    const userId = currentUser.id;
 
     await OrganizationService.checkUpdatePermissions(orgId, userId);
-    const body = await this.processUserRequest(req);
+    const body = await this.processUserRequest(req, currentUser);
 
     const { updatedModel, boardInvitationActivity } = await db
       .transaction(async (transaction) => {
@@ -183,7 +169,7 @@ class OrganizationService {
           orgId,
           organizationsModelProvider.getEntityName(),
           body,
-          this.currentUser.id,
+          currentUser.id,
           transaction,
         );
 
@@ -201,7 +187,7 @@ class OrganizationService {
         // eslint-disable-next-line no-shadow
         let boardInvitationActivity = [];
         if (deltaData) {
-          boardInvitationActivity = await this.processUsersTeamInvitations(deltaData.added, orgId, transaction);
+          boardInvitationActivity = await this.processUsersTeamInvitations(deltaData.added, orgId, transaction, currentUser);
         }
 
         return {
@@ -215,15 +201,7 @@ class OrganizationService {
     return updatedModel;
   }
 
-  /**
-   *
-   * @param {Object[]} usersToAddFromRequest
-   * @param {number} orgId
-   * @param {Object} transaction
-   * @return {Promise<Array>}
-   * @private
-   */
-  private async processUsersTeamInvitations(usersToAddFromRequest, orgId, transaction) {
+  private static async processUsersTeamInvitations(usersToAddFromRequest, orgId, transaction, currentUser: UserModel) {
     if (!usersToAddFromRequest || _.isEmpty(usersToAddFromRequest)) {
       return [];
     }
@@ -232,7 +210,7 @@ class OrganizationService {
     const boardInvitationActivity: any = [];
     for (let i = 0; i < usersTeamIds.length; i += 1) {
       const res = await usersActivity.processUsersBoardInvitation(
-        this.currentUser.id,
+        currentUser.id,
         usersTeamIds[i],
         orgId,
         transaction,
@@ -244,12 +222,7 @@ class OrganizationService {
     return boardInvitationActivity;
   }
 
-  /**
-   *
-   * @param {number} modelId
-   * @returns {Promise<Object>}
-   */
-  async findOneOrgByIdAndProcess(modelId) {
+  public static async findOneOrgByIdAndProcess(modelId: number, currentUser: UserModel) {
     const where = {
       id: modelId,
     };
@@ -273,7 +246,7 @@ class OrganizationService {
       activityGroupDictionary.getGroupContentInteraction(),
     );
 
-    apiPostProcessor.processOneOrgFully(model, this.currentUser.id, activityData);
+    apiPostProcessor.processOneOrgFully(model, currentUser.id, activityData);
 
     // #refactor. Add to the model inside EntitySourceService
     model.social_networks      = entitySources.social_networks;
@@ -359,13 +332,7 @@ class OrganizationService {
     return string.split(subString, index).join(subString).length;
   }
 
-  /**
-   *
-   * @param {Object} req
-   * @return {Object}
-   * @private
-   */
-  private async processUserRequest(req) {
+  private static async processUserRequest(req, currentUser: UserModel) {
     const body = OrganizationService.getRequestBodyWithFilenames(req);
 
     const { error, value } = joi.validate(body, CreateOrUpdateOrganizationSchema, {
@@ -384,7 +351,7 @@ class OrganizationService {
 
     await OrganizationService.checkUniqueFields(value, req.organization_id);
 
-    value.user_id = this.currentUser.id;
+    value.user_id = currentUser.id;
 
     return value;
   }
@@ -466,7 +433,7 @@ class OrganizationService {
    * @private
    */
   private static async addSignedTransactionsForOrganizationCreation(req) {
-    const currentUser = req.container.get('current-user').user;
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
 
     req.blockchain_id = eosBlockchainUniqId.getUniqIdWithoutId('org');
     req.signed_transaction = await usersActivity.createAndSignOrganizationCreationTransaction(currentUser, req.blockchain_id);

@@ -3,6 +3,9 @@
 const ApiPostProcessor = require("../../lib/common/service/api-post-processor");
 const _ = require("lodash");
 const PostsInputProcessor = require("../../lib/posts/validators/posts-input-processor");
+const DiServiceLocator = require("../../lib/api/services/di-service-locator");
+const PostCreatorService = require("../../lib/posts/service/post-creator-service");
+const PostService = require("../../lib/posts/post-service");
 const express = require('express');
 const PostsV2Router = express.Router();
 const { AppError, BadRequestError } = require('../../lib/api/errors');
@@ -11,17 +14,11 @@ const { cpUpload } = require('../../lib/posts/post-edit-middleware');
 const postService = require('../../lib/posts/post-service');
 const postRepository = require('../../lib/posts/posts-repository');
 require('express-async-errors');
-/**
- * @param {Object} req
- * @returns {postService}
- */
-function getPostService(req) {
-    return req.container.get('post-service');
-}
 /* Create new post */
 PostsV2Router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     PostsInputProcessor.process(req.body);
-    const newPost = await getPostService(req).processNewPostCreation(req);
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+    const newPost = await PostCreatorService.processNewPostCreation(req, null, currentUser);
     const response = postService.isDirectPost(newPost) ? newPost : {
         id: newPost.id,
     };
@@ -32,12 +29,13 @@ PostsV2Router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
 PostsV2Router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const userId = req.user.id;
     const postId = req.post_id;
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
     if (!_.isEmpty(req.files)) {
         throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
     }
     const params = req.body;
     PostsInputProcessor.process(params);
-    const updatedPost = await getPostService(req).updateAuthorPost(postId, userId, params);
+    const updatedPost = await PostService.updateAuthorPost(postId, userId, params, currentUser);
     if (postService.isDirectPost(updatedPost)) {
         ApiPostProcessor.deleteCommentsFromModel(updatedPost);
         res.send(updatedPost);

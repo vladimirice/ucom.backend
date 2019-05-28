@@ -1,3 +1,5 @@
+import BlockchainApiFetchService = require('../../lib/blockchain-nodes/service/blockchain-api-fetch-service');
+
 const express = require('express');
 require('express-async-errors');
 
@@ -9,17 +11,11 @@ const { BadRequestError } = require('../../lib/api/errors');
 
 const { formDataParser }  = require('../../lib/api/middleware/form-data-parser-middleware');
 
-function getBlockchainService(req) {
-  return req.container.get('blockchain-service');
-}
-
 router.get('/nodes', async (req, res) => {
-  const service = getBlockchainService(req);
-
   // backward compatibility
   req.query.blockchain_nodes_type = Dictionary.BlockchainNodes.typeBlockProducer();
 
-  const response = await service.getAndProcessNodes(req.query);
+  const response = await BlockchainApiFetchService.getAndProcessNodes(req.query);
 
   res.send(response);
 });
