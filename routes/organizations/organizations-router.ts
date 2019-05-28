@@ -10,6 +10,7 @@ import ActivityApiMiddleware = require('../../lib/activity/middleware/activity-a
 import PostService = require('../../lib/posts/post-service');
 import OrganizationService = require('../../lib/organizations/service/organization-service');
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 
 const express = require('express');
 const status  = require('statuses');
@@ -38,6 +39,25 @@ const activityMiddlewareSet: any = [
   cpUploadArray,
   ActivityApiMiddleware.redlockBeforeActivity,
 ];
+
+// @deprecated @see GraphQL
+orgRouter.get('/:organization_id', async (req, res) => {
+  const targetId = req.organization_id;
+
+  const currentUser = DiServiceLocator.getCurrentUserOrNull(req);
+  const response = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
+
+  res.send(response);
+});
+
+orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {
+  const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
+
+  const response =
+    await PostsFetchService.findAndProcessAllForOrgWallFeed(req.organization_id, currentUserId, req.query);
+
+  res.send(response);
+});
 
 /* Create post for this organization */
 orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], async (req, res) => {

@@ -6,6 +6,7 @@ import DiServiceLocator = require('../lib/api/services/di-service-locator');
 import { UserModel } from '../lib/users/interfaces/model-interfaces';
 import UsersFetchService = require('../lib/users/service/users-fetch-service');
 import PostService = require('../lib/posts/post-service');
+import PostsFetchService = require('../lib/posts/service/posts-fetch-service');
 
 const express = require('express');
 
@@ -20,6 +21,7 @@ const userService = require('../lib/users/users-service');
 const usersApiMiddleware = require('../lib/users/middleware/users-api-middleware');
 
 const { cpUpload } = require('../lib/posts/post-edit-middleware');
+const { bodyParser } = require('../lib/users/middleware').AvatarUpload;
 
 const activityMiddlewareSet: any = [
   authTokenMiddleWare,
@@ -39,16 +41,16 @@ usersRouter.get('/search', async (req, res) => {
 /* GET all users */
 usersRouter.get('/', async (req, res) => {
 
-  const currentUser: UserModel = DiServiceLocator.getCurrentUserOrException(req);
-  const users = await UsersFetchService.findAllAndProcessForList(req.query, currentUser.id);
+  const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
+  const users = await UsersFetchService.findAllAndProcessForList(req.query, currentUserId);
 
   res.send(users);
 });
 
 /* get one user */
 usersRouter.get('/:user_id', async (req, res) => {
-  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-  const user: UserModel = await UsersFetchService.findOneAndProcessFully(req.user_id, currentUser.id);
+  const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
+  const user: UserModel = await UsersFetchService.findOneAndProcessFully(req.user_id, currentUserId);
 
   res.send(user);
 });
@@ -59,6 +61,18 @@ usersRouter.post('/:user_id/posts', [authTokenMiddleWare, cpUpload], async (req,
 
   const currentUser = DiServiceLocator.getCurrentUserOrException(req);
   const response = await PostService.processNewDirectPostCreationForUser(req, currentUser);
+
+  res.send(response);
+});
+
+/* GET wall feed for user */
+usersRouter.get('/:user_id/wall-feed', [bodyParser], async (req, res) => {
+  const userId = req.user_id;
+  const { query } = req;
+
+  const currentUserId = DiServiceLocator.getCurrentUserIdOrNull(req);
+
+  const response = await PostsFetchService.findAndProcessAllForUserWallFeed(userId, currentUserId, query);
 
   res.send(response);
 });

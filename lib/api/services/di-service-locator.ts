@@ -26,6 +26,12 @@ class DiServiceLocator {
 
     return null;
   }
+
+  public static getCurrentUserOrNull(req): UserModel | null{
+    const currentUser = req.currentUser;
+
+    return currentUser ? currentUser : null;
+  }
 }
 
 export = DiServiceLocator;

@@ -222,7 +222,7 @@ class OrganizationService {
     return boardInvitationActivity;
   }
 
-  public static async findOneOrgByIdAndProcess(modelId: number, currentUser: UserModel) {
+  public static async findOneOrgByIdAndProcess(modelId: number, currentUser: UserModel | null) {
     const where = {
       id: modelId,
     };
@@ -246,7 +246,9 @@ class OrganizationService {
       activityGroupDictionary.getGroupContentInteraction(),
     );
 
-    apiPostProcessor.processOneOrgFully(model, currentUser.id, activityData);
+    const currentUserId = currentUser ? currentUser.id : null;
+
+    apiPostProcessor.processOneOrgFully(model, currentUserId, activityData);
 
     // #refactor. Add to the model inside EntitySourceService
     model.social_networks      = entitySources.social_networks;

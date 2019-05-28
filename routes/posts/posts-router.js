@@ -29,8 +29,8 @@ postsRouter.get('/', async (req, res) => {
 /* Get one post by ID */
 postsRouter.get('/:post_id', async (req, res) => {
     const postId = req.post_id;
-    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const post = await PostsFetchService.findOnePostByIdAndProcess(postId, currentUser.id);
+    const currentUserId = DiServiceLocator.getCurrentUserIdOrNull(req);
+    const post = await PostsFetchService.findOnePostByIdAndProcess(postId, currentUserId);
     res.send(post);
 });
 postsRouter.post('/:post_id/join', [authTokenMiddleWare, cpUpload], async (

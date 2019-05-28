@@ -4,6 +4,7 @@ const EntityNotificationsService = require("../lib/entities/service/entity-notif
 const BlockchainTrTracesFetchService = require("../lib/eos/service/tr-traces-service/blockchain-tr-traces-fetch-service");
 const UsersFetchService = require("../lib/users/service/users-fetch-service");
 const UsersService = require("../lib/users/users-service");
+const PostsFetchService = require("../lib/posts/service/posts-fetch-service");
 const express = require('express');
 require('express-async-errors');
 const router = express.Router();
@@ -19,6 +20,12 @@ router.get('/', [authTokenMiddleWare], async (req, res) => {
 router.get('/blockchain/transactions', [authTokenMiddleWare], async (req, res) => {
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
     const response = BlockchainTrTracesFetchService.getAndProcessOneUserTraces(req.query, currentUser.account_name);
+    res.send(response);
+});
+router.get('/news-feed', [authTokenMiddleWare], async (req, res) => {
+    const { query } = req;
+    const currentUserId = DiServiceLocator.getCurrentUserIdOrException(req);
+    const response = await PostsFetchService.findAndProcessAllForMyselfNewsFeed(query, currentUserId);
     res.send(response);
 });
 router.get('/notifications', [authTokenMiddleWare], async (req, res) => {

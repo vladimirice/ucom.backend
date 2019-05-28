@@ -4,6 +4,7 @@ import BlockchainTrTracesFetchService = require('../lib/eos/service/tr-traces-se
 import UsersFetchService = require('../lib/users/service/users-fetch-service');
 import { UserModel } from '../lib/users/interfaces/model-interfaces';
 import UsersService = require('../lib/users/users-service');
+import PostsFetchService = require('../lib/posts/service/posts-fetch-service');
 
 const express = require('express');
 require('express-async-errors');
@@ -27,6 +28,15 @@ router.get('/blockchain/transactions', [authTokenMiddleWare], async (req, res) =
   const currentUser = DiServiceLocator.getCurrentUserOrException(req);
 
   const response = BlockchainTrTracesFetchService.getAndProcessOneUserTraces(req.query, currentUser.account_name);
+
+  res.send(response);
+});
+
+router.get('/news-feed', [authTokenMiddleWare], async (req, res) => {
+  const { query } = req;
+
+  const currentUserId = DiServiceLocator.getCurrentUserIdOrException(req);
+  const response = await PostsFetchService.findAndProcessAllForMyselfNewsFeed(query, currentUserId);
 
   res.send(response);
 });
