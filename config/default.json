@@ -91,7 +91,8 @@
       "http://localhost:8080",
       "http://localhost",
       "https://staging.u.community",
-      "https://u.community"
+      "https://u.community",
+      "https://u.today"
     ]
   }
 }

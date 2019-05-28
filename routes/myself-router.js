@@ -19,7 +19,7 @@ router.get('/', [authTokenMiddleWare], async (req, res) => {
 /* Get myself blockchain transactions */
 router.get('/blockchain/transactions', [authTokenMiddleWare], async (req, res) => {
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const response = BlockchainTrTracesFetchService.getAndProcessOneUserTraces(req.query, currentUser.account_name);
+    const response = await BlockchainTrTracesFetchService.getAndProcessOneUserTraces(req.query, currentUser.account_name);
     res.send(response);
 });
 router.get('/news-feed', [authTokenMiddleWare], async (req, res) => {

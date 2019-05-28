@@ -22,6 +22,7 @@ function processError(err: AppError) {
   }
 
   // #task - this is because of registration error. err is got as string
+  // noinspection SuspiciousTypeOfGuard
   if (typeof err === 'string') {
     return {
       status: 500,
@@ -82,4 +83,8 @@ export = (
   }
 
   res.status(status).send(payload);
+
+  if (status === 500) {
+    process.exit(1);
+  }
 };

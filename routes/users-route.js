@@ -1,4 +1,5 @@
 "use strict";
+const errors_1 = require("../lib/api/errors");
 const UsersTrustService = require("../lib/users/service/users-trust-service");
 const UserActivityService = require("../lib/users/user-activity-service");
 const PostsInputProcessor = require("../lib/posts/validators/posts-input-processor");
@@ -32,6 +33,14 @@ usersRouter.get('/', async (req, res) => {
     const currentUserId = DiServiceLocator.getCurrentUserIdOrNull(req);
     const users = await UsersFetchService.findAllAndProcessForList(req.query, currentUserId);
     res.send(users);
+});
+// @ts-ignore
+usersRouter.get('/test500error', async (req, res) => {
+    throw new errors_1.AppError('This is an error for tests - 500');
+});
+// @ts-ignore
+usersRouter.get('/test400error', async (req, res) => {
+    throw new errors_1.BadRequestError('This is an error for tests - 400');
 });
 /* get one user */
 usersRouter.get('/:user_id', async (req, res) => {

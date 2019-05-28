@@ -1,4 +1,5 @@
 import { UserModel } from '../lib/users/interfaces/model-interfaces';
+import { AppError, BadRequestError } from '../lib/api/errors';
 
 import UsersTrustService = require('../lib/users/service/users-trust-service');
 import UserActivityService = require('../lib/users/user-activity-service');
@@ -45,6 +46,16 @@ usersRouter.get('/', async (req, res) => {
   const users = await UsersFetchService.findAllAndProcessForList(req.query, currentUserId);
 
   res.send(users);
+});
+
+// @ts-ignore
+usersRouter.get('/test500error', async (req, res) => {
+  throw new AppError('This is an error for tests - 500');
+});
+
+// @ts-ignore
+usersRouter.get('/test400error', async (req, res) => {
+  throw new BadRequestError('This is an error for tests - 400');
 });
 
 /* get one user */

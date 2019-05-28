@@ -1,5 +1,5 @@
-import BlockchainService = require('../../../lib/eos/service/blockchain-service');
 import _ = require('lodash');
+import BlockchainCacheService = require('../../../lib/blockchain-nodes/service/blockchain-cache-service');
 
 // @ts-ignore
 const { BlockchainNodes, Dictionary } = require('ucom-libs-wallet');
@@ -84,7 +84,7 @@ class BlockchainNodesMock {
       _.cloneDeep(addToVoteCalculators),
     );
 
-    await BlockchainService.updateBlockchainNodesByBlockchain();
+    await BlockchainCacheService.updateBlockchainNodesByBlockchain();
 
     return {
       addToVoteBlockProducers,

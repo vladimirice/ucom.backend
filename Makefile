@@ -36,6 +36,9 @@ docker-rebuild:
 pm2-reload-test-ecosystem pmt:
 	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
 
+pm2-reload-production-ecosystem:
+	ssh gt 'bash -s' < ./scripts/deployment/pm2-reload-production.sh
+
 docker-npm-ci:
 	${DOCKER_B_EXEC_CMD} npm ci
 
