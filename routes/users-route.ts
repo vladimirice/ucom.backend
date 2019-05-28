@@ -1,9 +1,10 @@
+import { UserModel } from '../lib/users/interfaces/model-interfaces';
+
 import UsersTrustService = require('../lib/users/service/users-trust-service');
 import UserActivityService = require('../lib/users/user-activity-service');
 import PostsInputProcessor = require('../lib/posts/validators/posts-input-processor');
 import ActivityApiMiddleware = require('../lib/activity/middleware/activity-api-middleware');
 import DiServiceLocator = require('../lib/api/services/di-service-locator');
-import { UserModel } from '../lib/users/interfaces/model-interfaces';
 import UsersFetchService = require('../lib/users/service/users-fetch-service');
 import PostService = require('../lib/posts/post-service');
 import PostsFetchService = require('../lib/posts/service/posts-fetch-service');
@@ -40,7 +41,6 @@ usersRouter.get('/search', async (req, res) => {
 
 /* GET all users */
 usersRouter.get('/', async (req, res) => {
-
   const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
   const users = await UsersFetchService.findAllAndProcessForList(req.query, currentUserId);
 

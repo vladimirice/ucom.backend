@@ -1,8 +1,9 @@
+import { UserModel } from '../lib/users/interfaces/model-interfaces';
+
 import DiServiceLocator = require('../lib/api/services/di-service-locator');
 import EntityNotificationsService = require('../lib/entities/service/entity-notifications-service');
 import BlockchainTrTracesFetchService = require('../lib/eos/service/tr-traces-service/blockchain-tr-traces-fetch-service');
 import UsersFetchService = require('../lib/users/service/users-fetch-service');
-import { UserModel } from '../lib/users/interfaces/model-interfaces';
 import UsersService = require('../lib/users/users-service');
 import PostsFetchService = require('../lib/posts/service/posts-fetch-service');
 
