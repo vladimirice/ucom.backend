@@ -5,20 +5,26 @@ const { Model } = require('objection');
 
 const offersTableName = AffiliatesModelProvider.getOffersTableName();
 const streamsTableName = AffiliatesModelProvider.getStreamsTableName();
+const clicksTableName = AffiliatesModelProvider.getClicksTableName();
 
-class ClicksModel extends Model implements IModelDto {
-  readonly id!:             number;
+class ConversionsModel extends Model implements IModelDto {
+  readonly id!:                 number;
 
-  readonly offer_id!:       number;
-  readonly stream_id!:      number;
-  readonly user_unique_id!: number;
-  readonly json_headers!:   unknown;
-  readonly referer!:        string;
+  readonly offer_id!:           number;
+  readonly stream_id!:          number;
+  readonly click_id!:           number;
 
-  readonly created_at!:   Date;
+  readonly users_activity_id!:  number;
+  readonly user_id!:            number;
+  readonly status!:             number;
+
+  readonly json_headers!:       unknown;
+  readonly referer!:            string;
+
+  readonly created_at!:         Date;
 
   public static getTableName(): string {
-    return AffiliatesModelProvider.getClicksTableName();
+    return AffiliatesModelProvider.getConversionsTableName();
   }
 
   $afterGet() {
@@ -30,8 +36,9 @@ class ClicksModel extends Model implements IModelDto {
   }
 
   static get relationMappings() {
-    const OffersModel = require('./offers-model');
-    const StreamsModel = require('./streams-model');
+    const OffersModel   = require('./offers-model');
+    const StreamsModel  = require('./streams-model');
+    const ClicksModel   = require('./clicks-model');
 
     return {
       offer: {
@@ -50,6 +57,14 @@ class ClicksModel extends Model implements IModelDto {
           to: `${streamsTableName}.id`,
         }
       },
+      click: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: ClicksModel,
+        join: {
+          from: `${this.getTableName()}.click_id`,
+          to: `${clicksTableName}.id`,
+        }
+      },
     }
   }
 
@@ -58,8 +73,12 @@ class ClicksModel extends Model implements IModelDto {
       'id',
       'offer_id',
       'stream_id',
+      'click_id',
+      'users_activity_id',
+      'user_id',
+      'status',
     ];
   }
 }
 
-export = ClicksModel;
+export = ConversionsModel;

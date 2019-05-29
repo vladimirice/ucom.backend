@@ -28,7 +28,7 @@ class StreamsModel extends Model implements IModelDto {
   }
 
   static get relationMappings() {
-    const OffersModel = require('./offers-model.js');
+    const OffersModel = require('./offers-model');
 
     return {
       offer: {
