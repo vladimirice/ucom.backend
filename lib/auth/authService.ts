@@ -44,6 +44,10 @@ class AuthService {
     return jwt.sign(_.pick(user, ['id', 'account_name']), config.get('auth').jwt_secret_key);
   }
 
+  public static signDataAndGetJwtToken(toSign: any): string {
+    return jwt.sign(toSign, authConfig.jwt_secret_key);
+  }
+
   public static getNewGithubAuthToken(externalUsersId: number, expirationInDays: number): string {
     const toSign = {
       externalUsersId,
@@ -68,6 +72,18 @@ class AuthService {
     } catch (err) {
       if (err.message === 'invalid signature') {
         throw new AppError('Auth is required', 401);
+      }
+
+      throw err;
+    }
+  }
+
+  public static extractJwtDataOrUnauthorizedError(jwtToken: string): any {
+    try {
+      return jwt.verify(jwtToken, authConfig.jwt_secret_key);
+    } catch (err) {
+      if (err.message === 'invalid signature' || err.message === 'jwt malformed') {
+        throw new HttpUnauthorizedError('Provided token is not valid');
       }
 
       throw err;

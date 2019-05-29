@@ -3,8 +3,8 @@ import OffersModel = require('../models/offers-model');
 import StreamsModel = require('../models/streams-model');
 
 class RedirectService {
-  public static async process(req: any) {
-    const {offerHash, streamIdentity} = this.extractParams(req);
+  public static async process(request: any) {
+    const {offerHash, streamIdentity} = this.extractParams(request);
 
     const [offer, stream] = await Promise.all([
       OffersModel.query().findOne({ hash: offerHash }),

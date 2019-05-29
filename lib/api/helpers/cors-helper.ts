@@ -5,7 +5,7 @@ const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 const defaultCorsParams = {
   methods: 'GET,POST,OPTIONS,PUT,PATCH,DELETE',
-  allowedHeaders: `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`,
+  allowedHeaders: `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie,${CommonHeaders.UNIQUE_ID}`,
   credentials: true,
 };
 

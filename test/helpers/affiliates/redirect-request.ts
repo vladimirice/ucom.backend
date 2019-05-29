@@ -5,12 +5,24 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 const request = require('supertest');
 const { app:server } = require('../../../lib/affiliates/applications/redirect-application');
 
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
+
 class RedirectRequest {
-  static async makeRedirectRequest(offer: OffersModel, user: UserModel) {
+  public static async makeRedirectRequest(
+    offer: OffersModel,
+    user: UserModel,
+    uniqueIdJwtToken: string | null = null,
+  ) {
     const url: string = `/${offer.hash}/${user.account_name}`;
 
     const req = request(server)
-      .get(url);
+      .get(url)
+    ;
+
+    if (uniqueIdJwtToken) {
+      req
+        .set('Cookie', [`${CommonHeaders.UNIQUE_ID}=${uniqueIdJwtToken}`])
+    }
 
     const res = await req;
     responseHelper.expectStatusTempRedirect(res);

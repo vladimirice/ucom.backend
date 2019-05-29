@@ -9,6 +9,7 @@ import RedirectRequest = require('../../helpers/affiliates/redirect-request');
 import AffiliatesGenerator = require('./affiliates-generator');
 import CommonChecker = require('../../helpers/common/common-checker');
 import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
+import RedirectChecker = require('../../helpers/affiliates/redirect-checker');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -37,38 +38,32 @@ describe('Affiliates', () => {
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
 
-    const generatedData = await AffiliatesGenerator.createPostAndOffer(userVlad);
-    offer = generatedData.offer;
+    ({offer} = await AffiliatesGenerator.createPostAndOffer(userVlad));
 
     await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
   });
 
+
   describe('Positive', () => {
     it('make a redirect request', async () => {
-      await RedirectRequest.makeRedirectRequest(offer, userVlad);
+      const redirectResponse = await RedirectRequest.makeRedirectRequest(offer, userVlad);
+      const uniqueId = RedirectChecker.checkUniqueIdCookieAndGetUniqueId(redirectResponse);
 
       const stream: StreamsModel = await StreamsModel.query().findOne({
         user_id:  userVlad.id,
         offer_id: offer.id
       });
 
-      // TODO - check user unique ID - fetch click by it
-      // stream must be created if does not exist yet
+      // TODO - a click should be created
+      // TODO - a link should be correct
       const clicks: ClicksModel[] = await ClicksModel.query().where({
         offer_id:       offer.id,
         stream_id:      stream.id,
+        user_unique_id: uniqueId,
       });
 
       CommonChecker.expectNotEmpty(clicks);
       CommonChecker.expectOnlyOneItem(clicks);
-
-
-
-      // TODO - should be a cookie with uniqid inside
-      // TODO - a click should be created
-      // TODO - a link should be correct
-
-
     }, JEST_TIMEOUT_DEBUG);
 
     it('If cookie already exists no uniqid changes should happen', async () => {
