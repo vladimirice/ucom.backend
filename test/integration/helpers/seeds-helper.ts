@@ -16,7 +16,10 @@ import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
 import UsersTeamRepository = require('../../../lib/users/repository/users-team-repository');
 import EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
-import AffiliatesModelProvider = require('../../../lib/affiliates/service/affiliates-model-provider');
+import StreamsModel = require('../../../lib/affiliates/models/streams-model');
+import OffersModel = require('../../../lib/affiliates/models/offers-model');
+import ClicksModel = require('../../../lib/affiliates/models/clicks-model');
+import ConversionsModel = require('../../../lib/affiliates/models/conversions-model');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -69,7 +72,7 @@ const minorTablesToSkipSequences = [
 
 // Truncated async
 const minorTables = [
-  AffiliatesModelProvider.getConversionsTableName(),
+  ConversionsModel.getTableName(),
 
   EntityModelProvider.getNotificationsTableName(),
   UsersTeamRepository.getModelName(),
@@ -125,9 +128,9 @@ const minorTables = [
 
 // Truncated in order
 const majorTables = [
-  AffiliatesModelProvider.getClicksTableName(),
-  AffiliatesModelProvider.getStreamsTableName(),
-  AffiliatesModelProvider.getOffersTableName(),
+  ClicksModel.getTableName(),
+  StreamsModel.getTableName(),
+  OffersModel.getTableName(),
 
   usersRepositories.Activity.getModelName(),
 

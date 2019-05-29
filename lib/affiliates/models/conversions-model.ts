@@ -1,11 +1,6 @@
-import AffiliatesModelProvider = require('../service/affiliates-model-provider');
 import { IModelDto } from '../../common/interfaces/common-model-interfaces';
 import RepositoryHelper = require('../../common/repository/repository-helper');
 const { Model } = require('objection');
-
-const offersTableName = AffiliatesModelProvider.getOffersTableName();
-const streamsTableName = AffiliatesModelProvider.getStreamsTableName();
-const clicksTableName = AffiliatesModelProvider.getClicksTableName();
 
 class ConversionsModel extends Model implements IModelDto {
   readonly id!:                 number;
@@ -24,7 +19,7 @@ class ConversionsModel extends Model implements IModelDto {
   readonly created_at!:         Date;
 
   public static getTableName(): string {
-    return AffiliatesModelProvider.getConversionsTableName();
+    return 'affiliates.conversions';
   }
 
   $afterGet() {
@@ -46,7 +41,7 @@ class ConversionsModel extends Model implements IModelDto {
         modelClass: OffersModel,
         join: {
           from: `${this.getTableName()}.offer_id`,
-          to: `${offersTableName}.id`,
+          to: `${OffersModel.getTableName()}.id`,
         }
       },
       stream: {
@@ -54,7 +49,7 @@ class ConversionsModel extends Model implements IModelDto {
         modelClass: StreamsModel,
         join: {
           from: `${this.getTableName()}.stream_id`,
-          to: `${streamsTableName}.id`,
+          to: `${StreamsModel.getTableName()}.id`,
         }
       },
       click: {
@@ -62,7 +57,7 @@ class ConversionsModel extends Model implements IModelDto {
         modelClass: ClicksModel,
         join: {
           from: `${this.getTableName()}.click_id`,
-          to: `${clicksTableName}.id`,
+          to: `${ClicksModel.getTableName()}.id`,
         }
       },
     }

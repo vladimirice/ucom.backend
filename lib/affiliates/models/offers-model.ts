@@ -1,8 +1,8 @@
-import AffiliatesModelProvider = require('../service/affiliates-model-provider');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import { IModelDto } from '../../common/interfaces/common-model-interfaces';
 
 const { Model } = require('objection');
+import Hashids = require('hashids');
 
 class OffersModel extends Model implements IModelDto {
   readonly id!:               number;
@@ -14,6 +14,7 @@ class OffersModel extends Model implements IModelDto {
   readonly event_id!:         number;
   readonly participation_id!: number;
   readonly url_template!:     number;
+  readonly hash!:             string;
 
   readonly created_at!:       Date;
   readonly updated_at!:       Date;
@@ -28,8 +29,23 @@ class OffersModel extends Model implements IModelDto {
     );
   }
 
+  async $afterInsert() {
+    RepositoryHelper.convertStringFieldsToNumbers(
+      this,
+      this.getNumericalFields(),
+      this.getNumericalFields(),
+    );
+
+    await this.generateHash();
+  }
+
+  async $beforeInsert() {
+    // @ts-ignore
+    this.hash = 'hash';
+  }
+
   public static getTableName(): string {
-    return AffiliatesModelProvider.getOffersTableName();
+    return 'affiliates.offers';
   }
 
   public getNumericalFields(): string[] {
@@ -41,6 +57,16 @@ class OffersModel extends Model implements IModelDto {
       'event_id',
       'participation_id',
     ];
+  }
+
+  private async generateHash(): Promise<void> {
+    const hashids = new Hashids();
+
+    const hash = hashids.encode(+this.id);
+
+    await this
+      .$query()
+      .patch({ hash });
   }
 }
 

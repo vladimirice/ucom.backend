@@ -1,29 +1,26 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
-import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-users-generator');
 import PostsGenerator = require('../../generators/posts-generator');
-import OffersModel = require('../../../lib/affiliates/models/offers-model');
-import knex = require('../../../config/knex');
-
-import { Model } from 'objection';
-import DatetimeHelper = require('../../../lib/common/helper/datetime-helper');
-import moment = require('moment');
-import AffiliatesModelProvider = require('../../../lib/affiliates/service/affiliates-model-provider');
 import StreamsModel = require('../../../lib/affiliates/models/streams-model');
 import ClicksModel = require('../../../lib/affiliates/models/clicks-model');
 import ConversionsModel = require('../../../lib/affiliates/models/conversions-model');
+import RedirectRequest = require('../../helpers/affiliates/redirect-request');
+import AffiliatesGenerator = require('./affiliates-generator');
+import CommonChecker = require('../../helpers/common/common-checker');
+import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
 
 let userVlad: UserModel;
 let userJane: UserModel;
 
-
 const uniqid = require('uniqid');
 
 const beforeAfterOptions = {
-  isGraphQl: true,
+  isGraphQl: false,
   workersMocking: 'all',
 };
+
+let offer;
 
 const JEST_TIMEOUT = 1000;
 // @ts-ignore
@@ -39,40 +36,52 @@ describe('Affiliates', () => {
   });
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
-    await AirdropsUsersGenerator.generateForVladAndJane();
-    await AirdropsUsersGenerator.generateForVladAndJaneRoundTwo();
+
+    const generatedData = await AffiliatesGenerator.createPostAndOffer(userVlad);
+    offer = generatedData.offer;
+
+    await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
+  });
+
+  describe('Positive', () => {
+    it('make a redirect request', async () => {
+      await RedirectRequest.makeRedirectRequest(offer, userVlad);
+
+      const stream: StreamsModel = await StreamsModel.query().findOne({
+        user_id:  userVlad.id,
+        offer_id: offer.id
+      });
+
+      // TODO - check user unique ID - fetch click by it
+      // stream must be created if does not exist yet
+      const clicks: ClicksModel[] = await ClicksModel.query().where({
+        offer_id:       offer.id,
+        stream_id:      stream.id,
+      });
+
+      CommonChecker.expectNotEmpty(clicks);
+      CommonChecker.expectOnlyOneItem(clicks);
+
+
+
+      // TODO - should be a cookie with uniqid inside
+      // TODO - a click should be created
+      // TODO - a link should be correct
+
+
+    }, JEST_TIMEOUT_DEBUG);
+
+    it('If cookie already exists no uniqid changes should happen', async () => {
+      // TODO
+    }, JEST_TIMEOUT_DEBUG);
   });
 
 
   it('sample', async () => {
-    const startedAt = DatetimeHelper.getMomentInUtcString(moment().add(2, 'days'));
-    const finishedAt = DatetimeHelper.getMomentInUtcString(moment().add(14, 'days'));
-
     // @ts-ignore
     const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-    // @ts-ignore
-    const fresh = await knex(AffiliatesModelProvider.getOffersTableName())
-      .insert({
-        started_at: startedAt,
-        finished_at: finishedAt,
-
-        post_id: postId,
-        status: 1,
-        title: 'sample offer',
-        attribution_id: 1,
-        event_id: 1,
-        participation_id: 1,
-        url_template: 'sample_template',
-      });
-
-
-    Model.knex(knex);
-
-    // @ts-ignore
-    const models: OffersModel[] = await OffersModel.query();
-
-    const first: OffersModel = models[0];
+    const { offer } = await AffiliatesGenerator.createPostAndOffer(userVlad);
 
     // @ts-ignore
     const freshStream = await StreamsModel
@@ -80,7 +89,7 @@ describe('Affiliates', () => {
       .insert({
         user_id: userVlad.id,
         account_name: userVlad.account_name,
-        offer_id: first.id,
+        offer_id: offer.id,
       });
 
     // @ts-ignore
@@ -89,14 +98,14 @@ describe('Affiliates', () => {
       .insert({
         user_id: userJane.id,
         account_name: userJane.account_name,
-        offer_id: first.id,
+        offer_id: offer.id,
       });
 
 
     const freshClick = await ClicksModel
       .query()
       .insert({
-        offer_id: first.id,
+        offer_id: offer.id,
         stream_id: freshStream.id,
         user_unique_id: uniqid(),
         json_headers: {header: 'value'},
@@ -106,7 +115,7 @@ describe('Affiliates', () => {
     await ConversionsModel
       .query()
       .insert({
-        offer_id: first.id,
+        offer_id: offer.id,
         stream_id: freshStream.id,
         click_id: freshClick.id,
         users_activity_id: 1,
