@@ -6,7 +6,7 @@ const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 const uniqueIdGenerator = require('uniqid');
 
 class AffiliateUniqueIdService {
-  public static processUniqIdCookie(request: any, response: any) {
+  public static processUniqIdCookie(request: any, response: any): string {
     // @ts-ignore
     const { jwtToken, uniqueId } = this.getJwtTokenAndUniqueId(request);
 
@@ -18,8 +18,10 @@ class AffiliateUniqueIdService {
         httpOnly: true,
         secure: true,
         domain: HttpRequestHelper.getCookieDomain(request),
-      },
+      }
     );
+
+    return uniqueId;
   }
 
   private static extractUniqueIdFromJwtToken(jwtToken: string): string {
@@ -43,6 +45,16 @@ class AffiliateUniqueIdService {
 
   public static getNewJwtTokenAndUniqueId(): { uniqueId: string, jwtToken: string } {
     const uniqueId: string = uniqueIdGenerator();
+
+    const jwtToken = this.generateJwtTokenWithUniqueId(uniqueId);
+
+    return {
+      jwtToken,
+      uniqueId,
+    }
+  }
+
+  public static generateJwtTokenWithUniqueId(uniqueId: string): string {
     const createdAt: string = DatetimeHelper.currentDatetime();
 
     const toSign = {
@@ -50,12 +62,7 @@ class AffiliateUniqueIdService {
       uniqueId,
     };
 
-    const jwtToken = AuthService.signDataAndGetJwtToken(toSign);
-
-    return {
-      jwtToken,
-      uniqueId,
-    }
+    return AuthService.signDataAndGetJwtToken(toSign);
   }
 
   private static getUniqIdCookieExpiration(): number {

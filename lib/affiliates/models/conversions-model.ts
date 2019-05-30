@@ -1,5 +1,8 @@
 import { IModelDto } from '../../common/interfaces/common-model-interfaces';
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import OffersModel = require('./offers-model');
+import ClicksModel = require('./clicks-model');
+import StreamsModel = require('./streams-model');
 const { Model } = require('objection');
 
 class ConversionsModel extends Model implements IModelDto {
@@ -17,6 +20,10 @@ class ConversionsModel extends Model implements IModelDto {
   readonly referer!:            string;
 
   readonly created_at!:         Date;
+
+  readonly offer!:  OffersModel;
+  readonly stream!: StreamsModel;
+  readonly click!:  ClicksModel;
 
   public static getTableName(): string {
     return 'affiliates.conversions';

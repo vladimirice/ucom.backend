@@ -1,17 +1,14 @@
 import RedirectService = require('../service/redirect-service');
-import AffiliateUniqueIdService = require('../service/affiliate-unique-id-service');
+import StreamsModel = require('../models/streams-model');
 const express = require('express');
 require('express-async-errors');
 
 const RedirectRouter = express.Router();
 
-// @ts-ignore
 RedirectRouter.get('/:offerHash/:streamIdentity', async (req, res) => {
-  AffiliateUniqueIdService.processUniqIdCookie(req, res);
+  const stream: StreamsModel = await RedirectService.process(req, res);
 
-  await RedirectService.process(req);
-
-  res.redirect('https://app.example.io');
+  res.redirect(stream.redirect_url);
 });
 
 export = RedirectRouter;

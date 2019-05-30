@@ -116,6 +116,16 @@ module.exports = {
     },
     // ================ Workers (CRON) ======================
     {
+      name: `${NODE_ENV}-worker-streams-creation`,
+      script: 'lib/affiliates/workers/streams-creation-worker.js',
+
+      watch: false,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      env: {
+        NODE_ENV,
+      },
+    },
+    {
       name: `${NODE_ENV}-worker-balances-monitoring`,
       script: 'lib/airdrops/workers/monitoring/balances-monitoring.js',
 

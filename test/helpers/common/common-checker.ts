@@ -10,6 +10,10 @@ class CommonChecker {
     expect(_.isEmpty(object)).toBeFalsy();
   }
 
+  public static expectEmpty(object: any) {
+    expect(_.isEmpty(object)).toBeTruthy();
+  }
+
   public static expectOnlyOneItem(array: any[]): void {
     expect(array.length).toBe(1);
   }

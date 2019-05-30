@@ -9,15 +9,14 @@ exports.up = (knex) => {
     (
       id              BIGSERIAL NOT NULL
                       CONSTRAINT ${CLICKS_CONSTRAINTS}_pkey PRIMARY KEY,
-
-      created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-
       offer_id        BIGINT NOT NULL REFERENCES affiliates.offers(id) ON DELETE RESTRICT,
       stream_id       BIGINT NOT NULL REFERENCES affiliates.streams(id) ON DELETE RESTRICT,
-      user_unique_id  VARCHAR(255) NOT NULL, 
 
-      json_headers JSONB NOT NULL,
-      referer VARCHAR(1024) NOT NULL
+      user_unique_id  VARCHAR(255) NOT NULL, 
+      referer         VARCHAR(1024) NOT NULL,
+      
+      json_headers    JSONB NOT NULL,
+      created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
     );
 
     CREATE INDEX ${CLICKS_CONSTRAINTS}_offer_id_idx ON ${CLICKS}(offer_id);
@@ -27,7 +26,6 @@ exports.up = (knex) => {
         CHECK 
             (
               char_length(user_unique_id) > 0
-              AND char_length(referer) > 0
               AND pg_column_size(json_headers) > 0
             );
    `;

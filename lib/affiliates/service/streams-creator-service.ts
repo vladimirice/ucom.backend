@@ -2,9 +2,12 @@ import UsersModelProvider = require('../../users/users-model-provider');
 import knex = require('../../../config/knex');
 import StreamsModel = require('../models/streams-model');
 import OffersModel = require('../models/offers-model');
+import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
+
+const config = require('config');
 
 class StreamsCreatorService {
-  public static async createRegistrationStreamsForEverybody(offer: OffersModel) {
+  public static async createRegistrationStreamsForEverybody(offer: OffersModel): Promise<TotalParametersResponse> {
     const withoutStreams: {id: number, account_name: string}[] =
       await knex(`${UsersModelProvider.getTableName()} AS u`)
       .select(['u.id', 'u.account_name'])
@@ -15,6 +18,7 @@ class StreamsCreatorService {
       })
       .whereNull('s.id');
 
+    let totalProcessedCounter = 0;
     for (const oneUser of withoutStreams) {
       // it is supposed that there are small amount of users after the first run.
       // #task - implement batches in the future
@@ -22,7 +26,16 @@ class StreamsCreatorService {
         user_id:      oneUser.id,
         account_name: oneUser.account_name,
         offer_id:     offer.id,
+        landing_url: `${config.servers.frontend}/registration`,
+        redirect_url: offer.redirect_url_template.replace('{account_name}', oneUser.account_name),
       });
+
+      totalProcessedCounter += 1;
+    }
+
+    return {
+      totalProcessedCounter,
+      totalSkippedCounter: 0,
     }
   }
 }

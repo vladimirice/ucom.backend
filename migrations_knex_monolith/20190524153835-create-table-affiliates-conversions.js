@@ -10,18 +10,19 @@ exports.up = (knex) => {
       id                BIGSERIAL NOT NULL
                         CONSTRAINT ${CONVERSIONS_TABLE_NAME_CONSTRAINTS}_pkey PRIMARY KEY,
 
-      created_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-
       offer_id          BIGINT NOT NULL REFERENCES affiliates.offers(id)  ON DELETE RESTRICT,
       stream_id         BIGINT NOT NULL REFERENCES affiliates.streams(id) ON DELETE RESTRICT,
       click_id          BIGINT NOT NULL REFERENCES affiliates.clicks(id)  ON DELETE RESTRICT,
+
       users_activity_id INT NOT NULL    REFERENCES users_activity(id)     ON DELETE RESTRICT,
       user_id           INT NOT NULL    REFERENCES "Users"(id)            ON DELETE RESTRICT,
       
       status            SMALLINT NOT NULL,
 
+      referer           VARCHAR(1024) NOT NULL,
       json_headers      JSONB NOT NULL,
-      referer           VARCHAR(1024) NOT NULL
+
+      created_at        TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
     );
 
     CREATE INDEX ${CONVERSIONS_TABLE_NAME_CONSTRAINTS}_offer_id_idx             ON ${CONVERSIONS_TABLE_NAME}(offer_id);
