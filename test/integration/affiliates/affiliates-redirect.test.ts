@@ -4,10 +4,9 @@ import SeedsHelper = require('../helpers/seeds-helper');
 import StreamsModel = require('../../../lib/affiliates/models/streams-model');
 import ClicksModel = require('../../../lib/affiliates/models/clicks-model');
 import RedirectRequest = require('../../helpers/affiliates/redirect-request');
-import AffiliatesGenerator = require('./affiliates-generator');
 import CommonChecker = require('../../helpers/common/common-checker');
 import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
-import PostsGenerator = require('../../generators/posts-generator');
+import AffiliatesGenerator = require('../../generators/affiliates/affiliates-generator');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -39,11 +38,8 @@ describe('Affiliates', () => {
     await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
   });
 
-
   describe('Positive', () => {
     it('make a redirect request for the newcomer', async () => {
-      await PostsGenerator.createMediaPostByUserHimself(userVlad);
-
       const { response, uniqueId } = await RedirectRequest.makeRedirectRequest(userVlad, offer);
       const stream: StreamsModel = await StreamsModel.query().findOne({
         user_id:  userVlad.id,

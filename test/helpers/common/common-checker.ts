@@ -6,8 +6,13 @@ const _ = require('lodash');
 require('jest-expect-message');
 
 class CommonChecker {
-  public static expectNotEmpty(object: any) {
+  public static expectNotEmpty(object: any): void {
     expect(_.isEmpty(object)).toBeFalsy();
+  }
+
+  public static expectNotEmptyArray(array: any): void {
+    expect(Array.isArray(array)).toBeTruthy();
+    expect(array.length).toBeGreaterThan(0);
   }
 
   public static expectEmpty(object: any) {
@@ -15,6 +20,7 @@ class CommonChecker {
   }
 
   public static expectOnlyOneItem(array: any[]): void {
+    this.expectNotEmptyArray(array);
     expect(array.length).toBe(1);
   }
 

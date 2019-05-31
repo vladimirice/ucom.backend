@@ -1,13 +1,13 @@
 import HttpRequestHelper = require('../../common/helper/http-request-helper');
 import DatetimeHelper = require('../../common/helper/datetime-helper');
 import AuthService = require('../../auth/authService');
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 const uniqueIdGenerator = require('uniqid');
 
 class AffiliateUniqueIdService {
   public static processUniqIdCookie(request: any, response: any): string {
-    // @ts-ignore
     const { jwtToken, uniqueId } = this.getJwtTokenAndUniqueId(request);
 
     response.cookie(
@@ -24,23 +24,27 @@ class AffiliateUniqueIdService {
     return uniqueId;
   }
 
-  private static extractUniqueIdFromJwtToken(jwtToken: string): string {
+  public static getUniqueIdJwtTokenFromCookieOrNull(request: StringToAnyCollection): string | null {
+    return request.cookies[CommonHeaders.UNIQUE_ID] || null;
+  }
+
+  public static extractUniqueIdFromJwtTokenOrUnauthorizedError(jwtToken: string): string {
     const data = AuthService.extractJwtDataOrUnauthorizedError(jwtToken);
 
     return data.uniqueId;
   }
 
   private static getJwtTokenAndUniqueId(request: any): { jwtToken: string, uniqueId: string} {
-    if (request.cookies[CommonHeaders.UNIQUE_ID]) {
-      const jwtToken = request.cookies[CommonHeaders.UNIQUE_ID];
+    const jwtToken = this.getUniqueIdJwtTokenFromCookieOrNull(request);
 
-      return {
-        jwtToken,
-        uniqueId: this.extractUniqueIdFromJwtToken(jwtToken),
-      };
+    if (jwtToken === null) {
+      return this.getNewJwtTokenAndUniqueId();
     }
 
-    return this.getNewJwtTokenAndUniqueId();
+    return {
+      jwtToken,
+      uniqueId: this.extractUniqueIdFromJwtTokenOrUnauthorizedError(jwtToken),
+    };
   }
 
   public static getNewJwtTokenAndUniqueId(): { uniqueId: string, jwtToken: string } {

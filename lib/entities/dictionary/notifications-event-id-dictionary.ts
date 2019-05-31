@@ -1,6 +1,7 @@
 import { AppError } from '../../api/errors';
 
 const { Dictionary } = require('ucom-libs-wallet');
+const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 const ORG_USERS_TEAM_INVITATION   = 10;
 
@@ -44,16 +45,19 @@ const USER_CANCEL_VOTE_FOR_CALCULATOR_NODE      = 113;
 const USER_HAS_MENTIONED_YOU_IN_POST         = 120;
 const USER_HAS_MENTIONED_YOU_IN_COMMENT      = 121;
 
-const REGISTRATION                            = 130;
-
 const eventRequiresPrompt = [
   ORG_USERS_TEAM_INVITATION,
 ];
 
 // #task - it is not a notification events. Here is event_id dictionary for users_activity
 class NotificationsEventIdDictionary {
+
+  /**
+   * @deprecated
+   * @see EventsIds.registration()
+   */
   public static getRegistration(): number {
-    return REGISTRATION;
+    return EventsIds.registration();
   }
 
   public static getUserHasMentionedYouInPost(): number {

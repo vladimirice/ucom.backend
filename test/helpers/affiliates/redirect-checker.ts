@@ -1,5 +1,4 @@
 import AuthService = require('../../../lib/auth/authService');
-
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 class RedirectChecker {

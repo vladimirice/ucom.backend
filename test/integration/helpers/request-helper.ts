@@ -4,6 +4,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -84,6 +85,11 @@ class RequestHelper {
 
   public static addAuthBearerHeader(headers: any, token: string): void {
     headers.Authorization = `Bearer ${token}`;
+  }
+
+  public static addCookies(request, cookies: string[]): void {
+    request
+      .set('Cookie', cookies)
   }
 
   public static getRequestObj() {
@@ -255,7 +261,7 @@ class RequestHelper {
    * @param {Object} fields
    * @return {Promise<Object>}
    */
-  static async makePostGuestRequestWithFields(url, fields) {
+  static async makePostGuestRequestWithFields(url: string, fields: StringToAnyCollection) {
     const req = request(server)
       .post(url);
     this.addFieldsToRequest(req, fields);
@@ -263,12 +269,7 @@ class RequestHelper {
     return req;
   }
 
-  /**
-   *
-   * @param {Object} req
-   * @param {Object} fields
-   */
-  static addFieldsToRequest(req, fields) {
+  public static addFieldsToRequest(req, fields: StringToAnyCollection): void {
     // eslint-disable-next-line guard-for-in
     for (const field in fields) {
       req.field(field, fields[field]);

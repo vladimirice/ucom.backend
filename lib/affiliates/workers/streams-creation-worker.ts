@@ -3,7 +3,7 @@ import WorkerHelper = require('../../common/helper/worker-helper');
 import StreamsCreatorService = require('../service/streams-creator-service');
 import OffersModel = require('../models/offers-model');
 import AffiliatesParticipationIdsDictionary = require('../dictionary/affiliates-participation-ids-dictionary');
-import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
+const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 const options: WorkerOptionsDto = {
   processName: 'streams-creator',
@@ -13,7 +13,7 @@ const options: WorkerOptionsDto = {
 async function toExecute() {
   const offer: OffersModel = await OffersModel.query().findOne({
     participation_id: AffiliatesParticipationIdsDictionary.all(),
-    event_id: NotificationsEventIdDictionary.getRegistration(),
+    event_id: EventsIds.registration(),
   });
 
   return StreamsCreatorService.createRegistrationStreamsForEverybody(offer);

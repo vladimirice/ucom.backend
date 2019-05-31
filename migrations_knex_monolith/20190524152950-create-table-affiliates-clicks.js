@@ -19,15 +19,15 @@ exports.up = (knex) => {
       created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
     );
 
-    CREATE INDEX ${CLICKS_CONSTRAINTS}_offer_id_idx ON ${CLICKS}(offer_id);
+    CREATE INDEX ${CLICKS_CONSTRAINTS}_user_unique_id_offer_id_idx ON ${CLICKS}(user_unique_id, offer_id);
     CREATE INDEX ${CLICKS_CONSTRAINTS}_stream_id_idx ON ${CLICKS}(stream_id);
 
-      ALTER TABLE ${CLICKS} ADD CONSTRAINT ${CLICKS_CONSTRAINTS}_check
-        CHECK 
-            (
-              char_length(user_unique_id) > 0
-              AND pg_column_size(json_headers) > 0
-            );
+    ALTER TABLE ${CLICKS} ADD CONSTRAINT ${CLICKS_CONSTRAINTS}_check
+      CHECK 
+          (
+            char_length(user_unique_id) > 0
+            AND pg_column_size(json_headers) > 0
+          );
    `;
 
   return knex.raw(sql);
