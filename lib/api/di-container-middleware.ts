@@ -1,11 +1,16 @@
 /* eslint-disable promise/no-callback-in-promise */
 // tslint:disable-next-line:variable-name
+import { diContainer } from '../../config/inversify/inversify.config';
+
 const authService = require('../auth/authService');
 const userRepository = require('../users/users-repository');
 const { AppError } = require('../../lib/api/errors');
 
+
 // @ts-ignore
 export = (req, res, next) => {
+  req.container = diContainer;
+
   const currentUserId = authService.extractCurrentUserByToken(req);
 
   if (!currentUserId) {

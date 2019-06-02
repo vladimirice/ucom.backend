@@ -5,6 +5,7 @@ import ResponseHelper = require('./response-helper');
 
 import _ = require('lodash');
 import UsersChecker = require('../../helpers/users/users-checker');
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 const eosJsEcc = require('eosjs-ecc');
 
@@ -91,14 +92,26 @@ class UsersHelper {
    * @return {Promise<Object>}
    *
    */
-  static async requestToUpdateMyself(myself, fieldsToChange, expectedStatus = 200) {
+  public static async requestToUpdateMyself(
+    myself: UserModel,
+    fieldsToChange: StringToAnyCollection,
+    expectedStatus: number = 200
+  ) {
+    return this.requestToUpdateMyselfByToken(myself.token, fieldsToChange, expectedStatus);
+  }
+
+  public static async requestToUpdateMyselfByToken(
+    token: string,
+    fieldsToChange: StringToAnyCollection,
+    expectedStatus: number = 200
+  ) {
     const url = RequestHelper.getMyselfUrl();
 
     const req = request(server)
       .patch(url)
     ;
 
-    RequestHelper.addAuthToken(req, myself);
+    req.set('Authorization', `Bearer ${token}`);
     RequestHelper.addFieldsToRequest(req, fieldsToChange);
 
     const res = await req;

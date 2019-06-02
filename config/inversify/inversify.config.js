@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const inversify_1 = require("inversify");
+const di_interfaces_1 = require("../../lib/users/interfaces/di-interfaces");
+const UsersAuthService = require("../../lib/users/service/users-auth-service");
+const RegistrationService = require("../../lib/users/service/registration-service");
+const diContainer = new inversify_1.Container();
+exports.diContainer = diContainer;
+diContainer.bind(di_interfaces_1.UsersDiTypes.authService).to(UsersAuthService);
+diContainer.bind(di_interfaces_1.UsersDiTypes.registrationService).to(RegistrationService);

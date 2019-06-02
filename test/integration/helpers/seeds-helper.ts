@@ -214,6 +214,15 @@ class SeedsHelper {
     await rabbitMqService.purgeAllQueues();
   }
 
+  public static async noGraphQlNoMocking() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      workersMocking: 'none',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
+  }
+
   public static async noGraphQlMockBlockchainOnly() {
     const beforeAfterOptions = {
       isGraphQl: false,
@@ -254,8 +263,11 @@ class SeedsHelper {
       case 'all':
         MockHelper.mockAllBlockchainPart();
         break;
-      default:
+      case 'none':
         // do nothing
+        break;
+      default:
+        throw new TypeError(`Unsupported workerMocking ${options.workersMocking}`);
     }
   }
 
