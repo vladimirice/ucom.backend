@@ -16,7 +16,7 @@ class OffersRepository {
       throw new AppError('It is required to create only one offer for the registration event');
     }
 
-    return data;
+    return data[0];
   }
 }
 

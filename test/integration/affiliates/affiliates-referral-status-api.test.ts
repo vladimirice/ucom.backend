@@ -58,7 +58,7 @@ describe('Affiliates referral status', () => {
 
       const responseBody = await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
       AffiliatesChecker.checkAffiliatesActionsResponse(responseBody);
-      CommonChecker.expectOnlyOneItem(responseBody.affiliates_actions);
+      CommonChecker.expectOnlyOneNotEmptyItem(responseBody.affiliates_actions);
 
       const expected = {
         offer_id: offer.id,

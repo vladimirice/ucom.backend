@@ -40,9 +40,11 @@ class CommonChecker {
     expect(_.isEmpty(object)).toBeTruthy();
   }
 
-  public static expectOnlyOneItem(array: any[]): void {
+  public static expectOnlyOneNotEmptyItem(array: any[]): void {
     this.expectNotEmptyArray(array);
     expect(array.length).toBe(1);
+
+    this.expectNotEmpty(array[0]);
   }
 
   public static expectOnlyOneArrayItemForTheList(object: ListResponse) {

@@ -4,11 +4,13 @@ import { UsersDiTypes } from '../interfaces/di-interfaces';
 import { IRequestBody } from '../../common/interfaces/common-types';
 import { AffiliatesDiTypes } from '../../affiliates/interfaces/di-interfaces';
 import { Request } from 'express';
+import RegistrationService = require('./registration-service');
+import RegistrationConversionService = require('../../affiliates/service/conversions/registration-conversion-service');
 
 @injectable()
 class UsersAuthService {
-  private registrationService;
-  private registrationConversionService;
+  private registrationService: RegistrationService;
+  private registrationConversionService: RegistrationConversionService;
 
   public constructor(
     @inject(UsersDiTypes.registrationService) registrationService,
@@ -21,11 +23,11 @@ class UsersAuthService {
   public async processNewUserRegistration(request: Request) {
     const { body }: IRequestBody = request;
 
-    const newUser = await this.registrationService.processRegistration(body);
+    const registrationData = await this.registrationService.processRegistration(body);
 
-    await this.registrationConversionService.processReferral(request);
+    await this.registrationConversionService.processReferral(request, registrationData.user);
 
-    return newUser;
+    return registrationData;
   }
 }
 

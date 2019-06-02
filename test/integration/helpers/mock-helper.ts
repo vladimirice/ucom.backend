@@ -457,18 +457,18 @@ class MockHelper {
     this.mockOrganizationCreationBlockchainProducer();
   }
 
-  static mockAllBlockchainPart() {
+  public static mockAllBlockchainPart(mockSending: boolean = true): void {
     this.mockAllTransactionSigning();
-
-    this.mockBlockchainPart();
-    this.mockSendingToQueue();
-
     this.mockUserRegistration();
+
+    if (mockSending) {
+      this.mockSendingToQueue();
+    }
   }
 
   private static mockUserRegistration() {
     // @ts-ignore
-    EosApi.transactionToCreateNewAccount = async function(newAccountName, ownerPubKey, activePubKey) {}
+    EosApi.transactionToCreateNewAccount = async function(newAccountName, ownerPubKey, activePubKey) {};
     // @ts-ignore
     EosApi.isAccountAvailable = async function(accountName: string) { return true };
   }
@@ -620,6 +620,9 @@ class MockHelper {
     };
   }
 
+  /**
+   * @deprecated
+   */
   static mockBlockchainPart() {
     // noinspection JSUnusedLocalSymbols
     userActivityService.sendPayloadToRabbit = function (

@@ -55,7 +55,7 @@ describe('Affiliates', () => {
       });
 
       CommonChecker.expectNotEmpty(clicks);
-      CommonChecker.expectOnlyOneItem(clicks);
+      CommonChecker.expectOnlyOneNotEmptyItem(clicks);
       expect(clicks[0].user_unique_id).toBe(uniqueId);
     }, JEST_TIMEOUT);
 

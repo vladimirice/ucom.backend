@@ -9,12 +9,13 @@ import EosApi = require('../../eos/eosApi');
 import UsersRepository = require('../users-repository');
 import UsersService = require('../users-service');
 import AuthService = require('../../auth/authService');
+import { UserModel } from '../interfaces/model-interfaces';
 
 const db = require('../../../models').sequelize;
 
 @injectable()
 class RegistrationService {
-  public async processRegistration(body: IRequestBody) {
+  public async processRegistration(body: IRequestBody): Promise<{token: string, user: UserModel}> {
     const requestData = await this.checkRegistrationRequest(body);
 
     // #task - social key feature is a feature about completely removing a keys from the backend

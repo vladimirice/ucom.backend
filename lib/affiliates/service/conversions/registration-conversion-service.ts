@@ -15,6 +15,8 @@ import UsersModelProvider = require('../../../users/users-model-provider');
 import ClicksModel = require('../../models/clicks-model');
 import StreamsModel = require('../../models/streams-model');
 import ProcessStatusesDictionary = require('../../../common/dictionary/process-statuses-dictionary');
+import { StringToAnyCollection } from '../../../common/interfaces/common-types';
+import UserActivityService = require('../../../users/user-activity-service');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
@@ -28,7 +30,7 @@ class RegistrationConversionService {
       await AffiliateUniqueIdService.extractUniqueIdFromRequestOrNull(request);
 
     // No unique id - not required to process anything
-    if (uniqueId) {
+    if (!uniqueId) {
       return;
     }
 
@@ -40,50 +42,44 @@ class RegistrationConversionService {
 
     const affiliatesActions = JSON.parse(body.affiliates_actions);
 
-    const { error: validationErrors } = AffiliatesActionsValidator.validateRegistrationReferral(body);
+    if (!Array.isArray(affiliatesActions) || affiliatesActions.length !== 1) {
+      this.logReferralError('affiliates_actions must be one-element array', affiliatesActions);
+
+      return;
+    }
+
+    const affiliatesAction = affiliatesActions[0];
+
+    const { error: validationErrors } = AffiliatesActionsValidator.validateRegistrationReferral(affiliatesAction);
     if (validationErrors) {
-      ApiLogger.error('Malformed referral registration. Must proceed the registration. Observe this situation manually', {
-        service:            'registration-conversion-service',
-        affiliatesActions:  JSON.stringify(affiliatesActions),
-        validationErrors:   JSON.stringify(validationErrors),
-      });
+      this.logReferralError('Malformed affiliates_actions', affiliatesActions, validationErrors);
 
       return;
     }
 
     const offer: OffersModel = await OffersRepository.getRegistrationOffer();
-    const stream: StreamsModel = StreamsModel.query()
-      .where({
-        account_name: affiliatesActions.account_name_source,
+    const stream: StreamsModel = await StreamsModel.query()
+      .findOne({
+        account_name: affiliatesAction.account_name_source,
         offer_id: offer.id,
       });
 
+
     if (!stream) {
-      // TODO - refactor
-      ApiLogger.error(`There is no stream with account name: ${affiliatesActions.account_name_source}. ust proceed the registration. Observe this situation manually`, {
-        service:            'registration-conversion-service',
-        affiliatesActions:  JSON.stringify(affiliatesActions),
-        validationErrors:   JSON.stringify(validationErrors),
-      });
+      this.logReferralError(`No stream for account name ${affiliatesAction.account_name_source} and offer ID ${offer.id}`, affiliatesActions);
 
       return;
     }
 
-
     const click: ClicksModel = await ClicksModel.query()
-      .where({
+      .findOne({
         user_unique_id: uniqueId,
         offer_id:       offer.id,
       })
-      .andWhere('stream_id', '=', stream.id)
-      .limit(1);
+      .andWhere('stream_id', '=', stream.id);
 
     if (!click) {
-      ApiLogger.error(`There is no click for the given params. Must proceed the registration. Observe this situation manually`, {
-        service:            'registration-conversion-service',
-        affiliatesActions:  JSON.stringify(affiliatesActions),
-        offerId:            offer.id,
-      });
+      this.logReferralError(`No click for uniqueId: ${uniqueId}, offerId: ${offer.id}, stream ID: ${stream.id}`, affiliatesActions);
 
       return;
     }
@@ -93,7 +89,7 @@ class RegistrationConversionService {
     try {
       trx = await transaction.start(OffersModel.knex());
       activity =
-        await this.createReferralActivity(body.signed_transaction, newUser.id, stream.user_id, trx);
+        await this.createReferralActivity(affiliatesAction.signed_transaction, newUser.id, stream.user_id, trx);
 
       await ConversionsModel.query(trx)
         .insert({
@@ -109,13 +105,13 @@ class RegistrationConversionService {
         });
 
       await trx.commit();
-    } catch (err) {
+    } catch (error) {
       // Log an error via ErrorEventToLogDto
       await trx.rollback();
-
-      return;
+      this.logReferralError('An error during the writing transaction', affiliatesActions, error);
     }
-    // TODO - send activity to the rabbit after TDD
+
+    await UserActivityService.sendPayloadToRabbit(activity);
   }
 
   private async createReferralActivity(
@@ -142,6 +138,19 @@ class RegistrationConversionService {
     };
 
     return UsersActivityRepository.createNewKnexActivity(data, trx);
+  }
+
+  private logReferralError(
+    whatIsWrong: string,
+    affiliatesActions: StringToAnyCollection,
+    errors: StringToAnyCollection = {},
+  ) {
+    ApiLogger.error('Malformed referral registration. Must proceed the registration. Observe this situation manually', {
+      whatIsWrong,
+      affiliatesActions,
+      errors,
+      service: 'registration-conversion-service',
+    });
   }
 }
 

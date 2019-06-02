@@ -33,9 +33,8 @@ exports.up = (knex) => {
     ALTER TABLE ${CONVERSIONS_TABLE_NAME} ADD CONSTRAINT ${CONVERSIONS_TABLE_NAME_CONSTRAINTS}_check
       CHECK 
           (
-              char_length(referer) > 0
-              AND pg_column_size(json_headers) > 0
-              AND status IN (1, 2, 3) -- 1 - new, 2 - confirmed, 3 - error
+                pg_column_size(json_headers) > 0
+                AND status IN (1, 2, 3) -- 1 - new, 2 - confirmed, 3 - error
           );
    `;
 

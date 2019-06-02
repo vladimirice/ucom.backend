@@ -260,8 +260,11 @@ class SeedsHelper {
         MockHelper.mockAllTransactionSigning();
         MockHelper.mockAllBlockchainJobProducers();
         break;
+      case 'allButSendingToQueue':
+        MockHelper.mockAllBlockchainPart(false);
+        break;
       case 'all':
-        MockHelper.mockAllBlockchainPart();
+        MockHelper.mockAllBlockchainPart(true);
         break;
       case 'none':
         // do nothing
