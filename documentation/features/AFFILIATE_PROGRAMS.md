@@ -33,7 +33,7 @@ const {  Interactions } = require('ucom-libs-wallet').Dictionary;
 
 
 * Before the registration:
-POST /api/v1/affiliates/referral-programs
+POST /api/v1/affiliates/actions
 ```
 body {
     event_id: EventsIds.registration(),
@@ -45,8 +45,9 @@ Status code is: 200
 Response:
 ```
 {
-    actions: [
+    affiliates_actions: [
         {
+            offer_id: 5,
             account_name_source: 'spirinspirin',    // to pass to the SocialApi.getReferralFromUserSignedTransactionAsJson wallet function
             action: Interactions.referral(),        // what function to call - SocialApi.getReferralFromUserSignedTransactionAsJson
         }
@@ -73,8 +74,14 @@ append an additional field to the registration request
 ```
 {
     // ... the regular fields like account_name, sign, etc....
-    referral_signed_json:  '{.....}', // a result of the call of SocialApi.getReferralFromUserSignedTransactionAsJson
-    account_name_source: 'spirinspirin', // fetch it from the step 1
+    affiliates_actions: [
+        {
+            offer_id: 5,
+            account_name_source: 'spirinspirin',    // to pass to the SocialApi.getReferralFromUserSignedTransactionAsJson wallet function
+            action: Interactions.referral(),        // what function to call - SocialApi.getReferralFromUserSignedTransactionAsJson
+            signed_transaction: '{.....}',          // a result of the call of SocialApi.getReferralFromUserSignedTransactionAsJson
+        }
+    ],
 }
 ```
 
