@@ -13,6 +13,7 @@ import StreamsCreatorService = require('../../../lib/affiliates/service/streams-
 import AffiliatesGenerator = require('../../generators/affiliates/affiliates-generator');
 import AffiliatesRequest = require('../../helpers/affiliates/affiliates-request');
 import AffiliatesChecker = require('../../helpers/affiliates/affiliates-checker');
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -56,14 +57,17 @@ describe('Affiliates referral status', () => {
       const { uniqueId } = await RedirectRequest.makeRedirectRequest(userVlad, offer);
 
       const responseBody = await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
-      CommonChecker.expectOnlyOneItem(responseBody.actions);
+      AffiliatesChecker.checkAffiliatesActionsResponse(responseBody);
+      CommonChecker.expectOnlyOneItem(responseBody.affiliates_actions);
 
       const expected = {
+        offer_id: offer.id,
         account_name_source: userVlad.account_name,
         action: Interactions.referral(),
       };
 
-      expect(responseBody.actions[0]).toEqual(expected);
+      expect(responseBody.affiliates_actions[0]).toEqual(expected);
+
     }, JEST_TIMEOUT);
 
     it('Attribution model should work properly', async () => {
@@ -72,10 +76,8 @@ describe('Affiliates referral status', () => {
       // redirect again through the jane flow
       await RedirectRequest.makeRedirectRequest(userJane, offer, uniqueId);
 
-      const responseBody = await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
+      const responseBody: IResponseBody = await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
       AffiliatesChecker.expectWinnerIs(responseBody, userVlad);
-
-      expect(responseBody.actions[0].account_name_source).toBe(userVlad.account_name);
 
       // and data is the same - different flow in parallel
       const { uniqueId: secondUniqueId } = await RedirectRequest.makeRedirectRequest(userJane, offer);

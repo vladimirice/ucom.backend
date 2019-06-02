@@ -13,7 +13,7 @@ const { formDataParser } = require('../../lib/api/middleware/form-data-parser-mi
 router.post('/', [formDataParser], async (req, res) => {
   const service: UsersAuthService = req.container.get(UsersDiTypes.authService);
 
-  const response = await service.processNewUserRegistration(req.body);
+  const response = await service.processNewUserRegistration(req);
 
   return res.status(201).send(response);
 });

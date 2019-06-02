@@ -13,6 +13,7 @@ import AirdropsFetchTableRowsService = require('../../../lib/airdrops/service/bl
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ImportanceGenerator = require('../../generators/blockchain/importance/uos-accounts-properties-generator');
 import UosAccountsPropertiesFetchService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-fetch-service');
+import EosApi = require('../../../lib/eos/eosApi');
 
 // @ts-ignore
 const uniqid = require('uniqid');
@@ -461,6 +462,15 @@ class MockHelper {
 
     this.mockBlockchainPart();
     this.mockSendingToQueue();
+
+    this.mockUserRegistration();
+  }
+
+  private static mockUserRegistration() {
+    // @ts-ignore
+    EosApi.transactionToCreateNewAccount = async function(newAccountName, ownerPubKey, activePubKey) {}
+    // @ts-ignore
+    EosApi.isAccountAvailable = async function(accountName: string) { return true };
   }
 
   static mockOrganizationCreationBlockchainProducer() {

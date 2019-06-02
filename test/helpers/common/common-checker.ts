@@ -1,11 +1,32 @@
 import { CheckManyObjectsOptionsDto, ObjectInterfaceRulesDto } from '../../interfaces/options-interfaces';
 import { ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 const _ = require('lodash');
 
 require('jest-expect-message');
 
 class CommonChecker {
+  public static expectAllFieldsExistenceForObjectsArray(
+    arr: StringToAnyCollection[],
+    expected: string[],
+  ): void {
+    for (const item of arr) {
+      this.expectAllFieldsExistence(item, expected);
+    }
+  }
+
+  public static expectAllFieldsExistence(
+    actualObject: StringToAnyCollection,
+    expected: string[],
+  ): void {
+    const actualKeys = Object.keys(actualObject).sort();
+
+    const expectedSorted = expected.sort();
+
+    expect(actualKeys).toEqual(expectedSorted);
+  }
+
   public static expectNotEmpty(object: any): void {
     expect(_.isEmpty(object)).toBeFalsy();
   }

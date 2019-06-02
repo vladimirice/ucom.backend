@@ -17,7 +17,7 @@ describe('Test registration workflow', () => {
   });
 
   it('Register new user', async () => {
-    const { body } = await UsersHelper.registerNewUser();
+    const { body } = await UsersHelper.registerNewUserWithRandomAccountName();
     const fieldsToChange = {
       first_name: 12345,
       birthday: '',

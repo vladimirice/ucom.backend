@@ -1,8 +1,7 @@
 import { injectable } from "inversify";
 import "reflect-metadata";
 
-import { IRegistrationService } from '../interfaces/di-interfaces';
-import { StringToAnyCollection } from '../../common/interfaces/common-types';
+import { IRequestBody } from '../../common/interfaces/common-types';
 import AuthValidator = require('../../auth/validators');
 import { BadRequestError, JoiBadRequestError } from '../../api/errors';
 import EosJsEcc = require('../../crypto/eosjs-ecc');
@@ -14,8 +13,8 @@ import AuthService = require('../../auth/authService');
 const db = require('../../../models').sequelize;
 
 @injectable()
-class RegistrationService implements IRegistrationService {
-  public async processRegistration(body: StringToAnyCollection) {
+class RegistrationService {
+  public async processRegistration(body: IRequestBody) {
     const requestData = await this.checkRegistrationRequest(body);
 
     // #task - social key feature is a feature about completely removing a keys from the backend
@@ -52,13 +51,7 @@ class RegistrationService implements IRegistrationService {
     };
   }
 
-  /**
-   *
-   * @param {Object} body
-   * @return {Promise<Object>}
-   * @private
-   */
-  private async checkRegistrationRequest(body: StringToAnyCollection) {
+  private async checkRegistrationRequest(body: IRequestBody) {
     const { error, value:requestData } = AuthValidator.validateRegistration(body);
 
     if (error) {

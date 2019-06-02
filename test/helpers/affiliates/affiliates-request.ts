@@ -32,7 +32,7 @@ class AffiliatesRequest {
     eventId: number | null = null,
     expectedStatus: number = statuses('OK'),
   ) {
-    const url = `${this.getAffiliatesRootUrl()}/referral-programs`;
+    const url = `${this.getAffiliatesRootUrl()}/actions`;
     const request = RequestHelper.getRequestObjForPost(url);
 
     if (jwtToken !== null) {

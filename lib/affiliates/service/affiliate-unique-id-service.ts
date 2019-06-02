@@ -28,6 +28,16 @@ class AffiliateUniqueIdService {
     return request.cookies[CommonHeaders.UNIQUE_ID] || null;
   }
 
+  public static extractUniqueIdFromRequestOrNull(request: StringToAnyCollection): string | null {
+    const jwtToken = this.getUniqueIdJwtTokenFromCookieOrNull(request);
+
+    if (!jwtToken) {
+      return null;
+    }
+
+    return this.extractUniqueIdFromJwtTokenOrUnauthorizedError(jwtToken);
+  }
+
   public static extractUniqueIdFromJwtTokenOrUnauthorizedError(jwtToken: string): string {
     const data = AuthService.extractJwtDataOrUnauthorizedError(jwtToken);
 

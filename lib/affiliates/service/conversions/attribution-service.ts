@@ -7,7 +7,7 @@ import { ApiLogger } from '../../../../config/winston';
 import ClicksRepository = require('../../repository/clicks-repository');
 import UnprocessableEntityError = require('../../errors/unprocessable-entity-error');
 
-const {  Interactions } = require('ucom-libs-wallet').Dictionary;
+const { Interactions } = require('ucom-libs-wallet').Dictionary;
 
 const statuses = require('statuses');
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
@@ -34,13 +34,14 @@ class AttributionService {
     const { eventId, action} = this.getEventIdAndActionOrException(request);
     const uniqueId = AffiliateUniqueIdService.extractUniqueIdFromJwtTokenOrUnauthorizedError(jwtToken);
 
-    const winnerAccountName: string = await this.getWinnerAccountNameIfPossible(eventId, uniqueId);
+    const { winnerAccountName, offer } = await this.getWinnerAccountNameIfPossible(eventId, uniqueId);
 
     return {
       responseStatus: statuses('OK'),
       responseBody: {
-        actions: [ // #task array is hardcoded here to determine an interface for the future many referral programs
+        affiliates_actions: [ // #task array is hardcoded here to determine an interface for the future many referral programs
           {
+            offer_id: offer.id,
             action,
             account_name_source: winnerAccountName,
           },
@@ -49,7 +50,10 @@ class AttributionService {
     }
   }
 
-  private static async getWinnerAccountNameIfPossible(eventId: number, uniqueId: string): Promise<string> {
+  private static async getWinnerAccountNameIfPossible(
+    eventId: number,
+    uniqueId: string,
+  ): Promise<{winnerAccountName: string, offer: OffersModel}> {
     const offer: OffersModel | null = await this.getOfferOrError(eventId);
 
     const winnerAccountName: string | null =
@@ -67,7 +71,10 @@ class AttributionService {
       throw new UnprocessableEntityError();
     }
 
-    return winnerAccountName;
+    return {
+      winnerAccountName,
+      offer,
+    }
   }
 
   private static async getOfferOrError(eventId: number): Promise<OffersModel> {

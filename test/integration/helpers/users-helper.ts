@@ -6,6 +6,8 @@ import ResponseHelper = require('./response-helper');
 import _ = require('lodash');
 import UsersChecker = require('../../helpers/users/users-checker');
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
+import AffiliatesCommonHelper = require('../../helpers/affiliates/affiliates-common-helper');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const eosJsEcc = require('eosjs-ecc');
 
@@ -41,48 +43,15 @@ class UsersHelper {
     );
   }
 
-  static async registerNewUser(givenAccountName = null) {
-    const brainKey = eosApi.generateBrainkey();
+  public static async registerNewUserWithRandomAccountName(
+    extraFields: StringToAnyCollection = {},
+    uniqueId: string | null = null,
+    ) {
+    const accountName = eosApi.createRandomAccountName();
 
-    const accountName = givenAccountName || eosApi.createRandomAccountName();
-    const [privateOwnerKey, privateActiveKey] = eosApi.getKeysByBrainkey(brainKey);
-
-    // noinspection JSUnusedLocalSymbols
-    const ownerPublicKey  = eosApi.getPublicKeyByPrivate(privateOwnerKey);
-    const activePublicKey = eosApi.getPublicKeyByPrivate(privateActiveKey);
-
-    const sign = eosJsEcc.sign(accountName, privateActiveKey);
-
-    const url = RequestHelper.getRegistrationRoute();
-
-    const fields = {
-      sign,
-      account_name: accountName,
-      public_key: activePublicKey,
-      brainkey: brainKey,
-    };
-
-    const res = await RequestHelper.makePostGuestRequestWithFields(url, fields);
-
-    if (res.status !== 201) {
-      throw new Error(`There is an error during request. Body is: ${JSON.stringify(res.body)}`);
-    }
-
-    // ResponseHelper.expectStatusCreated(res);
-
-    return {
-      body: res.body,
-      accountData: {
-        accountName,
-        brainKey,
-        privateKeyOwner:  privateOwnerKey,
-        publicKeyOwner:   ownerPublicKey,
-
-        privateKeyActive: privateActiveKey,
-        publicKeyActive:  activePublicKey,
-      },
-    };
+    return this.registerNewUser(accountName, extraFields, uniqueId);
   }
+
 
   /**
    *
@@ -246,7 +215,7 @@ class UsersHelper {
       .not.toBe('string');
 
     const expected = givenExpected || usersRepository.getModel().getFieldsForPreview().sort();
-    ResponseHelper.expectAllFieldsExistence(model.User, expected);
+    CommonChecker.expectAllFieldsExistence(model.User, expected);
   }
 
   /**
@@ -277,7 +246,7 @@ class UsersHelper {
 
     expect(_.isEmpty(model.User.first_name)).toBeFalsy();
 
-    ResponseHelper.expectAllFieldsExistence(model.User, expected);
+    CommonChecker.expectAllFieldsExistence(model.User, expected);
   }
 
   /**
@@ -539,6 +508,57 @@ class UsersHelper {
 
   static getJaneEosAccount() {
     return accountsData.jane;
+  }
+
+  private static async registerNewUser(
+    accountName: string,
+    extraFields: StringToAnyCollection,
+    uniqueId: string | null,
+  ) {
+    const brainKey = eosApi.generateBrainkey();
+
+    const [privateOwnerKey, privateActiveKey] = eosApi.getKeysByBrainkey(brainKey);
+
+    const ownerPublicKey  = eosApi.getPublicKeyByPrivate(privateOwnerKey);
+    const activePublicKey = eosApi.getPublicKeyByPrivate(privateActiveKey);
+
+    const sign = eosJsEcc.sign(accountName, privateActiveKey);
+
+    const url = RequestHelper.getRegistrationRoute();
+
+    const fields = {
+      sign,
+      account_name: accountName,
+      public_key: activePublicKey,
+      brainkey: brainKey,
+      ...extraFields,
+    };
+
+    const request = RequestHelper.getRequestObjForPost(url);
+    if (uniqueId) {
+      RequestHelper.addCookies(request, [
+        AffiliatesCommonHelper.composeUniqueIdCookieString(uniqueId),
+      ]);
+    }
+
+    RequestHelper.addFieldsToRequest(request, fields);
+
+    const response = await request;
+
+    ResponseHelper.expectStatusCreated(response);
+
+    return {
+      body: response.body,
+      accountData: {
+        accountName,
+        brainKey,
+        privateKeyOwner:  privateOwnerKey,
+        publicKeyOwner:   ownerPublicKey,
+
+        privateKeyActive: privateActiveKey,
+        publicKeyActive:  activePublicKey,
+      },
+    };
   }
 }
 

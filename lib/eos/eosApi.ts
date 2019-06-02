@@ -83,10 +83,14 @@ class EosApi {
   }
 
   // noinspection JSUnusedGlobalSymbols
-  static async doesAccountExist(accountName) {
+  static async doesAccountExist(accountName: string) {
     const result = await TransactionSender.isAccountAvailable(accountName);
 
     return !result;
+  }
+
+  public static async isAccountAvailable(accountName: string) {
+    return TransactionSender.isAccountAvailable(accountName);
   }
 
   // noinspection JSUnusedGlobalSymbols

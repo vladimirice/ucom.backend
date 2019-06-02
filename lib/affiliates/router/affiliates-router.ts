@@ -10,7 +10,7 @@ require('express-async-errors');
 const AffiliatesRouter = express.Router();
 
 // POST in order to avoid any caching
-AffiliatesRouter.post('/referral-programs', [formDataParser], async (req, res) => {
+AffiliatesRouter.post('/actions', [formDataParser], async (req, res) => {
   let responseStatus;
   let responseBody;
 

@@ -8,7 +8,7 @@ const { formDataParser } = require('../../lib/api/middleware/form-data-parser-mi
 /* Register new user */
 router.post('/', [formDataParser], async (req, res) => {
     const service = req.container.get(di_interfaces_1.UsersDiTypes.authService);
-    const response = await service.processNewUserRegistration(req.body);
+    const response = await service.processNewUserRegistration(req);
     return res.status(201).send(response);
 });
 /* Check is account_name valid */

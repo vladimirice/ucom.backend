@@ -5,6 +5,7 @@ import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
+import { SuperAgentRequest } from 'superagent';
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -87,16 +88,16 @@ class RequestHelper {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  public static addCookies(request, cookies: string[]): void {
-    request
-      .set('Cookie', cookies)
+  public static addCookies(request: SuperAgentRequest, cookies: string[]): void {
+    // @ts-ignore
+    request.set('Cookie', cookies);
   }
 
   public static getRequestObj() {
     return request(server);
   }
 
-  public static getRequestObjForPost(url: string) {
+  public static getRequestObjForPost(url: string): SuperAgentRequest {
     return request(server).post(url);
   }
 
@@ -269,9 +270,15 @@ class RequestHelper {
     return req;
   }
 
-  public static addFieldsToRequest(req, fields: StringToAnyCollection): void {
-    // eslint-disable-next-line guard-for-in
+  public static addFieldsToRequest(
+    req: SuperAgentRequest,
+    fields: StringToAnyCollection
+  ): void {
     for (const field in fields) {
+      if (!fields.hasOwnProperty(field)) {
+        continue;
+      }
+
       req.field(field, fields[field]);
     }
   }
