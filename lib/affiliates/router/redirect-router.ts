@@ -8,7 +8,7 @@ const RedirectRouter = express.Router();
 RedirectRouter.get('/:offerHash/:streamIdentity', async (req, res) => {
   const stream: StreamsModel = await RedirectService.process(req, res);
 
-  res.redirect(stream.redirect_url);
+  res.redirect(stream.landing_url);
 });
 
 export = RedirectRouter;
