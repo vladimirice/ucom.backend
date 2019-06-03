@@ -46,7 +46,7 @@ describe('Affiliates', () => {
         offer_id: offer.id
       });
 
-      expect(response.header.location).toBe(stream.redirect_url);
+      expect(response.header.location).toBe(stream.landing_url);
 
       const clicks: ClicksModel[] = await ClicksModel.query().where({
         offer_id:       offer.id,
