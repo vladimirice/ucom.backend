@@ -51,6 +51,7 @@
     "pg-hstore": "^2.3.2",
     "read-chunk": "^3.2.0",
     "redlock": "^3.1.2",
+    "reflect-metadata": "^0.1.13",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "sanitize-html": "^1.20.1",
