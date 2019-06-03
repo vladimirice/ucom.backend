@@ -18,8 +18,8 @@ app-redirect | A separate application which provides affiliate program `click` c
 A referral link structure:
 https://hello.u.community/{referral_program_id}/{referrer_identity}/?{utm_labels_query_string}
 
-example:
-https://hello.u.community/Hv1a/spirinspirin/?utm_source=fb&utm_content=small&sub1=supersub1&sub2=supersub2
+An example for staging:
+https://staging-hello.u.community/jR/omgomgomgomg
 
 ----------------------------------------------
 
@@ -82,6 +82,13 @@ append an additional field to the registration request
             signed_transaction: '{.....}',          // a result of the call of SocialApi.getReferralFromUserSignedTransactionAsJson
         }
     ],
+}
+```
+
+If everything is ok an additional field is added to the registration response:
+```
+affiliates_action: {
+    success: true,
 }
 ```
 
