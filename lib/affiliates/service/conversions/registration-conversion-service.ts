@@ -17,8 +17,16 @@ import StreamsModel = require('../../models/streams-model');
 import ProcessStatusesDictionary = require('../../../common/dictionary/process-statuses-dictionary');
 import { StringToAnyCollection } from '../../../common/interfaces/common-types';
 import UserActivityService = require('../../../users/user-activity-service');
+import UnprocessableEntityError = require('../../errors/unprocessable-entity-error');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
+
+interface IAffiliatesAction {
+  offer_id:             number;
+  account_name_source:  string;
+  action:               string;
+  signed_transaction:   string;
+}
 
 @injectable()
 class RegistrationConversionService {
@@ -26,36 +34,7 @@ class RegistrationConversionService {
     request: Request,
     newUser: UserModel,
   ) {
-    const uniqueId: string | null =
-      await AffiliateUniqueIdService.extractUniqueIdFromRequestOrNull(request);
-
-    // No unique id - not required to process anything
-    if (!uniqueId) {
-      return;
-    }
-
-
-    const { body } = request;
-    if (!body.affiliates_actions) {
-      return;
-    }
-
-    const affiliatesActions = JSON.parse(body.affiliates_actions);
-
-    if (!Array.isArray(affiliatesActions) || affiliatesActions.length !== 1) {
-      this.logReferralError('affiliates_actions must be one-element array', affiliatesActions);
-
-      return;
-    }
-
-    const affiliatesAction = affiliatesActions[0];
-
-    const { error: validationErrors } = AffiliatesActionsValidator.validateRegistrationReferral(affiliatesAction);
-    if (validationErrors) {
-      this.logReferralError('Malformed affiliates_actions', affiliatesActions, validationErrors);
-
-      return;
-    }
+    const { uniqueId, affiliatesAction } = this.getUniqueIdAndAffiliatesAction(request);
 
     const offer: OffersModel = await OffersRepository.getRegistrationOffer();
     const stream: StreamsModel = await StreamsModel.query()
@@ -64,11 +43,12 @@ class RegistrationConversionService {
         offer_id: offer.id,
       });
 
-
     if (!stream) {
-      this.logReferralError(`No stream for account name ${affiliatesAction.account_name_source} and offer ID ${offer.id}`, affiliatesActions);
-
-      return;
+      this.processReferralError(
+        `No stream for account name ${affiliatesAction.account_name_source} and offer ID ${offer.id}`,
+        uniqueId,
+        affiliatesAction,
+      );
     }
 
     const click: ClicksModel = await ClicksModel.query()
@@ -79,9 +59,11 @@ class RegistrationConversionService {
       .andWhere('stream_id', '=', stream.id);
 
     if (!click) {
-      this.logReferralError(`No click for uniqueId: ${uniqueId}, offerId: ${offer.id}, stream ID: ${stream.id}`, affiliatesActions);
-
-      return;
+      this.processReferralError(
+        `No click for uniqueId: ${uniqueId}, offerId: ${offer.id}, stream ID: ${stream.id}`,
+        uniqueId,
+        affiliatesAction,
+      );
     }
 
     let trx;
@@ -108,10 +90,59 @@ class RegistrationConversionService {
     } catch (error) {
       // Log an error via ErrorEventToLogDto
       await trx.rollback();
-      this.logReferralError('An error during the writing transaction', affiliatesActions, error);
+      this.processReferralError('An error during the writing transaction', uniqueId, affiliatesAction, error);
     }
 
     await UserActivityService.sendPayloadToRabbit(activity);
+  }
+
+  private getUniqueIdAndAffiliatesAction(
+    request: Request
+  ): { uniqueId: string, affiliatesAction: IAffiliatesAction } {
+    const uniqueId: string | null =
+      AffiliateUniqueIdService.extractUniqueIdFromRequestOrNull(request);
+
+    // No unique id - not required to process anything
+    if (!uniqueId) {
+      throw new UnprocessableEntityError();
+    }
+
+    const { body } = request;
+    if (!body.affiliates_actions) {
+      this.processReferralError('There is uniqueId but there is no affiliates_actions', uniqueId);
+    }
+
+    let affiliatesActions;
+    try {
+      affiliatesActions = JSON.parse(body.affiliates_actions);
+    } catch (error) {
+      if (error.name === 'SyntaxError') {
+        this.processReferralError(
+          'Malformed affiliates_actions JSON',
+          uniqueId,
+          body.affiliates_actions,
+          error,
+        );
+      }
+
+      this.processReferralError('json parsing error', uniqueId, body.affiliates_actions, error);
+    }
+
+    if (!Array.isArray(affiliatesActions) || affiliatesActions.length !== 1) {
+      this.processReferralError('affiliates_actions must be one-element array', affiliatesActions);
+    }
+
+    const affiliatesAction = affiliatesActions[0];
+
+    const { error: validationErrors } = AffiliatesActionsValidator.validateRegistrationReferral(affiliatesAction);
+    if (validationErrors) {
+      this.processReferralError('Malformed affiliates_actions', affiliatesActions, validationErrors);
+    }
+
+    return {
+      uniqueId,
+      affiliatesAction,
+    }
   }
 
   private async createReferralActivity(
@@ -140,17 +171,24 @@ class RegistrationConversionService {
     return UsersActivityRepository.createNewKnexActivity(data, trx);
   }
 
-  private logReferralError(
+  /**
+   * It is forbidden to interrupt a registration because of a referral errors. But we must know about errors
+   */
+  private processReferralError(
     whatIsWrong: string,
-    affiliatesActions: StringToAnyCollection,
+    uniqueId: string,
+    affiliatesAction: IAffiliatesAction | null = null,
     errors: StringToAnyCollection = {},
   ) {
     ApiLogger.error('Malformed referral registration. Must proceed the registration. Observe this situation manually', {
       whatIsWrong,
-      affiliatesActions,
+      uniqueId,
+      affiliatesAction,
       errors,
       service: 'registration-conversion-service',
     });
+
+    throw new UnprocessableEntityError();
   }
 }
 

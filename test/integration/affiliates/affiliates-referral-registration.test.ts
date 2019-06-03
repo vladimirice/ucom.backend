@@ -108,12 +108,27 @@ describe('Affiliates referral registration', () => {
       });
 
       CommonChecker.expectOnlyOneNotEmptyItem(conversions);
-    }, JEST_TIMEOUT_DEBUG);
+    }, JEST_TIMEOUT);
   });
 
   describe('Negative', () => {
     it('send uniqueId and malformed affiliates data. A registration must not be broken', async () => {
-      // TODO - check logging manually
+      const { uniqueId } = await RedirectRequest.makeRedirectRequest(userVlad, offer);
+
+      const responseBody = await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
+
+      const affiliatesActions = JSON.stringify([
+        {
+          account_name_source: responseBody.affiliates_actions[0].account_name_source,
+          action: responseBody.affiliates_actions[0].action,
+        }
+      ]);
+
+      const { body } = await UsersHelper.registerNewUserWithRandomAccountName({
+        affiliates_actions: affiliatesActions,
+      }, uniqueId);
+
+      await UsersHelper.ensureUserExistByPatch(body.token);
     });
   });
 });

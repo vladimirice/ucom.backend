@@ -1,8 +1,6 @@
 import SeedsHelper = require('../helpers/seeds-helper');
 import UsersHelper = require('../helpers/users-helper');
 
-const statuses = require('statuses');
-
 describe('Test registration workflow', () => {
   beforeAll(async () => {
     await SeedsHelper.noGraphQlNoMocking();
@@ -18,13 +16,8 @@ describe('Test registration workflow', () => {
 
   it('Register new user', async () => {
     const { body } = await UsersHelper.registerNewUserWithRandomAccountName();
-    const fieldsToChange = {
-      first_name: 12345,
-      birthday: '',
-    };
 
-    const expectedStatus = statuses('OK');
-    await UsersHelper.requestToUpdateMyselfByToken(body.token, fieldsToChange, expectedStatus);
+    await UsersHelper.ensureUserExistByPatch(body.token);
   });
 
   it.skip('given public key must not match existing one', async () => {});

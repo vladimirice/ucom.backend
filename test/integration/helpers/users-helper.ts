@@ -69,6 +69,15 @@ class UsersHelper {
     return this.requestToUpdateMyselfByToken(myself.token, fieldsToChange, expectedStatus);
   }
 
+  public static async ensureUserExistByPatch(token: string): Promise<void> {
+    const fieldsToChange = {
+      first_name: 12345,
+      birthday: '',
+    };
+
+    await this.requestToUpdateMyselfByToken(token, fieldsToChange);
+  }
+
   public static async requestToUpdateMyselfByToken(
     token: string,
     fieldsToChange: StringToAnyCollection,
