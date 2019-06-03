@@ -23,18 +23,28 @@ class UsersAuthService {
 
   public async processNewUserRegistration(request: Request) {
     const { body }: IRequestBody = request;
-
-    const registrationData = await this.registrationService.processRegistration(body);
+    const { token, user } = await this.registrationService.processRegistration(body);
 
     try {
-      await this.registrationConversionService.processReferral(request, registrationData.user);
+      await this.registrationConversionService.processReferral(request, user);
+
+      return {
+        token,
+        user,
+        affiliates_action: { // just a simple indicator for the frontend
+          success: true,
+        }
+      };
     } catch (error) {
       if (!(error instanceof UnprocessableEntityError)) {
         throw error;
       }
-    }
 
-    return registrationData;
+      return {
+        token,
+        user,
+      }
+    }
   }
 }
 

@@ -18,6 +18,7 @@ import knex = require('../../../config/knex');
 import ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 import ConversionsModel = require('../../../lib/affiliates/models/conversions-model');
 import ProcessStatusesDictionary = require('../../../lib/common/dictionary/process-statuses-dictionary');
+import AffiliatesChecker = require('../../helpers/affiliates/affiliates-checker');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
@@ -82,7 +83,10 @@ describe('Affiliates referral registration', () => {
         affiliates_actions: affiliatesActions,
       }, uniqueId);
 
-      const { user } = response.body;
+      const { body } = response;
+      const { user } = body;
+
+      AffiliatesChecker.checkAffiliatesSuccessReferralRegistration(response.body);
 
       const vladStream = await StreamsModel.query().findOne({ user_id: userVlad.id });
 

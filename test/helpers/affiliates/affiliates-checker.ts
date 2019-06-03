@@ -21,6 +21,11 @@ class AffiliatesChecker {
       expected,
     );
   }
+
+  public static checkAffiliatesSuccessReferralRegistration(body: IResponseBody): void {
+    CommonChecker.expectNotEmpty(body.affiliates_action);
+    expect(body.affiliates_action.success).toBe(true);
+  }
 }
 
 export = AffiliatesChecker;
