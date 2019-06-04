@@ -24,13 +24,14 @@ https://staging-hello.u.community/jR/omgomgomgomg
 ----------------------------------------------
 
 ## A frontend part of the registration
+libs to import:
+```
+const { EventsIds }     = require('ucom.libs.common').Events.Dictionary;
+const { Interactions }  = require('ucom-libs-wallet').Dictionary;
+const { SocialApi }     = require('ucom-libs-wallet');
+```
 
 Step 1 - fetch a `referral program state`
-
-libs to import:
-const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
-const {  Interactions } = require('ucom-libs-wallet').Dictionary;
-
 
 * Before the registration:
 POST /api/v1/affiliates/actions
@@ -62,37 +63,29 @@ Response body is empty
 
 Case 3 - errors. A regular errors format. Status code is 4**
 
-----
+--------------
 
-Step 2 - registration request
+Step 2 - a registration request
 
-Case 1 - status code for `referral-programs` was 200
+1. Make a regular registration request.
+2. Make a referral-transaction request if required (status code for `referral-programs` was 200).
 
-* Call the SocialApi.getReferralFromUserSignedTransactionAsJson. Use a provided `account_name_source`
+POST /api/v1/affiliates/referral-transaction
 
-append an additional field to the registration request
+Request body
 ```
 {
-    // ... the regular fields like account_name, sign, etc....
-    affiliates_actions: [
-        {
-            offer_id: 5,
-            account_name_source: 'spirinspirin',    // to pass to the SocialApi.getReferralFromUserSignedTransactionAsJson wallet function
-            action: Interactions.referral(),        // what function to call - SocialApi.getReferralFromUserSignedTransactionAsJson
-            signed_transaction: '{.....}',          // a result of the call of SocialApi.getReferralFromUserSignedTransactionAsJson
-        }
-    ],
+    signed_transaction: '{.....}',          // a result of the call of SocialApi.getReferralFromUserSignedTransactionAsJson
+    account_name_source: 'spirinspirin',    // a parameter passed to SocialApi.getReferralFromUserSignedTransactionAsJson
+    
+    offer_id: 5,                            // provided by /api/v1/affiliates/actions response
+    action: 'referral'                      // provided by /api/v1/affiliates/actions response
 }
 ```
 
-If everything is ok an additional field is added to the registration response:
+Response body
 ```
-affiliates_action: {
+{
     success: true,
 }
 ```
-
-Note: do not sign it beforehand. Sign it right before sending a request. Because there is a signed transaction expiration time
-
-Case 2 - status was 'Unprocessable entity' (422)
-Do not add an additional field, do not sign a transactions
