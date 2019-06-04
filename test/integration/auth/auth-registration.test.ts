@@ -1,5 +1,6 @@
 import SeedsHelper = require('../helpers/seeds-helper');
 import UsersHelper = require('../helpers/users-helper');
+import UsersRegistrationHelper = require('../../helpers/users/users-registration-helper');
 
 describe('Test registration workflow', () => {
   beforeAll(async () => {
@@ -15,7 +16,7 @@ describe('Test registration workflow', () => {
   });
 
   it('Register new user', async () => {
-    const { body } = await UsersHelper.registerNewUserWithRandomAccountName();
+    const { body } = await UsersRegistrationHelper.registerNewUserWithRandomAccountData();
 
     await UsersHelper.ensureUserExistByPatch(body.token);
   });

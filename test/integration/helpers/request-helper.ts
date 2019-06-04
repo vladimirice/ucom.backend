@@ -247,8 +247,12 @@ class RequestHelper {
   }
 
   public static addAuthToken(req: any, myself: UserModel): void {
-    req
-      .set('Authorization', `Bearer ${myself.token}`);
+    this.addAuthTokenString(req, myself.token);
+  }
+
+  public static addAuthTokenString(request: any, token: string): void {
+    request
+      .set('Authorization', `Bearer ${token}`);
   }
 
   public static addGithubAuthToken(req: any, token: string): void {

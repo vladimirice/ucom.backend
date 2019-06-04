@@ -37,7 +37,7 @@ class RedirectRequest {
     const response = await request;
     responseHelper.expectStatusTempRedirect(response);
 
-    const uniqueIdFromResponse = RedirectChecker.checkUniqueIdCookieAndGetUniqueId(response);
+    const { uniqueId: uniqueIdFromResponse } = RedirectChecker.checkUniqueIdCookieAndGetUniqueId(response);
 
     if (givenUniqueId) {
       expect(uniqueIdFromResponse).toBe(givenUniqueId);

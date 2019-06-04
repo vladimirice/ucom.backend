@@ -2,6 +2,8 @@ import RequestHelper = require('../../integration/helpers/request-helper');
 import AffiliatesCommonHelper = require('./affiliates-common-helper');
 import ResponseHelper = require('../../integration/helpers/response-helper');
 import AffiliateUniqueIdService = require('../../../lib/affiliates/service/affiliate-unique-id-service');
+import AffiliatesResponse = require('./affiliates-response');
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 const statuses = require('statuses');
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
@@ -9,6 +11,34 @@ const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 class AffiliatesRequest {
   public static getEventIdRegistration() {
     return EventsIds.registration();
+  }
+
+  public static async sendReferralTransaction(
+    uniqueId: string,
+    authToken: string,
+    statusResponseBody: IResponseBody,
+    signedTransaction: string = 'sample_signed_transaction', // only for mocked blockchain
+  ) {
+    const url     = `${this.getAffiliatesRootUrl()}/referral-transaction`;
+    const request = RequestHelper.getRequestObjForPost(url);
+
+    RequestHelper.addCookies(request, [
+      AffiliatesCommonHelper.composeUniqueIdCookieString(uniqueId),
+    ]);
+
+    RequestHelper.addAuthTokenString(request, authToken);
+
+    const fields = {
+      ...AffiliatesResponse.getAffiliatesActionData(statusResponseBody),
+      signed_transaction: signedTransaction,
+    };
+
+    RequestHelper.addFieldsToRequest(request, fields);
+
+    const response = await request;
+    ResponseHelper.expectStatusCreated(response);
+
+    return response.body;
   }
 
   public static async getRegistrationOfferReferralStatus(

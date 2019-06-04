@@ -16,10 +16,13 @@ import ClicksModel = require('../../models/clicks-model');
 import StreamsModel = require('../../models/streams-model');
 import ProcessStatusesDictionary = require('../../../common/dictionary/process-statuses-dictionary');
 import { StringToAnyCollection } from '../../../common/interfaces/common-types';
-import UserActivityService = require('../../../users/user-activity-service');
 import UnprocessableEntityError = require('../../errors/unprocessable-entity-error');
+import { BadRequestError, JoiBadRequestError } from '../../../api/errors';
+import UserActivitySerializer = require('../../../users/job/user-activity-serializer');
+import ActivityProducer = require('../../../jobs/activity-producer');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
+const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 interface IAffiliatesAction {
   offer_id:             number;
@@ -32,7 +35,7 @@ interface IAffiliatesAction {
 class RegistrationConversionService {
   public async processReferral(
     request: Request,
-    newUser: UserModel,
+    currentUser: UserModel,
   ) {
     const { uniqueId, affiliatesAction } = this.getUniqueIdAndAffiliatesAction(request);
 
@@ -71,7 +74,7 @@ class RegistrationConversionService {
     try {
       trx = await transaction.start(OffersModel.knex());
       activity =
-        await this.createReferralActivity(affiliatesAction.signed_transaction, newUser.id, stream.user_id, trx);
+        await this.createReferralActivity(affiliatesAction.signed_transaction, currentUser.id, stream.user_id, trx);
 
       await ConversionsModel.query(trx)
         .insert({
@@ -80,7 +83,7 @@ class RegistrationConversionService {
           click_id:           click.id,
           users_activity_id:  activity.id,
 
-          user_id:            newUser.id,
+          user_id:            currentUser.id,
           status:             ProcessStatusesDictionary.new(),
           json_headers:       request.headers,
           referer:            request.headers.referer || '',
@@ -93,7 +96,10 @@ class RegistrationConversionService {
       this.processReferralError('An error during the writing transaction', uniqueId, affiliatesAction, error);
     }
 
-    await UserActivityService.sendPayloadToRabbit(activity);
+    const job: string =
+      UserActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
+
+    await ActivityProducer.publishWithUserActivity(job);
   }
 
   private getUniqueIdAndAffiliatesAction(
@@ -102,46 +108,20 @@ class RegistrationConversionService {
     const uniqueId: string | null =
       AffiliateUniqueIdService.extractUniqueIdFromRequestOrNull(request);
 
-    // No unique id - not required to process anything
     if (!uniqueId) {
-      throw new UnprocessableEntityError();
+      throw new BadRequestError(`It is required to send a cookie: ${CommonHeaders.UNIQUE_ID}`);
     }
 
     const { body } = request;
-    if (!body.affiliates_actions) {
-      this.processReferralError('There is uniqueId but there is no affiliates_actions', uniqueId);
-    }
 
-    let affiliatesActions;
-    try {
-      affiliatesActions = JSON.parse(body.affiliates_actions);
-    } catch (error) {
-      if (error.name === 'SyntaxError') {
-        this.processReferralError(
-          'Malformed affiliates_actions JSON',
-          uniqueId,
-          body.affiliates_actions,
-          error,
-        );
-      }
-
-      this.processReferralError('json parsing error', uniqueId, body.affiliates_actions, error);
-    }
-
-    if (!Array.isArray(affiliatesActions) || affiliatesActions.length !== 1) {
-      this.processReferralError('affiliates_actions must be one-element array', affiliatesActions);
-    }
-
-    const affiliatesAction = affiliatesActions[0];
-
-    const { error: validationErrors } = AffiliatesActionsValidator.validateRegistrationReferral(affiliatesAction);
+    const { error: validationErrors } = AffiliatesActionsValidator.validateRegistrationReferral(body);
     if (validationErrors) {
-      this.processReferralError('Malformed affiliates_actions', affiliatesActions, validationErrors);
+      throw new JoiBadRequestError(validationErrors);
     }
 
     return {
       uniqueId,
-      affiliatesAction,
+      affiliatesAction: body,
     }
   }
 

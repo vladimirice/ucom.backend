@@ -1,6 +1,3 @@
-import UsersHelper = require('../helpers/users-helper');
-
-
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
@@ -8,10 +5,8 @@ import RedirectRequest = require('../../helpers/affiliates/redirect-request');
 import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
 import AffiliatesGenerator = require('../../generators/affiliates/affiliates-generator');
 import AffiliatesRequest = require('../../helpers/affiliates/affiliates-request');
-// import ConversionsModel = require('../../../lib/affiliates/models/conversions-model');
 import StreamsModel = require('../../../lib/affiliates/models/streams-model');
 import ClicksModel = require('../../../lib/affiliates/models/clicks-model');
-// import ProcessStatusesDictionary = require('../../../lib/common/dictionary/process-statuses-dictionary');
 import CommonChecker = require('../../helpers/common/common-checker');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import knex = require('../../../config/knex');
@@ -19,12 +14,12 @@ import ActivityGroupDictionary = require('../../../lib/activity/activity-group-d
 import ConversionsModel = require('../../../lib/affiliates/models/conversions-model');
 import ProcessStatusesDictionary = require('../../../lib/common/dictionary/process-statuses-dictionary');
 import AffiliatesChecker = require('../../helpers/affiliates/affiliates-checker');
+import UsersRegistrationHelper = require('../../helpers/users/users-registration-helper');
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 let userVlad: UserModel;
-// @ts-ignore
-let userJane: UserModel;
 let userPetr: UserModel;
 
 const beforeAfterOptions = {
@@ -47,7 +42,7 @@ describe('Affiliates referral registration', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, , userPetr] = await SeedsHelper.beforeAllRoutine();
 
     ({offer} = await AffiliatesGenerator.createPostAndOffer(userVlad));
 
@@ -68,25 +63,21 @@ describe('Affiliates referral registration', () => {
         user_unique_id: uniqueId,
       });
 
-      const responseBody = await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
+      const statusResponseBody: IResponseBody =
+        await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
 
-      const affiliatesActions = JSON.stringify([
-        {
-          offer_id: offer.id,
-          account_name_source: responseBody.affiliates_actions[0].account_name_source,
-          action: responseBody.affiliates_actions[0].action,
-          signed_transaction: 'sample_signed_transaction',
-        }
-      ]);
+      const registrationResponse = await UsersRegistrationHelper.registerNewUserWithRandomAccountData();
 
-      const response = await UsersHelper.registerNewUserWithRandomAccountName({
-        affiliates_actions: affiliatesActions,
-      }, uniqueId);
-
-      const { body } = response;
+      const { body } = registrationResponse;
       const { user } = body;
 
-      AffiliatesChecker.checkAffiliatesSuccessReferralRegistration(response.body);
+      const transactionResponseBody = await AffiliatesRequest.sendReferralTransaction(
+        uniqueId,
+        body.token,
+        statusResponseBody,
+      );
+
+      AffiliatesChecker.checkAffiliatesSuccessReferralRegistration(transactionResponseBody);
 
       const vladStream = await StreamsModel.query().findOne({ user_id: userVlad.id });
 
@@ -113,27 +104,6 @@ describe('Affiliates referral registration', () => {
 
       CommonChecker.expectOnlyOneNotEmptyItem(conversions);
     }, JEST_TIMEOUT);
-  });
-
-  describe('Negative', () => {
-    it('send uniqueId and malformed affiliates data. A registration must not be broken', async () => {
-      const { uniqueId } = await RedirectRequest.makeRedirectRequest(userVlad, offer);
-
-      const responseBody = await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
-
-      const affiliatesActions = JSON.stringify([
-        {
-          account_name_source: responseBody.affiliates_actions[0].account_name_source,
-          action: responseBody.affiliates_actions[0].action,
-        }
-      ]);
-
-      const { body } = await UsersHelper.registerNewUserWithRandomAccountName({
-        affiliates_actions: affiliatesActions,
-      }, uniqueId);
-
-      await UsersHelper.ensureUserExistByPatch(body.token);
-    });
   });
 });
 

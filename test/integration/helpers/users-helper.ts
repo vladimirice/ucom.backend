@@ -6,10 +6,7 @@ import ResponseHelper = require('./response-helper');
 import _ = require('lodash');
 import UsersChecker = require('../../helpers/users/users-checker');
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
-import AffiliatesCommonHelper = require('../../helpers/affiliates/affiliates-common-helper');
 import CommonChecker = require('../../helpers/common/common-checker');
-
-const eosJsEcc = require('eosjs-ecc');
 
 const request = require('supertest');
 const usersSeeds = require('../../../seeders/users/users');
@@ -23,8 +20,6 @@ const server = RequestHelper.getApiApplication();
 
 const usersTeamRepository = require('../../../lib/users/repository').UsersTeam;
 const orgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
-
-const eosApi = require('../../../lib/eos/eosApi');
 
 require('jest-expect-message');
 
@@ -42,16 +37,6 @@ class UsersHelper {
       user.id,
     );
   }
-
-  public static async registerNewUserWithRandomAccountName(
-    extraFields: StringToAnyCollection = {},
-    uniqueId: string | null = null,
-    ) {
-    const accountName = eosApi.createRandomAccountName();
-
-    return this.registerNewUser(accountName, extraFields, uniqueId);
-  }
-
 
   /**
    *
@@ -517,57 +502,6 @@ class UsersHelper {
 
   static getJaneEosAccount() {
     return accountsData.jane;
-  }
-
-  private static async registerNewUser(
-    accountName: string,
-    extraFields: StringToAnyCollection,
-    uniqueId: string | null,
-  ) {
-    const brainKey = eosApi.generateBrainkey();
-
-    const [privateOwnerKey, privateActiveKey] = eosApi.getKeysByBrainkey(brainKey);
-
-    const ownerPublicKey  = eosApi.getPublicKeyByPrivate(privateOwnerKey);
-    const activePublicKey = eosApi.getPublicKeyByPrivate(privateActiveKey);
-
-    const sign = eosJsEcc.sign(accountName, privateActiveKey);
-
-    const url = RequestHelper.getRegistrationRoute();
-
-    const fields = {
-      sign,
-      account_name: accountName,
-      public_key: activePublicKey,
-      brainkey: brainKey,
-      ...extraFields,
-    };
-
-    const request = RequestHelper.getRequestObjForPost(url);
-    if (uniqueId) {
-      RequestHelper.addCookies(request, [
-        AffiliatesCommonHelper.composeUniqueIdCookieString(uniqueId),
-      ]);
-    }
-
-    RequestHelper.addFieldsToRequest(request, fields);
-
-    const response = await request;
-
-    ResponseHelper.expectStatusCreated(response);
-
-    return {
-      body: response.body,
-      accountData: {
-        accountName,
-        brainKey,
-        privateKeyOwner:  privateOwnerKey,
-        publicKeyOwner:   ownerPublicKey,
-
-        privateKeyActive: privateActiveKey,
-        publicKeyActive:  activePublicKey,
-      },
-    };
   }
 }
 
