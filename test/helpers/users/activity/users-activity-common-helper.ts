@@ -1,11 +1,35 @@
 import delay from 'delay';
 import { UsersActivityModelDto } from '../../../../lib/users/interfaces/users-activity/model-interfaces';
 import { AppError } from '../../../../lib/api/errors';
+import { StringToAnyCollection } from '../../../../lib/common/interfaces/common-types';
+import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import UsersActivityRepository = require('../../../../lib/users/repository/users-activity-repository');
-import { StringToAnyCollection } from '../../../../lib/common/interfaces/common-types';
+import UsersModelProvider = require('../../../../lib/users/users-model-provider');
+import knex = require('../../../../config/knex');
+import EosBlockchainStatusDictionary = require('../../../../lib/eos/eos-blockchain-status-dictionary');
+import RepositoryHelper = require('../../../../lib/common/repository/repository-helper');
 
 class UsersActivityCommonHelper {
+  public static async setBlockchainStatusIsSuccessByUserFromUserTo(
+    userFrom: UserModel,
+    userTo: UserModel,
+  ): Promise<number> {
+    const data = await knex(UsersModelProvider.getUsersActivityTableName())
+      .update({
+        blockchain_status: EosBlockchainStatusDictionary.getStatusIsSent(),
+      })
+      .where({
+        user_id_from: userFrom.id,
+        entity_id_to: userTo.id,
+        entity_name: UsersModelProvider.getEntityName(),
+        blockchain_status: EosBlockchainStatusDictionary.getStatusNew(),
+      })
+      .returning(['id']);
+
+    return RepositoryHelper.getKnexOneIdReturningOrException(data);
+  }
+
   public static async getProcessedActivity(
     userIdFrom: number,
     eventId: number,
@@ -81,33 +105,35 @@ class UsersActivityCommonHelper {
     interaction: string,
   ): any {
     return {
-      "producer_block_id": null,
-      "receipt": {
-        "status": "executed",
-      },
-      "scheduled": false,
-      "action_traces": [
-      {
-        "receipt": {
-          "receiver": "uos.activity",
+      producer_block_id: null,
+      receipt:
+        {
+          status: 'executed',
         },
-        "act": {
-          "account": "uos.activity",
-          "name": "socialaction",
-          "authorization": [
-            {
-              "actor": accountNameFrom,
-              "permission": "active"
-            }
-          ],
-          "data": {
-            "acc": accountNameFrom,
-            "action_json": `{\"interaction\":\"${interaction}\",\"data\":{\"account_from\":\"${accountNameFrom}\",\"account_to\":\"${accountNameTo}\"}}`,
+      scheduled: false,
+      action_traces: [
+        {
+          receipt: {
+            receiver: 'uos.activity',
+          },
+          act: {
+            account: 'uos.activity',
+            name: 'socialaction',
+            authorization: [
+              {
+                actor: accountNameFrom,
+                permission: 'active',
+              },
+            ],
+            data: {
+              acc: accountNameFrom,
+              // eslint-disable-next-line no-useless-escape
+              action_json: `{\"interaction\":\"${interaction}\",\"data\":{\"account_from\":\"${accountNameFrom}\",\"account_to\":\"${accountNameTo}\"}}`,
+            },
           },
         },
-      }
-    ],
-    }
+      ],
+    };
   }
 }
 

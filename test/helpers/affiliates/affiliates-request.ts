@@ -1,9 +1,14 @@
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import RequestHelper = require('../../integration/helpers/request-helper');
 import AffiliatesCommonHelper = require('./affiliates-common-helper');
 import ResponseHelper = require('../../integration/helpers/response-helper');
 import AffiliateUniqueIdService = require('../../../lib/affiliates/service/affiliate-unique-id-service');
 import AffiliatesResponse = require('./affiliates-response');
-import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+import RedirectRequest = require('./redirect-request');
+import OffersModel = require('../../../lib/affiliates/models/offers-model');
+import UsersRegistrationHelper = require('../users/users-registration-helper');
 
 const statuses = require('statuses');
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
@@ -11,6 +16,24 @@ const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 class AffiliatesRequest {
   public static getEventIdRegistration() {
     return EventsIds.registration();
+  }
+
+  public static async redirectAndRegisterAsReferral(
+    streamOwner: UserModel,
+    offer: OffersModel,
+  ): Promise<UserModel> {
+    const { uniqueId }        = await RedirectRequest.makeRedirectRequest(streamOwner, offer);
+    const statusResponseBody  = await AffiliatesRequest.getRegistrationOfferReferralStatus(uniqueId);
+
+    const response = await UsersRegistrationHelper.registerNewUserWithRandomAccountData();
+
+    await AffiliatesRequest.sendReferralTransaction(
+      uniqueId,
+      response.body.token,
+      statusResponseBody,
+    );
+
+    return response.body.user;
   }
 
   public static async sendReferralTransaction(
@@ -53,7 +76,7 @@ class AffiliatesRequest {
     return this.makeRequestForReferralPrograms(
       jwtToken,
       EventsIds.registration(),
-      expectedStatus
+      expectedStatus,
     );
   }
 

@@ -1,10 +1,10 @@
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import AffiliatesResponse = require('../../helpers/affiliates/affiliates-response');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 const { SocialApi }  = require('ucom-libs-wallet');
 const { Interactions } = require('ucom-libs-wallet').Dictionary;
-
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import RedirectRequest = require('../../helpers/affiliates/redirect-request');
@@ -43,7 +43,7 @@ describe('Affiliates referral transaction', () => {
   beforeEach(async () => {
     [userVlad, , userPetr] = await SeedsHelper.beforeAllRoutine();
 
-    ({offer} = await AffiliatesGenerator.createPostAndOffer(userVlad));
+    ({ offer } = await AffiliatesGenerator.createPostAndOffer(userVlad));
 
     await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
 

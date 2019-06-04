@@ -1,8 +1,9 @@
+import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
+
 import UsersModelProvider = require('../../users/users-model-provider');
 import knex = require('../../../config/knex');
 import StreamsModel = require('../models/streams-model');
 import OffersModel = require('../models/offers-model');
-import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
 
 const config = require('config');
 
@@ -10,13 +11,14 @@ class StreamsCreatorService {
   public static async createRegistrationStreamsForEverybody(offer: OffersModel): Promise<TotalParametersResponse> {
     const withoutStreams: {id: number, account_name: string}[] =
       await knex(`${UsersModelProvider.getTableName()} AS u`)
-      .select(['u.id', 'u.account_name'])
-      .leftJoin(`${StreamsModel.getTableName()} AS s`, function() {
-        this
-          .on('s.user_id', '=', 'u.id')
-          .andOn('s.offer_id', '=', offer.id);
-      })
-      .whereNull('s.id');
+        .select(['u.id', 'u.account_name'])
+        // eslint-disable-next-line func-names
+        .leftJoin(`${StreamsModel.getTableName()} AS s`, function () {
+          this
+            .on('s.user_id', '=', 'u.id')
+            .andOn('s.offer_id', '=', offer.id);
+        })
+        .whereNull('s.id');
 
     let totalProcessedCounter = 0;
     for (const oneUser of withoutStreams) {
@@ -36,7 +38,7 @@ class StreamsCreatorService {
     return {
       totalProcessedCounter,
       totalSkippedCounter: 0,
-    }
+    };
   }
 }
 

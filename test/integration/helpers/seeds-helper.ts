@@ -68,17 +68,17 @@ const minorTablesToSkipSequences = [
   'streams',
   'clicks',
   'conversions',
+  'users_activity_referral',
 ];
 
 // Truncated async
 const minorTables = [
-  ConversionsModel.getTableName(),
-
   EntityModelProvider.getNotificationsTableName(),
   UsersTeamRepository.getModelName(),
 
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
+  UsersModelProvider.getUsersActivityReferralTableName(),
 
   UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
@@ -128,6 +128,7 @@ const minorTables = [
 
 // Truncated in order
 const majorTables = [
+  ConversionsModel.getTableName(),
   ClicksModel.getTableName(),
   StreamsModel.getTableName(),
   OffersModel.getTableName(),
@@ -368,6 +369,7 @@ class SeedsHelper {
 
     await Promise.all(minorTablesPromises);
 
+    // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < majorTables.length; i += 1) {
       if (majorTables[i] === 'Users') {
         await models.sequelize.query('DELETE FROM "Users" WHERE 1=1');
