@@ -1,7 +1,8 @@
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
+
 import HttpRequestHelper = require('../../common/helper/http-request-helper');
 import DatetimeHelper = require('../../common/helper/datetime-helper');
 import AuthService = require('../../auth/authService');
-import { StringToAnyCollection } from '../../common/interfaces/common-types';
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 const uniqueIdGenerator = require('uniqid');
@@ -17,8 +18,8 @@ class AffiliateUniqueIdService {
         maxAge: this.getUniqIdCookieExpiration(),
         httpOnly: true,
         secure: true,
-        domain: HttpRequestHelper.getCookieDomain(request),
-      }
+        domain: HttpRequestHelper.getUCommunityCookieDomain(),
+      },
     );
 
     return uniqueId;
@@ -65,7 +66,7 @@ class AffiliateUniqueIdService {
     return {
       jwtToken,
       uniqueId,
-    }
+    };
   }
 
   public static generateJwtTokenWithUniqueId(uniqueId: string): string {

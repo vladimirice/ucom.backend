@@ -3,9 +3,13 @@ import EnvHelper = require('./env-helper');
 const config = require('config');
 
 class HttpRequestHelper {
+  public static getUCommunityCookieDomain(): string {
+    return 'u.community';
+  }
+
   public static getCookieDomain(request): string {
     if (EnvHelper.isProductionEnv()) {
-      return 'u.community';
+      return this.getUCommunityCookieDomain();
     }
 
     const allowedOrigins = config.cors.allowed_origins;
@@ -13,9 +17,9 @@ class HttpRequestHelper {
     const { origin } = request.headers;
     if (allowedOrigins.includes(origin) && origin.includes('localhost')) {
       return 'localhost';
-    } else {
-      return 'u.community';
     }
+
+    return this.getUCommunityCookieDomain();
   }
 }
 
