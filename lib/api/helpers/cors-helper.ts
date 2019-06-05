@@ -15,6 +15,7 @@ class CorsHelper {
       res.setHeader('Access-Control-Allow-Origin', this.getOriginByRequest(req));
 
       res.setHeader('Access-Control-Allow-Methods', defaultCorsParams.methods);
+      res.setHeader('Access-Control-Max-Age', 24 * 60 * 60);
 
       res.setHeader(
         'Access-Control-Allow-Headers',
