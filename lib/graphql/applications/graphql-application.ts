@@ -61,6 +61,7 @@ const typeDefs = gql`
     one_user_airdrop(filters: one_user_airdrop_state_filtering): JSON
     one_user(filters: one_user_filtering): JSON
     one_user_trusted_by(filters: one_user_filtering, order_by: String!, page: Int!, per_page: Int!): users!
+    one_user_referrals(filters: one_user_filtering, order_by: String!, page: Int!, per_page: Int!): users!
 
     one_user_follows_organizations(filters: one_user_filtering!, order_by: String!, page: Int!, per_page: Int!): organizations!
     
@@ -396,6 +397,23 @@ const resolvers = {
       const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
 
       return UsersFetchService.findOneUserTrustedByAndProcessForList(userId, usersQuery, currentUserId);
+    },
+    async one_user_referrals(
+      // @ts-ignore
+      parent,
+      args,
+      ctx,
+    ): Promise<UsersListResponse> {
+      const usersQuery: UsersRequestQueryDto = {
+        page: args.page,
+        per_page: args.per_page,
+        sort_by: args.order_by,
+        ...args.filters,
+      };
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+      const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+
+      return UsersFetchService.findOneUserReferralsAndProcessForList(userId, usersQuery, currentUserId);
     },
 
     async one_user_follows_organizations(

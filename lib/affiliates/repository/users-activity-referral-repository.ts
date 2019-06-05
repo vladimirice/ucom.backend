@@ -35,6 +35,17 @@ class UsersActivityReferralRepository {
 
     return RepositoryHelper.doesExistByQueryBuilder(queryBuilder);
   }
+
+  public static async countReferralsOfUser(userId: number): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        source_entity_id: userId,
+        entity_name:      UsersModelProvider.getEntityName(),
+      });
+
+    return RepositoryHelper.getKnexCountAsNumber(res);
+  }
 }
 
 export = UsersActivityReferralRepository;

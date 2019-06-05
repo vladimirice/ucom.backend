@@ -25,6 +25,7 @@ import OrganizationsRepository = require('../../organizations/repository/organiz
 import UserActivityService = require('../user-activity-service');
 import UsersActivityTrustRepository = require('../repository/users-activity/users-activity-trust-repository');
 import AirdropsUsersExternalDataRepository = require('../../airdrops/repository/airdrops-users-external-data-repository');
+import UsersActivityReferralRepository = require('../../affiliates/repository/users-activity-referral-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -107,6 +108,29 @@ class UsersFetchService {
     const promises = [
       repository.findAllWhoTrustsUser(userId, params),
       UsersActivityTrustRepository.countUsersThatTrustUser(userId),
+    ];
+
+    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
+  public static async findOneUserReferralsAndProcessForList(
+    userId: number,
+    query: UsersRequestQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
+    const repository  = UsersRepository;
+
+    let params;
+    try {
+      params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
+    } catch (error) {
+      // @ts-ignore
+      const a = 0;
+    }
+
+    const promises = [
+      repository.findUserReferrals(userId, params),
+      UsersActivityReferralRepository.countReferralsOfUser(userId),
     ];
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);

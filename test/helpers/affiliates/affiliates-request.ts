@@ -1,5 +1,10 @@
 import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { GraphqlRequestHelper } from '../common/graphql-request-helper';
+
+const statuses = require('statuses');
+const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
+const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 import RequestHelper = require('../../integration/helpers/request-helper');
 import AffiliatesCommonHelper = require('./affiliates-common-helper');
@@ -10,8 +15,6 @@ import RedirectRequest = require('./redirect-request');
 import OffersModel = require('../../../lib/affiliates/models/offers-model');
 import UsersRegistrationHelper = require('../users/users-registration-helper');
 
-const statuses = require('statuses');
-const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 class AffiliatesRequest {
   public static getEventIdRegistration() {
@@ -105,6 +108,34 @@ class AffiliatesRequest {
 
     return response.body;
   }
+
+  public static async getOneUserReferrals(
+    userId: number,
+    orderBy: string = '-current_rate',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<any> {
+    const params = {
+      filters: {
+        user_id: userId,
+      },
+      order_by: orderBy,
+      page,
+      per_page: perPage,
+    };
+
+    const part = GraphQLSchema.getOneUserReferralsQueryPart(params);
+
+    const query = GraphQLSchema.getQueryMadeFromParts([part]);
+    const key: string = 'one_user_referrals';
+
+    const response = await GraphqlRequestHelper.makeRequestAsGuest(query, key, false);
+
+    ResponseHelper.checkListResponseStructure(response);
+
+    return response;
+  }
+
 
   private static getAffiliatesRootUrl(): string {
     return `${RequestHelper.getApiV1Prefix()}/affiliates`;
