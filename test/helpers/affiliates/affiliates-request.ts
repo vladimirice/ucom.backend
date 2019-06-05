@@ -14,11 +14,38 @@ import AffiliatesResponse = require('./affiliates-response');
 import RedirectRequest = require('./redirect-request');
 import OffersModel = require('../../../lib/affiliates/models/offers-model');
 import UsersRegistrationHelper = require('../users/users-registration-helper');
+import UsersActivityCommonHelper = require('../users/activity/users-activity-common-helper');
+import RegistrationConversionProcessor = require('../../../lib/affiliates/service/conversions/registration-conversion-processor');
 
 
 class AffiliatesRequest {
   public static getEventIdRegistration() {
     return EventsIds.registration();
+  }
+
+  public static async createManyReferralsWithBlockchainStatus(
+    usersSources: UserModel[],
+    offer: OffersModel,
+    processConversions: boolean = true,
+  ): Promise<{referral, source}[]> {
+    const referralToSource: {referral, source}[] = [];
+
+    for (const source of usersSources) {
+      const referral = await AffiliatesRequest.redirectAndRegisterAsReferral(source, offer);
+
+      await UsersActivityCommonHelper.setBlockchainStatusIsSuccessByUserFromUserTo(referral, source);
+
+      referralToSource.push({
+        referral,
+        source,
+      });
+    }
+
+    if (processConversions) {
+      await RegistrationConversionProcessor.process();
+    }
+
+    return referralToSource;
   }
 
   public static async redirectAndRegisterAsReferral(
@@ -35,6 +62,8 @@ class AffiliatesRequest {
       response.body.token,
       statusResponseBody,
     );
+
+    response.body.user.token = response.body.token;
 
     return response.body.user;
   }
@@ -111,7 +140,7 @@ class AffiliatesRequest {
 
   public static async getOneUserReferrals(
     userId: number,
-    orderBy: string = '-current_rate',
+    orderBy: string = '-account_name',
     page: number = 1,
     perPage: number = 10,
   ): Promise<any> {

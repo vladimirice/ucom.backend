@@ -1,11 +1,12 @@
+import { SuperAgentRequest } from 'superagent';
 import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
-import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
-import { SuperAgentRequest } from 'superagent';
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -88,9 +89,9 @@ class RequestHelper {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  public static addCookies(request: SuperAgentRequest, cookies: string[]): void {
+  public static addCookies(req: SuperAgentRequest, cookies: string[]): void {
     // @ts-ignore
-    request.set('Cookie', cookies);
+    req.set('Cookie', cookies);
   }
 
   public static getRequestObj() {
@@ -99,6 +100,18 @@ class RequestHelper {
 
   public static getRequestObjForPost(url: string): SuperAgentRequest {
     return request(server).post(url);
+  }
+
+  public static getRequestObjForGet(url: string): SuperAgentRequest {
+    return request(server).get(url);
+  }
+
+  public static getGetRequestAsMyself(url: string, myself: UserModel): IResponseBody {
+    const req = this.getRequestObjForGet(url);
+
+    this.addAuthToken(req, myself);
+
+    return req;
   }
 
   public static getApiV1Prefix(): string {
@@ -250,8 +263,8 @@ class RequestHelper {
     this.addAuthTokenString(req, myself.token);
   }
 
-  public static addAuthTokenString(request: any, token: string): void {
-    request
+  public static addAuthTokenString(req: any, token: string): void {
+    req
       .set('Authorization', `Bearer ${token}`);
   }
 
@@ -276,7 +289,7 @@ class RequestHelper {
 
   public static addFieldsToRequest(
     req: SuperAgentRequest,
-    fields: StringToAnyCollection
+    fields: StringToAnyCollection,
   ): void {
     for (const field in fields) {
       if (!fields.hasOwnProperty(field)) {

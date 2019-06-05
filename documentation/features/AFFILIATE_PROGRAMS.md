@@ -4,9 +4,7 @@
 
 A referral program is a kind of affiliate programs.
 
-
 ## Related services
-
 
 Name | Description
 --- | ---
@@ -89,3 +87,13 @@ Response body
     success: true,
 }
 ```
+
+## A frontend part of referral info
+
+* GraphQL library method - `getOneUserReferralsQueryPart`. An interface - as for the Trust feature.
+
+* how to fetch user referral URL?
+`myself.affiliates.referral_redirect_url`
+
+how to fetch a referrer (source_user)?
+`myself.affiliates.source_user`

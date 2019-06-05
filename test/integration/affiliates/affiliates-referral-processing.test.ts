@@ -3,12 +3,8 @@ import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces
 
 import UsersActivityCommonHelper = require('../../helpers/users/activity/users-activity-common-helper');
 
-// const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
-
 import SeedsHelper = require('../helpers/seeds-helper');
 import RedirectRequest = require('../../helpers/affiliates/redirect-request');
-import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
-import AffiliatesGenerator = require('../../generators/affiliates/affiliates-generator');
 import AffiliatesRequest = require('../../helpers/affiliates/affiliates-request');
 import EosApi = require('../../../lib/eos/eosApi');
 import RegistrationConversionProcessor = require('../../../lib/affiliates/service/conversions/registration-conversion-processor');
@@ -18,6 +14,7 @@ import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import knex = require('../../../config/knex');
 import UsersActivityReferralRepository = require('../../../lib/affiliates/repository/users-activity-referral-repository');
 import UsersRegistrationHelper = require('../../helpers/users/users-registration-helper');
+import AffiliatesBeforeAllHelper = require('../../helpers/affiliates/affiliates-before-all-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -47,15 +44,7 @@ describe('Affiliates referral processing', () => {
   beforeEach(async () => {
     [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
 
-    ({ offer } = await AffiliatesGenerator.createPostAndOffer(userVlad));
-
-    await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
-
-    // Disturbance
-    const { uniqueId: firstUniqueId } = await RedirectRequest.makeRedirectRequest(userPetr, offer);
-    const { uniqueId: secondUniqueId } = await RedirectRequest.makeRedirectRequest(userPetr, offer);
-    await RedirectRequest.makeRedirectRequest(userPetr, offer, firstUniqueId);
-    await RedirectRequest.makeRedirectRequest(userPetr, offer, secondUniqueId);
+    ({ offer } = await AffiliatesBeforeAllHelper.beforeAll(userVlad, userPetr));
   });
 
   describe('Positive', () => {
@@ -169,7 +158,7 @@ describe('Affiliates referral processing', () => {
           await UsersActivityReferralRepository.doesUserReferralExist(user.id, userVlad.id);
 
       expect(referralIndex).toBe(true);
-    }, JEST_TIMEOUT_DEBUG);
+    }, JEST_TIMEOUT);
   });
 });
 

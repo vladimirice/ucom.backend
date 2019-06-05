@@ -1,6 +1,6 @@
-import moment = require('moment');
-
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
+import moment = require('moment');
 import OffersModel = require('../../../lib/affiliates/models/offers-model');
 import DatetimeHelper = require('../../../lib/common/helper/datetime-helper');
 import PostsGenerator = require('../../generators/posts-generator');
@@ -21,7 +21,7 @@ class AffiliatesGenerator {
     return {
       offer,
       postId,
-    }
+    };
   }
 }
 

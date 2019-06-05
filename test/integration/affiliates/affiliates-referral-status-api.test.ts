@@ -1,19 +1,18 @@
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+
 import AffiliateUniqueIdService = require('../../../lib/affiliates/service/affiliate-unique-id-service');
 
 const {  Interactions } = require('ucom-libs-wallet').Dictionary;
 
 const statuses = require('statuses');
 
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-
 import SeedsHelper = require('../helpers/seeds-helper');
 import RedirectRequest = require('../../helpers/affiliates/redirect-request');
 import CommonChecker = require('../../helpers/common/common-checker');
-import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
-import AffiliatesGenerator = require('../../generators/affiliates/affiliates-generator');
 import AffiliatesRequest = require('../../helpers/affiliates/affiliates-request');
 import AffiliatesChecker = require('../../helpers/affiliates/affiliates-checker');
-import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+import AffiliatesBeforeAllHelper = require('../../helpers/affiliates/affiliates-before-all-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -24,7 +23,7 @@ const beforeAfterOptions = {
   workersMocking: 'all',
 };
 
-const JEST_TIMEOUT = 1000;
+const JEST_TIMEOUT = 5000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 1000;
 
@@ -41,15 +40,7 @@ describe('Affiliates referral status', () => {
   beforeEach(async () => {
     [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
 
-    ({offer} = await AffiliatesGenerator.createPostAndOffer(userVlad));
-
-    await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
-
-    // Disturbance
-    const { uniqueId: firstUniqueId } = await RedirectRequest.makeRedirectRequest(userPetr, offer);
-    const { uniqueId: secondUniqueId } = await RedirectRequest.makeRedirectRequest(userPetr, offer);
-    await RedirectRequest.makeRedirectRequest(userPetr, offer, firstUniqueId);
-    await RedirectRequest.makeRedirectRequest(userPetr, offer, secondUniqueId);
+    ({ offer } = await AffiliatesBeforeAllHelper.beforeAll(userVlad, userPetr));
   });
 
   describe('Positive', () => {
@@ -67,7 +58,6 @@ describe('Affiliates referral status', () => {
       };
 
       expect(responseBody.affiliates_actions[0]).toEqual(expected);
-
     }, JEST_TIMEOUT);
 
     it('Attribution model should work properly', async () => {
@@ -113,7 +103,7 @@ describe('Affiliates referral status', () => {
         jwtToken,
         100500,
         statuses('Bad Request'),
-      )
+      );
     }, JEST_TIMEOUT);
   });
 });

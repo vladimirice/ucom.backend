@@ -1,11 +1,19 @@
 import { GraphqlRequestHelper } from '../common/graphql-request-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 import ResponseHelper = require('../../integration/helpers/response-helper');
+import RequestHelper = require('../../integration/helpers/request-helper');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 class OneUserRequestHelper {
+  public static async getMyself(myself: UserModel): Promise<IResponseBody> {
+    const request = await RequestHelper.getGetRequestAsMyself(RequestHelper.getMyselfUrl(), myself);
+
+    return request.body;
+  }
+
   public static async getOneUserAsMyself(
     myself: UserModel,
     userId: number,

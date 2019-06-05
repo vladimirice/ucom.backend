@@ -1,9 +1,8 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import RedirectRequest = require('../../helpers/affiliates/redirect-request');
-import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
-import AffiliatesGenerator = require('../../generators/affiliates/affiliates-generator');
 import AffiliatesRequest = require('../../helpers/affiliates/affiliates-request');
 import StreamsModel = require('../../../lib/affiliates/models/streams-model');
 import ClicksModel = require('../../../lib/affiliates/models/clicks-model');
@@ -15,7 +14,7 @@ import ConversionsModel = require('../../../lib/affiliates/models/conversions-mo
 import ProcessStatusesDictionary = require('../../../lib/common/dictionary/process-statuses-dictionary');
 import AffiliatesChecker = require('../../helpers/affiliates/affiliates-checker');
 import UsersRegistrationHelper = require('../../helpers/users/users-registration-helper');
-import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+import AffiliatesBeforeAllHelper = require('../../helpers/affiliates/affiliates-before-all-helper');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
@@ -44,15 +43,7 @@ describe('Affiliates referral registration', () => {
   beforeEach(async () => {
     [userVlad, , userPetr] = await SeedsHelper.beforeAllRoutine();
 
-    ({offer} = await AffiliatesGenerator.createPostAndOffer(userVlad));
-
-    await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
-
-    // Disturbance
-    const { uniqueId: firstUniqueId } = await RedirectRequest.makeRedirectRequest(userPetr, offer);
-    const { uniqueId: secondUniqueId } = await RedirectRequest.makeRedirectRequest(userPetr, offer);
-    await RedirectRequest.makeRedirectRequest(userPetr, offer, firstUniqueId);
-    await RedirectRequest.makeRedirectRequest(userPetr, offer, secondUniqueId);
+    ({ offer } = await AffiliatesBeforeAllHelper.beforeAll(userVlad, userPetr));
   });
 
   describe('Positive', () => {

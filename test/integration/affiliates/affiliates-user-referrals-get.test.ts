@@ -1,108 +1,133 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import AffiliatesRequest = require('../../helpers/affiliates/affiliates-request');
 import ResponseHelper = require('../helpers/response-helper');
+import CommonHelper = require('../helpers/common-helper');
+import AffiliatesBeforeAllHelper = require('../../helpers/affiliates/affiliates-before-all-helper');
+
+import OneUserRequestHelper = require('../../helpers/users/one-user-request-helper');
+import StreamsModel = require('../../../lib/affiliates/models/streams-model');
+import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
+import UsersRegistrationHelper = require('../../helpers/users/users-registration-helper');
 
 require('jest-expect-message');
 
 let userVlad:   UserModel;
-// @ts-ignore
 let userJane:   UserModel;
-// @ts-ignore
 let userPetr:   UserModel;
-// @ts-ignore
-let userRokky:  UserModel;
 
-const beforeAfterOptions = {
-  isGraphQl: true,
-  workersMocking: 'all',
-};
-
-const JEST_TIMEOUT = 1000;
+const JEST_TIMEOUT = 5000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 1000;
 
 describe('Affiliates user referrals', () => {
+  let offer;
+
   beforeAll(async () => {
-    await SeedsHelper.beforeAllSetting(beforeAfterOptions);
+    await SeedsHelper.withGraphQlMockAllWorkers();
   });
   afterAll(async () => {
-    await SeedsHelper.doAfterAll(beforeAfterOptions);
+    await SeedsHelper.afterAllWithGraphQl();
   });
   beforeEach(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
+
+    ({ offer } = await AffiliatesBeforeAllHelper.beforeAll(userVlad, userPetr));
+  });
+
+  describe('Myself data', () => {
+    it('register a new user and do not create a stream for him but then create', async () => {
+      const { body } = await UsersRegistrationHelper.registerNewUserWithRandomAccountData();
+
+      const { user } = body;
+      user.token = body.token;
+
+      const myself: IResponseBody = await OneUserRequestHelper.getMyself(user);
+
+      expect(myself.affiliates.referral_redirect_url).toBeNull();
+      expect(myself.affiliates.source_user).toBeNull();
+
+      await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
+      const myselfWithReferralUrl: IResponseBody = await OneUserRequestHelper.getMyself(user);
+
+      const stream = await StreamsModel.query().findOne({ account_name: myselfWithReferralUrl.account_name });
+      expect(myselfWithReferralUrl.affiliates.referral_redirect_url).toBe(stream.redirect_url);
+      expect(myselfWithReferralUrl.affiliates.source_user).toBeNull();
+    }, JEST_TIMEOUT);
+
+    it('get both myself referrer link and source user card', async () => {
+      const referralToSource = await AffiliatesRequest.createManyReferralsWithBlockchainStatus([
+        userVlad,
+      ], offer);
+
+      await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
+
+      const myself: IResponseBody = await OneUserRequestHelper.getMyself(referralToSource[0].referral);
+
+      const stream = await StreamsModel.query().findOne({ account_name: myself.account_name });
+      expect(myself.affiliates.referral_redirect_url).toBe(stream.redirect_url);
+
+      expect(myself.affiliates.source_user.id).toBe(userVlad.id);
+    }, JEST_TIMEOUT);
   });
 
   describe('One user referrals', () => {
     describe('Positive', () => {
       it('Get as guest', async () => {
-        /*
-
-          Create six referrals for one   user
-          Create two referral for other user
-
-          Fetch user referrals
-
-          check user referrals amount and concrete entities
-         */
-
         const emptyList = await AffiliatesRequest.getOneUserReferrals(userVlad.id);
         ResponseHelper.checkEmptyResponseList(emptyList);
 
-        /*
-        const manyOrgsIds: number[] = await OrganizationsGenerator.createManyOrgWithoutTeam(userJane, 5);
+        const referralToSource = await AffiliatesRequest.createManyReferralsWithBlockchainStatus([
+          userVlad,
+          userVlad,
+          userVlad,
+          userJane,
+        ], offer);
 
-        await OrganizationsHelper.requestToFollowOrganization(manyOrgsIds[0], userVlad);
+        const vladReferrals: number[] = [];
+        const janeReferrals: number[] = [];
+        for (const item of referralToSource) {
+          if (item.source.id === userVlad.id) {
+            vladReferrals.push(item.referral.id);
+          } else if (item.source.id === userJane.id) {
+            janeReferrals.push(item.referral.id);
+          }
+        }
 
-        const firstEntityOnlyList = await OneUserRequestHelper.getOneUserFollowsOrganizationsAsMyself(userVlad, userVlad.id);
+        const vladReferralsList = await AffiliatesRequest.getOneUserReferrals(userVlad.id);
+        CommonHelper.expectModelIdsExistenceInResponseList(vladReferralsList, vladReferrals);
 
-        CommonHelper.expectModelIdsExistenceInResponseList(firstEntityOnlyList, [manyOrgsIds[0]]);
+        const janeReferralsList = await AffiliatesRequest.getOneUserReferrals(userJane.id);
+        CommonHelper.expectModelIdsExistenceInResponseList(janeReferralsList, janeReferrals);
 
-        await OrganizationsHelper.requestToFollowOrganization(manyOrgsIds[1], userVlad);
-
-        const firstAndSecondEntitiesOnlyList = await OneUserRequestHelper.getOneUserFollowsOrganizationsAsMyself(userVlad, userVlad.id);
-        CommonHelper.expectModelIdsExistenceInResponseList(firstAndSecondEntitiesOnlyList, [manyOrgsIds[0], manyOrgsIds[1]]);
-
-        await OrganizationsHelper.requestToUnfollowOrganization(manyOrgsIds[0], userVlad);
-        const secondEntityOnlyList = await OneUserRequestHelper.getOneUserFollowsOrganizationsAsMyself(userVlad, userVlad.id);
-        CommonHelper.expectModelIdsExistenceInResponseList(secondEntityOnlyList, [manyOrgsIds[1]]);
-
-        OrganizationsHelper.checkOrgListResponseStructure(firstAndSecondEntitiesOnlyList);
-
-         */
-      });
+        const petrReferralsList = await AffiliatesRequest.getOneUserReferrals(userPetr.id);
+        ResponseHelper.checkEmptyResponseList(petrReferralsList);
+      }, JEST_TIMEOUT * 5);
 
       it('GET myself follows organizations, ordered by id DESC with a pagination', async () => {
-        // TODO
-      /*
         const orderBy = 'id';
 
-        const manyOrgsIds: number[] = await OrganizationsGenerator.createManyOrgWithoutTeam(userJane, 5);
-        manyOrgsIds.sort();
-
-        await OrganizationsHelper.requestToFollowOrganization(manyOrgsIds[0], userVlad);
-        await OrganizationsHelper.requestToFollowOrganization(manyOrgsIds[1], userVlad);
-        await OrganizationsHelper.requestToFollowOrganization(manyOrgsIds[2], userVlad);
-        await OrganizationsHelper.requestToFollowOrganization(manyOrgsIds[3], userVlad);
-
-        const response = await OneUserRequestHelper.getOneUserFollowsOrganizationsAsMyself(
+        const referralToSource = await AffiliatesRequest.createManyReferralsWithBlockchainStatus([
           userVlad,
-          userVlad.id,
-          orderBy,
-          2,
-          2,
-        );
+          userVlad,
+          userVlad,
+          userVlad,
+        ], offer);
 
-        CommonHelper.expectModelIdsExistenceInResponseList(response, [manyOrgsIds[3], manyOrgsIds[2]]);
+        const referralsIds: number[] = referralToSource.map(item => +item.referral.id).sort();
+
+        const page = 2;
+        const perPage = 2;
+
+        const response = await AffiliatesRequest.getOneUserReferrals(userVlad.id, orderBy, page, perPage);
+
+        CommonHelper.expectModelIdsExistenceInResponseList(response, [referralsIds[2], referralsIds[3]]);
 
         expect(response.metadata.total_amount).toBe(4);
         expect(response.metadata.has_more).toBe(false);
-
-        OrganizationsHelper.checkOrgListResponseStructure(response);
-
-       */
-      }, JEST_TIMEOUT);
+      }, JEST_TIMEOUT * 3);
     });
   });
 });

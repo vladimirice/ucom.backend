@@ -111,6 +111,6 @@
     "tslint-config-airbnb": "^5.11.1",
     "tsutils": "^3.14.0",
     "typescript": "^3.5.1",
-    "ucom-libs-graphql-schemas": "^1.14.0"
+    "ucom-libs-graphql-schemas": "^1.15.0"
   }
 }

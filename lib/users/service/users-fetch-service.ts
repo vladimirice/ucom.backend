@@ -26,6 +26,10 @@ import UserActivityService = require('../user-activity-service');
 import UsersActivityTrustRepository = require('../repository/users-activity/users-activity-trust-repository');
 import AirdropsUsersExternalDataRepository = require('../../airdrops/repository/airdrops-users-external-data-repository');
 import UsersActivityReferralRepository = require('../../affiliates/repository/users-activity-referral-repository');
+import OffersModel = require('../../affiliates/models/offers-model');
+import OffersRepository = require('../../affiliates/repository/offers-repository');
+import StreamsRepository = require('../../affiliates/repository/streams-repository');
+import ConversionsRepository = require('../../affiliates/repository/conversions-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -64,13 +68,29 @@ class UsersFetchService {
     OrganizationPostProcessor.processManyOrganizations(userJson.organizations);
 
     if (userId === currentUserId) {
-      userJson.unread_messages_count =
-        await EntityNotificationsRepository.countUnreadMessages(userId);
+      await this.addCurrentUserData(userJson);
     }
 
     return userJson;
   }
 
+  private static async addCurrentUserData(user: UserModel) {
+    user.unread_messages_count =
+      await EntityNotificationsRepository.countUnreadMessages(user.id);
+
+    user.affiliates = {};
+
+    const offer: OffersModel = await OffersRepository.getRegistrationOffer();
+    user.affiliates.referral_redirect_url = await StreamsRepository.getRedirectUrl(offer, user.id);
+
+    const sourceUserId = await ConversionsRepository.findSourceUserIdBySuccessUserConversion(offer, user);
+
+    if (sourceUserId) {
+      user.affiliates.source_user = await this.findOneAndProcessForCard(sourceUserId);
+    } else {
+      user.affiliates.source_user = null;
+    }
+  }
 
   public static async findOneAndProcessForCard(
     userId: number,

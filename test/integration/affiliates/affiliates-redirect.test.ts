@@ -16,7 +16,7 @@ const beforeAfterOptions = {
   workersMocking: 'all',
 };
 
-const JEST_TIMEOUT = 1000;
+const JEST_TIMEOUT = 5000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 1000;
 
@@ -33,7 +33,7 @@ describe('Affiliates', () => {
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
 
-    ({offer} = await AffiliatesGenerator.createPostAndOffer(userVlad));
+    ({ offer } = await AffiliatesGenerator.createPostAndOffer(userVlad));
 
     await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
   });
@@ -43,7 +43,7 @@ describe('Affiliates', () => {
       const { response, uniqueId } = await RedirectRequest.makeRedirectRequest(userVlad, offer);
       const stream: StreamsModel = await StreamsModel.query().findOne({
         user_id:  userVlad.id,
-        offer_id: offer.id
+        offer_id: offer.id,
       });
 
       expect(response.header.location).toBe(stream.landing_url);
@@ -106,8 +106,7 @@ describe('Affiliates', () => {
         const second = secondUniqueIdClicks.find(item => item.id === first.id);
         CommonChecker.expectEmpty(second);
       }
-
-    }, JEST_TIMEOUT_DEBUG);
+    }, JEST_TIMEOUT);
   });
 });
 

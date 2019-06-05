@@ -8,13 +8,12 @@ const { Interactions } = require('ucom-libs-wallet').Dictionary;
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import RedirectRequest = require('../../helpers/affiliates/redirect-request');
-import StreamsCreatorService = require('../../../lib/affiliates/service/streams-creator-service');
-import AffiliatesGenerator = require('../../generators/affiliates/affiliates-generator');
 import AffiliatesRequest = require('../../helpers/affiliates/affiliates-request');
 import UsersActivityCommonHelper = require('../../helpers/users/activity/users-activity-common-helper');
 import TransactionsPushResponseChecker = require('../../helpers/common/transactions-push-response-checker');
 import UsersRegistrationHelper = require('../../helpers/users/users-registration-helper');
 import EosApi = require('../../../lib/eos/eosApi');
+import AffiliatesBeforeAllHelper = require('../../helpers/affiliates/affiliates-before-all-helper');
 
 let userVlad: UserModel;
 let userPetr: UserModel;
@@ -43,15 +42,7 @@ describe('Affiliates referral transaction', () => {
   beforeEach(async () => {
     [userVlad, , userPetr] = await SeedsHelper.beforeAllRoutine();
 
-    ({ offer } = await AffiliatesGenerator.createPostAndOffer(userVlad));
-
-    await StreamsCreatorService.createRegistrationStreamsForEverybody(offer);
-
-    // Disturbance
-    const { uniqueId: firstUniqueId } = await RedirectRequest.makeRedirectRequest(userPetr, offer);
-    const { uniqueId: secondUniqueId } = await RedirectRequest.makeRedirectRequest(userPetr, offer);
-    await RedirectRequest.makeRedirectRequest(userPetr, offer, firstUniqueId);
-    await RedirectRequest.makeRedirectRequest(userPetr, offer, secondUniqueId);
+    ({ offer } = await AffiliatesBeforeAllHelper.beforeAll(userVlad, userPetr));
   });
 
   describe('Positive', () => {
@@ -86,7 +77,7 @@ describe('Affiliates referral transaction', () => {
       );
 
       TransactionsPushResponseChecker.checkOneTransaction(blockchainResponse, expected);
-    }, JEST_TIMEOUT_DEBUG);
+    }, JEST_TIMEOUT * 5);
   });
 });
 

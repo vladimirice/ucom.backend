@@ -1,5 +1,6 @@
 import { Transaction } from 'knex';
 import { ConversionToProcessDto } from '../interfaces/dto-interfaces';
+import { UserModel } from '../../users/interfaces/model-interfaces';
 
 import ConversionsModel = require('../models/conversions-model');
 import knex = require('../../../config/knex');
@@ -8,6 +9,7 @@ import EosBlockchainStatusDictionary = require('../../eos/eos-blockchain-status-
 import ProcessStatusesDictionary = require('../../common/dictionary/process-statuses-dictionary');
 import StreamsModel = require('../models/streams-model');
 import NumbersHelper = require('../../common/helper/numbers-helper');
+import OffersModel = require('../models/offers-model');
 
 class ConversionsRepository {
   public static async findSentToBlockchainToProcess(): Promise<ConversionToProcessDto[]> {
@@ -50,6 +52,24 @@ class ConversionsRepository {
       .where({
         id: conversionId,
       });
+  }
+
+  public static async findSourceUserIdBySuccessUserConversion(
+    offer: OffersModel,
+    referralUser: UserModel,
+  ): Promise<number> {
+    const data = await knex(`${StreamsModel.getTableName()} as t`)
+      .select('t.user_id as source_user_id')
+      // eslint-disable-next-line func-names
+      .innerJoin(`${ConversionsModel.getTableName()} as c`, function () {
+        this.on('c.stream_id', '=', 't.id')
+          .andOn('c.offer_id', '=', offer.id)
+          .andOn('c.user_id', '=', referralUser.id)
+          .andOn('c.status', '=', ProcessStatusesDictionary.success());
+      })
+      .first();
+
+    return data ? data.source_user_id : null;
   }
 }
 
