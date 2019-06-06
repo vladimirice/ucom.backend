@@ -288,7 +288,7 @@ class UsersFetchService {
       source_user: null,
     };
 
-    const offer = await OffersModel.query().where('event_id', EventsIds.registration());
+    const offer = await OffersModel.query().findOne('event_id', EventsIds.registration());
     if (!offer) {
       return;
     }
