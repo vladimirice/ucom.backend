@@ -45,6 +45,7 @@ const typeDefs = gql`
     
     posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     many_posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    posts_feed(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, include: JSON): posts!
     many_users(filters: users_filtering, order_by: String!, page: Int!, per_page: Int!): users!
     
     organizations(filters: org_filtering, order_by: String!, page: Int!, per_page: Int!): organizations!
@@ -291,6 +292,8 @@ const typeDefs = gql`
     overview_type: String
     post_type_id: Int!
     created_at: String
+    entity_names_from:  [String!]
+    entity_names_for:   [String!]
   }
   
   input org_filtering {
@@ -441,6 +444,24 @@ const resolvers = {
           comments: args.comments_query,
         },
       };
+
+      const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+
+      return PostsFetchService.findManyPosts(postsQuery, currentUserId);
+    },
+    // @ts-ignore
+    async posts_feed(parent, args, ctx): Promise<PostsListResponse> {
+      const postsQuery: PostRequestQueryDto = {
+        page: args.page,
+        per_page: args.per_page,
+        sort_by: args.order_by,
+        ...args.filters,
+      };
+
+      if (args.include) {
+        // @ts-ignore - it is read only
+        postsQuery.included_query = args.include;
+      }
 
       const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
@@ -695,6 +716,10 @@ const server = new ApolloServer({
 
     if (error.extensions) {
       delete error.extensions.exception;
+    }
+
+    if (error.message && error.extensions) {
+      error.extensions.message = error.message;
     }
 
     return error;

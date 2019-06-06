@@ -15,6 +15,7 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import FileToUploadHelper = require('./file-to-upload-helper');
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -625,10 +626,10 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: 2,
-        source_entity_name: 'org       ',
+        source_entity_name: OrganizationsModelProvider.getEntityName(),
         text_data: '',
       },
       {
@@ -637,10 +638,10 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: 3,
-        source_entity_name: 'org       ',
+        source_entity_name: OrganizationsModelProvider.getEntityName(),
         text_data: '',
       },
       {
@@ -649,10 +650,10 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: 1,
-        source_entity_name: 'users     ',
+        source_entity_name: UsersModelProvider.getEntityName(),
         text_data: '',
       },
 
@@ -663,7 +664,7 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         avatar_filename: 'sample_partnership_external_1.png',
         source_entity_id: null,
@@ -676,7 +677,7 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: null,
         source_entity_name: null,
@@ -689,7 +690,7 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: null,
         source_entity_name: null,

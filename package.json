@@ -62,7 +62,7 @@
     "superagent": "^5.0.5",
     "ucom-libs-social-transactions": "^1.2.0",
     "ucom-libs-wallet": "^2.6.4",
-    "ucom.libs.common": "^1.14.0",
+    "ucom.libs.common": "^1.14.1",
     "unescape": "^1.0.1",
     "uniqid": "5.0.3",
     "util": "^0.12.0",
@@ -111,6 +111,6 @@
     "tslint-config-airbnb": "^5.11.1",
     "tsutils": "^3.14.0",
     "typescript": "^3.5.1",
-    "ucom-libs-graphql-schemas": "^1.15.0"
+    "ucom-libs-graphql-schemas": "^1.16.0"
   }
 }

@@ -38,6 +38,17 @@ export class GraphqlRequestHelper {
     return this.makeRequestAsMyself(myself, query);
   }
 
+  public static async makeRequestFromQueryPartsAsGuestByFetch(
+    parts: string[],
+    key: string | null = null,
+  ): Promise<any> {
+    const query = GraphQLSchema.getQueryMadeFromParts(parts);
+
+    const data = await this.makeRequestAsGuestViaFetch(query);
+
+    return key ? data[key] : data;
+  }
+
   public static async makeRequestFromQueryPartsWithAliasesAsMyself(
     myself: UserModel,
     partsWithAliases: StringToAnyCollection,
@@ -82,6 +93,27 @@ export class GraphqlRequestHelper {
     }
 
     return response;
+  }
+
+  public static async makeRequestAsGuestViaFetch(
+    query: string,
+  ): Promise<any> {
+    const response = await fetch(GRAPHQL_URI, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+
+    const json = await response.json();
+    const { data } = json;
+
+    if (json.errors) {
+      // eslint-disable-next-line no-console
+      console.dir(json.errors);
+      throw new Error('GraphQL request error');
+    }
+
+    return data;
   }
 
   public static async makeRequestAsGuest(

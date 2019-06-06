@@ -23,6 +23,8 @@ interface RequestQueryDto {
   readonly included_query?: {
     [index: string]: any,
   }
+
+  readonly [index: string]: any;
 }
 
 interface RequestQueryComments extends RequestQueryDto {

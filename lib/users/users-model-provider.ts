@@ -1,5 +1,7 @@
 import { IModelFieldsSet } from '../common/interfaces/models-dto';
 
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
+
 import UsersFieldsSet = require('./models/users-fields-set');
 import UsersEducationFieldsSet = require('./models/users-education-fields-set');
 import UsersJobsFields = require('./models/users-jobs-fields-set');
@@ -15,7 +17,7 @@ const USERS_ACTIVITY_TRUST_TABLE_NAME     = 'users_activity_trust';
 const USERS_ACTIVITY_FOLLOW_TABLE_NAME    = 'users_activity_follow';
 const USERS_ACTIVITY_REFERRAL_TABLE_NAME  = 'affiliates.users_activity_referral';
 
-const USERS_ENTITY_NAME = 'users     '; // in db there is a fixed char length of 10
+const USERS_ENTITY_NAME = EntityNames.USERS; // in db there is a fixed char length of 10
 
 class UsersModelProvider {
   /**
