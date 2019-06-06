@@ -84,11 +84,12 @@ class HttpForbiddenError extends Error {
  */
 function formatJoiErrorMessages(errors) {
   const result: any = [];
-  for (let i = 0; i < errors.length; i += 1) {
-    const { key } = errors[i].context;
+
+  for (const error of errors) {
+    const { key } = error.context;
     result.push({
       field: key,
-      message: errors[i].message.replace(/["']+/g, ''),
+      message: error.message.replace(/["']+/g, ''),
     });
   }
 

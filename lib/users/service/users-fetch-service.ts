@@ -8,6 +8,7 @@ import { PostRequestQueryDto } from '../../posts/interfaces/model-interfaces';
 import { AppError, BadRequestError } from '../../api/errors';
 
 import _ = require('lodash');
+const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 import UsersRepository = require('../users-repository');
 
@@ -27,7 +28,6 @@ import UsersActivityTrustRepository = require('../repository/users-activity/user
 import AirdropsUsersExternalDataRepository = require('../../airdrops/repository/airdrops-users-external-data-repository');
 import UsersActivityReferralRepository = require('../../affiliates/repository/users-activity-referral-repository');
 import OffersModel = require('../../affiliates/models/offers-model');
-import OffersRepository = require('../../affiliates/repository/offers-repository');
 import StreamsRepository = require('../../affiliates/repository/streams-repository');
 import ConversionsRepository = require('../../affiliates/repository/conversions-repository');
 
@@ -72,24 +72,6 @@ class UsersFetchService {
     }
 
     return userJson;
-  }
-
-  private static async addCurrentUserData(user: UserModel) {
-    user.unread_messages_count =
-      await EntityNotificationsRepository.countUnreadMessages(user.id);
-
-    user.affiliates = {};
-
-    const offer: OffersModel = await OffersRepository.getRegistrationOffer();
-    user.affiliates.referral_redirect_url = await StreamsRepository.getRedirectUrl(offer, user.id);
-
-    const sourceUserId = await ConversionsRepository.findSourceUserIdBySuccessUserConversion(offer, user);
-
-    if (sourceUserId) {
-      user.affiliates.source_user = await this.findOneAndProcessForCard(sourceUserId);
-    } else {
-      user.affiliates.source_user = null;
-    }
   }
 
   public static async findOneAndProcessForCard(
@@ -186,6 +168,38 @@ class UsersFetchService {
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
   }
 
+  /**
+   *
+   * @param {string} tagTitle
+   * @param {Object} query
+   * @param {number} currentUserId
+   * @returns {Promise<*>}
+   */
+  public static async findAllAndProcessForListByTagTitle(tagTitle, query, currentUserId) {
+    QueryFilterService.checkLastIdExistence(query);
+
+    const repository    = UsersRepository;
+    const params          = QueryFilterService.getQueryParametersWithRepository(query, repository);
+
+    const [models, totalAmount] = await Promise.all([
+      repository.findAllByTagTitle(tagTitle, params),
+      repository.countAllByTagTitle(tagTitle),
+    ]);
+
+    if (currentUserId) {
+      const activityData = await UserActivityService.getUserActivityData(currentUserId);
+      UserPostProcessor.addMyselfDataByActivityArrays(models, activityData);
+    }
+
+    ApiPostProcessor.processUsersAfterQuery(models);
+    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
+
+    return {
+      metadata,
+      data: models,
+    };
+  }
+
   private static getManyUsersListAsRelatedToEntityPromises(
     query: PostRequestQueryDto,
     entityName: string,
@@ -261,36 +275,31 @@ class UsersFetchService {
     };
   }
 
-  /**
-   *
-   * @param {string} tagTitle
-   * @param {Object} query
-   * @param {number} currentUserId
-   * @returns {Promise<*>}
-   */
-  static async findAllAndProcessForListByTagTitle(tagTitle, query, currentUserId) {
-    QueryFilterService.checkLastIdExistence(query);
+  private static async addCurrentUserData(user: UserModel): Promise<void> {
+    user.unread_messages_count =
+      await EntityNotificationsRepository.countUnreadMessages(user.id);
 
-    const repository    = UsersRepository;
-    const params          = QueryFilterService.getQueryParametersWithRepository(query, repository);
+    await this.addAffiliatesData(user);
+  }
 
-    const [models, totalAmount] = await Promise.all([
-      repository.findAllByTagTitle(tagTitle, params),
-      repository.countAllByTagTitle(tagTitle),
-    ]);
+  private static async addAffiliatesData(user: UserModel): Promise<void> {
+    user.affiliates = {
+      referral_redirect_url: null,
+      source_user: null,
+    };
 
-    if (currentUserId) {
-      const activityData = await UserActivityService.getUserActivityData(currentUserId);
-      UserPostProcessor.addMyselfDataByActivityArrays(models, activityData);
+    const offer = await OffersModel.query().where('event_id', EventsIds.registration());
+    if (!offer) {
+      return;
     }
 
-    ApiPostProcessor.processUsersAfterQuery(models);
-    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
+    user.affiliates.referral_redirect_url = await StreamsRepository.getRedirectUrl(offer, user.id);
 
-    return {
-      metadata,
-      data: models,
-    };
+    const sourceUserId = await ConversionsRepository.findSourceUserIdBySuccessUserConversion(offer, user);
+
+    if (sourceUserId) {
+      user.affiliates.source_user = await this.findOneAndProcessForCard(sourceUserId);
+    }
   }
 }
 

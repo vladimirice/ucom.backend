@@ -1,5 +1,6 @@
-import OffersModel = require('../models/offers-model');
 import { AppError } from '../../api/errors';
+
+import OffersModel = require('../models/offers-model');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
