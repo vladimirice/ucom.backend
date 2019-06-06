@@ -1,3 +1,5 @@
+import ResponseHelper = require('../../helpers/response-helper');
+
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 import SeedsHelper = require('../../helpers/seeds-helper');
@@ -26,34 +28,74 @@ describe('Organizations. Get requests', () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
-  describe('Main page organizations posts feed', () => {
-    it('should receive only posts without comments via GraphQL', async () => {
+  describe('Main page organizations feed', () => {
+    let firstOrgPostsIds: number[] = [];
+    let secondOrgPostsIds: number[] = [];
+    let userToOrgDirectPostsIds: number[] = [];
+
+    let userHimselfMediaPostsIds: number[] = [];
+    let userHimselfDirectPosts: number[] = [];
+
+    beforeEach(async () => {
       const [firstOrgId, secondOrgId] = await Promise.all([
         OrganizationsGenerator.createOrgWithoutTeam(userVlad),
         OrganizationsGenerator.createOrgWithoutTeam(userJane),
       ]);
 
-      const [firstOrgPostsIds, secondOrgPostsIds] = await Promise.all([
+      [firstOrgPostsIds, secondOrgPostsIds] = await Promise.all([
         PostsGenerator.createManyMediaPostsOfOrganization(userVlad, firstOrgId, 4),
         PostsGenerator.createManyMediaPostsOfOrganization(userJane, secondOrgId, 3),
       ]);
 
-      // disturbance
-      const userPostsIds: number[] = await Promise.all([
+      userToOrgDirectPostsIds = await Promise.all([
+        PostsGenerator.createDirectPostForOrganizationV2AndGetId(userJane, firstOrgId),
+        PostsGenerator.createDirectPostForOrganizationV2AndGetId(userVlad, secondOrgId),
+      ]);
+
+      userHimselfMediaPostsIds = await Promise.all([
         PostsGenerator.createMediaPostByUserHimself(userVlad),
         PostsGenerator.createMediaPostByUserHimself(userJane),
       ]);
 
-      const response = await PostsGraphqlRequest.getPostsFeed();
+      userHimselfDirectPosts = await Promise.all([
+        PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane),
+        PostsGenerator.createMediaPostByUserHimself(userJane, userVlad),
+      ]);
+    });
 
-      CommonChecker.expectModelIdsDoNotExistInResponseList(response, userPostsIds);
+    it('top organization publications', async () => {
+      const response = await PostsGraphqlRequest.getOrgMainPageTopPublications();
+
+      CommonChecker.expectModelIdsExistenceInResponseList(response, firstOrgPostsIds.concat(secondOrgPostsIds));
+      CommonChecker.expectModelIdsDoNotExistInResponseList(
+        response,
+        userHimselfMediaPostsIds.concat(userHimselfDirectPosts, userToOrgDirectPostsIds),
+      );
+
       for (const post of response.data) {
         expect(post.entity_name_for).toBe(EntityNames.ORGANIZATIONS);
         CommonChecker.expectPositiveNonZeroInteger(post.organization_id);
         expect(post.comments).toBeNull();
       }
-      CommonChecker.expectModelIdsExistenceInResponseList(response, firstOrgPostsIds.concat(secondOrgPostsIds));
-    }, JEST_TIMEOUT_DEBUG);
+    }, JEST_TIMEOUT);
+
+    it('organizations feed', async () => {
+      const response = await PostsGraphqlRequest.getOrgMainPageFeed();
+      CommonChecker.expectModelIdsExistenceInResponseList(
+        response,
+        firstOrgPostsIds.concat(secondOrgPostsIds, userToOrgDirectPostsIds),
+      );
+
+      CommonChecker.expectModelIdsDoNotExistInResponseList(
+        response,
+        userHimselfMediaPostsIds.concat(userHimselfDirectPosts),
+      );
+
+      for (const post of response.data) {
+        expect(post.entity_name_for).toBe(EntityNames.ORGANIZATIONS);
+        ResponseHelper.checkListResponseStructure(post.comments);
+      }
+    }, JEST_TIMEOUT);
   });
 });
 

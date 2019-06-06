@@ -207,12 +207,3 @@ docker-set-hosts-linux:
 	${UPDATE_HOSTS_COMMAND} uos-backend-rabbitmq.dev        173.18.212.20 ${LINUX_HOSTS_FILENAME}
 	${UPDATE_HOSTS_COMMAND} uos-backend-redis.dev           173.18.212.30 ${LINUX_HOSTS_FILENAME}
 	${UPDATE_HOSTS_COMMAND} irreversible-traces-mongodb.dev 173.18.212.50 ${LINUX_HOSTS_FILENAME}
-
-npm-i-graphql:
-	npm i ucom-libs-graphql-schemas
-
-npm-i-wallet:
-	npm i ucom-libs-wallet
-
-npm-i-common:
-	npm i ucom.libs.common

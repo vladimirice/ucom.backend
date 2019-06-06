@@ -5,7 +5,7 @@ A GraphQL method `getManyPostsQueryPart`
 Dictionary
 ```
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
-
+const { PostTypes } = require(ucom.libs.common).Posts.Dictionary;
 
 // publications filters
 entityNamesFrom = [EntityNames.ORGANIZATIONS]
@@ -21,6 +21,6 @@ ORDER BY '-id'
 In order to include comments please specify a comments_query parameters inside the filter.
 In order to fetch posts without comment - skip this query
 
-
-Community publications example (a part of autotest)
-[link](../../test/helpers/posts/posts-graphql-request.ts)
+[examples](../../test/helpers/posts/posts-graphql-request.ts)
+* A Community main page top publications - `getOrgMainPageTopPublications`
+* A Community main page feed - `getOrgMainPageFeed`

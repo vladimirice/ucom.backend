@@ -209,6 +209,10 @@ class PostsRepository implements QueryFilteredRepository {
     return (query: PostRequestQueryDto, params) => {
       if (query.post_type_id) {
         params.where.post_type_id = +query.post_type_id;
+      } else if (query.post_type_ids) {
+        params.where.post_type_id = {
+          [Op.in]: query.post_type_ids,
+        };
       }
 
       this.andWhereByOverviewType(query, params);
