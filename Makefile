@@ -1,16 +1,13 @@
 DOCKER_BACKEND_APP_USER=node
 DOCKER_BACKEND_APP_NAME=backend
 
+DOCKER_DB_EXEC_CMD=docker-compose exec -T --user=root db_test
+
 DOCKER_B_EXEC_CMD=docker-compose exec -T --user=${DOCKER_BACKEND_APP_USER} ${DOCKER_BACKEND_APP_NAME}
 DOCKER_B_EXEC_CMD_ROOT=docker-compose exec -T --user=root ${DOCKER_BACKEND_APP_NAME}
 
-SEQ_EXEC_FILE=node_modules/.bin/sequelize
 KNEX_EXEC_FILE=node_modules/.bin/knex
 
-DB_DROP_COMMAND=${SEQ_EXEC_FILE} db:drop
-DB_CREATE_COMMAND=${SEQ_EXEC_FILE} db:create
-DB_MIGRATE_COMMAND=${SEQ_EXEC_FILE} db:migrate
-DB_SEEDS_UNDO_COMMAND=${SEQ_EXEC_FILE} db:undo:all
 DB_GENERATE_MIGRATION=${KNEX_EXEC_FILE} migrate:make
 
 DB_KNEX_MIGRATE_EVENTS_COMMAND=${KNEX_EXEC_FILE} migrate:latest --env=events
@@ -32,6 +29,14 @@ init-project ip:
 docker-rebuild:
 	docker-compose down --remove-orphans
 	make docker-up-build-force
+
+docker-init-db-by-sql dis:
+	${DOCKER_DB_EXEC_CMD} psql -U uos postgres -c 'DROP DATABASE IF EXISTS uos_backend_app'
+	${DOCKER_DB_EXEC_CMD} psql -U uos postgres -c 'DROP DATABASE IF EXISTS uos_backend_events'
+	${DOCKER_DB_EXEC_CMD} psql -U uos postgres -c 'CREATE DATABASE uos_backend_app'
+	${DOCKER_DB_EXEC_CMD} psql -U uos postgres -c 'CREATE DATABASE uos_backend_events'
+	docker cp ./migrations/sequelize-migrations-final-dump.sql ucom_backend_db_test:/
+	${DOCKER_DB_EXEC_CMD} psql -U uos uos_backend_app -f sequelize-migrations-final-dump.sql
 
 pm2-reload-test-ecosystem pmt:
 	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
@@ -66,9 +71,6 @@ docker-compile-typescript-watch:
 docker-chown:
 	${DOCKER_B_EXEC_CMD_ROOT} chgrp -R docker: /var/www/ucom.backend
 
-docker-db-migrate-sequelize dm:
-	${DOCKER_B_EXEC_CMD} ${DB_MIGRATE_COMMAND}
-
 docker-db-create-migration-monolith dmg:
 	${DOCKER_B_EXEC_CMD} ${DB_GENERATE_MIGRATION} ${NAME} --env=monolith
 
@@ -84,7 +86,7 @@ docker-run-all-tests:
 docker-up-build-force df:
 	docker-compose up -d --build --force-recreate
 
-docker-db-test-bash d-db:
+docker-db-bash d-db:
 	docker-compose exec --user=root db_test /bin/bash
 
 docker-backend-bash:
@@ -165,21 +167,6 @@ staging-console:
 ipfs-tunnel:
 	ssh -f -L 5001:127.0.0.1:5001 ipfs -N
 
-docker-recreate-db:
-	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
-	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
-	make docker-migrate-monolith-via-knex
-
-docker-recreate-events-db:
-	${DOCKER_B_EXEC_CMD} bin/test-only-scripts/knex-create-new-db
-	make docker-migrate-events-via-knex
-
-docker-recreate-monolith-db:
-	${DOCKER_B_EXEC_CMD} ${DB_DROP_COMMAND}
-	${DOCKER_B_EXEC_CMD} ${DB_CREATE_COMMAND}
-	make docker-db-migrate-sequelize
-	make docker-migrate-monolith-via-knex
-
 docker-migrate-monolith-via-knex dmm:
 	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_MONOLITH_COMMAND}
 
@@ -187,8 +174,9 @@ docker-migrate-events-via-knex:
 	${DOCKER_B_EXEC_CMD} ${DB_KNEX_MIGRATE_EVENTS_COMMAND}
 
 docker-init-test-db ditd:
-	make docker-recreate-monolith-db
-	make docker-recreate-events-db
+	make docker-init-db-by-sql
+	make docker-migrate-monolith-via-knex
+	make docker-migrate-events-via-knex
 
 production-config-from-server-to-local:
 	scp gt:/var/www/ucom.backend/config/production.json ./config/production.json

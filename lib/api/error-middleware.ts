@@ -1,5 +1,7 @@
 import { AppError } from './errors';
 
+import EnvHelper = require('../common/helper/env-helper');
+
 const { ApiLogger } = require('../../config/winston');
 const { BadRequestError } = require('../../lib/api/errors');
 
@@ -84,7 +86,8 @@ export = (
 
   res.status(status).send(payload);
 
-  if (status === 500) {
+  if (status === 500 && EnvHelper.isNotTestEnv()) {
+    // eslint-disable-next-line no-process-exit,unicorn/no-process-exit
     process.exit(1);
   }
 };
