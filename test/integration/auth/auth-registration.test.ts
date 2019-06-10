@@ -1,35 +1,27 @@
-import RequestHelper = require('../helpers/request-helper');
-
-const request = require('supertest');
-const server = RequestHelper.getApiApplication();
-const helpers = require('../helpers');
+import SeedsHelper = require('../helpers/seeds-helper');
+import UsersHelper = require('../helpers/users-helper');
+import UsersRegistrationHelper = require('../../helpers/users/users-registration-helper');
 
 describe('Test registration workflow', () => {
-
-  beforeEach(async () => {
-    await helpers.Seeds.initSeeds();
+  beforeAll(async () => {
+    await SeedsHelper.noGraphQlNoMocking();
   });
 
   afterAll(async () => {
-    await helpers.Seeds.sequelizeAfterAll();
+    await SeedsHelper.doAfterAll();
+  });
+
+  beforeEach(async () => {
+    await SeedsHelper.beforeAllRoutine();
   });
 
   it('Register new user', async () => {
-    const { body } = await helpers.Users.registerNewUser();
+    const { body } = await UsersRegistrationHelper.registerNewUserWithRandomAccountData();
 
-    const patchResponse = await request(server)
-      .patch('/api/v1/myself')
-      .set('Authorization', `Bearer ${body.token}`)
-      .field('first_name', 12345)
-      .field('birthday', '')
-    ;
-
-    expect(patchResponse.status).toBe(200);
-  }, 10000);
-
-  it.skip('given public key must not match existing one', async () => {
-
+    await UsersHelper.ensureUserExistByPatch(body.token);
   });
+
+  it.skip('given public key must not match existing one', async () => {});
 });
 
 export {};

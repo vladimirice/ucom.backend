@@ -1,0 +1,10 @@
+alias p-clip-post-types='echo "const { PostTypes } = require('ucom.libs.common').Posts.Dictionary;" | xclip -selection clipboard'
+
+alias p-link-graphql='npm link ucom-libs-graphql-schemas'
+alias p-i-graphql='npm i ucom-libs-graphql-schemas'
+
+alias p-i-wallet='npm i ucom-libs-wallet'
+alias p-link-wallet='npm link ucom-libs-wallet'
+
+alias p-i-common='npm i ucom.libs.common'
+alias p-link-common='npm link ucom.libs.common'

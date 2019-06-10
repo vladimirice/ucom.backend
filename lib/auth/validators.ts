@@ -1,18 +1,19 @@
 /* tslint:disable:max-line-length */
+import EosApi = require('../eos/eosApi');
+
 const joi = require('joi');
 const usersService = require('../users/users-service');
 
-const { TransactionSender } = require('ucom-libs-social-transactions');
 const { BadRequestError } = require('../../lib/api/errors');
 
 class AuthValidator {
   static validateRegistration(req) {
     const schema = {
-      account_name: joi.string().min(1).max(255).required().label('Account name'),
-      public_key: joi.string().min(1).max(255).required().label('Public key'),
-      sign: joi.string().min(1).max(255).required().label('Sign'),
-      brainkey: joi.string().min(1).max(255).required().label('Brainkey'),
-      is_tracking_allowed: joi.boolean().label('is_tracking_allowed').default(false),
+      account_name:         joi.string().min(1).max(255).required().label('Account name'),
+      public_key:           joi.string().min(1).max(255).required().label('Public key'),
+      sign:                 joi.string().min(1).max(255).required().label('Sign'),
+      brainkey:             joi.string().min(1).max(255).required().label('Brainkey'),
+      is_tracking_allowed:  joi.boolean().label('is_tracking_allowed').default(false),
     };
 
     return joi.validate(req, schema, {
@@ -65,7 +66,7 @@ class AuthValidator {
       });
     }
 
-    if (!await TransactionSender.isAccountAvailable(accountName)) {
+    if (!await EosApi.isAccountAvailable(accountName)) {
       throw new BadRequestError({
         account_name: 'That account name is taken. Try another',
       });

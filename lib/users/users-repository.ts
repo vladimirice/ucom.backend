@@ -45,9 +45,10 @@ class UsersRepository {
     return knex(TABLE_NAME)
       .select(toSelect)
       .innerJoin(usersExternal, `${usersExternal}.user_id`, `${TABLE_NAME}.id`)
+      // eslint-disable-next-line func-names
       .innerJoin(airdropsUsersExternalData, function () {
         // @ts-ignore
-        this.on(`${airdropsUsersExternalData}.users_external_id`, '=', `${usersExternal}.id`)
+        this.on(`${airdropsUsersExternalData}.users_external_id`, '=', `${usersExternal}.id`);
       })
       .andWhere(`${usersExternal}.external_type_id`, ExternalTypeIdDictionary.github())
       .andWhere(`${airdropsUsersExternalData}.airdrop_id`, airdropId)
@@ -427,6 +428,28 @@ class UsersRepository {
         [`${usersActivityTrust}.entity_name`]: UsersModelProvider.getEntityName(),
       })
       .innerJoin(`${usersActivityTrust}`, `${usersActivityTrust}.user_id`, `${TABLE_NAME}.id`)
+      .orderByRaw(params.orderByRaw)
+      .limit(params.limit)
+      .offset(params.offset);
+  }
+
+  public static async findUserReferrals(
+    userId: number,
+    params: DbParamsDto,
+  ) {
+    const previewFields = UsersModelProvider.getUserFieldsForPreview();
+    const toSelect = RepositoryHelper.getPrefixedAttributes(previewFields, TABLE_NAME);
+
+    const usersActivityReferral = UsersModelProvider.getUsersActivityReferralTableName();
+
+    return knex(TABLE_NAME)
+      .select(toSelect)
+      // eslint-disable-next-line func-names
+      .innerJoin(`${usersActivityReferral} AS r`, function () {
+        this.on('r.referral_user_id', '=', `${TABLE_NAME}.id`)
+          .andOn('r.source_entity_id', '=', userId)
+          .andOn('r.entity_name', '=', knex.raw(`'${UsersModelProvider.getEntityName()}'`));
+      })
       .orderByRaw(params.orderByRaw)
       .limit(params.limit)
       .offset(params.offset);

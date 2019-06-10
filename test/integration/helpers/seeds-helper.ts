@@ -16,6 +16,10 @@ import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
 import UsersTeamRepository = require('../../../lib/users/repository/users-team-repository');
 import EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
+import StreamsModel = require('../../../lib/affiliates/models/streams-model');
+import OffersModel = require('../../../lib/affiliates/models/offers-model');
+import ClicksModel = require('../../../lib/affiliates/models/clicks-model');
+import ConversionsModel = require('../../../lib/affiliates/models/conversions-model');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -59,6 +63,12 @@ const minorTablesToSkipSequences = [
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
   AirdropsModelProvider.airdropsTableName(),
+
+  'offers',
+  'streams',
+  'clicks',
+  'conversions',
+  'users_activity_referral',
 ];
 
 // Truncated async
@@ -68,6 +78,7 @@ const minorTables = [
 
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
+  UsersModelProvider.getUsersActivityReferralTableName(),
 
   UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
@@ -117,6 +128,11 @@ const minorTables = [
 
 // Truncated in order
 const majorTables = [
+  ConversionsModel.getTableName(),
+  ClicksModel.getTableName(),
+  StreamsModel.getTableName(),
+  OffersModel.getTableName(),
+
   usersRepositories.Activity.getModelName(),
 
   AirdropsModelProvider.airdropsTableName(),
@@ -199,6 +215,15 @@ class SeedsHelper {
     await rabbitMqService.purgeAllQueues();
   }
 
+  public static async noGraphQlNoMocking() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      workersMocking: 'none',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
+  }
+
   public static async noGraphQlMockBlockchainOnly() {
     const beforeAfterOptions = {
       isGraphQl: false,
@@ -236,11 +261,17 @@ class SeedsHelper {
         MockHelper.mockAllTransactionSigning();
         MockHelper.mockAllBlockchainJobProducers();
         break;
+      case 'allButSendingToQueue':
+        MockHelper.mockAllBlockchainPart(false);
+        break;
       case 'all':
-        MockHelper.mockAllBlockchainPart();
+        MockHelper.mockAllBlockchainPart(true);
+        break;
+      case 'none':
+        // do nothing
         break;
       default:
-        // do nothing
+        throw new TypeError(`Unsupported workerMocking ${options.workersMocking}`);
     }
   }
 
@@ -338,6 +369,7 @@ class SeedsHelper {
 
     await Promise.all(minorTablesPromises);
 
+    // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < majorTables.length; i += 1) {
       if (majorTables[i] === 'Users') {
         await models.sequelize.query('DELETE FROM "Users" WHERE 1=1');

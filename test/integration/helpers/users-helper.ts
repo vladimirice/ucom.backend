@@ -5,8 +5,8 @@ import ResponseHelper = require('./response-helper');
 
 import _ = require('lodash');
 import UsersChecker = require('../../helpers/users/users-checker');
-
-const eosJsEcc = require('eosjs-ecc');
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const request = require('supertest');
 const usersSeeds = require('../../../seeders/users/users');
@@ -20,8 +20,6 @@ const server = RequestHelper.getApiApplication();
 
 const usersTeamRepository = require('../../../lib/users/repository').UsersTeam;
 const orgModelProvider    = require('../../../lib/organizations/service').ModelProvider;
-
-const eosApi = require('../../../lib/eos/eosApi');
 
 require('jest-expect-message');
 
@@ -40,49 +38,6 @@ class UsersHelper {
     );
   }
 
-  static async registerNewUser(givenAccountName = null) {
-    const brainKey = eosApi.generateBrainkey();
-
-    const accountName = givenAccountName || eosApi.createRandomAccountName();
-    const [privateOwnerKey, privateActiveKey] = eosApi.getKeysByBrainkey(brainKey);
-
-    // noinspection JSUnusedLocalSymbols
-    const ownerPublicKey  = eosApi.getPublicKeyByPrivate(privateOwnerKey);
-    const activePublicKey = eosApi.getPublicKeyByPrivate(privateActiveKey);
-
-    const sign = eosJsEcc.sign(accountName, privateActiveKey);
-
-    const url = RequestHelper.getRegistrationRoute();
-
-    const fields = {
-      sign,
-      account_name: accountName,
-      public_key: activePublicKey,
-      brainkey: brainKey,
-    };
-
-    const res = await RequestHelper.makePostGuestRequestWithFields(url, fields);
-
-    if (res.status !== 201) {
-      throw new Error(`There is an error during request. Body is: ${JSON.stringify(res.body)}`);
-    }
-
-    // ResponseHelper.expectStatusCreated(res);
-
-    return {
-      body: res.body,
-      accountData: {
-        accountName,
-        brainKey,
-        privateKeyOwner:  privateOwnerKey,
-        publicKeyOwner:   ownerPublicKey,
-
-        privateKeyActive: privateActiveKey,
-        publicKeyActive:  activePublicKey,
-      },
-    };
-  }
-
   /**
    *
    * @param {Object} myself
@@ -91,14 +46,35 @@ class UsersHelper {
    * @return {Promise<Object>}
    *
    */
-  static async requestToUpdateMyself(myself, fieldsToChange, expectedStatus = 200) {
+  public static async requestToUpdateMyself(
+    myself: UserModel,
+    fieldsToChange: StringToAnyCollection,
+    expectedStatus: number = 200
+  ) {
+    return this.requestToUpdateMyselfByToken(myself.token, fieldsToChange, expectedStatus);
+  }
+
+  public static async ensureUserExistByPatch(token: string): Promise<void> {
+    const fieldsToChange = {
+      first_name: 12345,
+      birthday: '',
+    };
+
+    await this.requestToUpdateMyselfByToken(token, fieldsToChange);
+  }
+
+  public static async requestToUpdateMyselfByToken(
+    token: string,
+    fieldsToChange: StringToAnyCollection,
+    expectedStatus: number = 200
+  ) {
     const url = RequestHelper.getMyselfUrl();
 
     const req = request(server)
       .patch(url)
     ;
 
-    RequestHelper.addAuthToken(req, myself);
+    req.set('Authorization', `Bearer ${token}`);
     RequestHelper.addFieldsToRequest(req, fieldsToChange);
 
     const res = await req;
@@ -233,7 +209,7 @@ class UsersHelper {
       .not.toBe('string');
 
     const expected = givenExpected || usersRepository.getModel().getFieldsForPreview().sort();
-    ResponseHelper.expectAllFieldsExistence(model.User, expected);
+    CommonChecker.expectAllFieldsExistence(model.User, expected);
   }
 
   /**
@@ -264,7 +240,7 @@ class UsersHelper {
 
     expect(_.isEmpty(model.User.first_name)).toBeFalsy();
 
-    ResponseHelper.expectAllFieldsExistence(model.User, expected);
+    CommonChecker.expectAllFieldsExistence(model.User, expected);
   }
 
   /**

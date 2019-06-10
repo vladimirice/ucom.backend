@@ -1,4 +1,4 @@
-import { AppError } from '../../api/errors';
+import { AppError, BadRequestError } from '../../api/errors';
 
 class NumbersHelper {
   public static generateRandomInteger(min: number, max: number): number {
@@ -12,9 +12,9 @@ class NumbersHelper {
   public static processFieldToBeNumeric(
     value: string | number,
     fieldName: string,
-    precision: number,
-    disallowZero: boolean,
-    disallowNegative: boolean,
+    precision: number = 0,
+    disallowZero: boolean = true,
+    disallowNegative: boolean = true,
   ): number {
     const processed = +(+value).toFixed(precision);
     if (!Number.isFinite(processed)) {
@@ -30,6 +30,15 @@ class NumbersHelper {
     }
 
     return processed;
+  }
+
+  public static isNumberFinitePositiveIntegerOrBadRequestError(value: number) {
+    if (Number.isFinite(value) && value > 0) {
+
+      return;
+    }
+
+    throw new BadRequestError(`Provided value should be finite positive integer but value is: ${value}`);
   }
 }
 

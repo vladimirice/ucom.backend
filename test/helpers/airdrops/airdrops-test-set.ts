@@ -1,8 +1,9 @@
 import { GraphqlHelper } from '../../integration/helpers/graphql-helper';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-users-generator');
 import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
 import CommonHelper = require('../../integration/helpers/common-helper');
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 class AirdropsTestSet {
   public static async getManyParticipantsAsSeparateRequest(userVlad: UserModel, userJane: UserModel, airdropCreationResponse): Promise<void> {
@@ -48,7 +49,7 @@ class AirdropsTestSet {
 
     expect(manyUsers.metadata.total_amount).toBe(2);
     expect(manyUsers.metadata.has_more).toBeFalsy();
-  }}
+  }
+}
 
 export = AirdropsTestSet;
-

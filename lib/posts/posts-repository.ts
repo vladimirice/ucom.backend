@@ -5,7 +5,7 @@ import {
   QueryFilteredRepository,
 } from '../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from './interfaces/model-interfaces';
-import { AppError } from '../api/errors';
+import { AppError, BadRequestError } from '../api/errors';
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
@@ -14,6 +14,7 @@ import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-c
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const _ = require('lodash');
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 const models = require('../../models');
 
@@ -208,12 +209,18 @@ class PostsRepository implements QueryFilteredRepository {
     return (query: PostRequestQueryDto, params) => {
       if (query.post_type_id) {
         params.where.post_type_id = +query.post_type_id;
+      } else if (query.post_type_ids) {
+        params.where.post_type_id = {
+          [Op.in]: query.post_type_ids,
+        };
       }
 
       this.andWhereByOverviewType(query, params);
+
+      this.processEntityNamesFrom(query, params);
+      this.processEntityNamesFor(query, params);
     };
   }
-
 
   public static whereSequelizeTranding() {
     const greaterThan = process.env.NODE_ENV === 'staging' ? -100 : 0;
@@ -825,11 +832,6 @@ class PostsRepository implements QueryFilteredRepository {
     return newPost;
   }
 
-  /**
-   *
-   * @param {number} id
-   * @return {Promise<Object>}
-   */
   static async findOnlyPostItselfById(id, transaction = null) {
     return model.findOne({
       transaction,
@@ -1028,6 +1030,41 @@ class PostsRepository implements QueryFilteredRepository {
     });
 
     return result ? result.blockchain_id : null;
+  }
+
+  private static processEntityNamesFrom(query: PostRequestQueryDto, params: DbParamsDto): void {
+    const entityNamesFrom: string[] = query.entity_names_from;
+
+    if (!entityNamesFrom) {
+      return;
+    }
+
+    if (entityNamesFrom.length === 1 && entityNamesFrom.includes(EntityNames.ORGANIZATIONS)) {
+      params.where.organization_id = {
+        [Op.ne]: null,
+      };
+    }
+  }
+
+  private static processEntityNamesFor(query: PostRequestQueryDto, params: DbParamsDto): void {
+    const entityNamesFor: string[] = query.entity_names_for;
+    if (!entityNamesFor) {
+      return;
+    }
+
+    const allowed = [
+      EntityNames.ORGANIZATIONS,
+    ];
+
+    for (const item of entityNamesFor) {
+      if (!allowed.includes(item)) {
+        throw new BadRequestError(`entity_name_for value ${item} is not allowed. Allowed ones are: ${allowed}`);
+      }
+    }
+
+    params.where.entity_name_for = {
+      [Op.in]: entityNamesFor,
+    };
   }
 
   private static getDefaultOrderBy() {

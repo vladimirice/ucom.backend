@@ -67,7 +67,9 @@
   },
   "servers": {
     "websocket": "http://localhost:5000",
-    "uploader": "http://localhost:5010"
+    "uploader": "http://localhost:5010",
+    "frontend": "http://localhost:3000",
+    "redirect": "http://localhost:3000"
   },
   "eosAccounts": {
     "creatorAccountName": "12345",

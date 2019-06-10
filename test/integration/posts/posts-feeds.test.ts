@@ -1,5 +1,4 @@
 /* eslint-disable max-len */
-import MockHelper = require('../helpers/mock-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import PostsGenerator = require('../../generators/posts-generator');
 import RequestHelper = require('../helpers/request-helper');
@@ -9,6 +8,7 @@ import CommonHelper = require('../helpers/common-helper');
 import PostsHelper = require('../helpers/posts-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import TagsHelper = require('../helpers/tags-helper');
+import MockHelper = require('../helpers/mock-helper');
 
 const usersFeedRepository = require('../../../lib/common/repository').UsersFeed;
 
@@ -17,7 +17,6 @@ MockHelper.mockBlockchainPart();
 
 let userVlad;
 let userJane;
-
 
 const JEST_TIMEOUT = 10000;
 
@@ -40,8 +39,6 @@ describe('Organizations. Get requests', () => {
         it('Myself. smoke test', async () => {
           const wallOwner = userVlad;
           await PostsGenerator.generateUsersPostsForUserWall(wallOwner, userJane, 3);
-
-          return;
 
           const page    = 1;
           const perPage = 2;
@@ -134,11 +131,10 @@ describe('Organizations. Get requests', () => {
 
       it('should get all user-related posts as Guest', async () => {
         const targetUser = userVlad;
-        const directPostAuthor = userJane;
 
         const promisesToCreatePosts: any = [
           PostsGenerator.createMediaPostByUserHimself(targetUser),
-          PostsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
+          PostsGenerator.createUserDirectPostForOtherUser(userJane, targetUser, null, true),
         ];
 
         await Promise.all(promisesToCreatePosts);
@@ -155,12 +151,11 @@ describe('Organizations. Get requests', () => {
 
       it('should get all user-related posts as Myself but not user itself', async () => {
         const targetUser = userVlad;
-        const directPostAuthor = userJane;
 
         const promisesToCreatePosts: any = [
           PostsGenerator.createMediaPostByUserHimself(targetUser),
           PostsGenerator.createPostOfferByUserHimself(targetUser),
-          PostsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser),
+          PostsGenerator.createUserDirectPostForOtherUser(userJane, targetUser),
         ];
 
         const [newMediaPostId, newPostOfferId] =

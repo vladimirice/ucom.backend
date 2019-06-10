@@ -18,6 +18,7 @@ import PostsHelper = require('./posts-helper');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -613,36 +614,45 @@ class CommonHelper {
     }
   }
 
+  /**
+   * @deprecated
+   * @see CommonChecker.expectModelIdsExistenceInResponseList(response, expectedModelIds)
+   * @param response
+   * @param expectedModelIds
+   */
   public static expectModelIdsExistenceInResponseList(
     response: ListResponse,
     expectedModelIds: number[],
   ) {
-    this.expectModelsExistence(response.data, expectedModelIds);
+    CommonChecker.expectModelIdsExistenceInResponseList(response, expectedModelIds);
   }
 
+  /**
+   * @deprecated
+   * @see CommonChecker.expectModelsExistence(actualModels, expectedModelIds, checkOrdering)
+   * @param actualModels
+   * @param expectedModelIds
+   * @param checkOrdering
+   */
   public static expectModelsExistence(
     actualModels,
     expectedModelIds: number[],
     checkOrdering: boolean = false,
   ): void {
-    expect(actualModels.length).toBe(expectedModelIds.length);
-
-    expectedModelIds.forEach((expectedId) => {
-      expect(actualModels.some(actual => actual.id === expectedId)).toBeTruthy();
-    });
-
-    if (checkOrdering) {
-      ResponseHelper.checkOrderingById(actualModels, expectedModelIds);
-    }
+    CommonChecker.expectModelsExistence(actualModels, expectedModelIds, checkOrdering);
   }
 
+  /**
+   * @deprecated
+   * @see CommonChecker.expectModelsDoNotExist(actualModels, expectedModelIds)
+   * @param actualModels
+   * @param expectedModelIds
+   */
   public static expectModelsDoNotExist(
     actualModels: any[],
     expectedModelIds: number[],
   ): void {
-    expectedModelIds.forEach((expectedId) => {
-      expect(actualModels.some(actual => actual.id === expectedId)).toBeFalsy();
-    });
+    CommonChecker.expectModelsDoNotExist(actualModels, expectedModelIds);
   }
 
   private static getCheckerOptionsWithoutOrg(

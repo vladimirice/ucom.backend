@@ -1,12 +1,14 @@
+import RedirectService = require('../service/redirect-service');
+import StreamsModel = require('../models/streams-model');
 const express = require('express');
 require('express-async-errors');
 
 const RedirectRouter = express.Router();
 
-RedirectRouter.get('/:stream_id', async (req, res) => {
-  res.status(200).send({
-    message: `Hello with stream ID: ${req.params.stream_id}`,
-  });
+RedirectRouter.get('/:offerHash/:streamIdentity', async (req, res) => {
+  const stream: StreamsModel = await RedirectService.process(req, res);
+
+  res.redirect(stream.landing_url);
 });
 
 export = RedirectRouter;

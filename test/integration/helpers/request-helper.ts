@@ -1,5 +1,8 @@
+import { SuperAgentRequest } from 'superagent';
 import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
@@ -86,12 +89,29 @@ class RequestHelper {
     headers.Authorization = `Bearer ${token}`;
   }
 
+  public static addCookies(req: SuperAgentRequest, cookies: string[]): void {
+    // @ts-ignore
+    req.set('Cookie', cookies);
+  }
+
   public static getRequestObj() {
     return request(server);
   }
 
-  public static getRequestObjForPost(url: string) {
+  public static getRequestObjForPost(url: string): SuperAgentRequest {
     return request(server).post(url);
+  }
+
+  public static getRequestObjForGet(url: string): SuperAgentRequest {
+    return request(server).get(url);
+  }
+
+  public static getGetRequestAsMyself(url: string, myself: UserModel): IResponseBody {
+    const req = this.getRequestObjForGet(url);
+
+    this.addAuthToken(req, myself);
+
+    return req;
   }
 
   public static getApiV1Prefix(): string {
@@ -240,8 +260,12 @@ class RequestHelper {
   }
 
   public static addAuthToken(req: any, myself: UserModel): void {
+    this.addAuthTokenString(req, myself.token);
+  }
+
+  public static addAuthTokenString(req: any, token: string): void {
     req
-      .set('Authorization', `Bearer ${myself.token}`);
+      .set('Authorization', `Bearer ${token}`);
   }
 
   public static addGithubAuthToken(req: any, token: string): void {
@@ -255,7 +279,7 @@ class RequestHelper {
    * @param {Object} fields
    * @return {Promise<Object>}
    */
-  static async makePostGuestRequestWithFields(url, fields) {
+  static async makePostGuestRequestWithFields(url: string, fields: StringToAnyCollection) {
     const req = request(server)
       .post(url);
     this.addFieldsToRequest(req, fields);
@@ -263,14 +287,15 @@ class RequestHelper {
     return req;
   }
 
-  /**
-   *
-   * @param {Object} req
-   * @param {Object} fields
-   */
-  static addFieldsToRequest(req, fields) {
-    // eslint-disable-next-line guard-for-in
+  public static addFieldsToRequest(
+    req: SuperAgentRequest,
+    fields: StringToAnyCollection,
+  ): void {
     for (const field in fields) {
+      if (!fields.hasOwnProperty(field)) {
+        continue;
+      }
+
       req.field(field, fields[field]);
     }
   }

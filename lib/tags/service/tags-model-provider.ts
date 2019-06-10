@@ -1,4 +1,6 @@
-const ENTITY_NAME = 'tags      ';
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
+
+const ENTITY_NAME = EntityNames.TAGS;
 const TABLE_NAME = 'tags';
 
 const BLOCKCHAIN_ID_PREFIX = 'tag';

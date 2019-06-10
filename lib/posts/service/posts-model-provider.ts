@@ -2,9 +2,12 @@ import { IModelFieldsSet } from '../../common/interfaces/models-dto';
 
 import PostsFieldsSet = require('../models/posts-fields-set');
 
+
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
+
 const models = require('../../../models');
 
-const ENTITY_NAME = 'posts     ';
+const ENTITY_NAME = EntityNames.POSTS;
 const TABLE_NAME = 'posts';
 
 const POST_STATS_TABLE_NAME       = 'post_stats';

@@ -22,6 +22,8 @@ interface StringToAnyCollection {
   [index: string]: any;
 }
 
+interface IRequestBody extends StringToAnyCollection {}
+
 interface NumberToAnyCollection {
   [index: number]: any;
 }
@@ -39,4 +41,5 @@ export {
   IdToPropsCollection,
   IdOnlyDto,
   IdToNumberCollection,
+  IRequestBody,
 };

@@ -1,6 +1,7 @@
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 const models = require('../../../models');
 
-const ENTITY_NAME = 'bl_nodes  ';
+const ENTITY_NAME = EntityNames.BLOCKCHAIN_NODES;
 const TABLE_NAME  = 'blockchain_nodes';
 const OUTGOING_TRANSACTIONS_LOG  = 'blockchain.outgoing_transactions_log';
 
