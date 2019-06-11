@@ -14,6 +14,7 @@ import UsersTeamRepository = require('../../users/repository/users-team-reposito
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import OrgsCurrentParamsRepository = require('./organizations-current-params-repository');
 import QueryFilterService = require('../../api/filters/query-filter-service');
+import EnvHelper = require('../../common/helper/env-helper');
 
 const _ = require('lodash');
 
@@ -671,16 +672,16 @@ class OrganizationsRepository implements QueryFilteredRepository {
   }
 
   public static whereRawTrending(): string {
-    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
-
+    const lowerLimit = EnvHelper.isStagingEnv() ? (-100) : 0;
     const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
 
-    return `${tableName}.importance_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
+    // importance_delta criterion is disabled due to a low number of trending communities. This is an experiment
+    // return `${tableName}.importance_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
+    return `${tableName}.posts_total_amount_delta > ${lowerLimit}`;
   }
 
   public static whereRawHot(): string {
-    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
-
+    const lowerLimit = EnvHelper.isStagingEnv() ? (-100) : 0;
     const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
 
     return `${tableName}.activity_index_delta > ${lowerLimit}`;
