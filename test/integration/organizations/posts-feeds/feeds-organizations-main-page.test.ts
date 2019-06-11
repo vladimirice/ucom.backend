@@ -15,7 +15,7 @@ const JEST_TIMEOUT = 10000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
-describe('Organizations. Get requests', () => {
+describe('Organizations feeds - main page', () => {
   beforeAll(async () => {
     await SeedsHelper.withGraphQlMockAllWorkers();
   });
@@ -59,7 +59,7 @@ describe('Organizations. Get requests', () => {
 
       userHimselfDirectPosts = await Promise.all([
         PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane),
-        PostsGenerator.createMediaPostByUserHimself(userJane, userVlad),
+        PostsGenerator.createDirectPostForUserAndGetId(userJane, userVlad),
       ]);
     });
 

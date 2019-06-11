@@ -1039,11 +1039,28 @@ class PostsRepository implements QueryFilteredRepository {
       return;
     }
 
-    if (entityNamesFrom.length === 1 && entityNamesFrom.includes(EntityNames.ORGANIZATIONS)) {
+    if (_.isEqual([EntityNames.ORGANIZATIONS], entityNamesFrom)) {
       params.where.organization_id = {
         [Op.ne]: null,
       };
+
+      return;
     }
+
+    if (_.isEqual([EntityNames.USERS], entityNamesFrom)) {
+      params.where.organization_id = {
+        [Op.eq]: null,
+      };
+
+      return;
+    }
+
+    if (_.isEqual([EntityNames.USERS, EntityNames.ORGANIZATIONS].sort(), entityNamesFrom.sort())) {
+      // do nothing
+      return;
+    }
+
+    throw new BadRequestError(`Unsupported set for entity_names_from: ${entityNamesFrom}`);
   }
 
   private static processEntityNamesFor(query: PostRequestQueryDto, params: DbParamsDto): void {
@@ -1054,12 +1071,19 @@ class PostsRepository implements QueryFilteredRepository {
 
     const allowed = [
       EntityNames.ORGANIZATIONS,
+      EntityNames.USERS,
     ];
 
-    for (const item of entityNamesFor) {
-      if (!allowed.includes(item)) {
-        throw new BadRequestError(`entity_name_for value ${item} is not allowed. Allowed ones are: ${allowed}`);
-      }
+    const notAllowed = _.difference(entityNamesFor, allowed);
+    if (notAllowed.length > 0) {
+      throw new BadRequestError(`entity_names_for values ${notAllowed} are not allowed. Allowed ones are: ${allowed}`);
+    }
+
+    // #consistency - This is a business case consistency check to avoid possible errors not covered by autotests
+    if (entityNamesFor.length !== 1) {
+      throw new BadRequestError(
+        'There is no business case yet for entity_names_for not to contain exactly one item. If there is such case, please consider removing this error.',
+      );
     }
 
     params.where.entity_name_for = {
