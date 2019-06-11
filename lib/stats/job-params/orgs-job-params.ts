@@ -9,11 +9,13 @@ const ENTITY_NAME       = OrganizationsModelProvider.getEntityName();
 const currentTableName  = OrganizationsModelProvider.getCurrentParamsTableName();
 const whenFieldName       = 'organization_id';
 
-const windowIntervalHours = 24 * 3;
+const windowIntervalHours           = 24 * 3;
+const windowIntervalOneWeekInHours  = 24 * 7;
 
 const oneToOneSet: DeltaParams[] = [
   {
-    windowIntervalHours,
+    windowIntervalHours: windowIntervalOneWeekInHours,
+
     entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getCurrentBlockchainImportance(),
@@ -32,7 +34,7 @@ const oneToOneSet: DeltaParams[] = [
     },
   },
   {
-    windowIntervalHours,
+    windowIntervalHours: windowIntervalOneWeekInHours,
     entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getOrgPostsCurrentAmount(),
