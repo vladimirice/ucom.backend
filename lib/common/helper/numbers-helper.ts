@@ -9,6 +9,10 @@ class NumbersHelper {
     return +(Math.random() * (max - min) + min).toFixed(precision);
   }
 
+  public static processFloatModelProperty(value: string| number, fieldName: string = 'not-set'): number {
+    return this.processFieldToBeNumeric(value, fieldName, 10, false, false);
+  }
+
   public static processFieldToBeNumeric(
     value: string | number,
     fieldName: string,
@@ -34,7 +38,6 @@ class NumbersHelper {
 
   public static isNumberFinitePositiveIntegerOrBadRequestError(value: number) {
     if (Number.isFinite(value) && value > 0) {
-
       return;
     }
 

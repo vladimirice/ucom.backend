@@ -4,9 +4,8 @@ import { EntityEventRepository } from '../repository/entity-event-repository';
 import {
   IdToNumberCollection,
   IdToPropsCollection,
-  NumberToNumberCollection,
 } from '../../common/interfaces/common-types';
-import { OrgIdToStats } from '../interfaces/dto-interfaces';
+import { EntityAggregatesDto, OrgIdToStats } from '../interfaces/dto-interfaces';
 
 import EventParamGroupDictionary = require('../dictionary/event-param/event-param-group-dictionary');
 import EventParamSuperGroupDictionary = require('../dictionary/event-param/event-param-super-group-dictionary');
@@ -25,11 +24,6 @@ const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
 
 // #task determine entity blockchain ID for all cases
 const NOT_DETERMINED_BLOCKCHAIN_ID = 'not-determined-id';
-
-interface EntityAggregatesDto {
-  readonly entityId:      number;
-  readonly aggregates:  NumberToNumberCollection;
-}
 
 class OrgStatsJob {
   public static async processCurrentValues(): Promise<void> {

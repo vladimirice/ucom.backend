@@ -123,7 +123,13 @@ interface OrgStats {
   followers: number;
 }
 
+interface EntityAggregatesDto {
+  readonly entityId:      number;
+  readonly aggregates:  NumberToNumberCollection;
+}
+
 export {
+  EntityAggregatesDto,
   ModelWithEventParamsDto,
   EntityParamAggregatesDto,
   PostIdToStats,

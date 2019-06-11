@@ -16,6 +16,7 @@ const ORG_ACTIVITY_INDEX_DELTA      = 16;
 const TAG_ACTIVITY_INDEX_DELTA      = 17;
 const TAG_IMPORTANCE_DELTA          = 18;
 const TAG_POSTS_TOTAL_AMOUNT_DELTA  = 19;
+const USERS_POSTS_CURRENT_AMOUNT    = 20;
 
 /** Exact event description */
 class EventParamTypeDictionary {
@@ -29,6 +30,10 @@ class EventParamTypeDictionary {
 
   public static getOrgPostsCurrentAmount(): number {
     return ORG_POSTS_CURRENT_AMOUNT;
+  }
+
+  public static getUsersPostsCurrentAmount(): number {
+    return USERS_POSTS_CURRENT_AMOUNT;
   }
 
   public static getPostVotesCurrentAmount(): number {

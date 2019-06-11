@@ -11,12 +11,12 @@ import EventParamTypeDictionary = require('../dictionary/event-param/event-param
 import EventParamSuperGroupDictionary = require('../dictionary/event-param/event-param-super-group-dictionary');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
-// import TagsRepository = require('../../tags/repository/tags-repository');
-// import TagsModelProvider = require('../../tags/service/tags-model-provider');
 import PostsStatsJob = require('../job/posts-stats-job');
 import JsonValueService = require('./json-value-service');
 import OrgStatsJob = require('../job/org-stats-job');
 import TagsStatsJob = require('../job/tags-stats-job');
+import NumbersHelper = require('../../common/helper/numbers-helper');
+import UsersStatsJob = require('../job/users-stats-job');
 
 const DEFAULT_BATCH_SIZE = 500;
 
@@ -28,14 +28,14 @@ interface FetchItem  {
 
 const fetchSet: FetchItem[] = [
   {
-    func: PostsRepository.findManyPostsEntityEvents,
+    func:       PostsRepository.findManyPostsEntityEvents,
     entityName: PostsModelProvider.getEntityName(),
-    eventType: EventParamTypeDictionary.getCurrentBlockchainImportance(),
+    eventType:  EventParamTypeDictionary.getCurrentBlockchainImportance(),
   },
   {
-    func: OrganizationsRepository.findManyOrgsEntityEvents,
+    func:       OrganizationsRepository.findManyOrgsEntityEvents,
     entityName: OrganizationsModelProvider.getEntityName(),
-    eventType: EventParamTypeDictionary.getCurrentBlockchainImportance(),
+    eventType:  EventParamTypeDictionary.getCurrentBlockchainImportance(),
   },
 ];
 
@@ -43,16 +43,16 @@ export class EntityJobExecutorService {
   public static async processEntityEventParam(
     batchSize: number = DEFAULT_BATCH_SIZE,
   ): Promise<void> {
-    for (let i = 0; i < fetchSet.length; i += 1) {
-      console.log(`Lets process importance for entity_name: ${fetchSet[i].entityName}`);
-      await this.processEntitiesImportance(fetchSet[i], batchSize);
+    for (const set of fetchSet) {
+      console.log(`Lets process importance for entity_name: ${set.entityName}`);
+      await this.processEntitiesImportance(set, batchSize);
       console.log('Importance is successfully processed.');
     }
     console.log('Lets process posts-related current values');
     await PostsStatsJob.processPostsCurrentValues();
     await OrgStatsJob.processCurrentValues();
     await TagsStatsJob.processCurrentValues(batchSize);
-    console.log('Finished');
+    await UsersStatsJob.processCurrentValues();
   }
 
   private static async processEntitiesImportance(
@@ -85,22 +85,24 @@ export class EntityJobExecutorService {
     const eventGroup      = EventParamGroupDictionary.getNotDetermined();
     const eventSuperGroup = EventParamSuperGroupDictionary.getNotDetermined();
 
-    dbModels.forEach((item) => {
+    for (const item of dbModels) {
       const payload = {
-        importance: +item.current_rate,
+        importance: NumbersHelper.processFloatModelProperty(item.current_rate, 'current_rate'),
       };
 
       events.push({
-        entity_id: item.id,
-        entity_name: fetchItem.entityName,
+        entity_id:            item.id,
         entity_blockchain_id: item.blockchain_id,
-        event_type: fetchItem.eventType,
-        event_group: eventGroup,
-        result_value: +item.current_rate,
-        event_super_group: eventSuperGroup,
-        json_value: JsonValueService.getJsonValueParameter('importance', payload),
+        result_value:         payload.importance,
+
+        entity_name:          fetchItem.entityName,
+        event_type:           fetchItem.eventType,
+
+        event_group:          eventGroup,
+        event_super_group:    eventSuperGroup,
+        json_value:           JsonValueService.getJsonValueParameter('importance', payload),
       });
-    });
+    }
 
     return events;
   }

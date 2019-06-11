@@ -1,5 +1,5 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
-import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
+import { EntityAggregatesDto, ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 import {
   DbParamsDto,
   QueryFilteredRepository,
@@ -122,6 +122,32 @@ class PostsRepository implements QueryFilteredRepository {
     return data.rows.map(row => ({
       aggregates: RepositoryHelper.splitAggregates(row),
       entityId: +row.entity_id_for,
+    }));
+  }
+
+  public static async getManyUsersPostsAmount(
+  ): Promise<EntityAggregatesDto[]> {
+    const postTypes: number[] = [
+      ContentTypeDictionary.getTypeMediaPost(),
+      ContentTypeDictionary.getTypeDirectPost(),
+    ];
+
+    const sql = `
+      SELECT array_agg(post_type_id || '__' || amount) AS array_agg, user_id FROM
+        (
+          SELECT user_id, post_type_id, COUNT(1) AS amount
+          FROM posts
+          WHERE post_type_id IN (${postTypes.join(', ')})
+          GROUP BY user_id, post_type_id
+        ) AS t
+      GROUP BY user_id
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows.map(row => ({
+      aggregates: RepositoryHelper.splitAggregates(row),
+      entityId: +row.user_id,
     }));
   }
 

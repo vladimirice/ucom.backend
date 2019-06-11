@@ -18,6 +18,7 @@ import TotalCurrentParamsRepository = require('../../../lib/stats/repository/tot
 
 import EntityTotalsCalculator = require('../../../lib/stats/service/entity-totals-calculator');
 import TotalDeltaCalculationService = require('../../../lib/stats/service/total-delta-calculation-service');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 // #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
@@ -275,7 +276,7 @@ class StatsHelper {
     events: EntityEventParamDto[],
     expectedSet: IdToPropsCollection,
   ): void {
-    expect(_.isEmpty(events)).toBeFalsy();
+    CommonChecker.expectNotEmpty(events);
     expect(events.length).toBe(Object.keys(expectedSet).length);
 
     for (const event of events) {

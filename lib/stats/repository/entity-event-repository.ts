@@ -6,6 +6,7 @@ import PostsModelProvider = require('../../posts/service/posts-model-provider');
 import TagsModelProvider = require('../../tags/service/tags-model-provider');
 import CommonModelProvider = require('../../common/service/common-model-provider');
 import RepositoryHelper = require('../../common/repository/repository-helper');
+import UsersModelProvider = require('../../users/users-model-provider');
 
 const TABLE_NAME = 'entity_event_param';
 
@@ -14,6 +15,12 @@ export class EntityEventRepository {
     eventType: number | null = null,
   ): Promise<EntityEventParamDto[]> {
     return this.findManyEventsByEntityName(TagsModelProvider.getEntityName(), eventType);
+  }
+
+  public static async findManyEventsWithUsersEntityName(
+    eventType: number | null = null,
+  ): Promise<EntityEventParamDto[]> {
+    return this.findManyEventsByEntityName(UsersModelProvider.getEntityName(), eventType);
   }
 
   public static async findManyEventsWithOrgEntityName(
