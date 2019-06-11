@@ -8,3 +8,8 @@ alias p-link-wallet='npm link ucom-libs-wallet'
 
 alias p-i-common='npm i ucom.libs.common'
 alias p-link-common='npm link ucom.libs.common'
+
+
+alias p-phpstorm-wallet-lib='phpstorm ../ucom.libs.wallet/'
+alias p-phpstorm-common-lib='phpstorm ../ucom.libs.common/'
+alias p-phpstorm-graphql='phpstorm ../ucom.libs.graphql-schemas/'

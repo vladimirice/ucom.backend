@@ -182,6 +182,7 @@ describe('Organizations. Get requests', () => {
 
         // @ts-ignore
         const params: DbParamsDto = {
+          attributes: OrganizationsRepository.getFieldsForPreview(),
           order: [
             ['current_rate', 'DESC'],
             ['id', 'DESC'],
@@ -236,7 +237,7 @@ describe('Organizations. Get requests', () => {
       const organizations = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest();
 
       expect(organizations).toBeDefined();
-      expect(organizations instanceof Array).toBeTruthy();
+      expect(Array.isArray(organizations)).toBeTruthy();
       expect(organizations.length).toBe(totalCount);
 
       organizations.forEach((org) => {

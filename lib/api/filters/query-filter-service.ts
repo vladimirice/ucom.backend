@@ -149,6 +149,18 @@ class QueryFilterService {
     return params;
   }
 
+  public static addExtraAttributes(
+    params: DbParamsDto,
+    extraAttributes: string[],
+    prefix: string = '',
+  ): void {
+    for (const attribute of extraAttributes) {
+      const value = prefix !== '' ? `${prefix}.${attribute} AS ${attribute}` : attribute;
+
+      params.attributes.push(value);
+    }
+  }
+
   public static processAttributes(
     params: DbParamsDto,
     mainTableName: string,

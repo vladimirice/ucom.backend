@@ -10,6 +10,8 @@ import CommonHelper = require('../helpers/common-helper');
 import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
 import _ = require('lodash');
+import CommonChecker = require('../../helpers/common/common-checker');
+import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 
 let userVlad: UserModel;
 
@@ -32,9 +34,12 @@ function checkOrgsPage(response) {
   expect(_.isEmpty(response.data.many_organizations.data)).toBeFalsy();
   OrganizationsHelper.checkOrgListResponseStructure(response.data.many_organizations);
 
-  // expect(_.isEmpty(response.data.many_users)).toBeFalsy();
-  // expect(_.isEmpty(response.data.many_users.data)).toBeFalsy();
-  // CommonHelper.checkUsersListResponse(response.data.many_users, usersCheckOptions);
+  const expectedFields =
+    OrgsCurrentParamsRepository.getStatsFields().concat(
+      OrganizationsRepository.getFieldsForPreview(),
+      'number_of_followers',
+    );
+  CommonChecker.expectAllFieldsExistenceForObjectsArray(response.data.many_organizations.data, expectedFields);
 }
 
 describe('Organizations. Get requests', () => {
@@ -58,13 +63,12 @@ describe('Organizations. Get requests', () => {
         const response = await GraphqlHelper.getManyOrgsAsMyself(userVlad);
 
         OrganizationsHelper.checkOrgListResponseStructure(response);
-        CommonHelper.expectModelIdsExistenceInResponseList(response, orgsIds);
+        CommonChecker.expectModelIdsExistenceInResponseList(response, orgsIds);
       }, JEST_TIMEOUT);
     });
 
 
     describe('Trending organizations', () => {
-      // @ts-ignore
       const overviewType = EntityListCategoryDictionary.getTrending();
 
       it('Test trending - only test for graphql client error', async () => {
@@ -87,7 +91,6 @@ describe('Organizations. Get requests', () => {
     });
 
     describe('Hot orgs', () => {
-      // @ts-ignore
       const overviewType = EntityListCategoryDictionary.getHot();
 
       it('Test hot - only test for graphql client error', async () => {
@@ -241,6 +244,7 @@ describe('Organizations. Get requests', () => {
 
         // @ts-ignore
         const params: DbParamsDto = {
+          attributes: OrganizationsRepository.getFieldsForPreview(),
           order: [
             ['current_rate', 'DESC'],
             ['id', 'DESC'],

@@ -74,7 +74,7 @@
     "@types/amqplib": "^0.5.12",
     "@types/bookshelf": "^0.13.2",
     "@types/expect": "^1.20.4",
-    "@types/ioredis": "^4.0.11",
+    "@types/ioredis": "^4.0.12",
     "@types/jest": "^24.0.13",
     "@types/knex": "^0.16.1",
     "@types/lodash": "^4.14.134",
@@ -107,9 +107,8 @@
     "socket.io-client": "^2.2.0",
     "supertest": "^4.0.2",
     "ts-jest": "^24.0.2",
-    "tslint-config-airbnb": "^5.11.1",
     "tsutils": "^3.14.0",
     "typescript": "^3.5.1",
-    "ucom-libs-graphql-schemas": "^1.17.0"
+    "ucom-libs-graphql-schemas": "^1.18.0"
   }
 }

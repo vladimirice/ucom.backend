@@ -11,6 +11,9 @@ import OrganizationsModelProvider = require('../service/organizations-model-prov
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 import PostsRepository = require('../../posts/posts-repository');
 import UsersTeamRepository = require('../../users/repository/users-team-repository');
+import RepositoryHelper = require('../../common/repository/repository-helper');
+import OrgsCurrentParamsRepository = require('./organizations-current-params-repository');
+import QueryFilterService = require('../../api/filters/query-filter-service');
 
 const _ = require('lodash');
 
@@ -544,9 +547,24 @@ class OrganizationsRepository implements QueryFilteredRepository {
   public static async findAllOrgForList(
     params: DbParamsDto,
   ): Promise<OrgModelResponse[]> {
-    const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
+    QueryFilterService.addExtraAttributes(
+      params,
+      OrgsCurrentParamsRepository.getStatsFields(),
+      OrganizationsModelProvider.getCurrentParamsTableName(),
+    );
 
-    return res.toJSON();
+    const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
+    const numericalFields = this.getNumericalFields()
+      .concat(OrgsCurrentParamsRepository.getStatsFields(), ['number_of_followers']);
+
+    const jsonModels: OrgModelResponse[] = res.toJSON();
+    RepositoryHelper.convertStringFieldsToNumbersForArray(
+      jsonModels,
+      numericalFields,
+      this.getFieldsToDisallowZero(),
+    );
+
+    return jsonModels;
   }
 
   public static async findManyAsRelatedToEntity(

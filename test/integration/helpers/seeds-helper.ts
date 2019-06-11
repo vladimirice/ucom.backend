@@ -268,6 +268,7 @@ class SeedsHelper {
         MockHelper.mockAllBlockchainPart(true);
         break;
       case 'none':
+      case 'nothing':
         // do nothing
         break;
       default:

@@ -149,15 +149,6 @@ prod-console:
 worker-console-blockchain-nodes-production-console:
 	ssh gt 'bash -s' < ./pm2_console_logs.sh production-worker-update-blockchain-nodes
 
-phpstorm-wallet-lib:
-	phpstorm ../ucom.libs.wallet/
-
-phpstorm-common-lib:
-	phpstorm ../ucom.libs.common/
-
-phpstorm-graphql:
-	phpstorm ../ucom.libs.graphql-schemas/
-
 worker-console-uos-accounts-properties-update-production-console:
 	ssh gt 'bash -s' < ./pm2_console_logs.sh production-uos-accounts-properties-update-worker
 
