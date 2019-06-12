@@ -17,19 +17,22 @@ import OrganizationsModelProvider = require('../../organizations/service/organiz
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import ActivityIndexFormulas = require('../formulas/activity-index-formulas');
+import CommonStatsJob = require('./common-stats-job');
+import CommonModelProvider = require('../../common/service/common-model-provider');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-
-const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
-
-// #task determine entity blockchain ID for all cases
-const NOT_DETERMINED_BLOCKCHAIN_ID = 'not-determined-id';
+const params = {
+  entityName:   OrganizationsModelProvider.getEntityName(),
+  entityLabel:  OrganizationsModelProvider.getTableName(),
+};
 
 class OrgStatsJob {
   public static async processCurrentValues(): Promise<void> {
+    const data: EntityAggregatesDto[] = await PostsRepository.getManyOrgsPostsAmount();
+    const eventType = EventParamTypeDictionary.getOrgPostsCurrentAmount();
+
     const [orgIdToPosts, orgIdToFollowers]: [IdToPropsCollection, IdToNumberCollection] =
     await Promise.all([
-      this.calculatePostsCurrentAmount(),
+      CommonStatsJob.calculatePostsCurrentAmount(data, eventType, params.entityName, params.entityLabel),
       this.calculateFollowersCurrentAmount(),
     ]);
 
@@ -58,8 +61,8 @@ class OrgStatsJob {
 
       events.push({
         entity_id: +orgId,
-        entity_name: ENTITY_NAME,
-        entity_blockchain_id: NOT_DETERMINED_BLOCKCHAIN_ID,
+        entity_name: params.entityName,
+        entity_blockchain_id: CommonModelProvider.getFakeBlockchainId(),
         event_type: eventType,
         event_group: eventGroup,
         event_super_group: eventSuperGroup,
@@ -95,63 +98,13 @@ class OrgStatsJob {
 
       events.push({
         entity_id: +item.entityId,
-        entity_name: ENTITY_NAME,
-        entity_blockchain_id: NOT_DETERMINED_BLOCKCHAIN_ID,
+        entity_name: params.entityName,
+        entity_blockchain_id: CommonModelProvider.getFakeBlockchainId(),
         event_type: eventType,
         event_group: eventGroup,
         event_super_group: eventSuperGroup,
-        json_value: JsonValueService.getJsonValueParameter('followers of organization', payload),
+        json_value: JsonValueService.getJsonValueParameter(`followers of ${params.entityLabel}`, payload),
         result_value: followers,
-      });
-    });
-
-    await EntityEventRepository.insertManyEvents(events);
-
-    return dataRes;
-  }
-
-  private static async calculatePostsCurrentAmount(): Promise<IdToPropsCollection> {
-    const data: EntityAggregatesDto[] = await PostsRepository.getManyOrgsPostsAmount();
-    const events: EntityEventParamDto[] = [];
-
-    const eventGroup      = EventParamGroupDictionary.getNotDetermined();
-    const eventSuperGroup = EventParamSuperGroupDictionary.getNotDetermined();
-
-    const eventType = EventParamTypeDictionary.getOrgPostsCurrentAmount();
-
-    const dataRes: IdToPropsCollection = {};
-
-    data.forEach((item) => {
-      const payload = {
-        media_posts: 0,
-        direct_posts: 0,
-        total: 0,
-      };
-
-      for (const aggType in item.aggregates) {
-        if (+aggType === ContentTypeDictionary.getTypeMediaPost()) {
-          payload.media_posts = item.aggregates[aggType];
-        } else if (+aggType === ContentTypeDictionary.getTypeDirectPost()) {
-          payload.direct_posts = item.aggregates[aggType];
-        }
-      }
-
-      payload.total = payload.media_posts + payload.direct_posts;
-
-      dataRes[item.entityId] = {
-        mediaPosts: payload.media_posts,
-        directPosts: payload.direct_posts,
-      };
-
-      events.push({
-        entity_id: +item.entityId,
-        entity_name: ENTITY_NAME,
-        entity_blockchain_id: NOT_DETERMINED_BLOCKCHAIN_ID,
-        event_type: eventType,
-        event_group: eventGroup,
-        event_super_group: eventSuperGroup,
-        json_value: JsonValueService.getJsonValueParameter('media posts and direct posts amount of organization', payload),
-        result_value: payload.total,
       });
     });
 

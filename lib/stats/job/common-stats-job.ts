@@ -11,6 +11,12 @@ import JsonValueService = require('../service/json-value-service');
 
 const { PostTypes } = require('ucom.libs.common').Posts.Dictionary;
 
+interface IPostTypesPayload {
+  media_posts:  number;
+  direct_posts: number;
+  total:        number;
+}
+
 class CommonStatsJob {
   public static async calculatePostsCurrentAmount(
     data:        EntityAggregatesDto[],
@@ -23,23 +29,7 @@ class CommonStatsJob {
     const dataRes: IdToPropsCollection = {};
 
     for (const item of data) {
-      const payload = {
-        media_posts:  0,
-        direct_posts: 0,
-        total:        0,
-      };
-
-      for (const aggType in item.aggregates) {
-        if (+aggType === PostTypes.MEDIA) {
-          payload.media_posts = item.aggregates[aggType];
-        } else if (+aggType === PostTypes.DIRECT) {
-          payload.direct_posts = item.aggregates[aggType];
-        } else {
-          throw new AppError(`aggType ${aggType} is not supported`);
-        }
-      }
-
-      payload.total = payload.media_posts + payload.direct_posts;
+      const payload = this.processAggregatePostTypes(item);
 
       dataRes[item.entityId] = {
         mediaPosts:   payload.media_posts,
@@ -62,6 +52,35 @@ class CommonStatsJob {
     await EntityEventRepository.insertManyEvents(events);
 
     return dataRes;
+  }
+
+  private static processAggregatePostTypes(item: EntityAggregatesDto): IPostTypesPayload {
+    const postTypeToKey = {
+      [PostTypes.MEDIA]:  'media_posts',
+      [PostTypes.DIRECT]: 'direct_posts',
+    };
+
+    const payload: IPostTypesPayload = {
+      media_posts:  0,
+      direct_posts: 0,
+      total:        0,
+    };
+
+    for (const aggType in item.aggregates) {
+      if (!item.aggregates.hasOwnProperty(aggType)) {
+        continue;
+      }
+      const key = postTypeToKey[+aggType];
+      if (!key) {
+        throw new AppError(`aggType ${aggType} is not supported`);
+      }
+
+      payload[key] = item.aggregates[aggType];
+    }
+
+    payload.total = payload.media_posts + payload.direct_posts;
+
+    return payload;
   }
 }
 
