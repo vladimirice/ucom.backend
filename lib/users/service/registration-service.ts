@@ -1,15 +1,17 @@
-import { injectable } from "inversify";
-import "reflect-metadata";
+import { injectable } from 'inversify';
+import 'reflect-metadata';
 
 import { IRequestBody } from '../../common/interfaces/common-types';
-import AuthValidator = require('../../auth/validators');
 import { BadRequestError, JoiBadRequestError } from '../../api/errors';
+import { UserModel } from '../interfaces/model-interfaces';
+
+import AuthValidator = require('../../auth/validators');
 import EosJsEcc = require('../../crypto/eosjs-ecc');
 import EosApi = require('../../eos/eosApi');
 import UsersRepository = require('../users-repository');
 import UsersService = require('../users-service');
 import AuthService = require('../../auth/authService');
-import { UserModel } from '../interfaces/model-interfaces';
+import UsersCurrentParamsRepository = require('../repository/users-current-params-repository');
 
 const db = require('../../../models').sequelize;
 
@@ -44,6 +46,9 @@ class RegistrationService {
         return user;
       });
 
+    // #task - refactor upper code - use knex only and wrap this inside the transaction
+    await UsersCurrentParamsRepository.insertRowForNewEntity(newUser.id);
+
     const token = AuthService.getNewJwtToken(newUser);
 
     return {
@@ -52,6 +57,7 @@ class RegistrationService {
     };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private async checkRegistrationRequest(body: IRequestBody) {
     const { error, value:requestData } = AuthValidator.validateRegistration(body);
 

@@ -20,6 +20,10 @@ import StreamsModel = require('../../../lib/affiliates/models/streams-model');
 import OffersModel = require('../../../lib/affiliates/models/offers-model');
 import ClicksModel = require('../../../lib/affiliates/models/clicks-model');
 import ConversionsModel = require('../../../lib/affiliates/models/conversions-model');
+import UsersCurrentParamsRepository = require('../../../lib/users/repository/users-current-params-repository');
+import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -52,9 +56,11 @@ const tableToSeeds = {
 
 
 const minorTablesToSkipSequences = [
-  'posts_current_params',
-  'organizations_current_params',
-  'tags_current_params',
+  PostsModelProvider.getCurrentParamsTableName(),
+  UsersModelProvider.getCurrentParamsTableName(),
+  OrganizationsModelProvider.getCurrentParamsTableName(),
+  TagsModelProvider.getCurrentParamsTableName(),
+
   'irreversible_traces',
   'outgoing_transactions_log',
   'uos_accounts_properties',
@@ -94,6 +100,8 @@ const minorTables = [
   'users_external_auth_log',
 
   'accounts_transactions_parts',
+
+  UsersModelProvider.getCurrentParamsTableName(),
 
   'posts_current_params',
   'organizations_current_params',
@@ -307,14 +315,27 @@ class SeedsHelper {
       models.users_sources.bulkCreate(sourcesSeeds),
     ]);
 
-    // await MongoGenerator.truncateAll();
+    const [userVlad, userJane, userPetr, userRokky] =
+      await Promise.all([
+        UsersHelper.getUserVlad(),
+        UsersHelper.getUserJane(),
+        UsersHelper.getUserPetr(),
+        UsersHelper.getUserRokky(),
+      ]);
 
-    return Promise.all([
-      UsersHelper.getUserVlad(),
-      UsersHelper.getUserJane(),
-      UsersHelper.getUserPetr(),
-      UsersHelper.getUserRokky(),
+    await Promise.all([
+      UsersCurrentParamsRepository.insertRowForNewEntity(userVlad.id),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userJane.id),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userPetr.id),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userRokky.id),
     ]);
+
+    return [
+      userVlad,
+      userJane,
+      userPetr,
+      userRokky,
+    ];
   }
 
   /**

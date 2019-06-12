@@ -19,6 +19,8 @@ import TotalCurrentParamsRepository = require('../../../lib/stats/repository/tot
 import EntityTotalsCalculator = require('../../../lib/stats/service/entity-totals-calculator');
 import TotalDeltaCalculationService = require('../../../lib/stats/service/total-delta-calculation-service');
 import CommonChecker = require('../../helpers/common/common-checker');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import UsersCurrentParamsRepository = require('../../../lib/users/repository/users-current-params-repository');
 
 // #task - move to main project part
 const expectedJsonValueFields: {[index: number]: string[]} = {
@@ -28,6 +30,12 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
     'current_posts_amount',
     'current_followers_amount',
     'importance',
+  ],
+  [EventParamTypeDictionary.getUsersPostsTotalAmountDelta()]: [
+    'total_delta',
+  ],
+  [EventParamTypeDictionary.getUsersScaledImportanceDelta()]: [
+    'scaled_importance_delta',
   ],
   [EventParamTypeDictionary.getOrgPostsTotalAmountDelta()]: [
     'total_delta',
@@ -165,6 +173,7 @@ class StatsHelper {
       [PostsModelProvider.getEntityName()]:         PostsCurrentParamsRepository,
       [OrganizationsModelProvider.getEntityName()]: OrgsCurrentParamsRepository,
       [TagsModelProvider.getEntityName()]:          TagsCurrentParamsRepository,
+      [UsersModelProvider.getEntityName()]:         UsersCurrentParamsRepository,
     };
 
     if (!entityNameToRepo[entityName]) {
@@ -180,24 +189,6 @@ class StatsHelper {
       expect(stats[fieldName]).toBe(expectedValue);
     }
   }
-
-  // private static getFilteredSampleData(
-  //   sampleData: any,
-  //   sampleDataToSkip: any,
-  //   fieldNameInitial: string,
-  // ) {
-  //   const filtered: any = {};
-  //
-  //   const setToSkip = sampleDataToSkip[fieldNameInitial];
-  //
-  //   for (const entityId in sampleData) {
-  //     if (!setToSkip[entityId]) {
-  //       filtered[entityId] = sampleData[entityId];
-  //     }
-  //   }
-  //
-  //   return filtered;
-  // }
 
   public static checkManyEventsJsonValuesBySampleData(
     events: EntityEventParamDto[],

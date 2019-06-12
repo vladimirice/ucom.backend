@@ -15,11 +15,16 @@ import UosAccountsPropertiesGenerator = require('../../generators/blockchain/imp
 import MockHelper = require('../helpers/mock-helper');
 import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 import CommonChecker = require('../../helpers/common/common-checker');
+import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
+import EntityCalculationService = require('../../../lib/stats/service/entity-calculation-service');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
 
 let userVlad: UserModel;
 let userJane: UserModel;
 let userPetr: UserModel;
 let userRokky: UserModel;
+
+const ENTITY_NAME = UsersModelProvider.getEntityName();
 
 const JEST_TIMEOUT = 5000;
 // @ts-ignore
@@ -115,68 +120,64 @@ describe('Stats for users', () => {
     }, JEST_TIMEOUT);
   });
 
-  // describe('Stats delta for users', () => {
-  //   let sampleDataSet;
-  //   beforeEach(async () => {
-  //     await SeedsHelper.beforeAllRoutine();
-  //     await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
-  //     await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
-  //     await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
-  //
-  //     sampleDataSet = await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
-  //   });
-  //
-  //   it('Stats posts delta for users', async () => {
-  //     // TODO
-  //     const eventTypeRes      = EventParamTypeDictionary.getOrgPostsTotalAmountDelta();
-  //
-  //     const fieldNameRes      = 'total_delta';
-  //     const fieldNameInitial  = 'total';
-  //     const isFloat           = false;
-  //     const sampleData = sampleDataSet[fieldNameInitial];
-  //
-  //     await EntityCalculationService.updateEntitiesDeltas();
-  //
-  //     const events: EntityEventParamDto[] =
-  //       await EntityEventRepository.findManyEventsWithOrgEntityName(eventTypeRes);
-  //     StatsHelper.checkManyEventsStructure(events);
-  //
-  //     StatsHelper.checkManyEventsJsonValuesBySampleData(
-  //       events,
-  //       sampleData,
-  //       fieldNameInitial,
-  //       fieldNameRes,
-  //     );
-  //
-  //     await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, 'posts_total_amount_delta', isFloat);
-  //   });
-  //
-  //   it('smoke stats importance delta test for users', async () => {
-  //     // TODO get from tags
-  //     const eventType = EventParamTypeDictionary.getBlockchainImportanceDelta();
-  //     const fieldNameInitial  = 'importance';
-  //     const fieldNameRes      = 'importance_delta';
-  //     const isFloat = true;
-  //
-  //     const sampleData = sampleDataSet[fieldNameInitial];
-  //
-  //     await EntityCalculationService.updateEntitiesDeltas();
-  //
-  //     const events: EntityEventParamDto[] =
-  //       await EntityEventRepository.findManyEventsWithOrgEntityName(eventType);
-  //     StatsHelper.checkManyEventsStructure(events);
-  //
-  //     StatsHelper.checkManyEventsJsonValuesBySampleData(
-  //       events,
-  //       sampleData,
-  //       fieldNameInitial,
-  //       fieldNameRes,
-  //       isFloat,
-  //     );
-  //
-  //     await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
-  //   });
-  // });
+  describe('Stats delta for users', () => {
+    let sampleDataSet;
+    beforeEach(async () => {
+      await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
+      await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
+
+      sampleDataSet = await EntityEventParamGeneratorV2.createManyEventsForUsers();
+    }, JEST_TIMEOUT * 3);
+
+    it('Stats posts delta for users', async () => {
+      const eventTypeRes      = EventParamTypeDictionary.getUsersPostsTotalAmountDelta();
+
+      const fieldNameRes      = 'total_delta';
+      const fieldNameInitial  = 'total';
+      const isFloat           = false;
+      const sampleData        = sampleDataSet[fieldNameInitial];
+
+      await EntityCalculationService.updateEntitiesDeltas();
+
+      const events: EntityEventParamDto[] =
+        await EntityEventRepository.findManyEventsWithUsersEntityName(eventTypeRes);
+      StatsHelper.checkManyEventsStructure(events);
+
+      StatsHelper.checkManyEventsJsonValuesBySampleData(
+        events,
+        sampleData,
+        fieldNameInitial,
+        fieldNameRes,
+      );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, 'posts_total_amount_delta', isFloat);
+    });
+
+    it('users stats scaled importance delta', async () => {
+      const eventTypeRes      = EventParamTypeDictionary.getUsersScaledImportanceDelta();
+
+      const fieldNameInitial  = 'scaled_importance';
+      const fieldNameRes      = 'scaled_importance_delta';
+      const isFloat           = true;
+
+      const sampleData = sampleDataSet[fieldNameInitial];
+
+      await EntityCalculationService.updateEntitiesDeltas();
+
+      const events: EntityEventParamDto[] =
+        await EntityEventRepository.findManyEventsWithUsersEntityName(eventTypeRes);
+
+      StatsHelper.checkManyEventsJsonValuesBySampleData(
+        events,
+        sampleData,
+        fieldNameInitial,
+        fieldNameRes,
+        isFloat,
+      );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
+    });
+  });
 });
 
 export {};

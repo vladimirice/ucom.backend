@@ -20,6 +20,14 @@ const USERS_ACTIVITY_REFERRAL_TABLE_NAME  = 'affiliates.users_activity_referral'
 const USERS_ENTITY_NAME = EntityNames.USERS; // in db there is a fixed char length of 10
 
 class UsersModelProvider {
+  public static getCurrentParamsTableName(): string {
+    return 'users_current_params';
+  }
+
+  public static getForeignKeyField(): string {
+    return 'user_id';
+  }
+
   /**
    * alias
    * @return {string}

@@ -16,6 +16,7 @@ import EntityTagsGenerator = require('./entity-tags-generator');
 import PostsGenerator = require('../posts-generator');
 import EntityCalculationService = require('../../../lib/stats/service/entity-calculation-service');
 import CommonModelProvider = require('../../../lib/common/service/common-model-provider');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
 
 
 const { ParamTypes } = require('ucom.libs.common').Stats.Dictionary;
@@ -81,6 +82,34 @@ class EntityEventParamGeneratorV2 {
       secondId,
       options,
     );
+  }
+
+  public static async createManyEventsForUsers(): Promise<any> {
+    await this.fetchUsers();
+    const entityName = UsersModelProvider.getEntityName();
+
+    const sampleData: any = {};
+
+    const eventTypeInitial  = EventParamTypeDictionary.getUsersPostsCurrentAmount();
+
+    const fieldNameInitial  = 'total';
+    sampleData[fieldNameInitial] = await EntityEventParamGeneratorV2.createEventsAndGetExpectedDataSet(
+      userVlad.id,
+      userJane.id,
+      entityName,
+      eventTypeInitial,
+      fieldNameInitial,
+      false,
+    );
+
+    sampleData.scaled_importance = await this.createUosAccountsCurrentEventsAndGetExpectedDataSet(
+      userVlad.id,
+      userJane.id,
+      entityName,
+      EventParamTypeDictionary.getUserHimselfCurrentAmounts(),
+    );
+
+    return sampleData;
   }
 
   public static async createManyEventsForRandomTagsIds(): Promise<any> {
@@ -337,6 +366,49 @@ class EntityEventParamGeneratorV2 {
           after: {
             importance:           secondIdImportanceSet.after,
             current_posts_amount: secondIdPostsTotalAmountSet.after,
+          },
+        },
+      },
+    };
+
+    await EntityEventParamGeneratorV2.createEventsEntitiesData(
+      sampleData,
+      entityName,
+      eventType,
+    );
+
+    return sampleData;
+  }
+
+  public static async createUosAccountsCurrentEventsAndGetExpectedDataSet(
+    firstEntityId: number,
+    secondEntityId: number,
+    entityName: string,
+    eventType: number,
+  ): Promise<any> {
+    const firstIdImportanceSet  = this.getBeforeAfterDeltaSet(10, true);
+    const secondIdImportanceSet = this.getBeforeAfterDeltaSet(10, false);
+
+    const sampleData = {
+      [firstEntityId]: {
+        scaled_importance: firstIdImportanceSet,
+        jsonData: {
+          before: {
+            scaled_importance:  firstIdImportanceSet.before,
+          },
+          after: {
+            scaled_importance:  firstIdImportanceSet.after,
+          },
+        },
+      },
+      [secondEntityId]: {
+        scaled_importance: secondIdImportanceSet,
+        jsonData: {
+          before: {
+            scaled_importance:           secondIdImportanceSet.before,
+          },
+          after: {
+            scaled_importance:           secondIdImportanceSet.after,
           },
         },
       },

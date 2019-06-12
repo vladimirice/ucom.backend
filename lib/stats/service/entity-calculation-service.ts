@@ -15,6 +15,8 @@ import OrgsJobParams = require('../job-params/orgs-job-params');
 import TagsJobParams = require('../job-params/tags-job-params');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import StatsFetchCalculation = require('./fetch/stats-fetch-calculation');
+import EnvHelper = require('../../common/helper/env-helper');
+import UsersJobParams = require('../job-params/users-job-params');
 
 const profilingInfo = {};
 
@@ -24,11 +26,20 @@ class EntityCalculationService {
       PostsJobParams.getOneToOneSet(),
       OrgsJobParams.getOneToOneSet(),
       TagsJobParams.getOneToOneSet(),
+      UsersJobParams.getOneToOneSet(),
     ];
 
     for (const set of entitiesSets) {
       for (const params of set) {
-        await this.processOneToOne(params);
+        try {
+          await this.processOneToOne(params);
+        } catch (error) {
+          if (error.message === 'LastData array is empty' && EnvHelper.isTestEnv()) {
+            continue;
+          }
+
+          throw error;
+        }
       }
     }
   }
