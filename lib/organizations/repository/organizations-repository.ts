@@ -675,9 +675,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
     const lowerLimit = EnvHelper.isStagingEnv() ? (-100) : 0;
     const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
 
-    // importance_delta criterion is disabled due to a low number of trending communities. This is an experiment
-    // return `${tableName}.importance_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
-    return `${tableName}.posts_total_amount_delta > ${lowerLimit}`;
+    return `${tableName}.importance_delta != ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
   }
 
   public static whereRawHot(): string {
