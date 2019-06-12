@@ -2,12 +2,12 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
-import MockHelper = require('../helpers/mock-helper');
 import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 import UosAccountsPropertiesGenerator = require('../../generators/blockchain/importance/uos-accounts-properties-generator');
 import UosAccountsPropertiesRepository = require('../../../lib/uos-accounts-properties/repository/uos-accounts-properties-repository');
 import ResponseHelper = require('../helpers/response-helper');
 import delay = require('delay');
+import MockHelper = require('../helpers/mock-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -21,29 +21,15 @@ describe('Importance - get and update for accounts', () => {
   beforeAll(async () => {
     await SeedsHelper.withGraphQlMockAllWorkers();
   });
+
   afterAll(async () => {
     await SeedsHelper.afterAllWithGraphQl();
   });
+
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
     MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
-
-    sampleData = UosAccountsPropertiesGenerator.getSampleProperties(
-      userVlad.account_name,
-      userJane.account_name,
-      userPetr.account_name,
-      userRokky.account_name,
-    );
-
-    for (const sampleItem of sampleData) {
-      for (const field in sampleItem.values) {
-        if (!sampleItem.values.hasOwnProperty(field)) {
-          continue;
-        }
-
-        sampleItem.values[field] = +sampleItem.values[field];
-      }
-    }
+    sampleData = UosAccountsPropertiesGenerator.getProcessedSampleData(userVlad, userJane, userPetr, userRokky);
   });
 
   describe('Positive', () => {

@@ -7,6 +7,10 @@ class UosAccountsModelProvider {
     return 'uos_accounts_properties';
   }
 
+  public static getFieldsToSelectWithEntityParams(): string[] {
+    return this.getFieldsToSelect().concat(['entity_id', 'entity_name', 'account_name']);
+  }
+
   public static getFieldsToSelect(): string[] {
     return [
       'staked_balance',

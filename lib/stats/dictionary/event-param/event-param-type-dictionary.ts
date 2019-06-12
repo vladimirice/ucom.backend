@@ -17,11 +17,16 @@ const TAG_ACTIVITY_INDEX_DELTA      = 17;
 const TAG_IMPORTANCE_DELTA          = 18;
 const TAG_POSTS_TOTAL_AMOUNT_DELTA  = 19;
 const USERS_POSTS_CURRENT_AMOUNT    = 20;
+const USER_HIMSELF_CURRENT_AMOUNTS  = 21;
 
 /** Exact event description */
 class EventParamTypeDictionary {
   public static getTagItselfCurrentAmounts(): number {
     return TAG_ITSELF_CURRENT_AMOUNTS;
+  }
+
+  public static getUserHimselfCurrentAmounts(): number {
+    return USER_HIMSELF_CURRENT_AMOUNTS;
   }
 
   public static getOrgFollowersCurrentAmount(): number {

@@ -128,6 +128,15 @@ interface EntityAggregatesDto {
   readonly aggregates:  NumberToNumberCollection;
 }
 
+interface IStatsJobParams {
+  entityName:                 string;
+  entityLabel:                string;
+
+  currentValuesFetchFunction: Function; // #task provide a signature
+  currentValuesEventType:     number;
+  currentValuesToSave:        string[];
+}
+
 export {
   EntityAggregatesDto,
   ModelWithEventParamsDto,
@@ -144,4 +153,5 @@ export {
   TotalStatsParams,
   TotalCurrentParamsJsonValue,
   TotalCurrentParamsModel,
+  IStatsJobParams,
 };

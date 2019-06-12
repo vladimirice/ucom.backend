@@ -5,39 +5,46 @@ import { EntityJobExecutorService } from '../../../lib/stats/service/entity-job-
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
-import EntityCalculationService = require('../../../lib/stats/service/entity-calculation-service');
 
 import EventParamTypeDictionary = require('../../../lib/stats/dictionary/event-param/event-param-type-dictionary');
 import StatsHelper = require('../helpers/stats-helper');
-import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import PostsGenerator = require('../../generators/posts-generator');
-import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
-
-const beforeAfterOptions = {
-  isGraphQl: false,
-  workersMocking: 'all',
-};
-
-const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
+import UosAccountsPropertiesGenerator = require('../../generators/blockchain/importance/uos-accounts-properties-generator');
+import MockHelper = require('../helpers/mock-helper');
+import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 let userVlad: UserModel;
 let userJane: UserModel;
+let userPetr: UserModel;
+let userRokky: UserModel;
 
 const JEST_TIMEOUT = 5000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
 describe('Stats for users', () => {
-  beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
-  afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
+  let expectedUosParamsSet;
+
+  beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); });
+  afterAll(async () => { await SeedsHelper.afterAllWithGraphQl(); });
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
+
+    await MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
+    expectedUosParamsSet = UosAccountsPropertiesGenerator.getProcessedSampleDataAsExpectedSet(
+      userVlad,
+      userJane,
+      userPetr,
+      userRokky,
+    );
+    await UosAccountsPropertiesUpdateService.updateAll();
   });
 
   describe('Current stats for users', () => {
-    it('calculate organization-related posts', async () => {
+    it('calculate users posts', async () => {
       const batchSize = 2;
       const vladOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
@@ -89,71 +96,87 @@ describe('Stats for users', () => {
 
       expect(+userVladEvent.result_value).toBe(expectedSet[userVlad.id].total);
       expect(+userJaneEvent.result_value).toBe(expectedSet[userJane.id].total);
-    }, JEST_TIMEOUT_DEBUG);
-  });
+    }, JEST_TIMEOUT);
 
-  describe('Stats delta for users', () => {
-    let sampleDataSet;
-    beforeEach(async () => {
-      await SeedsHelper.beforeAllRoutine();
-      await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
-      await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
-      await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
+    it('check uos accounts properties', async () => {
+      const batchSize = 2;
 
-      sampleDataSet = await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
-    });
-
-    it('Stats posts delta for users', async () => {
-      // TODO
-      const eventTypeRes      = EventParamTypeDictionary.getOrgPostsTotalAmountDelta();
-
-      const fieldNameRes      = 'total_delta';
-      const fieldNameInitial  = 'total';
-      const isFloat           = false;
-      const sampleData = sampleDataSet[fieldNameInitial];
-
-      await EntityCalculationService.updateEntitiesDeltas();
+      await EntityJobExecutorService.processEntityEventParam(batchSize);
 
       const events: EntityEventParamDto[] =
-        await EntityEventRepository.findManyEventsWithOrgEntityName(eventTypeRes);
-      StatsHelper.checkManyEventsStructure(events);
+        await EntityEventRepository.findManyEventsWithUsersEntityName(
+          EventParamTypeDictionary.getUserHimselfCurrentAmounts(),
+        );
 
-      StatsHelper.checkManyEventsJsonValuesBySampleData(
-        events,
-        sampleData,
-        fieldNameInitial,
-        fieldNameRes,
-      );
+      CommonChecker.expectNotEmpty(events);
+      expect(events.length).toBe(4);
 
-      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, 'posts_total_amount_delta', isFloat);
-    });
-
-    it('smoke stats importance delta test for users', async () => {
-      // TODO
-      const eventType = EventParamTypeDictionary.getBlockchainImportanceDelta();
-      const fieldNameInitial  = 'importance';
-      const fieldNameRes      = 'importance_delta';
-      const isFloat = true;
-
-      const sampleData = sampleDataSet[fieldNameInitial];
-
-      await EntityCalculationService.updateEntitiesDeltas();
-
-      const events: EntityEventParamDto[] =
-        await EntityEventRepository.findManyEventsWithOrgEntityName(eventType);
-      StatsHelper.checkManyEventsStructure(events);
-
-      StatsHelper.checkManyEventsJsonValuesBySampleData(
-        events,
-        sampleData,
-        fieldNameInitial,
-        fieldNameRes,
-        isFloat,
-      );
-
-      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
-    });
+      StatsHelper.checkManyEventsJsonValuesByExpectedSet(events, expectedUosParamsSet);
+    }, JEST_TIMEOUT);
   });
+
+  // describe('Stats delta for users', () => {
+  //   let sampleDataSet;
+  //   beforeEach(async () => {
+  //     await SeedsHelper.beforeAllRoutine();
+  //     await EntityEventParamGeneratorV2.createManyEventsForRandomPostIds();
+  //     await EntityEventParamGeneratorV2.createManyEventsForRandomTagsIds();
+  //     await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
+  //
+  //     sampleDataSet = await EntityEventParamGeneratorV2.createManyEventsForRandomOrgsIds();
+  //   });
+  //
+  //   it('Stats posts delta for users', async () => {
+  //     // TODO
+  //     const eventTypeRes      = EventParamTypeDictionary.getOrgPostsTotalAmountDelta();
+  //
+  //     const fieldNameRes      = 'total_delta';
+  //     const fieldNameInitial  = 'total';
+  //     const isFloat           = false;
+  //     const sampleData = sampleDataSet[fieldNameInitial];
+  //
+  //     await EntityCalculationService.updateEntitiesDeltas();
+  //
+  //     const events: EntityEventParamDto[] =
+  //       await EntityEventRepository.findManyEventsWithOrgEntityName(eventTypeRes);
+  //     StatsHelper.checkManyEventsStructure(events);
+  //
+  //     StatsHelper.checkManyEventsJsonValuesBySampleData(
+  //       events,
+  //       sampleData,
+  //       fieldNameInitial,
+  //       fieldNameRes,
+  //     );
+  //
+  //     await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, 'posts_total_amount_delta', isFloat);
+  //   });
+  //
+  //   it('smoke stats importance delta test for users', async () => {
+  //     // TODO get from tags
+  //     const eventType = EventParamTypeDictionary.getBlockchainImportanceDelta();
+  //     const fieldNameInitial  = 'importance';
+  //     const fieldNameRes      = 'importance_delta';
+  //     const isFloat = true;
+  //
+  //     const sampleData = sampleDataSet[fieldNameInitial];
+  //
+  //     await EntityCalculationService.updateEntitiesDeltas();
+  //
+  //     const events: EntityEventParamDto[] =
+  //       await EntityEventRepository.findManyEventsWithOrgEntityName(eventType);
+  //     StatsHelper.checkManyEventsStructure(events);
+  //
+  //     StatsHelper.checkManyEventsJsonValuesBySampleData(
+  //       events,
+  //       sampleData,
+  //       fieldNameInitial,
+  //       fieldNameRes,
+  //       isFloat,
+  //     );
+  //
+  //     await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
+  //   });
+  // });
 });
 
 export {};
