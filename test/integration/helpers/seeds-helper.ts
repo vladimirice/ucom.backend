@@ -24,6 +24,7 @@ import UsersCurrentParamsRepository = require('../../../lib/users/repository/use
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
+import knex = require('../../../config/knex');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -307,12 +308,12 @@ class SeedsHelper {
     const usersSequence = this.getSequenceNameByModelName(usersModel);
 
     await this.resetSequence(usersSequence);
-    await this.bulkCreate(usersModel, usersSeeds);
+    await knex(UsersModelProvider.getTableName()).insert(usersSeeds);
 
     await Promise.all([
-      models.users_education.bulkCreate(usersEducationSeeds),
-      models.users_jobs.bulkCreate(usersJobsSeeds),
-      models.users_sources.bulkCreate(sourcesSeeds),
+      knex('users_education').insert(usersEducationSeeds),
+      knex('users_jobs').insert(usersJobsSeeds),
+      knex('users_sources').insert(sourcesSeeds),
     ]);
 
     const [userVlad, userJane, userPetr, userRokky] =
@@ -353,7 +354,7 @@ class SeedsHelper {
 
   // @deprecated. It is required because of deprecated seeding without generators
   static async resetSequence(name) {
-    return models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`);
+    return knex.raw(`ALTER SEQUENCE ${name} RESTART;`);
   }
 
   static async bulkCreate(name, seeds) {

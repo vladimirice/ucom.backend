@@ -30,7 +30,9 @@ let userRokky: UserModel;
 
 describe('Stats for organizations', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
-  afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
+  afterAll(async () => {
+    await SeedsHelper.doAfterAll(beforeAfterOptions);
+  });
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
   });
