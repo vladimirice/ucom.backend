@@ -16,6 +16,7 @@ import TagsJobParams = require('../job-params/tags-job-params');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import StatsFetchCalculation = require('./fetch/stats-fetch-calculation');
 import EnvHelper = require('../../common/helper/env-helper');
+// @ts-ignore
 import UsersJobParams = require('../job-params/users-job-params');
 
 const profilingInfo = {};
@@ -26,7 +27,7 @@ class EntityCalculationService {
       PostsJobParams.getOneToOneSet(),
       OrgsJobParams.getOneToOneSet(),
       TagsJobParams.getOneToOneSet(),
-      UsersJobParams.getOneToOneSet(),
+      // UsersJobParams.getOneToOneSet(),
     ];
 
     for (const set of entitiesSets) {
