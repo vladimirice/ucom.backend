@@ -50,7 +50,7 @@ export class GraphqlRequestHelper {
   public static async makeRequestFromQueryPartsByFetch(
     parts: string[],
     key: string | null = null,
-    myself: UserModel | null,
+    myself: UserModel | null = null,
   ): Promise<any> {
     const query = GraphQLSchema.getQueryMadeFromParts(parts);
 

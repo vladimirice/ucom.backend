@@ -27,7 +27,7 @@ class EntityCalculationService {
       PostsJobParams.getOneToOneSet(),
       OrgsJobParams.getOneToOneSet(),
       TagsJobParams.getOneToOneSet(),
-      // UsersJobParams.getOneToOneSet(),
+      UsersJobParams.getOneToOneSet(),
     ];
 
     for (const set of entitiesSets) {
