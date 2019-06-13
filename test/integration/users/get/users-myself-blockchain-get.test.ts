@@ -1,6 +1,6 @@
-export {};
 
-const helpers = require('../helpers');
+
+const helpers = require('../../helpers');
 
 helpers.Mock.mockAllBlockchainPart();
 helpers.Mock.mockAllTransactionSigning();
@@ -40,3 +40,5 @@ describe('Myself blockchain GET', () => {
     });
   });
 });
+
+export {};

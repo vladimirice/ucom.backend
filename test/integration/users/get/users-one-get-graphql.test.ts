@@ -1,9 +1,9 @@
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
-import SeedsHelper = require('../helpers/seeds-helper');
-import OneUserRequestHelper = require('../../helpers/users/one-user-request-helper');
-import UsersHelper = require('../helpers/users-helper');
-import UsersRepository = require('../../../lib/users/users-repository');
+import SeedsHelper = require('../../helpers/seeds-helper');
+import OneUserRequestHelper = require('../../../helpers/users/one-user-request-helper');
+import UsersHelper = require('../../helpers/users-helper');
+import UsersRepository = require('../../../../lib/users/users-repository');
 
 let userVlad: UserModel;
 let userJane: UserModel;

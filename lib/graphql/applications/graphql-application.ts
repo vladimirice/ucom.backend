@@ -168,6 +168,27 @@ const typeDefs = gql`
     
     score: Float
     external_login: String
+    
+    posts_total_amount_delta: Int
+    scaled_importance_delta: Float
+
+    staked_balance: Float
+    validity: Float
+    importance: Float
+    scaled_importance: Float
+
+    stake_rate: Float
+    scaled_stake_rate: Float
+
+    social_rate: Float
+    scaled_social_rate: Float
+
+    transfer_rate: Float
+    scaled_transfer_rate: Float
+
+    previous_cumulative_emission: Float
+    current_emission: Float
+    current_cumulative_emission: Float
   }
 
   type Comment {
@@ -375,7 +396,6 @@ const resolvers = {
 
       return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
     },
-
     // @ts-ignore
     async many_users(parent, args, ctx): Promise<UsersListResponse> {
       const usersQuery: UsersRequestQueryDto = {

@@ -122,13 +122,7 @@ class UsersFetchService {
   ): Promise<UsersListResponse> {
     const repository  = UsersRepository;
 
-    let params;
-    try {
-      params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
-    } catch (error) {
-      // @ts-ignore
-      const a = 0;
-    }
+    const params = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
 
     const promises = [
       repository.findUserReferrals(userId, params),
@@ -145,6 +139,9 @@ class UsersFetchService {
     let data;
     if (query.overview_type && query.entity_name) {
       data = this.getManyUsersListAsRelatedToEntityPromises(query, query.entity_name);
+    } else if (query.overview_type) {
+      // #task - it is a branch to migrate to the new knex-like fetching
+      data = this.getManyUsersListPromisesKnex(query);
     } else {
       data = this.getManyUsersListPromises(query);
     }
@@ -237,6 +234,11 @@ class UsersFetchService {
   }
 
 
+  /**
+   * @deprecated - consider to use knex
+   * @see getManyUsersListPromisesKnex
+   * @param query
+   */
   private static getManyUsersListPromises(query: RequestQueryDto): { promises: Promise<any>[], params: DbParamsDto } {
     // preparation for universal class-fetching processor
     const repository  = UsersRepository;
@@ -245,6 +247,28 @@ class UsersFetchService {
     const promises = [
       repository.findAllForList(params),
       repository.countAll(params),
+    ];
+
+    return {
+      promises,
+      params,
+    };
+  }
+
+  private static getManyUsersListPromisesKnex(
+    query: RequestQueryDto,
+  ): { promises: Promise<any>[], params: DbParamsDto } {
+    const params = QueryFilterService.getQueryParametersWithRepository(
+      query,
+      UsersRepository,
+      true,
+      false,
+      true,
+    );
+
+    const promises = [
+      UsersRepository.findManyForListViaKnex(params),
+      UsersRepository.countManyForListViaKnex(params),
     ];
 
     return {

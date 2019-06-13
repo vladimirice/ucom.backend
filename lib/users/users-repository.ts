@@ -1,3 +1,4 @@
+import { QueryBuilder } from 'knex';
 import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
 import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
@@ -14,6 +15,10 @@ import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provi
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
 import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
 import AirdropsUsersRepository = require('../airdrops/repository/airdrops-users-repository');
+import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-category-dictionary');
+import EnvHelper = require('../common/helper/env-helper');
+import QueryFilterService = require('../api/filters/query-filter-service');
+import KnexQueryBuilderHelper = require('../common/helper/repository/knex-query-builder-helper');
 
 const _ = require('lodash');
 
@@ -433,6 +438,37 @@ class UsersRepository {
       .offset(params.offset);
   }
 
+  public static findManyForListViaKnex(
+    params: DbParamsDto,
+  ): QueryBuilder {
+    const queryBuilder = knex(TABLE_NAME);
+
+    params.attributes = UsersModelProvider.getUserFieldsForPreview();
+    const extraAttributes = UosAccountsModelProvider.getFieldsToSelect().concat(
+      UsersModelProvider.getCurrentParamsToSelect(),
+    );
+
+    QueryFilterService.processAttributes(params, TABLE_NAME, true);
+    QueryFilterService.addExtraAttributes(params, extraAttributes);
+    QueryFilterService.addParamsToKnexQuery(queryBuilder, params);
+
+    this.innerJoinUosAccountsProperties(queryBuilder);
+    this.innerJoinUsersCurrentParams(queryBuilder);
+
+    return queryBuilder;
+  }
+
+  public static async countManyForListViaKnex(
+    params: DbParamsDto,
+  ): Promise<number> {
+    const queryBuilder = knex(TABLE_NAME);
+    QueryFilterService.addWhereRawParamToKnexQuery(queryBuilder, params);
+
+    this.innerJoinUsersCurrentParams(queryBuilder);
+
+    return KnexQueryBuilderHelper.addCountToQueryBuilderAndCalculate(queryBuilder, TABLE_NAME);
+  }
+
   public static async findUserReferrals(
     userId: number,
     params: DbParamsDto,
@@ -514,15 +550,26 @@ class UsersRepository {
       'account_name',
       'score',
       'external_login',
+
+      'scaled_social_rate',
+      'scaled_importance',
+
+      'posts_total_amount_delta',
+      'scaled_importance_delta',
     ];
   }
 
-  static getWhereProcessor(): Function {
+  public static getWhereProcessor(): Function {
     return (query, params) => {
       params.where = {};
 
+      // @deprecated this is a sequelize method
       if (query.user_name) {
         params.where = this.getSearchUserQueryWhere(query.user_name);
+      }
+
+      if (EntityListCategoryDictionary.isTrending(query.overview_type)) {
+        params.whereRaw = this.whereRawTrending();
       }
     };
   }
@@ -623,6 +670,10 @@ class UsersRepository {
     return models.Users;
   }
 
+  /**
+   * @deprecated - consider to get rid of sequelize, use knex + objection.js
+   * @param query
+   */
   private static getSearchUserQueryWhere(query: string) {
     return {
       [Op.or]: {
@@ -637,6 +688,34 @@ class UsersRepository {
         },
       },
     };
+  }
+
+  private static whereRawTrending(): string {
+    const lowerLimit = EnvHelper.isStagingEnv() ? (-100) : 0;
+    const tableName = UsersModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.scaled_importance_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
+  }
+
+  private static innerJoinUsersCurrentParams(queryBuilder: QueryBuilder): void {
+    queryBuilder
+      .innerJoin(
+        UsersModelProvider.getCurrentParamsTableName(),
+        `${UsersModelProvider.getCurrentParamsTableName()}.user_id`,
+        `${TABLE_NAME}.id`,
+      );
+  }
+
+  private static innerJoinUosAccountsProperties(queryBuilder: QueryBuilder): void {
+    // eslint-disable-next-line func-names
+    queryBuilder.innerJoin(UosAccountsModelProvider.uosAccountsPropertiesTableName(), function () {
+      this.on(`${UosAccountsModelProvider.uosAccountsPropertiesTableName()}.entity_id`, '=', `${TABLE_NAME}.id`)
+        .andOn(
+          `${UosAccountsModelProvider.uosAccountsPropertiesTableName()}.entity_name`,
+          '=',
+          knex.raw(`'${UsersModelProvider.getEntityName()}'`),
+        );
+    });
   }
 }
 

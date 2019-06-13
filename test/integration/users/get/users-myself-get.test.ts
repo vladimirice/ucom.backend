@@ -1,13 +1,13 @@
-import RequestHelper = require('../helpers/request-helper');
-import MockHelper = require('../helpers/mock-helper');
-import SeedsHelper = require('../helpers/seeds-helper');
-import UsersHelper = require('../helpers/users-helper');
-import ActivityHelper = require('../helpers/activity-helper');
-import PostsGenerator = require('../../generators/posts-generator');
-import ResponseHelper = require('../helpers/response-helper');
-import UsersRepository = require('../../../lib/users/users-repository');
-import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
-import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
+import RequestHelper = require('../../helpers/request-helper');
+import MockHelper = require('../../helpers/mock-helper');
+import SeedsHelper = require('../../helpers/seeds-helper');
+import UsersHelper = require('../../helpers/users-helper');
+import ActivityHelper = require('../../helpers/activity-helper');
+import PostsGenerator = require('../../../generators/posts-generator');
+import ResponseHelper = require('../../helpers/response-helper');
+import UsersRepository = require('../../../../lib/users/users-repository');
+import UsersActivityRepository = require('../../../../lib/users/repository/users-activity-repository');
+import UosAccountsPropertiesUpdateService = require('../../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 
 const request = require('supertest');
 

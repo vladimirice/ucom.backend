@@ -24,7 +24,7 @@ class PostsGraphqlRequest {
     const part = GraphQLSchema.getPostsFeedQueryPart(params);
     const key = 'posts_feed';
 
-    return GraphqlRequestHelper.makeRequestFromQueryPartsAsGuestByFetch([part], key);
+    return GraphqlRequestHelper.makeRequestFromQueryPartsByFetch([part], key);
   }
 
   public static async getOrgMainPageFeed() {
@@ -54,7 +54,7 @@ class PostsGraphqlRequest {
     const part = GraphQLSchema.getPostsFeedQueryPart(params, include);
     const key = 'posts_feed';
 
-    return GraphqlRequestHelper.makeRequestFromQueryPartsAsGuestByFetch([part], key);
+    return GraphqlRequestHelper.makeRequestFromQueryPartsByFetch([part], key);
   }
 
   public static async getUsersMainPageTopPublications() {
@@ -76,7 +76,7 @@ class PostsGraphqlRequest {
     const part = GraphQLSchema.getPostsFeedQueryPart(params);
     const key = 'posts_feed';
 
-    return GraphqlRequestHelper.makeRequestFromQueryPartsAsGuestByFetch([part], key);
+    return GraphqlRequestHelper.makeRequestFromQueryPartsByFetch([part], key);
   }
 
   public static async getUsersMainPageFeed() {
@@ -105,7 +105,7 @@ class PostsGraphqlRequest {
     const part = GraphQLSchema.getPostsFeedQueryPart(params, include);
     const key = 'posts_feed';
 
-    return GraphqlRequestHelper.makeRequestFromQueryPartsAsGuestByFetch([part], key);
+    return GraphqlRequestHelper.makeRequestFromQueryPartsByFetch([part], key);
   }
 }
 

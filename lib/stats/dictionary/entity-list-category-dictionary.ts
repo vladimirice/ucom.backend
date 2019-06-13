@@ -31,6 +31,14 @@ class EntityListCategoryDictionary {
     return overviewTypeToStatsField[overviewType];
   }
 
+  public static isTrending(overviewType: string | undefined): boolean {
+    if (!overviewType) {
+      return false;
+    }
+
+    return overviewType === this.getTrending();
+  }
+
   public static getTrending(): string {
     return TRENDING;
   }

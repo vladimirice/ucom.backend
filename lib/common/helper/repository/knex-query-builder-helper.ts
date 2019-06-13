@@ -16,6 +16,16 @@ class KnexQueryBuilderHelper {
     return RepositoryHelper.getKnexCountAsNumber(data);
   }
 
+  public static async addCountToQueryBuilderAndCalculate(
+    queryBuilder: QueryBuilder,
+    countPrefix: string,
+  ) {
+    queryBuilder.count(`${countPrefix}.id as amount`);
+    const data = await queryBuilder;
+
+    return RepositoryHelper.getKnexCountAsNumber(data);
+  }
+
   public static async getListByQueryBuilder(
     repository: QueryFilteredRepository,
     knex,

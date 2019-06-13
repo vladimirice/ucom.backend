@@ -155,6 +155,13 @@ class UsersModelProvider {
     };
   }
 
+  public static getCurrentParamsToSelect(): string[] {
+    return [
+      'posts_total_amount_delta',
+      'scaled_importance_delta',
+    ];
+  }
+
   /**
    *
    * @return {string}

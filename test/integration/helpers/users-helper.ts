@@ -1,12 +1,14 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 
 import _ = require('lodash');
 import UsersChecker = require('../../helpers/users/users-checker');
-import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import CommonChecker = require('../../helpers/common/common-checker');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
 
 const request = require('supertest');
 const usersSeeds = require('../../../seeders/users/users');
@@ -49,7 +51,7 @@ class UsersHelper {
   public static async requestToUpdateMyself(
     myself: UserModel,
     fieldsToChange: StringToAnyCollection,
-    expectedStatus: number = 200
+    expectedStatus: number = 200,
   ) {
     return this.requestToUpdateMyselfByToken(myself.token, fieldsToChange, expectedStatus);
   }
@@ -66,7 +68,7 @@ class UsersHelper {
   public static async requestToUpdateMyselfByToken(
     token: string,
     fieldsToChange: StringToAnyCollection,
-    expectedStatus: number = 200
+    expectedStatus: number = 200,
   ) {
     const url = RequestHelper.getMyselfUrl();
 
@@ -232,6 +234,14 @@ class UsersHelper {
         'followed_by', // #task not required for entity page if not user himself
         'myselfData',
       ]);
+    }
+
+    if (options.current_params) {
+      expected = Array.prototype.concat(expected, UsersModelProvider.getCurrentParamsToSelect());
+    }
+
+    if (options.uos_accounts_properties) {
+      expected = Array.prototype.concat(expected, UosAccountsModelProvider.getFieldsToSelect());
     }
 
     if (options.airdrops) {

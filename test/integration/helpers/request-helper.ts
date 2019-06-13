@@ -89,6 +89,10 @@ class RequestHelper {
     headers.Authorization = `Bearer ${token}`;
   }
 
+  public static addAuthBearerHeaderOfMyself(headers: any, myself: UserModel): void {
+    this.addAuthBearerHeader(headers, <string>myself.token);
+  }
+
   public static addCookies(req: SuperAgentRequest, cookies: string[]): void {
     // @ts-ignore
     req.set('Cookie', cookies);

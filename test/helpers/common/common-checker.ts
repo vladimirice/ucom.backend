@@ -12,8 +12,13 @@ class CommonChecker {
   public static expectModelIdsExistenceInResponseList(
     response: ListResponse,
     expectedModelIds: number[],
+    expectedTotalAmount: number | null = null,
   ) {
     this.expectModelsExistence(response.data, expectedModelIds);
+
+    if (expectedTotalAmount !== null) {
+      expect(response.metadata.total_amount).toBe(expectedTotalAmount);
+    }
   }
 
   public static expectModelsExistence(

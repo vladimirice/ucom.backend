@@ -1,12 +1,13 @@
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
-import SeedsHelper = require('../helpers/seeds-helper');
-import UsersHelper = require('../helpers/users-helper');
-import RequestHelper = require('../helpers/request-helper');
-import UsersRepository = require('../../../lib/users/users-repository');
-import ResponseHelper = require('../helpers/response-helper');
+import SeedsHelper = require('../../helpers/seeds-helper');
+import UsersHelper = require('../../helpers/users-helper');
+import RequestHelper = require('../../helpers/request-helper');
+import UsersRepository = require('../../../../lib/users/users-repository');
+import ResponseHelper = require('../../helpers/response-helper');
 
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 
 require('jest-expect-message');

@@ -3,6 +3,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
+import RequestHelper = require('../../integration/helpers/request-helper');
 
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
@@ -38,13 +39,28 @@ export class GraphqlRequestHelper {
     return this.makeRequestAsMyself(myself, query);
   }
 
-  public static async makeRequestFromQueryPartsAsGuestByFetch(
+  public static async makeRequestFromOneQueryPartByFetch(
+    part: string,
+    key: string | null = null,
+    myself: UserModel | null = null,
+  ): Promise<any> {
+    return this.makeRequestFromQueryPartsByFetch([part], key, myself);
+  }
+
+  public static async makeRequestFromQueryPartsByFetch(
     parts: string[],
     key: string | null = null,
+    myself: UserModel | null,
   ): Promise<any> {
     const query = GraphQLSchema.getQueryMadeFromParts(parts);
 
-    const data = await this.makeRequestAsGuestViaFetch(query);
+    const headers = {};
+
+    if (myself !== null) {
+      RequestHelper.addAuthBearerHeaderOfMyself(headers, myself);
+    }
+
+    const data = await this.makeRequestViaFetch(query, headers);
 
     return key ? data[key] : data;
   }
@@ -95,12 +111,16 @@ export class GraphqlRequestHelper {
     return response;
   }
 
-  public static async makeRequestAsGuestViaFetch(
+  public static async makeRequestViaFetch(
     query: string,
+    headers: any = {},
   ): Promise<any> {
     const response = await fetch(GRAPHQL_URI, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
       body: JSON.stringify({ query }),
     });
 
