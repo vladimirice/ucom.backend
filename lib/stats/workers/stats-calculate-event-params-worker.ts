@@ -14,8 +14,8 @@ const options: WorkerOptionsDto = {
 
 async function toExecute() {
   EosApi.initBlockchainLibraries();
-
   await EntityCalculationService.updateEntitiesDeltas();
+  console.log('Lets calculate total deltas');
   await TotalDeltaCalculationService.updateTotalDeltas();
 }
 

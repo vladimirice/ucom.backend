@@ -33,6 +33,7 @@ class EntityCalculationService {
     for (const set of entitiesSets) {
       for (const params of set) {
         try {
+          console.log(`Let's process entity ${params.entityName} and calculate a ${params.resultEventType}`);
           await this.processOneToOne(params);
         } catch (error) {
           if (error.message === 'LastData array is empty' && EnvHelper.isTestEnv()) {
