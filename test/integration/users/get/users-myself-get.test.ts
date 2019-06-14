@@ -52,7 +52,7 @@ describe('Myself. Get requests', () => {
 
         UsersHelper.validateUserJson(body, userVlad, dbUser);
 
-        expect(body.uos_accounts_properties.scaled_importance).toBeGreaterThan(0);
+        expect(body.scaled_importance).toBeGreaterThan(0);
       }, JEST_TIMEOUT);
 
       it('myself data should include zero scaled importance if no stats yet', async () => {
@@ -66,7 +66,7 @@ describe('Myself. Get requests', () => {
 
         UsersHelper.validateUserJson(body, userVlad, dbUser);
 
-        expect(body.uos_accounts_properties.scaled_importance).toBe(0);
+        expect(body.scaled_importance).toBe(0);
       }, JEST_TIMEOUT);
     });
 
