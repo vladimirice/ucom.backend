@@ -17,7 +17,7 @@ class ManyUsersRequestHelper {
 
   public static async getManyTrendingUsers(
     myself: UserModel | null = null,
-    orderBy: string = '-scaled_importance_delta',
+    orderBy: string = '-scaled_social_rate_delta',
     page: number = 1,
     perPage: number = 10,
   ): Promise<UsersListResponse> {

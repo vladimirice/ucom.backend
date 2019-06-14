@@ -23,7 +23,7 @@ const oneToOneSet: DeltaParams[] = [
     resultEventType:  EventParamTypeDictionary.getUsersPostsTotalAmountDelta(),
     paramField:       'total',
     paramFieldDelta:  'total_delta',
-    description:      `Posts total amount delta for ${commonSetParams.entityLabel}`,
+    description:      `A delta for ${commonSetParams.entityLabel}`,
 
     isFloat:          false,
     eventGroup:       EventParamGroupDictionary.getNotDetermined(),
@@ -42,15 +42,34 @@ const oneToOneSet: DeltaParams[] = [
     resultEventType:  EventParamTypeDictionary.getUsersScaledImportanceDelta(),
     paramField:       'scaled_importance',
     paramFieldDelta:  'scaled_importance_delta',
-    description:      `Posts total amount delta for ${commonSetParams.entityLabel}`,
+    description:      `A delta for ${commonSetParams.entityLabel}`,
 
-    isFloat:          false,
+    isFloat:          true,
     eventGroup:       EventParamGroupDictionary.getNotDetermined(),
     eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
     currentParams: {
       whenFieldName:  commonSetParams.foreignFieldName,
       tableName:      commonSetParams.currentTableName,
       fieldNameToSet: 'scaled_importance_delta',
+    },
+  },
+  {
+    windowIntervalHours: windowIntervalOneDay,
+    entityName:          commonSetParams.entityName,
+
+    initialEventType: EventParamTypeDictionary.getUserHimselfCurrentAmounts(),
+    resultEventType:  EventParamTypeDictionary.getUsersScaledSocialRateDelta(),
+    paramField:       'scaled_social_rate',
+    paramFieldDelta:  'scaled_social_rate_delta',
+    description:      `A delta for ${commonSetParams.entityLabel}`,
+
+    isFloat:          true,
+    eventGroup:       EventParamGroupDictionary.getNotDetermined(),
+    eventSuperGroup:  EventParamSuperGroupDictionary.getNotDetermined(),
+    currentParams: {
+      whenFieldName:  commonSetParams.foreignFieldName,
+      tableName:      commonSetParams.currentTableName,
+      fieldNameToSet: 'scaled_social_rate_delta',
     },
   },
 ];

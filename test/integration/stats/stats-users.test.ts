@@ -177,6 +177,31 @@ describe('Stats for users', () => {
 
       await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
     });
+
+    it('users stats scaled social rate delta', async () => {
+      const eventTypeRes      = EventParamTypeDictionary.getUsersScaledSocialRateDelta();
+
+      const fieldNameInitial  = 'scaled_social_rate';
+      const fieldNameRes      = 'scaled_social_rate_delta';
+      const isFloat           = true;
+
+      const sampleData = sampleDataSet[fieldNameInitial];
+
+      await EntityCalculationService.updateEntitiesDeltas();
+
+      const events: EntityEventParamDto[] =
+        await EntityEventRepository.findManyEventsWithUsersEntityName(eventTypeRes);
+
+      StatsHelper.checkManyEventsJsonValuesBySampleData(
+        events,
+        sampleData,
+        fieldNameInitial,
+        fieldNameRes,
+        isFloat,
+      );
+
+      await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
+    });
   });
 });
 

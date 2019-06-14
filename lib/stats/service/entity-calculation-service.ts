@@ -106,9 +106,8 @@ class EntityCalculationService {
     }
 
     const toProcess: EntitiesWithDeltaFields = {};
-    for (let i = 0; i < lastData.length; i += 1) {
-      const current = lastData[i];
 
+    for (const current of lastData) {
       if (toProcess[current.entity_id]) {
         throw new Error(`There is toProcess already for ${current.entity_id}. There are duplications in requests`);
       }
@@ -141,9 +140,7 @@ class EntityCalculationService {
       throw new Error('lastOfGivenDateData is empty');
     }
 
-    for (let i = 0; i < lastOfGivenDateData.length; i += 1) {
-      const current = lastOfGivenDateData[i];
-
+    for (const current of lastOfGivenDateData) {
       const related = toProcess[current.entity_id];
 
       if (!related) {

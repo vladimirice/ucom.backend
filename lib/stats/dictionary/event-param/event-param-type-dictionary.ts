@@ -20,6 +20,7 @@ const USERS_POSTS_CURRENT_AMOUNT      = 20;
 const USER_HIMSELF_CURRENT_AMOUNTS    = 21;
 const USERS_POSTS_TOTAL_AMOUNT_DELTA  = 22;
 const USERS_SCALED_IMPORTANCE_DELTA   = 23;
+const USERS_SCALED_SOCIAL_RATE_DELTA  = 24;
 /** Exact event description */
 class EventParamTypeDictionary {
   public static getTagItselfCurrentAmounts(): number {
@@ -104,6 +105,10 @@ class EventParamTypeDictionary {
 
   public static getUsersScaledImportanceDelta(): number {
     return USERS_SCALED_IMPORTANCE_DELTA;
+  }
+
+  public static getUsersScaledSocialRateDelta(): number {
+    return USERS_SCALED_SOCIAL_RATE_DELTA;
   }
 
   public static getTagPostsTotalAmountDelta(): number {

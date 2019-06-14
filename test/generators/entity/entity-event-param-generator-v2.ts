@@ -102,12 +102,15 @@ class EntityEventParamGeneratorV2 {
       false,
     );
 
-    sampleData.scaled_importance = await this.createUosAccountsCurrentEventsAndGetExpectedDataSet(
+    const sample = await this.createUosAccountsCurrentEventsAndGetExpectedDataSet(
       userVlad.id,
       userJane.id,
       entityName,
       EventParamTypeDictionary.getUserHimselfCurrentAmounts(),
     );
+
+    sampleData.scaled_importance = sample;
+    sampleData.scaled_social_rate = sample;
 
     return sampleData;
   }
@@ -386,29 +389,37 @@ class EntityEventParamGeneratorV2 {
     entityName: string,
     eventType: number,
   ): Promise<any> {
-    const firstIdImportanceSet  = this.getBeforeAfterDeltaSet(10, true);
-    const secondIdImportanceSet = this.getBeforeAfterDeltaSet(10, false);
+    const firstIdImportanceSet          = this.getBeforeAfterDeltaSet(10, true);
+    const firstIdImportanceSetPartTwo   = this.getBeforeAfterDeltaSet(10, true);
+    const secondIdImportanceSet         = this.getBeforeAfterDeltaSet(10, false);
+    const secondIdImportanceSetPartTwo  = this.getBeforeAfterDeltaSet(10, false);
 
     const sampleData = {
       [firstEntityId]: {
         scaled_importance: firstIdImportanceSet,
+        scaled_social_rate: firstIdImportanceSetPartTwo,
         jsonData: {
           before: {
             scaled_importance:  firstIdImportanceSet.before,
+            scaled_social_rate:  firstIdImportanceSetPartTwo.before,
           },
           after: {
             scaled_importance:  firstIdImportanceSet.after,
+            scaled_social_rate : firstIdImportanceSetPartTwo.after,
           },
         },
       },
       [secondEntityId]: {
         scaled_importance: secondIdImportanceSet,
+        scaled_social_rate: secondIdImportanceSetPartTwo,
         jsonData: {
           before: {
             scaled_importance:           secondIdImportanceSet.before,
+            scaled_social_rate:          secondIdImportanceSetPartTwo.before,
           },
           after: {
             scaled_importance:           secondIdImportanceSet.after,
+            scaled_social_rate:          secondIdImportanceSetPartTwo.after,
           },
         },
       },

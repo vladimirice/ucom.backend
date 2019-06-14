@@ -45,8 +45,8 @@ class UserPostProcessor {
       return;
     }
 
-    for (let i = 0; i < arr.length; i += 1) {
-      this.processUser(arr[i]);
+    for (const item of arr) {
+      this.processUser(item);
     }
   }
 
@@ -196,18 +196,16 @@ class UserPostProcessor {
 
   public static processUosAccountsProperties(userJson) {
     if (!userJson.uos_accounts_properties) {
-      userJson.uos_accounts_properties = {};
-
       // this is a case when the user is a newcomer and worker didn't process him yet
       for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
-        userJson.uos_accounts_properties[field] = 0;
+        userJson[field] = 0;
       }
 
       return;
     }
 
     for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
-      userJson.uos_accounts_properties[field] = NumbersHelper.processFieldToBeNumeric(
+      userJson[field] = NumbersHelper.processFieldToBeNumeric(
         userJson.uos_accounts_properties[field],
         field,
         10,

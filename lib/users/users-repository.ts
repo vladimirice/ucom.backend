@@ -556,6 +556,7 @@ class UsersRepository {
 
       'posts_total_amount_delta',
       'scaled_importance_delta',
+      'scaled_social_rate_delta',
     ];
   }
 
@@ -694,7 +695,7 @@ class UsersRepository {
     const lowerLimit = EnvHelper.isStagingEnv() ? (-100) : 0;
     const tableName = UsersModelProvider.getCurrentParamsTableName();
 
-    return `${tableName}.scaled_importance_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
+    return `${tableName}.scaled_social_rate_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
   }
 
   private static innerJoinUsersCurrentParams(queryBuilder: QueryBuilder): void {

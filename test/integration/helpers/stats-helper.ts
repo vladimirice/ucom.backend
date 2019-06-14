@@ -37,6 +37,9 @@ const expectedJsonValueFields: {[index: number]: string[]} = {
   [EventParamTypeDictionary.getUsersScaledImportanceDelta()]: [
     'scaled_importance_delta',
   ],
+  [EventParamTypeDictionary.getUsersScaledSocialRateDelta()]: [
+    'scaled_social_rate_delta',
+  ],
   [EventParamTypeDictionary.getOrgPostsTotalAmountDelta()]: [
     'total_delta',
   ],
@@ -197,6 +200,10 @@ class StatsHelper {
     fieldNameRes: string,
     isFloat: boolean = false,
   ) {
+    if (!sampleData) {
+      throw new TypeError('Please consider create a sample data properly - it must contain all current params keys');
+    }
+
     const filteredEvents: EntityEventParamDto[] = [];
     for (const event of events) {
       if (sampleData[event.entity_id]) {

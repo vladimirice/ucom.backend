@@ -39,14 +39,15 @@ describe('Users. Get requests', () => {
       await UosAccountsPropertiesUpdateService.updateAll();
 
       await Promise.all([
-        UsersDirectSetter.setPositivePostsTotalAmountDelta(userVlad),
-        UsersDirectSetter.setPositiveScaledImportanceDelta(userVlad),
+        UsersDirectSetter.setAllCurrentParamsForUser(userVlad),
+        UsersDirectSetter.setAllCurrentParamsForUser(userJane),
+        UsersDirectSetter.setAllCurrentParamsForUser(userPetr),
+      ]);
 
-        UsersDirectSetter.setPositivePostsTotalAmountDelta(userJane),
-        UsersDirectSetter.setPositiveScaledImportanceDelta(userJane),
-
-        UsersDirectSetter.setPositivePostsTotalAmountDelta(userPetr),
-        UsersDirectSetter.setPositiveScaledImportanceDelta(userPetr),
+      // disturbance
+      await Promise.all([
+        UsersDirectSetter.setPositivePostsTotalAmountDelta(userRokky),
+        UsersDirectSetter.setPositiveScaledImportanceDelta(userRokky),
       ]);
     }, JEST_TIMEOUT * 3);
 

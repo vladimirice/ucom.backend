@@ -159,6 +159,7 @@ class UsersModelProvider {
     return [
       'posts_total_amount_delta',
       'scaled_importance_delta',
+      'scaled_social_rate_delta',
     ];
   }
 

@@ -38,7 +38,7 @@
     "ioredis": "^4.10.0",
     "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.1",
-    "knex": "^0.17.5",
+    "knex": "^0.17.6",
     "lodash": "^4.17.10",
     "moment": "^2.24.0",
     "mongodb": "^3.2.7",
@@ -59,7 +59,7 @@
     "sha256": "^0.2.0",
     "socket.io": "^2.2.0",
     "statuses": "1.5.0",
-    "superagent": "^5.0.7",
+    "superagent": "^5.0.8",
     "ucom-libs-social-transactions": "^1.2.0",
     "ucom-libs-wallet": "^2.6.4",
     "ucom.libs.common": "^1.15.1",
@@ -75,7 +75,7 @@
     "@types/bookshelf": "^0.13.2",
     "@types/expect": "^1.20.4",
     "@types/ioredis": "^4.0.12",
-    "@types/jest": "^24.0.13",
+    "@types/jest": "^24.0.14",
     "@types/knex": "^0.16.1",
     "@types/lodash": "^4.14.134",
     "@types/moment": "^2.13.0",
@@ -87,7 +87,7 @@
     "@typescript-eslint/parser": "^1.10.2",
     "apollo-boost": "^0.4.2",
     "cross-fetch": "^3.0.4",
-    "delay": "^4.2.0",
+    "delay": "^4.3.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.17.3",
@@ -108,7 +108,7 @@
     "supertest": "^4.0.2",
     "ts-jest": "^24.0.2",
     "tsutils": "^3.14.0",
-    "typescript": "^3.5.1",
-    "ucom-libs-graphql-schemas": "^1.19.0"
+    "typescript": "^3.5.2",
+    "ucom-libs-graphql-schemas": "^1.19.1"
   }
 }

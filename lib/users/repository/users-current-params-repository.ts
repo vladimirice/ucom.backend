@@ -37,6 +37,7 @@ class UsersCurrentParamsRepository {
       'id',
       foreignKeyField,
       'scaled_importance_delta',
+      'scaled_social_rate_delta',
       'posts_total_amount_delta',
     ];
   }
