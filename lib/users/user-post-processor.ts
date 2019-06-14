@@ -213,6 +213,8 @@ class UserPostProcessor {
         true,
       );
     }
+
+    delete userJson.uos_accounts_properties;
   }
 
   /**
