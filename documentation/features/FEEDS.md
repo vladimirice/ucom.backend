@@ -24,3 +24,8 @@ In order to fetch posts without comment - skip this query
 [examples](../../test/helpers/posts/posts-graphql-request.ts)
 * A Community main page top publications - `getOrgMainPageTopPublications`
 * A Community main page feed - `getOrgMainPageFeed`
+
+
+An example of users side block request is here:
+[here](../../test/helpers/users/many-users-request-helper.ts) (method `getManyTrendingUsersAsMyself`)
+
