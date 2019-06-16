@@ -28,6 +28,8 @@ let userJane: UserModel;
 let userPetr: UserModel;
 let userRokky: UserModel;
 
+const JEST_TIMEOUT = 5000;
+
 describe('Stats for organizations', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
   afterAll(async () => {
@@ -178,7 +180,7 @@ describe('Stats for organizations', () => {
       );
 
       await StatsHelper.checkEntitiesCurrentValues(sampleData, ENTITY_NAME, fieldNameInitial, fieldNameRes, isFloat);
-    });
+    }, JEST_TIMEOUT * 3);
 
     it('Stats posts delta for orgs', async () => {
       const eventTypeRes      = EventParamTypeDictionary.getOrgPostsTotalAmountDelta();

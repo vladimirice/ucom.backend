@@ -1,6 +1,9 @@
 import { DbParamsDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import { GraphqlHelper } from '../helpers/graphql-helper';
+
+import _ = require('lodash');
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
@@ -9,7 +12,6 @@ import OrganizationsGenerator = require('../../generators/organizations-generato
 import CommonHelper = require('../helpers/common-helper');
 import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
-import _ = require('lodash');
 import CommonChecker = require('../../helpers/common/common-checker');
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 
@@ -43,7 +45,7 @@ function checkOrgsPage(response) {
 }
 
 describe('Organizations. Get requests', () => {
-  beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
+  beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); }, JEST_TIMEOUT);
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
 
   beforeEach(async () => {
