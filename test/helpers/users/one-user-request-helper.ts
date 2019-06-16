@@ -7,7 +7,21 @@ import RequestHelper = require('../../integration/helpers/request-helper');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
+const supertest = require('supertest');
+
 class OneUserRequestHelper {
+  public static async deleteAllFromArray(myself: UserModel, field: string): Promise<IResponseBody> {
+    const res = await supertest(RequestHelper.getApiApplication())
+      .patch(RequestHelper.getMyselfUrl())
+      .set('Authorization', `Bearer ${myself.token}`)
+      .field(`${field}[]`, '')
+    ;
+
+    ResponseHelper.expectStatusOk(res);
+
+    return res.body;
+  }
+
   public static async getMyself(myself: UserModel): Promise<IResponseBody> {
     const request = await RequestHelper.getGetRequestAsMyself(RequestHelper.getMyselfUrl(), myself);
 

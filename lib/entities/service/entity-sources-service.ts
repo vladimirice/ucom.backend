@@ -2,6 +2,9 @@
 /* tslint:disable:max-line-length */
 import EntityModelProvider = require('./entity-model-provider');
 import EntityInputProcessor = require('../validator/entity-input-processor');
+import DeleteAllInArrayValidator = require('../../common/validator/form-data/delete-all-in-array-validator');
+import EntitySourcesRepository = require('../repository/entity-sources-repository');
+import EntitySourcesDictionary = require('../dictionary/entity-sources-dictionary');
 
 const _ = require('lodash');
 
@@ -21,33 +24,20 @@ const usersModelProvider = require('../../users/users-model-provider');
 const orgModelProvider = require('../../organizations/service/organizations-model-provider');
 const orgPostProcessor = require('../../organizations/service/organization-post-processor');
 
-const SOURCE_GROUP__SOCIAL_NETWORKS = 1;
-const SOURCE_GROUP__COMMUNITY       = 2;
-const SOURCE_GROUP__PARTNERSHIP     = 3;
-
-const SOURCE_TYPE__INTERNAL = 'internal';
-const SOURCE_TYPE__EXTERNAL = 'external';
-
 // #task - provide dictionary
 const sourceTypes: any = {
   social_networks: {
-    source_group_id : SOURCE_GROUP__SOCIAL_NETWORKS,
+    source_group_id : EntitySourcesDictionary.socialNetworksGroup(),
     body_key        : 'social_networks',
   },
   community_sources: {
-    source_group_id : SOURCE_GROUP__COMMUNITY,
+    source_group_id : EntitySourcesDictionary.communityGroup(),
     body_key        : 'community_sources',
   },
   partnership_sources: {
-    source_group_id : SOURCE_GROUP__PARTNERSHIP,
+    source_group_id : EntitySourcesDictionary.partnershipGroup(),
     body_key        : 'partnership_sources',
   },
-};
-
-const sourceGroupIdToType = {
-  1: 'social_networks',
-  2: 'community_sources',
-  3: 'partnership_sources',
 };
 
 class EntitySourceService {
@@ -83,7 +73,7 @@ class EntitySourceService {
       const sourceSet = sourceTypes[source];
 
       let toInsert = [];
-      if (sourceSet.source_group_id === SOURCE_GROUP__SOCIAL_NETWORKS) {
+      if (sourceSet.source_group_id === EntitySourcesDictionary.socialNetworksGroup()) {
         toInsert = this.getDataForSocialNetworks(entityId, entityName, entities, sourceSet);
       } else {
         toInsert = this.getDataForCommunityAndPartnership(entityId, entityName, entities, sourceSet);
@@ -117,9 +107,22 @@ class EntitySourceService {
       const sourceTypeSet = sourceTypes[sourceType];
       const sources = body[sourceType];
 
-      if (sources) {
-        await this.processOneSourceKey(entityId, entityName, body, sourceType, sourceTypeSet.source_group_id, transaction);
+      if (!sources) {
+        continue;
       }
+
+      if (DeleteAllInArrayValidator.isValueMeanDeleteAll(sources)) {
+        // #task - process inside transaction
+        await EntitySourcesRepository.deleteAllForOrgBySourceTypeId(
+          entityId,
+          entityName,
+          sourceTypeSet.source_group_id,
+        );
+
+        continue;
+      }
+
+      await this.processOneSourceKey(entityId, entityName, body, sourceType, sourceTypeSet.source_group_id, transaction);
     }
   }
 
@@ -145,10 +148,10 @@ class EntitySourceService {
      */
 
     for (const source of sources) {
-      const group = sourceGroupIdToType[source.source_group_id];
+      const group = EntitySourcesDictionary.sourceGroupIdToStringKey(source.source_group_id);
       let toPush: any = {};
 
-      if (source.source_group_id === SOURCE_GROUP__SOCIAL_NETWORKS) {
+      if (source.source_group_id === EntitySourcesDictionary.socialNetworksGroup()) {
         toPush = source;
         // #task - restrict output. Only required fields
       } else if (source.source_entity_id !== null) {
@@ -239,7 +242,7 @@ class EntitySourceService {
     const result: any = [];
 
     sources.forEach((source) => {
-      if (source.source_type === SOURCE_TYPE__INTERNAL) {
+      if (source.source_type === EntitySourcesDictionary.internalType()) {
         result.push({
           source_url:         '',
           is_official:        false,
@@ -255,7 +258,7 @@ class EntitySourceService {
 
           text_data: '',
         });
-      } else if (source.source_type === SOURCE_TYPE__EXTERNAL) {
+      } else if (source.source_type === EntitySourcesDictionary.externalType()) {
         const textDataJson = {
           title:        source.title || '',
           description:  source.description || '',
@@ -276,7 +279,7 @@ class EntitySourceService {
       } else {
         throw new BadRequestError({
           source_type :
-            `Source type ${source.source_type} is not supported. Only ${SOURCE_TYPE__INTERNAL} or ${SOURCE_TYPE__EXTERNAL}`,
+            `Source type ${source.source_type} is not supported. Only ${EntitySourcesDictionary.internalType()} or ${EntitySourcesDictionary.externalType()}`,
         });
       }
     });
@@ -324,7 +327,7 @@ class EntitySourceService {
     const sourceData  = await repository.findAllRelatedToEntityWithGroupId(entityId, entityName, sourceGroupId);
     const deltaData   = UpdateManyToManyHelper.getCreateUpdateDeleteDelta(sourceData, updatedModels);
 
-    if (sourceGroupId === SOURCE_GROUP__SOCIAL_NETWORKS) {
+    if (sourceGroupId === EntitySourcesDictionary.socialNetworksGroup()) {
       UpdateManyToManyHelper.filterDeltaDataBeforeSave(deltaData, CreateEntitySourceSchema, UpdateEntitySourceSchema);
     } else {
       this.processExternalTextDataBeforeSave(deltaData.added);

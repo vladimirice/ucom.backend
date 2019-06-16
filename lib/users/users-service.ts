@@ -1,6 +1,8 @@
 /* eslint-disable max-len,you-dont-need-lodash-underscore/filter */
 /* tslint:disable:max-line-length */
 import { BadRequestError } from '../api/errors';
+import { UserModel } from './interfaces/model-interfaces';
+import { IRequestBody, StringToAnyCollection } from '../common/interfaces/common-types';
 
 import UsersRepository = require('./users-repository');
 import UserPostProcessor = require('./user-post-processor');
@@ -9,8 +11,8 @@ import EosBlockchainStatusDictionary = require('../eos/eos-blockchain-status-dic
 import UsersModelProvider = require('./users-model-provider');
 import UpdateManyToManyHelper = require('../api/helpers/UpdateManyToManyHelper');
 import UserInputSanitizer = require('../api/sanitizers/user-input-sanitizer');
-import { UserModel } from './interfaces/model-interfaces';
-import { StringToAnyCollection } from '../common/interfaces/common-types';
+import DeleteAllInArrayValidator = require('../common/validator/form-data/delete-all-in-array-validator');
+import knex = require('../../config/knex');
 
 const _ = require('lodash');
 
@@ -99,6 +101,14 @@ class UsersService {
    * @private
    */
   private static async processArrayFields(user, requestData, transaction): Promise<void> {
+    const arrayFields = [
+      'users_education',
+      'users_jobs',
+      'users_sources',
+    ];
+
+    await this.deleteAllIfRequired(arrayFields, user, requestData);
+
     if (requestData.users_sources) {
       requestData.users_sources = _.filter(requestData.users_sources);
 
@@ -107,11 +117,6 @@ class UsersService {
       });
     }
 
-    const arrayFields = [
-      'users_education',
-      'users_jobs',
-      'users_sources',
-    ];
 
     for (const field of arrayFields) {
       if (!requestData[field]) {
@@ -131,6 +136,30 @@ class UsersService {
       const deltaData = UpdateManyToManyHelper.getCreateUpdateDeleteDelta(user[field], set);
 
       await UsersService.updateRelations(user, deltaData, field, transaction);
+    }
+  }
+
+  private static async deleteAllIfRequired(
+    arrayFields: string[],
+    user: UserModel,
+    body: IRequestBody,
+  ): Promise<void> {
+    for (const field of arrayFields) {
+      const value = body[field];
+
+      if (!value) {
+        continue;
+      }
+
+      if (!DeleteAllInArrayValidator.isValueMeanDeleteAll(value)) {
+        continue;
+      }
+
+      await knex(field)
+        .delete()
+        .where('user_id', user.id);
+
+      delete body[field];
     }
   }
 

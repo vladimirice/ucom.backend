@@ -1,4 +1,5 @@
 import EntityModelProvider = require('../service/entity-model-provider');
+import knex = require('../../../config/knex');
 
 const model = EntityModelProvider.getSourcesModel();
 const db = require('../../../models').sequelize;
@@ -6,6 +7,20 @@ const db = require('../../../models').sequelize;
 const TABLE_NAME = EntityModelProvider.getSourcesTableName();
 
 class EntitySourcesRepository {
+  public static async deleteAllForOrgBySourceTypeId(
+    entityId: number,
+    entityName: string,
+    sourceGroupId: number,
+  ): Promise<void> {
+    await knex(TABLE_NAME)
+      .delete()
+      .where({
+        entity_id:        entityId,
+        entity_name:      entityName,
+        source_group_id:  sourceGroupId,
+      });
+  }
+
   /**
    *
    * @param {Object[]}entities

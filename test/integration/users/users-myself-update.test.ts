@@ -4,6 +4,7 @@ import SeedsHelper = require('../helpers/seeds-helper');
 import UsersRepository = require('../../../lib/users/users-repository');
 import UsersHelper = require('../helpers/users-helper');
 import ResponseHelper = require('../helpers/response-helper');
+import OneUserRequestHelper = require('../../helpers/users/one-user-request-helper');
 const expect = require('expect');
 
 const request = require('supertest');
@@ -18,6 +19,9 @@ let userJane;
 
 const JEST_TIMEOUT = 5000;
 
+// @ts-ignore
+const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
+
 describe('Myself API', () => {
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
@@ -29,6 +33,28 @@ describe('Myself API', () => {
 
   describe('Update user', () => {
     describe('Positive',  () => {
+      it('delete users_jobs and users_education', async () => {
+        const myselfBefore = await OneUserRequestHelper.getMyself(userVlad);
+        expect(myselfBefore.users_sources.length).toBeGreaterThan(0);
+        expect(myselfBefore.users_jobs.length).toBeGreaterThan(0);
+        expect(myselfBefore.users_education.length).toBeGreaterThan(0);
+
+        const myselfWithoutJobs = await OneUserRequestHelper.deleteAllFromArray(userVlad, 'users_jobs');
+        expect(myselfWithoutJobs.users_jobs.length).toBe(0);
+
+        // remains unchanged
+        expect(myselfWithoutJobs.users_education.length).toBeGreaterThan(0);
+        expect(myselfWithoutJobs.users_sources.length).toBeGreaterThan(0);
+
+        const myselfWithoutJobsAndEducation =
+          await OneUserRequestHelper.deleteAllFromArray(userVlad, 'users_education');
+        expect(myselfWithoutJobsAndEducation.users_jobs.length).toBe(0);
+        expect(myselfWithoutJobsAndEducation.users_education.length).toBe(0);
+
+        // remains unchanged
+        expect(myselfWithoutJobs.users_sources.length).toBeGreaterThan(0);
+      }, JEST_TIMEOUT);
+
       it('Update logged user data', async () => {
         const userHimselfFieldsToChange = {
           first_name: 'vladislav',
@@ -112,62 +138,80 @@ describe('Myself API', () => {
         UsersHelper.validateUserJson(res.body, userVlad, updatedUser);
       }, JEST_TIMEOUT * 100);
 
-      it('Update users sources', async () => {
+      describe('myself sources', () => {
+        it('Update users sources', async () => {
         // sources of user are fixed - now only 4 sources
         // request - find all users sources by includes
 
-        // update title of one of the education
-        // add new education
-        const fieldsToChange = {
-          users_sources: [
-            {
-              id: 1,
-              source_url: 'https://myurl.com',
-              source_type_id: 1,
-            },
-            {
+          // update title of one of the education
+          // add new education
+          const fieldsToChange = {
+            users_sources: [
+              {
+                id: 1,
+                source_url: 'https://myurl.com',
+                source_type_id: 1,
+              },
+              {
               // create new source
-              source_url: 'http://mysourceurl2.com',
-              source_type_id: 2,
-            },
+                source_url: 'http://mysourceurl2.com',
+                source_type_id: 2,
+              },
             // and delete id = 2, because it is not mentioned
-          ],
-        };
+            ],
+          };
 
-        const res = await request(server)
-          .patch(myselfUrl)
-          .set('Authorization', `Bearer ${userVlad.token}`)
+          const res = await request(server)
+            .patch(myselfUrl)
+            .set('Authorization', `Bearer ${userVlad.token}`)
 
-          .field('users_sources[0][id]',              fieldsToChange.users_sources[0].id)
-          .field('users_sources[0][source_url]',      fieldsToChange.users_sources[0].source_url)
-          .field('users_sources[0][source_type_id]',
-            fieldsToChange.users_sources[0].source_type_id)
+            .field('users_sources[0][id]',              fieldsToChange.users_sources[0].id)
+            .field('users_sources[0][source_url]',      fieldsToChange.users_sources[0].source_url)
+            .field('users_sources[0][source_type_id]',
+              fieldsToChange.users_sources[0].source_type_id)
 
-          .field('users_sources[1][source_url]',      fieldsToChange.users_sources[1].source_url)
-          .field('users_sources[1][source_type_id]',
-            fieldsToChange.users_sources[1].source_type_id)
+            .field('users_sources[1][source_url]',      fieldsToChange.users_sources[1].source_url)
+            .field('users_sources[1][source_type_id]',
+              fieldsToChange.users_sources[1].source_type_id)
         ;
 
-        expect(res.status).toBe(200);
+          expect(res.status).toBe(200);
 
-        const { body } = res;
-        const updatedUser = await UsersRepository.getUserById(userVlad.id);
+          const { body } = res;
+          const updatedUser = await UsersRepository.getUserById(userVlad.id);
 
-        UsersHelper.validateUserJson(body, userVlad, updatedUser);
+          UsersHelper.validateUserJson(body, userVlad, updatedUser);
 
-        const actualUserSources = updatedUser.users_sources;
+          const actualUserSources = updatedUser.users_sources;
 
-        const expectedUserSources = fieldsToChange.users_sources;
+          const expectedUserSources = fieldsToChange.users_sources;
 
-        expectedUserSources.forEach((expectedSource) => {
-          const actualSource =
+          expectedUserSources.forEach((expectedSource) => {
+            const actualSource =
             actualUserSources.find(data => data.source_url === expectedSource.source_url);
 
-          expect(actualSource).toBeDefined();
-          expect(expectedSource.source_type_id).toBe(actualSource.source_type_id);
+            expect(actualSource).toBeDefined();
+            expect(expectedSource.source_type_id).toBe(actualSource.source_type_id);
+          });
+
+          expect(actualUserSources.find(data => data.id === 2)).not.toBeDefined();
         });
 
-        expect(actualUserSources.find(data => data.id === 2)).not.toBeDefined();
+        it('delete all users sources', async () => {
+          const myselfBefore = await OneUserRequestHelper.getMyself(userVlad);
+          expect(myselfBefore.users_sources.length).toBeGreaterThan(0);
+
+          const res = await request(server)
+            .patch(myselfUrl)
+            .set('Authorization', `Bearer ${userVlad.token}`)
+            .field('users_sources[]', '')
+          ;
+
+          expect(res.status).toBe(200);
+          const { body: myselfAfter } = res;
+
+          expect(myselfAfter.users_sources.length).toBe(0);
+        }, JEST_TIMEOUT);
       });
 
       it('Test avatar uploading', async () => {

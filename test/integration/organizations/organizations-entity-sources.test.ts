@@ -10,10 +10,16 @@ import EntitySourcesRepository = require('../../../lib/entities/repository/entit
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import CommonChecker = require('../../helpers/common/common-checker');
+import EntitySourcesDictionary = require('../../../lib/entities/dictionary/entity-sources-dictionary');
 
 let userVlad: UserModel;
 
 MockHelper.mockAllBlockchainPart();
+
+const JEST_TIMEOUT = 5000;
+// @ts-ignore
+const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
 describe('Organizations. Entity source related creation-updating', () => {
   beforeAll(async () => {
@@ -294,6 +300,33 @@ describe('Organizations. Entity source related creation-updating', () => {
         OrganizationsHelper.checkIsPostProcessedSmell(model);
       });
     });
+
+    it('should be possible to delete all social networks', async () => {
+      const firstOrgCreationBody = await OrganizationsHelper.requestToCreateNewWithAllEntitySources(userVlad);
+      const secondOrgCreationBody = await OrganizationsHelper.requestToCreateNewWithAllEntitySources(userVlad);
+
+      await OrganizationsHelper.deleteAllFromArray(userVlad, firstOrgCreationBody.id, 'social_networks');
+      const sourcesWithoutSocialNetworks = await EntitySourcesRepository.findAllByEntity(firstOrgCreationBody.id, 'org');
+      CommonChecker.expectNotEmpty(sourcesWithoutSocialNetworks);
+
+      const socialNetwork = sourcesWithoutSocialNetworks.find(item => item.source_group_id === EntitySourcesDictionary.socialNetworksGroup());
+      CommonChecker.expectEmpty(socialNetwork);
+
+      await OrganizationsHelper.deleteAllFromArray(userVlad, firstOrgCreationBody.id, 'community_sources');
+      const sourcesWithPartnershipsOnly = await EntitySourcesRepository.findAllByEntity(firstOrgCreationBody.id, 'org');
+      CommonChecker.expectNotEmpty(sourcesWithPartnershipsOnly);
+
+      for (const item of sourcesWithPartnershipsOnly) {
+        expect(item.source_group_id).toBe(EntitySourcesDictionary.partnershipGroup());
+      }
+      await OrganizationsHelper.deleteAllFromArray(userVlad, firstOrgCreationBody.id, 'partnership_sources');
+      const emptySources = await EntitySourcesRepository.findAllByEntity(firstOrgCreationBody.id, 'org');
+      CommonChecker.expectEmpty(emptySources);
+
+      await OrganizationsHelper.deleteAllFromArray(userVlad, firstOrgCreationBody.id, 'social_networks');
+      const secondOrgSources = await EntitySourcesRepository.findAllByEntity(secondOrgCreationBody.id, 'org');
+      CommonChecker.expectNotEmpty(secondOrgSources);
+    }, JEST_TIMEOUT);
 
     it.skip('should create sources separately', async () => {
     });

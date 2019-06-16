@@ -426,7 +426,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
     });
   }
 
-  static async findLastByAuthor(userId) {
+  static async findLastByAuthor(userId: number) {
     const includeUsersPreview =
       usersModelProvider.getUsersTeamIncludeWithUsersOnly('org', usersTeamStatusDictionary.getStatusConfirmed());
 

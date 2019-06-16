@@ -1,3 +1,6 @@
+import DeleteAllInArrayValidator = require('../common/validator/form-data/delete-all-in-array-validator');
+import UsersTeamRepository = require('./repository/users-team-repository');
+
 const _ = require('lodash');
 const usersTeamRepository = require('./repository').UsersTeam;
 
@@ -76,6 +79,16 @@ class UsersTeamService {
     idToExclude = null,
     transaction = null,
   ) {
+    if (!data[USERS_TEAM_PROPERTY]) {
+      return null;
+    }
+
+    if (DeleteAllInArrayValidator.isValueMeanDeleteAll(data[USERS_TEAM_PROPERTY])) {
+      await UsersTeamRepository.deleteAllByEntityIdEntityName(entityId, entityName);
+
+      return null;
+    }
+
     // eslint-disable-next-line you-dont-need-lodash-underscore/filter
     const usersTeam = _.filter(data[USERS_TEAM_PROPERTY]);
     if (!usersTeam || _.isEmpty(usersTeam)) {

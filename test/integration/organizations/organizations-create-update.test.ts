@@ -11,6 +11,7 @@ import OrganizationsGenerator = require('../../generators/organizations-generato
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import EntitySourcesRepository = require('../../../lib/entities/repository/entity-sources-repository');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -31,6 +32,8 @@ let userRokky: UserModel;
 MockHelper.mockAllBlockchainPart();
 
 const JEST_TIMEOUT = 5000;
+// @ts-ignore
+const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
 describe('Organizations. Create-update requests', () => {
   afterAll(async () => { await SeedsHelper.doAfterAll(); });
@@ -129,7 +132,7 @@ describe('Organizations. Create-update requests', () => {
           city: 'LA',
           address: 'La alley, 18',
           personal_website_url: 'https://extreme.com',
-          avatar_filename: FileToUploadHelper.getSampleFilePathToUpload(),
+          avatar_filename: FileToUploadHelper.getSamplePngPath(),
         };
 
         // noinspection JSDeprecatedSymbols
@@ -259,6 +262,21 @@ describe('Organizations. Create-update requests', () => {
 
         ResponseHelper.expectValuesAreExpected(sampleFields, lastModel);
       });
+
+      it('should delete all board members', async () => {
+        const firstOrgId: number =
+          await OrganizationsGenerator.createOrgWithTeamAndConfirmAll(userVlad, [userJane, userPetr]);
+        const secondOrgId: number =
+          await OrganizationsGenerator.createOrgWithTeamAndConfirmAll(userVlad, [userJane, userPetr]);
+
+        await OrganizationsHelper.deleteAllFromArray(userVlad, firstOrgId, 'users_team');
+
+        const firstOrgModel = await OrganizationsRepository.findOneById(firstOrgId);
+        CommonChecker.expectEmpty(firstOrgModel.users_team);
+
+        const secondOrgModel = await OrganizationsRepository.findOneById(secondOrgId);
+        CommonChecker.expectNotEmpty(secondOrgModel.users_team);
+      }, JEST_TIMEOUT);
 
       it('should allow to add board to the organization', async () => {
         const author = userVlad;
