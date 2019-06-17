@@ -1,16 +1,22 @@
 import MongoIrreversibleTracesGenerator = require('../../generators/blockchain/irreversible_traces/mongo-irreversible-traces-generator');
 import BlockchainHelper = require('../helpers/blockchain-helper');
 import RequestHelper = require('../helpers/request-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
 
-
-const helpers = require('../helpers');
-const gen     = require('../../generators');
 
 const delay = require('delay');
+// eslint-disable-next-line node/no-missing-require,node/no-missing-require
+const helpers = require('../helpers');
+
+// eslint-disable-next-line node/no-missing-require
+const gen     = require('../../generators');
+
 
 const blockchainTrTracesService =
   require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
+
 const blockchainTrTracesDictionary  =
+  // eslint-disable-next-line import/order
   require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 helpers.Mock.mockAllBlockchainPart();
@@ -21,16 +27,15 @@ let userVlad;
 const JEST_TIMEOUT = 40000;
 
 describe('Blockchain tr traces sync tests', () => {
-  afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
-  });
+  beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); }, JEST_TIMEOUT);
+  afterAll(async () => { await SeedsHelper.afterAllWithoutGraphQl(); });
 
   beforeEach(async () => {
-    [userVlad] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('irreversible transaction traces', () => {
-    it.skip('test', async () => {
+    it('test', async () => {
       await MongoIrreversibleTracesGenerator.insertAllSampleTraces();
     });
   });
@@ -44,9 +49,10 @@ describe('Blockchain tr traces sync tests', () => {
         queryString,
         true,
       );
-    }, JEST_TIMEOUT)
+    }, JEST_TIMEOUT);
   });
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   describe('check sync', () => {
     it.skip('Check stakeResources sync and fetch', async () => {
       const accountAlias = 'vlad';
@@ -101,7 +107,6 @@ describe('Blockchain tr traces sync tests', () => {
       expect(checked).toBe(3);
 
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-
     }, JEST_TIMEOUT);
 
     it.skip('Check TR_TYPE_STAKE_WITH_UNSTAKE sync and fetch', async () => {
@@ -242,7 +247,6 @@ describe('Blockchain tr traces sync tests', () => {
     },      JEST_TIMEOUT);
 
     it.skip('Check voteForBP sync and fetch', async () => {
-
       const producersList = helpers.Blockchain.getBlockProducersList();
 
       const userAlias = 'vlad';
@@ -286,7 +290,6 @@ describe('Blockchain tr traces sync tests', () => {
       expect(checked).toBe(2);
 
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-
     },      JEST_TIMEOUT);
   });
 
@@ -315,7 +318,6 @@ describe('Blockchain tr traces sync tests', () => {
     expect(models[0].resources.ram.tokens.amount).toBeGreaterThan(1);
 
     helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-
   },      JEST_TIMEOUT);
 
   it.skip('Check TR_TYPE_SELL_RAM sync and fetch', async () => {
@@ -343,8 +345,7 @@ describe('Blockchain tr traces sync tests', () => {
     expect(models[0].resources.ram.tokens.amount).toBeGreaterThan(1);
 
     helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-
-  },      JEST_TIMEOUT);
+  }, JEST_TIMEOUT);
 
   describe('Skipped autotests', () => {
     it.skip('test real tr block data from blockchain', async () => {

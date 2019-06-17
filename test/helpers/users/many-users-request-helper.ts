@@ -30,6 +30,13 @@ class ManyUsersRequestHelper {
       per_page: perPage,
     };
 
+    return this.getManyUsers(params, myself);
+  }
+
+  public static async getManyUsers(
+    params: any,
+    myself: UserModel | null = null,
+  ): Promise<UsersListResponse> {
     const isMyself = myself !== null;
 
     const part: string = GraphQLSchema.getManyUsersQueryPart(params, isMyself);

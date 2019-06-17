@@ -31,26 +31,79 @@ describe('Users. Get requests', () => {
 
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
+
+    await MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
+    await UosAccountsPropertiesUpdateService.updateAll();
+
+    await Promise.all([
+      UsersDirectSetter.setAllCurrentParamsForUser(userVlad),
+      UsersDirectSetter.setAllCurrentParamsForUser(userJane),
+      UsersDirectSetter.setAllCurrentParamsForUser(userPetr),
+    ]);
+
+    // disturbance
+    await Promise.all([
+      UsersDirectSetter.setPositivePostsTotalAmountDelta(userRokky),
+      UsersDirectSetter.setPositiveScaledImportanceDelta(userRokky),
+    ]);
+  }, JEST_TIMEOUT * 3);
+
+  describe('Regular users lists', () => {
+    it('should return a valid list ordered by scaled_importance', async () => {
+      const params = {
+        order_by: '-scaled_importance',
+        page: 1,
+        per_page: 10,
+      };
+
+      const filledResponse: UsersListResponse =
+        await ManyUsersRequestHelper.getManyUsers(params);
+
+      CommonChecker.expectModelIdsExistenceInResponseList(
+        filledResponse,
+        [userVlad.id, userJane.id, userPetr.id, userRokky.id],
+        4,
+      );
+
+      const usersCheckOptions = {
+        author: {
+          myselfData: false,
+        },
+        current_params: true,
+        uos_accounts_properties: true,
+      };
+      CommonHelper.checkUsersListResponse(filledResponse, usersCheckOptions);
+    }, JEST_TIMEOUT);
+
+    it('Search by username', async () => {
+      const params = {
+        filters: {
+          users_identity_pattern: 'L',
+          overview_type: 'trending',
+        },
+        order_by: '-scaled_importance',
+        page: 1,
+        per_page: 10,
+      };
+
+      const filledResponse: UsersListResponse =
+        await ManyUsersRequestHelper.getManyUsers(params);
+
+      const { data: users } = filledResponse;
+
+      expect(users.length).toBe(2);
+
+      expect(users.some(user => user.account_name === userVlad.account_name))
+        .toBeTruthy()
+      ;
+
+      expect(users.some(user => user.account_name === userPetr.account_name))
+        .toBeTruthy()
+      ;
+    }, JEST_TIMEOUT);
   });
 
   describe('Trending users', () => {
-    beforeEach(async () => {
-      await MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
-      await UosAccountsPropertiesUpdateService.updateAll();
-
-      await Promise.all([
-        UsersDirectSetter.setAllCurrentParamsForUser(userVlad),
-        UsersDirectSetter.setAllCurrentParamsForUser(userJane),
-        UsersDirectSetter.setAllCurrentParamsForUser(userPetr),
-      ]);
-
-      // disturbance
-      await Promise.all([
-        UsersDirectSetter.setPositivePostsTotalAmountDelta(userRokky),
-        UsersDirectSetter.setPositiveScaledImportanceDelta(userRokky),
-      ]);
-    }, JEST_TIMEOUT * 3);
-
     it('should return a valid list of trending users for guest', async () => {
       const filledResponse: UsersListResponse =
         await ManyUsersRequestHelper.getManyTrendingUsersAsGuest();

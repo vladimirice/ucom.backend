@@ -22,12 +22,15 @@ class MongoIrreversibleTracesGenerator {
 
     const set = [
       this.getSampleTransferTrace,
-      this.getSampleDownvoteTrace,
+
       this.getSampleVoteForBpsTrace,
       this.getSampleRevokeAllVotesForBpsTrace,
+
       this.getSampleClaimEmissionTrace,
+
       this.getSampleBuyRamTrace,
       this.getSampleSellRamTrace,
+
       this.getSampleStakeCpuOnlyTrace,
       this.getSampleStakeBothCpuAndNetTrace,
       this.getSampleStakeNetOnlyTrace,
@@ -35,6 +38,8 @@ class MongoIrreversibleTracesGenerator {
       this.getSampleUnstakeNetOnlyTrace,
       this.getSampleUnstakeBothCpuAndNetTrace,
       this.getSampleStakeCpuAndUnstakeNetTrace,
+
+      this.getSampleDownvoteTrace,
     ];
 
     for (const func of set) {

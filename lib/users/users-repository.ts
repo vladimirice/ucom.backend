@@ -1,7 +1,7 @@
 import { QueryBuilder } from 'knex';
 import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
-import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
+import { DbParamsDto, RequestQueryDto } from '../api/filters/interfaces/query-filter-interfaces';
 import { AppError } from '../api/errors';
 import { StringToAnyCollection } from '../common/interfaces/common-types';
 
@@ -439,6 +439,7 @@ class UsersRepository {
   }
 
   public static findManyForListViaKnex(
+    query: RequestQueryDto,
     params: DbParamsDto,
   ): QueryBuilder {
     const queryBuilder = knex(TABLE_NAME);
@@ -454,6 +455,16 @@ class UsersRepository {
 
     this.innerJoinUosAccountsProperties(queryBuilder);
     this.innerJoinUsersCurrentParams(queryBuilder);
+
+    // #task - it is not ok to place this filtering here
+    if (query.users_identity_pattern) {
+      // eslint-disable-next-line func-names
+      queryBuilder.andWhere(function () {
+        this.where(`${TABLE_NAME}.account_name`,  'ilike', `%${query.users_identity_pattern}%`)
+          .orWhere(`${TABLE_NAME}.first_name`,    'ilike', `%${query.users_identity_pattern}%`)
+          .orWhere(`${TABLE_NAME}.last_name`,     'ilike', `%${query.users_identity_pattern}%`);
+      });
+    }
 
     return queryBuilder;
   }

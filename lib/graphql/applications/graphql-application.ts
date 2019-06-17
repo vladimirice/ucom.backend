@@ -347,6 +347,8 @@ const typeDefs = gql`
     post_type_id: Int
     
     airdrops: JSON
+    
+    users_identity_pattern: String
   }
   
   input one_user_filtering {

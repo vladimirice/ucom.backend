@@ -43,7 +43,8 @@ usersRouter.get('/search', async (req, res) => {
 /* GET all users */
 usersRouter.get('/', async (req, res) => {
   const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
-  const users = await UsersFetchService.findAllAndProcessForList(req.query, currentUserId);
+  // noinspection JSDeprecatedSymbols
+  const users = await UsersFetchService.findAllAndProcessForListLegacyRest(req.query, currentUserId);
 
   res.send(users);
 });

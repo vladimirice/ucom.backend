@@ -132,6 +132,27 @@ class UsersFetchService {
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
   }
 
+  /**
+   * @deprecated
+   * @see findAllAndProcessForList
+   * @param query
+   * @param currentUserId
+   */
+  public static async findAllAndProcessForListLegacyRest(
+    query: RequestQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
+    const repository  = UsersRepository;
+    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository);
+
+    const promises = [
+      repository.findAllForList(params),
+      repository.countAll(params),
+    ];
+
+    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
   public static async findAllAndProcessForList(
     query: RequestQueryDto,
     currentUserId: number | null,
@@ -139,11 +160,8 @@ class UsersFetchService {
     let data;
     if (query.overview_type && query.entity_name) {
       data = this.getManyUsersListAsRelatedToEntityPromises(query, query.entity_name);
-    } else if (query.overview_type) {
-      // #task - it is a branch to migrate to the new knex-like fetching
-      data = this.getManyUsersListPromisesKnex(query);
     } else {
-      data = this.getManyUsersListPromises(query);
+      data = this.getManyUsersListPromisesKnex(query);
     }
 
     return this.findAllAndProcessForListByParams(data.promises, query, data.params, currentUserId);
@@ -233,28 +251,6 @@ class UsersFetchService {
     };
   }
 
-
-  /**
-   * @deprecated - consider to use knex
-   * @see getManyUsersListPromisesKnex
-   * @param query
-   */
-  private static getManyUsersListPromises(query: RequestQueryDto): { promises: Promise<any>[], params: DbParamsDto } {
-    // preparation for universal class-fetching processor
-    const repository  = UsersRepository;
-    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository);
-
-    const promises = [
-      repository.findAllForList(params),
-      repository.countAll(params),
-    ];
-
-    return {
-      promises,
-      params,
-    };
-  }
-
   private static getManyUsersListPromisesKnex(
     query: RequestQueryDto,
   ): { promises: Promise<any>[], params: DbParamsDto } {
@@ -267,7 +263,7 @@ class UsersFetchService {
     );
 
     const promises = [
-      UsersRepository.findManyForListViaKnex(params),
+      UsersRepository.findManyForListViaKnex(query, params),
       UsersRepository.countManyForListViaKnex(params),
     ];
 
