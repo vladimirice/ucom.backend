@@ -2,6 +2,7 @@ import MongoIrreversibleTracesGenerator = require('../../generators/blockchain/i
 import BlockchainHelper = require('../helpers/blockchain-helper');
 import RequestHelper = require('../helpers/request-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
+import BlockchainTracesSyncService = require('../../../lib/blockchain-traces/service/blockchain-traces-sync-service');
 
 
 const delay = require('delay');
@@ -37,6 +38,20 @@ describe('Blockchain tr traces sync tests', () => {
   describe('irreversible transaction traces', () => {
     it('test', async () => {
       await MongoIrreversibleTracesGenerator.insertAllSampleTraces();
+      /*
+        Implement an easy chain of responsibility
+        check blockchain traces existence
+       */
+
+      await BlockchainTracesSyncService.process();
+    });
+
+    it('just save unknown transaction to database without any processing', async () => {
+      // TODO
+    });
+
+    it('Do not fetch irreversible = false', async () => {
+      // TODO
     });
   });
 

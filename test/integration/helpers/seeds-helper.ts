@@ -25,6 +25,8 @@ import PostsModelProvider = require('../../../lib/posts/service/posts-model-prov
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
 import knex = require('../../../config/knex');
+import IrreversibleTracesClient = require('../../../lib/blockchain-traces/client/irreversible-traces-client');
+import MongoExternalModelProvider = require('../../../lib/eos/service/mongo-external-model-provider');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -301,6 +303,11 @@ class SeedsHelper {
       // this.purgeAllQueues(),
       this.truncateEventsDb(),
     ]);
+
+    const mongoDbConnection =
+      await IrreversibleTracesClient.useCollection(MongoExternalModelProvider.actionTracesCollection());
+
+    await mongoDbConnection.deleteMany({});
 
     const usersModel = usersRepositories.Main.getUsersModelName();
 
