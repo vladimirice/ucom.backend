@@ -79,6 +79,7 @@
     "@types/knex": "^0.16.1",
     "@types/lodash": "^4.14.134",
     "@types/moment": "^2.13.0",
+    "@types/mongodb": "^3.1.28",
     "@types/node": "^10.14.9",
     "@types/redlock": "^3.0.3",
     "@types/request": "^2.48.1",
