@@ -5,4 +5,4 @@ const UsersDiTypes = {
 
 export {
   UsersDiTypes,
-}
+};

@@ -3,6 +3,8 @@ import BlockchainHelper = require('../helpers/blockchain-helper');
 import RequestHelper = require('../helpers/request-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import BlockchainTracesSyncService = require('../../../lib/blockchain-traces/service/blockchain-traces-sync-service');
+import { diContainer } from '../../../config/inversify/inversify.config';
+import { BlockchainTracesDiTypes } from '../../../lib/blockchain-traces/interfaces/di-interfaces';
 
 
 const delay = require('delay');
@@ -43,7 +45,10 @@ describe('Blockchain tr traces sync tests', () => {
         check blockchain traces existence
        */
 
-      await BlockchainTracesSyncService.process();
+      const syncService: BlockchainTracesSyncService
+        = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
+
+      await syncService.process();
     });
 
     it('just save unknown transaction to database without any processing', async () => {

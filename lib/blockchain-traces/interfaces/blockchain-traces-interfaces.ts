@@ -1,6 +1,6 @@
-import { IMongoAction } from './mongo-actions-interfaces';
+import { ITraceAction } from './blockchain-actions-interfaces';
 
-interface IMongoTransaction {
+interface IBlockchainTrace {
   _id:          Buffer; // MongoDb ObjectId
   account:      string;
   blockid:      string;
@@ -8,9 +8,9 @@ interface IMongoTransaction {
   blocktime:    string;
   irreversible: boolean;
 
-  actions:      IMongoAction[];
+  actions:      ITraceAction[];
 }
 
 export {
-  IMongoTransaction,
+  IBlockchainTrace,
 };

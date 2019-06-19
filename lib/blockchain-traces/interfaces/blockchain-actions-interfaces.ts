@@ -1,7 +1,7 @@
 import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
-interface IMongoAction {
-  act_data:           StringToAnyCollection; // here is a main payload
+interface ITraceAction {
+  act_data:           ITraceActionData; // here is a main payload
   inline_traces:      StringToAnyCollection[]; // here is a payload for RAM also
 
   receipt:            StringToAnyCollection;
@@ -17,8 +17,18 @@ interface IMongoAction {
   elapsed:            number;
 }
 
+interface ITraceActionData extends StringToAnyCollection {}
+
+interface ITraceTransferTokensData extends ITraceActionData {
+  from:     string;
+  to:       string;
+  quantity: string; // 10.0000 UOS - not a number, it is a number + symbol
+  memo:     string;
+}
+
 // TODO - types for every action
 
 export {
-  IMongoAction,
+  ITraceAction,
+  ITraceTransferTokensData,
 };
