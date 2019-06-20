@@ -6,6 +6,7 @@ import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfa
 import { WorkerLogger } from '../../../config/winston';
 import { ITraceChainMetadata } from '../interfaces/traces-sync-interfaces';
 import { AppError } from '../../api/errors';
+import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
 
 import MongoExternalModelProvider = require('../../eos/service/mongo-external-model-provider');
 import IrreversibleTracesClient = require('../client/irreversible-traces-client');
@@ -16,6 +17,8 @@ import IrreversibleTracesRepository = require('../repository/irreversible-traces
 const _ = require('lodash');
 
 const ACTION_TRACES = MongoExternalModelProvider.actionTracesCollection();
+
+const SERVICE_NAME = 'blockchain-traces-sync';
 
 @injectable()
 class BlockchainTracesSyncService {
@@ -31,53 +34,80 @@ class BlockchainTracesSyncService {
     this.blockchainTracesProcessorChain = blockchainTracesProcessorChain;
   }
 
-  public async process(limit: number = 100): Promise<void> {
-    // TODO - fetch last blocknum
-    // const idGreaterThanString = await blockchainTrTracesRepository.findLastExternalIdByTrType(trType);
+  public async process(limit: number = 100, resync: boolean = false): Promise<TotalParametersResponse> {
     let blockNumberGreaterThan: number | null = null;
-    let totalAmount = 0;
-    let totalProcessedAmount = 0;
+    if (!resync) {
+      blockNumberGreaterThan = await IrreversibleTracesRepository.findLastBlockNumber();
+    }
+
+    let totalProcessedCounter = 0;
+    let totalSkippedCounter   = 0;
 
     do {
-      const manyTraces: ITrace[] =
-        await BlockchainTracesSyncService.fetchTracesFromMongoDb(limit, blockNumberGreaterThan);
+      const result = await this.processBatch(limit, blockNumberGreaterThan);
 
-      if (!manyTraces || manyTraces.length === 0) {
-        break;
-      }
+      totalProcessedCounter += result.insertedCount;
+      totalSkippedCounter   += result.skippedCount;
 
-      const manyProcessedTraces: any = [];
-      for (const trace of manyTraces) {
-        const processedTrace: any = this.processOneTrace(trace);
-        manyProcessedTraces.push(processedTrace);
-      }
+      blockNumberGreaterThan = result.lastBlockNumber;
+    } while (blockNumberGreaterThan !== null);
 
-      if (manyProcessedTraces.length === 0) {
-        throw new AppError('It must be at least one trace to process');
-      }
+    return {
+      totalProcessedCounter,
+      totalSkippedCounter,
+    };
+  }
 
-      if (manyProcessedTraces.length !== manyTraces.length) {
-        throw new AppError('manyProcessedTraces.length !== manyTraces.length');
-      }
+  private async processBatch(
+    limit,
+    blockNumberGreaterThan,
+  ): Promise<{
+    lastBlockNumber: number | null,
+    skippedCount:    number,
+    insertedCount:   number,
+  }> {
+    const manyTraces: ITrace[] =
+      await BlockchainTracesSyncService.fetchTracesFromMongoDb(limit, blockNumberGreaterThan);
 
-      const preparedTransactions: string[] = manyProcessedTraces.map(item => item.tr_id);
-      const insertedTransactions = await IrreversibleTracesRepository.insertManyTraces(manyProcessedTraces);
+    if (!manyTraces || manyTraces.length === 0) {
+      return {
+        lastBlockNumber:  null,
+        skippedCount:     0,
+        insertedCount:    0,
+      };
+    }
 
-      const duplications = _.difference(preparedTransactions, insertedTransactions);
+    const manyProcessedTraces: any = [];
+    for (const trace of manyTraces) {
+      const processedTrace: any = this.processOneTrace(trace);
+      manyProcessedTraces.push(processedTrace);
+    }
 
-      if (duplications.length > 0) {
-        console.log(`There are transactions that are not inserted:\n${duplications.join('\n')}`);
-      }
+    if (manyProcessedTraces.length === 0) {
+      throw new AppError('It must be at least one trace to process');
+    }
 
-      blockNumberGreaterThan = manyTraces[manyTraces.length - 1].blocknum;
-      totalAmount += preparedTransactions.length;
-      totalProcessedAmount += insertedTransactions.length;
+    if (manyProcessedTraces.length !== manyTraces.length) {
+      throw new AppError('manyProcessedTraces.length !== manyTraces.length');
+    }
 
-      // Return this for worker
-      console.log(`Current prepared to process: ${preparedTransactions.length}, inserted: ${insertedTransactions.length}`);
-      console.log(`Total prepared to process: ${totalAmount}, inserted: ${totalProcessedAmount}`);
-      // eslint-disable-next-line no-constant-condition
-    } while (1);
+    const preparedTransactions: string[] = manyProcessedTraces.map(item => item.tr_id);
+    const insertedTransactions = await IrreversibleTracesRepository.insertManyTraces(manyProcessedTraces);
+
+    const duplications = _.difference(preparedTransactions, insertedTransactions);
+
+    if (duplications.length > 0) {
+      WorkerLogger.info('There are transactions that are not inserted - duplications', {
+        service: SERVICE_NAME,
+        transactions_ids: duplications,
+      });
+    }
+
+    return {
+      lastBlockNumber:  manyTraces[manyTraces.length - 1].blocknum,
+      skippedCount:     duplications.length,
+      insertedCount:    insertedTransactions.length,
+    };
   }
 
   private processOneTrace(trace: ITrace): IProcessedTrace {
@@ -88,7 +118,7 @@ class BlockchainTracesSyncService {
     const { error } = this.tracesCommonFieldsValidator.validateOneTrace(trace);
     if (error) {
       WorkerLogger.error('Malformed transaction. tracesCommonFieldsValidator failure. Write to the DB as unknown transaction', {
-        service: 'blockchain-traces-sync',
+        service: SERVICE_NAME,
         error,
       });
 

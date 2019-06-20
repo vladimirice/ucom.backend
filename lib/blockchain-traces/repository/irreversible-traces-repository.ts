@@ -11,6 +11,17 @@ class IrreversibleTracesRepository {
 
     return data.rows.map(item => item.tr_id);
   }
+
+  public static async findLastBlockNumber(): Promise<number | null> {
+    const res = await knex.select('block_number')
+      .from(TABLE_NAME)
+      .orderBy('block_number', 'DESC')
+      .limit(1)
+      .first()
+    ;
+
+    return res ? +res.block_number : null;
+  }
 }
 
 export = IrreversibleTracesRepository;

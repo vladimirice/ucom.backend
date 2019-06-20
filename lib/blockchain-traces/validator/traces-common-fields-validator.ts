@@ -7,12 +7,19 @@ const joi = require('joi');
 
 @injectable()
 class TracesCommonFieldsValidator {
+  private actSchema = {
+    account:        joi.string().required().min(1),
+    authorization:  joi.array().required().min(1),
+    data:           joi.string().required().min(1),
+    name:           joi.string().required().min(1),
+  };
+
   private actionsSchema = {
     act_data:           joi.object().required(),
     inline_traces:      joi.array().required(),
     receipt:            joi.object().required(),
     account_ram_deltas: joi.array().required(),
-    act:                joi.object().required(),
+    act:                joi.object(this.actSchema).required(),
 
     trx_id:             joi.string().required().min(1),
     producer_block_id:  joi.string().required().min(1),

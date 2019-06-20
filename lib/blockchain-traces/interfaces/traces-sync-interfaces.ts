@@ -5,7 +5,7 @@ interface ITraceChainMetadata {
 }
 
 interface TraceProcessor {
-  processTrace(trace: ITrace, metadata: ITraceChainMetadata): IProcessedTrace;
+  processTrace(trace: ITrace, metadata: ITraceChainMetadata): IProcessedTrace | null;
 }
 
 export {

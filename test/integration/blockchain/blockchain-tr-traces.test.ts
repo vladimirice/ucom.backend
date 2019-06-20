@@ -1,10 +1,11 @@
+import { diContainer } from '../../../config/inversify/inversify.config';
+import { BlockchainTracesDiTypes } from '../../../lib/blockchain-traces/interfaces/di-interfaces';
+
 import MongoIrreversibleTracesGenerator = require('../../generators/blockchain/irreversible_traces/mongo-irreversible-traces-generator');
 import BlockchainHelper = require('../helpers/blockchain-helper');
 import RequestHelper = require('../helpers/request-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import BlockchainTracesSyncService = require('../../../lib/blockchain-traces/service/blockchain-traces-sync-service');
-import { diContainer } from '../../../config/inversify/inversify.config';
-import { BlockchainTracesDiTypes } from '../../../lib/blockchain-traces/interfaces/di-interfaces';
 
 
 const delay = require('delay');
@@ -30,12 +31,12 @@ let userVlad;
 const JEST_TIMEOUT = 40000;
 
 describe('Blockchain tr traces sync tests', () => {
-  beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); }, JEST_TIMEOUT);
+  beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); });
   afterAll(async () => { await SeedsHelper.afterAllWithoutGraphQl(); });
 
   beforeEach(async () => {
     [userVlad] = await SeedsHelper.beforeAllRoutine();
-  });
+  }, JEST_TIMEOUT);
 
   describe('irreversible transaction traces', () => {
     it('test', async () => {
@@ -43,16 +44,15 @@ describe('Blockchain tr traces sync tests', () => {
       const syncService: BlockchainTracesSyncService
         = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
 
-      await syncService.process();
+      const stats = await syncService.process();
+
+      expect(stats.totalProcessedCounter).toBe(2);
+      expect(stats.totalSkippedCounter).toBe(0);
 
       // TODO - more autotests
     }, JEST_TIMEOUT);
 
     it('just save unknown transaction to database without any processing', async () => {
-      // TODO
-    });
-
-    it('Do not fetch irreversible = false', async () => {
       // TODO
     });
   });

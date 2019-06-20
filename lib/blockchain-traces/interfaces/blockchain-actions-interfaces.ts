@@ -6,7 +6,7 @@ interface ITraceAction {
 
   receipt:            StringToAnyCollection;
   account_ram_deltas: StringToAnyCollection[];
-  act:                StringToAnyCollection;
+  act:                ITraceActionAct;
 
   trx_id:             string;
   producer_block_id:  string;
@@ -15,6 +15,13 @@ interface ITraceAction {
   console:            string;
   context_free:       boolean;
   elapsed:            number;
+}
+
+interface ITraceActionAct {
+  account:        string;
+  authorization:  any;
+  data:           string;
+  name:           string;
 }
 
 interface ITraceActionData extends StringToAnyCollection {}

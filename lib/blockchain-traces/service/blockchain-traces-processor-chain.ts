@@ -19,9 +19,11 @@ class BlockchainTracesProcessorChain {
     for (const processor of this.manyProcessors) {
       const processedTrace = processor.processTrace(trace, metadata);
 
-      if (processedTrace) {
-        return processedTrace;
+      if (processedTrace === null) {
+        continue;
       }
+
+      return processedTrace;
     }
 
     throw new AppError(`There is no processor for the trace, but must be. Trace is: ${JSON.stringify(trace)}`);
