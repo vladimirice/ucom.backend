@@ -1,11 +1,19 @@
+/* eslint-disable no-console */
 import { inject, injectable } from 'inversify';
 import 'reflect-metadata';
 import { BlockchainTracesDiTypes } from '../interfaces/di-interfaces';
-import { IBlockchainTrace } from '../interfaces/blockchain-traces-interfaces';
+import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfaces';
+import { WorkerLogger } from '../../../config/winston';
+import { ITraceChainMetadata } from '../interfaces/traces-sync-interfaces';
+import { AppError } from '../../api/errors';
 
 import MongoExternalModelProvider = require('../../eos/service/mongo-external-model-provider');
 import IrreversibleTracesClient = require('../client/irreversible-traces-client');
 import TracesCommonFieldsValidator = require('../validator/traces-common-fields-validator');
+import BlockchainTracesProcessorChain = require('./blockchain-traces-processor-chain');
+import IrreversibleTracesRepository = require('../repository/irreversible-traces-repository');
+
+const _ = require('lodash');
 
 const ACTION_TRACES = MongoExternalModelProvider.actionTracesCollection();
 
@@ -13,10 +21,14 @@ const ACTION_TRACES = MongoExternalModelProvider.actionTracesCollection();
 class BlockchainTracesSyncService {
   private readonly tracesCommonFieldsValidator: TracesCommonFieldsValidator;
 
+  private readonly blockchainTracesProcessorChain: BlockchainTracesProcessorChain;
+
   public constructor(
     @inject(BlockchainTracesDiTypes.tracesCommonFieldsValidator) tracesCommonFieldsValidator,
+    @inject(BlockchainTracesDiTypes.blockchainTracesProcessorChain) blockchainTracesProcessorChain,
   ) {
-    this.tracesCommonFieldsValidator = tracesCommonFieldsValidator;
+    this.tracesCommonFieldsValidator    = tracesCommonFieldsValidator;
+    this.blockchainTracesProcessorChain = blockchainTracesProcessorChain;
   }
 
   public async process(limit: number = 100): Promise<void> {
@@ -24,10 +36,10 @@ class BlockchainTracesSyncService {
     // const idGreaterThanString = await blockchainTrTracesRepository.findLastExternalIdByTrType(trType);
     let blockNumberGreaterThan: number | null = null;
     let totalAmount = 0;
+    let totalProcessedAmount = 0;
 
     do {
-      // TODO - move to repository
-      const manyTraces: IBlockchainTrace[] =
+      const manyTraces: ITrace[] =
         await BlockchainTracesSyncService.fetchTracesFromMongoDb(limit, blockNumberGreaterThan);
 
       if (!manyTraces || manyTraces.length === 0) {
@@ -36,85 +48,60 @@ class BlockchainTracesSyncService {
 
       const manyProcessedTraces: any = [];
       for (const trace of manyTraces) {
-        // TODO - create a type for processedType
         const processedTrace: any = this.processOneTrace(trace);
-        // TODO - catch processed Data
-        // if (processedData.length === 0) {
-        //   console.log('Nothing to process because all transactions are malformed. See logs');
-        // } else {
-        //
-        // }
-
         manyProcessedTraces.push(processedTrace);
       }
 
-      // TODO - insert to Db
-      // await BlockchainTrTracesRepository.insertManyTrTraces(processedData);
+      if (manyProcessedTraces.length === 0) {
+        throw new AppError('It must be at least one trace to process');
+      }
 
+      if (manyProcessedTraces.length !== manyTraces.length) {
+        throw new AppError('manyProcessedTraces.length !== manyTraces.length');
+      }
+
+      const preparedTransactions: string[] = manyProcessedTraces.map(item => item.tr_id);
+      const insertedTransactions = await IrreversibleTracesRepository.insertManyTraces(manyProcessedTraces);
+
+      const duplications = _.difference(preparedTransactions, insertedTransactions);
+
+      if (duplications.length > 0) {
+        console.log(`There are transactions that are not inserted:\n${duplications.join('\n')}`);
+      }
 
       blockNumberGreaterThan = manyTraces[manyTraces.length - 1].blocknum;
+      totalAmount += preparedTransactions.length;
+      totalProcessedAmount += insertedTransactions.length;
 
-      totalAmount += manyTraces.length;
-
-      console.log(`current total processed amount is: ${totalAmount}.`);
+      // Return this for worker
+      console.log(`Current prepared to process: ${preparedTransactions.length}, inserted: ${insertedTransactions.length}`);
+      console.log(`Total prepared to process: ${totalAmount}, inserted: ${totalProcessedAmount}`);
+      // eslint-disable-next-line no-constant-condition
     } while (1);
-
-    /*
-    ask for last block or blocks (id > last memorized id) - 0.5
-    foreach every block - 0.5
-    Autotests, patterns implementations - 1.5h
- */
   }
 
-  private processOneTrace(
-    trace: IBlockchainTrace,
-  ) {
-    // chain of responsibility - check conditions for every transaction processing block - 1h
-    // If match then process it - call related processor => Save processed data to postgres (same structure but new table) - 0.5h
+  private processOneTrace(trace: ITrace): IProcessedTrace {
+    const metadata: ITraceChainMetadata = {
+      isError: false,
+    };
 
-    // @ts-ignore
-    // eslint-disable-next-line no-underscore-dangle
-    const a = trace._id.toString();
-
-    const { error, value: validatedTransaction } = this.tracesCommonFieldsValidator.validateOneTrace(trace);
-
+    const { error } = this.tracesCommonFieldsValidator.validateOneTrace(trace);
     if (error) {
-      // TODO - process an error
-      // skip this transaction
+      WorkerLogger.error('Malformed transaction. tracesCommonFieldsValidator failure. Write to the DB as unknown transaction', {
+        service: 'blockchain-traces-sync',
+        error,
+      });
+
+      metadata.isError = true;
     }
 
-    // https://github.com/inversify/InversifyJS/blob/master/wiki/multi_injection.md
-    // TODO - check a processor
-    /**
-       *
-       * chain of responsibility
-       * processor = validator + value processor
-       *
-       * inject a lot of processors.
-       * in order to add a new processor:
-       *    create a processor file with a special tag
-       *    add it to inversify config
-       *    write an autotest
-       *
-       */
-
-    /**
-       * universal validator
-       * chain of responsibility processor:
-       * determine a type
-       * return a validator + processor for
-       *
-       * determine and process a type
-       * return a result ready to save
-       */
-
-    return validatedTransaction;
+    return this.blockchainTracesProcessorChain.processChain(trace, metadata);
   }
 
   private static async fetchTracesFromMongoDb(
     limit: number,
     blockNumberGreaterThan: number | null = null,
-  ): Promise<IBlockchainTrace[]> {
+  ): Promise<ITrace[]> {
     const collection = await IrreversibleTracesClient.useCollection(ACTION_TRACES);
 
     const where: any = {
@@ -133,7 +120,7 @@ class BlockchainTracesSyncService {
 
     return collection
       .find(where)
-      .sort({ blocknum: -1 })
+      .sort({ blocknum: 1 })
       .limit(limit)
       .toArray();
   }

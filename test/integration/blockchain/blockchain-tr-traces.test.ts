@@ -40,16 +40,13 @@ describe('Blockchain tr traces sync tests', () => {
   describe('irreversible transaction traces', () => {
     it('test', async () => {
       await MongoIrreversibleTracesGenerator.insertAllSampleTraces();
-      /*
-        Implement an easy chain of responsibility
-        check blockchain traces existence
-       */
-
       const syncService: BlockchainTracesSyncService
         = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
 
       await syncService.process();
-    });
+
+      // TODO - more autotests
+    }, JEST_TIMEOUT);
 
     it('just save unknown transaction to database without any processing', async () => {
       // TODO

@@ -82,6 +82,8 @@ const minorTablesToSkipSequences = [
 
 // Truncated async
 const minorTables = [
+  BlockchainModelProvider.irreversibleTracesTableName(),
+
   EntityModelProvider.getNotificationsTableName(),
   UsersTeamRepository.getModelName(),
 

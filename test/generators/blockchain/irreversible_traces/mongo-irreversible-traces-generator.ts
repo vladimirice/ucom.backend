@@ -23,7 +23,7 @@ class MongoIrreversibleTracesGenerator {
     const set = [
       this.getSampleTransferTrace,
 
-      // this.getSampleVoteForBpsTrace,
+      this.getSampleVoteForBpsTrace,
       // this.getSampleRevokeAllVotesForBpsTrace,
       //
       // this.getSampleClaimEmissionTrace,
