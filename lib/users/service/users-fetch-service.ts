@@ -1,6 +1,6 @@
 import {
   UserIdToUserModelCard,
-  UserModel,
+  UserModel, UsersActivityQueryDto,
   UsersListResponse, UsersRequestQueryDto,
 } from '../interfaces/model-interfaces';
 import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
@@ -26,10 +26,10 @@ import OrganizationsRepository = require('../../organizations/repository/organiz
 import UserActivityService = require('../user-activity-service');
 import UsersActivityTrustRepository = require('../repository/users-activity/users-activity-trust-repository');
 import AirdropsUsersExternalDataRepository = require('../../airdrops/repository/airdrops-users-external-data-repository');
-import UsersActivityReferralRepository = require('../../affiliates/repository/users-activity-referral-repository');
 import OffersModel = require('../../affiliates/models/offers-model');
 import StreamsRepository = require('../../affiliates/repository/streams-repository');
 import ConversionsRepository = require('../../affiliates/repository/conversions-repository');
+import UsersQueryBuilderService = require('./users-fetch-query-builder-service');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -99,35 +99,16 @@ class UsersFetchService {
     return modelsSet;
   }
 
-  public static async findOneUserTrustedByAndProcessForList(
+  public static async findOneUserActivity(
     userId: number,
-    query: UsersRequestQueryDto,
+    query: UsersActivityQueryDto,
     currentUserId: number | null,
   ): Promise<UsersListResponse> {
     const repository  = UsersRepository;
     const params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
 
-    const promises = [
-      repository.findAllWhoTrustsUser(userId, params),
-      UsersActivityTrustRepository.countUsersThatTrustUser(userId),
-    ];
-
-    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
-  }
-
-  public static async findOneUserReferralsAndProcessForList(
-    userId: number,
-    query: UsersRequestQueryDto,
-    currentUserId: number | null,
-  ): Promise<UsersListResponse> {
-    const repository  = UsersRepository;
-
-    const params = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
-
-    const promises = [
-      repository.findUserReferrals(userId, params),
-      UsersActivityReferralRepository.countReferralsOfUser(userId),
-    ];
+    const promises: Promise<any>[]  =
+      UsersQueryBuilderService.getPromisesByActivityType(query, userId, params);
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
   }

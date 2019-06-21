@@ -5,6 +5,7 @@ import { UsersActivityIndexModelDto } from '../../interfaces/users-activity/mode
 import knex = require('../../../../config/knex');
 import UsersModelProvider = require('../../users-model-provider');
 import OrganizationsModelProvider = require('../../../organizations/service/organizations-model-provider');
+import RepositoryHelper = require('../../../common/repository/repository-helper');
 
 const TABLE_NAME = UsersModelProvider.getUsersActivityFollowTableName();
 const orgsEntityName = OrganizationsModelProvider.getEntityName();
@@ -135,6 +136,28 @@ class UsersActivityFollowRepository {
             entity_name: orgsEntityName,
           });
       });
+  }
+
+  public static async countUsersThatFollowUser(userId: number): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        entity_id: userId,
+        entity_name: UsersModelProvider.getEntityName(),
+      });
+
+    return RepositoryHelper.getKnexCountAsNumber(res);
+  }
+
+  public static async countUsersIFollow(userId: number): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        user_id:      userId,
+        entity_name:  UsersModelProvider.getEntityName(),
+      });
+
+    return RepositoryHelper.getKnexCountAsNumber(res);
   }
 }
 

@@ -1,14 +1,13 @@
-import _ from 'lodash';
-import { UserModel } from '../../../../../lib/users/interfaces/model-interfaces';
+import { UserModel, UsersListResponse } from '../../../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../../../helpers/seeds-helper');
 import OneUserRequestHelper = require('../../../../helpers/users/one-user-request-helper');
-import ResponseHelper = require('../../../helpers/response-helper');
-import CommonHelper = require('../../../helpers/common-helper');
-import UsersRepository = require('../../../../../lib/users/users-repository');
-import UsersHelper = require('../../../helpers/users-helper');
-import UsersActivityRequestHelper = require('../../../../helpers/users/activity/users-activity-request-helper');
 import ActivityHelper = require('../../../helpers/activity-helper');
+import CommonChecker = require('../../../../helpers/common/common-checker');
+import OrganizationsGenerator = require('../../../../generators/organizations-generator');
+import MockHelper = require('../../../helpers/mock-helper');
+import UosAccountsPropertiesUpdateService = require('../../../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
+import CommonHelper = require('../../../helpers/common-helper');
 
 require('jest-expect-message');
 
@@ -35,87 +34,68 @@ describe('Users activity follow GET', () => {
   });
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
-  });
 
+    await MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
+    await UosAccountsPropertiesUpdateService.updateAll();
+  });
 
   describe('One user followers', () => {
     it('get one user followers', async () => {
-      /*
-        Create following history
-        ensure that an index is filled
-        fetch via following api like for trust
-       */
+      await Promise.all([
+        ActivityHelper.requestToCreateFollow(userJane, userVlad),
+        ActivityHelper.requestToCreateFollow(userPetr, userVlad),
+
+        // disturbance
+        ActivityHelper.requestToCreateFollow(userRokky, userJane),
+        ActivityHelper.requestToCreateFollow(userVlad, userJane),
+      ]);
+
+      // disturbance
+      const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      await ActivityHelper.requestToFollowOrganization(orgId, userJane);
+
+      const response: UsersListResponse = await OneUserRequestHelper.getOneUserFollowedBy(
+        userVlad,
+        '-scaled_importance',
+        userVlad,
+      );
+
+      CommonChecker.expectModelIdsExistenceInResponseList(response, [userJane.id, userPetr.id], 2);
+
+      const userJaneResponse: UserModel = response.data.find(item => item.id === userJane.id)!;
+      expect(userJaneResponse.myselfData.follow).toBe(true);
+      expect(userJaneResponse.myselfData.myFollower).toBe(true);
+
+      CommonHelper.checkUsersListResponseWithProps(response, true);
     });
-  });
 
-  describe('One user is followed by', () => {
-    describe('Positive', () => {
-      it('Get as guest', async () => {
-        await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userVlad, userJane.id);
+    it('get one user follows other users', async () => {
+      await ActivityHelper.requestToCreateFollow(userVlad, userPetr);
+      await ActivityHelper.requestToCreateFollow(userVlad, userRokky);
 
-        const janeOnlyTrustedByList =
-          await OneUserRequestHelper.getOneUserTrustedByAsGuest(userJane.id);
+      // disturbance
+      await Promise.all([
+        ActivityHelper.requestToCreateFollow(userJane, userVlad),
+        ActivityHelper.requestToCreateFollow(userPetr, userVlad),
+      ]);
 
-        CommonHelper.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
-        CommonHelper.checkUsersListResponseForMyselfData(janeOnlyTrustedByList);
-      });
+      // disturbance
+      const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
+      await ActivityHelper.requestToFollowOrganization(orgId, userVlad);
 
-      it('Order by -id', async () => {
-        const orderBy = '-id';
-        await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userVlad, userJane.id);
+      const response: UsersListResponse = await OneUserRequestHelper.getOneUserFollowsOtherUsers(
+        userVlad,
+        '-current_rate',
+        userVlad,
+      );
 
-        const janeOnlyTrustedByList = await OneUserRequestHelper.getOneUserTrustedByAsMyself(
-          userVlad,
-          userJane.id,
-          orderBy,
-        );
+      CommonChecker.expectModelIdsExistenceInResponseList(response, [userPetr.id, userRokky.id], 2);
 
-        CommonHelper.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
-        CommonHelper.checkUsersListResponseForMyselfData(janeOnlyTrustedByList);
-      });
+      const userPetrResponse: UserModel = response.data.find(item => item.id === userPetr.id)!;
+      expect(userPetrResponse.myselfData.follow).toBe(true);
+      expect(userPetrResponse.myselfData.myFollower).toBe(true);
 
-      it('GET One user is followed by', async () => {
-        const emptyTrustedByList = await OneUserRequestHelper.getOneUserTrustedByAsMyself(userVlad, userJane.id);
-        ResponseHelper.checkEmptyResponseList(emptyTrustedByList);
-
-        await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userVlad, userJane.id);
-
-        const janeOnlyTrustedByList = await OneUserRequestHelper.getOneUserTrustedByAsMyself(userVlad, userJane.id);
-
-        CommonHelper.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
-        CommonHelper.checkUsersListResponseForMyselfData(janeOnlyTrustedByList);
-
-        // Second user trusts jane
-        await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userPetr, userJane.id);
-        // and third just follows - for disturbance
-
-        await ActivityHelper.requestToCreateFollowHistory(userRokky, userJane);
-
-        const twoUsersTrustList = await OneUserRequestHelper.getOneUserTrustedByAsMyself(userVlad, userJane.id);
-        CommonHelper.expectModelIdsExistenceInResponseList(twoUsersTrustList, [userVlad.id, userPetr.id]);
-        CommonHelper.checkUsersListResponseForMyselfData(twoUsersTrustList);
-      }, JEST_TIMEOUT);
-
-      it('Get one user with followed by list', async () => {
-        await Promise.all([
-          UsersActivityRequestHelper.trustOneUserWithMockTransaction(userVlad, userJane.id),
-          UsersActivityRequestHelper.trustOneUserWithMockTransaction(userPetr, userJane.id),
-        ]);
-
-        const response = await OneUserRequestHelper.getOneUserWithTrustedByAsMyself(userVlad, userJane.id);
-
-        expect(_.isEmpty(response.data.one_user)).toBeFalsy();
-        expect(_.isEmpty(response.data.one_user_trusted_by)).toBeFalsy();
-
-        CommonHelper.checkUsersListResponseForMyselfData(response.data.one_user_trusted_by);
-        CommonHelper.expectModelIdsExistenceInResponseList(
-          response.data.one_user_trusted_by,
-          [userVlad.id, userPetr.id],
-        );
-
-        const userJaneFromDb = await UsersRepository.getUserById(userJane.id);
-        UsersHelper.validateUserJson(response.data.one_user, userJane, userJaneFromDb);
-      });
+      CommonHelper.checkUsersListResponseWithProps(response, true);
     });
   });
 });

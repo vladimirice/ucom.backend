@@ -689,6 +689,18 @@ class CommonHelper {
     this.expectPostListResponse(response, options);
   }
 
+  public static checkUsersListResponseWithProps(response: UsersListResponse, isMyself: boolean): void {
+    const usersCheckOptions = {
+      author: {
+        myselfData: isMyself,
+      },
+      current_params: true,
+      uos_accounts_properties: true,
+    };
+
+    this.checkUsersListResponse(response, usersCheckOptions);
+  }
+
   public static checkUsersListResponse(
     response: UsersListResponse,
     options,

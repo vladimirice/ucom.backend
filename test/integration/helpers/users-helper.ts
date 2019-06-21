@@ -4,11 +4,12 @@ import { StringToAnyCollection } from '../../../lib/common/interfaces/common-typ
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 
-import _ = require('lodash');
 import UsersChecker = require('../../helpers/users/users-checker');
 import CommonChecker = require('../../helpers/common/common-checker');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
+import UsersRepository = require('../../../lib/users/users-repository');
+import knex = require('../../../config/knex');
 
 const request = require('supertest');
 const usersSeeds = require('../../../seeders/users/users');
@@ -248,9 +249,13 @@ class UsersHelper {
       expected.push('score', 'external_login');
     }
 
-    expect(_.isEmpty(model.User.first_name)).toBeFalsy();
-
     CommonChecker.expectAllFieldsExistence(model.User, expected);
+
+    if (options.current_params) {
+      for (const field of UsersRepository.getPropsFields()) {
+        CommonChecker.expectFieldToBePositiveOrZeroNumber(model.User, field);
+      }
+    }
   }
 
   /**
@@ -294,6 +299,34 @@ class UsersHelper {
     const rateNormalized = eosImportance.getImportanceMultiplier() * rateToSet;
 
     return +rateNormalized.toFixed();
+  }
+
+  public static async initUosAccountsProperties(user: UserModel) {
+    await knex(UosAccountsModelProvider.uosAccountsPropertiesTableName())
+      .insert({
+        account_name: user.account_name,
+        entity_name: UsersModelProvider.getEntityName(),
+        entity_id: user.id,
+
+        staked_balance:                0,
+        validity:                      0,
+
+        importance:                    0,
+        scaled_importance:             0,
+
+        stake_rate:                    0,
+        scaled_stake_rate:             0,
+
+        social_rate:                   0,
+        scaled_social_rate:            0,
+
+        transfer_rate:                 0,
+        scaled_transfer_rate:          0,
+
+        previous_cumulative_emission:  0,
+        current_emission:              0,
+        current_cumulative_emission:   0,
+      });
   }
 
   /**

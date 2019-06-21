@@ -9,6 +9,19 @@ const _ = require('lodash');
 require('jest-expect-message');
 
 class CommonChecker {
+  public static expectFieldNotToBeNull(model: any, field: string) {
+    // @ts-ignore
+    expect(model[field], `${field} is null`).not.toBeNull();
+  }
+
+  public static expectFieldToBePositiveOrZeroNumber(model: any, field: string) {
+    this.expectFieldNotToBeNull(model, field);
+    // @ts-ignore
+    expect(typeof model[field], `${field} is not a number. It is: ${typeof model[field]}`).toBe('number');
+    // @ts-ignore
+    expect(model[field]).toBeGreaterThanOrEqual(0);
+  }
+
   public static expectModelIdsExistenceInResponseList(
     response: ListResponse,
     expectedModelIds: number[],
