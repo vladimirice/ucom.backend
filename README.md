@@ -7,7 +7,6 @@
 ## Content
 * [Main goals](#main-goals)
 * [Installation](documentation/INSTALLATION.md)
-* 
 * [How-to](documentation/HOW_TO.md)
 * [Architecture](documentation/ARCHITECTURE.md)
 * Features
