@@ -41,7 +41,7 @@ describe('#Feeds #GraphQL', () => {
   });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(false, true);
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Positive', () => {

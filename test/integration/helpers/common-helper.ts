@@ -29,7 +29,7 @@ class CommonHelper {
   public static checkOneOrganizationFully(model: OrgModelResponse, options) {
     expect(_.isEmpty(model)).toBeFalsy();
 
-    UsersHelper.checkIncludedUserPreview(model);
+    UsersHelper.checkIncludedUserPreview(model, null, options);
 
     expect(model.users_team).toBeDefined();
     if (options.mustHaveValue.usersTeam) {

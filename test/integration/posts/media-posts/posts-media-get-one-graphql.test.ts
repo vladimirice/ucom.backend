@@ -22,7 +22,13 @@ const JEST_TIMEOUT = 10000;
 
 describe('Get One media post #graphql', () => {
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
+    const options = {
+      mock: {
+        uosAccountsProperties: true,
+      },
+    };
+
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true, options);
 
     await GraphqlRequestHelper.beforeAll();
   });
@@ -69,6 +75,7 @@ describe('Get One media post #graphql', () => {
         comments: {
           isEmpty: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkOnePostV2(post, options);

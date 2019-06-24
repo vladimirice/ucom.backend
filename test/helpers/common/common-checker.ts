@@ -75,6 +75,25 @@ class CommonChecker {
     }
   }
 
+  public static expectAllFieldsPositiveOrZeroNumberForArray(
+    actualObjects: StringToAnyCollection[],
+    expected: string[],
+  ) {
+    for (const object of actualObjects) {
+      this.expectAllFieldsPositiveOrZeroNumber(object, expected);
+    }
+  }
+
+  public static expectAllFieldsPositiveOrZeroNumber(
+    actualObject: StringToAnyCollection,
+    expected: string[],
+  ) {
+    for (const field of expected) {
+      this.expectFieldToBePositiveOrZeroNumber(actualObject, field);
+    }
+  }
+
+
   public static expectAllFieldsExistence(
     actualObject: StringToAnyCollection,
     expected: string[],

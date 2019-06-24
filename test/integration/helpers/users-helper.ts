@@ -218,13 +218,8 @@ class UsersHelper {
 
     let expected = givenExpected || usersRepository.getModel().getFieldsForPreview().sort();
 
-    if (options !== null && options.current_params) {
-      expected = Array.prototype.concat(expected, UsersModelProvider.getCurrentParamsToSelect());
-    }
-
-    if (options !== null && options.uos_accounts_properties) {
-      expected = Array.prototype.concat(expected, UosAccountsModelProvider.getFieldsToSelect());
-    }
+    expected = this.addPropsToExpected(expected, options);
+    this.checkUserProps(model.User, options);
 
     expected = this.addMyselfDataToExpectedSet(options, expected);
 
@@ -253,17 +248,12 @@ class UsersHelper {
       ]);
     }
 
-    if (options.current_params) {
-      expected = Array.prototype.concat(expected, UsersModelProvider.getCurrentParamsToSelect());
-    }
-
-    if (options.uos_accounts_properties) {
-      expected = Array.prototype.concat(expected, UosAccountsModelProvider.getFieldsToSelect());
-    }
-
     if (options.airdrops) {
       expected.push('score', 'external_login');
     }
+
+    expected = this.addPropsToExpected(expected, options);
+    this.checkUserProps(model.User, options);
 
     CommonChecker.expectAllFieldsExistence(model.User, expected);
 
@@ -576,6 +566,36 @@ class UsersHelper {
       ]);
     }
     return givenExpected;
+  }
+
+  private static checkUserProps(user, options) {
+    if (options === null) {
+      return;
+    }
+
+    if (options.current_params) {
+      CommonChecker.expectAllFieldsPositiveOrZeroNumber(user, UsersModelProvider.getCurrentParamsToSelect());
+    }
+
+    if (options.uos_accounts_properties) {
+      CommonChecker.expectAllFieldsPositiveOrZeroNumber(user, UosAccountsModelProvider.getFieldsToSelect());
+    }
+  }
+
+  private static addPropsToExpected(expected: string[], options): string[] {
+    if (!options) {
+      return expected;
+    }
+
+    if (options.current_params) {
+      expected = Array.prototype.concat(expected, UsersModelProvider.getCurrentParamsToSelect());
+    }
+
+    if (options.uos_accounts_properties) {
+      expected = Array.prototype.concat(expected, UosAccountsModelProvider.getFieldsToSelect());
+    }
+
+    return expected;
   }
 }
 

@@ -15,6 +15,7 @@ import RepositoryHelper = require('../../common/repository/repository-helper');
 import OrgsCurrentParamsRepository = require('./organizations-current-params-repository');
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import EnvHelper = require('../../common/helper/env-helper');
+import UsersModelProvider = require('../../users/users-model-provider');
 
 const _ = require('lodash');
 
@@ -299,10 +300,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
     }
 
     const include = {
-      Users: {
-        attributes: models.Users.getFieldsForPreview(),
-        model: models.Users,
-      },
+      Users: UsersModelProvider.getIncludeAuthorForPreview(),
       users_team: usersModelProvider.getUsersTeamIncludeWithUsersOnly('org'),
     };
 

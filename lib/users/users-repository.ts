@@ -254,18 +254,9 @@ class UsersRepository {
    * @returns {Promise<any>}
    */
   static async getUserById(userId) {
-    // const followerAttributes = this.getModel().getFieldsForPreview();
-
-    // Get user himself
-    // Get user following data with related users
-
     const include = [
-      {
-        model: models[UosAccountsModelProvider.uosAccountsPropertiesTableNameWithoutSchema()],
-        attributes: UosAccountsModelProvider.getFieldsToSelect(),
-        required: false,
-        as: 'uos_accounts_properties',
-      },
+      UsersModelProvider.getIncludeUosAccountsProperties(),
+      UsersModelProvider.getIncludeUsersCurrentParams(),
       {
         model: models.users_education,
         as: 'users_education',
@@ -684,9 +675,7 @@ class UsersRepository {
   }
 
   public static getPropsFields(): string[] {
-    return UosAccountsModelProvider.getFieldsToSelect().concat(
-      UsersModelProvider.getCurrentParamsToSelect(),
-    );
+    return UsersModelProvider.getPropsFields();
   }
 
   /**

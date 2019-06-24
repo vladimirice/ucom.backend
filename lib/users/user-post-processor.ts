@@ -26,15 +26,12 @@ class UserPostProcessor {
   }
 
   /**
-   *
+   * @deprecated
+   * @see processOnlyUserItself
    * @param {Object} user
    */
-  static processModelAuthorForListEntity(user) {
-    this.normalizeMultiplier(user);
-    this.deleteSensitiveData(user);
-
-    this.processUosAccountsProperties(user);
-    this.processUsersCurrentParams(user);
+  public static processModelAuthorForListEntity(user) {
+    this.processOnlyUserItself(user);
   }
 
   /**
@@ -124,6 +121,9 @@ class UserPostProcessor {
   public static processOnlyUserItself(user: UserModel): void {
     this.normalizeMultiplier(user);
     this.deleteSensitiveData(user);
+
+    this.processUosAccountsProperties(user);
+    this.processUsersCurrentParams(user);
   }
 
   /**
@@ -199,12 +199,7 @@ class UserPostProcessor {
   }
 
   public static processUosAccountsProperties(userJson) {
-    if (!userJson.uos_accounts_properties && (typeof userJson.scaled_importance === 'undefined')) {
-      // this is a case when the user is a newcomer and worker didn't process him yet
-      for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
-        userJson[field] = 0;
-      }
-
+    if (!userJson.uos_accounts_properties) {
       return;
     }
 
@@ -222,13 +217,8 @@ class UserPostProcessor {
   }
 
   // # is required for sequelize and ORM
-  private static processUsersCurrentParams(userJson) {
-    if (!userJson.users_current_params && (typeof userJson.scaled_importance_delta === 'undefined')) {
-      // this is a case when the user is a newcomer and worker didn't process him yet
-      for (const field of UsersModelProvider.getCurrentParamsToSelect()) {
-        userJson[field] = 0;
-      }
-
+  public static processUsersCurrentParams(userJson) {
+    if (!userJson.users_current_params) {
       return;
     }
 

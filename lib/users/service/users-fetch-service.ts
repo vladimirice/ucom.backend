@@ -49,6 +49,7 @@ class UsersFetchService {
     const userJson = user.toJSON();
 
     UserPostProcessor.processUosAccountsProperties(userJson);
+    UserPostProcessor.processUsersCurrentParams(userJson);
 
     userJson.organizations = userOrganizations;
 

@@ -36,7 +36,7 @@ describe('#feeds myself news feed. #graphql', () => {
   });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await seedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   it('#smoke - comment should contain organization data', async () => {
