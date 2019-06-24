@@ -27,6 +27,7 @@ import TagsModelProvider = require('../../../lib/tags/service/tags-model-provide
 import knex = require('../../../config/knex');
 import IrreversibleTracesClient = require('../../../lib/blockchain-traces/client/irreversible-traces-client');
 import MongoExternalModelProvider = require('../../../lib/eos/service/mongo-external-model-provider');
+import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -289,12 +290,24 @@ class SeedsHelper {
     }
   }
 
+
+  public static async beforeAllRoutineMockAccountsProperties() {
+    const options = {
+      mock: {
+        uosAccountsProperties: true,
+      },
+    };
+
+    return this.beforeAllRoutine(false, options);
+  }
+
   /**
    *
    * @returns {Promise<*>}
    */
   static async beforeAllRoutine(
     mockAllBlockchain: boolean = false, // deprecated
+    options: any = null,
   ) {
     if (mockAllBlockchain) {
       MockHelper.mockAllBlockchainPart();
@@ -339,6 +352,11 @@ class SeedsHelper {
       UsersCurrentParamsRepository.insertRowForNewEntity(userPetr.id),
       UsersCurrentParamsRepository.insertRowForNewEntity(userRokky.id),
     ]);
+
+    if (options && options.mock.uosAccountsProperties) {
+      await MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
+      await UosAccountsPropertiesUpdateService.updateAll();
+    }
 
     return [
       userVlad,

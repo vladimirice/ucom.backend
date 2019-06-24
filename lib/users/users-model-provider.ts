@@ -7,6 +7,7 @@ import UsersEducationFieldsSet = require('./models/users-education-fields-set');
 import UsersJobsFields = require('./models/users-jobs-fields-set');
 import UsersSourcesFields = require('./models/users-sources-fields-set');
 import ErrorsHelper = require('../common/helper/errors/errors-helper');
+import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
 
 const models = require('../../models');
 
@@ -143,6 +144,24 @@ class UsersModelProvider {
     return include;
   }
 
+  public static getIncludeUosAccountsProperties() {
+    return {
+      model:      models[UosAccountsModelProvider.uosAccountsPropertiesTableNameWithoutSchema()],
+      attributes: UosAccountsModelProvider.getFieldsToSelect(),
+      required:   false,
+      as:         'uos_accounts_properties',
+    };
+  }
+
+  public static getIncludeUsersCurrentParams() {
+    return {
+      model:      models[this.getCurrentParamsTableName()],
+      attributes: this.getCurrentParamsToSelect(),
+      required:   false,
+      as:         this.getCurrentParamsTableName(),
+    };
+  }
+
   /**
    *
    * @return {Object}
@@ -152,6 +171,10 @@ class UsersModelProvider {
       required,
       model:      this.getUsersModel(),
       attributes: this.getUsersModel().getFieldsForPreview(),
+      include: [
+        this.getIncludeUosAccountsProperties(),
+        this.getIncludeUsersCurrentParams(),
+      ],
     };
   }
 

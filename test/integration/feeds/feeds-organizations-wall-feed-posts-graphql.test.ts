@@ -2,6 +2,7 @@ import { GraphqlHelper } from '../helpers/graphql-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import PostsGenerator = require('../../generators/posts-generator');
@@ -10,7 +11,7 @@ import OrganizationsGenerator = require('../../generators/organizations-generato
 import CommonHelper = require('../helpers/common-helper');
 
 import ResponseHelper = require('../helpers/response-helper');
-import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
+import UsersHelper = require('../helpers/users-helper');
 
 require('cross-fetch/polyfill');
 
@@ -94,6 +95,7 @@ describe('#organizations #feed #graphql', () => {
           required: true,
           expectedId: orgId,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       const directPostOptions: CheckerOptions = {
@@ -108,6 +110,7 @@ describe('#organizations #feed #graphql', () => {
         organization: {
           required: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkOnePostV2(mediaPostModel!, mediaPostOptions);

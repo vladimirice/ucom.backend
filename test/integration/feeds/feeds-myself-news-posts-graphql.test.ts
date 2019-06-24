@@ -2,6 +2,7 @@ import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CommentModelResponse, CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import CommonGenerator = require('../../generators/common-generator');
 import OrganizationsHelper = require('../helpers/organizations-helper');
@@ -10,7 +11,6 @@ import PostsGenerator = require('../../generators/posts-generator');
 import CommentsGenerator = require('../../generators/comments-generator');
 import ActivityHelper = require('../helpers/activity-helper');
 import CommonHelper = require('../helpers/common-helper');
-import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 const mockHelper = require('../helpers/mock-helper.ts');
 const seedsHelper = require('../helpers/seeds-helper.ts');

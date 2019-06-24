@@ -17,6 +17,7 @@ import _ = require('lodash');
 import OrganizationsHelper = require('../../helpers/organizations-helper');
 import TagsHelper = require('../../helpers/tags-helper');
 import StatsGenerator = require('../../../generators/stats-generator');
+import UsersHelper = require('../../helpers/users-helper');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -31,6 +32,7 @@ function checkPostsPage(response, expected) {
     author: {
       myselfData: true,
     },
+    ...UsersHelper.propsAndCurrentParamsOptions(true),
   };
 
   expect(_.isEmpty(response.data)).toBeFalsy();
@@ -54,7 +56,7 @@ describe('GET posts via graphql', () => {
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Media Posts trending', () => {
@@ -510,8 +512,6 @@ describe('GET posts via graphql', () => {
 
     it('There is no direct post/repost inside posts list because of filter. #smoke #posts', async () => {
       const { postId, repostId } = await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
-
-      return;
 
       const directPostId: number =
         await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);

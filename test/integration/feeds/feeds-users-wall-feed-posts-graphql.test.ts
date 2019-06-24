@@ -1,9 +1,12 @@
 import { GraphqlHelper } from '../helpers/graphql-helper';
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import CommonHelper = require('../helpers/common-helper');
 import PostsGenerator = require('../../generators/posts-generator');
 import CommentsGenerator = require('../../generators/comments-generator');
-import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
+
+import UsersHelper = require('../helpers/users-helper');
+import SeedsHelper = require('../helpers/seeds-helper');
 // import CommentsGenerator = require('../../generators/comments-generator');
 // import PostsGenerator = require('../../generators/posts-generator');
 
@@ -12,7 +15,6 @@ const mockHelper = require('../helpers/mock-helper.ts');
 const postsGenerator = require('../../generators/posts-generator.ts');
 const commentsGenerator = require('../../generators/comments-generator.ts');
 
-const seedsHelper = require('../helpers/seeds-helper.ts');
 const commonHelper = require('../helpers/common-helper.ts');
 const commentsHelper = require('../helpers/comments-helper.ts');
 
@@ -27,19 +29,19 @@ const JEST_TIMEOUT = 20000 * 10;
 
 describe('#Feeds #GraphQL', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
     await GraphqlRequestHelper.beforeAll();
   });
 
   afterAll(async () => {
     await Promise.all([
-      seedsHelper.doAfterAll(),
+      SeedsHelper.doAfterAll(),
       GraphqlRequestHelper.afterAll(),
     ]);
   });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(false, true);
   });
 
   describe('Positive', () => {
@@ -62,8 +64,12 @@ describe('#Feeds #GraphQL', () => {
 
       expect(response.data[0].comments.data.length).toBe(commentsPerPage);
       expect(response.data[1].comments.data.length).toBe(commentsPerPage);
-    }, 100000);
 
+      UsersHelper.checkIncludedUserForEntityPage(
+        response.data[0],
+        UsersHelper.propsAndCurrentParamsOptions(true),
+      );
+    }, 100000);
 
     it('#smoke - should get repost information', async () => {
       const { repostId }: { repostId: number } =
@@ -97,11 +103,10 @@ describe('#Feeds #GraphQL', () => {
 
     it('#smoke - should get all user-related posts', async () => {
       const targetUser = userVlad;
-      const directPostAuthor = userJane;
 
       const promisesToCreatePosts = [
         postsGenerator.createMediaPostByUserHimself(targetUser),
-        postsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
+        postsGenerator.createUserDirectPostForOtherUser(userJane, targetUser, null, true),
       ];
 
       const [postOneId, postTwo] = await Promise.all(promisesToCreatePosts);

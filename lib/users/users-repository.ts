@@ -9,7 +9,6 @@ import knex = require('../../config/knex');
 import PostsModelProvider = require('../posts/service/posts-model-provider');
 import PostsRepository = require('../posts/posts-repository');
 import UsersModelProvider = require('./users-model-provider');
-import RepositoryHelper = require('../common/repository/repository-helper');
 import UsersExternalModelProvider = require('../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
@@ -19,6 +18,7 @@ import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-c
 import EnvHelper = require('../common/helper/env-helper');
 import QueryFilterService = require('../api/filters/query-filter-service');
 import KnexQueryBuilderHelper = require('../common/helper/repository/knex-query-builder-helper');
+import RepositoryHelper = require('../common/repository/repository-helper');
 
 const _ = require('lodash');
 
@@ -41,14 +41,11 @@ class UsersRepository {
     airdropId: number,
     params: DbParamsDto,
   ) {
-    const previewFields = UsersModelProvider.getUserFieldsForPreview();
-    const toSelect = RepositoryHelper.getPrefixedAttributes(previewFields, TABLE_NAME);
-
-    toSelect.push(`${airdropsUsersExternalData}.score AS score`);
-    toSelect.push(`${usersExternal}.external_login AS external_login`);
-
-    return knex(TABLE_NAME)
-      .select(toSelect)
+    const queryBuilder = knex(TABLE_NAME)
+      .select([
+        `${airdropsUsersExternalData}.score AS score`,
+        `${usersExternal}.external_login AS external_login`,
+      ])
       .innerJoin(usersExternal, `${usersExternal}.user_id`, `${TABLE_NAME}.id`)
       // eslint-disable-next-line func-names
       .innerJoin(airdropsUsersExternalData, function () {
@@ -59,10 +56,14 @@ class UsersRepository {
       .andWhere(`${airdropsUsersExternalData}.airdrop_id`, airdropId)
       .andWhere(`${airdropsUsersExternalData}.are_conditions_fulfilled`, true)
       .whereNotIn(`${TABLE_NAME}.id`, AirdropsUsersRepository.getAirdropParticipantsIdsToHide())
-      .orderByRaw(params.orderByRaw)
-      .limit(params.limit)
-      .offset(params.offset)
     ;
+
+    this.addListParamsToQueryBuilder(queryBuilder, params);
+
+    const data = await queryBuilder;
+    RepositoryHelper.convertStringFieldsToNumbersForArray(data, this.getPropsFields(), []);
+
+    return data;
   }
 
   public static async findManyAsRelatedToEntity(
@@ -80,6 +81,7 @@ class UsersRepository {
     const { postSubQuery, extraFieldsToSelect } =
       PostsRepository.prepareRelatedEntitySqlParts(overviewType, params, statsFieldName, relEntityField, relEntityNotNull);
 
+    // #task - rewrite using knex
     const sql = `
       select "Users"."id"               as "id",
              "Users"."account_name"     as "account_name",
@@ -87,11 +89,16 @@ class UsersRepository {
              "Users"."last_name"        as "last_name",
              "Users"."nickname"         as "nickname",
              "Users"."avatar_filename"  as "avatar_filename",
-             "Users"."current_rate"     as "current_rate"
+             "Users"."current_rate"     as "current_rate",
+             ${UsersRepository.getPropsFields().join(', ')}
              ${extraFieldsToSelect}
       from "Users" INNER JOIN
             ${postSubQuery}
            ON t.${relEntityField} = "Users".id
+        INNER JOIN blockchain.uos_accounts_properties a
+            ON a.entity_id = "Users".id AND a.entity_name = '${UsersModelProvider.getEntityName()}'
+        INNER JOIN users_current_params p
+            ON p.user_id = "Users".id
       ORDER BY t.${statsFieldName} DESC
     `;
 

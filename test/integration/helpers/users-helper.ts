@@ -27,6 +27,16 @@ const orgModelProvider    = require('../../../lib/organizations/service').ModelP
 require('jest-expect-message');
 
 class UsersHelper {
+  public static propsAndCurrentParamsOptions(isMyself: boolean) {
+    return {
+      author: {
+        myselfData: isMyself,
+      },
+      current_params: true,
+      uos_accounts_properties: true,
+    };
+  }
+
   /**
    *
    * @param {number} orgId
@@ -198,12 +208,7 @@ class UsersHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {Object} model - model with included user
-   * @param {string[]|null} givenExpected - model with included user
-   */
-  static checkIncludedUserPreview(model, givenExpected = null) {
+  public static checkIncludedUserPreview(model, givenExpected = null, options: any = null) {
     expect(model.User).toBeDefined();
     expect(model.User instanceof Object).toBeTruthy();
 
@@ -211,7 +216,18 @@ class UsersHelper {
     expect(typeof model.User.current_rate, 'It seems user is not post-processed')
       .not.toBe('string');
 
-    const expected = givenExpected || usersRepository.getModel().getFieldsForPreview().sort();
+    let expected = givenExpected || usersRepository.getModel().getFieldsForPreview().sort();
+
+    if (options !== null && options.current_params) {
+      expected = Array.prototype.concat(expected, UsersModelProvider.getCurrentParamsToSelect());
+    }
+
+    if (options !== null && options.uos_accounts_properties) {
+      expected = Array.prototype.concat(expected, UosAccountsModelProvider.getFieldsToSelect());
+    }
+
+    expected = this.addMyselfDataToExpectedSet(options, expected);
+
     CommonChecker.expectAllFieldsExistence(model.User, expected);
   }
 
@@ -545,6 +561,21 @@ class UsersHelper {
 
   static getJaneEosAccount() {
     return accountsData.jane;
+  }
+
+  private static addMyselfDataToExpectedSet(options: any, givenExpected: any) {
+    if (!options) {
+      return givenExpected;
+    }
+
+    if ((options.myselfData && !options.author) || (options.author && options.author.myselfData)) {
+      return Array.prototype.concat(givenExpected, [
+        'I_follow', // #task not required for entity page if not user himself
+        'followed_by', // #task not required for entity page if not user himself
+        'myselfData',
+      ]);
+    }
+    return givenExpected;
   }
 }
 

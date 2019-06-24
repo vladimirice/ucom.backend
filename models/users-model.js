@@ -119,6 +119,12 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     models[TABLE_NAME].hasOne(models['uos_accounts_properties'], { foreignKey: 'entity_id', as: 'uos_accounts_properties' });
+    models[TABLE_NAME].hasOne(
+      models['users_current_params'],
+      {
+        foreignKey: 'user_id', as: 'users_current_params',
+      }
+    );
 
     /**
      *

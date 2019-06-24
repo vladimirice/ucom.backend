@@ -2,6 +2,7 @@ import { GraphqlHelper } from '../helpers/graphql-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 
@@ -10,7 +11,7 @@ import EntityTagsGenerator = require('../../generators/entity/entity-tags-genera
 import MockHelper = require('../helpers/mock-helper');
 import CommentsGenerator = require('../../generators/comments-generator');
 import CommonHelper = require('../helpers/common-helper');
-import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
+import UsersHelper = require('../helpers/users-helper');
 
 require('cross-fetch/polyfill');
 
@@ -79,6 +80,7 @@ describe('#tags #feed #graphql', () => {
           myselfData: true,
         },
         postProcessing: 'list',
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
       CommonHelper.checkManyPostsV2(posts, manyPostsOptions);
 
@@ -94,6 +96,7 @@ describe('#tags #feed #graphql', () => {
         organization: {
           required: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkOnePostV2(postOneResponse, postWithCommentsOptions);

@@ -137,7 +137,7 @@ class CommonHelper {
     options,
   ): void {
     CommentsHelper.checkOneCommentItself(comment, options);
-    UsersHelper.checkIncludedUserPreview(comment);
+    UsersHelper.checkIncludedUserPreview(comment, null, options);
 
     ResponseHelper.checkCreatedAtUpdatedAtFormat(comment);
 
@@ -675,6 +675,7 @@ class CommonHelper {
       organization: {
         required: false,
       },
+      ...UsersHelper.propsAndCurrentParamsOptions(isMyself),
     };
   }
 
