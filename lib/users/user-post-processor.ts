@@ -203,7 +203,12 @@ class UserPostProcessor {
       return;
     }
 
+    this.fixSequelizePropsNamingBug(userJson);
     for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
+      if (typeof userJson.uos_accounts_properties[field] === 'undefined') {
+        // @ts-ignore
+        const a = 0;
+      }
       userJson[field] = NumbersHelper.processFieldToBeNumeric(
         userJson.uos_accounts_properties[field],
         field,
@@ -214,6 +219,25 @@ class UserPostProcessor {
     }
 
     delete userJson.uos_accounts_properties;
+  }
+
+  private static fixSequelizePropsNamingBug(userJson) {
+    const replacementMap = {
+      current_cumulative_emis: 'current_cumulative_emission',
+      current_cumulative_emi: 'current_cumulative_emission',
+
+      previous_cumulative_emi: 'previous_cumulative_emission',
+      previous_cumulative_emis: 'previous_cumulative_emission',
+    };
+
+    for (const keyToReplace in replacementMap) {
+      if (userJson.uos_accounts_properties[keyToReplace])  {
+        const newKey = replacementMap[keyToReplace];
+
+        userJson.uos_accounts_properties[newKey] = userJson.uos_accounts_properties[keyToReplace];
+        delete userJson.uos_accounts_properties[keyToReplace];
+      }
+    }
   }
 
   // # is required for sequelize and ORM

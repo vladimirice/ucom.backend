@@ -33,7 +33,7 @@ describe('#comments create update', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Positive', () => {
@@ -118,6 +118,7 @@ describe('#comments create update', () => {
 
       const options = {
         myselfData: true,
+        ...UsersHelper.propsAndCurrentParamsOptions(false),
       };
 
       CommonHelper.checkOneCommentPreviewWithRelations(body, options);
@@ -209,7 +210,7 @@ describe('#comments create update', () => {
       const body = await CommentsGenerator.createCommentOnComment(postId, forthCommentId, userJane, description);
 
       CommentsHelper.checkCommentResponseBody(body);
-      UsersHelper.checkIncludedUserPreview(body);
+      UsersHelper.checkIncludedUserPreview(body, null, UsersHelper.propsAndCurrentParamsOptions(false));
       expect(Array.isArray(body.path)).toBeTruthy();
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userJane.id);

@@ -4,6 +4,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-users-generator');
 import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
 import CommonHelper = require('../../integration/helpers/common-helper');
+import UsersHelper = require('../../integration/helpers/users-helper');
 
 class AirdropsTestSet {
   public static async getManyParticipantsAsSeparateRequest(userVlad: UserModel, userJane: UserModel, airdropCreationResponse): Promise<void> {
@@ -22,6 +23,7 @@ class AirdropsTestSet {
         myselfData: true,
       },
       airdrops: {},
+      ...UsersHelper.propsAndCurrentParamsOptions(true),
     };
 
     CommonHelper.checkUsersListResponse(manyUsersVladOnly, options);

@@ -25,7 +25,7 @@ const beforeAfterOptions = {
 describe('Organizations create,update related entities', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
-  beforeEach(async () => { [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(); });
+  beforeEach(async () => { [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties(); });
 
   describe('Validate one discussion', () => {
     describe('Positive', () => {
@@ -132,6 +132,7 @@ describe('Organizations create,update related entities', () => {
           discussions: false,
           usersTeam: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(false),
       };
 
       CommonHelper.checkOneOrganizationFully(vladOrgModelAfter, options);
@@ -140,7 +141,7 @@ describe('Organizations create,update related entities', () => {
         await OrganizationsHelper.requestToGetOneOrganizationAsGuest(janeOrgId);
 
       CommonHelper.expectModelsExistence(janeOrgModelAfter.discussions, janePostsIds, true);
-    });
+    }, 10000);
   });
 
   describe('Change discussions state. #posts #discussions', () => {
@@ -163,6 +164,7 @@ describe('Organizations create,update related entities', () => {
             discussions: true,
           },
           postProcessing: EntityResponseState.card(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
         };
 
         CommonHelper.checkOneOrganizationFully(orgModel, options);

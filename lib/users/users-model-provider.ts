@@ -135,6 +135,10 @@ class UsersModelProvider {
       model:      this.getUsersModel(),
       attributes: this.getUsersModel().getFieldsForPreview(),
       raw: true,
+      include: [
+        this.getIncludeUosAccountsProperties(),
+        this.getIncludeUsersCurrentParams(),
+      ],
     };
 
     if (alias) {

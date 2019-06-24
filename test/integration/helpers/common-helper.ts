@@ -34,6 +34,10 @@ class CommonHelper {
     expect(model.users_team).toBeDefined();
     if (options.mustHaveValue.usersTeam) {
       expect(model.users_team.length).toBeGreaterThan(0);
+
+      for (const user of model.users_team) {
+        UsersHelper.checkIncludedUserPreview({ User: user }, null, options, ['users_team']);
+      }
     }
 
     expect(model.social_networks).toBeDefined();
@@ -123,7 +127,7 @@ class CommonHelper {
    */
   static checkOneCommentPreviewWithRelations(comment, options) {
     CommentsHelper.checkOneCommentPreviewFields(comment, options);
-    UsersHelper.checkIncludedUserPreview(comment);
+    UsersHelper.checkIncludedUserPreview(comment, null, options);
 
     ResponseHelper.checkCreatedAtUpdatedAtFormat(comment);
 

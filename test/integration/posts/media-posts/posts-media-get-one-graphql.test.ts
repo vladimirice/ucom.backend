@@ -92,6 +92,7 @@ describe('Get One media post #graphql', () => {
         comments: {
           isEmpty: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkOnePostV2(post, options);
@@ -117,6 +118,7 @@ describe('Get One media post #graphql', () => {
         comments: {
           isEmpty: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkOnePostV2(post, options);

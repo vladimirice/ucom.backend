@@ -96,6 +96,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -119,6 +120,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -200,6 +202,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -287,6 +290,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -355,6 +359,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -431,7 +436,6 @@ describe('GET posts via graphql', () => {
 
     it('Should work for request from guest #smoke #guest #posts', async () => {
       const vladMediaPostsAmount: number = 3;
-      const isMyself: boolean = false;
       const isCommentsEmpty: boolean = true;
       const userVladMediaPosts: number[] =
         await PostsGenerator.createManyDefaultMediaPostsByUserHimself(
@@ -445,7 +449,7 @@ describe('GET posts via graphql', () => {
 
       const response: PostsListResponse = await GraphqlHelper.getManyPostsAsGuest(postFiltering);
 
-      CommonHelper.checkPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
+      CommonHelper.checkPostListResponseWithoutOrg(response, true, isCommentsEmpty);
 
       CommonHelper.expectModelsExistence(response.data, userVladMediaPosts);
     }, JEST_TIMEOUT);

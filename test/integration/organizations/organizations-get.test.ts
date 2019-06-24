@@ -293,7 +293,6 @@ describe('Organizations. Get requests', () => {
 
         CommonHelper.checkOneOrganizationFully(model, options);
 
-
         const secondOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
         const secondOrgResponse: OrgModelResponse = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
 
@@ -303,10 +302,11 @@ describe('Organizations. Get requests', () => {
             usersTeam: false,
           },
           postProcessing: EntityResponseState.card(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
         };
 
         CommonHelper.checkOneOrganizationFully(secondOrgResponse, secondOrgOptions);
-      });
+      }, 50000);
     });
 
     it('should return communities and partnerships', async () => {

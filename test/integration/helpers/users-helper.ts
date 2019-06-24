@@ -208,7 +208,7 @@ class UsersHelper {
     return res.body;
   }
 
-  public static checkIncludedUserPreview(model, givenExpected = null, options: any = null) {
+  public static checkIncludedUserPreview(model, givenExpected = null, options: any = null, scopes: any = []) {
     expect(model.User).toBeDefined();
     expect(model.User instanceof Object).toBeTruthy();
 
@@ -222,6 +222,13 @@ class UsersHelper {
     this.checkUserProps(model.User, options);
 
     expected = this.addMyselfDataToExpectedSet(options, expected);
+
+    if (scopes.includes('users_team')) {
+      expected = [
+        ...expected,
+        'users_team_status',
+      ];
+    }
 
     CommonChecker.expectAllFieldsExistence(model.User, expected);
   }
