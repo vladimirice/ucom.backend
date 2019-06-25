@@ -8,7 +8,6 @@ import UsersChecker = require('../../helpers/users/users-checker');
 import CommonChecker = require('../../helpers/common/common-checker');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
-import UsersRepository = require('../../../lib/users/users-repository');
 import knex = require('../../../config/knex');
 
 const request = require('supertest');
@@ -263,32 +262,18 @@ class UsersHelper {
     this.checkUserProps(model.User, options);
 
     CommonChecker.expectAllFieldsExistence(model.User, expected);
-
-    if (options.current_params) {
-      for (const field of UsersRepository.getPropsFields()) {
-        CommonChecker.expectFieldToBePositiveOrZeroNumber(model.User, field);
-      }
-    }
   }
 
-  /**
-   *
-   * @param {Object[]} users
-   */
-  static checkManyUsersPreview(users) {
+  static checkManyUsersPreview(users, options: any = null) {
     users.forEach((user) => {
-      this.checkUserPreview(user);
+      this.checkUserPreview(user, options);
     });
   }
 
-  /**
-   *
-   * @param {Object} user
-   */
-  public static checkUserPreview(user): void {
+  public static checkUserPreview(user, options: any = null): void {
     this.checkIncludedUserPreview({
       User: user,
-    });
+    }, null, options);
   }
 
   /**
@@ -580,6 +565,10 @@ class UsersHelper {
       return;
     }
 
+    if (options.scopes && options.scopes.includes('postDiscussions')) {
+      return;
+    }
+
     if (options.current_params) {
       CommonChecker.expectAllFieldsPositiveOrZeroNumber(user, UsersModelProvider.getCurrentParamsToSelect());
     }
@@ -591,6 +580,10 @@ class UsersHelper {
 
   private static addPropsToExpected(expected: string[], options): string[] {
     if (!options) {
+      return expected;
+    }
+
+    if (options.scopes && options.scopes.includes('postDiscussions')) {
       return expected;
     }
 

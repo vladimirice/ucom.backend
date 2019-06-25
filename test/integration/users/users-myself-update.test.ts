@@ -24,7 +24,7 @@ const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
 describe('Myself API', () => {
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   afterAll(async () => {

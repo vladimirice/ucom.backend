@@ -50,6 +50,8 @@ class CommonHelper {
     if (options.mustHaveValue.discussions) {
       expect(model.discussions.length).toBeGreaterThan(0);
 
+      options.scopes = ['postDiscussions'];
+
       this.checkManyPostsV2(model.discussions, options);
     } else {
       expect(model.discussions.length).toBe(0);
@@ -591,7 +593,7 @@ class CommonHelper {
     expect(_.isEmpty(post)).toBeFalsy();
 
     PostsHelper.checkPostItselfCommonFields(post, options);
-    UsersHelper.checkIncludedUserPreview(post);
+    UsersHelper.checkIncludedUserPreview(post, null, options);
     OrganizationsHelper.checkOneOrgPreviewFieldsIfExists(post);
 
     this.checkMyselfData(post, options);

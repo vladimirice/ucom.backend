@@ -13,6 +13,7 @@ import CommentsRepository = require('../../../lib/comments/comments-repository')
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 
 let userVlad: UserModel;
@@ -160,12 +161,13 @@ describe('#comments create update', () => {
 
       const options = {
         myselfData: true,
+        ...UsersHelper.propsAndCurrentParamsOptions(false),
       };
 
       CommonHelper.checkOneCommentPreviewWithRelations(body, options);
 
       CommentsHelper.checkCommentResponseBody(body);
-      UsersHelper.checkIncludedUserPreview(body);
+      UsersHelper.checkIncludedUserPreview(body, null, options);
 
       const lastComment = await CommentsRepository.findLastCommentByAuthor(userVlad.id);
 

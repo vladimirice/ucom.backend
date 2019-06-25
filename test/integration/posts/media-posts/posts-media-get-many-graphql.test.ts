@@ -449,7 +449,7 @@ describe('GET posts via graphql', () => {
 
       const response: PostsListResponse = await GraphqlHelper.getManyPostsAsGuest(postFiltering);
 
-      CommonHelper.checkPostListResponseWithoutOrg(response, true, isCommentsEmpty);
+      CommonHelper.checkPostListResponseWithoutOrg(response, false, isCommentsEmpty, false);
 
       CommonHelper.expectModelsExistence(response.data, userVladMediaPosts);
     }, JEST_TIMEOUT);

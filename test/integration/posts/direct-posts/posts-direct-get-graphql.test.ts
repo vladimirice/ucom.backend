@@ -5,6 +5,7 @@ import {
   PostModelMyselfResponse, PostModelResponse, PostRequestQueryDto,
   PostsListResponse,
 } from '../../../../lib/posts/interfaces/model-interfaces';
+import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
@@ -18,7 +19,6 @@ import OrganizationsModelProvider = require('../../../../lib/organizations/servi
 import OrganizationsHelper = require('../../helpers/organizations-helper');
 import CommonHelper = require('../../helpers/common-helper');
 import CommentsGenerator = require('../../../generators/comments-generator');
-import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -28,7 +28,7 @@ const JEST_TIMEOUT = 10000;
 
 describe('#posts #direct #get #graphql', () => {
   beforeAll(async () => {
-    await GraphqlRequestHelper.beforeAll();
+    await SeedsHelper.withGraphQlMockAllWorkers();
   });
 
   afterAll(async () => {
@@ -39,7 +39,7 @@ describe('#posts #direct #get #graphql', () => {
   });
 
   beforeEach(async () => {
-    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine(true);
+    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Get many direct posts', () => {

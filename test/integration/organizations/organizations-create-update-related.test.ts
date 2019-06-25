@@ -232,6 +232,7 @@ describe('Organizations create,update related entities', () => {
             discussions: true,
           },
           postProcessing: EntityResponseState.card(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
         };
 
         CommonHelper.checkOneOrganizationFully(orgModel, options);

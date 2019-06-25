@@ -22,8 +22,7 @@ const JEST_TIMEOUT = 20000 * 10;
 
 describe('#organizations #feed #graphql', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
-    await GraphqlRequestHelper.beforeAll();
+    await SeedsHelper.withGraphQlMockAllWorkers();
   });
 
   afterAll(async () => {
@@ -34,7 +33,7 @@ describe('#organizations #feed #graphql', () => {
   });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Positive', () => {
