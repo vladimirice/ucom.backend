@@ -14,6 +14,7 @@ diContainer.bind(di_interfaces_1.UsersDiTypes.authService).to(UsersAuthService);
 diContainer.bind(di_interfaces_1.UsersDiTypes.registrationService).to(RegistrationService);
 diContainer.bind(di_interfaces_2.AffiliatesDiTypes.registrationConversionService).to(RegistrationConversionService);
 if (EnvHelper.isTestEnv()) {
+    // eslint-disable-next-line global-require
     const { initBlockchainTraces } = require('../../lib/blockchain-traces/inversify/blockchain-traces.inversify.config');
     initBlockchainTraces(diContainer);
 }
