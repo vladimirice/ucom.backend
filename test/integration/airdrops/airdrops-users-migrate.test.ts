@@ -1,4 +1,5 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { GraphqlHelper } from '../helpers/graphql-helper';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import AirdropsGenerator = require('../../generators/airdrops/airdrops-generator');
@@ -6,7 +7,6 @@ import AirdropsUsersGenerator = require('../../generators/airdrops/airdrops-user
 import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/status-changer/airdrops-users-to-pending-service');
 import AirdropsUsersChecker = require('../../helpers/airdrops-users-checker');
 import AirdropUsersMigrateService = require('../../../lib/airdrops/service/maintenance/airdrop-users-migrate-service');
-import { GraphqlHelper } from '../helpers/graphql-helper';
 import CommonChecker = require('../../helpers/common/common-checker');
 import AirdropsDatabaseDirectChanges = require('../../helpers/airdrops-database-direct-changes');
 
@@ -30,11 +30,11 @@ describe('Airdrops users migrations', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Positive', () => {
-    it('migrations from github airdrop round one to round two', async () => {
+    it.skip('migrations from github airdrop round one to round two', async () => {
       // Vlad has a tokens from the table, jane has a zero score.
       await AirdropsUsersGenerator.generateGithubRawDataForVlad();
       const generatedForVladSecondRound = await AirdropsUsersGenerator.generateGithubRawDataForVladRoundTwo();
@@ -49,7 +49,7 @@ describe('Airdrops users migrations', () => {
       const userVladData =
         await AirdropsUsersGenerator.fulfillAirdropCondition(firstRoundAirdrop.id, userVlad, orgId, true);
       // const userJaneData =
-        await AirdropsUsersGenerator.fulfillAirdropCondition(firstRoundAirdrop.id, userJane, orgId, true);
+      await AirdropsUsersGenerator.fulfillAirdropCondition(firstRoundAirdrop.id, userJane, orgId, true);
 
       await AirdropsUsersToPendingService.processAllInProcessAirdrop();
 

@@ -21,8 +21,12 @@ let userVlad: UserModel;
 let userJane: UserModel;
 
 describe('Direct posts create-update v2', () => {
+  beforeAll(async () => {
+    await SeedsHelper.noGraphQlMockAllWorkers();
+  });
+
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   afterAll(async () => {
@@ -70,6 +74,7 @@ describe('Direct posts create-update v2', () => {
         myselfData: true,
         postProcessing: 'full',
         allowEmptyComments: true,
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       await CommonHelper.checkOnePostV2(post, options);
@@ -104,6 +109,7 @@ describe('Direct posts create-update v2', () => {
         myselfData: true,
         postProcessing: 'full',
         allowEmptyComments: true,
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       await CommonHelper.checkOnePostV2(post, options);
@@ -136,6 +142,7 @@ describe('Direct posts create-update v2', () => {
         myselfData: true,
         postProcessing: 'full',
         skipCommentsChecking: true,
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       expect(postAfter.comments).not.toBeDefined();

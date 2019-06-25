@@ -55,7 +55,7 @@ describe('Myself. Get requests', () => {
 
         UsersHelper.validateUserJson(body, userVlad, dbUser);
 
-        expect(body.scaled_importance).toBe(0);
+        expect(body.scaled_importance).toBeGreaterThanOrEqual(0);
       }, JEST_TIMEOUT);
     });
 

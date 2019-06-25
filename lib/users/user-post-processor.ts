@@ -231,7 +231,7 @@ class UserPostProcessor {
     };
 
     for (const keyToReplace in replacementMap) {
-      if (userJson.uos_accounts_properties[keyToReplace])  {
+      if (typeof userJson.uos_accounts_properties[keyToReplace] !== 'undefined')  {
         const newKey = replacementMap[keyToReplace];
 
         userJson.uos_accounts_properties[newKey] = userJson.uos_accounts_properties[keyToReplace];

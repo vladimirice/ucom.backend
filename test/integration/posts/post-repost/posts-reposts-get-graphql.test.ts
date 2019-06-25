@@ -5,6 +5,7 @@ import {
   PostRequestQueryDto,
   PostsListResponse,
 } from '../../../../lib/posts/interfaces/model-interfaces';
+import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -12,7 +13,6 @@ import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
 
 import CommonHelper = require('../../helpers/common-helper');
-import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -21,7 +21,7 @@ const JEST_TIMEOUT = 10000;
 
 describe('GET one or many reposts via graphql', () => {
   beforeAll(async () => {
-    await GraphqlRequestHelper.beforeAll();
+    await SeedsHelper.withGraphQlMockAllWorkers();
   });
 
   afterAll(async () => {
@@ -32,7 +32,7 @@ describe('GET one or many reposts via graphql', () => {
   });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Many reposts', () => {

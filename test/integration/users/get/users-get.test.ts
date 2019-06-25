@@ -19,13 +19,7 @@ describe('Users API', () => {
   beforeAll(async () => { await SeedsHelper.destroyTables(); });
 
   beforeEach(async () => {
-    await SeedsHelper.initSeedsForUsers();
-
-    // noinspection JSCheckFunctionSignatures
-    [userVlad, userPetr] = await Promise.all([
-      UsersHelper.getUserVlad(),
-      UsersHelper.getUserPetr(),
-    ]);
+    [userVlad, , userPetr] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });

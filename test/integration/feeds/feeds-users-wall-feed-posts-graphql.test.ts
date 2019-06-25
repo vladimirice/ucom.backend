@@ -90,6 +90,7 @@ describe('#Feeds #GraphQL', () => {
         comments: true,
         commentsMetadataExistence: true,
         commentItselfMetadata: true,
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       await commonHelper.checkPostsListFromApi(

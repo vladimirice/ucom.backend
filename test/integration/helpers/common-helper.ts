@@ -807,8 +807,8 @@ class CommonHelper {
 
     PostsHelper.checkPostItselfCommonFields(post.post, options);
 
-    UsersHelper.checkIncludedUserPreview(post);
-    UsersHelper.checkIncludedUserPreview(post.post);
+    UsersHelper.checkIncludedUserPreview(post, null, options);
+    UsersHelper.checkIncludedUserPreview(post.post, null, options);
 
     if (isOrg) {
       OrganizationsHelper.checkOneOrganizationPreviewFields(post.post.organization);
@@ -860,6 +860,10 @@ class CommonHelper {
   }
 
   private static checkMyselfData(post, options) {
+    if (options.scopes && options.scopes.includes('repost')) {
+      return;
+    }
+
     if (options.myselfData || (options.model && options.model.myselfData)) {
       expect(post.myselfData).toBeDefined();
 
@@ -877,8 +881,9 @@ class CommonHelper {
       expect(_.isEmpty(post.post)).toBeFalsy();
 
       const postPostOptions = _.cloneDeep(options);
-      postPostOptions.model.myselfData = false;
-      postPostOptions.author.myselfData = false;
+      // postPostOptions.model.myselfData = false;
+      // postPostOptions.author.myselfData = false;
+      postPostOptions.scopes = ['repost'];
       delete postPostOptions.comments;
 
       this.checkOnePostV2(<PostModelResponse>post.post, postPostOptions);
