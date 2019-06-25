@@ -39,7 +39,7 @@ describe('Blockchain tr traces sync tests', () => {
   }, JEST_TIMEOUT);
 
   describe('irreversible transaction traces', () => {
-    it('test', async () => {
+    it.skip('test', async () => {
       await MongoIrreversibleTracesGenerator.insertAllSampleTraces();
       const syncService: BlockchainTracesSyncService
         = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
