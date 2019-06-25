@@ -24,7 +24,7 @@ class WorkerHelper {
       } catch (error) {
         ConsoleHelper.logWorkerError(error);
       } finally {
-        await CloseHandlersHelper.closeDbConnections();
+        await CloseHandlersHelper.closeSequelizeAndKnex();
       }
 
       m.printWithDurationChecking(options.processName, options.durationInSecondsToAlert, totalResponse);
