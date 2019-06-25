@@ -205,16 +205,12 @@ class UserPostProcessor {
 
     this.fixSequelizePropsNamingBug(userJson);
     for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
-      if (typeof userJson.uos_accounts_properties[field] === 'undefined') {
-        // @ts-ignore
-        const a = 0;
-      }
       userJson[field] = NumbersHelper.processFieldToBeNumeric(
         userJson.uos_accounts_properties[field],
         field,
         10,
         false,
-        true,
+        false,
       );
     }
 
@@ -252,7 +248,7 @@ class UserPostProcessor {
         field,
         10,
         false,
-        true,
+        false,
       );
     }
 
