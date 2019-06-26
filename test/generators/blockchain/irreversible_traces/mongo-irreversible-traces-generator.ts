@@ -1,3 +1,5 @@
+import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+
 import IrreversibleTracesClient   = require('../../../../lib/blockchain-traces/client/irreversible-traces-client');
 import MongoExternalModelProvider = require('../../../../lib/eos/service/mongo-external-model-provider');
 
@@ -16,48 +18,62 @@ class MongoIrreversibleTracesGenerator {
   }
 
 
-  public static async insertAllSampleTraces() {
+  // @ts-ignore
+  public static async insertAllSampleTraces(actor: UserModel, actsFor: UserModel) {
     const collection =
       await IrreversibleTracesClient.useCollection(ACTION_TRACES_COLLECTION_NAME);
 
     const set = [
-      this.getSampleTransferTrace,
+      this.getSampleTransferTokensFromActorTrace,
+      this.getSampleTransferTokensToActorTrace,
 
       this.getSampleVoteForBpsTrace,
       this.getSampleRevokeAllVotesForBpsTrace,
       //
-      // this.getSampleClaimEmissionTrace,
+      this.getSampleClaimEmissionTrace,
       //
-      // this.getSampleBuyRamTrace,
-      // this.getSampleSellRamTrace,
+      this.getSampleBuyRamTrace,
+      this.getSampleSellRamTrace,
       //
-      // this.getSampleStakeCpuOnlyTrace,
-      // this.getSampleStakeBothCpuAndNetTrace,
-      // this.getSampleStakeNetOnlyTrace,
-      // this.getSampleUnstakeCpuOnlyTrace,
-      // this.getSampleUnstakeNetOnlyTrace,
-      // this.getSampleUnstakeBothCpuAndNetTrace,
-      // this.getSampleStakeCpuAndUnstakeNetTrace,
+      this.getSampleStakeCpuOnlyTrace,
+      this.getSampleStakeBothCpuAndNetTrace,
+      this.getSampleStakeNetOnlyTrace,
+      this.getSampleUnstakeCpuOnlyTrace,
+      this.getSampleUnstakeNetOnlyTrace,
+      this.getSampleUnstakeBothCpuAndNetTrace,
+      this.getSampleStakeCpuAndUnstakeNetTrace,
       //
-      // this.getSampleDownvoteTrace,
+      this.getSampleDownvoteTrace,
+
+      // TODO vote for calculators
     ];
 
     for (const func of set) {
-      const data = func();
+      const data = func(actor, actsFor);
       await collection.insertOne(data);
     }
+
+    const foreignUser = {
+      account_name: 'mvladimirice',
+    };
+
+    const toForeign = this.getSampleTransferTokensFromActorTrace(actor, <UserModel>foreignUser, 500);
+    await collection.insertOne(toForeign);
+
+    const fromForeign = this.getSampleTransferTokensFromActorTrace(<UserModel>foreignUser, actor, 501);
+    await collection.insertOne(fromForeign);
   }
 
-  public static getSampleTransferTrace() {
-    const blockNumber = 25330100;
-    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b100';
-    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c100';
+  public static getSampleTransferTokensFromActorTrace(actor: UserModel, actsFor: UserModel, tracePrefix: number = 100) {
+    const blockNumber = +`25330${tracePrefix}`;
+    const trxId       = `7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b${tracePrefix}`;
+    const blockId     = `0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c${tracePrefix}`;
 
     return {
       blocknum: blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -68,7 +84,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 30650,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 229,
               ],
             ],
@@ -80,7 +96,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'transfer',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -95,21 +111,21 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
           account_ram_deltas : [],
           act_data : {
-            from : 'summerknight',
-            to : 'autumnknight',
+            from : actor.account_name,
+            to : actsFor.account_name,
             quantity : '10.0000 UOS',
             memo : 'hello there from 10 uos',
           },
           inline_traces : [
             {
               receipt : {
-                receiver : 'summerknight',
+                receiver : actor.account_name,
                 act_digest : '8087e3e36a7c87fbefa9d5900b71aeaa99206aa89f39dfd59b718ddc9172b520',
                 global_sequence : 168542096,
                 recv_sequence : 59,
                 auth_sequence : [
                   [
-                    'summerknight',
+                    actor.account_name,
                     230,
                   ],
                 ],
@@ -121,7 +137,7 @@ class MongoIrreversibleTracesGenerator {
                 name : 'transfer',
                 authorization : [
                   {
-                    actor : 'summerknight',
+                    actor : actor.account_name,
                     permission : 'active',
                   },
                 ],
@@ -136,8 +152,8 @@ class MongoIrreversibleTracesGenerator {
               producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
               account_ram_deltas : [],
               act_data : {
-                from : 'summerknight',
-                to : 'autumnknight',
+                from : actor.account_name,
+                to : actsFor.account_name,
                 quantity : '10.0000 UOS',
                 memo : 'hello there from 10 uos',
               },
@@ -145,13 +161,13 @@ class MongoIrreversibleTracesGenerator {
             },
             {
               receipt : {
-                receiver : 'autumnknight',
+                receiver : actsFor.account_name,
                 act_digest : '8087e3e36a7c87fbefa9d5900b71aeaa99206aa89f39dfd59b718ddc9172b520',
                 global_sequence : 168542097,
                 recv_sequence : 21,
                 auth_sequence : [
                   [
-                    'summerknight',
+                    actor.account_name,
                     231,
                   ],
                 ],
@@ -163,7 +179,7 @@ class MongoIrreversibleTracesGenerator {
                 name : 'transfer',
                 authorization : [
                   {
-                    actor : 'summerknight',
+                    actor : actor.account_name,
                     permission : 'active',
                   },
                 ],
@@ -178,8 +194,8 @@ class MongoIrreversibleTracesGenerator {
               producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
               account_ram_deltas : [],
               act_data : {
-                from : 'summerknight',
-                to : 'autumnknight',
+                from : actor.account_name,
+                to : actsFor.account_name,
                 quantity : '10.0000 UOS',
                 memo : 'hello there from 10 uos',
               },
@@ -192,7 +208,152 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleVoteForBpsTrace() {
+  public static getSampleTransferTokensToActorTrace(actsFor: UserModel, actor: UserModel) {
+    const blockNumber = 25330200;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b200';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c200';
+
+    return {
+      blocknum: blockNumber,
+      blockid : blockId,
+      trxid : trxId,
+      account : actor.account_name,
+      irreversible : true,
+      actions : [
+        {
+          receipt : {
+            receiver : 'eosio.token',
+            act_digest : '8087e3e36a7c87fbefa9d5900b71aeaa99206aa89f39dfd59b718ddc9172b520',
+            global_sequence : 168542095,
+            recv_sequence : 30650,
+            auth_sequence : [
+              [
+                actor.account_name,
+                229,
+              ],
+            ],
+            code_sequence : 1,
+            abi_sequence : 1,
+          },
+          act : {
+            account : 'eosio.token',
+            name : 'transfer',
+            authorization : [
+              {
+                actor : actor.account_name,
+                permission : 'active',
+              },
+            ],
+            data : '901b73135e25a5c6901b73134ea9b336a08601000000000004554f53000000001768656c6c6f2074686572652066726f6d20313020756f73',
+          },
+          context_free : false,
+          elapsed : 273,
+          console : '',
+          trx_id : trxId,
+          block_num : blockNumber,
+          block_time : '2019-04-01T09:57:54.500',
+          producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
+          account_ram_deltas : [],
+          act_data : {
+            from : actor.account_name,
+            to : actsFor.account_name,
+            quantity : '10.0000 UOS',
+            memo : 'hello there from 10 uos',
+          },
+          inline_traces : [
+            {
+              receipt : {
+                receiver : actor.account_name,
+                act_digest : '8087e3e36a7c87fbefa9d5900b71aeaa99206aa89f39dfd59b718ddc9172b520',
+                global_sequence : 168542096,
+                recv_sequence : 59,
+                auth_sequence : [
+                  [
+                    actor.account_name,
+                    230,
+                  ],
+                ],
+                code_sequence : 1,
+                abi_sequence : 1,
+              },
+              act : {
+                account : 'eosio.token',
+                name : 'transfer',
+                authorization : [
+                  {
+                    actor : actor.account_name,
+                    permission : 'active',
+                  },
+                ],
+                data : '901b73135e25a5c6901b73134ea9b336a08601000000000004554f53000000001768656c6c6f2074686572652066726f6d20313020756f73',
+              },
+              context_free : false,
+              elapsed : 10,
+              console : '',
+              trx_id : trxId,
+              block_num : blockNumber,
+              block_time : '2019-04-01T09:57:54.500',
+              producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
+              account_ram_deltas : [],
+              act_data : {
+                from : actor.account_name,
+                to : actsFor.account_name,
+                quantity : '10.0000 UOS',
+                memo : 'hello there from 10 uos',
+              },
+              inline_traces : [],
+            },
+            {
+              receipt : {
+                receiver : actsFor.account_name,
+                act_digest : '8087e3e36a7c87fbefa9d5900b71aeaa99206aa89f39dfd59b718ddc9172b520',
+                global_sequence : 168542097,
+                recv_sequence : 21,
+                auth_sequence : [
+                  [
+                    actor.account_name,
+                    231,
+                  ],
+                ],
+                code_sequence : 1,
+                abi_sequence : 1,
+              },
+              act : {
+                account : 'eosio.token',
+                name : 'transfer',
+                authorization : [
+                  {
+                    actor : actor.account_name,
+                    permission : 'active',
+                  },
+                ],
+                data : '901b73135e25a5c6901b73134ea9b336a08601000000000004554f53000000001768656c6c6f2074686572652066726f6d20313020756f73',
+              },
+              context_free : false,
+              elapsed : 13,
+              console : '',
+              trx_id : trxId,
+              block_num : blockNumber,
+              block_time : '2019-04-01T09:57:54.500',
+              producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
+              account_ram_deltas : [],
+              act_data : {
+                from : actor.account_name,
+                to : actsFor.account_name,
+                quantity : '10.0000 UOS',
+                memo : 'hello there from 10 uos',
+              },
+              inline_traces : [],
+            },
+          ],
+        },
+      ],
+      blocktime : '2019-04-01T09:57:54.500',
+    };
+  }
+
+  // @ts-ignore
+  public static getSampleVoteForBpsTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330101;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b101';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c101';
@@ -201,7 +362,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -212,7 +373,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25345339,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 232,
               ],
             ],
@@ -224,7 +385,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'voteproducer',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -239,7 +400,7 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '018282bd7bfdccf0dc703bc88bc8b19c17e5d50744c9836901465097a5adbc94',
           account_ram_deltas : [],
           act_data : {
-            voter : 'summerknight',
+            voter : actor.account_name,
             proxy : '',
             producers : [
               'adendumblock',
@@ -253,7 +414,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleRevokeAllVotesForBpsTrace() {
+  // @ts-ignore
+  public static getSampleRevokeAllVotesForBpsTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330102;
     const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b102';
     const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c102';
@@ -262,7 +424,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -273,7 +435,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25345411,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 233,
               ],
             ],
@@ -285,7 +447,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'voteproducer',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -300,12 +462,12 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578f43a',
           account_ram_deltas : [
             {
-              account : 'summerknight',
+              account : actor.account_name,
               delta : -16,
             },
           ],
           act_data : {
-            voter : 'summerknight',
+            voter : actor.account_name,
             proxy : '',
             producers : [],
           },
@@ -316,7 +478,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleClaimEmissionTrace() {
+  // @ts-ignore
+  public static getSampleClaimEmissionTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330103;
     const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b103';
     const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c103';
@@ -325,7 +488,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -336,7 +499,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 142839707,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 200,
               ],
             ],
@@ -348,7 +511,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'withdrawal',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -363,7 +526,7 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
           account_ram_deltas : [],
           act_data : {
-            owner : 'summerknight',
+            owner : actor.account_name,
           },
           inline_traces : [
             {
@@ -571,7 +734,7 @@ class MongoIrreversibleTracesGenerator {
               account_ram_deltas : [],
               act_data : {
                 from : 'uos.calcs',
-                to : 'summerknight',
+                to : actor.account_name,
                 quantity : '1334.8073 UOS',
                 memo : 'transfer issued tokens for account',
               },
@@ -612,7 +775,7 @@ class MongoIrreversibleTracesGenerator {
                   account_ram_deltas : [],
                   act_data : {
                     from : 'uos.calcs',
-                    to : 'summerknight',
+                    to : actor.account_name,
                     quantity : '1334.8073 UOS',
                     memo : 'transfer issued tokens for account',
                   },
@@ -620,7 +783,7 @@ class MongoIrreversibleTracesGenerator {
                 },
                 {
                   receipt : {
-                    receiver : 'summerknight',
+                    receiver : actor.account_name,
                     act_digest : 'e3adad0dafdc17f14174f093f08eefe1492bc5898725c372a113a75bbb4afdc6',
                     global_sequence : 168476033,
                     recv_sequence : 51,
@@ -654,7 +817,7 @@ class MongoIrreversibleTracesGenerator {
                   account_ram_deltas : [],
                   act_data : {
                     from : 'uos.calcs',
-                    to : 'summerknight',
+                    to : actor.account_name,
                     quantity : '1334.8073 UOS',
                     memo : 'transfer issued tokens for account',
                   },
@@ -669,7 +832,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleBuyRamTrace() {
+  // @ts-ignore
+  public static getSampleBuyRamTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330104;
     const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b104';
     const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c104';
@@ -678,7 +842,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -689,7 +853,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25334761,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 201,
               ],
             ],
@@ -701,7 +865,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'buyrambytes',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -716,8 +880,8 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
           account_ram_deltas : [],
           act_data : {
-            payer : 'summerknight',
-            receiver : 'summerknight',
+            payer : actor.account_name,
+            receiver : actor.account_name,
             bytes : 100024,
           },
           inline_traces : [
@@ -729,7 +893,7 @@ class MongoIrreversibleTracesGenerator {
                 recv_sequence : 30627,
                 auth_sequence : [
                   [
-                    'summerknight',
+                    actor.account_name,
                     202,
                   ],
                 ],
@@ -741,7 +905,7 @@ class MongoIrreversibleTracesGenerator {
                 name : 'transfer',
                 authorization : [
                   {
-                    actor : 'summerknight',
+                    actor : actor.account_name,
                     permission : 'active',
                   },
                 ],
@@ -756,7 +920,7 @@ class MongoIrreversibleTracesGenerator {
               producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
               account_ram_deltas : [],
               act_data : {
-                from : 'summerknight',
+                from : actor.account_name,
                 to : 'eosio.ram',
                 quantity : '5.0486 UOS',
                 memo : 'buy ram',
@@ -764,13 +928,13 @@ class MongoIrreversibleTracesGenerator {
               inline_traces : [
                 {
                   receipt : {
-                    receiver : 'summerknight',
+                    receiver : actor.account_name,
                     act_digest : 'd8ab02eef227d40f0664b22c6cd8e9e0a9b0cdf86d525ee9637f0edc70621508',
                     global_sequence : 168479104,
                     recv_sequence : 52,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         203,
                       ],
                     ],
@@ -782,7 +946,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -797,7 +961,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.ram',
                     quantity : '5.0486 UOS',
                     memo : 'buy ram',
@@ -812,7 +976,7 @@ class MongoIrreversibleTracesGenerator {
                     recv_sequence : 1576,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         204,
                       ],
                     ],
@@ -824,7 +988,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -839,7 +1003,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.ram',
                     quantity : '5.0486 UOS',
                     memo : 'buy ram',
@@ -856,7 +1020,7 @@ class MongoIrreversibleTracesGenerator {
                 recv_sequence : 30628,
                 auth_sequence : [
                   [
-                    'summerknight',
+                    actor.account_name,
                     205,
                   ],
                 ],
@@ -868,7 +1032,7 @@ class MongoIrreversibleTracesGenerator {
                 name : 'transfer',
                 authorization : [
                   {
-                    actor : 'summerknight',
+                    actor : actor.account_name,
                     permission : 'active',
                   },
                 ],
@@ -883,7 +1047,7 @@ class MongoIrreversibleTracesGenerator {
               producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
               account_ram_deltas : [],
               act_data : {
-                from : 'summerknight',
+                from : actor.account_name,
                 to : 'eosio.ramfee',
                 quantity : '0.0254 UOS',
                 memo : 'ram fee',
@@ -891,13 +1055,13 @@ class MongoIrreversibleTracesGenerator {
               inline_traces : [
                 {
                   receipt : {
-                    receiver : 'summerknight',
+                    receiver : actor.account_name,
                     act_digest : '7a15554802bf85a3dfca202e55978e2d90353d63601b38086861616ca4043d40',
                     global_sequence : 168479107,
                     recv_sequence : 53,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         206,
                       ],
                     ],
@@ -909,7 +1073,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -924,7 +1088,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.ramfee',
                     quantity : '0.0254 UOS',
                     memo : 'ram fee',
@@ -939,7 +1103,7 @@ class MongoIrreversibleTracesGenerator {
                     recv_sequence : 1576,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         207,
                       ],
                     ],
@@ -951,7 +1115,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -966,7 +1130,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.ramfee',
                     quantity : '0.0254 UOS',
                     memo : 'ram fee',
@@ -982,7 +1146,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleSellRamTrace() {
+  // @ts-ignore
+  public static getSampleSellRamTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330105;
     const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b105';
     const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c105';
@@ -991,7 +1156,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -1002,7 +1167,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25335185,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 208,
               ],
             ],
@@ -1014,7 +1179,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'sellram',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -1029,7 +1194,7 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
           account_ram_deltas : [],
           act_data : {
-            account : 'summerknight',
+            account : actor.account_name,
             bytes : 100001,
           },
           inline_traces : [
@@ -1069,7 +1234,7 @@ class MongoIrreversibleTracesGenerator {
               account_ram_deltas : [],
               act_data : {
                 from : 'eosio.ram',
-                to : 'summerknight',
+                to : actor.account_name,
                 quantity : '5.0729 UOS',
                 memo : 'sell ram',
               },
@@ -1110,7 +1275,7 @@ class MongoIrreversibleTracesGenerator {
                   account_ram_deltas : [],
                   act_data : {
                     from : 'eosio.ram',
-                    to : 'summerknight',
+                    to : actor.account_name,
                     quantity : '5.0729 UOS',
                     memo : 'sell ram',
                   },
@@ -1118,7 +1283,7 @@ class MongoIrreversibleTracesGenerator {
                 },
                 {
                   receipt : {
-                    receiver : 'summerknight',
+                    receiver : actor.account_name,
                     act_digest : '53867ef7ab389af51c4883583c2e6638eee326aec050c3153c12c0f20f1e9cb6',
                     global_sequence : 168482082,
                     recv_sequence : 54,
@@ -1152,7 +1317,7 @@ class MongoIrreversibleTracesGenerator {
                   account_ram_deltas : [],
                   act_data : {
                     from : 'eosio.ram',
-                    to : 'summerknight',
+                    to : actor.account_name,
                     quantity : '5.0729 UOS',
                     memo : 'sell ram',
                   },
@@ -1168,7 +1333,7 @@ class MongoIrreversibleTracesGenerator {
                 recv_sequence : 30630,
                 auth_sequence : [
                   [
-                    'summerknight',
+                    actor.account_name,
                     209,
                   ],
                 ],
@@ -1180,7 +1345,7 @@ class MongoIrreversibleTracesGenerator {
                 name : 'transfer',
                 authorization : [
                   {
-                    actor : 'summerknight',
+                    actor : actor.account_name,
                     permission : 'active',
                   },
                 ],
@@ -1195,7 +1360,7 @@ class MongoIrreversibleTracesGenerator {
               producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
               account_ram_deltas : [],
               act_data : {
-                from : 'summerknight',
+                from : actor.account_name,
                 to : 'eosio.ramfee',
                 quantity : '0.0254 UOS',
                 memo : 'sell ram fee',
@@ -1203,13 +1368,13 @@ class MongoIrreversibleTracesGenerator {
               inline_traces : [
                 {
                   receipt : {
-                    receiver : 'summerknight',
+                    receiver : actor.account_name,
                     act_digest : '73fe6765aeb4432836cf86631b89f57c31b505600bdf9ca4e5bb6ced10880963',
                     global_sequence : 168482084,
                     recv_sequence : 55,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         210,
                       ],
                     ],
@@ -1221,7 +1386,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -1236,7 +1401,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.ramfee',
                     quantity : '0.0254 UOS',
                     memo : 'sell ram fee',
@@ -1251,7 +1416,7 @@ class MongoIrreversibleTracesGenerator {
                     recv_sequence : 1577,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         211,
                       ],
                     ],
@@ -1263,7 +1428,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -1278,7 +1443,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.ramfee',
                     quantity : '0.0254 UOS',
                     memo : 'sell ram fee',
@@ -1294,7 +1459,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleStakeCpuOnlyTrace() {
+  // @ts-ignore
+  public static getSampleStakeCpuOnlyTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330106;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b106';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c106';
@@ -1303,7 +1469,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -1314,7 +1480,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25339912,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 212,
               ],
             ],
@@ -1326,7 +1492,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'delegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -1341,8 +1507,8 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
           account_ram_deltas : [],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             stake_net_quantity : '0.0000 UOS',
             stake_cpu_quantity : '2.0000 UOS',
             transfer : 0,
@@ -1356,7 +1522,7 @@ class MongoIrreversibleTracesGenerator {
                 recv_sequence : 30631,
                 auth_sequence : [
                   [
-                    'summerknight',
+                    actor.account_name,
                     213,
                   ],
                 ],
@@ -1368,7 +1534,7 @@ class MongoIrreversibleTracesGenerator {
                 name : 'transfer',
                 authorization : [
                   {
-                    actor : 'summerknight',
+                    actor : actor.account_name,
                     permission : 'active',
                   },
                 ],
@@ -1383,7 +1549,7 @@ class MongoIrreversibleTracesGenerator {
               producer_block_id : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
               account_ram_deltas : [],
               act_data : {
-                from : 'summerknight',
+                from : actor.account_name,
                 to : 'eosio.stake',
                 quantity : '2.0000 UOS',
                 memo : 'stake bandwidth',
@@ -1391,13 +1557,13 @@ class MongoIrreversibleTracesGenerator {
               inline_traces : [
                 {
                   receipt : {
-                    receiver : 'summerknight',
+                    receiver : actor.account_name,
                     act_digest : '571ec26a2bfdb3b2f0c53b8640049390808020738fc457171f07e15422db7812',
                     global_sequence : 168508570,
                     recv_sequence : 56,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         214,
                       ],
                     ],
@@ -1409,7 +1575,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -1424,7 +1590,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.stake',
                     quantity : '2.0000 UOS',
                     memo : 'stake bandwidth',
@@ -1439,7 +1605,7 @@ class MongoIrreversibleTracesGenerator {
                     recv_sequence : 2805,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         215,
                       ],
                     ],
@@ -1451,7 +1617,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -1466,7 +1632,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.stake',
                     quantity : '2.0000 UOS',
                     memo : 'stake bandwidth',
@@ -1482,7 +1648,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleStakeBothCpuAndNetTrace() {
+  // @ts-ignore
+  public static getSampleStakeBothCpuAndNetTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330107;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b107';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c107';
@@ -1491,7 +1658,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -1502,7 +1669,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25340770,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 217,
               ],
             ],
@@ -1514,7 +1681,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'delegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -1529,13 +1696,13 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
           account_ram_deltas : [
             {
-              account : 'summerknight',
+              account : actor.account_name,
               delta : -600,
             },
           ],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             stake_net_quantity : '2.0000 UOS',
             stake_cpu_quantity : '0.0000 UOS',
             transfer : 0,
@@ -1550,7 +1717,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25340771,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 218,
               ],
             ],
@@ -1562,7 +1729,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'delegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -1577,8 +1744,8 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
           account_ram_deltas : [],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             stake_net_quantity : '0.0000 UOS',
             stake_cpu_quantity : '3.0000 UOS',
             transfer : 0,
@@ -1592,7 +1759,7 @@ class MongoIrreversibleTracesGenerator {
                 recv_sequence : 30632,
                 auth_sequence : [
                   [
-                    'summerknight',
+                    actor.account_name,
                     219,
                   ],
                 ],
@@ -1604,7 +1771,7 @@ class MongoIrreversibleTracesGenerator {
                 name : 'transfer',
                 authorization : [
                   {
-                    actor : 'summerknight',
+                    actor : actor.account_name,
                     permission : 'active',
                   },
                 ],
@@ -1619,7 +1786,7 @@ class MongoIrreversibleTracesGenerator {
               producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
               account_ram_deltas : [],
               act_data : {
-                from : 'summerknight',
+                from : actor.account_name,
                 to : 'eosio.stake',
                 quantity : '3.0000 UOS',
                 memo : 'stake bandwidth',
@@ -1627,13 +1794,13 @@ class MongoIrreversibleTracesGenerator {
               inline_traces : [
                 {
                   receipt : {
-                    receiver : 'summerknight',
+                    receiver : actor.account_name,
                     act_digest : 'dc71c3021123f8fa67e5354b9e268b4c7230245e10e9f0b528571f486128603f',
                     global_sequence : 168514068,
                     recv_sequence : 57,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         220,
                       ],
                     ],
@@ -1645,7 +1812,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -1660,7 +1827,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.stake',
                     quantity : '3.0000 UOS',
                     memo : 'stake bandwidth',
@@ -1675,7 +1842,7 @@ class MongoIrreversibleTracesGenerator {
                     recv_sequence : 2806,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         221,
                       ],
                     ],
@@ -1687,7 +1854,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -1702,7 +1869,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.stake',
                     quantity : '3.0000 UOS',
                     memo : 'stake bandwidth',
@@ -1718,7 +1885,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleStakeNetOnlyTrace() {
+  // @ts-ignore
+  public static getSampleStakeNetOnlyTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330108;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b108';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c108';
@@ -1727,7 +1895,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -1738,7 +1906,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25340955,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 222,
               ],
             ],
@@ -1750,7 +1918,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'delegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -1765,8 +1933,8 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
           account_ram_deltas : [],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             stake_net_quantity : '3.0000 UOS',
             stake_cpu_quantity : '0.0000 UOS',
             transfer : 0,
@@ -1780,7 +1948,7 @@ class MongoIrreversibleTracesGenerator {
                 recv_sequence : 30636,
                 auth_sequence : [
                   [
-                    'summerknight',
+                    actor.account_name,
                     223,
                   ],
                 ],
@@ -1792,7 +1960,7 @@ class MongoIrreversibleTracesGenerator {
                 name : 'transfer',
                 authorization : [
                   {
-                    actor : 'summerknight',
+                    actor : actor.account_name,
                     permission : 'active',
                   },
                 ],
@@ -1807,7 +1975,7 @@ class MongoIrreversibleTracesGenerator {
               producer_block_id : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
               account_ram_deltas : [],
               act_data : {
-                from : 'summerknight',
+                from : actor.account_name,
                 to : 'eosio.stake',
                 quantity : '3.0000 UOS',
                 memo : 'stake bandwidth',
@@ -1815,13 +1983,13 @@ class MongoIrreversibleTracesGenerator {
               inline_traces : [
                 {
                   receipt : {
-                    receiver : 'summerknight',
+                    receiver : actor.account_name,
                     act_digest : 'dc71c3021123f8fa67e5354b9e268b4c7230245e10e9f0b528571f486128603f',
                     global_sequence : 168516062,
                     recv_sequence : 58,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         224,
                       ],
                     ],
@@ -1833,7 +2001,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -1848,7 +2016,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.stake',
                     quantity : '3.0000 UOS',
                     memo : 'stake bandwidth',
@@ -1863,7 +2031,7 @@ class MongoIrreversibleTracesGenerator {
                     recv_sequence : 2807,
                     auth_sequence : [
                       [
-                        'summerknight',
+                        actor.account_name,
                         225,
                       ],
                     ],
@@ -1875,7 +2043,7 @@ class MongoIrreversibleTracesGenerator {
                     name : 'transfer',
                     authorization : [
                       {
-                        actor : 'summerknight',
+                        actor : actor.account_name,
                         permission : 'active',
                       },
                     ],
@@ -1890,7 +2058,7 @@ class MongoIrreversibleTracesGenerator {
                   producer_block_id : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
                   account_ram_deltas : [],
                   act_data : {
-                    from : 'summerknight',
+                    from : actor.account_name,
                     to : 'eosio.stake',
                     quantity : '3.0000 UOS',
                     memo : 'stake bandwidth',
@@ -1906,7 +2074,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleUnstakeCpuOnlyTrace() {
+  // @ts-ignore
+  public static getSampleUnstakeCpuOnlyTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330109;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b109';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c109';
@@ -1915,7 +2084,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -1926,7 +2095,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25344861,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 226,
               ],
             ],
@@ -1938,7 +2107,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'undelegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -1953,13 +2122,13 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '018280e20aff8512af97e90e4ab7425efe21e14408d23660647a2fa24461792e',
           account_ram_deltas : [
             {
-              account : 'summerknight',
+              account : actor.account_name,
               delta : 600,
             },
           ],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             unstake_net_quantity : '0.0000 UOS',
             unstake_cpu_quantity : '3.0000 UOS',
           },
@@ -1970,7 +2139,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleUnstakeNetOnlyTrace() {
+  // @ts-ignore
+  public static getSampleUnstakeNetOnlyTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330110;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b110';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c110';
@@ -1979,7 +2149,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -1990,7 +2160,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25340058,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 216,
               ],
             ],
@@ -2002,7 +2172,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'undelegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -2017,13 +2187,13 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '01826e286c1d95592b7e45217c3f0a8393f5bf49fa8511fd3085a9ea493560e3',
           account_ram_deltas : [
             {
-              account : 'summerknight',
+              account : actor.account_name,
               delta : 600,
             },
           ],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             unstake_net_quantity : '2.0000 UOS',
             unstake_cpu_quantity : '0.0000 UOS',
           },
@@ -2034,7 +2204,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleUnstakeBothCpuAndNetTrace() {
+  // @ts-ignore
+  public static getSampleUnstakeBothCpuAndNetTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330111;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b111';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c111';
@@ -2043,7 +2214,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -2054,7 +2225,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25344988,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 227,
               ],
             ],
@@ -2066,7 +2237,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'undelegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -2081,13 +2252,13 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '018281606fe89d2fd45bb963a58acf0cdf31914a074110dfff9c7c119fe6e889',
           account_ram_deltas : [
             {
-              account : 'summerknight',
+              account : actor.account_name,
               delta : 0,
             },
           ],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             unstake_net_quantity : '1.0000 UOS',
             unstake_cpu_quantity : '0.0000 UOS',
           },
@@ -2101,7 +2272,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25344989,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 228,
               ],
             ],
@@ -2113,7 +2284,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'undelegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -2128,13 +2299,13 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '018281606fe89d2fd45bb963a58acf0cdf31914a074110dfff9c7c119fe6e889',
           account_ram_deltas : [
             {
-              account : 'summerknight',
+              account : actor.account_name,
               delta : 0,
             },
           ],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             unstake_net_quantity : '0.0000 UOS',
             unstake_cpu_quantity : '4.0000 UOS',
           },
@@ -2145,7 +2316,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleStakeCpuAndUnstakeNetTrace() {
+  // @ts-ignore
+  public static getSampleStakeCpuAndUnstakeNetTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330112;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b112';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c112';
@@ -2154,7 +2326,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -2165,7 +2337,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25347032,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 235,
               ],
             ],
@@ -2177,7 +2349,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'undelegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -2192,13 +2364,13 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '01828951a5829aab6c71bd165b6e5572cf796613d9254b9f488a7d6fbbd3faba',
           account_ram_deltas : [
             {
-              account : 'summerknight',
+              account : actor.account_name,
               delta : 0,
             },
           ],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             unstake_net_quantity : '3.0000 UOS',
             unstake_cpu_quantity : '0.0000 UOS',
           },
@@ -2212,7 +2384,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 25347033,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 236,
               ],
             ],
@@ -2224,7 +2396,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'delegatebw',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -2239,13 +2411,13 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '01828951a5829aab6c71bd165b6e5572cf796613d9254b9f488a7d6fbbd3faba',
           account_ram_deltas : [
             {
-              account : 'summerknight',
+              account : actor.account_name,
               delta : 0,
             },
           ],
           act_data : {
-            from : 'summerknight',
-            receiver : 'summerknight',
+            from : actor.account_name,
+            receiver : actor.account_name,
             stake_net_quantity : '0.0000 UOS',
             stake_cpu_quantity : '3.0000 UOS',
             transfer : 0,
@@ -2257,7 +2429,8 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  public static getSampleDownvoteTrace() {
+  // @ts-ignore
+  public static getSampleDownvoteTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330113;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b113';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c113';
@@ -2266,7 +2439,7 @@ class MongoIrreversibleTracesGenerator {
       blocknum : blockNumber,
       blockid : blockId,
       trxid : trxId,
-      account : 'summerknight',
+      account : actor.account_name,
       irreversible : true,
       actions : [
         {
@@ -2277,7 +2450,7 @@ class MongoIrreversibleTracesGenerator {
             recv_sequence : 237022,
             auth_sequence : [
               [
-                'summerknight',
+                actor.account_name,
                 234,
               ],
             ],
@@ -2289,7 +2462,7 @@ class MongoIrreversibleTracesGenerator {
             name : 'usertocont',
             authorization : [
               {
-                actor : 'summerknight',
+                actor : actor.account_name,
                 permission : 'active',
               },
             ],
@@ -2304,7 +2477,7 @@ class MongoIrreversibleTracesGenerator {
           producer_block_id : '018284ee32b197ea7a91171948fd24ab66f321c01f1bb54e03719fb0a37c2ac7',
           account_ram_deltas : [],
           act_data : {
-            acc : 'summerknight',
+            acc : actor.account_name,
             content_id : 'pstdr-xubjvejhjt8rayz1',
             interaction_type_id : 4,
           },

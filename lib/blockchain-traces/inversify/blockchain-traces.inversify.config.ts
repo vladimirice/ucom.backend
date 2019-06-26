@@ -6,10 +6,10 @@ import TracesCommonFieldsValidator = require('../validator/traces-common-fields-
 import BlockchainTracesSyncService = require('../service/blockchain-traces-sync-service');
 import BlockchainTracesProcessorChain = require('../service/blockchain-traces-processor-chain');
 import UnknownTraceProcessor = require('../trace-processors/unknown-trace-processor');
-import TransferTokensTraceProcessor = require('../trace-processors/transfer-tokens-trace-processor');
+import TransferUosTokensTraceProcessor = require('../trace-processors/transfer-uos-tokens-trace-processor');
 
 function addTraceProcessors(diContainer: Container) {
-  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(TransferTokensTraceProcessor);
+  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(TransferUosTokensTraceProcessor);
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UnknownTraceProcessor);
 }
 

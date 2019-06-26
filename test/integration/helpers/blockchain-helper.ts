@@ -5,7 +5,6 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 // import BlockchainService = require('../../../lib/eos/service/blockchain-service');
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
-import UsersHelper = require('./users-helper');
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 import BlockchainCacheService = require('../../../lib/blockchain-nodes/service/blockchain-cache-service');
 
@@ -2507,7 +2506,7 @@ class BlockchainHelper {
   /**
    * @return {Promise<Object>}
    */
-  static async requestToGetMyselfBlockchainTransactions(
+  static async requestToGetMyselfBlockchainTraces(
     myself,
     expectedStatus = 200,
     queryString = '',
@@ -2539,11 +2538,7 @@ class BlockchainHelper {
     return res.body.data;
   }
 
-  /**
-   *
-   * @param models
-   */
-  static checkMyselfBlockchainTransactionsStructure(models) {
+  public static checkMyselfBlockchainTransactionsStructure(traces) {
     const trTypeToProcessor = {
       [blockchainTrTypesDictionary.getTypeTransfer()]:          BlockchainHelper.checkTrTransfer,
       [blockchainTrTypesDictionary.getLabelTransferFrom()]:     BlockchainHelper.checkTrTransfer,
@@ -2558,7 +2553,7 @@ class BlockchainHelper {
       [blockchainTrTypesDictionary.getTypeSellRam()]:           BlockchainHelper.checkTypeBuyOrSellRam,
     };
 
-    models.forEach((model) => {
+    traces.forEach((model) => {
       expect(model.tr_type).toBeDefined();
 
       const checker = trTypeToProcessor[model.tr_type];
@@ -2572,23 +2567,21 @@ class BlockchainHelper {
   }
 
   /**
-   *
-   * @param {Object} model
+   * @deprecated
+   * @param {Object} trace
    * @private
    */
-  static checkTrTransfer(model) {
+  static checkTrTransfer(trace) {
     const possibleValues = [
       blockchainTrTypesDictionary.getLabelTransferFrom(),
       blockchainTrTypesDictionary.getLabelTransferTo(),
     ];
 
-    BlockchainHelper.checkCommonTrTracesFields(model);
-    expect(~possibleValues.indexOf(model.tr_type)).toBeTruthy();
-    expect(model.tokens).toBeDefined();
-    expect(typeof model.tokens.active).toBe('number');
-    expect(model.tokens.currency).toBe('UOS');
-
-    UsersHelper.checkIncludedUserPreview(model);
+    BlockchainHelper.checkCommonTrTracesFields(trace);
+    expect(~possibleValues.indexOf(trace.tr_type)).toBeTruthy();
+    expect(trace.tokens).toBeDefined();
+    expect(typeof trace.tokens.active).toBe('number');
+    expect(trace.tokens.currency).toBe('UOS');
   }
 
   /**
@@ -2728,7 +2721,7 @@ class BlockchainHelper {
   }
 
   /**
-   *
+   * @deprecated
    * @param {Object} model
    * @private
    */
@@ -2736,9 +2729,6 @@ class BlockchainHelper {
     expect(typeof model.updated_at).toBe('string');
     expect(model.updated_at.length).toBeGreaterThan(0);
     expect(model.raw_tr_data).toBeDefined();
-    expect(model.raw_tr_data.block_data).toBeDefined();
-    expect(Object.keys(model.raw_tr_data.block_data).length).toBe(7);
-    expect(Object.keys(model.raw_tr_data).length).toBeGreaterThan(0);
   }
 
   static checkManyNodes(models, isMyselfDataRequired, blockchainNodesType: number | null = null) {

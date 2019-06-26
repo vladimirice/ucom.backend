@@ -1,5 +1,6 @@
 import { diContainer } from '../../../config/inversify/inversify.config';
 import { BlockchainTracesDiTypes } from '../../../lib/blockchain-traces/interfaces/di-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import MongoIrreversibleTracesGenerator = require('../../generators/blockchain/irreversible_traces/mongo-irreversible-traces-generator');
 import BlockchainHelper = require('../helpers/blockchain-helper');
@@ -7,6 +8,9 @@ import RequestHelper = require('../helpers/request-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import BlockchainTracesSyncService = require('../../../lib/blockchain-traces/service/blockchain-traces-sync-service');
 
+import IrreversibleTracesChecker = require('../../helpers/blockchain/irreversible-traces/irreversible-traces-checker');
+
+const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 
 const delay = require('delay');
 // eslint-disable-next-line node/no-missing-require,node/no-missing-require
@@ -14,7 +18,6 @@ const helpers = require('../helpers');
 
 // eslint-disable-next-line node/no-missing-require
 const gen     = require('../../generators');
-
 
 const blockchainTrTracesService =
   require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
@@ -26,7 +29,8 @@ const blockchainTrTracesDictionary  =
 helpers.Mock.mockAllBlockchainPart();
 helpers.Mock.mockAllTransactionSigning();
 
-let userVlad;
+let userVlad: UserModel;
+let userJane: UserModel;
 
 const JEST_TIMEOUT = 40000;
 
@@ -35,24 +39,51 @@ describe('Blockchain tr traces sync tests', () => {
   afterAll(async () => { await SeedsHelper.afterAllWithoutGraphQl(); });
 
   beforeEach(async () => {
-    [userVlad] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   }, JEST_TIMEOUT);
 
   describe('irreversible transaction traces', () => {
-    it('test', async () => {
-      await MongoIrreversibleTracesGenerator.insertAllSampleTraces();
-      const syncService: BlockchainTracesSyncService
-        = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
+    describe('check traces', () => {
+      it('validate a tokens transfer traces - from and to', async () => {
+        await MongoIrreversibleTracesGenerator.insertAllSampleTraces(userVlad, userJane);
+        const syncService: BlockchainTracesSyncService
+          = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
 
-      const stats = await syncService.process();
+        await syncService.process();
 
-      expect(stats.totalProcessedCounter).toBe(2);
-      expect(stats.totalSkippedCounter).toBe(0);
+        const queryString = RequestHelper.getPaginationQueryString(1, 50);
+        const models = await BlockchainHelper.requestToGetMyselfBlockchainTraces(
+          userVlad,
+          200,
+          queryString,
+        );
 
-      // TODO - more autotests
-    }, JEST_TIMEOUT);
+        const transferTraceFrom = models.find(item => item.tr_type === BlockchainTrTraces.getLabelTransferFrom());
+        IrreversibleTracesChecker.checkUosTransferFrom(transferTraceFrom, userJane);
+
+        const transferTraceTo = models.find(item => item.tr_type === BlockchainTrTraces.getLabelTransferTo());
+        IrreversibleTracesChecker.checkUosTransferTo(transferTraceTo, userJane);
+
+        const foreignTraces = models.filter(item => item.tr_type === BlockchainTrTraces.getLabelTransferForeign());
+        expect(foreignTraces.length).toBe(2);
+
+        foreignTraces.forEach(item => IrreversibleTracesChecker.checkUosTransferForeign(item));
+      });
+
+      it('vote for calculators', async () => {
+        // TODO
+      });
+
+      it('unvote for all calculators', async () => {
+        // TODO
+      });
+    });
 
     it('just save unknown transaction to database without any processing', async () => {
+      // TODO
+    });
+
+    it('sync a new portion of data - from last saved block', async () => {
       // TODO
     });
   });
@@ -60,7 +91,7 @@ describe('Blockchain tr traces sync tests', () => {
   describe('Smoke test', () => {
     it('Smoke test', async () => {
       const queryString = RequestHelper.getPaginationQueryString(1, 10);
-      await BlockchainHelper.requestToGetMyselfBlockchainTransactions(
+      await BlockchainHelper.requestToGetMyselfBlockchainTraces(
         userVlad,
         200,
         queryString,
@@ -96,7 +127,7 @@ describe('Blockchain tr traces sync tests', () => {
       );
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
         userVlad,
         200,
         queryString,
@@ -146,7 +177,7 @@ describe('Blockchain tr traces sync tests', () => {
       await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
         userVlad,
         200,
         queryString,
@@ -196,7 +227,7 @@ describe('Blockchain tr traces sync tests', () => {
       );
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
         userVlad,
         200,
         queryString,
@@ -241,7 +272,7 @@ describe('Blockchain tr traces sync tests', () => {
       await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
         userVlad,
         200,
         queryString,
@@ -285,7 +316,7 @@ describe('Blockchain tr traces sync tests', () => {
       await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
 
       const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
         userVlad,
         200,
         queryString,
@@ -323,7 +354,7 @@ describe('Blockchain tr traces sync tests', () => {
     await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne]);
 
     const queryString = helpers.Req.getPaginationQueryString(1, 10);
-    const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+    const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
       userVlad,
       200,
       queryString,
@@ -350,7 +381,7 @@ describe('Blockchain tr traces sync tests', () => {
     await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne]);
 
     const queryString = helpers.Req.getPaginationQueryString(1, 10);
-    const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+    const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
       userVlad,
       200,
       queryString,

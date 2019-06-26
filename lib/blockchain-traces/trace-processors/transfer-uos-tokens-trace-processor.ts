@@ -5,15 +5,17 @@ import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfa
 
 import 'reflect-metadata';
 import { ITraceTransferTokensData } from '../interfaces/blockchain-actions-interfaces';
+import { UOS } from '../../common/dictionary/symbols-dictionary';
 
 import CommonTracesProcessor = require('./common-traces-processor');
+import BalancesHelper = require('../../common/helper/blockchain/balances-helper');
 
 const joi = require('joi');
 
 const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 
 @injectable()
-class TransferTokensTraceProcessor implements TraceProcessor {
+class TransferUosTokensTraceProcessor implements TraceProcessor {
   private readonly traceType        = BlockchainTrTraces.getTypeTransfer();
 
   private readonly expectedActName  = 'transfer';
@@ -24,7 +26,7 @@ class TransferTokensTraceProcessor implements TraceProcessor {
     from:               joi.string().required().min(1).max(12),
     to:                 joi.string().required().min(1).max(12),
     memo:               joi.string().empty(''),
-    quantity:           joi.string().required().min(1),
+    quantity:           joi.string().required().regex(new RegExp(UOS)),
   };
 
 
@@ -53,7 +55,7 @@ class TransferTokensTraceProcessor implements TraceProcessor {
       return null;
     }
 
-    const processedTrace = {}; // TODO - prepare as for old data
+    const processedTrace = this.getTraceThumbnail(actionData);
 
     return CommonTracesProcessor.getTraceToInsertToDb(
       this.traceType,
@@ -64,6 +66,15 @@ class TransferTokensTraceProcessor implements TraceProcessor {
       actionData.memo,
     );
   }
+
+  private getTraceThumbnail(actionData: ITraceTransferTokensData) {
+    return {
+      tokens: {
+        active:   BalancesHelper.getTokensAmountFromString(actionData.quantity, UOS),
+        currency: UOS,
+      },
+    };
+  }
 }
 
-export = TransferTokensTraceProcessor;
+export = TransferUosTokensTraceProcessor;

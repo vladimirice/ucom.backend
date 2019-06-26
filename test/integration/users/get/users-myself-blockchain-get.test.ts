@@ -26,7 +26,7 @@ describe('Myself blockchain GET', () => {
 
     it.skip('Pagination smoke test', async () => {
       const queryString = helpers.Req.getPaginationQueryString(2, 5);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
         userVlad,
         200,
         queryString,
@@ -35,7 +35,7 @@ describe('Myself blockchain GET', () => {
     });
 
     it.skip('Smoke test. Ensure different transactions structure', async () => {
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTransactions(userVlad);
+      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(userVlad);
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
     });
   });
