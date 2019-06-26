@@ -6,6 +6,7 @@ import { GraphqlHelper } from '../helpers/graphql-helper';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
 
 import CommonHelper = require('../helpers/common-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
@@ -14,7 +15,8 @@ import CommentsGenerator = require('../../generators/comments-generator');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 import ActivityHelper = require('../helpers/activity-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
-import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
+
+import UsersHelper = require('../helpers/users-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -23,7 +25,7 @@ const JEST_TIMEOUT = 20000;
 
 describe('#feeds #graphql', () => {
   beforeAll(async () => {
-    await GraphqlRequestHelper.beforeAll();
+    await SeedsHelper.withGraphQlMockAllWorkers();
   });
 
   afterAll(async () => {
@@ -34,7 +36,7 @@ describe('#feeds #graphql', () => {
   });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   it('#smoke Comment on comment should contain organization data', async () => {
@@ -131,6 +133,7 @@ describe('#feeds #graphql', () => {
         comments: {
           isEmpty: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       await CommonHelper.checkManyCommentsV2(response, options);
@@ -199,6 +202,7 @@ describe('#feeds #graphql', () => {
         comments: {
           isEmpty: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       await CommonHelper.checkManyCommentsV2(response, options);
@@ -206,11 +210,10 @@ describe('#feeds #graphql', () => {
 
     it('#smoke - should get all depth = 0 comments', async () => {
       const targetUser = userVlad;
-      const directPostAuthor = userJane;
 
       const promisesToCreatePosts = [
         PostsGenerator.createMediaPostByUserHimself(targetUser),
-        PostsGenerator.createUserDirectPostForOtherUser(directPostAuthor, targetUser, null, true),
+        PostsGenerator.createUserDirectPostForOtherUser(userJane, targetUser, null, true),
       ];
 
       // @ts-ignore
@@ -250,6 +253,7 @@ describe('#feeds #graphql', () => {
         comments: {
           isEmpty: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkManyCommentsV2(response, options);

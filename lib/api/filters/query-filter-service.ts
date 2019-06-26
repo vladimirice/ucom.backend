@@ -74,7 +74,7 @@ class QueryFilterService {
     params: DbParamsDto,
   ): void {
     if (!params.orderByRaw && params.order) {
-      params.orderByRaw = this.sequelizeOrderByToKnexRaw(params.order);
+      params.orderByRaw = QueryFilterService.sequelizeOrderByToKnexRaw(params.order);
     }
 
     this.addWhereRawParamToKnexQuery(queryBuilder, params);
@@ -84,9 +84,11 @@ class QueryFilterService {
       queryBuilder.orderByRaw(params.orderByRaw);
     }
 
-    // noinspection JSIgnoredPromiseFromCall
+    if (params.attributes) {
+      queryBuilder.select(params.attributes);
+    }
+
     queryBuilder
-      .select(params.attributes)
       .limit(params.limit || PER_PAGE_LIMIT)
       .offset(params.offset || 0)
     ;

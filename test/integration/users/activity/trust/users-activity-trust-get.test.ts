@@ -9,6 +9,9 @@ import UsersRepository = require('../../../../../lib/users/users-repository');
 import UsersHelper = require('../../../helpers/users-helper');
 import UsersActivityRequestHelper = require('../../../../helpers/users/activity/users-activity-request-helper');
 import ActivityHelper = require('../../../helpers/activity-helper');
+import CommonChecker = require('../../../../helpers/common/common-checker');
+import MockHelper = require('../../../helpers/mock-helper');
+import UosAccountsPropertiesUpdateService = require('../../../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 
 require('jest-expect-message');
 
@@ -35,11 +38,13 @@ describe('Users activity trust GET', () => {
   });
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
+
+    await MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
+    await UosAccountsPropertiesUpdateService.updateAll();
   });
 
   describe('Do you trust this user', () => {
     it('trust property should be filled', async () => {
-      // fetch via graphql parts
       const userVladBefore = await OneUserRequestHelper.getOneUserAsMyself(userJane, userVlad.id);
 
       expect(typeof userVladBefore.myselfData.trust).toBe('boolean');
@@ -78,8 +83,8 @@ describe('Users activity trust GET', () => {
         const janeOnlyTrustedByList =
           await OneUserRequestHelper.getOneUserTrustedByAsGuest(userJane.id);
 
-        CommonHelper.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
-        CommonHelper.checkUsersListResponseForMyselfData(janeOnlyTrustedByList);
+        CommonChecker.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
+        CommonHelper.checkUsersListResponseWithProps(janeOnlyTrustedByList, true);
       });
 
       it('Order by -id', async () => {
@@ -92,8 +97,8 @@ describe('Users activity trust GET', () => {
           orderBy,
         );
 
-        CommonHelper.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
-        CommonHelper.checkUsersListResponseForMyselfData(janeOnlyTrustedByList);
+        CommonChecker.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
+        CommonHelper.checkUsersListResponseWithProps(janeOnlyTrustedByList, true);
       });
 
       it('GET One user is trusted by', async () => {
@@ -104,8 +109,8 @@ describe('Users activity trust GET', () => {
 
         const janeOnlyTrustedByList = await OneUserRequestHelper.getOneUserTrustedByAsMyself(userVlad, userJane.id);
 
-        CommonHelper.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
-        CommonHelper.checkUsersListResponseForMyselfData(janeOnlyTrustedByList);
+        CommonChecker.expectModelIdsExistenceInResponseList(janeOnlyTrustedByList, [userVlad.id]);
+        CommonHelper.checkUsersListResponseWithProps(janeOnlyTrustedByList, true);
 
         // Second user trusts jane
         await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userPetr, userJane.id);
@@ -114,8 +119,9 @@ describe('Users activity trust GET', () => {
         await ActivityHelper.requestToCreateFollowHistory(userRokky, userJane);
 
         const twoUsersTrustList = await OneUserRequestHelper.getOneUserTrustedByAsMyself(userVlad, userJane.id);
-        CommonHelper.expectModelIdsExistenceInResponseList(twoUsersTrustList, [userVlad.id, userPetr.id]);
-        CommonHelper.checkUsersListResponseForMyselfData(twoUsersTrustList);
+        CommonChecker.expectModelIdsExistenceInResponseList(twoUsersTrustList, [userVlad.id, userPetr.id]);
+
+        CommonHelper.checkUsersListResponseWithProps(twoUsersTrustList, true);
       }, JEST_TIMEOUT);
 
       it('Get one user with trusted by list', async () => {
@@ -129,14 +135,15 @@ describe('Users activity trust GET', () => {
         expect(_.isEmpty(response.data.one_user)).toBeFalsy();
         expect(_.isEmpty(response.data.one_user_trusted_by)).toBeFalsy();
 
-        CommonHelper.checkUsersListResponseForMyselfData(response.data.one_user_trusted_by);
-        CommonHelper.expectModelIdsExistenceInResponseList(
+        CommonChecker.expectModelIdsExistenceInResponseList(
           response.data.one_user_trusted_by,
           [userVlad.id, userPetr.id],
         );
 
         const userJaneFromDb = await UsersRepository.getUserById(userJane.id);
         UsersHelper.validateUserJson(response.data.one_user, userJane, userJaneFromDb);
+
+        CommonHelper.checkUsersListResponseWithProps(response.data.one_user_trusted_by, true);
       });
     });
   });

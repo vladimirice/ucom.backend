@@ -39,10 +39,15 @@ interface UsersRequestQueryDto extends RequestQueryDto {
   }
 }
 
+interface UsersActivityQueryDto extends UsersRequestQueryDto {
+  readonly activity_type: string;
+}
+
 export {
   UserModelCard,
   UserModel,
   UserIdToUserModelCard,
   UsersListResponse,
   UsersRequestQueryDto,
+  UsersActivityQueryDto,
 };

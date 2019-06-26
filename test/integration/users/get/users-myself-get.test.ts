@@ -1,5 +1,4 @@
 import RequestHelper = require('../../helpers/request-helper');
-import MockHelper = require('../../helpers/mock-helper');
 import SeedsHelper = require('../../helpers/seeds-helper');
 import UsersHelper = require('../../helpers/users-helper');
 import ActivityHelper = require('../../helpers/activity-helper');
@@ -7,14 +6,12 @@ import PostsGenerator = require('../../../generators/posts-generator');
 import ResponseHelper = require('../../helpers/response-helper');
 import UsersRepository = require('../../../../lib/users/users-repository');
 import UsersActivityRepository = require('../../../../lib/users/repository/users-activity-repository');
-import UosAccountsPropertiesUpdateService = require('../../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
+import CommonChecker = require('../../../helpers/common/common-checker');
+import OneUserRequestHelper = require('../../../helpers/users/one-user-request-helper');
 
 const request = require('supertest');
 
 const server = RequestHelper.getApiApplication();
-
-MockHelper.mockAllBlockchainPart();
-MockHelper.mockAllTransactionSigning();
 
 const JEST_TIMEOUT = 5000;
 
@@ -25,34 +22,26 @@ let userRokky;
 
 describe('Myself. Get requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
-  });
+    await SeedsHelper.noGraphQlMockAllWorkers();
+  }, JEST_TIMEOUT * 3);
 
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await SeedsHelper.initUsersOnly();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Get myself data', () => {
     describe('scaled importance', () => {
       it('myself data should include scaled importance greater than zero', async () => {
-        MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
-        await UosAccountsPropertiesUpdateService.updateAll();
-
-        const response = await request(server)
-          .get(RequestHelper.getMyselfUrl())
-          .set('Authorization', `Bearer ${userVlad.token}`);
-
-        const { body } = response;
+        const user = await OneUserRequestHelper.getMyself(userVlad);
 
         const dbUser = await UsersRepository.getUserById(userVlad.id);
+        UsersHelper.validateUserJson(user, userVlad, dbUser);
 
-        UsersHelper.validateUserJson(body, userVlad, dbUser);
-
-        expect(body.scaled_importance).toBeGreaterThan(0);
+        CommonChecker.expectAllFieldsPositiveOrZeroNumber(user, ['scaled_importance', 'scaled_importance_delta']);
       }, JEST_TIMEOUT);
 
       it('myself data should include zero scaled importance if no stats yet', async () => {
@@ -66,7 +55,7 @@ describe('Myself. Get requests', () => {
 
         UsersHelper.validateUserJson(body, userVlad, dbUser);
 
-        expect(body.scaled_importance).toBe(0);
+        expect(body.scaled_importance).toBeGreaterThanOrEqual(0);
       }, JEST_TIMEOUT);
     });
 

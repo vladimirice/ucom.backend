@@ -1,5 +1,5 @@
 import { GraphqlRequestHelper } from '../common/graphql-request-helper';
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { UserModel, UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 import ResponseHelper = require('../../integration/helpers/response-helper');
@@ -151,6 +151,48 @@ class OneUserRequestHelper {
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
+  }
+
+  public static async getOneUserFollowedBy(
+    user: UserModel,
+    orderBy: string = '-current_rate',
+    myself: UserModel | null = null,
+  ): Promise<UsersListResponse> {
+    const params = {
+      filters: {
+        user_identity: `${user.id}`,
+        activity: 'followed_by',
+      },
+      order_by: orderBy,
+      page: 1,
+      per_page: 10,
+    };
+
+    const part        = GraphQLSchema.getOneUserActivityQueryPart(params);
+    const keyToReturn = 'one_user_activity';
+
+    return GraphqlRequestHelper.makeRequestFromOneQueryPartByFetch(part, keyToReturn, myself);
+  }
+
+  public static async getOneUserFollowsOtherUsers(
+    user: UserModel,
+    orderBy: string = '-current_rate',
+    myself: UserModel | null = null,
+  ): Promise<UsersListResponse> {
+    const params = {
+      filters: {
+        user_identity:  `${user.id}`,
+        activity:       'I_follow',
+      },
+      order_by: orderBy,
+      page: 1,
+      per_page: 10,
+    };
+
+    const part        = GraphQLSchema.getOneUserActivityQueryPart(params);
+    const keyToReturn = 'one_user_activity';
+
+    return GraphqlRequestHelper.makeRequestFromOneQueryPartByFetch(part, keyToReturn, myself);
   }
 
   public static async getOneUserAsGuest(

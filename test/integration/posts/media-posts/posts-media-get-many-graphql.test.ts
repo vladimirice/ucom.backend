@@ -17,6 +17,7 @@ import _ = require('lodash');
 import OrganizationsHelper = require('../../helpers/organizations-helper');
 import TagsHelper = require('../../helpers/tags-helper');
 import StatsGenerator = require('../../../generators/stats-generator');
+import UsersHelper = require('../../helpers/users-helper');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -31,6 +32,7 @@ function checkPostsPage(response, expected) {
     author: {
       myselfData: true,
     },
+    ...UsersHelper.propsAndCurrentParamsOptions(true),
   };
 
   expect(_.isEmpty(response.data)).toBeFalsy();
@@ -54,7 +56,7 @@ describe('GET posts via graphql', () => {
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
 
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Media Posts trending', () => {
@@ -94,6 +96,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -117,6 +120,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -198,6 +202,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -285,6 +290,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -353,6 +359,7 @@ describe('GET posts via graphql', () => {
         author: {
           myselfData: true,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
       };
 
       CommonHelper.checkUsersListResponse(response, options);
@@ -429,7 +436,6 @@ describe('GET posts via graphql', () => {
 
     it('Should work for request from guest #smoke #guest #posts', async () => {
       const vladMediaPostsAmount: number = 3;
-      const isMyself: boolean = false;
       const isCommentsEmpty: boolean = true;
       const userVladMediaPosts: number[] =
         await PostsGenerator.createManyDefaultMediaPostsByUserHimself(
@@ -443,7 +449,7 @@ describe('GET posts via graphql', () => {
 
       const response: PostsListResponse = await GraphqlHelper.getManyPostsAsGuest(postFiltering);
 
-      CommonHelper.checkPostListResponseWithoutOrg(response, isMyself, isCommentsEmpty);
+      CommonHelper.checkPostListResponseWithoutOrg(response, false, isCommentsEmpty, false);
 
       CommonHelper.expectModelsExistence(response.data, userVladMediaPosts);
     }, JEST_TIMEOUT);
@@ -510,8 +516,6 @@ describe('GET posts via graphql', () => {
 
     it('There is no direct post/repost inside posts list because of filter. #smoke #posts', async () => {
       const { postId, repostId } = await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
-
-      return;
 
       const directPostId: number =
         await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);

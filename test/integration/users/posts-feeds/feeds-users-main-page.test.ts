@@ -27,7 +27,7 @@ describe('Users feeds - main page', () => {
   });
 
   beforeEach(async () => {
-    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Positive', () => {
@@ -65,7 +65,7 @@ describe('Users feeds - main page', () => {
       ]);
     });
 
-    it('top publications of users', async () => {
+    it('top publications of users - only from and to users', async () => {
       const response = await PostsGraphqlRequest.getUsersMainPageTopPublications();
 
       CommonChecker.expectModelIdsExistenceInResponseList(response, userHimselfMediaPostsIds);
@@ -78,6 +78,27 @@ describe('Users feeds - main page', () => {
       for (const post of response.data) {
         expect(post.entity_name_for).toBe(EntityNames.USERS);
         expect(post.organization_id).toBeNull();
+      }
+    }, JEST_TIMEOUT);
+
+    it('top publications of users - from and to everybody', async () => {
+      const response = await PostsGraphqlRequest.getMainPageTopPublicationsForAll();
+
+      CommonChecker.expectModelIdsExistenceInResponseList(response, [
+        ...userHimselfMediaPostsIds,
+        ...orgPostIds,
+      ]);
+
+      CommonChecker.expectModelIdsDoNotExistInResponseList(
+        response,
+        [
+          ...userToOrgDirectPostsIds,
+          ...repostIds,
+        ],
+      );
+
+      for (const post of response.data) {
+        expect([EntityNames.USERS, EntityNames.ORGANIZATIONS].includes(post.entity_name_for));
       }
     }, JEST_TIMEOUT);
 

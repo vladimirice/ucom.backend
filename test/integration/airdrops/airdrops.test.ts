@@ -14,7 +14,7 @@ import AirdropsUsersToPendingService = require('../../../lib/airdrops/service/st
 import _ = require('lodash');
 import ResponseHelper = require('../helpers/response-helper');
 import AirdropsTestSet = require('../../helpers/airdrops/airdrops-test-set');
-import PostsGenerator = require('../../generators/posts-generator');
+import UsersHelper = require('../helpers/users-helper');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -38,7 +38,7 @@ describe('Airdrops create-get', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
     await AirdropsUsersGenerator.generateForVladAndJane();
     await AirdropsUsersGenerator.generateForVladAndJaneRoundTwo();
   });
@@ -47,8 +47,6 @@ describe('Airdrops create-get', () => {
     it('Get many participants as separate request - first round', async () => {
       const airdropCreationResponse = await AirdropsGenerator.createNewAirdrop(userVlad);
       await AirdropsTestSet.getManyParticipantsAsSeparateRequest(userVlad, userJane, airdropCreationResponse);
-
-      await PostsGenerator.createMediaPostByUserHimself(userVlad);
     }, JEST_TIMEOUT);
 
     it('Get many participants as separate request - second round', async () => {
@@ -86,6 +84,13 @@ describe('Airdrops create-get', () => {
       expect(manyUsersSecondPage.metadata.has_more).toBeFalsy();
       expect(manyUsersSecondPage.metadata.page).toBe(2);
       expect(manyUsersSecondPage.metadata.per_page).toBe(1);
+
+      const options = {
+        airdrops: true,
+        ...UsersHelper.propsAndCurrentParamsOptions(true),
+      };
+
+      CommonHelper.checkUsersListResponse(manyUsersFirstPage, options);
     }, JEST_TIMEOUT);
 
     it('Smoke - Check ordering', async () => {
@@ -161,6 +166,13 @@ describe('Airdrops create-get', () => {
       );
 
       expect(postOfferWithTeam.users_team.data.length).toBe(2);
+
+      const options = {
+        airdrops: true,
+        ...UsersHelper.propsAndCurrentParamsOptions(false),
+      };
+
+      CommonHelper.checkUsersListResponse(postOfferWithTeam.users_team, options);
 
       const claimedAmounts = {
         UOSTEST: 0,

@@ -21,16 +21,12 @@ let userJane;
 const JEST_TIMEOUT = 10000;
 
 describe('Organizations. Get requests', () => {
-  beforeAll(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
-  });
-
   afterAll(async () => {
     await SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await SeedsHelper.initUsersOnly();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('Users wall feed', () => {
@@ -144,6 +140,7 @@ describe('Organizations. Get requests', () => {
         const options = {
           myselfData: false,
           postProcessing: 'list',
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
         };
 
         await CommonHelper.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
@@ -171,6 +168,7 @@ describe('Organizations. Get requests', () => {
         const options = {
           myselfData: true,
           postProcessing: 'list',
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
         };
 
         await CommonHelper.checkPostsListFromApi(posts, promisesToCreatePosts.length, options);
@@ -225,6 +223,7 @@ describe('Organizations. Get requests', () => {
     const options = {
       myselfData: false,
       postProcessing: 'list',
+      ...UsersHelper.propsAndCurrentParamsOptions(false),
     };
 
     await CommonHelper.checkPostsListFromApi(models, expectedLength, options);

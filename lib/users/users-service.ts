@@ -66,6 +66,7 @@ class UsersService {
     const userJson = userModel.toJSON();
 
     UserPostProcessor.processUosAccountsProperties(userJson);
+    UserPostProcessor.processUsersCurrentParams(userJson);
 
     return userJson;
   }

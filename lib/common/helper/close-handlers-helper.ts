@@ -8,15 +8,19 @@ const models = require('../../../models');
 
 class CloseHandlersHelper {
   public static async closeDbConnections() {
+    this.closeSequelizeAndKnex();
+
+    await this.terminateConnections(config.db_knex_monolith.connection);
+    await this.terminateConnections(config.db_knex_events.connection);
+  }
+
+  public static async closeSequelizeAndKnex() {
     await Promise.all([
       knex.destroy(),
       knexEvents.destroy(),
 
       models.sequelize.close(),
     ]);
-
-    await this.terminateConnections(config.db_knex_monolith.connection);
-    await this.terminateConnections(config.db_knex_events.connection);
   }
 
   private static async terminateConnections(pgConfigSection) {

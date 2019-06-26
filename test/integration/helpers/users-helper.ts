@@ -4,11 +4,11 @@ import { StringToAnyCollection } from '../../../lib/common/interfaces/common-typ
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 
-import _ = require('lodash');
 import UsersChecker = require('../../helpers/users/users-checker');
 import CommonChecker = require('../../helpers/common/common-checker');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
+import knex = require('../../../config/knex');
 
 const request = require('supertest');
 const usersSeeds = require('../../../seeders/users/users');
@@ -26,6 +26,16 @@ const orgModelProvider    = require('../../../lib/organizations/service').ModelP
 require('jest-expect-message');
 
 class UsersHelper {
+  public static propsAndCurrentParamsOptions(isMyself: boolean) {
+    return {
+      author: {
+        myselfData: isMyself,
+      },
+      current_params: true,
+      uos_accounts_properties: true,
+    };
+  }
+
   /**
    *
    * @param {number} orgId
@@ -197,12 +207,7 @@ class UsersHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {Object} model - model with included user
-   * @param {string[]|null} givenExpected - model with included user
-   */
-  static checkIncludedUserPreview(model, givenExpected = null) {
+  public static checkIncludedUserPreview(model, givenExpected = null, options: any = null, scopes: any = []) {
     expect(model.User).toBeDefined();
     expect(model.User instanceof Object).toBeTruthy();
 
@@ -210,7 +215,20 @@ class UsersHelper {
     expect(typeof model.User.current_rate, 'It seems user is not post-processed')
       .not.toBe('string');
 
-    const expected = givenExpected || usersRepository.getModel().getFieldsForPreview().sort();
+    let expected = givenExpected || usersRepository.getModel().getFieldsForPreview().sort();
+
+    expected = this.addPropsToExpected(expected, options);
+    this.checkUserProps(model.User, options);
+
+    expected = this.addMyselfDataToExpectedSet(options, expected);
+
+    if (scopes.includes('users_team')) {
+      expected = [
+        ...expected,
+        'users_team_status',
+      ];
+    }
+
     CommonChecker.expectAllFieldsExistence(model.User, expected);
   }
 
@@ -236,41 +254,26 @@ class UsersHelper {
       ]);
     }
 
-    if (options.current_params) {
-      expected = Array.prototype.concat(expected, UsersModelProvider.getCurrentParamsToSelect());
-    }
-
-    if (options.uos_accounts_properties) {
-      expected = Array.prototype.concat(expected, UosAccountsModelProvider.getFieldsToSelect());
-    }
-
     if (options.airdrops) {
       expected.push('score', 'external_login');
     }
 
-    expect(_.isEmpty(model.User.first_name)).toBeFalsy();
+    expected = this.addPropsToExpected(expected, options);
+    this.checkUserProps(model.User, options);
 
     CommonChecker.expectAllFieldsExistence(model.User, expected);
   }
 
-  /**
-   *
-   * @param {Object[]} users
-   */
-  static checkManyUsersPreview(users) {
+  static checkManyUsersPreview(users, options: any = null) {
     users.forEach((user) => {
-      this.checkUserPreview(user);
+      this.checkUserPreview(user, options);
     });
   }
 
-  /**
-   *
-   * @param {Object} user
-   */
-  public static checkUserPreview(user): void {
+  public static checkUserPreview(user, options: any = null): void {
     this.checkIncludedUserPreview({
       User: user,
-    });
+    }, null, options);
   }
 
   /**
@@ -294,6 +297,34 @@ class UsersHelper {
     const rateNormalized = eosImportance.getImportanceMultiplier() * rateToSet;
 
     return +rateNormalized.toFixed();
+  }
+
+  public static async initUosAccountsProperties(user: UserModel) {
+    await knex(UosAccountsModelProvider.uosAccountsPropertiesTableName())
+      .insert({
+        account_name: user.account_name,
+        entity_name: UsersModelProvider.getEntityName(),
+        entity_id: user.id,
+
+        staked_balance:                0,
+        validity:                      0,
+
+        importance:                    0,
+        scaled_importance:             0,
+
+        stake_rate:                    0,
+        scaled_stake_rate:             0,
+
+        social_rate:                   0,
+        scaled_social_rate:            0,
+
+        transfer_rate:                 0,
+        scaled_transfer_rate:          0,
+
+        previous_cumulative_emission:  0,
+        current_emission:              0,
+        current_cumulative_emission:   0,
+      });
   }
 
   /**
@@ -512,6 +543,59 @@ class UsersHelper {
 
   static getJaneEosAccount() {
     return accountsData.jane;
+  }
+
+  private static addMyselfDataToExpectedSet(options: any, givenExpected: any) {
+    if (!options) {
+      return givenExpected;
+    }
+
+    if ((options.myselfData && !options.author) || (options.author && options.author.myselfData)) {
+      return Array.prototype.concat(givenExpected, [
+        'I_follow', // #task not required for entity page if not user himself
+        'followed_by', // #task not required for entity page if not user himself
+        'myselfData',
+      ]);
+    }
+    return givenExpected;
+  }
+
+  private static checkUserProps(user, options) {
+    if (options === null) {
+      return;
+    }
+
+    if (options.scopes && options.scopes.includes('postDiscussions')) {
+      return;
+    }
+
+    if (options.current_params) {
+      CommonChecker.expectAllFieldsPositiveOrZeroNumber(user, UsersModelProvider.getCurrentParamsToSelect());
+    }
+
+    if (options.uos_accounts_properties) {
+      CommonChecker.expectAllFieldsPositiveOrZeroNumber(user, UosAccountsModelProvider.getFieldsToSelect());
+    }
+  }
+
+  private static addPropsToExpected(expected: string[], options): string[] {
+    if (!options) {
+      return expected;
+    }
+
+    if (options.scopes && options.scopes.includes('postDiscussions')) {
+      return expected;
+    }
+
+    if (options.current_params) {
+      expected = Array.prototype.concat(expected, UsersModelProvider.getCurrentParamsToSelect());
+    }
+
+    if (options.uos_accounts_properties) {
+      expected = Array.prototype.concat(expected, UosAccountsModelProvider.getFieldsToSelect());
+    }
+
+    return expected;
   }
 }
 

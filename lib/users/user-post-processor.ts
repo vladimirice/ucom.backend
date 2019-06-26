@@ -3,6 +3,7 @@ import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces'
 
 import NumbersHelper = require('../common/helper/numbers-helper');
 import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
+import UsersModelProvider = require('./users-model-provider');
 
 const _ = require('lodash');
 const eosImportance = require('../eos/eos-importance');
@@ -25,12 +26,12 @@ class UserPostProcessor {
   }
 
   /**
-   *
+   * @deprecated
+   * @see processOnlyUserItself
    * @param {Object} user
    */
-  static processModelAuthorForListEntity(user) {
-    this.normalizeMultiplier(user);
-    this.deleteSensitiveData(user);
+  public static processModelAuthorForListEntity(user) {
+    this.processOnlyUserItself(user);
   }
 
   /**
@@ -120,6 +121,9 @@ class UserPostProcessor {
   public static processOnlyUserItself(user: UserModel): void {
     this.normalizeMultiplier(user);
     this.deleteSensitiveData(user);
+
+    this.processUosAccountsProperties(user);
+    this.processUsersCurrentParams(user);
   }
 
   /**
@@ -196,25 +200,59 @@ class UserPostProcessor {
 
   public static processUosAccountsProperties(userJson) {
     if (!userJson.uos_accounts_properties) {
-      // this is a case when the user is a newcomer and worker didn't process him yet
-      for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
-        userJson[field] = 0;
-      }
-
       return;
     }
 
+    this.fixSequelizePropsNamingBug(userJson);
     for (const field of UosAccountsModelProvider.getFieldsToSelect()) {
       userJson[field] = NumbersHelper.processFieldToBeNumeric(
         userJson.uos_accounts_properties[field],
         field,
         10,
         false,
-        true,
+        false,
       );
     }
 
     delete userJson.uos_accounts_properties;
+  }
+
+  private static fixSequelizePropsNamingBug(userJson) {
+    const replacementMap = {
+      current_cumulative_emis: 'current_cumulative_emission',
+      current_cumulative_emi: 'current_cumulative_emission',
+
+      previous_cumulative_emi: 'previous_cumulative_emission',
+      previous_cumulative_emis: 'previous_cumulative_emission',
+    };
+
+    for (const keyToReplace in replacementMap) {
+      if (typeof userJson.uos_accounts_properties[keyToReplace] !== 'undefined')  {
+        const newKey = replacementMap[keyToReplace];
+
+        userJson.uos_accounts_properties[newKey] = userJson.uos_accounts_properties[keyToReplace];
+        delete userJson.uos_accounts_properties[keyToReplace];
+      }
+    }
+  }
+
+  // # is required for sequelize and ORM
+  public static processUsersCurrentParams(userJson) {
+    if (!userJson.users_current_params) {
+      return;
+    }
+
+    for (const field of UsersModelProvider.getCurrentParamsToSelect()) {
+      userJson[field] = NumbersHelper.processFieldToBeNumeric(
+        userJson.users_current_params[field],
+        field,
+        10,
+        false,
+        false,
+      );
+    }
+
+    delete userJson.users_current_params;
   }
 
   /**

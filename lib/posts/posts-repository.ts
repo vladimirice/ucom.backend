@@ -1065,6 +1065,21 @@ class PostsRepository implements QueryFilteredRepository {
       return;
     }
 
+    const allowed = [
+      EntityNames.ORGANIZATIONS,
+      EntityNames.USERS,
+    ];
+
+    if (entityNamesFrom.length === 0) {
+      throw new BadRequestError(`entity_names_from is provided but it is an empty array. Please add values. Allowed ones: are ${allowed}`);
+    }
+
+    if (entityNamesFrom.length > 2) {
+      throw new BadRequestError(
+        'There is no business case yet for entity_names_from length to be more than 2. If there is such case, please consider removing this error.',
+      );
+    }
+
     if (_.isEqual([EntityNames.ORGANIZATIONS], entityNamesFrom)) {
       params.where.organization_id = {
         [Op.ne]: null,
@@ -1100,15 +1115,19 @@ class PostsRepository implements QueryFilteredRepository {
       EntityNames.USERS,
     ];
 
+    if (entityNamesFor.length === 0) {
+      throw new BadRequestError(`entity_names_for is provided but it is an empty array. Please add values. Allowed ones: are ${allowed}`);
+    }
+
     const notAllowed = _.difference(entityNamesFor, allowed);
     if (notAllowed.length > 0) {
       throw new BadRequestError(`entity_names_for values ${notAllowed} are not allowed. Allowed ones are: ${allowed}`);
     }
 
     // #consistency - This is a business case consistency check to avoid possible errors not covered by autotests
-    if (entityNamesFor.length !== 1) {
+    if (entityNamesFor.length > 2) {
       throw new BadRequestError(
-        'There is no business case yet for entity_names_for not to contain exactly one item. If there is such case, please consider removing this error.',
+        'There is no business case yet for entity_names_for length to be more than 2. If there is such case, please consider removing this error.',
       );
     }
 

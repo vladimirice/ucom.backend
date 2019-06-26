@@ -5,6 +5,7 @@ import PostsHelper = require('../../helpers/posts-helper');
 import CommonHelper = require('../../helpers/common-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
 import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
+import OrganizationsGenerator = require('../../../generators/organizations-generator');
 
 export {};
 
@@ -34,6 +35,10 @@ describe('Direct posts create-update', () => {
   });
 
   describe('Direct post creation', () => {
+    beforeEach(async () => {
+      await SeedsHelper.beforeAllRoutineMockAccountsProperties();
+    });
+
     describe('Positive', () => {
       describe('Positive', () => {
         it('Post current params row should be created during post creation', async () => {
@@ -67,6 +72,7 @@ describe('Direct posts create-update', () => {
             myselfData: true,
             postProcessing: 'full',
             skipCommentsChecking: true,
+            ...UsersHelper.propsAndCurrentParamsOptions(true),
           };
 
           await CommonHelper.checkOnePostForPage(post, options);
@@ -79,8 +85,8 @@ describe('Direct posts create-update', () => {
 
         it('Create direct post for organization without organization', async () => {
           const user = userVlad;
-          const targetOrgId = 1;
 
+          const targetOrgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
           const newPostFields: any = {
             description: 'Our super post description',
           };
@@ -100,6 +106,7 @@ describe('Direct posts create-update', () => {
           const options = {
             myselfData: true,
             postProcessing: 'full',
+            ...UsersHelper.propsAndCurrentParamsOptions(true),
           };
 
           await CommonHelper.checkOnePostForPage(post, options);
@@ -112,6 +119,9 @@ describe('Direct posts create-update', () => {
     });
 
     describe('Update post', () => {
+      beforeEach(async () => {
+        await SeedsHelper.beforeAllRoutineMockAccountsProperties();
+      });
       describe('Positive', () => {
         describe('Update direct post', () => {
           it('Update direct post for user without organization', async () => {
@@ -134,6 +144,7 @@ describe('Direct posts create-update', () => {
             const options = {
               myselfData: true,
               postProcessing: 'full',
+              ...UsersHelper.propsAndCurrentParamsOptions(true),
             };
 
             await CommonHelper.checkOnePostForPage(postAfter, options);
@@ -142,7 +153,7 @@ describe('Direct posts create-update', () => {
 
           it('Update direct post for organization without organization', async () => {
             const user = userVlad;
-            const targetOrgId = 1;
+            const targetOrgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
 
             const expectedValues = {
               description: 'changed sample description of direct post',
@@ -159,6 +170,7 @@ describe('Direct posts create-update', () => {
             const options = {
               myselfData: true,
               postProcessing: 'full',
+              ...UsersHelper.propsAndCurrentParamsOptions(true),
             };
 
             await CommonHelper.checkOnePostForPage(postAfter, options);

@@ -24,7 +24,7 @@ describe('GET Tags', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(options); });
   afterAll(async () => { await SeedsHelper.doAfterAll(options); });
   beforeEach(async () => {
-    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   describe('pagination last id is required', () => {
@@ -134,13 +134,14 @@ describe('GET Tags', () => {
     const checkerOptions = {
       myselfData: false,
       postProcessing: 'list',
+      ...UsersHelper.propsAndCurrentParamsOptions(false),
     };
 
     ResponseHelper.expectValidListBody(data.posts);
     CommonHelper.checkPostsListFromApi(data.posts.data, expectedFeedPosts, checkerOptions);
 
     ResponseHelper.expectValidListBody(data.users);
-    UsersHelper.checkManyUsersPreview(data.users.data);
+    UsersHelper.checkManyUsersPreview(data.users.data, checkerOptions);
 
     ResponseHelper.expectValidListBody(data.orgs);
     OrganizationsHelper.checkOrganizationsPreviewFields(data.orgs.data);
