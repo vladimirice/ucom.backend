@@ -7,6 +7,28 @@ import CommonChecker = require('../../common/common-checker');
 const blockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 class IrreversibleTracesChecker {
+  public static checkVoteForBps(trace, expectedProducers: string[]) {
+    this.checkCommonTrTracesFields(trace);
+    expect(trace.tr_type).toBe(blockchainTrTypesDictionary.getTypeVoteForBp());
+
+    expect(trace.memo).toBe('');
+    expect(Array.isArray(trace.producers)).toBeTruthy();
+
+    expect(trace.producers.length).toBe(expectedProducers.length);
+    expect(trace.producers).toMatchObject(expectedProducers);
+  }
+
+  public static checkVoteForCalculators(trace, expectedCalculators: string[]) {
+    this.checkCommonTrTracesFields(trace);
+    expect(trace.tr_type).toBe(blockchainTrTypesDictionary.getTypeVoteForCalculatorNodes());
+
+    expect(trace.memo).toBe('');
+    expect(Array.isArray(trace.calculators)).toBeTruthy();
+
+    expect(trace.calculators.length).toBe(expectedCalculators.length);
+    expect(trace.calculators).toMatchObject(expectedCalculators);
+  }
+
   public static checkUosTransferFrom(trace, actsFor: UserModel) {
     this.checkCommonTrTracesFields(trace);
     expect(trace.tr_type).toBe(blockchainTrTypesDictionary.getLabelTransferFrom());
@@ -43,7 +65,7 @@ class IrreversibleTracesChecker {
     }
   }
 
-  private static checkCommonTrTracesFields(trace): void {
+  public static checkCommonTrTracesFields(trace): void {
     CommonChecker.expectNotEmpty(trace);
 
     expect(typeof trace.updated_at).toBe('string');

@@ -7,6 +7,7 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 import BlockchainCacheService = require('../../../lib/blockchain-nodes/service/blockchain-cache-service');
+import IrreversibleTracesChecker = require('../../helpers/blockchain/irreversible-traces/irreversible-traces-checker');
 
 const { TransactionSender } = require('ucom-libs-social-transactions');
 const { WalletApi } = require('ucom-libs-wallet');
@@ -2509,13 +2510,15 @@ class BlockchainHelper {
   static async requestToGetMyselfBlockchainTraces(
     myself,
     expectedStatus = 200,
-    queryString = '',
+    queryString: string | null = null,
     allowEmpty = false,
   ) {
     let url = RequestHelper.getMyselfBlockchainTransactionsUrl();
 
     if (queryString) {
       url += `${queryString}`;
+    } else {
+      url += RequestHelper.getPaginationQueryString(1, 50);
     }
 
     const req = request(server)
@@ -2684,7 +2687,7 @@ class BlockchainHelper {
    * @private
    */
   static getTypeEmission(model) {
-    BlockchainHelper.checkCommonTrTracesFields(model);
+    IrreversibleTracesChecker.checkCommonTrTracesFields(model);
 
     expect(model.memo).toBe('');
     expect(model.tr_type).toBe(blockchainTrTypesDictionary.getTypeClaimEmission());
@@ -2705,7 +2708,7 @@ class BlockchainHelper {
       blockchainTrTypesDictionary.getTypeSellRam(),
     ];
 
-    BlockchainHelper.checkCommonTrTracesFields(model);
+    IrreversibleTracesChecker.checkCommonTrTracesFields(model);
 
     expect(model.memo).toBe('');
     expect(~expectedTrTypes.indexOf(model.tr_type)).toBeTruthy();

@@ -33,9 +33,15 @@ interface ITraceTransferTokensData extends ITraceActionData {
   memo:     string;
 }
 
-// TODO - types for every action
+interface ITraceVoteForBPs extends ITraceActionData {
+  voter:      string;
+  proxy:      string;
+  producers:  string[];
+}
 
 export {
   ITraceAction,
+  ITraceActionData,
+  ITraceVoteForBPs,
   ITraceTransferTokensData,
 };

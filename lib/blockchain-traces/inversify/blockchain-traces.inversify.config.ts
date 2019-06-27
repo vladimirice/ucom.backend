@@ -7,9 +7,13 @@ import BlockchainTracesSyncService = require('../service/blockchain-traces-sync-
 import BlockchainTracesProcessorChain = require('../service/blockchain-traces-processor-chain');
 import UnknownTraceProcessor = require('../trace-processors/unknown-trace-processor');
 import TransferUosTokensTraceProcessor = require('../trace-processors/transfer-uos-tokens-trace-processor');
+import VoteForBlockProducersTraceProcessor = require('../trace-processors/vote-for-block-producers-trace-processor');
 
 function addTraceProcessors(diContainer: Container) {
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(TransferUosTokensTraceProcessor);
+  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(VoteForBlockProducersTraceProcessor);
+
+  // Next line must always be the last line
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UnknownTraceProcessor);
 }
 

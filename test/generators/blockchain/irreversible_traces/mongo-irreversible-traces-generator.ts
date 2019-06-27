@@ -5,30 +5,40 @@ import MongoExternalModelProvider = require('../../../../lib/eos/service/mongo-e
 
 const ACTION_TRACES_COLLECTION_NAME = MongoExternalModelProvider.actionTracesCollection();
 
+let usedTracesSuffixes: number[] = [];
+
 class MongoIrreversibleTracesGenerator {
-  public static async test() {
-    const collection =
-      await IrreversibleTracesClient.useCollection(ACTION_TRACES_COLLECTION_NAME);
-
-    const document1 = { name:'vlad', title:'About vlad' };
-    await collection.insertOne(document1);
-
-    const document2 = { name:'jane', title:'About jane' };
-    await collection.insertOne(document2);
+  public static getSampleBlockProducers() {
+    return [
+      'adendumblock',
+      'cryptolionsu',
+    ];
   }
-
 
   // @ts-ignore
   public static async insertAllSampleTraces(actor: UserModel, actsFor: UserModel) {
+    usedTracesSuffixes = [];
+
     const collection =
       await IrreversibleTracesClient.useCollection(ACTION_TRACES_COLLECTION_NAME);
 
     const set = [
+      // tokens transfer
       this.getSampleTransferTokensFromActorTrace,
       this.getSampleTransferTokensToActorTrace,
 
+      // voting
       this.getSampleVoteForBpsTrace,
       this.getSampleRevokeAllVotesForBpsTrace,
+
+      this.getSampleVoteForCalculatorsTrace,
+      this.getSampleRevokeCalculatorVotes,
+
+
+      // this.getSampleVoteForNobodyOfBpsTrace, // TODO
+
+      // this.getSampleVoteForCalculatorsTrace, // TODO
+      // this.getSampleVoteForNobodyOfCalculatorsTrace, // TODO
       //
       this.getSampleClaimEmissionTrace,
       //
@@ -44,8 +54,6 @@ class MongoIrreversibleTracesGenerator {
       this.getSampleStakeCpuAndUnstakeNetTrace,
       //
       this.getSampleDownvoteTrace,
-
-      // TODO vote for calculators
     ];
 
     for (const func of set) {
@@ -352,11 +360,149 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
+  public static getSampleRevokeCalculatorVotes(
+    actor: UserModel,
+    // @ts-ignore
+    actsFor: UserModel,
+  ) {
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(601);
+
+    return {
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
+      account : actor.account_name,
+      irreversible : true,
+      actions : [
+        {
+          receipt : {
+            receiver : 'eosio',
+            act_digest : '4977267c3cc113906313fe90006f30e9b2fe95de1eb4693ff8a7efd248b133b5',
+            global_sequence : 255570730,
+            recv_sequence : 38581713,
+            auth_sequence : [
+              [
+                actor.account_name,
+                789,
+              ],
+            ],
+            code_sequence : 4,
+            abi_sequence : 4,
+          },
+          act : {
+            account : 'eosio',
+            name : 'votecalc',
+            authorization : [
+              {
+                actor : actor.account_name,
+                permission : 'active',
+              },
+            ],
+            data : '901b73135e25a5c600',
+          },
+          context_free : false,
+          elapsed : 350,
+          console : '',
+          trx_id : trxId,
+          block_num : blockNumber,
+          block_time : '2019-06-27T20:16:56.500',
+          producer_block_id : '024c40e32c2d0e00a29d1c1a740c30476626f2cbd834f43e45cd732af498b255',
+          account_ram_deltas : [
+            {
+              account : actor.account_name,
+              delta : -16,
+            },
+          ],
+          act_data : {
+            voter : actor.account_name,
+            calculators : [],
+          },
+          inline_traces : [],
+        },
+      ],
+      blocktime : '2019-06-27T20:16:56.500',
+    };
+  }
+
+
+  public static getSampleVoteForCalculatorsTrace(
+    actor: UserModel,
+    // @ts-ignore
+    actsFor: UserModel,
+  ) {
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(600);
+
+    return {
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
+      account : actor.account_name,
+      irreversible : true,
+      actions : [
+        {
+          receipt : {
+            receiver : 'eosio',
+            act_digest : 'f9ccbfdb309222bd32c87e4f06584ee57fc83af4c90c4f235f845bc6d36fc7c6',
+            global_sequence : 255564068,
+            recv_sequence : 38580283,
+            auth_sequence : [
+              [
+                actor.account_name,
+                788,
+              ],
+            ],
+            code_sequence : 4,
+            abi_sequence : 4,
+          },
+          act : {
+            account : 'eosio',
+            name : 'votecalc',
+            authorization : [
+              {
+                actor : actor.account_name,
+                permission : 'active',
+              },
+            ],
+            data : '901b73135e25a5c602204408281a94dd74504608281a94dd74',
+          },
+          context_free : false,
+          elapsed : 825,
+          console : '',
+          trx_id : '2ca2ca745c3231ea5a193f40602324a60c2a58c49da84e0ebfe0ce34393815fa',
+          block_num : blockNumber,
+          block_time : '2019-06-27T20:03:44.000',
+          producer_block_id : '024c3b526f933b1f7a0fbc76cfd6f15040a4ad889e2987593c1d1abd8546ba16',
+          account_ram_deltas : [
+            {
+              account : actor.account_name,
+              delta : 16,
+            },
+          ],
+          act_data : {
+            voter : actor.account_name,
+            calculators : MongoIrreversibleTracesGenerator.getCalculators(),
+          },
+          inline_traces : [],
+        },
+      ],
+      blocktime : '2019-06-27T20:03:44.000',
+    };
+  }
+
+  public static getCalculators(): string[] {
+    return [
+      'initcalc1122',
+      'initcalc1135',
+    ];
+  }
+
   // @ts-ignore
   public static getSampleVoteForBpsTrace(actor: UserModel, actsFor: UserModel) {
     const blockNumber = 25330101;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b101';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c101';
+
+    const producers = MongoIrreversibleTracesGenerator.getSampleBlockProducers();
 
     return {
       blocknum : blockNumber,
@@ -402,10 +548,7 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             voter : actor.account_name,
             proxy : '',
-            producers : [
-              'adendumblock',
-              'cryptolionsu',
-            ],
+            producers,
           },
           inline_traces : [],
         },
@@ -2485,6 +2628,20 @@ class MongoIrreversibleTracesGenerator {
         },
       ],
       blocktime : '2019-04-01T10:04:14.000',
+    };
+  }
+
+  private static getTraceIdsAndNumbersWithSuffix(suffix: number): { blockNumber: number, trxId: string, blockId: string } {
+    if (usedTracesSuffixes.includes(suffix)) {
+      throw new TypeError(`Suffix ${suffix} is already used. Consider to use the different one`);
+    }
+
+    usedTracesSuffixes.push(suffix);
+
+    return {
+      blockNumber: +`25330${suffix}`,
+      trxId:        `7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b${suffix}`,
+      blockId:      `0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c${suffix}`,
     };
   }
 }

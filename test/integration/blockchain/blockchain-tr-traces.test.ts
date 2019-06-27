@@ -43,39 +43,58 @@ describe('Blockchain tr traces sync tests', () => {
   }, JEST_TIMEOUT);
 
   describe('irreversible transaction traces', () => {
+    let traces;
+    beforeEach(async () => {
+      await MongoIrreversibleTracesGenerator.insertAllSampleTraces(userVlad, userJane);
+
+      const syncService: BlockchainTracesSyncService
+        = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
+
+      await syncService.process();
+
+      traces = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
+    }, JEST_TIMEOUT);
+
     describe('check traces', () => {
       it('validate a tokens transfer traces - from and to', async () => {
-        await MongoIrreversibleTracesGenerator.insertAllSampleTraces(userVlad, userJane);
-        const syncService: BlockchainTracesSyncService
-          = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
-
-        await syncService.process();
-
-        const queryString = RequestHelper.getPaginationQueryString(1, 50);
-        const models = await BlockchainHelper.requestToGetMyselfBlockchainTraces(
-          userVlad,
-          200,
-          queryString,
-        );
-
-        const transferTraceFrom = models.find(item => item.tr_type === BlockchainTrTraces.getLabelTransferFrom());
+        const transferTraceFrom = traces.find(item => item.tr_type === BlockchainTrTraces.getLabelTransferFrom());
         IrreversibleTracesChecker.checkUosTransferFrom(transferTraceFrom, userJane);
 
-        const transferTraceTo = models.find(item => item.tr_type === BlockchainTrTraces.getLabelTransferTo());
+        const transferTraceTo = traces.find(item => item.tr_type === BlockchainTrTraces.getLabelTransferTo());
         IrreversibleTracesChecker.checkUosTransferTo(transferTraceTo, userJane);
 
-        const foreignTraces = models.filter(item => item.tr_type === BlockchainTrTraces.getLabelTransferForeign());
+        const foreignTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getLabelTransferForeign());
         expect(foreignTraces.length).toBe(2);
 
         foreignTraces.forEach(item => IrreversibleTracesChecker.checkUosTransferForeign(item));
       });
 
-      it('vote for calculators', async () => {
-        // TODO
-      });
+      describe('Voting', () => {
+        it('vote and unvote block producers', async () => {
+          const votingTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeVoteForBp());
+          expect(votingTraces.length).toBe(2);
 
-      it('unvote for all calculators', async () => {
-        // TODO
+          const votingForTrace = votingTraces.find(item => item.producers.length > 0);
+          const revokingTrace = votingTraces.find(item => item.producers.length === 0);
+
+          const producers = MongoIrreversibleTracesGenerator.getSampleBlockProducers();
+
+          IrreversibleTracesChecker.checkVoteForBps(votingForTrace, producers);
+          IrreversibleTracesChecker.checkVoteForBps(revokingTrace, []);
+        });
+
+        it('vote and unvote for calculators', async () => {
+          const votingTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeVoteForCalculatorNodes());
+          expect(votingTraces.length).toBe(2);
+
+          const votingForTrace = votingTraces.find(item => item.producers.length > 0);
+          const revokingTrace = votingTraces.find(item => item.producers.length === 0);
+
+          const calculators = MongoIrreversibleTracesGenerator.getCalculators();
+
+          IrreversibleTracesChecker.checkVoteForCalculators(votingForTrace, calculators);
+          IrreversibleTracesChecker.checkVoteForCalculators(revokingTrace, []);
+        });
       });
     });
 
