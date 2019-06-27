@@ -40,7 +40,12 @@ interface UsersRequestQueryDto extends RequestQueryDto {
 }
 
 interface UsersActivityQueryDto extends UsersRequestQueryDto {
-  readonly activity_type: string;
+  readonly activity: string;
+}
+
+interface OrganizationsActivityQueryDto extends RequestQueryDto {
+  readonly organization_identity: string;
+  readonly activity:              string;
 }
 
 export {
@@ -50,4 +55,6 @@ export {
   UsersListResponse,
   UsersRequestQueryDto,
   UsersActivityQueryDto,
+
+  OrganizationsActivityQueryDto,
 };

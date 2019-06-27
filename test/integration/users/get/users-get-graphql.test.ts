@@ -93,6 +93,9 @@ describe('Users. Get requests', () => {
 
       expect(users.length).toBe(2);
 
+      expect(filledResponse.metadata.total_amount).toBe(2);
+      expect(filledResponse.metadata.has_more).toBe(false);
+
       expect(users.some(user => user.account_name === userVlad.account_name))
         .toBeTruthy()
       ;

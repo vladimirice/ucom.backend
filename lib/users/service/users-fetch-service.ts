@@ -30,6 +30,7 @@ import OffersModel = require('../../affiliates/models/offers-model');
 import StreamsRepository = require('../../affiliates/repository/streams-repository');
 import ConversionsRepository = require('../../affiliates/repository/conversions-repository');
 import UsersQueryBuilderService = require('./users-fetch-query-builder-service');
+import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -110,6 +111,22 @@ class UsersFetchService {
 
     const promises: Promise<any>[]  =
       UsersQueryBuilderService.getPromisesByActivityType(query, userId, params);
+
+    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
+  public static async findManyOrganizationFollowers(
+    organizationId: number,
+    query:          UsersActivityQueryDto,
+    currentUserId:  number | null,
+  ): Promise<UsersListResponse> {
+    const repository  = UsersRepository;
+    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
+
+    const promises: Promise<any>[] = [
+      UsersRepository.findAllWhoFollowsOrganization(organizationId, params),
+      UsersActivityFollowRepository.countUsersThatFollowOrganization(organizationId),
+    ];
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
   }
@@ -246,7 +263,7 @@ class UsersFetchService {
 
     const promises = [
       UsersRepository.findManyForListViaKnex(query, params),
-      UsersRepository.countManyForListViaKnex(params),
+      UsersRepository.countManyForListViaKnex(query, params),
     ];
 
     return {
