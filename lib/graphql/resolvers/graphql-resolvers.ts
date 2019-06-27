@@ -6,11 +6,11 @@ import {
 import { CommentsListResponse } from '../../comments/interfaces/model-interfaces';
 import { graphqlUsersResolvers } from './graphql-users-resolvers';
 import { graphqlPostsResolvers } from './graphql-posts-resolvers';
+import { graphqlOrganizationsResolvers } from './graphql-organizations-resolvers';
 
 import GraphQlInputService = require('../../api/graph-ql/service/graph-ql-input-service');
 import BlockchainApiFetchService = require('../../blockchain-nodes/service/blockchain-api-fetch-service');
 import AuthService = require('../../auth/authService');
-import OrganizationsFetchService = require('../../organizations/service/organizations-fetch-service');
 import TagsFetchService = require('../../tags/service/tags-fetch-service');
 import CommentsFetchService = require('../../comments/service/comments-fetch-service');
 
@@ -22,6 +22,7 @@ export const resolvers = {
   Query: {
     ...graphqlUsersResolvers,
     ...graphqlPostsResolvers,
+    ...graphqlOrganizationsResolvers,
 
     async many_blockchain_nodes(
       // @ts-ignore
@@ -39,29 +40,6 @@ export const resolvers = {
       return BlockchainApiFetchService.getAndProcessNodes(query);
     },
 
-    // @ts-ignore // @deprecated
-    async organizations(parent, args, ctx) {
-      const query: RequestQueryDto = {
-        page: args.page,
-        per_page: args.per_page,
-        sort_by: args.order_by,
-        ...args.filters,
-      };
-
-      return OrganizationsFetchService.findAndProcessAll(query);
-    },
-    // @ts-ignore
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    async many_organizations(parent, args, ctx) {
-      const query: RequestQueryDto = {
-        page: args.page,
-        per_page: args.per_page,
-        sort_by: args.order_by,
-        ...args.filters,
-      };
-
-      return OrganizationsFetchService.findAndProcessAll(query);
-    },
     // @ts-ignore
     async many_tags(parent, args, ctx) {
       const query: RequestQueryDto = {

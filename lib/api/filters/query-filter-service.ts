@@ -60,6 +60,7 @@ class QueryFilterService {
     return arraysSet.join(', ');
   }
 
+  // This is a legacy. Consider to move to getQueryBuilderFilteredByRequestQuery filtering
   public static addWhereRawParamToKnexQuery(
     queryBuilder: QueryBuilder,
     params: DbParamsDto,

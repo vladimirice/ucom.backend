@@ -1,5 +1,5 @@
 import { QueryBuilder } from 'knex';
-import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
+import { UserIdToUserModelCard, UserModel, UsersRequestQueryDto } from './interfaces/model-interfaces';
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
 import { DbParamsDto, RequestQueryDto } from '../api/filters/interfaces/query-filter-interfaces';
 import { AppError } from '../api/errors';
@@ -19,6 +19,7 @@ import EnvHelper = require('../common/helper/env-helper');
 import QueryFilterService = require('../api/filters/query-filter-service');
 import KnexQueryBuilderHelper = require('../common/helper/repository/knex-query-builder-helper');
 import RepositoryHelper = require('../common/repository/repository-helper');
+import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 
 const _ = require('lodash');
 
@@ -424,6 +425,15 @@ class UsersRepository {
     return UsersRepository.findAllWhoActsForUser(userId, params, activityTableName);
   }
 
+  public static findAllWhoFollowsOrganization(
+    organizationId: number,
+    params: DbParamsDto,
+  ): QueryBuilder {
+    const activityTableName: string = UsersModelProvider.getUsersActivityFollowTableName();
+
+    return UsersRepository.findAllWhoActsForOrganization(organizationId, params, activityTableName);
+  }
+
   public static async findUsersIFollow(
     userId: number,
     params: DbParamsDto,
@@ -437,7 +447,7 @@ class UsersRepository {
     query: RequestQueryDto,
     params: DbParamsDto,
   ): QueryBuilder {
-    const queryBuilder = knex(TABLE_NAME);
+    const queryBuilder = this.getQueryBuilderFilteredByRequestQuery(query);
 
     params.attributes = UsersModelProvider.getUserFieldsForPreview();
     const extraAttributes = UosAccountsModelProvider.getFieldsToSelect().concat(
@@ -451,23 +461,16 @@ class UsersRepository {
     this.innerJoinUosAccountsProperties(queryBuilder);
     this.innerJoinUsersCurrentParams(queryBuilder);
 
-    // #task - it is not ok to place this filtering here
-    if (query.users_identity_pattern) {
-      // eslint-disable-next-line func-names
-      queryBuilder.andWhere(function () {
-        this.where(`${TABLE_NAME}.account_name`,  'ilike', `%${query.users_identity_pattern}%`)
-          .orWhere(`${TABLE_NAME}.first_name`,    'ilike', `%${query.users_identity_pattern}%`)
-          .orWhere(`${TABLE_NAME}.last_name`,     'ilike', `%${query.users_identity_pattern}%`);
-      });
-    }
-
     return queryBuilder;
   }
 
   public static async countManyForListViaKnex(
+    query: UsersRequestQueryDto,
     params: DbParamsDto,
   ): Promise<number> {
-    const queryBuilder = knex(TABLE_NAME);
+    const queryBuilder: QueryBuilder = this.getQueryBuilderFilteredByRequestQuery(query);
+
+    // This is legacy. Consider to move to getQueryBuilderFilteredByRequestQuery filtering
     QueryFilterService.addWhereRawParamToKnexQuery(queryBuilder, params);
 
     this.innerJoinUsersCurrentParams(queryBuilder);
@@ -591,6 +594,10 @@ class UsersRepository {
         params.whereRaw = this.whereRawTrending();
       }
     };
+  }
+
+  public static addWhereToQueryBuilderByQuery(query: RequestQueryDto, queryBuilder: QueryBuilder) {
+    this.addSearchToQueryBuilder(query, queryBuilder);
   }
 
   public static async countAll(params): Promise<number> {
@@ -771,6 +778,28 @@ class UsersRepository {
     return queryBuilder;
   }
 
+  private static findAllWhoActsForOrganization(
+    organizationId: number,
+    params: DbParamsDto,
+    tableName: string,
+  ): QueryBuilder {
+    UsersRepository.checkIsAllowedActivityTable(tableName);
+
+    const queryBuilder = knex(TABLE_NAME)
+      .where({
+        [`${tableName}.entity_id`]: organizationId,
+      })
+      // eslint-disable-next-line func-names
+      .innerJoin(tableName, function () {
+        this.on(`${tableName}.user_id`, `${TABLE_NAME}.id`)
+          .andOn(`${tableName}.entity_name`, knex.raw(`'${OrganizationsModelProvider.getEntityName()}'`));
+      });
+
+    UsersRepository.addListParamsToQueryBuilder(queryBuilder, params);
+
+    return queryBuilder;
+  }
+
   private static findMyActivityForOtherUsers(userId: number, params: DbParamsDto, tableName: string): QueryBuilder {
     this.checkIsAllowedActivityTable(tableName);
 
@@ -810,6 +839,27 @@ class UsersRepository {
     if (!set.includes(tableName)) {
       throw new AppError(`Unsupported tableName: ${tableName}`);
     }
+  }
+
+  private static getQueryBuilderFilteredByRequestQuery(query: RequestQueryDto) {
+    const queryBuilder = knex(TABLE_NAME);
+
+    this.addSearchToQueryBuilder(query, queryBuilder);
+
+    return queryBuilder;
+  }
+
+  private static addSearchToQueryBuilder(query: UsersRequestQueryDto, queryBuilder: QueryBuilder) {
+    if (!query.users_identity_pattern) {
+      return;
+    }
+
+    // eslint-disable-next-line func-names
+    queryBuilder.andWhere(function () {
+      this.where(`${TABLE_NAME}.account_name`,  'ilike', `%${query.users_identity_pattern}%`)
+        .orWhere(`${TABLE_NAME}.first_name`,    'ilike', `%${query.users_identity_pattern}%`)
+        .orWhere(`${TABLE_NAME}.last_name`,     'ilike', `%${query.users_identity_pattern}%`);
+    });
   }
 }
 

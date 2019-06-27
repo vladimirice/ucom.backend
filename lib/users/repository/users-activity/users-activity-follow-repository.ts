@@ -149,6 +149,17 @@ class UsersActivityFollowRepository {
     return RepositoryHelper.getKnexCountAsNumber(res);
   }
 
+  public static async countUsersThatFollowOrganization(organizationId: number): Promise<number> {
+    const res = await knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        entity_id:    organizationId,
+        entity_name:  OrganizationsModelProvider.getEntityName(),
+      });
+
+    return RepositoryHelper.getKnexCountAsNumber(res);
+  }
+
   public static async countUsersIFollow(userId: number): Promise<number> {
     const res = await knex(TABLE_NAME)
       .count(`${TABLE_NAME}.id AS amount`)
