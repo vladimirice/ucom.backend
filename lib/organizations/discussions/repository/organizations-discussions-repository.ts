@@ -1,5 +1,3 @@
-import { Transaction } from 'knex';
-
 import PostsModelProvider = require('../../../posts/service/posts-model-provider');
 import knex = require('../../../../config/knex');
 import QueryFilterService = require('../../../api/filters/query-filter-service');
@@ -92,28 +90,29 @@ class OrganizationsDiscussionsRepository {
   public static async updateDiscussionsState(
     orgId: number,
     postsIds: number[],
-    trx: Transaction,
   ): Promise<void> {
-    await trx(TABLE_NAME)
-      .where({
-        organization_id:  orgId,
-        entity_name:      entityName,
-        relation_type:    relationType,
-      })
-      .delete();
+    await knex.transaction(async (trx) => {
+      await trx(TABLE_NAME)
+        .where({
+          organization_id:  orgId,
+          entity_name:      entityName,
+          relation_type:    relationType,
+        })
+        .delete();
 
-    const toInsert: Relations[] = [];
+      const toInsert: Relations[] = [];
 
-    for (const id of postsIds) {
-      toInsert.push({
-        organization_id:  orgId,
-        entity_name:      entityName,
-        relation_type:    relationType,
-        entity_id:        id,
-      });
-    }
+      for (const id of postsIds) {
+        toInsert.push({
+          organization_id:  orgId,
+          entity_name:      entityName,
+          relation_type:    relationType,
+          entity_id:        id,
+        });
+      }
 
-    await trx(TABLE_NAME).insert(toInsert);
+      await trx(TABLE_NAME).insert(toInsert);
+    });
   }
 }
 

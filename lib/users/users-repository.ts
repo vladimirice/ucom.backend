@@ -1,6 +1,7 @@
-import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
+import { QueryBuilder } from 'knex';
+import { UserIdToUserModelCard, UserModel, UsersRequestQueryDto } from './interfaces/model-interfaces';
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
-import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
+import { DbParamsDto, RequestQueryDto } from '../api/filters/interfaces/query-filter-interfaces';
 import { AppError } from '../api/errors';
 import { StringToAnyCollection } from '../common/interfaces/common-types';
 
@@ -8,12 +9,17 @@ import knex = require('../../config/knex');
 import PostsModelProvider = require('../posts/service/posts-model-provider');
 import PostsRepository = require('../posts/posts-repository');
 import UsersModelProvider = require('./users-model-provider');
-import RepositoryHelper = require('../common/repository/repository-helper');
 import UsersExternalModelProvider = require('../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../airdrops/service/airdrops-model-provider');
 import ExternalTypeIdDictionary = require('../users-external/dictionary/external-type-id-dictionary');
 import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
 import AirdropsUsersRepository = require('../airdrops/repository/airdrops-users-repository');
+import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-category-dictionary');
+import EnvHelper = require('../common/helper/env-helper');
+import QueryFilterService = require('../api/filters/query-filter-service');
+import KnexQueryBuilderHelper = require('../common/helper/repository/knex-query-builder-helper');
+import RepositoryHelper = require('../common/repository/repository-helper');
+import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 
 const _ = require('lodash');
 
@@ -28,7 +34,6 @@ const model = userModelProvider.getUsersModel();
 const TABLE_NAME = 'Users';
 const usersExternal = UsersExternalModelProvider.usersExternalTableName();
 const airdropsUsersExternalData = AirdropsModelProvider.airdropsUsersExternalDataTableName();
-const airdropsUsers = AirdropsModelProvider.airdropsUsersTableName();
 
 const taggableRepository = require('../common/repository/taggable-repository');
 
@@ -37,31 +42,29 @@ class UsersRepository {
     airdropId: number,
     params: DbParamsDto,
   ) {
-    const previewFields = UsersModelProvider.getUserFieldsForPreview();
-    const toSelect = RepositoryHelper.getPrefixedAttributes(previewFields, TABLE_NAME);
-
-    toSelect.push(`${airdropsUsersExternalData}.score AS score`);
-    toSelect.push(`${usersExternal}.external_login AS external_login`);
-
-    return knex(TABLE_NAME)
-      .select(toSelect)
+    const queryBuilder = knex(TABLE_NAME)
+      .select([
+        `${airdropsUsersExternalData}.score AS score`,
+        `${usersExternal}.external_login AS external_login`,
+      ])
       .innerJoin(usersExternal, `${usersExternal}.user_id`, `${TABLE_NAME}.id`)
-      .innerJoin(airdropsUsersExternalData, `${airdropsUsersExternalData}.users_external_id`, `${usersExternal}.id`)
       // eslint-disable-next-line func-names
-      .whereIn(`${TABLE_NAME}.id`, function () {
+      .innerJoin(airdropsUsersExternalData, function () {
         // @ts-ignore
-        this
-          .distinct('user_id')
-          .select()
-          .from(airdropsUsers)
-          .where('airdrop_id', '=', airdropId)
-          .whereNotIn('user_id', AirdropsUsersRepository.getAirdropParticipantsIdsToHide());
+        this.on(`${airdropsUsersExternalData}.users_external_id`, '=', `${usersExternal}.id`);
       })
-      .andWhere(`${usersExternal}.external_type_id`, '=', ExternalTypeIdDictionary.github())
-      .orderByRaw(params.orderByRaw)
-      .limit(params.limit)
-      .offset(params.offset)
+      .andWhere(`${usersExternal}.external_type_id`, ExternalTypeIdDictionary.github())
+      .andWhere(`${airdropsUsersExternalData}.airdrop_id`, airdropId)
+      .andWhere(`${airdropsUsersExternalData}.are_conditions_fulfilled`, true)
+      .whereNotIn(`${TABLE_NAME}.id`, AirdropsUsersRepository.getAirdropParticipantsIdsToHide())
     ;
+
+    this.addListParamsToQueryBuilder(queryBuilder, params);
+
+    const data = await queryBuilder;
+    RepositoryHelper.convertStringFieldsToNumbersForArray(data, this.getPropsFields(), []);
+
+    return data;
   }
 
   public static async findManyAsRelatedToEntity(
@@ -79,6 +82,7 @@ class UsersRepository {
     const { postSubQuery, extraFieldsToSelect } =
       PostsRepository.prepareRelatedEntitySqlParts(overviewType, params, statsFieldName, relEntityField, relEntityNotNull);
 
+    // #task - rewrite using knex
     const sql = `
       select "Users"."id"               as "id",
              "Users"."account_name"     as "account_name",
@@ -86,11 +90,16 @@ class UsersRepository {
              "Users"."last_name"        as "last_name",
              "Users"."nickname"         as "nickname",
              "Users"."avatar_filename"  as "avatar_filename",
-             "Users"."current_rate"     as "current_rate"
+             "Users"."current_rate"     as "current_rate",
+             ${UsersRepository.getPropsFields().join(', ')}
              ${extraFieldsToSelect}
       from "Users" INNER JOIN
             ${postSubQuery}
            ON t.${relEntityField} = "Users".id
+        INNER JOIN blockchain.uos_accounts_properties a
+            ON a.entity_id = "Users".id AND a.entity_name = '${UsersModelProvider.getEntityName()}'
+        INNER JOIN users_current_params p
+            ON p.user_id = "Users".id
       ORDER BY t.${statsFieldName} DESC
     `;
 
@@ -246,18 +255,9 @@ class UsersRepository {
    * @returns {Promise<any>}
    */
   static async getUserById(userId) {
-    // const followerAttributes = this.getModel().getFieldsForPreview();
-
-    // Get user himself
-    // Get user following data with related users
-
     const include = [
-      {
-        model: models[UosAccountsModelProvider.uosAccountsPropertiesTableNameWithoutSchema()],
-        attributes: UosAccountsModelProvider.getFieldsToSelect(),
-        required: false,
-        as: 'uos_accounts_properties',
-      },
+      UsersModelProvider.getIncludeUosAccountsProperties(),
+      UsersModelProvider.getIncludeUsersCurrentParams(),
       {
         model: models.users_education,
         as: 'users_education',
@@ -416,25 +416,85 @@ class UsersRepository {
     return !!count;
   }
 
-  public static async findAllWhoTrustsUser(
+  public static findAllWhoFollowsUser(
+    userId: number,
+    params: DbParamsDto,
+  ): QueryBuilder {
+    const activityTableName = UsersModelProvider.getUsersActivityFollowTableName();
+
+    return UsersRepository.findAllWhoActsForUser(userId, params, activityTableName);
+  }
+
+  public static findAllWhoFollowsOrganization(
+    organizationId: number,
+    params: DbParamsDto,
+  ): QueryBuilder {
+    const activityTableName: string = UsersModelProvider.getUsersActivityFollowTableName();
+
+    return UsersRepository.findAllWhoActsForOrganization(organizationId, params, activityTableName);
+  }
+
+  public static async findUsersIFollow(
     userId: number,
     params: DbParamsDto,
   ) {
-    const previewFields = UsersModelProvider.getUserFieldsForPreview();
-    const toSelect = RepositoryHelper.getPrefixedAttributes(previewFields, TABLE_NAME);
+    const tableName = UsersModelProvider.getUsersActivityFollowTableName();
 
-    const usersActivityTrust = UsersModelProvider.getUsersActivityTrustTableName();
+    return this.findMyActivityForOtherUsers(userId, params, tableName);
+  }
 
-    return knex(TABLE_NAME)
-      .select(toSelect)
-      .where({
-        [`${usersActivityTrust}.entity_id`]: userId,
-        [`${usersActivityTrust}.entity_name`]: UsersModelProvider.getEntityName(),
-      })
-      .innerJoin(`${usersActivityTrust}`, `${usersActivityTrust}.user_id`, `${TABLE_NAME}.id`)
-      .orderByRaw(params.orderByRaw)
-      .limit(params.limit)
-      .offset(params.offset);
+  public static findManyForListViaKnex(
+    query: RequestQueryDto,
+    params: DbParamsDto,
+  ): QueryBuilder {
+    const queryBuilder = this.getQueryBuilderFilteredByRequestQuery(query);
+
+    params.attributes = UsersModelProvider.getUserFieldsForPreview();
+    const extraAttributes = UosAccountsModelProvider.getFieldsToSelect().concat(
+      UsersModelProvider.getCurrentParamsToSelect(),
+    );
+
+    QueryFilterService.processAttributes(params, TABLE_NAME, true);
+    QueryFilterService.addExtraAttributes(params, extraAttributes);
+    QueryFilterService.addParamsToKnexQuery(queryBuilder, params);
+
+    this.innerJoinUosAccountsProperties(queryBuilder);
+    this.innerJoinUsersCurrentParams(queryBuilder);
+
+    return queryBuilder;
+  }
+
+  public static async countManyForListViaKnex(
+    query: UsersRequestQueryDto,
+    params: DbParamsDto,
+  ): Promise<number> {
+    const queryBuilder: QueryBuilder = this.getQueryBuilderFilteredByRequestQuery(query);
+
+    // This is legacy. Consider to move to getQueryBuilderFilteredByRequestQuery filtering
+    QueryFilterService.addWhereRawParamToKnexQuery(queryBuilder, params);
+
+    this.innerJoinUsersCurrentParams(queryBuilder);
+
+    return KnexQueryBuilderHelper.addCountToQueryBuilderAndCalculate(queryBuilder, TABLE_NAME);
+  }
+
+  public static async findUserReferrals(
+    userId: number,
+    params: DbParamsDto,
+  ) {
+    const usersActivityReferral = UsersModelProvider.getUsersActivityReferralTableName();
+
+    const queryBuilder = knex(TABLE_NAME)
+      // eslint-disable-next-line func-names
+      .innerJoin(`${usersActivityReferral} AS r`, function () {
+        this.on('r.referral_user_id', '=', `${TABLE_NAME}.id`)
+          .andOn('r.source_entity_id', '=', userId)
+          .andOn('r.entity_name', '=', knex.raw(`'${UsersModelProvider.getEntityName()}'`));
+      });
+
+    this.addListParamsToQueryBuilder(queryBuilder, params);
+
+    return queryBuilder;
   }
 
   /**
@@ -462,7 +522,22 @@ class UsersRepository {
     params.main_table_alias = 't';
     const tagsJoinColumn = 'user_id';
 
-    return taggableRepository.findAllByTagTitle(TABLE_NAME, tagTitle, tagsJoinColumn, params);
+    const queryBuilder = taggableRepository.findAllByTagTitle(
+      TABLE_NAME,
+      tagTitle,
+      tagsJoinColumn,
+      params,
+      UsersRepository.getPropsFields(),
+    );
+
+    this.innerJoinUosAccountsProperties(queryBuilder, params.main_table_alias);
+    this.innerJoinUsersCurrentParams(queryBuilder, params.main_table_alias);
+
+    const data = await queryBuilder;
+
+    RepositoryHelper.convertStringFieldsToNumbersForArray(data, this.getPropsFields());
+
+    return data;
   }
 
   /**
@@ -496,17 +571,33 @@ class UsersRepository {
       'account_name',
       'score',
       'external_login',
+
+      'scaled_social_rate',
+      'scaled_importance',
+
+      'posts_total_amount_delta',
+      'scaled_importance_delta',
+      'scaled_social_rate_delta',
     ];
   }
 
-  static getWhereProcessor(): Function {
+  public static getWhereProcessor(): Function {
     return (query, params) => {
       params.where = {};
 
+      // @deprecated this is a sequelize method
       if (query.user_name) {
         params.where = this.getSearchUserQueryWhere(query.user_name);
       }
+
+      if (EntityListCategoryDictionary.isTrending(query.overview_type)) {
+        params.whereRaw = this.whereRawTrending();
+      }
     };
+  }
+
+  public static addWhereToQueryBuilderByQuery(query: RequestQueryDto, queryBuilder: QueryBuilder) {
+    this.addSearchToQueryBuilder(query, queryBuilder);
   }
 
   public static async countAll(params): Promise<number> {
@@ -605,6 +696,14 @@ class UsersRepository {
     return models.Users;
   }
 
+  public static getPropsFields(): string[] {
+    return UsersModelProvider.getPropsFields();
+  }
+
+  /**
+   * @deprecated - consider to get rid of sequelize, use knex + objection.js
+   * @param query
+   */
   private static getSearchUserQueryWhere(query: string) {
     return {
       [Op.or]: {
@@ -619,6 +718,148 @@ class UsersRepository {
         },
       },
     };
+  }
+
+  private static whereRawTrending(): string {
+    const lowerLimit = EnvHelper.isStagingEnv() ? (-100) : 0;
+    const tableName = UsersModelProvider.getCurrentParamsTableName();
+
+    return `${tableName}.scaled_social_rate_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
+  }
+
+  public static innerJoinUsersCurrentParams(queryBuilder: QueryBuilder, alias: string | null = null): void {
+    const currentTableName = alias || TABLE_NAME;
+    queryBuilder
+      .innerJoin(
+        UsersModelProvider.getCurrentParamsTableName(),
+        `${UsersModelProvider.getCurrentParamsTableName()}.user_id`,
+        `${currentTableName}.id`,
+      );
+  }
+
+  public static innerJoinUosAccountsProperties(queryBuilder: QueryBuilder, alias: string | null = null): void {
+    const currentTableName = alias || TABLE_NAME;
+
+    // eslint-disable-next-line func-names
+    queryBuilder.innerJoin(UosAccountsModelProvider.uosAccountsPropertiesTableName(), function () {
+      this.on(`${UosAccountsModelProvider.uosAccountsPropertiesTableName()}.entity_id`, '=', `${currentTableName}.id`)
+        .andOn(
+          `${UosAccountsModelProvider.uosAccountsPropertiesTableName()}.entity_name`,
+          '=',
+          knex.raw(`'${UsersModelProvider.getEntityName()}'`),
+        );
+    });
+  }
+
+  public static async findAllWhoTrustsUser(
+    userId: number,
+    params: DbParamsDto,
+  ) {
+    const activityTableName = UsersModelProvider.getUsersActivityTrustTableName();
+
+    return this.findAllWhoActsForUser(userId, params, activityTableName);
+  }
+
+  private static findAllWhoActsForUser(userId: number, params: DbParamsDto, tableName: string): QueryBuilder {
+    UsersRepository.checkIsAllowedActivityTable(tableName);
+
+    const queryBuilder = knex(TABLE_NAME)
+      .where({
+        [`${tableName}.entity_id`]: userId,
+      })
+      // eslint-disable-next-line func-names
+      .innerJoin(tableName, function () {
+        this.on(`${tableName}.user_id`, `${TABLE_NAME}.id`)
+          .andOn(`${tableName}.entity_name`, knex.raw(`'${UsersModelProvider.getEntityName()}'`));
+      });
+
+    UsersRepository.addListParamsToQueryBuilder(queryBuilder, params);
+
+    return queryBuilder;
+  }
+
+  private static findAllWhoActsForOrganization(
+    organizationId: number,
+    params: DbParamsDto,
+    tableName: string,
+  ): QueryBuilder {
+    UsersRepository.checkIsAllowedActivityTable(tableName);
+
+    const queryBuilder = knex(TABLE_NAME)
+      .where({
+        [`${tableName}.entity_id`]: organizationId,
+      })
+      // eslint-disable-next-line func-names
+      .innerJoin(tableName, function () {
+        this.on(`${tableName}.user_id`, `${TABLE_NAME}.id`)
+          .andOn(`${tableName}.entity_name`, knex.raw(`'${OrganizationsModelProvider.getEntityName()}'`));
+      });
+
+    UsersRepository.addListParamsToQueryBuilder(queryBuilder, params);
+
+    return queryBuilder;
+  }
+
+  private static findMyActivityForOtherUsers(userId: number, params: DbParamsDto, tableName: string): QueryBuilder {
+    this.checkIsAllowedActivityTable(tableName);
+
+    const queryBuilder = knex(TABLE_NAME)
+      .where(`${tableName}.user_id`, userId)
+      // eslint-disable-next-line func-names
+      .innerJoin(tableName, function () {
+        this.on(`${tableName}.entity_id`, `${TABLE_NAME}.id`)
+          .andOn(`${tableName}.entity_name`, knex.raw(`'${UsersModelProvider.getEntityName()}'`));
+      });
+
+    this.addListParamsToQueryBuilder(queryBuilder, params);
+
+    return queryBuilder;
+  }
+
+  private static addListSelectAttributes(params: DbParamsDto): void {
+    params.attributes = [];
+    QueryFilterService.addExtraAttributes(params, UsersModelProvider.getUserFieldsForPreview(), TABLE_NAME);
+    QueryFilterService.addExtraAttributes(params, UsersRepository.getPropsFields());
+  }
+
+  private static addListParamsToQueryBuilder(queryBuilder: QueryBuilder, params: DbParamsDto): void {
+    UsersRepository.addListSelectAttributes(params);
+    QueryFilterService.addParamsToKnexQuery(queryBuilder, params);
+
+    UsersRepository.innerJoinUosAccountsProperties(queryBuilder);
+    UsersRepository.innerJoinUsersCurrentParams(queryBuilder);
+  }
+
+  private static checkIsAllowedActivityTable(tableName: string): void {
+    const set: string[] = [
+      UsersModelProvider.getUsersActivityFollowTableName(),
+      UsersModelProvider.getUsersActivityTrustTableName(),
+    ];
+
+    if (!set.includes(tableName)) {
+      throw new AppError(`Unsupported tableName: ${tableName}`);
+    }
+  }
+
+  private static getQueryBuilderFilteredByRequestQuery(query: RequestQueryDto) {
+    const queryBuilder = knex(TABLE_NAME);
+
+    this.addSearchToQueryBuilder(query, queryBuilder);
+
+    return queryBuilder;
+  }
+
+  private static addSearchToQueryBuilder(query: UsersRequestQueryDto, queryBuilder: QueryBuilder) {
+    if (!query.users_identity_pattern) {
+      return;
+    }
+
+    // eslint-disable-next-line func-names
+    queryBuilder.andWhere(function () {
+      this.where(`${TABLE_NAME}.account_name`,  'ilike', `%${query.users_identity_pattern}%`)
+        .orWhere(`${TABLE_NAME}.first_name`,    'ilike', `%${query.users_identity_pattern}%`)
+        .orWhere(`${TABLE_NAME}.last_name`,     'ilike', `%${query.users_identity_pattern}%`);
+    });
   }
 }
 

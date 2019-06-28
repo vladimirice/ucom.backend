@@ -2,6 +2,80 @@
 
 Goal - just to save workflow before implementation.
 
+# main-pages
+
+Publications
+already spent 1h 26 min
+
+
+publications - only when author = team member (organization_id IS NOT NULL)
+
+
+top communities publications - 6h estimated
+* WHERE organization_id IS NOT NULL ORDER BY current_rate DESC LIMIT 5 - 1h
+* GraphQL instead of REST. - 2h - already done
+* Comments as a parameter 2h
+* remove also voting info
+* autotests & refactoring - 1h
+
+----------------------------------------
+
+Step 1:
+
+Create a Common EntityNamesDictionary
+* Users (Myself as a user state: user + auth token)
+* Posts (Publications, reposts, etc.)
+* Comments
+* Organizations (communities)
+* Tags
+* Blockchain nodes - for caching blockchain state
+
+
+Step 2:
+create a queryParts GraphQL method for the community main pages
+filters:
+postTypeId
+entityNamesFrom - optional array
+[
+    'organizations', // publications
+]
+entityNamesFor - optional array
+[
+    'organizations',
+]
+
+publications:
+entityNamesFrom = ['organizations']
+entityNamesFor   = ['organizations']
+ORDER BY current_rate DESC
+
+direct posts:
+entityNamesFrom = ['organizations', 'users']
+entityNamesFor = ['organizations']
+ORDER BY id DESC
+
+include/included query (research) - optional
+[
+    'comments',
+]
+
+
+Route it to the many_posts graphql-node
+
+
+Step 3 - implement include filters
+as-is, already implemented as a hardcode
+
+
+Step 4 - implement from-to filters
+How to apply the filters:
+IF entityNameFrom = 'organizations' THEN add organization_id IS NOT NULL
+if also 'users' THEN do not add this criterion
+
+* fetch entityNamesFor
+* whitelist them
+* apply it WHERE entity_name_for IN (entityNamesFor.join(','))
+
 -----------------
 Script to migrate from main_image_filename to the entity_images
 

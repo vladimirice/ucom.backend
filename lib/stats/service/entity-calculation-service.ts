@@ -15,6 +15,9 @@ import OrgsJobParams = require('../job-params/orgs-job-params');
 import TagsJobParams = require('../job-params/tags-job-params');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import StatsFetchCalculation = require('./fetch/stats-fetch-calculation');
+import EnvHelper = require('../../common/helper/env-helper');
+// @ts-ignore
+import UsersJobParams = require('../job-params/users-job-params');
 
 const profilingInfo = {};
 
@@ -24,11 +27,21 @@ class EntityCalculationService {
       PostsJobParams.getOneToOneSet(),
       OrgsJobParams.getOneToOneSet(),
       TagsJobParams.getOneToOneSet(),
+      UsersJobParams.getOneToOneSet(),
     ];
 
     for (const set of entitiesSets) {
       for (const params of set) {
-        await this.processOneToOne(params);
+        try {
+          console.log(`Let's process entity ${params.entityName} and calculate a ${params.resultEventType}`);
+          await this.processOneToOne(params);
+        } catch (error) {
+          if (error.message === 'LastData array is empty' && EnvHelper.isTestEnv()) {
+            continue;
+          }
+
+          throw error;
+        }
       }
     }
   }
@@ -94,9 +107,8 @@ class EntityCalculationService {
     }
 
     const toProcess: EntitiesWithDeltaFields = {};
-    for (let i = 0; i < lastData.length; i += 1) {
-      const current = lastData[i];
 
+    for (const current of lastData) {
       if (toProcess[current.entity_id]) {
         throw new Error(`There is toProcess already for ${current.entity_id}. There are duplications in requests`);
       }
@@ -129,9 +141,7 @@ class EntityCalculationService {
       throw new Error('lastOfGivenDateData is empty');
     }
 
-    for (let i = 0; i < lastOfGivenDateData.length; i += 1) {
-      const current = lastOfGivenDateData[i];
-
+    for (const current of lastOfGivenDateData) {
       const related = toProcess[current.entity_id];
 
       if (!related) {

@@ -182,6 +182,7 @@ describe('Organizations. Get requests', () => {
 
         // @ts-ignore
         const params: DbParamsDto = {
+          attributes: OrganizationsRepository.getFieldsForPreview(),
           order: [
             ['current_rate', 'DESC'],
             ['id', 'DESC'],
@@ -236,7 +237,7 @@ describe('Organizations. Get requests', () => {
       const organizations = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest();
 
       expect(organizations).toBeDefined();
-      expect(organizations instanceof Array).toBeTruthy();
+      expect(Array.isArray(organizations)).toBeTruthy();
       expect(organizations.length).toBe(totalCount);
 
       organizations.forEach((org) => {
@@ -262,39 +263,50 @@ describe('Organizations. Get requests', () => {
       });
     }, JEST_TIMEOUT);
 
-    it('Get one organization by ID as guest', async () => {
-      const modelId = await OrganizationsGenerator.createOrgWithTeam(userVlad, [userJane, userPetr]);
+    // #task all of this should be replaced in the future by GraphQL
+    describe('One organization', () => {
+      beforeAll(async ()  => {
+        await SeedsHelper.noGraphQlMockAllWorkers();
+      });
+      beforeEach(async ()  => {
+        [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
+      });
 
-      await UsersHelper.directlySetUserConfirmsInvitation(modelId, userJane);
+      it('Get one organization by ID as guest', async () => {
+        const modelId = await OrganizationsGenerator.createOrgWithTeam(userVlad, [userJane, userPetr]);
 
-      await OrganizationsHelper.createSocialNetworksDirectly(modelId);
-      await PostsGenerator.createManyDirectPostsForUserAndGetIds(userVlad, userJane, 10);
+        await UsersHelper.directlySetUserConfirmsInvitation(modelId, userJane);
 
-      const model: OrgModelResponse = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(modelId);
+        await OrganizationsHelper.createSocialNetworksDirectly(modelId);
+        await PostsGenerator.createManyDirectPostsForUserAndGetIds(userVlad, userJane, 10);
 
-      const options = {
-        mustHaveValue: {
-          discussions: false,
-          usersTeam: true,
-        },
-        postProcessing: EntityResponseState.card(),
-      };
+        const model: OrgModelResponse = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(modelId);
 
-      CommonHelper.checkOneOrganizationFully(model, options);
+        const options = {
+          mustHaveValue: {
+            discussions: false,
+            usersTeam: true,
+          },
+          postProcessing: EntityResponseState.card(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
+        };
 
+        CommonHelper.checkOneOrganizationFully(model, options);
 
-      const secondOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
-      const secondOrgResponse: OrgModelResponse = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
+        const secondOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const secondOrgResponse: OrgModelResponse = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
 
-      const secondOrgOptions = {
-        mustHaveValue: {
-          discussions: false,
-          usersTeam: false,
-        },
-        postProcessing: EntityResponseState.card(),
-      };
+        const secondOrgOptions = {
+          mustHaveValue: {
+            discussions: false,
+            usersTeam: false,
+          },
+          postProcessing: EntityResponseState.card(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
+        };
 
-      CommonHelper.checkOneOrganizationFully(secondOrgResponse, secondOrgOptions);
+        CommonHelper.checkOneOrganizationFully(secondOrgResponse, secondOrgOptions);
+      }, 50000);
     });
 
     it('should return communities and partnerships', async () => {

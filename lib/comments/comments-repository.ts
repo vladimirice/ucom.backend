@@ -4,8 +4,10 @@ import {
 } from '../common/interfaces/common-types';
 import { DbCommentParamsDto } from './interfaces/query-filter-interfaces';
 import { CommentModel, ParentIdToDbCommentCollection } from './interfaces/model-interfaces';
+
 import knex = require('../../config/knex');
 import CommentsModelProvider = require('./service/comments-model-provider');
+import UsersModelProvider = require('../users/users-model-provider');
 
 const _ = require('lodash');
 
@@ -16,9 +18,6 @@ const { Op } = db.Sequelize;
 
 const orgModelProvider = require('../organizations/service').ModelProvider;
 const commentsModelProvider = require('./service').ModelProvider;
-const usersModelProvider = require('../users/service').ModelProvider;
-
-const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
 
 const model = commentsModelProvider.getModel();
 
@@ -56,18 +55,14 @@ class CommentsRepository {
       commentsAmount:   +item.amount,
     }));
   }
+
   /**
    *
    * @return {Object[]}
    */
   static getCommentIncludedModels() {
     return [
-      {
-        model: usersModelProvider.getUsersModel(),
-        attributes: userPreviewAttributes,
-        as: 'User',
-      },
-
+      UsersModelProvider.getIncludeAuthorForPreview(),
       {
         model: this.getActivityUserCommentModel(),
         as: this.getActivityUserCommentModelName(),

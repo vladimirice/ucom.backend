@@ -1,14 +1,12 @@
-const activityUserCommentRepository = require('../activity/activity-user-comment-repository');
-const usersActivityService = require('../users/user-activity-service');
+import { BadRequestError } from '../api/errors';
 
-// @ts-ignore
-const { BadRequestError } = require('../api/errors');
+import CommentsRepository = require('./comments-repository');
+import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
+import UserActivityService = require('../users/user-activity-service');
+import EosTransactionService = require('../eos/eos-transaction-service');
+import ActivityUserCommentRepository = require('../activity/activity-user-comment-repository');
 
-const eosService = require('../eos/eos-transaction-service');
-const commentsRepository = require('./repository').Main;
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
-
-const eventIdDictionary = require('../entities/dictionary').EventId;
 
 class CommentsActivityService {
   /**
@@ -18,7 +16,7 @@ class CommentsActivityService {
    * @param {Object} body
    * @returns {Promise<void>}
    */
-  static async userUpvotesComment(userFrom, modelIdTo, body) {
+  public static async userUpvotesComment(userFrom, modelIdTo, body) {
     // #task need DB transaction
     const activityTypeId = InteractionTypeDictionary.getUpvoteId();
 
@@ -30,9 +28,9 @@ class CommentsActivityService {
     );
 
     await this.userVotesComment(userFrom, modelTo, activityTypeId, body.signed_transaction);
-    await commentsRepository.incrementCurrentVoteCounter(modelIdTo);
+    await CommentsRepository.incrementCurrentVoteCounter(modelIdTo);
 
-    const currentVote = await commentsRepository.getCommentCurrentVote(modelIdTo);
+    const currentVote = await CommentsRepository.getCommentCurrentVote(modelIdTo);
 
     return {
       current_vote: currentVote,
@@ -46,7 +44,7 @@ class CommentsActivityService {
    * @param {Object} body
    * @returns {Promise<void>}
    */
-  static async userDownvotesComment(userFrom, modelIdTo, body) {
+  public static async userDownvotesComment(userFrom, modelIdTo, body) {
     const activityTypeId = InteractionTypeDictionary.getDownvoteId();
 
     const modelTo = await this.preProcessCommentVoteAndGetCommentTo(
@@ -57,9 +55,9 @@ class CommentsActivityService {
     );
 
     await this.userVotesComment(userFrom, modelTo, activityTypeId, body.signed_transaction);
-    await commentsRepository.decrementCurrentVoteCounter(modelIdTo);
+    await CommentsRepository.decrementCurrentVoteCounter(modelIdTo);
 
-    const currentVote = await commentsRepository.getCommentCurrentVote(modelIdTo);
+    const currentVote = await CommentsRepository.getCommentCurrentVote(modelIdTo);
 
     return {
       current_vote: currentVote,
@@ -72,8 +70,8 @@ class CommentsActivityService {
    * @param {number} commentIdTo
    * @returns {Promise<boolean>}
    */
-  static async doesUserVoteComment(userIdFrom, commentIdTo) {
-    return await activityUserCommentRepository.doesUserVoteComment(userIdFrom, commentIdTo);
+  private static async doUserVoteComment(userIdFrom, commentIdTo) {
+    return ActivityUserCommentRepository.doesUserVoteComment(userIdFrom, commentIdTo);
   }
 
   /**
@@ -91,7 +89,7 @@ class CommentsActivityService {
     body,
     activityTypeId,
   ) {
-    const doesExists = await CommentsActivityService.doesUserVoteComment(userFrom.id, modelIdTo);
+    const doesExists = await CommentsActivityService.doUserVoteComment(userFrom.id, modelIdTo);
 
     if (doesExists) {
       throw new BadRequestError({
@@ -99,7 +97,7 @@ class CommentsActivityService {
       });
     }
 
-    const modelTo = await commentsRepository.getModel().findOne({ where: { id: modelIdTo } });
+    const modelTo = await CommentsRepository.getModel().findOne({ where: { id: modelIdTo } });
 
     if (modelTo.user_id === userFrom.id) {
       throw new BadRequestError({
@@ -107,7 +105,7 @@ class CommentsActivityService {
       });
     }
 
-    await eosService.appendSignedUserVotesContent(
+    await EosTransactionService.appendSignedUserVotesContent(
       userFrom,
       body,
       modelTo.blockchain_id,
@@ -128,12 +126,12 @@ class CommentsActivityService {
    */
   private static async userVotesComment(userFrom, modelTo, activityTypeId, signedTransaction) {
     // #task should preserve old logic due to statistics - still used
-    await activityUserCommentRepository.createNewActivity(userFrom.id, modelTo.id, activityTypeId);
+    await ActivityUserCommentRepository.createNewActivity(userFrom.id, modelTo.id, activityTypeId);
 
     const eventId = this.getEventId(activityTypeId, modelTo);
 
     // but also lets write in new table
-    const activity = await usersActivityService.createForUserVotesComment(
+    const activity = await UserActivityService.createForUserVotesComment(
       activityTypeId,
       signedTransaction,
       userFrom.id,
@@ -141,7 +139,7 @@ class CommentsActivityService {
       eventId,
     );
 
-    await usersActivityService.sendPayloadToRabbit(activity);
+    await UserActivityService.sendPayloadToRabbit(activity);
   }
 
   /**
@@ -154,18 +152,18 @@ class CommentsActivityService {
   private static getEventId(activityTypeId, modelTo) {
     if (activityTypeId === InteractionTypeDictionary.getUpvoteId()) {
       if (modelTo.organization_id) {
-        return eventIdDictionary.getUserUpvotesCommentOfOrg();
+        return NotificationsEventIdDictionary.getUserUpvotesCommentOfOrg();
       }
 
-      return eventIdDictionary.getUserUpvotesCommentOfOtherUser();
+      return NotificationsEventIdDictionary.getUserUpvotesCommentOfOtherUser();
     }
 
     if (activityTypeId === InteractionTypeDictionary.getDownvoteId()) {
       if (modelTo.organization_id) {
-        return eventIdDictionary.getUserDownvotesCommentOfOrg();
+        return NotificationsEventIdDictionary.getUserDownvotesCommentOfOrg();
       }
 
-      return eventIdDictionary.getUserDownvotesCommentOfOtherUser();
+      return NotificationsEventIdDictionary.getUserDownvotesCommentOfOtherUser();
     }
 
     throw new Error(`Unsupported activityTypeId: ${activityTypeId}`);

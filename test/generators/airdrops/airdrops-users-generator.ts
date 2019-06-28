@@ -1,6 +1,6 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../../integration/helpers/graphql-helper';
-import { AirdropsUsersGithubRawItem } from '../../../lib/airdrops/interfaces/model-interfaces';
+import { AirdropsUsersGithubRawItem, IAirdrop } from '../../../lib/airdrops/interfaces/model-interfaces';
 
 import GithubRequest = require('../../helpers/github-request');
 
@@ -11,38 +11,93 @@ import UsersExternalRequest = require('../../helpers/users-external-request');
 import OrganizationsHelper = require('../../integration/helpers/organizations-helper');
 import RequestHelper = require('../../integration/helpers/request-helper');
 import knex = require('../../../config/knex');
+import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
+import AirdropsFetchRepository = require('../../../lib/airdrops/repository/airdrops-fetch-repository');
+import AirdropsUsersRequest = require('../../helpers/airdrops-users-request');
 
 class AirdropsUsersGenerator {
   public static generateForVladAndJane() {
     return Promise.all([
-      AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(13485690),
-      AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(10195782),
+      this.generateGithubRawDataForVlad(),
+      this.generateGithubRawDataForJane(),
     ]);
+  }
+
+  public static generateForVladAndJaneRoundTwo() {
+    return Promise.all([
+      this.generateGithubRawDataForVladRoundTwo(),
+      this.generateGithubRawDataForJaneRoundTwo(),
+    ]);
+  }
+
+  public static async generateGithubRawDataForVlad() {
+    return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(AirdropsUsersRequest.getVladGithubId());
+  }
+
+  public static async generateGithubRawDataForVladRoundTwo() {
+    return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(
+      AirdropsUsersRequest.getVladGithubId(),
+      true,
+      AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName()
+    );
+  }
+
+  public static async generateGithubRawDataForJaneRoundTwo() {
+    return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(
+      AirdropsUsersRequest.getJaneGithubId(),
+      true,
+      AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName()
+    );
+  }
+
+  public static async generateGithubRawDataForJane() {
+    return AirdropsUsersGenerator.generateAirdropsUsersGithubRawDataForUser(AirdropsUsersRequest.getJaneGithubId());
   }
 
   public static async generateAirdropsUsersGithubRawDataForUser(
     githubId: number,
     getInMajor: boolean = true,
+    sourceTableName = AirdropsModelProvider.airdropsUsersGithubRawTableName(),
   ): Promise<AirdropsUsersGithubRawItem> {
+
+    const amount = sourceTableName === AirdropsModelProvider.airdropsUsersGithubRawTableName() ?
+      githubId + 5020 : githubId + 102100;
+
     const generated = {
       id: githubId,
       score: githubId + 43.424145,
-      amount: githubId + 5020,
+      amount,
     };
 
     const sql = `
-      INSERT INTO airdrops_users_github_raw (id, score, amount) 
+      INSERT INTO ${sourceTableName} (id, score, amount) 
       VALUES (${generated.id}, ${generated.score}, ${generated.amount})
     `;
 
     await knex.raw(sql);
 
+    const response = {
+      id: generated.id,
+      score: generated.score,
+      amount: generated.amount,
+      tokens: [
+        {
+          amount_claim: generated.amount,
+          symbol: 'UOSTEST',
+        },
+        {
+          amount_claim: generated.amount,
+          symbol: 'GHTEST',
+        },
+      ]
+    };
+
     if (getInMajor) {
-      return {
-        id: generated.id,
-        score: generated.score,
-        amount: generated.amount / (10 ** 4),
-      };
+      response.amount /= (10 ** 4);
+      response.tokens[0].amount_claim /= (10 ** 4);
+      response.tokens[1].amount_claim /= (10 ** 4);
+
+      return response;
     }
 
     return generated;
@@ -87,14 +142,15 @@ class AirdropsUsersGenerator {
     return GraphqlHelper.getOneUserAirdrop(airdropId, headers);
   }
 
-  public static getExpectedUserAirdrop(
+  public static async getExpectedUserAirdrop(
     airdropId: number,
     usersExternalId: number,
     conditions: any,
     userId: number | null = null,
     airdropStatus: number = AirdropStatuses.NEW,
   ) {
-    const commonData = AirdropsUsersExternalDataService.getUserAirdropCommonData(airdropId, usersExternalId, false);
+    const airdrop: IAirdrop = await AirdropsFetchRepository.getAirdropByPk(airdropId);
+    const commonData = await AirdropsUsersExternalDataService.getUserAirdropCommonData(airdrop, usersExternalId, true);
 
     return {
       user_id: userId,

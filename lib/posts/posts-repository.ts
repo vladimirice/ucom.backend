@@ -1,11 +1,11 @@
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
-import { ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
+import { EntityAggregatesDto, ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 import {
   DbParamsDto,
   QueryFilteredRepository,
 } from '../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from './interfaces/model-interfaces';
-import { AppError } from '../api/errors';
+import { AppError, BadRequestError } from '../api/errors';
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
@@ -14,6 +14,7 @@ import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-c
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const _ = require('lodash');
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 const models = require('../../models');
 
@@ -124,6 +125,32 @@ class PostsRepository implements QueryFilteredRepository {
     }));
   }
 
+  public static async getManyUsersPostsAmount(
+  ): Promise<EntityAggregatesDto[]> {
+    const postTypes: number[] = [
+      ContentTypeDictionary.getTypeMediaPost(),
+      ContentTypeDictionary.getTypeDirectPost(),
+    ];
+
+    const sql = `
+      SELECT array_agg(post_type_id || '__' || amount) AS array_agg, user_id FROM
+        (
+          SELECT user_id, post_type_id, COUNT(1) AS amount
+          FROM posts
+          WHERE post_type_id IN (${postTypes.join(', ')})
+          GROUP BY user_id, post_type_id
+        ) AS t
+      GROUP BY user_id
+    `;
+
+    const data = await knex.raw(sql);
+
+    return data.rows.map(row => ({
+      aggregates: RepositoryHelper.splitAggregates(row),
+      entityId: +row.user_id,
+    }));
+  }
+
   public static async getManyPostsRepostsAmount() {
     const postTypeId: number = ContentTypeDictionary.getTypeRepost();
 
@@ -208,12 +235,18 @@ class PostsRepository implements QueryFilteredRepository {
     return (query: PostRequestQueryDto, params) => {
       if (query.post_type_id) {
         params.where.post_type_id = +query.post_type_id;
+      } else if (query.post_type_ids) {
+        params.where.post_type_id = {
+          [Op.in]: query.post_type_ids,
+        };
       }
 
       this.andWhereByOverviewType(query, params);
+
+      this.processEntityNamesFrom(query, params);
+      this.processEntityNamesFor(query, params);
     };
   }
-
 
   public static whereSequelizeTranding() {
     const greaterThan = process.env.NODE_ENV === 'staging' ? -100 : 0;
@@ -825,11 +858,6 @@ class PostsRepository implements QueryFilteredRepository {
     return newPost;
   }
 
-  /**
-   *
-   * @param {number} id
-   * @return {Promise<Object>}
-   */
   static async findOnlyPostItselfById(id, transaction = null) {
     return model.findOne({
       transaction,
@@ -1028,6 +1056,84 @@ class PostsRepository implements QueryFilteredRepository {
     });
 
     return result ? result.blockchain_id : null;
+  }
+
+  private static processEntityNamesFrom(query: PostRequestQueryDto, params: DbParamsDto): void {
+    const entityNamesFrom: string[] = query.entity_names_from;
+
+    if (!entityNamesFrom) {
+      return;
+    }
+
+    const allowed = [
+      EntityNames.ORGANIZATIONS,
+      EntityNames.USERS,
+    ];
+
+    if (entityNamesFrom.length === 0) {
+      throw new BadRequestError(`entity_names_from is provided but it is an empty array. Please add values. Allowed ones: are ${allowed}`);
+    }
+
+    if (entityNamesFrom.length > 2) {
+      throw new BadRequestError(
+        'There is no business case yet for entity_names_from length to be more than 2. If there is such case, please consider removing this error.',
+      );
+    }
+
+    if (_.isEqual([EntityNames.ORGANIZATIONS], entityNamesFrom)) {
+      params.where.organization_id = {
+        [Op.ne]: null,
+      };
+
+      return;
+    }
+
+    if (_.isEqual([EntityNames.USERS], entityNamesFrom)) {
+      params.where.organization_id = {
+        [Op.eq]: null,
+      };
+
+      return;
+    }
+
+    if (_.isEqual([EntityNames.USERS, EntityNames.ORGANIZATIONS].sort(), entityNamesFrom.sort())) {
+      // do nothing
+      return;
+    }
+
+    throw new BadRequestError(`Unsupported set for entity_names_from: ${entityNamesFrom}`);
+  }
+
+  private static processEntityNamesFor(query: PostRequestQueryDto, params: DbParamsDto): void {
+    const entityNamesFor: string[] = query.entity_names_for;
+    if (!entityNamesFor) {
+      return;
+    }
+
+    const allowed = [
+      EntityNames.ORGANIZATIONS,
+      EntityNames.USERS,
+    ];
+
+    if (entityNamesFor.length === 0) {
+      throw new BadRequestError(`entity_names_for is provided but it is an empty array. Please add values. Allowed ones: are ${allowed}`);
+    }
+
+    const notAllowed = _.difference(entityNamesFor, allowed);
+    if (notAllowed.length > 0) {
+      throw new BadRequestError(`entity_names_for values ${notAllowed} are not allowed. Allowed ones are: ${allowed}`);
+    }
+
+    // #consistency - This is a business case consistency check to avoid possible errors not covered by autotests
+    if (entityNamesFor.length > 2) {
+      throw new BadRequestError(
+        'There is no business case yet for entity_names_for length to be more than 2. If there is such case, please consider removing this error.',
+      );
+    }
+
+    params.where.entity_name_for = {
+      [Op.in]: entityNamesFor,
+    };
   }
 
   private static getDefaultOrderBy() {

@@ -1,4 +1,5 @@
 import GithubAuthService = require('../service/github-auth-service');
+import HttpRequestHelper = require('../../common/helper/http-request-helper');
 
 const express = require('express');
 
@@ -17,7 +18,7 @@ GithubAuthRouter.all('/auth_callback', async (req, res) => {
     {
       maxAge: GithubAuthService.getCookieExpiration(),
       httpOnly: false,
-      domain: 'u.community',
+      domain: HttpRequestHelper.getCookieDomain(req),
     },
   );
 

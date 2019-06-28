@@ -33,7 +33,6 @@ services:
     environment:
       - POSTGRES_USER=uos
       - POSTGRES_PASSWORD=uos
-      - POSTGRES_DB=uos_backend_app
     networks:
       uos_backend_network:
         ipv4_address: 173.18.212.11

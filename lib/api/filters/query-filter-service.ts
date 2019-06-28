@@ -7,6 +7,7 @@ import {
   RequestQueryDto,
 } from './interfaces/query-filter-interfaces';
 import { ListMetadata } from '../../common/interfaces/lists-interfaces';
+import { AppError } from '../errors';
 
 const _ = require('lodash');
 
@@ -59,27 +60,36 @@ class QueryFilterService {
     return arraysSet.join(', ');
   }
 
+  // This is a legacy. Consider to move to getQueryBuilderFilteredByRequestQuery filtering
+  public static addWhereRawParamToKnexQuery(
+    queryBuilder: QueryBuilder,
+    params: DbParamsDto,
+  ): void {
+    if (params.whereRaw) {
+      queryBuilder.whereRaw(params.whereRaw);
+    }
+  }
+
   public static addParamsToKnexQuery(
-    query: QueryBuilder,
+    queryBuilder: QueryBuilder,
     params: DbParamsDto,
   ): void {
     if (!params.orderByRaw && params.order) {
-      params.orderByRaw = this.sequelizeOrderByToKnexRaw(params.order);
+      params.orderByRaw = QueryFilterService.sequelizeOrderByToKnexRaw(params.order);
     }
 
-    if (params.whereRaw) {
-      // noinspection JSIgnoredPromiseFromCall
-      query.whereRaw(params.whereRaw);
-    }
+    this.addWhereRawParamToKnexQuery(queryBuilder, params);
 
     if (params.orderByRaw) {
       // noinspection JSIgnoredPromiseFromCall
-      query.orderByRaw(params.orderByRaw);
+      queryBuilder.orderByRaw(params.orderByRaw);
     }
 
-    // noinspection JSIgnoredPromiseFromCall
-    query
-      .select(params.attributes)
+    if (params.attributes) {
+      queryBuilder.select(params.attributes);
+    }
+
+    queryBuilder
       .limit(params.limit || PER_PAGE_LIMIT)
       .offset(params.offset || 0)
     ;
@@ -147,6 +157,22 @@ class QueryFilterService {
     }
 
     return params;
+  }
+
+  public static addExtraAttributes(
+    params: DbParamsDto,
+    extraAttributes: string[],
+    prefix: string = '',
+  ): void {
+    if (!params.attributes) {
+      throw new AppError('In order to add extra attributes add main attributes beforehand');
+    }
+
+    for (const attribute of extraAttributes) {
+      const value = prefix !== '' ? `${prefix}.${attribute} AS ${attribute}` : attribute;
+
+      params.attributes.push(value);
+    }
   }
 
   public static processAttributes(

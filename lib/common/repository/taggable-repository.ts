@@ -2,19 +2,18 @@ const knex = require('../../../config/knex');
 const queryFilterService = require('../../api/filters/query-filter-service');
 
 class TaggableRepository {
-  /**
-   *
-   * @param {string} tableName
-   * @param {string} tagTitle
-   * @param {string} tagsJoinColumn
-   * @param {Object} params
-   * @returns {Promise<Object>}
-   */
-  static async findAllByTagTitle(tableName, tagTitle, tagsJoinColumn, params) {
-    const toSelect: string[] = [];
+  public static findAllByTagTitle(tableName, tagTitle, tagsJoinColumn, params, extraFieldsToSelect: string[] | null = null) {
+    let toSelect: string[] = [];
     params.attributes.forEach((field) => {
       toSelect.push(`${params.main_table_alias}.${field}`);
     });
+
+    if (extraFieldsToSelect !== null) {
+      toSelect = [
+        ...toSelect,
+        ...extraFieldsToSelect,
+      ];
+    }
 
     const knexOrderByRaw =
       queryFilterService.sequelizeOrderByToKnexRaw(params.order, params.main_table_alias);

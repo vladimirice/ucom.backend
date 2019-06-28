@@ -5,9 +5,11 @@ const HTTP_SERVER_PORT      = 3001;
 const GRAPHQL_SERVER_PORT   = 4001;
 const WEBSOCKET_SERVER_PORT = 5001;
 const UPLOADER_SERVER_PORT  = 5011;
+const REDIRECT_SERVER_PORT  = 5021;
 
 const CRON_PATTERN_EVERY_HOUR         = '0 */1 * * *';
 const CRON_PATTERN_EVERY_MINUTE       = '* * * * *';
+const CRON_PATTERN_EVERY_TWO_MINUTES  = '*/2 * * * *';
 const CRON_PATTERN_EVERY_FIVE_MINUTES = '*/5 * * * *';
 
 const clusterConfig = {
@@ -72,6 +74,18 @@ module.exports = {
         NODE_ENV,
       },
     },
+    {
+      name: `${NODE_ENV}-app-redirect`,
+      script: 'lib/affiliates/bin/redirect-bin.js',
+
+      ...clusterConfig,
+      ...defaultConfig,
+
+      env: {
+        PORT: REDIRECT_SERVER_PORT,
+        NODE_ENV,
+      },
+    },
     // ================ Consumers ======================
     {
       name: `${NODE_ENV}-consumer-tags-parser`,
@@ -104,6 +118,26 @@ module.exports = {
       },
     },
     // ================ Workers (CRON) ======================
+    {
+      name: `${NODE_ENV}-worker-streams-creation`,
+      script: 'lib/affiliates/workers/streams-creation-worker.js',
+
+      watch: false,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      env: {
+        NODE_ENV,
+      },
+    },
+    {
+      name: `${NODE_ENV}-worker-conversion-processor`,
+      script: 'lib/affiliates/workers/conversion-processor-worker.js',
+
+      watch: false,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      env: {
+        NODE_ENV,
+      },
+    },
     {
       name: `${NODE_ENV}-worker-airdrops-users-to-pending`,
       script: 'lib/airdrops/workers/airdrops-users-to-pending.js',
@@ -139,7 +173,7 @@ module.exports = {
       script: 'lib/uos-accounts-properties/worker/uos-accounts-properties-update-worker.js',
 
       watch: false,
-      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      cron_restart: CRON_PATTERN_EVERY_TWO_MINUTES,
       env: {
         NODE_ENV,
       },
@@ -168,7 +202,7 @@ module.exports = {
       name: `${NODE_ENV}-worker-update-blockchain-nodes`,
       script: 'lib/blockchain-nodes/worker/update-blockchain-nodes-worker.js',
       watch: false,
-      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      cron_restart: CRON_PATTERN_EVERY_TWO_MINUTES,
       env: {
         NODE_ENV,
       },

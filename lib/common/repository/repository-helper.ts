@@ -1,3 +1,4 @@
+import { QueryBuilder } from 'knex';
 import { NumberToNumberCollection } from '../interfaces/common-types';
 
 import { CurrentParams } from '../../stats/interfaces/dto-interfaces';
@@ -13,6 +14,15 @@ class RepositoryHelper {
     prefixForAlias: string = '',
   ): string[] {
     return attributes.map(attribute => `${tableName}.${attribute} AS ${prefixForAlias}${attribute}`);
+  }
+
+  public static async doesExistByQueryBuilder(
+    queryBuilder: QueryBuilder,
+  ): Promise<boolean> {
+    const data = await queryBuilder
+      .count('id as amount');
+
+    return !!this.getKnexCountAsNumber(data);
   }
 
   public static getKnexCountAsNumber(res: any): number {
@@ -71,7 +81,9 @@ class RepositoryHelper {
     fields: string[],
     fieldsToDisallowZero: string[] = [],
   ): void {
-    models.forEach(model => this.convertStringFieldsToNumbers(model, fields, fieldsToDisallowZero));
+    for (const oneModel of models) {
+      this.convertStringFieldsToNumbers(oneModel, fields, fieldsToDisallowZero);
+    }
   }
 
   // It is required because big int fields from Postgresql are represented as string

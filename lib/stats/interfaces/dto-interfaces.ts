@@ -123,7 +123,22 @@ interface OrgStats {
   followers: number;
 }
 
+interface EntityAggregatesDto {
+  readonly entityId:      number;
+  readonly aggregates:  NumberToNumberCollection;
+}
+
+interface IStatsJobParams {
+  entityName:                 string;
+  entityLabel:                string;
+
+  currentValuesFetchFunction: Function; // #task provide a signature
+  currentValuesEventType:     number;
+  currentValuesToSave:        string[];
+}
+
 export {
+  EntityAggregatesDto,
   ModelWithEventParamsDto,
   EntityParamAggregatesDto,
   PostIdToStats,
@@ -138,4 +153,5 @@ export {
   TotalStatsParams,
   TotalCurrentParamsJsonValue,
   TotalCurrentParamsModel,
+  IStatsJobParams,
 };

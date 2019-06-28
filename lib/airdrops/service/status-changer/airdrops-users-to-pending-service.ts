@@ -2,6 +2,7 @@ import { Transaction } from 'knex';
 import { AirdropDebtDto, FreshUserDto, TokensToClaim } from '../../interfaces/dto-interfaces';
 import { AppError } from '../../../api/errors';
 import { WorkerLogger } from '../../../../config/winston';
+import { IAirdrop } from '../../interfaces/model-interfaces';
 
 import AirdropsUsersExternalDataRepository = require('../../repository/airdrops-users-external-data-repository');
 import AirdropsFetchRepository = require('../../repository/airdrops-fetch-repository');
@@ -12,8 +13,23 @@ import knex = require('../../../../config/knex');
 import AccountsCreatorService = require('../../../accounts/service/accounts-creator-service');
 import AccountsTransactionsCreatorService = require('../../../accounts/service/accounts-transactions-creator-service');
 import AirdropsUsersRepository = require('../../repository/airdrops-users-repository');
+import DatetimeHelper = require('../../../common/helper/datetime-helper');
+
+const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 
 class AirdropsUsersToPendingService {
+  public static async processAllInProcessAirdrop() {
+    const manyAirdrops: IAirdrop[] = await AirdropsFetchRepository.getAllAirdrops();
+    for (const airdrop of manyAirdrops) {
+      if (DatetimeHelper.isInProcess(airdrop.started_at, airdrop.finished_at)) {
+        console.log(`Let's process for airdrop with ID: ${airdrop.id}`);
+        await this.process(airdrop.id);
+      } else {
+        console.log(`Let's skip airdrop with ID: ${airdrop.id}`);
+      }
+    }
+  }
+
   public static async process(airdropId: number) {
     const manyFreshUsers: FreshUserDto[] =
       await AirdropsUsersExternalDataRepository.getManyUsersWithStatusNew(airdropId);
@@ -22,14 +38,18 @@ class AirdropsUsersToPendingService {
       return;
     }
 
-    const airdrop = await AirdropsFetchRepository.getAirdropByPk(airdropId);
+    const airdrop: IAirdrop = await AirdropsFetchRepository.getAirdropByPk(airdropId);
 
     const usersToProcess: FreshUserDto[] = [];
     for (const freshUser of manyFreshUsers) {
       const isOk: boolean =
-        await this.areAllConditionsFulfilledByUserId(freshUser.user_id, airdrop.conditions.community_id_to_follow);
+        await this.areAllConditionsFulfilledByUserId(freshUser.user_id, +airdrop.conditions.community_id_to_follow);
 
       if (isOk) {
+        await AirdropsUsersExternalDataRepository.makeAreConditionsFulfilledTruthy(freshUser.users_external_id);
+      }
+
+      if (isOk && freshUser.status === AirdropStatuses.NEW) {
         usersToProcess.push(freshUser);
       }
     }

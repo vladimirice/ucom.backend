@@ -1,3 +1,6 @@
+import SeedsHelper = require('../../helpers/seeds-helper');
+import UsersHelper = require('../../helpers/users-helper');
+
 export {};
 
 const helpers = require('../../helpers');
@@ -13,14 +16,10 @@ helpers.Mock.mockAllBlockchainPart();
 describe('Post repost API', () => {
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
-    [userVlad, userJane] = await Promise.all([
-      helpers.Users.getUserVlad(),
-      helpers.Users.getUserJane(),
-    ]);
   });
 
   beforeEach(async () => {
-    await helpers.Seeds.initUsersOnly();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
   });
 
   afterAll(async () => {
@@ -29,7 +28,6 @@ describe('Post repost API', () => {
 
   describe('Get many posts with repost for feeds', () => {
     describe('Positive', () => {
-
       describe('For users wall', () => {
         it('Repost of user post wall list should have correct structure', async () => {
           const { repostId } = await gen.Posts.createNewPostWithRepost(userJane, userVlad);
@@ -40,7 +38,12 @@ describe('Post repost API', () => {
 
           const mediaPost = posts.find(post => post.id === userOtherPostId);
           const repost = posts.find(post => post.id === repostId);
-          const options = helpers.Common.getOptionsForListAndGuest();
+          let options = helpers.Common.getOptionsForListAndGuest();
+
+          options = {
+            ...options,
+            ...UsersHelper.propsAndCurrentParamsOptions(false),
+          };
 
           postsHelper.checkMediaPostFields(mediaPost, options);
           helpers.Common.checkOneRepostForList(repost, options, false);
@@ -56,7 +59,12 @@ describe('Post repost API', () => {
 
           const mediaPost = posts.find(post => post.id === userOtherPostId);
           const repost = posts.find(post => post.id === repostId);
-          const options = helpers.Common.getOptionsForListAndGuest();
+          let options = helpers.Common.getOptionsForListAndGuest();
+
+          options = {
+            ...options,
+            ...UsersHelper.propsAndCurrentParamsOptions(false),
+          };
 
           postsHelper.checkMediaPostFields(mediaPost, options);
           helpers.Common.checkOneRepostForList(repost, options, true);
@@ -86,7 +94,12 @@ describe('Post repost API', () => {
 
           const mediaPost = posts.find(post => post.id === postIds[0]);
           const repost = posts.find(post => post.id === janeRepostId);
-          const options = helpers.Common.getOptionsForListAndMyself();
+          let options = helpers.Common.getOptionsForListAndMyself();
+
+          options = {
+            ...options,
+            ...UsersHelper.propsAndCurrentParamsOptions(false),
+          };
 
           postsHelper.checkMediaPostFields(mediaPost, options);
           helpers.Common.checkOneRepostForList(repost, options, false);
@@ -116,8 +129,12 @@ describe('Post repost API', () => {
 
           const mediaPost = posts.find(post => post.id === postIds[0]);
           const repost = posts.find(post => post.id === janeRepostId);
-          const options = helpers.Common.getOptionsForListAndMyself();
+          let options = helpers.Common.getOptionsForListAndMyself();
 
+          options = {
+            ...options,
+            ...UsersHelper.propsAndCurrentParamsOptions(false),
+          };
           postsHelper.checkMediaPostFields(mediaPost, options);
           helpers.Common.checkOneRepostForList(repost, options, true);
         });
@@ -135,6 +152,7 @@ describe('Post repost API', () => {
         const options = {
           myselfData    : false,
           postProcessing: 'list',
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
         };
 
         helpers.Common.checkOneRepostForList(post, options, false);
@@ -151,11 +169,11 @@ describe('Post repost API', () => {
         const options = {
           myselfData    : false,
           postProcessing: 'list',
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
         };
 
         helpers.Common.checkOneRepostForList(post, options, true);
       });
     });
   });
-
 });

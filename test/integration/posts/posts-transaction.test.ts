@@ -57,7 +57,7 @@ describe('Posts related blockchain transactions.', () => {
 
       expect(JSON.parse(activity.signed_transaction)).toMatchObject(expectedSignedTransaction);
       expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedBlockchainResponse);
-    }, 10000);
+    }, 30000);
   });
 
   describe('User creates direct post', () => {

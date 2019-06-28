@@ -1,11 +1,15 @@
+import { IModelFieldsSet } from '../../common/interfaces/models-dto';
+
+import CommentsFieldsSet = require('../models/comments-fields-set');
+
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 const models = require('../../../models');
 
-const ENTITY_NAME = 'comments  ';
+const ENTITY_NAME = EntityNames.COMMENTS;
 
 const TABLE_NAME = 'comments';
 
 class CommentsModelProvider {
-
   /**
    *
    * @return {string}
@@ -65,6 +69,10 @@ class CommentsModelProvider {
    */
   static isComment(entityName): boolean {
     return entityName === this.getEntityName();
+  }
+
+  public static getCommentsRelatedFieldsSet(): IModelFieldsSet {
+    return CommentsFieldsSet.getAllFieldsSet();
   }
 }
 

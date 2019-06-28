@@ -1,4 +1,3 @@
-import { MyselfDataDto } from '../interfaces/post-processing-dto';
 import { EmptyListResponse, ListMetadata } from '../interfaces/lists-interfaces';
 import { AppError } from '../../api/errors';
 import { PostModelResponse } from '../../posts/interfaces/model-interfaces';
@@ -229,7 +228,7 @@ class ApiPostProcessor {
    *
    * @param {Object} model
    */
-  // eslint-disable-next-line
+  // eslint-disable-next-line sonarjs/no-identical-functions
   static processUserMentionsYouInsidePost(model) {
     this.processOnePostForList(model.data.post); // This also process User
 
@@ -436,7 +435,7 @@ class ApiPostProcessor {
    * @param {Object[]} comments
    * @param {number} currentUserId
    */
-  static processManyComments(comments, currentUserId = null) {
+  static processManyComments(comments, currentUserId: number | null = null) {
     const processedComments = commentsPostProcessor.processManyComments(comments, currentUserId);
 
     processedComments.forEach((comment) => {
@@ -532,7 +531,7 @@ class ApiPostProcessor {
       if (currentUserId === model.organization.user_id) {
         organizationMember = true;
       } else {
-        organizationMember = orgTeamMembers.indexOf(currentUserId) !== -1;
+        organizationMember = orgTeamMembers.includes(currentUserId);
       }
     }
 
@@ -545,14 +544,12 @@ class ApiPostProcessor {
       }
     }
 
-    const myselfData: MyselfDataDto = {
+    model.myselfData = {
       myselfVote,
       join,
       organization_member: organizationMember,
       repost_available: repostAvailable,
     };
-
-    model.myselfData = myselfData;
   }
 
   /**

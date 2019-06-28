@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 import { CommentModelInput } from '../interfaces/model-interfaces';
+import { UserModel } from '../../users/interfaces/model-interfaces';
 
 import PostsRepository = require('../../posts/posts-repository');
 import CommentsRepository = require('../comments-repository');
@@ -12,6 +13,7 @@ import UsersTeamRepository = require('../../users/repository/users-team-reposito
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
+import CommentsInputProcessor = require('../validators/comments-input-processor');
 
 const _ = require('lodash');
 const { TransactionFactory } = require('ucom-libs-social-transactions');
@@ -21,7 +23,14 @@ const BLOCKCHAIN_COMMENT_PREFIX = 'cmmnt';
 const db = require('../../../models').sequelize;
 
 export class CommentsCreatorService {
-  public static async createNewCommentOnComment(body, postId, commentParentId, currentUser) {
+  public static async createNewCommentOnComment(
+    body: any,
+    postId: number,
+    commentParentId: number,
+    currentUser: UserModel,
+  ) {
+    CommentsInputProcessor.process(body);
+
     const post                  = await PostsRepository.findOneOnlyWithOrganization(postId);
     const parentModel           = await CommentsRepository.findOneById(commentParentId);
 
@@ -31,7 +40,9 @@ export class CommentsCreatorService {
     return this.createNewComment(body, parentIdInBlockchain, post, parentModel, isCommentOnComment, currentUser);
   }
 
-  public static async createNewCommentOnPost(body: any, postId: number, currentUser: any) {
+  public static async createNewCommentOnPost(body: any, postId: number, currentUser: UserModel): Promise<any> {
+    CommentsInputProcessor.process(body);
+
     const post                  = await PostsRepository.findOneOnlyWithOrganization(postId);
     const parentIdInBlockchain  = post.blockchain_id;
     const parentModel           = null;

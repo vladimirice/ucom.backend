@@ -11,32 +11,18 @@ import postGen = require('./posts-generator');
 import commentsGen = require('./comments-generator');
 import CommentsGenerator = require('./comments-generator');
 import PostsHelper = require('../integration/helpers/posts-helper');
-import UsersHelper = require('../integration/helpers/users-helper');
 import OrganizationsHelper = require('../integration/helpers/organizations-helper');
 import EntityTagsGenerator = require('./entity/entity-tags-generator');
 import TagsCurrentRateProcessor = require('../../lib/tags/service/tags-current-rate-processor');
 import EventParamTypeDictionary = require('../../lib/stats/dictionary/event-param/event-param-type-dictionary');
 import StatsHelper = require('../integration/helpers/stats-helper');
 import TagsRepository = require('../../lib/tags/repository/tags-repository');
-
-
-let userVlad: UserModel;
-let userJane: UserModel;
-let userPetr: UserModel;
-let userRokky: UserModel;
-
-(async () => {
-  [userVlad, userJane, userPetr, userRokky] = await Promise.all([
-    UsersHelper.getUserVlad(),
-    UsersHelper.getUserJane(),
-    UsersHelper.getUserPetr(),
-    UsersHelper.getUserRokky(),
-  ]);
-})();
-
+import SampleUsersProvider = require('../helpers/users/sample-users-provider');
 
 class CommonGenerator {
   static async createAllTypesOfNotifications() {
+    const [userVlad, userJane, userPetr, userRokky] = await SampleUsersProvider.getAll();
+
     // User Jane = 1 - vlad follows you
     await activityHelper.requestToCreateFollow(userVlad, userJane);
 
@@ -60,6 +46,8 @@ class CommonGenerator {
   }
 
   public static async createFeedsForAllUsers(): Promise<any> {
+    const [userVlad, userJane, userPetr, userRokky] = await SampleUsersProvider.getAll();
+
     const [janeOrgIdOne, janeOrgIdTwo] = await Promise.all([
       OrganizationsGenerator.createOrgWithoutTeam(userJane),
       OrganizationsGenerator.createOrgWithoutTeam(userJane),
@@ -162,6 +150,8 @@ class CommonGenerator {
   }
 
   private static async createOrgActivityAsDisturbance() {
+    const [userVlad, userJane,, userRokky] = await SampleUsersProvider.getAll();
+
     const [firstOrgId, secondOrgId, thirdOrgId, fourthOrgId] = await Promise.all([
       OrganizationsGenerator.createOrgWithoutTeam(userVlad),
       OrganizationsGenerator.createOrgWithoutTeam(userJane),
@@ -193,6 +183,8 @@ class CommonGenerator {
 
   private static async createPostsActivityAsDisturbance()
     : Promise<any> {
+    const [userVlad] = await SampleUsersProvider.getAll();
+
     const [firstPostId, secondPostId, thirdPostId, fourthPostId, fifthPostId] = await Promise.all([
       PostsGenerator.createMediaPostByUserHimself(userVlad),
       PostsGenerator.createMediaPostByUserHimself(userVlad),
@@ -223,6 +215,8 @@ class CommonGenerator {
     idForOneRepost: number,
     idForTwoReposts: number | null = null,
   ): Promise<void> {
+    // @ts-ignore
+    const [userVlad, userJane, userPetr, userRokky] = await SampleUsersProvider.getAll();
     await PostsGenerator.createRepostOfUserPost(userJane, idForOneRepost);
 
     if (idForTwoReposts !== null) {
@@ -242,6 +236,9 @@ class CommonGenerator {
     twoLikesOneDislikePostId,
     threeDislikesPostId,
   ): Promise<void> {
+    // @ts-ignore
+    const [userVlad, userJane, userPetr, userRokky] = await SampleUsersProvider.getAll();
+
     await Promise.all([
       PostsHelper.requestToUpvotePost(userJane, threeLikesPostId),
       PostsHelper.requestToUpvotePost(userPetr, threeLikesPostId),
@@ -265,6 +262,9 @@ class CommonGenerator {
     fourCommentsPostId: number,
     oneCommentPostId: number | null = null,
   ): Promise<void> {
+    // @ts-ignore
+    const [userVlad, userJane, userPetr, userRokky] = await SampleUsersProvider.getAll();
+
     const [postOneCommentOneId] = await Promise.all([
       CommentsGenerator.createCommentForPostAndGetId(fourCommentsPostId, userVlad),
       CommentsGenerator.createCommentForPostAndGetId(fourCommentsPostId, userJane),
@@ -285,6 +285,9 @@ class CommonGenerator {
     orgIdWithOneFollowerAndHistory: number,
     orgIdWithOneDirectFollower: number,
   ): Promise<void> {
+    // @ts-ignore
+    const [userVlad, userJane, userPetr, userRokky] = await SampleUsersProvider.getAll();
+
     await OrganizationsHelper.requestToCreateOrgFollowHistory(userJane, orgIdWithTwoFollowers);
     await OrganizationsHelper.requestToFollowOrganization(orgIdWithTwoFollowers, userPetr);
     await OrganizationsHelper.requestToCreateOrgUnfollowHistory(userRokky, orgIdWithTwoFollowers);
@@ -301,6 +304,9 @@ class CommonGenerator {
     orgIdWithOneDirectPost: number,
     orgIdWithOneMediaPost: number,
   ): Promise<void> {
+    // @ts-ignore
+    const [userVlad, userJane, userPetr, userRokky] = await SampleUsersProvider.getAll();
+
     await Promise.all([
       PostsGenerator.createManyMediaPostsOfOrganization(userVlad, orgIdWithThreeMediaAndTwoDirectPosts, 3),
       PostsGenerator.createDirectPostForOrganization(userJane, orgIdWithThreeMediaAndTwoDirectPosts),
@@ -316,6 +322,9 @@ class CommonGenerator {
     tagTitleWithOneMedia: string,
     tagTitleWithOneDirect: string,
   ): Promise<number[]> {
+    // @ts-ignore
+    const [userVlad, userJane, userPetr, userRokky] = await SampleUsersProvider.getAll();
+
     return Promise.all([
       EntityTagsGenerator.createTagViaNewPost(userVlad, tagTitleWithTwoMediaAndOneDirect),
       EntityTagsGenerator.createTagViaNewPost(userVlad, tagTitleWithTwoMediaAndOneDirect),

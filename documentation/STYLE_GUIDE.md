@@ -44,11 +44,13 @@ Because of this, some of the conventions are not satisfied by the "old code", on
 **Do** use blockchain application mock methods. Example - [mockUosAccountsPropertiesFetchService method](../test/integration/helpers/mock-helper.ts)
 
 ### Naming
-* **Do** use `entity` prefix for objects like `team`, `tags`, etc. which might be used for several entities
-(for example, both `organization` and `post` might have `tags`, so the proper table name should be `entity_tags`, not
-`organizaton_tags`, `post_tags`) 
-* **Don't** use `getSinglePost`, `getPosts`.
-* **Do** use `One/Many`, for ex. `getOnePost`, `getManyPosts`.
+
+Do not | Do 
+--- | ---
+- | `entity` prefix for objects like `team`, `tags`, etc. which might be used for several entities (for example, both `organization` and `post` might have `tags`, so the proper table name should be `entity_tags`, not`organizaton_tags`, `post_tags`)
+`getSinglePost`, `getPosts` | `One/Many`, for ex. `getOnePost`, `getManyPosts`.
+`userFromId` and somewhere `entityToId` | `userIdFrom`, `entityIdTo` - consistent naming strategy
+
 
 ### Commenting
 

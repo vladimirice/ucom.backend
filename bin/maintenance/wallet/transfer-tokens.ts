@@ -1,14 +1,10 @@
 /* eslint-disable no-console */
+import BalancesHelper = require('../../../lib/common/helper/blockchain/balances-helper');
+
 const { WalletApi, TransactionSender } = require('ucom-libs-wallet');
 
 const EosApi = require('../../../lib/eos/eosApi');
 
-async function printCurrentBalances(accountName: string, manySymbols: string[]) {
-  for (const symbol of manySymbols) {
-    const holderUosTestAfter = await WalletApi.getAccountBalance(accountName, symbol);
-    console.log(`${accountName} balance: ${holderUosTestAfter} ${symbol}`);
-  }
-}
 
 async function sendManyTokens(
   accountNameFrom: string,
@@ -43,8 +39,8 @@ async function sendManyTokens(
 
   const accountNameTo = EosApi.getGithubAirdropAccountName();
 
-  await printCurrentBalances(accountNameFrom, manySymbols);
-  await printCurrentBalances(accountNameTo, manySymbols);
+  await BalancesHelper.printManyBalancesOfOneAccount(accountNameFrom, manySymbols);
+  await BalancesHelper.printManyBalancesOfOneAccount(accountNameTo, manySymbols);
 
   const amount = 1000000;
 
@@ -56,8 +52,8 @@ async function sendManyTokens(
     amount,
   );
 
-  await printCurrentBalances(accountNameFrom, manySymbols);
-  await printCurrentBalances(accountNameTo, manySymbols);
+  await BalancesHelper.printManyBalancesOfOneAccount(accountNameFrom, manySymbols);
+  await BalancesHelper.printManyBalancesOfOneAccount(accountNameTo, manySymbols);
 })();
 
 export {};

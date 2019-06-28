@@ -39,6 +39,30 @@ describe('Airdrops users data from github raw data table', () => {
   });
 
   describe('Positive', () => {
+    it('Check a validity of the second round', async () => {
+      const { airdrop } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
+
+      const sampleToken = await GithubRequest.sendSampleGithubCallbackAndGetToken(<string>userVlad.github_code);
+      const headers = RequestHelper.getGithubAuthHeader(sampleToken);
+      const oneUserAirdrop = await GraphqlHelper.getOneUserAirdrop(airdrop.id, headers);
+
+      AirdropsUsersChecker.checkAirdropsStructure(oneUserAirdrop);
+
+      const expectedClaim = airdrop.conditions.zero_score_incentive_tokens_amount / (10 ** 4);
+
+      expect(oneUserAirdrop.score).toBe(0);
+      expect(oneUserAirdrop.tokens[0].amount_claim).toBe(expectedClaim);
+      expect(oneUserAirdrop.tokens[1].amount_claim).toBe(expectedClaim);
+
+      // fetch again - no error
+      const oneUserAirdropSecond = await GraphqlHelper.getOneUserAirdrop(airdrop.id, headers);
+      AirdropsUsersChecker.checkAirdropsStructure(oneUserAirdropSecond);
+
+      expect(oneUserAirdrop.score).toBe(0);
+      expect(oneUserAirdrop.tokens[0].amount_claim).toBe(expectedClaim);
+      expect(oneUserAirdrop.tokens[1].amount_claim).toBe(expectedClaim);
+    }, JEST_TIMEOUT_DEBUG);
+
     it('Check validity', async () => {
       const { airdropId } = await AirdropsGenerator.createNewAirdrop(userVlad);
 

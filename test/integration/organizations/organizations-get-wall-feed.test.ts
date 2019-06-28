@@ -7,6 +7,7 @@ import RequestHelper = require('../helpers/request-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 import ResponseHelper = require('../helpers/response-helper');
 import CommonHelper = require('../helpers/common-helper');
+import UsersHelper = require('../helpers/users-helper');
 
 const usersFeedRepository = require('../../../lib/common/repository').UsersFeed;
 
@@ -17,7 +18,7 @@ const orgId: number = 1;
 
 describe('Organizations. Get requests', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(true);
+    await SeedsHelper.noGraphQlMockAllWorkers();
   });
 
   afterAll(async () => {
@@ -25,7 +26,7 @@ describe('Organizations. Get requests', () => {
   });
 
   beforeEach(async () => {
-    await SeedsHelper.initUsersOnly();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
     await SeedsHelper.seedOrganizations(); // deprecated. Use generator
   });
 
@@ -147,10 +148,15 @@ describe('Organizations. Get requests', () => {
           expect(posts.some(post => post.id === id)).toBeFalsy();
         });
 
+        const options = {
+          ...CommonHelper.getOptionsForListAndGuest(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
+        };
+
         await CommonHelper.checkPostsListFromApi(
           posts,
           Object.keys(generatedPosts).length,
-          CommonHelper.getOptionsForListAndGuest(),
+          options,
         );
       });
 
@@ -180,10 +186,15 @@ describe('Organizations. Get requests', () => {
           expect(posts.some(post => post.id === id)).toBeFalsy();
         });
 
+        const options = {
+          ...CommonHelper.getOptionsForListAndMyself(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
+        };
+
         await CommonHelper.checkPostsListFromApi(
           posts,
           Object.keys(generatedPosts).length,
-          CommonHelper.getOptionsForListAndMyself(),
+          options,
         );
       });
     });

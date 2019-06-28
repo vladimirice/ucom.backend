@@ -7,6 +7,7 @@ import {
 } from '../../../lib/organizations/interfaces/model-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
+import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
@@ -15,10 +16,13 @@ import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import FileToUploadHelper = require('./file-to-upload-helper');
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const request = require('supertest');
 const _ = require('lodash');
 const faker = require('faker');
+
 const server = RequestHelper.getApiApplication();
 
 const { orgImageStoragePath } =
@@ -69,7 +73,7 @@ class OrganizationsHelper {
       'updated_at',
     ];
 
-    ResponseHelper.expectAllFieldsExistence(data, expectedFields);
+    CommonChecker.expectAllFieldsExistence(data, expectedFields);
 
     const numFields = OrgsCurrentParamsRepository.getNumericalFields();
 
@@ -88,8 +92,7 @@ class OrganizationsHelper {
     modelsIds: number[],
   ): Promise<NumberToNumberCollection> {
     const set: NumberToNumberCollection = {};
-    for (let i = 0; i < modelsIds.length; i += 1) {
-      const modelId = modelsIds[i];
+    for (const modelId of modelsIds) {
       set[modelId] = RequestHelper.generateRandomImportance();
 
       await this.setSampleRateToOrg(modelId, set[modelId]);
@@ -625,10 +628,10 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: 2,
-        source_entity_name: 'org       ',
+        source_entity_name: OrganizationsModelProvider.getEntityName(),
         text_data: '',
       },
       {
@@ -637,10 +640,10 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: 3,
-        source_entity_name: 'org       ',
+        source_entity_name: OrganizationsModelProvider.getEntityName(),
         text_data: '',
       },
       {
@@ -649,10 +652,10 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: 1,
-        source_entity_name: 'users     ',
+        source_entity_name: UsersModelProvider.getEntityName(),
         text_data: '',
       },
 
@@ -663,7 +666,7 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         avatar_filename: 'sample_partnership_external_1.png',
         source_entity_id: null,
@@ -676,7 +679,7 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: null,
         source_entity_name: null,
@@ -689,7 +692,7 @@ class OrganizationsHelper {
         source_type_id: null,
         source_group_id: 3,
         entity_id: orgId,
-        entity_name: 'org       ',
+        entity_name: OrganizationsModelProvider.getEntityName(),
 
         source_entity_id: null,
         source_entity_name: null,
@@ -857,6 +860,82 @@ class OrganizationsHelper {
     };
   }
 
+  // #task - consider to move this to OrganizationsGenerator
+  public static async requestToCreateNewWithAllEntitySources(myself: UserModel) {
+    const socialNetworks = [
+      {
+        source_url: 'https://myurl.com',
+        source_type_id: 1,
+        // source_group_id: 1, - is set by social networks block
+        // entity_id: 1 - organization ID
+        // entity_name: org,
+        // text_data: // JSON - text, description
+      },
+      {
+        source_url: 'http://mysourceurl2.com',
+        source_type_id: 2,
+      },
+    ];
+
+    // Internal link example
+    const communitySourceOrg = {
+      entity_id:           '1',
+      entity_name:  OrganizationsModelProvider.getEntityName(),
+      source_type:  'internal',
+    };
+
+    const sampleAvatarFile = FileToUploadHelper.getSamplePngPath();
+
+    // external link example
+    const communitySourceExternal = {
+      title: 'External super community',
+      description: 'This is a cool description about cool external community',
+      source_url: 'https://coolcommunity.com',
+
+      source_type: 'external',
+      avatar_filename: sampleAvatarFile, // upload avatar as usual
+    };
+
+    // Internal link example
+    const partnershipSourceOrg = {
+      entity_id:           '2',
+      entity_name:  OrganizationsModelProvider.getEntityName(), // fetch this type from API response
+
+      source_type:  'internal',
+    };
+
+    const partnershipSourceUsers = {
+      entity_id:           '1',
+      entity_name:  UsersModelProvider.getEntityName(), // fetch this type from API response
+      source_type:  'internal',
+    };
+
+    const partnershipSourceExternal = {
+      // external link example
+      title: 'External super partnership',
+      description: 'This is a cool description about cool external partnership',
+      source_url: 'https://coolpartnership.com',
+      source_type: 'external',
+
+      avatar_filename: sampleAvatarFile, // upload avatar as usual
+    };
+
+    const sourcesToInsert = {
+      community_sources: [
+        communitySourceOrg,
+        communitySourceExternal,
+      ],
+      partnership_sources: [
+        partnershipSourceOrg,
+        partnershipSourceExternal,
+        partnershipSourceUsers,
+      ],
+      social_networks: socialNetworks,
+    };
+
+    return OrganizationsHelper.requestToCreateNew(myself, {}, sourcesToInsert);
+  }
+
   // noinspection FunctionWithMultipleLoopsJS
   /**
    *
@@ -985,6 +1064,22 @@ class OrganizationsHelper {
 
     return res.body;
   }
+
+  public static async deleteAllFromArray(myself: UserModel, orgId: number, field: string): Promise<IResponseBody> {
+    const req = request(server)
+      .patch(RequestHelper.getOneOrganizationUrl(orgId))
+      .set('Authorization', `Bearer ${myself.token}`)
+      .field(`${field}[]`, '')
+      .field('title', 'sample title')
+      .field('nickname', 'sample nickname')
+    ;
+
+    const response = await req;
+    ResponseHelper.expectStatusOk(response);
+
+    return response.body;
+  }
+
 
   /**
    * @deprecated

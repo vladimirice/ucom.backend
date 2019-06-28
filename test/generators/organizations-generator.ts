@@ -2,6 +2,7 @@ import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
+import UsersHelper = require('../integration/helpers/users-helper');
 
 const request = require('supertest');
 const faker   = require('faker');
@@ -21,6 +22,7 @@ class OrganizationsGenerator {
       .post(url)
     ;
 
+    // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < postsIds.length; i += 1) {
       const field = `discussions[${i}][id]`;
       req.field(field, postsIds[i]);
@@ -86,6 +88,19 @@ class OrganizationsGenerator {
     return this.createOrgWithTeam(author);
   }
 
+  public static async createOrgWithTeamAndConfirmAll(
+    author: UserModel,
+    teamMembers: UserModel[] = [],
+  ): Promise<number> {
+    const orgId: number = await this.createOrgWithTeam(author, teamMembers);
+
+    for (const user of teamMembers) {
+      await UsersHelper.directlySetUserConfirmsInvitation(orgId, user);
+    }
+
+    return orgId;
+  }
+
   /**
    *
    * @param {Object} author
@@ -113,6 +128,7 @@ class OrganizationsGenerator {
       .field('email',          faker.internet.email())
     ;
 
+    // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < teamMembers.length; i += 1) {
       const field = `users_team[${i}][id]`;
       const user = teamMembers[i];
@@ -154,6 +170,7 @@ class OrganizationsGenerator {
   }
 
   static addUsersTeamToRequest(req, usersTeam) {
+    // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < usersTeam.length; i += 1) {
       const field = `users_team[${i}][id]`;
       const user = usersTeam[i];

@@ -35,6 +35,7 @@ const GithubAuthMockRouter = require('../../github/router/github-auth-mock-route
 const AirdropsUserRouter = require('../../airdrops/router/airdrops-user-router');
 
 const UsersExternalRouter = require('../../users-external/router/users-external-router');
+const AffiliatesRouter = require('../../affiliates/router/affiliates-router');
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use('/api/v1/github', GithubAuthRouter);
 app.use('/github-auth-mock', GithubAuthMockRouter);
 app.use('/api/v1/airdrops', AirdropsUserRouter);
 app.use(`${API_V1_PREFIX}/users-external`, UsersExternalRouter);
+app.use(`${API_V1_PREFIX}/affiliates`, AffiliatesRouter);
 
 // V2 for post
 app.use('/api/v2/posts', postsV2Router);

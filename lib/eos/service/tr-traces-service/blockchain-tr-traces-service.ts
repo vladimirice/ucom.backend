@@ -27,7 +27,7 @@ class BlockchainTrTracesService {
    * @returns {Promise<void>}
    */
   static async syncMongoDbAndPostgres(transactionTypes = null, transactionIds = null) {
-    await this.checkLastBlock();
+    await this.checkLastBlock(); // TODO
 
     // tslint:disable-next-line:no-parameter-reassignment
     transactionTypes = transactionTypes || blockchainTrTracesDictionary.getAllTransactionTypes();

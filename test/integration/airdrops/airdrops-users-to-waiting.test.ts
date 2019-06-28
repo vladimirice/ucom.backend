@@ -40,7 +40,7 @@ describe('Airdrops users to waiting', () => {
 
     MockHelper.mockAirdropsTransactionsSenderForSuccess();
 
-    const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+    const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
     await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
     await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, true);
@@ -67,7 +67,7 @@ describe('Airdrops users to waiting', () => {
   it('one user is ready but not other', async () => {
     MockHelper.mockAirdropsTransactionsSenderForSuccess();
 
-    const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+    const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
     await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
     await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, false);
@@ -108,7 +108,7 @@ describe('Airdrops users to waiting', () => {
   it('Check pagination', async () => {
     MockHelper.mockAirdropsTransactionsSenderForSuccess();
 
-    const { airdropId, orgId } = await AirdropsGenerator.createNewAirdrop(userVlad);
+    const { airdropId, orgId } = await AirdropsGenerator.createNewGithubRoundTwoAirdropWithTheSecond(userVlad);
 
     await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userVlad, orgId, true);
     await AirdropsUsersGenerator.fulfillAirdropCondition(airdropId, userJane, orgId, true);

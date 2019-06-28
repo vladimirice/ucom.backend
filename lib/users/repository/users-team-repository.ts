@@ -1,3 +1,5 @@
+import knex = require('../../../config/knex');
+
 const models = require('../../../models');
 const usersModelProvider  = require('../users-model-provider');
 const usersTeamDictionary = require('../dictionary').UsersTeamStatus;
@@ -9,6 +11,14 @@ const model = usersModelProvider.getUsersTeamModel();
 const statusDictionary = require('../dictionary').UsersTeamStatus;
 
 class UsersTeamRepository {
+  public static async deleteAllByEntityIdEntityName(entityId: number, entityName: string): Promise<void> {
+    await knex(TABLE_NAME)
+      .delete()
+      .where({
+        entity_id: entityId,
+        entity_name: entityName,
+      });
+  }
 
   /**
    *
@@ -17,7 +27,7 @@ class UsersTeamRepository {
    * @return {Promise<Object>}
    */
   static async createNew(data, transaction) {
-    return await this.getModel().create(data, transaction);
+    return this.getModel().create(data, transaction);
   }
 
   static async setStatusConfirmed(entityName, entityId, userId, transaction = null) {
@@ -31,7 +41,7 @@ class UsersTeamRepository {
       status: statusDictionary.getStatusConfirmed(),
     };
 
-    return await model.update(data, { where, transaction });
+    return model.update(data, { where, transaction });
   }
 
   static async setStatusDeclined(entityName, entityId, userId, transaction) {
@@ -45,7 +55,7 @@ class UsersTeamRepository {
       status: statusDictionary.getStatusDeclined(),
     };
 
-    return await model.update(data, { where, transaction });
+    return model.update(data, { where, transaction });
   }
 
   static async isTeamMember(entityName, entityId, userId) {
@@ -71,7 +81,7 @@ class UsersTeamRepository {
       entity_id: entityId,
     };
 
-    return await usersModelProvider.getUsersTeamModel().findAll({
+    return usersModelProvider.getUsersTeamModel().findAll({
       where,
       raw: true,
     });

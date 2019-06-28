@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-const accountsData = require('../../../config/accounts-data');
+const accountsData = require('../../../../secrets/accounts-data');
 
 const rabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
@@ -31,7 +31,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -59,7 +59,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -87,7 +87,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -107,15 +107,15 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
+
   static getPartOfSignedUserCreatesDirectPostOfOrg() {
     return {
       broadcast: false,
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -135,7 +135,6 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
 
   static getPartOfSignedUserCreatesRepost(actorAccountName) {
@@ -144,7 +143,7 @@ class EosTransactionHelper {
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -164,15 +163,16 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
+
+  // eslint-disable-next-line sonarjs/no-identical-functions
   static getPartOfSignedUserHimselfCreatesMediaPostTransaction() {
     return {
       broadcast: false,
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -192,15 +192,15 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
+
   static getPartOfSignedUserVotesPostOfOtherUser() {
     return {
       broadcast: false,
       transaction: {
         compression: 'none',
         transaction: {
-          max_net_usage_words: 0,
+
           max_cpu_usage_ms: 0,
           delay_sec: 0,
           context_free_actions: [],
@@ -220,8 +220,8 @@ class EosTransactionHelper {
         },
       },
     };
-
   }
+
   /**
    *
    * @return {Object}
@@ -329,6 +329,7 @@ class EosTransactionHelper {
       },
     };
   }
+
   static getPartOfBlockchainResponseOnUserCreatesDirectPostOfOrg() {
     return {
       processed: {
@@ -397,6 +398,7 @@ class EosTransactionHelper {
       },
     };
   }
+
   static getPartOfBlockchainResponseOnUserCreatesMediaPost(postTypeId) {
     return {
       processed: {
@@ -436,10 +438,9 @@ class EosTransactionHelper {
    *
    * @param {string} accountName
    * @param {string} blockchainId
-   * @param {number} interactionTypeId
    * @return {{processed: {receipt: {status: string}, scheduled: boolean, action_traces: {receipt: {receiver: string}, act: {account: string, name: string, authorization: {actor: string, permission: string}[], data: {acc: string, content_id: *}}, cpu_usage: number, total_cpu_usage: number, inline_traces: Array}[], except: null}}}
    */
-  static getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(accountName, blockchainId, interactionTypeId) {
+  static getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(accountName, blockchainId) {
     return {
       processed: {
         receipt: {
@@ -465,7 +466,7 @@ class EosTransactionHelper {
                 content_id: blockchainId,
               },
             },
-            console: `usertocont acc = ${accountName} content_id = ${blockchainId} interaction_type_id = ${interactionTypeId}`,
+
             inline_traces: [],
           },
         ],

@@ -87,7 +87,7 @@ class TagsRepository implements QueryFilteredRepository {
    * @param {Transaction} trx
    */
   public static async createNewTags(tags: Object, trx: Transaction): Promise<StringToNumberCollection> {
-    const data =
+    const data: any =
       await trx(this.getTableName()).returning(['id', 'title']).insert(tags);
 
     const res: StringToNumberCollection = {};

@@ -39,8 +39,7 @@ class JoiBadRequestError extends Error {
       errors: formatJoiErrorMessages(error.details),
     };
 
-    // @ts-ignore
-    super(message);
+    super(JSON.stringify(message));
 
     this.name = this.constructor.name;
     Error.captureStackTrace(this, this.constructor);
@@ -85,13 +84,12 @@ class HttpForbiddenError extends Error {
  */
 function formatJoiErrorMessages(errors) {
   const result: any = [];
-  for (let i = 0; i < errors.length; i += 1) {
-    // eslint-disable-next-line
-    const { key } = errors[i].context;
+
+  for (const error of errors) {
+    const { key } = error.context;
     result.push({
       field: key,
-      // eslint-disable-next-line
-      message: errors[i].message.replace(/["']+/g, ''),
+      message: error.message.replace(/["']+/g, ''),
     });
   }
 

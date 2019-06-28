@@ -2,6 +2,9 @@ import { InMemoryCache } from 'apollo-cache-inmemory';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
+import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
+import RequestHelper = require('../../integration/helpers/request-helper');
+
 const ApolloClient = require('apollo-boost').default;
 const { gql } = require('apollo-boost');
 
@@ -9,7 +12,7 @@ const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 const { app, server } = require('../../../lib/graphql/applications/graphql-application');
 
-const PORT = 4007;
+const PORT = NumbersHelper.generateRandomInteger(4100, 4800);
 
 const GRAPHQL_HOST = `http://127.0.0.1:${PORT}`;
 const GRAPHQL_URI = `${GRAPHQL_HOST}${server.graphqlPath}`;
@@ -34,6 +37,32 @@ export class GraphqlRequestHelper {
     const query = GraphQLSchema.getQueryMadeFromParts(parts);
 
     return this.makeRequestAsMyself(myself, query);
+  }
+
+  public static async makeRequestFromOneQueryPartByFetch(
+    part: string,
+    key: string | null = null,
+    myself: UserModel | null = null,
+  ): Promise<any> {
+    return this.makeRequestFromQueryPartsByFetch([part], key, myself);
+  }
+
+  public static async makeRequestFromQueryPartsByFetch(
+    parts: string[],
+    key: string | null = null,
+    myself: UserModel | null = null,
+  ): Promise<any> {
+    const query = GraphQLSchema.getQueryMadeFromParts(parts);
+
+    const headers = {};
+
+    if (myself !== null) {
+      RequestHelper.addAuthBearerHeaderOfMyself(headers, myself);
+    }
+
+    const data = await this.makeRequestViaFetch(query, headers);
+
+    return key ? data[key] : data;
   }
 
   public static async makeRequestFromQueryPartsWithAliasesAsMyself(
@@ -80,6 +109,31 @@ export class GraphqlRequestHelper {
     }
 
     return response;
+  }
+
+  public static async makeRequestViaFetch(
+    query: string,
+    headers: any = {},
+  ): Promise<any> {
+    const response = await fetch(GRAPHQL_URI, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers,
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const json = await response.json();
+    const { data } = json;
+
+    if (json.errors) {
+      // eslint-disable-next-line no-console
+      console.dir(json.errors);
+      throw new Error('GraphQL request error');
+    }
+
+    return data;
   }
 
   public static async makeRequestAsGuest(

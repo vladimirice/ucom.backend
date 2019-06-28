@@ -187,13 +187,10 @@ describe('User to user activity', () => {
 
     describe('Negative scenarios', () => {
       it('MyselfData. There is no myself data if user is not logged in', async () => {
-        await Promise.all([
-          ActivityHelper.requestToCreateFollow(userPetr, userVlad),
-          ActivityHelper.requestToCreateFollow(userPetr, userJane),
-        ]);
+        await ActivityHelper.requestToCreateFollow(userPetr, userVlad);
+        await ActivityHelper.requestToCreateFollow(userPetr, userJane);
 
-        const queryString = '?v2=true';
-        const users = await UsersHelper.requestUserListAsGuest(queryString);
+        const users = await UsersHelper.requestUserListAsGuest();
 
         const userWithMyself = users.some(user => user.myselfData !== undefined);
 
@@ -214,9 +211,10 @@ describe('User to user activity', () => {
         userVlad,
       ];
 
+      await ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad);
+      await ActivityHelper.requestToCreateFollowHistory(userPetr, userRokky);
+
       await Promise.all([
-        ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad),
-        ActivityHelper.requestToCreateFollowHistory(userPetr, userRokky),
         ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
         ActivityHelper.requestToCreateFollowHistory(userVlad, userPetr),
       ]);
@@ -264,11 +262,9 @@ describe('User to user activity', () => {
     }, JEST_TIMEOUT);
 
     it('Myself - I follow but not my follower', async () => {
-      await Promise.all([
-        ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
-        ActivityHelper.requestToCreateUnfollowHistory(userPetr, userJane),  // disturbance
-        ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad),  // disturbance
-      ]);
+      await ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
+      await ActivityHelper.requestToCreateUnfollowHistory(userPetr, userJane);  // disturbance
+      await ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad);  // disturbance
 
       const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
 
@@ -283,8 +279,9 @@ describe('User to user activity', () => {
       await Promise.all([
         ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
         ActivityHelper.requestToCreateUnfollowHistory(userJane, userPetr),  // disturbance
-        ActivityHelper.requestToCreateFollowHistory(userJane, userVlad), // disturbance
       ]);
+
+      await ActivityHelper.requestToCreateFollowHistory(userJane, userVlad); // disturbance
 
       const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
 
@@ -321,10 +318,8 @@ describe('User to user activity', () => {
 
   describe('Post author myself activity', () => {
     it('Myself data in post User info - following', async () => {
-      await Promise.all([
-        ActivityHelper.requestToCreateFollowHistory(userVlad, userJane),
-        ActivityHelper.requestToCreateUnfollowHistory(userVlad, userPetr), // disturb
-      ]);
+      await ActivityHelper.requestToCreateFollowHistory(userVlad, userJane);
+      await ActivityHelper.requestToCreateUnfollowHistory(userVlad, userPetr); // disturb
 
       const postId = await PostsRepository.findLastMediaPostIdByAuthor(userJane.id);
 

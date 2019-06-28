@@ -1,33 +1,38 @@
-export {};
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import SeedsHelper = require('../helpers/seeds-helper');
+import OrganizationsHelper = require('../helpers/organizations-helper');
+import EosTransactionHelper = require('../helpers/eos-transaction-helpers');
+import ResponseHelper = require('../helpers/response-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
 
-const helpers = require('../helpers');
 const delay = require('delay');
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const rabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 const usersRepositories = require('../../../lib/users/repository');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+
 const activityGroupDictionary   = require('../../../lib/activity/activity-group-dictionary');
-const usersActivityRepository   = require('../../../lib/users/repository').Activity;
 
 let userVlad;
 let userPetr;
 
 describe('Organizations. Blockchain transactions', () => {
   beforeAll(async () => {
-    [userVlad, , userPetr] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, , userPetr] = await SeedsHelper.beforeAllRoutine();
   });
 
-  afterAll(async () => { await helpers.SeedsHelper.sequelizeAfterAll(); });
+  afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.resetOrganizationRelatedSeeds();
+    await SeedsHelper.resetOrganizationRelatedSeeds();
   });
 
   describe('Organization creation - related blockchain transactions', () => {
     it('should process organization creation by RabbitMq.', async () => {
       await rabbitMqService.purgeBlockchainQueue();
-      const response = await helpers.Organizations.requestToCreateNewOrganization(userVlad);
+      const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
       let activity: any = null;
 
       while (!activity) {
@@ -40,8 +45,8 @@ describe('Organizations. Blockchain transactions', () => {
         activity_type_id: ContentTypeDictionary.getTypeOrganization(),
         activity_group_id: activityGroupDictionary.getGroupContentCreation(),
         user_id_from: userVlad.id,
-        entity_id_to: response.id,
-        entity_name: 'org       ',
+        entity_id_to: orgId,
+        entity_name: OrganizationsModelProvider.getEntityName(),
       };
 
       // noinspection JSCheckFunctionSignatures
@@ -50,11 +55,11 @@ describe('Organizations. Blockchain transactions', () => {
       expect(activity.blockchain_status).toBe(1);
 
       expect(JSON.parse(activity.signed_transaction))
-        .toMatchObject(helpers.EosTransaction.getPartOfSignedOrgTransaction());
+        .toMatchObject(EosTransactionHelper.getPartOfSignedOrgTransaction());
       expect(JSON.parse(activity.blockchain_response))
-        .toMatchObject(helpers.EosTransaction.getPartOfBlockchainResponseOnOrgCreation());
+        .toMatchObject(EosTransactionHelper.getPartOfBlockchainResponseOnOrgCreation());
 
-      helpers.ResponseHelper.expectValuesAreExpected(expected, activity);
+      ResponseHelper.expectValuesAreExpected(expected, activity);
     }, 20000);
   });
 
@@ -65,12 +70,12 @@ describe('Organizations. Blockchain transactions', () => {
       const user = userPetr;
 
       await rabbitMqService.purgeBlockchainQueue();
-      await helpers.Org.requestToFollowOrganization(orgId, user);
+      await OrganizationsHelper.requestToFollowOrganization(orgId, user);
 
       let activity: any = null;
 
       while (!activity) {
-        activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(user.id);
+        activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(user.id);
         await delay(100);
       }
 
@@ -79,3 +84,5 @@ describe('Organizations. Blockchain transactions', () => {
     }, 30000);
   });
 });
+
+export {};

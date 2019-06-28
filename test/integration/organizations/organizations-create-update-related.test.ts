@@ -25,7 +25,7 @@ const beforeAfterOptions = {
 describe('Organizations create,update related entities', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(beforeAfterOptions); });
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
-  beforeEach(async () => { [userVlad, userJane] = await SeedsHelper.beforeAllRoutine(); });
+  beforeEach(async () => { [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties(); });
 
   describe('Validate one discussion', () => {
     describe('Positive', () => {
@@ -132,6 +132,7 @@ describe('Organizations create,update related entities', () => {
           discussions: false,
           usersTeam: false,
         },
+        ...UsersHelper.propsAndCurrentParamsOptions(false),
       };
 
       CommonHelper.checkOneOrganizationFully(vladOrgModelAfter, options);
@@ -140,13 +141,12 @@ describe('Organizations create,update related entities', () => {
         await OrganizationsHelper.requestToGetOneOrganizationAsGuest(janeOrgId);
 
       CommonHelper.expectModelsExistence(janeOrgModelAfter.discussions, janePostsIds, true);
-    });
+    }, 10000);
   });
 
   describe('Change discussions state. #posts #discussions', () => {
     describe('Positive', () => {
       it('Check all create-modify discussions workflow', async () => {
-        // Let's create discussions
         const firstOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
         const postsIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, firstOrgId, 5);
 
@@ -164,6 +164,75 @@ describe('Organizations create,update related entities', () => {
             discussions: true,
           },
           postProcessing: EntityResponseState.card(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
+        };
+
+        CommonHelper.checkOneOrganizationFully(orgModel, options);
+        CommonHelper.expectModelsExistence(orgModel.discussions, postsIds, true);
+
+        const secondOrgModel: OrgModelResponse =
+          await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
+
+        CommonHelper.expectModelsExistence(secondOrgModel.discussions, secondOrgPostIds, true);
+
+        // Change order of two elements for first organization and two for second
+
+        const reorderedFirstPostsIds = _.shuffle(postsIds);
+        const reorderedSecondPostsIds = _.shuffle(secondOrgPostIds);
+        await Promise.all([
+          OrganizationsGenerator.changeDiscussionsState(userVlad, firstOrgId, reorderedFirstPostsIds),
+          OrganizationsGenerator.changeDiscussionsState(userVlad, secondOrgId, reorderedSecondPostsIds),
+        ]);
+
+        const [firstModelWithShuffled, secondModelWithShuffled]  = await Promise.all([
+          OrganizationsHelper.requestToGetOneOrganizationAsGuest(firstOrgId),
+          OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId),
+        ]);
+
+        CommonHelper.expectModelsExistence(firstModelWithShuffled.discussions, reorderedFirstPostsIds, true);
+        CommonHelper.expectModelsExistence(secondModelWithShuffled.discussions, reorderedSecondPostsIds, true);
+
+        // Delete some of discussions
+        reorderedFirstPostsIds.pop();
+        reorderedFirstPostsIds.shift();
+
+        reorderedSecondPostsIds.pop();
+        reorderedSecondPostsIds.shift();
+
+        await Promise.all([
+          OrganizationsGenerator.changeDiscussionsState(userVlad, firstOrgId, reorderedFirstPostsIds),
+          OrganizationsGenerator.changeDiscussionsState(userVlad, secondOrgId, reorderedSecondPostsIds),
+        ]);
+
+        const [firstModelWithDeleted, secondModelWithDeleted]  = await Promise.all([
+          OrganizationsHelper.requestToGetOneOrganizationAsGuest(firstOrgId),
+          OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId),
+        ]);
+
+        CommonHelper.expectModelsExistence(firstModelWithDeleted.discussions, reorderedFirstPostsIds, true);
+        CommonHelper.expectModelsExistence(secondModelWithDeleted.discussions, reorderedSecondPostsIds, true);
+      }, JEST_TIMEOUT);
+
+      it('Check all create-modify discussions workflow for the state from maximum to lower', async () => {
+        // Let's create discussions
+        const firstOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const postsIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, firstOrgId, 10);
+
+        await OrganizationsGenerator.changeDiscussionsState(userVlad, firstOrgId, postsIds);
+
+        const secondOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const secondOrgPostIds: number[] = await PostsGenerator.createManyMediaPostsOfOrganization(userVlad, secondOrgId, 8);
+        await OrganizationsGenerator.changeDiscussionsState(userVlad, secondOrgId, secondOrgPostIds);
+
+        const orgModel: OrgModelResponse =
+          await OrganizationsHelper.requestToGetOneOrganizationAsGuest(firstOrgId);
+
+        const options = {
+          mustHaveValue: {
+            discussions: true,
+          },
+          postProcessing: EntityResponseState.card(),
+          ...UsersHelper.propsAndCurrentParamsOptions(false),
         };
 
         CommonHelper.checkOneOrganizationFully(orgModel, options);

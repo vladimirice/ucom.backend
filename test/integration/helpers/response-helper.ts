@@ -136,6 +136,8 @@ class ResponseHelper {
 
   /**
    *
+   * @deprecated
+   * @see CommonChecker.expectAllFieldsExistence()
    * @param {Object} actual
    * @param {string[]} expected
    */

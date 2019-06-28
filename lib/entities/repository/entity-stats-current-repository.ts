@@ -1,10 +1,7 @@
-// TODO - move to config
-
+const moment = require('moment');
 const knex = require('../../../config/knex');
 
 const TABLE_NAME = 'entity_stats_current';
-
-const moment = require('moment');
 
 const db = require('../../../models').sequelize;
 
@@ -14,7 +11,6 @@ const postsModelProvider = require('../../posts/service/posts-model-provider');
  * @deprecated
  */
 class EntityStatsCurrentRepository {
-
   static async updateUpvoteDelta() {
     const newData = moment().subtract(24 * 3, 'hours');
     const createdAtAsString = newData.utc().format('YYYY-MM-DD HH:mm:ss');
@@ -94,6 +90,10 @@ class EntityStatsCurrentRepository {
   static async upsertImportanceDelta(toProcess) {
     const values: any = [];
     for (const accountName in toProcess) {
+      if (!toProcess.hasOwnProperty(accountName)) {
+        continue;
+      }
+
       const current = toProcess[accountName];
 
       if (current.malformed) {
@@ -125,6 +125,7 @@ class EntityStatsCurrentRepository {
     // WARNING! Mind about concurrency issues in future
     await db.query(`SELECT setval('${TABLE_NAME}_id_seq', MAX(id), true) FROM ${TABLE_NAME}`);
   }
+
   /**
    *
    * @param {Object[]} toProcess

@@ -1,5 +1,4 @@
 import { UserModel } from '../../../../../lib/users/interfaces/model-interfaces';
-import { UsersActivityModelDto } from '../../../../../lib/users/interfaces/users-activity/model-interfaces';
 
 import SeedsHelper = require('../../../helpers/seeds-helper');
 import RabbitMqService = require('../../../../../lib/jobs/rabbitmq-service');
@@ -53,13 +52,8 @@ describe('Users activity trust creation', () => {
       await UsersActivityRequestHelper.trustOneUser(userVlad, userJane.id, signedTransaction);
 
       const eventId: number = NotificationsEventIdDictionary.getUserTrustsYou();
-      const activity: UsersActivityModelDto =
+      const { blockchainResponse } =
         await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
-
-
-      expect(activity.blockchain_status).toBe(1);
-
-      const actualBlockchainResponse = JSON.parse(activity.blockchain_response);
 
       const expected = UsersActivityCommonHelper.getOneUserToOtherPushResponse(
         <string>userVlad.account_name,
@@ -67,7 +61,7 @@ describe('Users activity trust creation', () => {
         true,
       );
 
-      TransactionsPushResponseChecker.checkOneTransaction(actualBlockchainResponse, expected);
+      TransactionsPushResponseChecker.checkOneTransaction(blockchainResponse, expected);
     }, JEST_TIMEOUT);
   });
   describe('Untrust workflow', () => {
@@ -101,13 +95,8 @@ describe('Users activity trust creation', () => {
       await UsersActivityRequestHelper.untrustOneUser(userVlad, userJane.id, signedTransactionUntrust);
 
       const eventIdUntrust: number = NotificationsEventIdDictionary.getUserUntrustsYou();
-      const activityUntrust: UsersActivityModelDto =
+      const { blockchainResponse } =
         await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventIdUntrust);
-
-
-      expect(activityUntrust.blockchain_status).toBe(1);
-
-      const actualBlockchainResponse = JSON.parse(activityUntrust.blockchain_response);
 
       const expected = UsersActivityCommonHelper.getOneUserToOtherPushResponse(
         <string>userVlad.account_name,
@@ -115,7 +104,7 @@ describe('Users activity trust creation', () => {
         false,
       );
 
-      TransactionsPushResponseChecker.checkOneTransaction(actualBlockchainResponse, expected);
+      TransactionsPushResponseChecker.checkOneTransaction(blockchainResponse, expected);
     }, JEST_TIMEOUT_DEBUG);
   });
 });

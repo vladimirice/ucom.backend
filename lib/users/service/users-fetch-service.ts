@@ -1,6 +1,6 @@
 import {
   UserIdToUserModelCard,
-  UserModel,
+  UserModel, UsersActivityQueryDto,
   UsersListResponse, UsersRequestQueryDto,
 } from '../interfaces/model-interfaces';
 import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
@@ -8,6 +8,7 @@ import { PostRequestQueryDto } from '../../posts/interfaces/model-interfaces';
 import { AppError, BadRequestError } from '../../api/errors';
 
 import _ = require('lodash');
+const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 import UsersRepository = require('../users-repository');
 
@@ -18,13 +19,18 @@ import EntityListCategoryDictionary = require('../../stats/dictionary/entity-lis
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import UsersModelProvider = require('../users-model-provider');
 import PostsRepository = require('../../posts/posts-repository');
-import AirdropsUsersRepository = require('../../airdrops/repository/airdrops-users-repository');
 import OrganizationPostProcessor = require('../../organizations/service/organization-post-processor');
 import EntityNotificationsRepository = require('../../entities/repository/entity-notifications-repository');
 import UsersActivityRepository = require('../repository/users-activity-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import UserActivityService = require('../user-activity-service');
 import UsersActivityTrustRepository = require('../repository/users-activity/users-activity-trust-repository');
+import AirdropsUsersExternalDataRepository = require('../../airdrops/repository/airdrops-users-external-data-repository');
+import OffersModel = require('../../affiliates/models/offers-model');
+import StreamsRepository = require('../../affiliates/repository/streams-repository');
+import ConversionsRepository = require('../../affiliates/repository/conversions-repository');
+import UsersQueryBuilderService = require('./users-fetch-query-builder-service');
+import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -44,6 +50,7 @@ class UsersFetchService {
     const userJson = user.toJSON();
 
     UserPostProcessor.processUosAccountsProperties(userJson);
+    UserPostProcessor.processUsersCurrentParams(userJson);
 
     userJson.organizations = userOrganizations;
 
@@ -63,13 +70,11 @@ class UsersFetchService {
     OrganizationPostProcessor.processManyOrganizations(userJson.organizations);
 
     if (userId === currentUserId) {
-      userJson.unread_messages_count =
-        await EntityNotificationsRepository.countUnreadMessages(userId);
+      await this.addCurrentUserData(userJson);
     }
 
     return userJson;
   }
-
 
   public static async findOneAndProcessForCard(
     userId: number,
@@ -96,28 +101,66 @@ class UsersFetchService {
     return modelsSet;
   }
 
-  public static async findOneUserTrustedByAndProcessForList(
+  public static async findOneUserActivity(
     userId: number,
-    query: UsersRequestQueryDto,
+    query: UsersActivityQueryDto,
     currentUserId: number | null,
   ): Promise<UsersListResponse> {
     const repository  = UsersRepository;
     const params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
 
-    const promises = [
-      repository.findAllWhoTrustsUser(userId, params),
-      UsersActivityTrustRepository.countUsersThatTrustUser(userId),
+    const promises: Promise<any>[]  =
+      UsersQueryBuilderService.getPromisesByActivityType(query, userId, params);
+
+    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
+  public static async findManyOrganizationFollowers(
+    organizationId: number,
+    query:          UsersActivityQueryDto,
+    currentUserId:  number | null,
+  ): Promise<UsersListResponse> {
+    const repository  = UsersRepository;
+    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
+
+    const promises: Promise<any>[] = [
+      UsersRepository.findAllWhoFollowsOrganization(organizationId, params),
+      UsersActivityFollowRepository.countUsersThatFollowOrganization(organizationId),
     ];
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
   }
 
-  public static async findAllAndProcessForList(query: RequestQueryDto, currentUserId): Promise<UsersListResponse> {
+  /**
+   * @deprecated
+   * @see findAllAndProcessForList
+   * @param query
+   * @param currentUserId
+   */
+  public static async findAllAndProcessForListLegacyRest(
+    query: RequestQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
+    const repository  = UsersRepository;
+    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository);
+
+    const promises = [
+      repository.findAllForList(params),
+      repository.countAll(params),
+    ];
+
+    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
+  public static async findAllAndProcessForList(
+    query: RequestQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
     let data;
     if (query.overview_type && query.entity_name) {
       data = this.getManyUsersListAsRelatedToEntityPromises(query, query.entity_name);
     } else {
-      data = this.getManyUsersListPromises(query);
+      data = this.getManyUsersListPromisesKnex(query);
     }
 
     return this.findAllAndProcessForListByParams(data.promises, query, data.params, currentUserId);
@@ -133,10 +176,42 @@ class UsersFetchService {
 
     const promises = [
       UsersRepository.findAllAirdropParticipants(query.airdrops!.id, params),
-      AirdropsUsersRepository.countAllAirdropParticipants(query.airdrops!.id),
+      AirdropsUsersExternalDataRepository.countAllParticipants(query.airdrops!.id),
     ];
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
+  /**
+   *
+   * @param {string} tagTitle
+   * @param {Object} query
+   * @param {number} currentUserId
+   * @returns {Promise<*>}
+   */
+  public static async findAllAndProcessForListByTagTitle(tagTitle, query, currentUserId) {
+    QueryFilterService.checkLastIdExistence(query);
+
+    const repository    = UsersRepository;
+    const params          = QueryFilterService.getQueryParametersWithRepository(query, repository);
+
+    const [models, totalAmount] = await Promise.all([
+      repository.findAllByTagTitle(tagTitle, params),
+      repository.countAllByTagTitle(tagTitle),
+    ]);
+
+    if (currentUserId) {
+      const activityData = await UserActivityService.getUserActivityData(currentUserId);
+      UserPostProcessor.addMyselfDataByActivityArrays(models, activityData);
+    }
+
+    ApiPostProcessor.processUsersAfterQuery(models);
+    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
+
+    return {
+      metadata,
+      data: models,
+    };
   }
 
   private static getManyUsersListAsRelatedToEntityPromises(
@@ -175,15 +250,20 @@ class UsersFetchService {
     };
   }
 
-
-  private static getManyUsersListPromises(query: RequestQueryDto): { promises: Promise<any>[], params: DbParamsDto } {
-    // preparation for universal class-fetching processor
-    const repository  = UsersRepository;
-    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository);
+  private static getManyUsersListPromisesKnex(
+    query: RequestQueryDto,
+  ): { promises: Promise<any>[], params: DbParamsDto } {
+    const params = QueryFilterService.getQueryParametersWithRepository(
+      query,
+      UsersRepository,
+      true,
+      false,
+      true,
+    );
 
     const promises = [
-      repository.findAllForList(params),
-      repository.countAll(params),
+      UsersRepository.findManyForListViaKnex(query, params),
+      UsersRepository.countManyForListViaKnex(query, params),
     ];
 
     return {
@@ -214,36 +294,31 @@ class UsersFetchService {
     };
   }
 
-  /**
-   *
-   * @param {string} tagTitle
-   * @param {Object} query
-   * @param {number} currentUserId
-   * @returns {Promise<*>}
-   */
-  static async findAllAndProcessForListByTagTitle(tagTitle, query, currentUserId) {
-    QueryFilterService.checkLastIdExistence(query);
+  private static async addCurrentUserData(user: UserModel): Promise<void> {
+    user.unread_messages_count =
+      await EntityNotificationsRepository.countUnreadMessages(user.id);
 
-    const repository    = UsersRepository;
-    const params          = QueryFilterService.getQueryParametersWithRepository(query, repository);
+    await this.addAffiliatesData(user);
+  }
 
-    const [models, totalAmount] = await Promise.all([
-      repository.findAllByTagTitle(tagTitle, params),
-      repository.countAllByTagTitle(tagTitle),
-    ]);
+  private static async addAffiliatesData(user: UserModel): Promise<void> {
+    user.affiliates = {
+      referral_redirect_url: null,
+      source_user: null,
+    };
 
-    if (currentUserId) {
-      const activityData = await UserActivityService.getUserActivityData(currentUserId);
-      UserPostProcessor.addMyselfDataByActivityArrays(models, activityData);
+    const offer = await OffersModel.query().findOne('event_id', EventsIds.registration());
+    if (!offer) {
+      return;
     }
 
-    ApiPostProcessor.processUsersAfterQuery(models);
-    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
+    user.affiliates.referral_redirect_url = await StreamsRepository.getRedirectUrl(offer, user.id);
 
-    return {
-      metadata,
-      data: models,
-    };
+    const sourceUserId = await ConversionsRepository.findSourceUserIdBySuccessUserConversion(offer, user);
+
+    if (sourceUserId) {
+      user.affiliates.source_user = await this.findOneAndProcessForCard(sourceUserId);
+    }
   }
 }
 

@@ -18,6 +18,7 @@ import PostsHelper = require('./posts-helper');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -28,11 +29,15 @@ class CommonHelper {
   public static checkOneOrganizationFully(model: OrgModelResponse, options) {
     expect(_.isEmpty(model)).toBeFalsy();
 
-    UsersHelper.checkIncludedUserPreview(model);
+    UsersHelper.checkIncludedUserPreview(model, null, options);
 
     expect(model.users_team).toBeDefined();
     if (options.mustHaveValue.usersTeam) {
       expect(model.users_team.length).toBeGreaterThan(0);
+
+      for (const user of model.users_team) {
+        UsersHelper.checkIncludedUserPreview({ User: user }, null, options, ['users_team']);
+      }
     }
 
     expect(model.social_networks).toBeDefined();
@@ -44,6 +49,8 @@ class CommonHelper {
     expect(Array.isArray(model.discussions)).toBeTruthy();
     if (options.mustHaveValue.discussions) {
       expect(model.discussions.length).toBeGreaterThan(0);
+
+      options.scopes = ['postDiscussions'];
 
       this.checkManyPostsV2(model.discussions, options);
     } else {
@@ -122,7 +129,7 @@ class CommonHelper {
    */
   static checkOneCommentPreviewWithRelations(comment, options) {
     CommentsHelper.checkOneCommentPreviewFields(comment, options);
-    UsersHelper.checkIncludedUserPreview(comment);
+    UsersHelper.checkIncludedUserPreview(comment, null, options);
 
     ResponseHelper.checkCreatedAtUpdatedAtFormat(comment);
 
@@ -136,7 +143,7 @@ class CommonHelper {
     options,
   ): void {
     CommentsHelper.checkOneCommentItself(comment, options);
-    UsersHelper.checkIncludedUserPreview(comment);
+    UsersHelper.checkIncludedUserPreview(comment, null, options);
 
     ResponseHelper.checkCreatedAtUpdatedAtFormat(comment);
 
@@ -586,7 +593,7 @@ class CommonHelper {
     expect(_.isEmpty(post)).toBeFalsy();
 
     PostsHelper.checkPostItselfCommonFields(post, options);
-    UsersHelper.checkIncludedUserPreview(post);
+    UsersHelper.checkIncludedUserPreview(post, null, options);
     OrganizationsHelper.checkOneOrgPreviewFieldsIfExists(post);
 
     this.checkMyselfData(post, options);
@@ -613,36 +620,45 @@ class CommonHelper {
     }
   }
 
+  /**
+   * @deprecated
+   * @see CommonChecker.expectModelIdsExistenceInResponseList(response, expectedModelIds)
+   * @param response
+   * @param expectedModelIds
+   */
   public static expectModelIdsExistenceInResponseList(
     response: ListResponse,
     expectedModelIds: number[],
   ) {
-    this.expectModelsExistence(response.data, expectedModelIds);
+    CommonChecker.expectModelIdsExistenceInResponseList(response, expectedModelIds);
   }
 
+  /**
+   * @deprecated
+   * @see CommonChecker.expectModelsExistence(actualModels, expectedModelIds, checkOrdering)
+   * @param actualModels
+   * @param expectedModelIds
+   * @param checkOrdering
+   */
   public static expectModelsExistence(
     actualModels,
     expectedModelIds: number[],
     checkOrdering: boolean = false,
   ): void {
-    expect(actualModels.length).toBe(expectedModelIds.length);
-
-    expectedModelIds.forEach((expectedId) => {
-      expect(actualModels.some(actual => actual.id === expectedId)).toBeTruthy();
-    });
-
-    if (checkOrdering) {
-      ResponseHelper.checkOrderingById(actualModels, expectedModelIds);
-    }
+    CommonChecker.expectModelsExistence(actualModels, expectedModelIds, checkOrdering);
   }
 
+  /**
+   * @deprecated
+   * @see CommonChecker.expectModelsDoNotExist(actualModels, expectedModelIds)
+   * @param actualModels
+   * @param expectedModelIds
+   */
   public static expectModelsDoNotExist(
     actualModels: any[],
     expectedModelIds: number[],
   ): void {
-    expectedModelIds.forEach((expectedId) => {
-      expect(actualModels.some(actual => actual.id === expectedId)).toBeFalsy();
-    });
+    CommonChecker.expectModelsDoNotExist(actualModels, expectedModelIds);
   }
 
   private static getCheckerOptionsWithoutOrg(
@@ -665,6 +681,7 @@ class CommonHelper {
       organization: {
         required: false,
       },
+      ...UsersHelper.propsAndCurrentParamsOptions(isMyself),
     };
   }
 
@@ -677,6 +694,18 @@ class CommonHelper {
     const options: CheckerOptions = this.getCheckerOptionsWithoutOrg(isMyself, isCommentsEmpty, isAuthorMyselfData);
 
     this.expectPostListResponse(response, options);
+  }
+
+  public static checkUsersListResponseWithProps(response: UsersListResponse, isMyself: boolean): void {
+    const usersCheckOptions = {
+      author: {
+        myselfData: isMyself,
+      },
+      current_params: true,
+      uos_accounts_properties: true,
+    };
+
+    this.checkUsersListResponse(response, usersCheckOptions);
   }
 
   public static checkUsersListResponse(
@@ -778,8 +807,8 @@ class CommonHelper {
 
     PostsHelper.checkPostItselfCommonFields(post.post, options);
 
-    UsersHelper.checkIncludedUserPreview(post);
-    UsersHelper.checkIncludedUserPreview(post.post);
+    UsersHelper.checkIncludedUserPreview(post, null, options);
+    UsersHelper.checkIncludedUserPreview(post.post, null, options);
 
     if (isOrg) {
       OrganizationsHelper.checkOneOrganizationPreviewFields(post.post.organization);
@@ -831,6 +860,10 @@ class CommonHelper {
   }
 
   private static checkMyselfData(post, options) {
+    if (options.scopes && options.scopes.includes('repost')) {
+      return;
+    }
+
     if (options.myselfData || (options.model && options.model.myselfData)) {
       expect(post.myselfData).toBeDefined();
 
@@ -848,8 +881,9 @@ class CommonHelper {
       expect(_.isEmpty(post.post)).toBeFalsy();
 
       const postPostOptions = _.cloneDeep(options);
-      postPostOptions.model.myselfData = false;
-      postPostOptions.author.myselfData = false;
+      // postPostOptions.model.myselfData = false;
+      // postPostOptions.author.myselfData = false;
+      postPostOptions.scopes = ['repost'];
       delete postPostOptions.comments;
 
       this.checkOnePostV2(<PostModelResponse>post.post, postPostOptions);

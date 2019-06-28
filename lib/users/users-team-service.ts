@@ -1,5 +1,9 @@
+import DeleteAllInArrayValidator = require('../common/validator/form-data/delete-all-in-array-validator');
+import UsersTeamRepository = require('./repository/users-team-repository');
+
 const _ = require('lodash');
 const usersTeamRepository = require('./repository').UsersTeam;
+
 const USERS_TEAM_PROPERTY = 'users_team';
 const updateManyToManyHelper = require('../api/helpers/UpdateManyToManyHelper');
 const models = require('../../models');
@@ -17,8 +21,7 @@ class UsersTeamService {
       return [];
     }
 
-    for (let i = 0; i < usersTeam.length; i += 1) {
-      const current = usersTeam[i];
+    for (const current of usersTeam) {
       const userId = current.id || current.user_id;
 
       usersIds.push(userId);
@@ -40,9 +43,10 @@ class UsersTeamService {
     entityId,
     entityName,
     data,
-    idToExclude = null,
+    idToExclude: number | null = null,
     transaction = null,
   ) {
+    // eslint-disable-next-line you-dont-need-lodash-underscore/filter
     const usersTeam = _.filter(data[USERS_TEAM_PROPERTY]);
 
     if (!usersTeam || _.isEmpty(usersTeam)) {
@@ -52,14 +56,14 @@ class UsersTeamService {
     const promises: any = [];
     usersTeam.forEach((user) => {
       if (idToExclude === null || +user.id !== idToExclude) {
-        const data = {
+        const givenData = {
           entity_id:    entityId,
           entity_name:  entityName,
           user_id:      +user.id,
         };
 
-        // TODO make this separately
-        promises.push(usersTeamRepository.createNew(data, transaction));
+        // #task make this separately
+        promises.push(usersTeamRepository.createNew(givenData, transaction));
       }
     });
 
@@ -75,15 +79,24 @@ class UsersTeamService {
     idToExclude = null,
     transaction = null,
   ) {
+    if (!data[USERS_TEAM_PROPERTY]) {
+      return null;
+    }
+
+    if (DeleteAllInArrayValidator.isValueMeanDeleteAll(data[USERS_TEAM_PROPERTY])) {
+      await UsersTeamRepository.deleteAllByEntityIdEntityName(entityId, entityName);
+
+      return null;
+    }
+
+    // eslint-disable-next-line you-dont-need-lodash-underscore/filter
     const usersTeam = _.filter(data[USERS_TEAM_PROPERTY]);
     if (!usersTeam || _.isEmpty(usersTeam)) {
       // NOT possible to remove all users because of this. Wil be fixed later
       return null;
     }
 
-    const usersTeamFiltered = usersTeam.filter((data) => {
-      return +data.id !== idToExclude;
-    });
+    const usersTeamFiltered = usersTeam.filter(item => +item.id !== idToExclude);
 
     const sourceModels = await usersTeamRepository.findAllRelatedToEntity(entityName, entityId);
     const deltaData = updateManyToManyHelper.getCreateDeleteOnlyDelta(
@@ -112,11 +125,11 @@ class UsersTeamService {
     const promises: any = [];
 
     deltaData.added.forEach((data) => {
-      data['entity_id']   = entityId;
-      data['entity_name'] = entityName;
-      data['user_id']     = data['id'];
+      data.entity_id   = entityId;
+      data.entity_name = entityName;
+      data.user_id     = data.id;
 
-      delete data['id'];
+      delete data.id;
 
       promises.push(models[modelName].create(data, { transaction }));
     });

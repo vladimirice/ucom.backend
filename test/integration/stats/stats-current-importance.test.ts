@@ -15,6 +15,7 @@ import EventParamTypeDictionary = require('../../../lib/stats/dictionary/event-p
 import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 let userVlad: UserModel;
 
@@ -61,7 +62,7 @@ describe('Stats services', () => {
 
     const postEvents: EntityEventParamDto[] =
       await EntityEventRepository.findManyEventsWithPostEntityName();
-    expect(_.isEmpty(postEvents)).toBeFalsy();
+    CommonChecker.expectNotEmpty(postEvents);
     expect(postEvents.length).toBe(Object.keys(postToImportance).length);
 
     postEvents.forEach((event) => {

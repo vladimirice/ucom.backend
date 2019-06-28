@@ -11,6 +11,11 @@ import OrganizationsModelProvider = require('../service/organizations-model-prov
 import EntityListCategoryDictionary = require('../../stats/dictionary/entity-list-category-dictionary');
 import PostsRepository = require('../../posts/posts-repository');
 import UsersTeamRepository = require('../../users/repository/users-team-repository');
+import RepositoryHelper = require('../../common/repository/repository-helper');
+import OrgsCurrentParamsRepository = require('./organizations-current-params-repository');
+import QueryFilterService = require('../../api/filters/query-filter-service');
+import EnvHelper = require('../../common/helper/env-helper');
+import UsersModelProvider = require('../../users/users-model-provider');
 
 const _ = require('lodash');
 
@@ -295,10 +300,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
     }
 
     const include = {
-      Users: {
-        attributes: models.Users.getFieldsForPreview(),
-        model: models.Users,
-      },
+      Users: UsersModelProvider.getIncludeAuthorForPreview(),
       users_team: usersModelProvider.getUsersTeamIncludeWithUsersOnly('org'),
     };
 
@@ -422,7 +424,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
     });
   }
 
-  static async findLastByAuthor(userId) {
+  static async findLastByAuthor(userId: number) {
     const includeUsersPreview =
       usersModelProvider.getUsersTeamIncludeWithUsersOnly('org', usersTeamStatusDictionary.getStatusConfirmed());
 
@@ -544,9 +546,24 @@ class OrganizationsRepository implements QueryFilteredRepository {
   public static async findAllOrgForList(
     params: DbParamsDto,
   ): Promise<OrgModelResponse[]> {
-    const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
+    QueryFilterService.addExtraAttributes(
+      params,
+      OrgsCurrentParamsRepository.getStatsFields(),
+      OrganizationsModelProvider.getCurrentParamsTableName(),
+    );
 
-    return res.toJSON();
+    const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
+    const numericalFields = this.getNumericalFields()
+      .concat(OrgsCurrentParamsRepository.getStatsFields(), ['number_of_followers']);
+
+    const jsonModels: OrgModelResponse[] = res.toJSON();
+    RepositoryHelper.convertStringFieldsToNumbersForArray(
+      jsonModels,
+      numericalFields,
+      this.getFieldsToDisallowZero(),
+    );
+
+    return jsonModels;
   }
 
   public static async findManyAsRelatedToEntity(
@@ -653,16 +670,14 @@ class OrganizationsRepository implements QueryFilteredRepository {
   }
 
   public static whereRawTrending(): string {
-    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
-
+    const lowerLimit = EnvHelper.isStagingEnv() ? (-100) : 0;
     const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
 
-    return `${tableName}.importance_delta > ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
+    return `${tableName}.importance_delta != ${lowerLimit} AND ${tableName}.posts_total_amount_delta > ${lowerLimit}`;
   }
 
   public static whereRawHot(): string {
-    const lowerLimit = process.env.NODE_ENV === 'staging' ? (-100) : 0;
-
+    const lowerLimit = EnvHelper.isStagingEnv() ? (-100) : 0;
     const tableName = OrganizationsModelProvider.getCurrentParamsTableName();
 
     return `${tableName}.activity_index_delta > ${lowerLimit}`;

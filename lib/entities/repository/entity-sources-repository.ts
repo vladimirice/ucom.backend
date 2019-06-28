@@ -1,10 +1,25 @@
-const entityModelProvider = require('../service/entity-model-provider');
-const model = entityModelProvider.getSourcesModel();
+import EntityModelProvider = require('../service/entity-model-provider');
+import knex = require('../../../config/knex');
+
+const model = EntityModelProvider.getSourcesModel();
 const db = require('../../../models').sequelize;
 
-const TABLE_NAME = entityModelProvider.getSourcesTableName();
+const TABLE_NAME = EntityModelProvider.getSourcesTableName();
 
 class EntitySourcesRepository {
+  public static async deleteAllForOrgBySourceTypeId(
+    entityId: number,
+    entityName: string,
+    sourceGroupId: number,
+  ): Promise<void> {
+    await knex(TABLE_NAME)
+      .delete()
+      .where({
+        entity_id:        entityId,
+        entity_name:      entityName,
+        source_group_id:  sourceGroupId,
+      });
+  }
 
   /**
    *
@@ -12,7 +27,7 @@ class EntitySourcesRepository {
    * @return {Promise<Object>}
    */
   static async bulkCreate(entities) {
-    return await model.bulkCreate(entities);
+    return model.bulkCreate(entities);
   }
 
   /**
@@ -49,7 +64,7 @@ class EntitySourcesRepository {
       source_group_id: sourceGroupId,
     };
 
-    const res = await entityModelProvider.getSourcesModel().findAll({
+    const res = await EntityModelProvider.getSourcesModel().findAll({
       where,
       raw: true,
     });

@@ -11,6 +11,7 @@ import OrganizationsGenerator = require('../../generators/organizations-generato
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import EntitySourcesRepository = require('../../../lib/entities/repository/entity-sources-repository');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -29,6 +30,10 @@ let userPetr: UserModel;
 let userRokky: UserModel;
 
 MockHelper.mockAllBlockchainPart();
+
+const JEST_TIMEOUT = 5000;
+// @ts-ignore
+const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
 describe('Organizations. Create-update requests', () => {
   afterAll(async () => { await SeedsHelper.doAfterAll(); });
@@ -80,7 +85,7 @@ describe('Organizations. Create-update requests', () => {
 
         expect(sources.length).toBe(socialNetworks.length);
 
-        socialNetworks.forEach((expected) => {
+        for (const expected of socialNetworks) {
           const actual = sources.find(data => data.source_url === expected.source_url);
 
           expect(actual.source_type_id).toBe(expected.source_type_id);
@@ -91,8 +96,8 @@ describe('Organizations. Create-update requests', () => {
           expect(actual.is_official).toBe(false);
           expect(actual.source_entity_id).toBeNull();
           expect(actual.source_entity_name).toBeNull();
-        });
-      });
+        }
+      }, JEST_TIMEOUT);
 
       it('Should allow empty fields when creation', async () => {
         const user = userVlad;
@@ -127,7 +132,7 @@ describe('Organizations. Create-update requests', () => {
           city: 'LA',
           address: 'La alley, 18',
           personal_website_url: 'https://extreme.com',
-          avatar_filename: FileToUploadHelper.getSampleFilePathToUpload(),
+          avatar_filename: FileToUploadHelper.getSamplePngPath(),
         };
 
         // noinspection JSDeprecatedSymbols
@@ -257,6 +262,21 @@ describe('Organizations. Create-update requests', () => {
 
         ResponseHelper.expectValuesAreExpected(sampleFields, lastModel);
       });
+
+      it('should delete all board members', async () => {
+        const firstOrgId: number =
+          await OrganizationsGenerator.createOrgWithTeamAndConfirmAll(userVlad, [userJane, userPetr]);
+        const secondOrgId: number =
+          await OrganizationsGenerator.createOrgWithTeamAndConfirmAll(userVlad, [userJane, userPetr]);
+
+        await OrganizationsHelper.deleteAllFromArray(userVlad, firstOrgId, 'users_team');
+
+        const firstOrgModel = await OrganizationsRepository.findOneById(firstOrgId);
+        CommonChecker.expectEmpty(firstOrgModel.users_team);
+
+        const secondOrgModel = await OrganizationsRepository.findOneById(secondOrgId);
+        CommonChecker.expectNotEmpty(secondOrgModel.users_team);
+      }, JEST_TIMEOUT);
 
       it('should allow to add board to the organization', async () => {
         const author = userVlad;
@@ -424,7 +444,7 @@ describe('Organizations. Create-update requests', () => {
 
         await OrganizationsGenerator.createOrgWithoutTeam(user);
 
-        const orgId = await organizationsRepositories.Main.findFirstIdByAuthorId(user.id);
+        const orgId = await OrganizationsRepository.findFirstIdByAuthorId(user.id);
         await OrganizationsHelper.createSocialNetworksDirectly(orgId);
 
         const sources =
@@ -505,7 +525,7 @@ describe('Organizations. Create-update requests', () => {
           is_official:  sourceToModify.is_official,
           entity_id:    `${orgId}`, // should not be changed because of restrictions
         },                                  modifiedSource);
-      });
+      }, JEST_TIMEOUT);
 
       // tslint:disable-next-line:max-line-length
       it.skip('If ID of different entity is provided - new one will be created and id will be ignored', async () => {

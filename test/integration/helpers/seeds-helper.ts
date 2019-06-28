@@ -13,7 +13,21 @@ import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-mo
 import AccountsModelProvider = require('../../../lib/accounts/service/accounts-model-provider');
 import CloseHandlersHelper = require('../../../lib/common/helper/close-handlers-helper');
 import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
-// import MongoGenerator = require('../../generators/common/mongo-generator');
+import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
+import UsersTeamRepository = require('../../../lib/users/repository/users-team-repository');
+import EntityModelProvider = require('../../../lib/entities/service/entity-model-provider');
+import StreamsModel = require('../../../lib/affiliates/models/streams-model');
+import OffersModel = require('../../../lib/affiliates/models/offers-model');
+import ClicksModel = require('../../../lib/affiliates/models/clicks-model');
+import ConversionsModel = require('../../../lib/affiliates/models/conversions-model');
+import UsersCurrentParamsRepository = require('../../../lib/users/repository/users-current-params-repository');
+import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import TagsModelProvider = require('../../../lib/tags/service/tags-model-provider');
+import knex = require('../../../config/knex');
+import IrreversibleTracesClient = require('../../../lib/blockchain-traces/client/irreversible-traces-client');
+import MongoExternalModelProvider = require('../../../lib/eos/service/mongo-external-model-provider');
+import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -31,7 +45,6 @@ const organizationsRepositories = require('../../../lib/organizations/repository
 const usersRepositories = require('../../../lib/users/repository');
 const postRepositories = require('../../../lib/posts/repository');
 const usersModelProvider =  require('../../../lib/users/service').ModelProvider;
-const entityModelProvider = require('../../../lib/entities/service').ModelProvider;
 
 const rabbitMqService     = require('../../../lib/jobs/rabbitmq-service.js');
 
@@ -47,41 +60,54 @@ const tableToSeeds = {
 
 
 const minorTablesToSkipSequences = [
-  'posts_current_params_id_seq',
-  'organizations_current_params_id_seq',
-  'tags_current_params_id_seq',
-  'irreversible_traces_id_seq',
-  'outgoing_transactions_log_id_seq',
-  'uos_accounts_properties_id_seq',
-  `${UsersExternalModelProvider.usersExternalTableName()}_id_seq`,
-  `${UsersExternalModelProvider.usersExternalAuthLogTableName()}_id_seq`,
-  `${UsersModelProvider.getUsersActivityTrustTableName()}_id_seq`,
-  `${UsersModelProvider.getUsersActivityFollowTableName()}_id_seq`,
+  PostsModelProvider.getCurrentParamsTableName(),
+  UsersModelProvider.getCurrentParamsTableName(),
+  OrganizationsModelProvider.getCurrentParamsTableName(),
+  TagsModelProvider.getCurrentParamsTableName(),
+
+  'irreversible_traces',
+  'outgoing_transactions_log',
+  'uos_accounts_properties',
+  UsersExternalModelProvider.usersExternalTableName(),
+  UsersExternalModelProvider.usersExternalAuthLogTableName(),
+  UsersModelProvider.getUsersActivityTrustTableName(),
+  UsersModelProvider.getUsersActivityFollowTableName(),
+  AirdropsModelProvider.airdropsTableName(),
+
+  'offers',
+  'streams',
+  'clicks',
+  'conversions',
+  'users_activity_referral',
 ];
 
 // Truncated async
 const minorTables = [
-  entityModelProvider.getNotificationsTableName(),
-  usersRepositories.UsersTeam.getModelName(),
+  BlockchainModelProvider.irreversibleTracesTableName(),
+
+  EntityModelProvider.getNotificationsTableName(),
+  UsersTeamRepository.getModelName(),
 
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
+  UsersModelProvider.getUsersActivityReferralTableName(),
 
   UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
-  'airdrops_users_github_raw',
-  'airdrops_users_external_data',
-  'airdrops_users_external_data',
-
-  'accounts_transactions_parts',
-
-  'airdrops_tokens',
-  'airdrops_users',
+  AirdropsModelProvider.airdropsUsersGithubRawTableName(),
+  AirdropsModelProvider.airdropsUsersGithubRawRoundTwoTableName(),
+  AirdropsModelProvider.airdropsUsersExternalDataTableName(),
+  AirdropsModelProvider.airdropsTokensTableName(),
+  AirdropsModelProvider.airdropsUsersTableName(),
 
   'entity_tags',
   'entity_state_log',
 
   'users_external_auth_log',
+
+  'accounts_transactions_parts',
+
+  UsersModelProvider.getCurrentParamsTableName(),
 
   'posts_current_params',
   'organizations_current_params',
@@ -116,9 +142,14 @@ const minorTables = [
 
 // Truncated in order
 const majorTables = [
+  ConversionsModel.getTableName(),
+  ClicksModel.getTableName(),
+  StreamsModel.getTableName(),
+  OffersModel.getTableName(),
+
   usersRepositories.Activity.getModelName(),
 
-  'airdrops',
+  AirdropsModelProvider.airdropsTableName(),
 
   AccountsModelProvider.accountsTableName(),
   AccountsModelProvider.accountsTransactionsTableName(),
@@ -198,6 +229,15 @@ class SeedsHelper {
     await rabbitMqService.purgeAllQueues();
   }
 
+  public static async noGraphQlNoMocking() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      workersMocking: 'none',
+    };
+
+    return this.beforeAllSetting(beforeAfterOptions);
+  }
+
   public static async noGraphQlMockBlockchainOnly() {
     const beforeAfterOptions = {
       isGraphQl: false,
@@ -235,12 +275,30 @@ class SeedsHelper {
         MockHelper.mockAllTransactionSigning();
         MockHelper.mockAllBlockchainJobProducers();
         break;
+      case 'allButSendingToQueue':
+        MockHelper.mockAllBlockchainPart(false);
+        break;
       case 'all':
-        MockHelper.mockAllBlockchainPart();
+        MockHelper.mockAllBlockchainPart(true);
+        break;
+      case 'none':
+      case 'nothing':
+        // do nothing
         break;
       default:
-        // do nothing
+        throw new TypeError(`Unsupported workerMocking ${options.workersMocking}`);
     }
+  }
+
+
+  public static async beforeAllRoutineMockAccountsProperties() {
+    const options = {
+      mock: {
+        uosAccountsProperties: true,
+      },
+    };
+
+    return this.beforeAllRoutine(false, options);
   }
 
   /**
@@ -249,6 +307,7 @@ class SeedsHelper {
    */
   static async beforeAllRoutine(
     mockAllBlockchain: boolean = false, // deprecated
+    options: any = null,
   ) {
     if (mockAllBlockchain) {
       MockHelper.mockAllBlockchainPart();
@@ -260,28 +319,51 @@ class SeedsHelper {
       this.truncateEventsDb(),
     ]);
 
+    const mongoDbConnection =
+      await IrreversibleTracesClient.useCollection(MongoExternalModelProvider.actionTracesCollection());
+
+    await mongoDbConnection.deleteMany({});
+
     const usersModel = usersRepositories.Main.getUsersModelName();
 
     // init users
     const usersSequence = this.getSequenceNameByModelName(usersModel);
 
     await this.resetSequence(usersSequence);
-    await this.bulkCreate(usersModel, usersSeeds);
+    await knex(UsersModelProvider.getTableName()).insert(usersSeeds);
 
     await Promise.all([
-      models.users_education.bulkCreate(usersEducationSeeds),
-      models.users_jobs.bulkCreate(usersJobsSeeds),
-      models.users_sources.bulkCreate(sourcesSeeds),
+      knex('users_education').insert(usersEducationSeeds),
+      knex('users_jobs').insert(usersJobsSeeds),
+      knex('users_sources').insert(sourcesSeeds),
     ]);
 
-    // await MongoGenerator.truncateAll();
+    const [userVlad, userJane, userPetr, userRokky] =
+      await Promise.all([
+        UsersHelper.getUserVlad(),
+        UsersHelper.getUserJane(),
+        UsersHelper.getUserPetr(),
+        UsersHelper.getUserRokky(),
+      ]);
 
-    return Promise.all([
-      UsersHelper.getUserVlad(),
-      UsersHelper.getUserJane(),
-      UsersHelper.getUserPetr(),
-      UsersHelper.getUserRokky(),
+    await Promise.all([
+      UsersCurrentParamsRepository.insertRowForNewEntity(userVlad.id),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userJane.id),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userPetr.id),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userRokky.id),
     ]);
+
+    if (options && options.mock.uosAccountsProperties) {
+      await MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
+      await UosAccountsPropertiesUpdateService.updateAll();
+    }
+
+    return [
+      userVlad,
+      userJane,
+      userPetr,
+      userRokky,
+    ];
   }
 
   /**
@@ -299,7 +381,7 @@ class SeedsHelper {
 
   // @deprecated. It is required because of deprecated seeding without generators
   static async resetSequence(name) {
-    return models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`);
+    return knex.raw(`ALTER SEQUENCE ${name} RESTART;`);
   }
 
   static async bulkCreate(name, seeds) {
@@ -307,21 +389,23 @@ class SeedsHelper {
   }
 
   static async destroyTables() {
+    const skipSequencesNames: string[] = [];
+
+    for (const table of minorTablesToSkipSequences) {
+      skipSequencesNames.push(`${table}_id_seq`);
+    }
+
     // noinspection SqlResolve
     const allSequences = await models.sequelize.query('SELECT sequence_name FROM information_schema.sequences;');
 
     const resetSequencePromises: any = [];
 
     allSequences[0].forEach((data) => {
-      let name = data.sequence_name;
+      const name = data.sequence_name;
 
-      if (name === 'Users_id_seq') {
-        name = '"Users_id_seq"';
-      }
-
-      if (!~minorTablesToSkipSequences.indexOf(name)) {
+      if (!skipSequencesNames.includes(name)) {
         // @deprecated - sequence reset was required for seeds, not for generators
-        resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE ${name} RESTART;`));
+        resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE "${name}" RESTART;`));
       }
     });
 
@@ -335,6 +419,7 @@ class SeedsHelper {
 
     await Promise.all(minorTablesPromises);
 
+    // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < majorTables.length; i += 1) {
       if (majorTables[i] === 'Users') {
         await models.sequelize.query('DELETE FROM "Users" WHERE 1=1');

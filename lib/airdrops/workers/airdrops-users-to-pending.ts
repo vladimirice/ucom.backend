@@ -12,8 +12,7 @@ const options: WorkerOptionsDto = {
 async function toExecute() {
   EosApi.initBlockchainLibraries();
 
-  const airdropId = 1;
-  await AirdropsUsersToPendingService.process(airdropId);
+  await AirdropsUsersToPendingService.processAllInProcessAirdrop();
 }
 
 (async () => {

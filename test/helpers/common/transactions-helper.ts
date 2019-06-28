@@ -1,6 +1,6 @@
 import { AppError } from '../../../lib/api/errors';
 
-const accountsData = require('../../../config/accounts-data');
+const accountsData = require('../../../../secrets/accounts-data');
 
 class TransactionsHelper {
   public static getPrivateKey(accountIndex: string): string {

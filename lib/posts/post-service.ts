@@ -1,15 +1,13 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length no-parameter-reassignment */
 import { PostModelResponse } from './interfaces/model-interfaces';
-import { RequestQueryDto } from '../api/filters/interfaces/query-filter-interfaces';
-import { IdOnlyDto } from '../common/interfaces/common-types';
 
 import PostsFetchService = require('./service/posts-fetch-service');
 import PostCreatorService = require('./service/post-creator-service');
 import UserActivityService = require('../users/user-activity-service');
 import PostsRepository = require('./posts-repository');
 import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
-import UserInputSanitizer = require('../api/sanitizers/user-input-sanitizer');
+import { UserModel } from '../users/interfaces/model-interfaces';
 
 const _ = require('lodash');
 
@@ -22,7 +20,6 @@ const models = require('../../models');
 
 const { BadRequestError } = require('../../lib/api/errors');
 
-const postSanitizer = require('./post-sanitizer');
 const usersRepositories = require('../users/repository');
 
 const organizationsModelProvider = require('../organizations/service/organizations-model-provider');
@@ -34,46 +31,10 @@ const eventIdDictionary = require('../entities/dictionary').EventId;
 
 const eosTransactionService = require('../eos/eos-transaction-service');
 
-const postCreatorService  = require('./service/post-creator-service');
-const postActivityService = require('./post-activity-service');
-const postsFetchService   = require('./service/posts-fetch-service');
-
 /**
  * Post Creation functions should be placed in PostCreatorService
  */
 class PostService {
-  public currentUser;
-
-  constructor(currentUser) {
-    this.currentUser = currentUser;
-  }
-
-  /**
-   *
-   * @param {number} modelIdTo
-   * @param {Object} body
-   * @returns {Promise<{current_vote: number}>}
-   */
-  async userUpvotesPost(modelIdTo, body) {
-    const userFrom = this.currentUser.user;
-
-    return postActivityService.userUpvotesPost(userFrom, modelIdTo, body);
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {number} modelIdTo
-   * @param {Object} body
-   * @returns {Promise<{current_vote: number}>}
-   */
-  async userDownvotesPost(modelIdTo, body) {
-    const userFrom = this.currentUser.user;
-
-    return postActivityService.userDownvotesPost(userFrom, modelIdTo, body);
-  }
-
-  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {number} postId
@@ -112,16 +73,8 @@ class PostService {
     await this.updateRelations(postId, deltas, 'post_users_team', transaction);
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {number} postId
-   * @param {number} userId
-   * @param {Array} params
-   * @returns {Promise<Object>}
-   */
-  async updateAuthorPost(postId, userId, params) {
-    const currentUserId = this.currentUser.id;
+  public static async updateAuthorPost(postId, userId, params, currentUser: UserModel) {
+    const currentUserId = currentUser.id;
 
     // #task #refactor - use pick and wrap into transaction
     delete params.id;
@@ -130,8 +83,6 @@ class PostService {
     delete params.current_vote;
 
     // noinspection JSDeprecatedSymbols
-    postSanitizer.sanitisePost(params);
-    UserInputSanitizer.unescapeObjectValues(params, ['title', 'leading_text', 'description']);
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({
@@ -195,7 +146,7 @@ class PostService {
     await UserActivityService.sendContentUpdatingPayloadToRabbit(newActivity);
 
     if (PostService.isDirectPost(updatedPost)) {
-      return this.findOnePostByIdAndProcess(updatedPost.id);
+      return PostsFetchService.findOnePostByIdAndProcess(updatedPost.id, currentUser.id);
     }
 
     return updatedPost;
@@ -210,26 +161,8 @@ class PostService {
     return post.post_type_id === ContentTypeDictionary.getTypeDirectPost();
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {Object} givenBody
-   * @param {number} postId
-   * @return {Promise<Object>}
-   */
-  async processRepostCreation(givenBody, postId): Promise<IdOnlyDto> {
-    const { user } = this.currentUser;
 
-    return postCreatorService.processRepostCreation(givenBody, postId, user);
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {Object} req
-   * @return {Promise<Object>}
-   */
-  async processNewDirectPostCreationForUser(req) {
+  public static async processNewDirectPostCreationForUser(req, currentUser: UserModel) {
     const userIdTo = req.user_id;
     delete req.user_id;
 
@@ -251,19 +184,14 @@ class PostService {
 
     await eosTransactionService.appendSignedUserCreatesDirectPostForOtherUser(
       req.body,
-      this.currentUser.user,
+      currentUser,
       accountNameTo,
     );
 
-    return this.processNewPostCreation(req, eventId);
+    return PostCreatorService.processNewPostCreation(req, eventId, currentUser);
   }
 
-  /**
-   *
-   * @param {Object} req
-   * @return {Promise<Object>}
-   */
-  async processNewDirectPostCreationForOrg(req) {
+  public static async processNewDirectPostCreationForOrg(req, currentUser: UserModel) {
     const orgIdTo = req.organization_id;
     delete req.organization_id;
 
@@ -285,69 +213,18 @@ class PostService {
 
     await eosTransactionService.appendSignedUserCreatesDirectPostForOrg(
       req.body,
-      this.currentUser.user,
+      currentUser,
       orgBlockchainId,
     );
-
-    return this.processNewPostCreation(req, eventId);
-  }
-
-  /**
-   *
-   * @param {Object} req
-   * @param {number|null} eventId
-   * @return {Promise<Object>}
-   */
-  async processNewPostCreation(req, eventId = null) {
-    const currentUser = this.currentUser.user;
 
     return PostCreatorService.processNewPostCreation(req, eventId, currentUser);
   }
 
-  public async findOnePostByIdAndProcess(
+  public static async findOnePostByIdAndProcess(
     postId: number,
+    currentUser: UserModel,
   ): Promise<PostModelResponse | null> {
-    const userId: number = this.currentUser.id;
-
-    return PostsFetchService.findOnePostByIdAndProcess(postId, userId);
-  }
-
-  /**
-   *
-   * @return {Promise<Object>}
-   */
-  async findAndProcessAllForMyselfNewsFeed(query) {
-    const currentUserId = this.currentUser.id;
-
-    return postsFetchService.findAndProcessAllForMyselfNewsFeed(query, currentUserId);
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {number} userId
-   * @param {Object} query
-   * @return {Promise<Object>}
-   */
-  async findAndProcessAllForUserWallFeed(userId, query = null) {
-    const currentUserId = this.currentUser.id;
-
-    return postsFetchService.findAndProcessAllForUserWallFeed(userId, currentUserId, query);
-  }
-
-  /**
-   *
-   * @param {number} orgId
-   * @param {Object} query
-   * @return {Promise<{data, metadata}>}
-   */
-  async findAndProcessAllForOrgWallFeed(
-    orgId: number,
-    query: RequestQueryDto,
-  ) {
-    const userId: number = this.currentUser.id;
-
-    return postsFetchService.findAndProcessAllForOrgWallFeed(orgId, userId, query);
+    return PostsFetchService.findOnePostByIdAndProcess(postId, currentUser.id);
   }
 
   static async findLastPostOfferByAuthor(userId: number) {

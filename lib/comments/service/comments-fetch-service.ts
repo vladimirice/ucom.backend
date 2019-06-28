@@ -1,8 +1,7 @@
 import { RequestQueryComments }
   from '../../api/filters/interfaces/query-filter-interfaces';
-import { NumberToNumberCollection, StringToNumberCollection } from '../../common/interfaces/common-types';
+import { NumberToNumberCollection } from '../../common/interfaces/common-types';
 import { BadRequestError } from '../../api/errors';
-import { DbCommentParamsDto } from '../interfaces/query-filter-interfaces';
 import {
   CommentableIdToCommentsResponse,
   CommentModel,
@@ -12,37 +11,44 @@ import {
 } from '../interfaces/model-interfaces';
 
 import ApiPostProcessor = require('../../common/service/api-post-processor');
-
-const commentsRepository = require('./../comments-repository');
-const apiPostProcessor = require('../../common/service/api-post-processor');
-const commentsPostProcessor = require('./comments-post-processor');
-
-const queryFilterService = require('../../api/filters/query-filter-service');
+import CommentsRepository = require('../comments-repository');
+import QueryFilterService = require('../../api/filters/query-filter-service');
+import CommentsPostProcessor = require('./comments-post-processor');
 
 class CommentsFetchService {
+  public static async findAndProcessOneComment(
+    commentId: number,
+    currentUserId: number,
+  ): Promise<any> {
+    const comment = await CommentsRepository.findOneById(commentId);
+
+    return ApiPostProcessor.processOneComment(comment, currentUserId);
+  }
+
+
   public static async findAndProcessCommentsByPostId(
     postId: number,
     currentUserId: number | null,
     query: RequestQueryComments,
   ): Promise<CommentsListResponse> {
-    const params: DbCommentParamsDto =
-      queryFilterService.getQueryParametersWithRepository(query, commentsRepository);
+    const params =
+      QueryFilterService.getQueryParametersWithRepository(query, CommentsRepository);
 
     const [dbData, totalAmount] = await Promise.all([
-      commentsRepository.findAllByCommentableId(postId, params),
-      commentsRepository.countAllByCommentableId(postId, params),
+      CommentsRepository.findAllByCommentableId(postId, params),
+      CommentsRepository.countAllByCommentableId(postId, params),
     ]);
 
     const NEXT_COMMENTS_DEPTH_FROM_TOP = 1;
 
-    const nextDepthTotalAmounts: StringToNumberCollection =
-      await commentsRepository.countNextDepthTotalAmounts([postId], NEXT_COMMENTS_DEPTH_FROM_TOP);
+    const nextDepthTotalAmounts: NumberToNumberCollection =
+      await CommentsRepository.countNextDepthTotalAmounts([postId], NEXT_COMMENTS_DEPTH_FROM_TOP);
 
-    commentsPostProcessor.processManyCommentMetadata(dbData, nextDepthTotalAmounts);
+    CommentsPostProcessor.processManyCommentMetadata(dbData, nextDepthTotalAmounts);
 
-    const data = apiPostProcessor.processManyComments(dbData, currentUserId);
+    const data = ApiPostProcessor.processManyComments(dbData, currentUserId);
 
-    const metadata = queryFilterService.getMetadata(totalAmount, query, params);
+    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
 
     return {
       data,
@@ -55,17 +61,19 @@ class CommentsFetchService {
     currentUserId: number | null,
     query: RequestQueryComments,
   ): Promise<CommentableIdToCommentsResponse> {
-    const params: DbCommentParamsDto =
-      queryFilterService.getQueryParametersWithRepository(query, commentsRepository);
+    const params =
+      QueryFilterService.getQueryParametersWithRepository(query, CommentsRepository);
 
     const NEXT_COMMENTS_DEPTH_FROM_TOP = 1;
+
 
     const [idToComments, idToTotalAmount, nextDepthTotalAmounts]:
           [ParentIdToDbCommentCollection, NumberToNumberCollection, NumberToNumberCollection] =
       await Promise.all([
-        commentsRepository.findAllByManyCommentableIds(postIds, params),
-        commentsRepository.countAllByCommentableIdsAndDepth(postIds, params),
-        commentsRepository.countNextDepthTotalAmounts(postIds, NEXT_COMMENTS_DEPTH_FROM_TOP),
+        CommentsRepository.findAllByManyCommentableIds(postIds, params),
+        // @ts-ignore
+        CommentsRepository.countAllByCommentableIdsAndDepth(postIds, params),
+        CommentsRepository.countNextDepthTotalAmounts(postIds, NEXT_COMMENTS_DEPTH_FROM_TOP),
       ]);
 
     const idToCommentsList: CommentableIdToCommentsResponse = {};
@@ -76,13 +84,13 @@ class CommentsFetchService {
       }
 
       const comments: CommentModel[] = idToComments[postId];
-      commentsPostProcessor.processManyCommentMetadata(comments, nextDepthTotalAmounts);
-      apiPostProcessor.processManyComments(comments, currentUserId);
+      CommentsPostProcessor.processManyCommentMetadata(comments, nextDepthTotalAmounts);
+      ApiPostProcessor.processManyComments(comments, currentUserId);
 
       idToCommentsList[postId] = {
         // @ts-ignore #task how to describe object converting during processing above?
         data: <CommentModelResponse>idToComments[postId],
-        metadata: queryFilterService.getMetadata(idToTotalAmount[postId], query, params),
+        metadata: QueryFilterService.getMetadata(idToTotalAmount[postId], query, params),
       };
     }
 
@@ -104,25 +112,26 @@ class CommentsFetchService {
       throw new BadRequestError({ depth: 'Depth parameter is required' });
     }
 
-    const params: DbCommentParamsDto =
-      queryFilterService.getQueryParametersWithRepository(query, commentsRepository);
+    const params =
+      QueryFilterService.getQueryParametersWithRepository(query, CommentsRepository);
 
     const [dbData, totalAmount] = await Promise.all([
-      commentsRepository.findAllByDbParamsDto(params),
-      commentsRepository.countAllByDbParamsDto(params),
+      // @ts-ignore
+      CommentsRepository.findAllByDbParamsDto(params),
+      CommentsRepository.countAllByDbParamsDto(params),
     ]);
 
-    const nextDepthTotalAmounts: StringToNumberCollection =
-      await commentsRepository.countNextDepthTotalAmounts(
+    const nextDepthTotalAmounts: NumberToNumberCollection =
+      await CommentsRepository.countNextDepthTotalAmounts(
         [params.where.commentable_id],
         params.where.depth + 1,
       );
 
-    commentsPostProcessor.processManyCommentMetadata(dbData, nextDepthTotalAmounts);
+    CommentsPostProcessor.processManyCommentMetadata(dbData, nextDepthTotalAmounts);
 
-    const data = apiPostProcessor.processManyComments(dbData, currentUserId);
+    const data = ApiPostProcessor.processManyComments(dbData, currentUserId);
 
-    const metadata = queryFilterService.getMetadata(totalAmount, query, params);
+    const metadata = QueryFilterService.getMetadata(totalAmount, query, params);
 
     return {
       data,

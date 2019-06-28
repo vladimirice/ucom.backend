@@ -1,4 +1,4 @@
-import IrreversibleTracesClient = require('../../../../lib/eos/client/mongo/irreversible-traces-client');
+import IrreversibleTracesClient   = require('../../../../lib/blockchain-traces/client/irreversible-traces-client');
 import MongoExternalModelProvider = require('../../../../lib/eos/service/mongo-external-model-provider');
 
 const ACTION_TRACES_COLLECTION_NAME = MongoExternalModelProvider.actionTracesCollection();
@@ -22,19 +22,24 @@ class MongoIrreversibleTracesGenerator {
 
     const set = [
       this.getSampleTransferTrace,
-      this.getSampleDownvoteTrace,
+
       this.getSampleVoteForBpsTrace,
       this.getSampleRevokeAllVotesForBpsTrace,
-      this.getSampleClaimEmissionTrace,
-      this.getSampleBuyRamTrace,
-      this.getSampleSellRamTrace,
-      this.getSampleStakeCpuOnlyTrace,
-      this.getSampleStakeBothCpuAndNetTrace,
-      this.getSampleStakeNetOnlyTrace,
-      this.getSampleUnstakeCpuOnlyTrace,
-      this.getSampleUnstakeNetOnlyTrace,
-      this.getSampleUnstakeBothCpuAndNetTrace,
-      this.getSampleStakeCpuAndUnstakeNetTrace,
+      //
+      // this.getSampleClaimEmissionTrace,
+      //
+      // this.getSampleBuyRamTrace,
+      // this.getSampleSellRamTrace,
+      //
+      // this.getSampleStakeCpuOnlyTrace,
+      // this.getSampleStakeBothCpuAndNetTrace,
+      // this.getSampleStakeNetOnlyTrace,
+      // this.getSampleUnstakeCpuOnlyTrace,
+      // this.getSampleUnstakeNetOnlyTrace,
+      // this.getSampleUnstakeBothCpuAndNetTrace,
+      // this.getSampleStakeCpuAndUnstakeNetTrace,
+      //
+      // this.getSampleDownvoteTrace,
     ];
 
     for (const func of set) {
@@ -44,10 +49,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleTransferTrace() {
+    const blockNumber = 25330100;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b100';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c100';
+
     return {
-      blocknum : 25330203,
-      blockid : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
-      trxid : '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a188445b6e',
+      blocknum: blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -80,8 +89,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 273,
           console : '',
-          trx_id : '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a188445b6e',
-          block_num : 25330203,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T09:57:54.500',
           producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
           account_ram_deltas : [],
@@ -121,8 +130,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 10,
               console : '',
-              trx_id : '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a188445b6e',
-              block_num : 25330203,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T09:57:54.500',
               producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
               account_ram_deltas : [],
@@ -163,8 +172,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 13,
               console : '',
-              trx_id : '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a188445b6e',
-              block_num : 25330203,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T09:57:54.500',
               producer_block_id : '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c195498051ce6',
               account_ram_deltas : [],
@@ -184,10 +193,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleVoteForBpsTrace() {
+    const blockNumber = 25330101;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b101';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c101';
+
     return {
-      blocknum : 25330365,
-      blockid : '018282bd7bfdccf0dc703bc88bc8b19c17e5d50744c9836901465097a5adbc94',
-      trxid : 'f368a69447b7cff41e06bb76fe9fa22e3e481eef34305176c020e967459b3ef8',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -220,8 +233,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 3022,
           console : '',
-          trx_id : 'f368a69447b7cff41e06bb76fe9fa22e3e481eef34305176c020e967459b3ef8',
-          block_num : 25330365,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T09:59:15.500',
           producer_block_id : '018282bd7bfdccf0dc703bc88bc8b19c17e5d50744c9836901465097a5adbc94',
           account_ram_deltas : [],
@@ -241,10 +254,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleRevokeAllVotesForBpsTrace() {
+    const blockNumber = 25330102;
+    const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b102';
+    const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c102';
+
     return {
-      blocknum : 25330436,
-      blockid : '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578f43a',
-      trxid : 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd282cd',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -277,8 +294,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 895,
           console : '',
-          trx_id : 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd282cd',
-          block_num : 25330436,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T09:59:57.000',
           producer_block_id : '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578f43a',
           account_ram_deltas : [
@@ -300,10 +317,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleClaimEmissionTrace() {
+    const blockNumber = 25330103;
+    const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b103';
+    const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c103';
+
     return {
-      blocknum : 25319050,
-      blockid : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
-      trxid : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -336,8 +357,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 327,
           console : 'hello1.334807300000004e+030.0000 UOS1334.8073 UOS',
-          trx_id : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
-          block_num : 25319050,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T08:20:15.000',
           producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
           account_ram_deltas : [],
@@ -374,8 +395,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 440,
               console : '',
-              trx_id : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
-              block_num : 25319050,
+              trx_id : trxId,
+              block_num: blockNumber,
               block_time : '2019-04-01T08:20:15.000',
               producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
               account_ram_deltas : [],
@@ -414,8 +435,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 161,
                   console : '',
-                  trx_id : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
-                  block_num : 25319050,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:20:15.000',
                   producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
                   account_ram_deltas : [],
@@ -455,8 +476,8 @@ class MongoIrreversibleTracesGenerator {
                       context_free : false,
                       elapsed : 23,
                       console : '',
-                      trx_id : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
-                      block_num : 25319050,
+                      trx_id : trxId,
+                      block_num : blockNumber,
                       block_time : '2019-04-01T08:20:15.000',
                       producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
                       account_ram_deltas : [],
@@ -497,8 +518,8 @@ class MongoIrreversibleTracesGenerator {
                       context_free : false,
                       elapsed : 22,
                       console : '',
-                      trx_id : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
-                      block_num : 25319050,
+                      trx_id : trxId,
+                      block_num : blockNumber,
                       block_time : '2019-04-01T08:20:15.000',
                       producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
                       account_ram_deltas : [],
@@ -543,8 +564,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 115,
               console : '',
-              trx_id : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
-              block_num : 25319050,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T08:20:15.000',
               producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
               account_ram_deltas : [],
@@ -584,8 +605,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 17,
                   console : '',
-                  trx_id : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
-                  block_num : 25319050,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:20:15.000',
                   producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
                   account_ram_deltas : [],
@@ -626,8 +647,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 8,
                   console : '',
-                  trx_id : 'ad7a792b2aecb64143ac63f544eda9f80cfa6ed514cc8e607bc78d714ec1e80f',
-                  block_num : 25319050,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:20:15.000',
                   producer_block_id : '0182568aadc00cdf88f5fd5e1ea2a091344af2eb62756b2f323237c718443410',
                   account_ram_deltas : [],
@@ -649,10 +670,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleBuyRamTrace() {
+    const blockNumber = 25330104;
+    const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b104';
+    const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c104';
+
     return {
-      blocknum : 25319802,
-      blockid : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
-      trxid : 'eb277ac661879cd27cbef12c5f1dacd59b54f827842d68ea7c5cfa3a276979b4',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -685,8 +710,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 765,
           console : '',
-          trx_id : 'eb277ac661879cd27cbef12c5f1dacd59b54f827842d68ea7c5cfa3a276979b4',
-          block_num : 25319802,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T08:26:49.500',
           producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
           account_ram_deltas : [],
@@ -725,8 +750,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 199,
               console : '',
-              trx_id : 'eb277ac661879cd27cbef12c5f1dacd59b54f827842d68ea7c5cfa3a276979b4',
-              block_num : 25319802,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T08:26:49.500',
               producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
               account_ram_deltas : [],
@@ -766,8 +791,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 6,
                   console : '',
-                  trx_id : 'eb277ac661879cd27cbef12c5f1dacd59b54f827842d68ea7c5cfa3a276979b4',
-                  block_num : 25319802,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:26:49.500',
                   producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
                   account_ram_deltas : [],
@@ -808,8 +833,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 7,
                   console : '',
-                  trx_id : 'eb277ac661879cd27cbef12c5f1dacd59b54f827842d68ea7c5cfa3a276979b4',
-                  block_num : 25319802,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:26:49.500',
                   producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
                   account_ram_deltas : [],
@@ -852,8 +877,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 182,
               console : '',
-              trx_id : 'eb277ac661879cd27cbef12c5f1dacd59b54f827842d68ea7c5cfa3a276979b4',
-              block_num : 25319802,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T08:26:49.500',
               producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
               account_ram_deltas : [],
@@ -893,8 +918,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 5,
                   console : '',
-                  trx_id : 'eb277ac661879cd27cbef12c5f1dacd59b54f827842d68ea7c5cfa3a276979b4',
-                  block_num : 25319802,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:26:49.500',
                   producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
                   account_ram_deltas : [],
@@ -935,8 +960,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 6,
                   console : '',
-                  trx_id : 'eb277ac661879cd27cbef12c5f1dacd59b54f827842d68ea7c5cfa3a276979b4',
-                  block_num : 25319802,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:26:49.500',
                   producer_block_id : '0182597a9615b1d59257cc003eabe739ea3f9acfa66b6d8f6d69fa018d57b181',
                   account_ram_deltas : [],
@@ -958,10 +983,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleSellRamTrace() {
+    const blockNumber = 25330105;
+    const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b105';
+    const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c105';
+
     return {
-      blocknum : 25320225,
-      blockid : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
-      trxid : 'f2e6f49763749be7eedc8ced89802c9fc3e8ae21184004ad8f2b6c38026019a4',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -994,8 +1023,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 752,
           console : '',
-          trx_id : 'f2e6f49763749be7eedc8ced89802c9fc3e8ae21184004ad8f2b6c38026019a4',
-          block_num : 25320225,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T08:30:33.000',
           producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
           account_ram_deltas : [],
@@ -1033,8 +1062,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 227,
               console : '',
-              trx_id : 'f2e6f49763749be7eedc8ced89802c9fc3e8ae21184004ad8f2b6c38026019a4',
-              block_num : 25320225,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T08:30:33.000',
               producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
               account_ram_deltas : [],
@@ -1074,8 +1103,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 5,
                   console : '',
-                  trx_id : 'f2e6f49763749be7eedc8ced89802c9fc3e8ae21184004ad8f2b6c38026019a4',
-                  block_num : 25320225,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:30:33.000',
                   producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
                   account_ram_deltas : [],
@@ -1116,8 +1145,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 5,
                   console : '',
-                  trx_id : 'f2e6f49763749be7eedc8ced89802c9fc3e8ae21184004ad8f2b6c38026019a4',
-                  block_num : 25320225,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:30:33.000',
                   producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
                   account_ram_deltas : [],
@@ -1160,8 +1189,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 181,
               console : '',
-              trx_id : 'f2e6f49763749be7eedc8ced89802c9fc3e8ae21184004ad8f2b6c38026019a4',
-              block_num : 25320225,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T08:30:33.000',
               producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
               account_ram_deltas : [],
@@ -1201,8 +1230,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 4,
                   console : '',
-                  trx_id : 'f2e6f49763749be7eedc8ced89802c9fc3e8ae21184004ad8f2b6c38026019a4',
-                  block_num : 25320225,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:30:33.000',
                   producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
                   account_ram_deltas : [],
@@ -1243,8 +1272,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 6,
                   console : '',
-                  trx_id : 'f2e6f49763749be7eedc8ced89802c9fc3e8ae21184004ad8f2b6c38026019a4',
-                  block_num : 25320225,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T08:30:33.000',
                   producer_block_id : '01825b2101cb8ba20de416bea5adbe312729d27d044d8a428099f0a45f80ca6a',
                   account_ram_deltas : [],
@@ -1266,10 +1295,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleStakeCpuOnlyTrace() {
+    const blockNumber = 25330106;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b106';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c106';
+
     return {
-      blocknum : 25324951,
-      blockid : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
-      trxid : 'b4439f6674887d32e0abf4ee827caaa8f899e74ed3fa2aed41920c538bedd6d1',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -1302,8 +1335,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 1174,
           console : '',
-          trx_id : 'b4439f6674887d32e0abf4ee827caaa8f899e74ed3fa2aed41920c538bedd6d1',
-          block_num : 25324951,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T09:11:56.500',
           producer_block_id : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
           account_ram_deltas : [],
@@ -1344,8 +1377,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 225,
               console : '',
-              trx_id : 'b4439f6674887d32e0abf4ee827caaa8f899e74ed3fa2aed41920c538bedd6d1',
-              block_num : 25324951,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T09:11:56.500',
               producer_block_id : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
               account_ram_deltas : [],
@@ -1385,8 +1418,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 6,
                   console : '',
-                  trx_id : 'b4439f6674887d32e0abf4ee827caaa8f899e74ed3fa2aed41920c538bedd6d1',
-                  block_num : 25324951,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T09:11:56.500',
                   producer_block_id : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
                   account_ram_deltas : [],
@@ -1427,8 +1460,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 7,
                   console : '',
-                  trx_id : 'b4439f6674887d32e0abf4ee827caaa8f899e74ed3fa2aed41920c538bedd6d1',
-                  block_num : 25324951,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T09:11:56.500',
                   producer_block_id : '01826d97d4ade0bc87603b5a3e9f50567bf91185c5bf8733fa7da8de59f98c79',
                   account_ram_deltas : [],
@@ -1450,10 +1483,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleStakeBothCpuAndNetTrace() {
+    const blockNumber = 25330107;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b107';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c107';
+
     return {
-      blocknum : 25325807,
-      blockid : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
-      trxid : 'eef25c9ca5eb1ea9c5100f2a6286afc88e99fb35e4b04ab8f2c066bcdd2021f3',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -1486,8 +1523,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 1311,
           console : '',
-          trx_id : 'eef25c9ca5eb1ea9c5100f2a6286afc88e99fb35e4b04ab8f2c066bcdd2021f3',
-          block_num : 25325807,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T09:19:22.500',
           producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
           account_ram_deltas : [
@@ -1534,8 +1571,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 1086,
           console : '',
-          trx_id : 'eef25c9ca5eb1ea9c5100f2a6286afc88e99fb35e4b04ab8f2c066bcdd2021f3',
-          block_num : 25325807,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T09:19:22.500',
           producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
           account_ram_deltas : [],
@@ -1576,8 +1613,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 252,
               console : '',
-              trx_id : 'eef25c9ca5eb1ea9c5100f2a6286afc88e99fb35e4b04ab8f2c066bcdd2021f3',
-              block_num : 25325807,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T09:19:22.500',
               producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
               account_ram_deltas : [],
@@ -1617,8 +1654,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 5,
                   console : '',
-                  trx_id : 'eef25c9ca5eb1ea9c5100f2a6286afc88e99fb35e4b04ab8f2c066bcdd2021f3',
-                  block_num : 25325807,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T09:19:22.500',
                   producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
                   account_ram_deltas : [],
@@ -1659,8 +1696,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 44,
                   console : '',
-                  trx_id : 'eef25c9ca5eb1ea9c5100f2a6286afc88e99fb35e4b04ab8f2c066bcdd2021f3',
-                  block_num : 25325807,
+                  trx_id : trxId,
+                  block_num : blockNumber,
                   block_time : '2019-04-01T09:19:22.500',
                   producer_block_id : '018270ef588618997593f73745a27f992d3f5270e191bfcf8393ea4bab49dd4d',
                   account_ram_deltas : [],
@@ -1682,10 +1719,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleStakeNetOnlyTrace() {
+    const blockNumber = 25330108;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b108';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c108';
+
     return {
-      blocknum : 25325989,
-      blockid : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
-      trxid : '4b82011d57567e4f3a52880d5182212b2866503efed515398166ed512bd7cc9d',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -1718,8 +1759,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 753,
           console : '',
-          trx_id : '4b82011d57567e4f3a52880d5182212b2866503efed515398166ed512bd7cc9d',
-          block_num : 25325989,
+          trx_id : trxId,
+          block_num : blockNumber,
           block_time : '2019-04-01T09:20:59.500',
           producer_block_id : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
           account_ram_deltas : [],
@@ -1760,8 +1801,8 @@ class MongoIrreversibleTracesGenerator {
               context_free : false,
               elapsed : 146,
               console : '',
-              trx_id : '4b82011d57567e4f3a52880d5182212b2866503efed515398166ed512bd7cc9d',
-              block_num : 25325989,
+              trx_id : trxId,
+              block_num : blockNumber,
               block_time : '2019-04-01T09:20:59.500',
               producer_block_id : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
               account_ram_deltas : [],
@@ -1801,8 +1842,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 5,
                   console : '',
-                  trx_id : '4b82011d57567e4f3a52880d5182212b2866503efed515398166ed512bd7cc9d',
-                  block_num : 25325989,
+                  trx_id : trxId,
+                  block_num: blockNumber,
                   block_time : '2019-04-01T09:20:59.500',
                   producer_block_id : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
                   account_ram_deltas : [],
@@ -1843,8 +1884,8 @@ class MongoIrreversibleTracesGenerator {
                   context_free : false,
                   elapsed : 5,
                   console : '',
-                  trx_id : '4b82011d57567e4f3a52880d5182212b2866503efed515398166ed512bd7cc9d',
-                  block_num : 25325989,
+                  trx_id : trxId,
+                  block_num: blockNumber,
                   block_time : '2019-04-01T09:20:59.500',
                   producer_block_id : '018271a55b60d1c7094860c055cc665f631f13ac9daf5029269f271c3c173d41',
                   account_ram_deltas : [],
@@ -1866,10 +1907,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleUnstakeCpuOnlyTrace() {
+    const blockNumber = 25330109;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b109';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c109';
+
     return {
-      blocknum : 25329890,
-      blockid : '018280e20aff8512af97e90e4ab7425efe21e14408d23660647a2fa24461792e',
-      trxid : '7dd08591380be2fc4ebb6a2f2b5402c0750ea4d168700cba16378e29011cf4f0',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -1902,8 +1947,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 861,
           console : '',
-          trx_id : '7dd08591380be2fc4ebb6a2f2b5402c0750ea4d168700cba16378e29011cf4f0',
-          block_num : 25329890,
+          trx_id : trxId,
+          block_num: blockNumber,
           block_time : '2019-04-01T09:55:06.000',
           producer_block_id : '018280e20aff8512af97e90e4ab7425efe21e14408d23660647a2fa24461792e',
           account_ram_deltas : [
@@ -1926,10 +1971,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleUnstakeNetOnlyTrace() {
+    const blockNumber = 25330110;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b110';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c110';
+
     return {
-      blocknum : 25325096,
-      blockid : '01826e286c1d95592b7e45217c3f0a8393f5bf49fa8511fd3085a9ea493560e3',
-      trxid : '3b372467c97ca950f6b8e75b58dccc8e38cbe36be2610c12e1cda84974c15785',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -1962,8 +2011,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 1980,
           console : '',
-          trx_id : '3b372467c97ca950f6b8e75b58dccc8e38cbe36be2610c12e1cda84974c15785',
-          block_num : 25325096,
+          trx_id : trxId,
+          block_num: blockNumber,
           block_time : '2019-04-01T09:13:09.000',
           producer_block_id : '01826e286c1d95592b7e45217c3f0a8393f5bf49fa8511fd3085a9ea493560e3',
           account_ram_deltas : [
@@ -1986,10 +2035,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleUnstakeBothCpuAndNetTrace() {
+    const blockNumber = 25330111;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b111';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c111';
+
     return {
-      blocknum : 25330016,
-      blockid : '018281606fe89d2fd45bb963a58acf0cdf31914a074110dfff9c7c119fe6e889',
-      trxid : 'e7fd97e153700e8caee50529efc69d642f1a9d1582c3f75868655e05a2c6ea53',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -2022,8 +2075,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 1374,
           console : '',
-          trx_id : 'e7fd97e153700e8caee50529efc69d642f1a9d1582c3f75868655e05a2c6ea53',
-          block_num : 25330016,
+          trx_id : trxId,
+          block_num: blockNumber,
           block_time : '2019-04-01T09:56:15.000',
           producer_block_id : '018281606fe89d2fd45bb963a58acf0cdf31914a074110dfff9c7c119fe6e889',
           account_ram_deltas : [
@@ -2069,8 +2122,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 1172,
           console : '',
-          trx_id : 'e7fd97e153700e8caee50529efc69d642f1a9d1582c3f75868655e05a2c6ea53',
-          block_num : 25330016,
+          trx_id : trxId,
+          block_num: blockNumber,
           block_time : '2019-04-01T09:56:15.000',
           producer_block_id : '018281606fe89d2fd45bb963a58acf0cdf31914a074110dfff9c7c119fe6e889',
           account_ram_deltas : [
@@ -2093,10 +2146,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleStakeCpuAndUnstakeNetTrace() {
+    const blockNumber = 25330112;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b112';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c112';
+
     return {
-      blocknum : 25332049,
-      blockid : '01828951a5829aab6c71bd165b6e5572cf796613d9254b9f488a7d6fbbd3faba',
-      trxid : '7eb4884a62dcdcc2436ce510b84d43f820096fadfbb2fb1974a357d51ebace12',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -2129,8 +2186,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 846,
           console : '',
-          trx_id : '7eb4884a62dcdcc2436ce510b84d43f820096fadfbb2fb1974a357d51ebace12',
-          block_num : 25332049,
+          trx_id : trxId,
+          block_num: blockNumber,
           block_time : '2019-04-01T10:13:59.500',
           producer_block_id : '01828951a5829aab6c71bd165b6e5572cf796613d9254b9f488a7d6fbbd3faba',
           account_ram_deltas : [
@@ -2176,8 +2233,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 676,
           console : '',
-          trx_id : '7eb4884a62dcdcc2436ce510b84d43f820096fadfbb2fb1974a357d51ebace12',
-          block_num : 25332049,
+          trx_id : trxId,
+          block_num: blockNumber,
           block_time : '2019-04-01T10:13:59.500',
           producer_block_id : '01828951a5829aab6c71bd165b6e5572cf796613d9254b9f488a7d6fbbd3faba',
           account_ram_deltas : [
@@ -2201,10 +2258,14 @@ class MongoIrreversibleTracesGenerator {
   }
 
   public static getSampleDownvoteTrace() {
+    const blockNumber = 25330113;
+    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b113';
+    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c113';
+
     return {
-      blocknum : 25330926,
-      blockid : '018284ee32b197ea7a91171948fd24ab66f321c01f1bb54e03719fb0a37c2ac7',
-      trxid : '00be322303bfdbab7c0f981c2bd1c87fd5a28de9400dbf8c85feaa056ddc5ecd',
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
       account : 'summerknight',
       irreversible : true,
       actions : [
@@ -2237,8 +2298,8 @@ class MongoIrreversibleTracesGenerator {
           context_free : false,
           elapsed : 141,
           console : 'usertocont acc = summerknight content_id = pstdr-xubjvejhjt8rayz1 interaction_type_id = 4',
-          trx_id : '00be322303bfdbab7c0f981c2bd1c87fd5a28de9400dbf8c85feaa056ddc5ecd',
-          block_num : 25330926,
+          trx_id : trxId,
+          block_num: blockNumber,
           block_time : '2019-04-01T10:04:14.000',
           producer_block_id : '018284ee32b197ea7a91171948fd24ab66f321c01f1bb54e03719fb0a37c2ac7',
           account_ram_deltas : [],

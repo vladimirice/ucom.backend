@@ -2,6 +2,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { CheckManyObjectsOptionsDto, ObjectInterfaceRulesDto } from '../../interfaces/options-interfaces';
 
 import CommonChecker = require('../common/common-checker');
+import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
 
 const uosAccountsPropertiesInterfaceRules: ObjectInterfaceRulesDto = {
   staked_balance: {
@@ -64,8 +65,13 @@ const uosAccountsProperties: CheckManyObjectsOptionsDto = {
 
 class UsersChecker {
   public static checkUosAccountsPropertiesStructure(model: UserModel) {
+    const obj: any = {};
+    for (const item of UosAccountsModelProvider.getFieldsToSelect()) {
+      obj[item] = model[item];
+    }
+
     CommonChecker.checkOneObjectInterface(
-      model.uos_accounts_properties,
+      obj,
       uosAccountsPropertiesInterfaceRules,
       uosAccountsProperties,
     );

@@ -5,7 +5,7 @@ const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
 const defaultCorsParams = {
   methods: 'GET,POST,OPTIONS,PUT,PATCH,DELETE',
-  allowedHeaders: `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie`,
+  allowedHeaders: `X-Requested-With,content-type,Authorization,${CommonHeaders.TOKEN_USERS_EXTERNAL_GITHUB},Cookie,${CommonHeaders.UNIQUE_ID}`,
   credentials: true,
 };
 
@@ -15,6 +15,7 @@ class CorsHelper {
       res.setHeader('Access-Control-Allow-Origin', this.getOriginByRequest(req));
 
       res.setHeader('Access-Control-Allow-Methods', defaultCorsParams.methods);
+      res.setHeader('Access-Control-Max-Age', 24 * 60 * 60);
 
       res.setHeader(
         'Access-Control-Allow-Headers',

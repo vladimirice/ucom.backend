@@ -3,7 +3,7 @@ const joi = require('joi');
 // tslint:disable-next-line:variable-name
 const CreateEntitySourceSchema = joi.object().keys({
   source_url:     joi.string().allow(''),
-  source_type_id: joi.string(),
+  source_type_id: joi.number(),
   is_official:    joi.boolean(),
 });
 
@@ -11,7 +11,7 @@ const CreateEntitySourceSchema = joi.object().keys({
 const UpdateEntitySourceSchema = joi.object().keys({
   id:             joi.number().required(),
   source_url:     joi.string().allow(''),
-  source_type_id: joi.string(),
+  source_type_id: joi.number(),
   is_official:    joi.boolean(),
 });
 

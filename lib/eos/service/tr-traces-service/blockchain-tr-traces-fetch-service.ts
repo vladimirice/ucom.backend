@@ -1,3 +1,5 @@
+import { ListResponse } from '../../../common/interfaces/lists-interfaces';
+
 const moment = require('moment');
 
 const blockchainTrTracesRepository  = require('../../repository/blockchain-tr-traces-repository');
@@ -13,7 +15,7 @@ class BlockchainTrTracesFetchService {
    * @param {string} accountName
    * @returns {Promise<Object>}
    */
-  static async getAndProcessOneUserTraces(query, accountName) {
+  static async getAndProcessOneUserTraces(query, accountName): Promise<ListResponse> {
     const params = queryFilterService.getQueryParameters(query, {}, []);
 
     const [data, totalAmount] = await Promise.all([

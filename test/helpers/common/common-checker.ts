@@ -1,12 +1,145 @@
 import { CheckManyObjectsOptionsDto, ObjectInterfaceRulesDto } from '../../interfaces/options-interfaces';
+import { ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
+
+import ResponseHelper = require('../../integration/helpers/response-helper');
 
 const _ = require('lodash');
 
 require('jest-expect-message');
 
 class CommonChecker {
-  public static expectNotEmpty(object: any) {
+  public static expectFieldNotToBeNull(model: any, field: string) {
+    // @ts-ignore
+    expect(model[field], `${field} is null`).not.toBeNull();
+  }
+
+  public static expectFieldToBePositiveOrZeroNumber(model: any, field: string) {
+    this.expectFieldNotToBeNull(model, field);
+    // @ts-ignore
+    expect(typeof model[field], `${field} is not a number. It is: ${typeof model[field]}`).toBe('number');
+    // @ts-ignore
+    expect(model[field]).toBeGreaterThanOrEqual(0);
+  }
+
+  public static expectModelIdsExistenceInResponseList(
+    response: ListResponse,
+    expectedModelIds: number[],
+    expectedTotalAmount: number | null = null,
+  ) {
+    this.expectModelsExistence(response.data, expectedModelIds);
+
+    if (expectedTotalAmount !== null) {
+      expect(response.metadata.total_amount).toBe(expectedTotalAmount);
+    }
+  }
+
+  public static expectModelsExistence(
+    actualModels,
+    expectedModelIds: number[],
+    checkOrdering: boolean = false,
+  ): void {
+    expect(actualModels.length).toBe(expectedModelIds.length);
+
+    expectedModelIds.forEach((expectedId) => {
+      expect(actualModels.some(actual => actual.id === expectedId)).toBeTruthy();
+    });
+
+    if (checkOrdering) {
+      ResponseHelper.checkOrderingById(actualModels, expectedModelIds);
+    }
+  }
+
+  public static expectModelIdsDoNotExistInResponseList(
+    response: ListResponse,
+    expectedModelIds: number[],
+  ) {
+    this.expectModelsDoNotExist(response.data, expectedModelIds);
+  }
+
+  public static expectModelsDoNotExist(
+    actualModels: any[],
+    expectedModelIds: number[],
+  ): void {
+    expectedModelIds.forEach((expectedId) => {
+      expect(actualModels.some(actual => actual.id === expectedId)).toBeFalsy();
+    });
+  }
+
+  public static expectAllFieldsExistenceForObjectsArray(
+    arr: StringToAnyCollection[],
+    expected: string[],
+  ): void {
+    for (const item of arr) {
+      this.expectAllFieldsExistence(item, expected);
+    }
+  }
+
+  public static expectAllFieldsPositiveOrZeroNumberForArray(
+    actualObjects: StringToAnyCollection[],
+    expected: string[],
+  ) {
+    for (const object of actualObjects) {
+      this.expectAllFieldsPositiveOrZeroNumber(object, expected);
+    }
+  }
+
+  public static expectAllFieldsPositiveOrZeroNumber(
+    actualObject: StringToAnyCollection,
+    expected: string[],
+  ) {
+    for (const field of expected) {
+      this.expectFieldToBePositiveOrZeroNumber(actualObject, field);
+    }
+  }
+
+
+  public static expectAllFieldsExistence(
+    actualObject: StringToAnyCollection,
+    expected: string[],
+  ): void {
+    const actualKeys = Object.keys(actualObject).sort();
+
+    const expectedSorted = expected.sort();
+
+    expect(actualKeys).toEqual(expectedSorted);
+  }
+
+  public static expectPositiveNonZeroInteger(value: any): void {
+    expect(typeof value).toBe('number');
+    expect(value).toBeGreaterThan(0);
+  }
+
+  public static expectNotEmpty(object: any): void {
     expect(_.isEmpty(object)).toBeFalsy();
+  }
+
+  public static expectNotEmptyArray(array: any): void {
+    expect(Array.isArray(array)).toBeTruthy();
+    expect(array.length).toBeGreaterThan(0);
+  }
+
+  public static expectEmpty(object: any) {
+    expect(_.isEmpty(object)).toBeTruthy();
+  }
+
+  public static expectOnlyOneNotEmptyItem(array: any[]): void {
+    this.expectNotEmptyArray(array);
+    expect(array.length).toBe(1);
+
+    this.expectNotEmpty(array[0]);
+  }
+
+  public static expectOnlyOneArrayItemForTheList(object: ListResponse) {
+    expect(object.data.length).toBe(1);
+    expect(object.metadata.total_amount).toBe(1);
+    expect(object.metadata.has_more).toBe(false);
+  }
+
+  public static expectOnlyTwoArrayItemForTheList(object: ListResponse) {
+    expect(object.data.length).toBe(2);
+    expect(object.metadata.total_amount).toBe(2);
+    expect(object.metadata.has_more).toBe(false);
   }
 
   public static checkArrayOfObjectsInterface(

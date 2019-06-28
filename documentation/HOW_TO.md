@@ -35,5 +35,17 @@ NAME='migration-file-name' make docker-db-create-migration-monolith
 
 Please add it to the ucom.libs.wallet library.
 
+
+## How to test GraphQL API performance via ab
+
+```
+ab \
+    -p media_posts_overview_graphql_post.json \
+    -T "application/json" \
+    -n 1000 \
+    -c 10 \
+    'https://backend.u.community/graphql' > media_posts_overview_graphql_post_result_1000_10.txt
+```
+
 ## Helpers
 * [BatchProcessingHelper](../lib/common/helper/batch-processing-helper.ts)

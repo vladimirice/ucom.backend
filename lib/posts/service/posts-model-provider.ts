@@ -1,6 +1,13 @@
+import { IModelFieldsSet } from '../../common/interfaces/models-dto';
+
+import PostsFieldsSet = require('../models/posts-fields-set');
+
+
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
+
 const models = require('../../../models');
 
-const ENTITY_NAME = 'posts     ';
+const ENTITY_NAME = EntityNames.POSTS;
 const TABLE_NAME = 'posts';
 
 const POST_STATS_TABLE_NAME       = 'post_stats';
@@ -199,7 +206,42 @@ class PostsModelProvider {
         {
           model:      models.Users,
           attributes: models.Users.getFieldsForPreview(),
-          required:   true,
+          include: [
+            {
+              model:      models.uos_accounts_properties,
+              attributes: [
+                'staked_balance',
+                'validity',
+                'importance',
+                'scaled_importance',
+
+                'stake_rate',
+                'scaled_stake_rate',
+
+                'social_rate',
+                'scaled_social_rate',
+
+                'transfer_rate',
+                'scaled_transfer_rate',
+
+                'previous_cumulative_emission',
+                'current_emission',
+                'current_cumulative_emission',
+              ],
+              required:   false,
+              as:         'uos_accounts_properties',
+            },
+            {
+              model:      models.users_current_params,
+              attributes: [
+                'posts_total_amount_delta',
+                'scaled_importance_delta',
+                'scaled_social_rate_delta',
+              ],
+              required:   false,
+              as:         'users_current_params',
+            },
+          ],
         },
         {
           model:      models.organizations,
@@ -226,6 +268,25 @@ class PostsModelProvider {
    */
   static isPost(entityName) {
     return entityName === this.getEntityName();
+  }
+
+  public static getTextOnlyFields(): string[] {
+    return this.getModel().getSimpleTextFields();
+  }
+
+  public static getHtmlFields(): string[] {
+    return this.getModel().getHtmlFields();
+  }
+
+  public static getNumericalFields(): string[] {
+    return [
+      'post_type_id',
+      'blockchain_id',
+    ];
+  }
+
+  public static getPostRelatedFieldsSet(): IModelFieldsSet {
+    return PostsFieldsSet.getAllFieldsSet();
   }
 }
 

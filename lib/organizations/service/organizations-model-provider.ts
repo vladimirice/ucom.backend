@@ -1,6 +1,11 @@
+import { IModelFieldsSet } from '../../common/interfaces/models-dto';
+
+import OrganizationsFieldsSet = require('../models/organizations-fields-set');
+
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 const models = require('../../../models');
 
-const ENTITY_NAME = 'org       ';
+const ENTITY_NAME = EntityNames.ORGANIZATIONS;
 
 const TABLE_NAME = 'organizations';
 
@@ -66,6 +71,10 @@ class OrganizationsModelProvider {
       model: this.getModel(),
       attributes: this.getModel().getFieldsForPreview(),
     };
+  }
+
+  public static getOrganizationsRelatedFieldsSet(): IModelFieldsSet {
+    return OrganizationsFieldsSet.getAllFieldsSet();
   }
 }
 

@@ -1,4 +1,5 @@
 import { UserExternalModel } from '../interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
 import knex = require('../../../config/knex');
 import UsersExternalModelProvider = require('../service/users-external-model-provider');
@@ -10,7 +11,10 @@ const TABLE_NAME = UsersExternalModelProvider.usersExternalTableName();
 const airdropsUsersExternalData = AirdropsModelProvider.airdropsUsersExternalDataTableName();
 
 class UsersExternalRepository {
-  public static async getUserExternalWithExternalAirdropData(userId: number) {
+  public static async getUserExternalWithExternalAirdropData(
+    userId: number,
+    airdropId: number,
+  ): Promise<StringToAnyCollection> {
     return knex(TABLE_NAME)
       .select([
         `${TABLE_NAME}.id AS primary_key`,
@@ -18,8 +22,12 @@ class UsersExternalRepository {
         `${airdropsUsersExternalData}.status AS status`,
         `${airdropsUsersExternalData}.json_data AS json_data`,
       ])
-      .leftJoin(airdropsUsersExternalData, `${TABLE_NAME}.id`, `${airdropsUsersExternalData}.users_external_id`)
-      .where(`${TABLE_NAME}.user_id`, '=', userId)
+      .leftJoin(airdropsUsersExternalData, function () {
+        // @ts-ignore
+        this.on(`${TABLE_NAME}.id`, '=', `${airdropsUsersExternalData}.users_external_id`)
+          .andOn(`${airdropsUsersExternalData}.airdrop_id`, '=', airdropId);
+      })
+      .where(`${TABLE_NAME}.user_id`, userId)
       .first();
   }
 
@@ -39,7 +47,7 @@ class UsersExternalRepository {
   ): Promise<number> {
     const sql = `
       INSERT INTO ${TABLE_NAME} (external_type_id, external_id, external_login, json_value, user_id) VALUES
-      (${+externalTypeId}, ${+externalId}, '${externalLogin}', '${JSON.stringify(jsonValue)}', ${user_id})
+      (${+externalTypeId}, ${+externalId}, '${externalLogin}', $$${JSON.stringify(jsonValue)}$$, ${user_id})
       ON CONFLICT (external_type_id, external_id) DO
       UPDATE
           SET json_value        = EXCLUDED.json_value,

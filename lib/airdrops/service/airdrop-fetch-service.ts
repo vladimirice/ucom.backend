@@ -3,6 +3,7 @@ import { UsersRequestQueryDto } from '../../users/interfaces/model-interfaces';
 import AirdropsFetchRepository = require('../repository/airdrops-fetch-repository');
 import moment = require('moment');
 import UsersFetchService = require('../../users/service/users-fetch-service');
+import AirdropsModelProvider = require('./airdrops-model-provider');
 
 class AirdropFetchService {
   public static async addDataForGithubAirdropOffer(
@@ -28,8 +29,19 @@ class AirdropFetchService {
     post.post_offer_type_id = 1; // #task - reserved for future uses
     post.users_team = usersTeam;
 
+    const conditions: any = {};
+
+    for (const condition in state.conditions) {
+      if (condition !== 'source_table_name') {
+        conditions[condition] = state.conditions[condition];
+      }
+    }
+
+    state.conditions.zero_score_incentive_tokens_amount /= AirdropsModelProvider.getHardcodedCurrencyPrecision();
+
     post.offer_data = {
       airdrop_id: state.airdropId,
+      conditions,
       tokens,
     };
   }

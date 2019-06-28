@@ -3,6 +3,51 @@ import {
 } from '../../../../lib/uos-accounts-properties/interfaces/model-interfaces';
 
 class UosAccountsPropertiesGenerator {
+  public static getProcessedSampleDataAsExpectedSet(userVlad, userJane, userPetr, userRokky) {
+    const uosAccountsPropertiesSampleData = this.getProcessedSampleData(userVlad, userJane, userPetr, userRokky);
+
+    const accountNameToUserId = {
+      [userVlad.account_name]: userVlad.id,
+      [userJane.account_name]: userJane.id,
+      [userPetr.account_name]: userPetr.id,
+      [userRokky.account_name]: userRokky.id,
+    };
+
+    const expectedSet: any = {};
+    for (const item of uosAccountsPropertiesSampleData) {
+      const key = accountNameToUserId[item.name];
+
+      if (!key) {
+        continue;
+      }
+
+      expectedSet[key] = item.values;
+    }
+
+    return expectedSet;
+  }
+
+  public static getProcessedSampleData(userVlad, userJane, userPetr, userRokky) {
+    const sampleData = UosAccountsPropertiesGenerator.getSampleProperties(
+      userVlad.account_name,
+      userJane.account_name,
+      userPetr.account_name,
+      userRokky.account_name,
+    );
+
+    for (const sampleItem of sampleData) {
+      for (const field in sampleItem.values) {
+        if (!sampleItem.values.hasOwnProperty(field)) {
+          continue;
+        }
+
+        sampleItem.values[field] = +sampleItem.values[field];
+      }
+    }
+
+    return sampleData;
+  }
+
   public static getSampleProperties(
     firstUserAccountName: string,
     secondUserAccountName: string,

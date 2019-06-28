@@ -41,6 +41,14 @@ class OrgsCurrentParamsRepository {
       'posts_total_amount_delta',
     ];
   }
+
+  public static getStatsFields(): string[] {
+    return [
+      'importance_delta',
+      'activity_index_delta',
+      'posts_total_amount_delta',
+    ];
+  }
 }
 
 export = OrgsCurrentParamsRepository;
