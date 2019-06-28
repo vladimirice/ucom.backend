@@ -6,7 +6,8 @@
     "check-by-eslint": "eslint **/*.ts",
     "test-all": "jest --verbose --runInBand",
     "compile-ts": "tsc",
-    "compile-ts-watch": "tsc --watch"
+    "compile-ts-watch": "tsc --watch",
+    "test": "snyk test"
   },
   "engines": {
     "node": ">=10.6.0"
@@ -106,6 +107,7 @@
     "faker": "^4.1.0",
     "jest": "^24.8.0",
     "jest-expect-message": "^1.0.2",
+    "snyk": "^1.185.5",
     "socket.io-client": "^2.2.0",
     "supertest": "^4.0.2",
     "ts-jest": "^24.0.2",
