@@ -4,7 +4,6 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import MongoIrreversibleTracesGenerator = require('../../generators/blockchain/irreversible_traces/mongo-irreversible-traces-generator');
 import BlockchainHelper = require('../helpers/blockchain-helper');
-import RequestHelper = require('../helpers/request-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import BlockchainTracesSyncService = require('../../../lib/blockchain-traces/service/blockchain-traces-sync-service');
 
@@ -87,8 +86,8 @@ describe('Blockchain tr traces sync tests', () => {
           const votingTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeVoteForCalculatorNodes());
           expect(votingTraces.length).toBe(2);
 
-          const votingForTrace = votingTraces.find(item => item.producers.length > 0);
-          const revokingTrace = votingTraces.find(item => item.producers.length === 0);
+          const votingForTrace = votingTraces.find(item => item.calculators.length > 0);
+          const revokingTrace = votingTraces.find(item => item.calculators.length === 0);
 
           const calculators = MongoIrreversibleTracesGenerator.getCalculators();
 
@@ -98,6 +97,15 @@ describe('Blockchain tr traces sync tests', () => {
       });
     });
 
+    it('check emission trace', async () => {
+      const emissionTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeClaimEmission());
+
+      expect(emissionTraces.length).toBe(1);
+      const emissionTrace = emissionTraces[0];
+
+      IrreversibleTracesChecker.checkEmission(emissionTrace);
+    });
+
     it('just save unknown transaction to database without any processing', async () => {
       // TODO
     });
@@ -105,18 +113,6 @@ describe('Blockchain tr traces sync tests', () => {
     it('sync a new portion of data - from last saved block', async () => {
       // TODO
     });
-  });
-
-  describe('Smoke test', () => {
-    it('Smoke test', async () => {
-      const queryString = RequestHelper.getPaginationQueryString(1, 10);
-      await BlockchainHelper.requestToGetMyselfBlockchainTraces(
-        userVlad,
-        200,
-        queryString,
-        true,
-      );
-    }, JEST_TIMEOUT);
   });
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -275,89 +271,6 @@ describe('Blockchain tr traces sync tests', () => {
 
       helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
     },      JEST_TIMEOUT);
-
-    it.skip('Check typeTransfer sync and fetch', async () => {
-      const vladToJaneAmount = 2;
-      const janeToVladAmount = 3;
-
-      const [trOne, trTwo] = await Promise.all([
-        gen.BlockchainTr.createTokenTransfer('vlad', 'jane', vladToJaneAmount),
-        gen.BlockchainTr.createTokenTransfer('jane', 'vlad', janeToVladAmount),
-      ]);
-
-      delay(1000); // approximate lag of mining
-
-      const trType = blockchainTrTracesDictionary.getTypeTransfer();
-      await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
-
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
-        userVlad,
-        200,
-        queryString,
-      );
-      expect(models.length).toBe(2);
-
-      let checked = 0;
-      models.forEach((model) => {
-        if (model.raw_tr_data.id === trOne) {
-          expect(model.tokens.active).toBe(vladToJaneAmount);
-          checked += 1;
-        } else if (model.raw_tr_data.id === trTwo) {
-          expect(model.tokens.active).toBe(janeToVladAmount);
-          checked += 1;
-        }
-      });
-      expect(checked).toBe(2);
-
-      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    },      JEST_TIMEOUT);
-
-    it.skip('Check voteForBP sync and fetch', async () => {
-      const producersList = helpers.Blockchain.getBlockProducersList();
-
-      const userAlias = 'vlad';
-
-      const producers = [
-        producersList[0],
-        producersList[1],
-      ];
-
-      const [trOne, trTwo] = await Promise.all([
-        gen.BlockchainTr.createVoteForBp(userAlias, producers),
-        gen.BlockchainTr.createVoteForBp(userAlias, []),
-      ]);
-
-      delay(5000); // approximate lag of mining
-
-      const trType = blockchainTrTracesDictionary.getTypeVoteForBp();
-
-      await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
-
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
-        userVlad,
-        200,
-        queryString,
-      );
-
-      expect(models.length).toBe(2);
-
-      let checked = 0;
-      models.forEach((model) => {
-        if (model.raw_tr_data.id === trOne) {
-          expect(model.producers.length).toBe(producers.length);
-          expect(model.producers).toMatchObject(producers);
-          checked += 1;
-        } else if (model.raw_tr_data.id === trTwo) {
-          expect(model.producers.length).toBe(0);
-          checked += 1;
-        }
-      });
-      expect(checked).toBe(2);
-
-      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    },      JEST_TIMEOUT);
   });
 
   it.skip('Check TR_TYPE_BUY_RAM sync and fetch', async () => {
@@ -415,29 +328,8 @@ describe('Blockchain tr traces sync tests', () => {
   }, JEST_TIMEOUT);
 
   describe('Skipped autotests', () => {
-    it.skip('test real tr block data from blockchain', async () => {
-      // now there is a mockup inside blockchain tr traces processor for test environment
-      // because block might be created only after several seconds passed
-    });
-
-    it.skip('send transaction, sync and observe it inside Db', async () => {
-      // fetch last transaction for every tested set of data
-      // Send transactions via wallet
-      // sync tr-traces
-      // Find transactions which is sent
-    });
-    it.skip('Fetch raw_tr_data for every transaction type and check it structure', async () => {
-      // There are parts of raw response which is changed from transaction to transaction
-      // elapsed, external_id, etc. It is required not to check them or create mock source
-    });
-    it.skip('Check TR_TYPE_CLAIM_EMISSION sync and fetch', async () => {
-      // Because blockchain source (mongoDb) is not mocked yet
-      // it is not possible to properly imitate
-      // claim emission without any hardcode.
-      // This autotest is skipped
-    });
-    it.skip('Check TR_TYPE_MYSELF_REGISTRATION sync and fetch', async () => {
-    });
+    it.skip('Check TR_TYPE_MYSELF_REGISTRATION sync and fetch', async () => {});
+    it.skip('Check all social transactions', async () => {});
   });
 });
 

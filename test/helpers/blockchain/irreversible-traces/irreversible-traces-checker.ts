@@ -7,6 +7,21 @@ import CommonChecker = require('../../common/common-checker');
 const blockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 class IrreversibleTracesChecker {
+  public static checkEmission(trace): void {
+    this.checkCommonTrTracesFields(trace);
+    expect(trace.tr_type).toBe(blockchainTrTypesDictionary.getTypeClaimEmission());
+    expect(trace.memo).toBe('');
+
+    CommonChecker.expectNotEmpty(trace.tokens);
+
+    const expected = {
+      currency: UOS,
+      emission: 1334.8073,
+    };
+
+    expect(trace.tokens).toEqual(expected);
+  }
+
   public static checkVoteForBps(trace, expectedProducers: string[]) {
     this.checkCommonTrTracesFields(trace);
     expect(trace.tr_type).toBe(blockchainTrTypesDictionary.getTypeVoteForBp());
@@ -70,7 +85,13 @@ class IrreversibleTracesChecker {
 
     expect(typeof trace.updated_at).toBe('string');
     expect(trace.updated_at.length).toBeGreaterThan(0);
+    expect(trace.updated_at).toMatch('Z');
     expect(trace.raw_tr_data).toBeDefined();
+    expect(typeof trace.tr_type).toBe('number');
+    expect(trace.tr_type).toBeGreaterThan(0);
+
+    expect(typeof trace.memo).toBe('string');
+    expect(trace.memo.length).toBeGreaterThanOrEqual(0);
   }
 }
 

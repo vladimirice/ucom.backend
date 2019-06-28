@@ -34,11 +34,6 @@ class MongoIrreversibleTracesGenerator {
       this.getSampleVoteForCalculatorsTrace,
       this.getSampleRevokeCalculatorVotes,
 
-
-      // this.getSampleVoteForNobodyOfBpsTrace, // TODO
-
-      // this.getSampleVoteForCalculatorsTrace, // TODO
-      // this.getSampleVoteForNobodyOfCalculatorsTrace, // TODO
       //
       this.getSampleClaimEmissionTrace,
       //
@@ -621,11 +616,12 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  // @ts-ignore
-  public static getSampleClaimEmissionTrace(actor: UserModel, actsFor: UserModel) {
-    const blockNumber = 25330103;
-    const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b103';
-    const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c103';
+  public static getSampleClaimEmissionTrace(
+    actor: UserModel,
+    // @ts-ignore
+    actsFor: UserModel,
+  ) {
+    const { blockNumber, blockId, trxId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(103);
 
     return {
       blocknum : blockNumber,

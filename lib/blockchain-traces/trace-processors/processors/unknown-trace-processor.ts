@@ -1,11 +1,12 @@
 /* eslint-disable class-methods-use-this */
+
 import { injectable } from 'inversify';
-import { ITraceChainMetadata, TraceProcessor } from '../interfaces/traces-sync-interfaces';
-import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfaces';
+import { ITraceChainMetadata, TraceProcessor } from '../../interfaces/traces-sync-interfaces';
+import { IProcessedTrace, ITrace } from '../../interfaces/blockchain-traces-interfaces';
 
 import 'reflect-metadata';
 
-import CommonTracesProcessor = require('./common-traces-processor');
+import CommonTracesProcessor = require('./../common-traces-processor');
 
 const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 
