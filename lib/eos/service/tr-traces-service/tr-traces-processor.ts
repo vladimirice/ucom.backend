@@ -39,12 +39,15 @@ class TrTracesProcessor {
   private static getProcessor(trType) {
     const trToProc = {
       [blockchainTrTracesDictionary.getTypeTransfer()]:             this.processTrTransfer,
+
       [blockchainTrTracesDictionary.getTypeStakeResources()]:       this.processTrStake,
       [blockchainTrTracesDictionary.getTypeUnstakingRequest()]:     this.processTrUnstakingRequest,
+      [blockchainTrTracesDictionary.getTypeStakeWithUnstake()]:     this.processStakeWithUnstake,
+
+
       [blockchainTrTracesDictionary.getTypeVoteForBp()]:            this.processTrVoteForBp,
       [blockchainTrTracesDictionary.getTypeBuyRamBytes()]:          this.processTrBuyRamBytes,
       [blockchainTrTracesDictionary.getTypeSellRam()]:              this.processTrSellRamBytes,
-      [blockchainTrTracesDictionary.getTypeStakeWithUnstake()]:     this.processStakeWithUnstake,
       [blockchainTrTracesDictionary.getTypeMyselfRegistration()]:   this.processNewAccount,
       [blockchainTrTracesDictionary.getTypeClaimEmission()]:        this.processTrClaimEmission,
     };
@@ -187,7 +190,6 @@ class TrTracesProcessor {
     trProcessedField,
     trProcessedQuantityField,
   ) {
-
     const tracedDataRequiredFields = [
       'from',
       'receiver',

@@ -67,7 +67,6 @@ describe('Blockchain tr traces sync tests', () => {
 
         foreignTraces.forEach(item => IrreversibleTracesChecker.checkUosTransferForeign(item));
       });
-
       describe('Voting', () => {
         it('vote and unvote block producers', async () => {
           const votingTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeVoteForBp());
@@ -95,6 +94,227 @@ describe('Blockchain tr traces sync tests', () => {
           IrreversibleTracesChecker.checkVoteForCalculators(revokingTrace, []);
         });
       });
+      describe('Staking and unstaking', () => {
+        it('Stake CPU only', async () => {
+          /*
+            getTypeStakeResources
+
+              actions.length = 1
+              act: delegatebw
+
+              act_data : {
+                from : actor.account_name,
+                receiver : actor.account_name,
+                stake_net_quantity : '0.0000 UOS',
+                stake_cpu_quantity : '2.0000 UOS',
+                transfer : 0,
+              },
+
+              all the information is inside act_data
+
+              inline traces - only single
+
+              response {
+                resources: {
+                  cpu: {
+                    tokens: {
+                      currency: UOS,
+                      self_delegated: 2 // this is a quantity
+                    }
+                  }
+                  net: // same
+                }
+              }
+
+             */
+        });
+
+        it('Stake NET only', async () => {
+          // same but net_quantity is filled
+        });
+
+        it('Stake both CPU and NET', async () => {
+          /*
+          getTypeStakeResources
+            actions.length = 2
+            inside one = zero net and non-zero cpu
+            inside another = zero cpu and non-zero net
+           */
+        });
+
+        it('Unstake CPU only', async () => {
+
+          /**
+           *
+           * getTypeUnstakingRequest
+
+           single action
+           act name undelegatebw
+
+           act_data - enough for processing
+
+           act_data : {
+            from : actor.account_name,
+            receiver : actor.account_name,
+            unstake_net_quantity : '0.0000 UOS',
+            unstake_cpu_quantity : '3.0000 UOS',
+          },
+
+
+           cpu {
+            unstaking_request: {
+              amount: 4, // quantity
+              currency: 'UOS',
+            }
+            net {
+              // same
+            }
+           }
+
+           there is no `tokens` field as for the stake
+           */
+
+          // TODO
+        });
+
+        it('Unstake NET only', async () => {
+          // TODO
+        });
+
+        it('Unstake both CPU and NET', async () => {
+          // TODO
+          /*
+            actions.length = 2
+            inside one = zero net and non-zero cpu
+            inside another = zero cpu and non-zero net
+           */
+        });
+
+        it('Unstake CPU but stake NET', async () => {
+          // TODO
+          /*
+
+          getTypeStakeWithUnstake
+
+          actions.length = 2
+            response {
+              full structure stake + unstake.
+            }
+
+            one action  - delegate
+            another     - undelegate
+           */
+          // TODO
+        });
+      });
+      describe('RAM traces', () => {
+        it('buy RAM bytes', async () => {
+          // TODO
+          /*
+            actions.length = 1
+            getTypeBuyRamBytes
+
+            act = buyrambytes
+
+          act_data : {
+            payer : actor.account_name,
+            receiver : actor.account_name,
+            bytes : 100024,
+          },
+
+          inline_traces.length = 2
+
+          first inline trace - actual price
+
+          act name = 'transfer'
+          act_data : {
+            from : actor.account_name,
+            to : 'eosio.ram',
+            quantity : '5.0486 UOS',
+            memo : 'buy ram',
+          },
+
+          second inline trace commission
+          act name = 'transfer'
+
+          act_data : {
+            from : actor.account_name,
+            to : 'eosio.ramfee',
+            quantity : '0.0254 UOS',
+            memo : 'ram fee',
+          },
+
+          ----------------------
+          response:
+
+          resources {
+            ram: {
+              amount: 100500,
+              dimension: "kB",
+              tokens: {
+                amount: 100,
+                currency: 'UOS',
+              }
+            }
+          }
+           */
+        });
+
+        it('sell RAM bytes', async () => {
+          // TODO
+          /*
+          actions.length = 1
+          getTypeSellRam
+
+          act name = sellram
+
+          act_data : {
+            account : actor.account_name,
+            bytes : 100001,
+          },
+
+          ---------------------------
+
+          inline_traces.length = 2
+
+          first inline trace
+          act name transfer
+
+          act_data : {
+            from : 'eosio.ram',
+            to : actor.account_name,
+            quantity : '5.0729 UOS',
+            memo : 'sell ram',
+          },
+
+          ---------------------------
+
+          second inline trace
+          act name transfer
+
+          act_data : {
+            from : actor.account_name,
+            to : 'eosio.ramfee',
+            quantity : '0.0254 UOS',
+            memo : 'sell ram fee',
+          },
+
+
+          ===========================
+
+          resources {
+            ram: {
+              amount: 100500,
+              dimension: "kB",
+              tokens: {
+                amount: 100,
+                currency: 'UOS',
+              }
+            }
+          }
+       */
+        });
+      });
     });
 
     it('check emission trace', async () => {
@@ -111,6 +331,10 @@ describe('Blockchain tr traces sync tests', () => {
     });
 
     it('sync a new portion of data - from last saved block', async () => {
+      // TODO
+    });
+
+    it('catch a duplication - no processing - on conflict do nothing', async () => {
       // TODO
     });
   });

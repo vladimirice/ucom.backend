@@ -34,12 +34,9 @@ class MongoIrreversibleTracesGenerator {
       this.getSampleVoteForCalculatorsTrace,
       this.getSampleRevokeCalculatorVotes,
 
-      //
       this.getSampleClaimEmissionTrace,
-      //
-      this.getSampleBuyRamTrace,
-      this.getSampleSellRamTrace,
-      //
+
+      // Stake and unstake
       this.getSampleStakeCpuOnlyTrace,
       this.getSampleStakeBothCpuAndNetTrace,
       this.getSampleStakeNetOnlyTrace,
@@ -47,7 +44,12 @@ class MongoIrreversibleTracesGenerator {
       this.getSampleUnstakeNetOnlyTrace,
       this.getSampleUnstakeBothCpuAndNetTrace,
       this.getSampleStakeCpuAndUnstakeNetTrace,
-      //
+
+      // RAM
+      this.getSampleBuyRamTrace,
+      this.getSampleSellRamTrace,
+
+      // Unknown - future social one
       this.getSampleDownvoteTrace,
     ];
 
@@ -971,11 +973,12 @@ class MongoIrreversibleTracesGenerator {
     };
   }
 
-  // @ts-ignore
-  public static getSampleBuyRamTrace(actor: UserModel, actsFor: UserModel) {
-    const blockNumber = 25330104;
-    const blockId     = 'fb2c5048d6c33b6030a1955b7b788ec0fb2881be7c6999f168bad2698cd2b104';
-    const trxId       = '0182830422a1de4ca431b2c14d983eaaa037bcb4334464ac29cbaf3fc578c104';
+  public static getSampleBuyRamTrace(
+    actor: UserModel,
+    // @ts-ignore
+    actsFor: UserModel,
+  ) {
+    const { blockNumber, blockId, trxId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(104);
 
     return {
       blocknum : blockNumber,
