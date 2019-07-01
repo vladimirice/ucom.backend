@@ -502,7 +502,7 @@ class UserActivityService {
    * @param {number | null} userId
    * @returns {Promise<Object>}
    */
-  static async getUserActivityData(userId: number | null = null) {
+  static async getUserFollowActivityData(userId: number | null = null) {
     if (userId === null) {
       return {
         IFollow: [],
@@ -510,7 +510,7 @@ class UserActivityService {
       };
     }
 
-    const data = await usersActivityRepository.findOneUserActivityData(userId);
+    const data = await usersActivityRepository.findOneUserFollowActivityData(userId);
 
     // tslint:disable-next-line:variable-name
     const IFollow: any = [];

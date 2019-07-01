@@ -204,7 +204,7 @@ describe('GET Tags', () => {
     expect(models.some((item: any) => item.id === userJane.id)).toBeTruthy();
     expect(models.some((item: any) => item.id === userPetr.id)).toBeFalsy();
 
-    UsersHelper.checkManyUsersPreview(models);
+    UsersHelper.checkManyUsersPreview(models, UsersHelper.propsAndCurrentParamsOptions(false));
   });
 
   describe('Smoke tests', () => {
