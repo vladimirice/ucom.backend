@@ -180,7 +180,7 @@ class UserPostProcessor {
    * @param {Object[]} users
    * @param {Object} activityData
    */
-  static addMyselfDataByActivityArrays(users, activityData) {
+  static addMyselfFollowDataByActivityArrays(users, activityData) {
     users.forEach((user) => {
       const myselfData = {
         follow: false,

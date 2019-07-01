@@ -8,6 +8,7 @@ import OrganizationsGenerator = require('../../../../generators/organizations-ge
 import MockHelper = require('../../../helpers/mock-helper');
 import UosAccountsPropertiesUpdateService = require('../../../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
 import CommonHelper = require('../../../helpers/common-helper');
+import UsersActivityRequestHelper = require('../../../../helpers/users/activity/users-activity-request-helper');
 
 require('jest-expect-message');
 
@@ -37,6 +38,21 @@ describe('Users activity follow GET', () => {
 
     await MockHelper.mockUosAccountsPropertiesFetchService(userVlad, userJane, userPetr, userRokky);
     await UosAccountsPropertiesUpdateService.updateAll();
+  });
+
+  describe('both trust and follow', () => {
+    it('Both trust and follow should work correctly', async () => {
+      await ActivityHelper.requestToCreateFollow(userVlad, userJane);
+      await UsersActivityRequestHelper.trustOneUserWithMockTransaction(userVlad, userJane.id);
+
+      const userVladResponse = await OneUserRequestHelper.getOneUserFollowsOtherUsers(userVlad, '-current_rate', userVlad);
+      const { data } = userVladResponse;
+
+      const jane = data[0];
+
+      expect(typeof jane.myselfData.follow).toBe('boolean');
+      expect(jane.myselfData.follow).toBeTruthy();
+    });
   });
 
   describe('One user followers', () => {

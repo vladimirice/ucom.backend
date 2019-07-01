@@ -807,13 +807,19 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
   }
 
   /**
+   * #task - use follow index instead
    *
    * @param {number} userId
    * @returns {Promise<any>}
    */
-  static async findOneUserActivityData(userId) {
+  static async findOneUserFollowActivityData(userId) {
     const entityName       = usersModelProvider.getEntityName();
     const activityGroupId = activityGroupDictionary.getGroupUserUserInteraction();
+
+    const excludeEventIds: number[] = [
+      NotificationsEventIdDictionary.getUserTrustsYou(),
+      NotificationsEventIdDictionary.getUserUntrustsYou(),
+    ];
 
     const sql = `SELECT
                     DISTINCT ON (user_id_from, entity_id_to, entity_name, activity_group_id)
@@ -825,6 +831,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
                   WHERE
                     entity_name           = '${entityName}'
                     AND activity_group_id = ${activityGroupId}
+                    AND event_id NOT IN (${excludeEventIds.join(', ')})
                     AND (
                           user_id_from = ${+userId} OR entity_id_to = ${+userId}
                         )

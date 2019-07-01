@@ -201,8 +201,8 @@ class UsersFetchService {
     ]);
 
     if (currentUserId) {
-      const activityData = await UserActivityService.getUserActivityData(currentUserId);
-      UserPostProcessor.addMyselfDataByActivityArrays(models, activityData);
+      const activityData = await UserActivityService.getUserFollowActivityData(currentUserId);
+      UserPostProcessor.addMyselfFollowDataByActivityArrays(models, activityData);
     }
 
     ApiPostProcessor.processUsersAfterQuery(models);
@@ -281,8 +281,8 @@ class UsersFetchService {
     const [models, totalAmount] = await Promise.all(promises);
 
     if (currentUserId) {
-      const activityData = await UserActivityService.getUserActivityData(currentUserId);
-      UserPostProcessor.addMyselfDataByActivityArrays(models, activityData);
+      const activityData = await UserActivityService.getUserFollowActivityData(currentUserId);
+      UserPostProcessor.addMyselfFollowDataByActivityArrays(models, activityData);
     }
 
     ApiPostProcessor.processUsersAfterQuery(models);
