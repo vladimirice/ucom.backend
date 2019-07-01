@@ -1,9 +1,9 @@
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+import { UOS } from '../../../../lib/common/dictionary/symbols-dictionary';
 
 import IrreversibleTracesClient   = require('../../../../lib/blockchain-traces/client/irreversible-traces-client');
 import MongoExternalModelProvider = require('../../../../lib/eos/service/mongo-external-model-provider');
 import BalancesHelper = require('../../../../lib/common/helper/blockchain/balances-helper');
-import { UOS } from '../../../../lib/common/dictionary/symbols-dictionary';
 
 const ACTION_TRACES_COLLECTION_NAME = MongoExternalModelProvider.actionTracesCollection();
 
@@ -2519,9 +2519,17 @@ class MongoIrreversibleTracesGenerator {
 
   // @ts-ignore
   public static getSampleStakeCpuAndUnstakeNetTrace(actor: UserModel, actsFor: UserModel) {
-    const blockNumber = 25330112;
-    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b112';
-    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c112';
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(112);
+
+    const unstake_net_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleUnstakeNetQuantity(),
+      UOS,
+    );
+
+    const stake_cpu_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleStakeCpuQuantity(),
+      UOS,
+    );
 
     return {
       blocknum : blockNumber,
@@ -2572,7 +2580,7 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             from : actor.account_name,
             receiver : actor.account_name,
-            unstake_net_quantity : '3.0000 UOS',
+            unstake_net_quantity,
             unstake_cpu_quantity : '0.0000 UOS',
           },
           inline_traces : [],
@@ -2620,7 +2628,7 @@ class MongoIrreversibleTracesGenerator {
             from : actor.account_name,
             receiver : actor.account_name,
             stake_net_quantity : '0.0000 UOS',
-            stake_cpu_quantity : '3.0000 UOS',
+            stake_cpu_quantity,
             transfer : 0,
           },
           inline_traces : [],

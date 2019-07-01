@@ -11,6 +11,8 @@ import VoteForBlockProducersTraceProcessor = require('../trace-processors/proces
 import VoteForCalculatorsTraceProcessor = require('../trace-processors/processors/vote-for-calculators-trace-processor');
 import ClaimEmissionTraceProcessor = require('../trace-processors/processors/claim-emission-trace-processor');
 import StakeResourcesOnlyProcessor = require('../trace-processors/processors/stake-resources-only-processor');
+import UnstakeResourcesOnlyProcessor = require('../trace-processors/processors/unstake-resources-only-processor');
+import StakeUnstakeResourcesProcessor = require('../trace-processors/processors/stake-unstake-resources-processor');
 
 function addTraceProcessors(diContainer: Container) {
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(TransferUosTokensTraceProcessor);
@@ -18,6 +20,8 @@ function addTraceProcessors(diContainer: Container) {
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(VoteForCalculatorsTraceProcessor);
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(ClaimEmissionTraceProcessor);
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(StakeResourcesOnlyProcessor);
+  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UnstakeResourcesOnlyProcessor);
+  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(StakeUnstakeResourcesProcessor);
 
   // Next line must always be the last line
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UnknownTraceProcessor);

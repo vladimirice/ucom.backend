@@ -77,8 +77,20 @@ interface ITraceActionDelegateBw extends ITraceAction {
   },
 }
 
+interface ITraceActionUndelegateBw extends ITraceAction {
+  act_data: {
+    from:                 string,
+    receiver:             string,
+    unstake_net_quantity: string, // example - '0.0000 UOS',
+    unstake_cpu_quantity: string, // example - '2.0000 UOS',
+    transfer:            number,
+  },
+}
+
 export {
   ITraceActionDelegateBw,
+  ITraceActionUndelegateBw,
+
   IFromToMemo,
   IActNameToActionDataArray,
   ITraceAction,

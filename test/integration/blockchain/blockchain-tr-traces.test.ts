@@ -55,6 +55,15 @@ describe('Blockchain tr traces sync tests', () => {
     }, JEST_TIMEOUT);
 
     describe('check traces', () => {
+      it('check emission trace', async () => {
+        const emissionTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeClaimEmission());
+
+        expect(emissionTraces.length).toBe(1);
+        const emissionTrace = emissionTraces[0];
+
+        IrreversibleTracesChecker.checkEmission(emissionTrace);
+      });
+
       it('validate a tokens transfer traces - from and to', async () => {
         const transferTraceFrom = traces.find(item => item.tr_type === BlockchainTrTraces.getLabelTransferFrom());
         IrreversibleTracesChecker.checkUosTransferFrom(transferTraceFrom, userJane);
@@ -138,8 +147,8 @@ describe('Blockchain tr traces sync tests', () => {
           for (const trace of stakingTraces) {
             IrreversibleTracesChecker.checkStakeUnstakeStructure(trace, trType);
 
-            expect(trace.resources.cpu.self_delegated.amount).toBe(0);
-            expect(trace.resources.net.self_delegated.amount).toBe(0);
+            expect(trace.resources.cpu.tokens.self_delegated).toBe(0);
+            expect(trace.resources.net.tokens.self_delegated).toBe(0);
           }
 
           const unstakeCpuOnly = stakingTraces.some(
@@ -164,20 +173,24 @@ describe('Blockchain tr traces sync tests', () => {
         });
 
         it('Unstake CPU but stake NET', async () => {
-          // TODO
-          /*
+          const trType: number = BlockchainTrTraces.getTypeStakeWithUnstake();
 
-          getTypeStakeWithUnstake
+          const stakingTraces = traces.filter(item => item.tr_type === trType);
+          expect(stakingTraces.length).toBe(1);
 
-          actions.length = 2
-            response {
-              full structure stake + unstake.
-            }
+          const oneTrace = stakingTraces[0];
+          IrreversibleTracesChecker.checkStakeUnstakeStructure(oneTrace, trType);
 
-            one action  - delegate
-            another     - undelegate
-           */
-          // TODO
+          const { net } = oneTrace.resources;
+          const { cpu } = oneTrace.resources;
+
+          expect(net.unstaking_request.amount)
+            .toBe(MongoIrreversibleTracesGenerator.getSampleUnstakeNetQuantity());
+          expect(net.tokens.self_delegated).toBe(0);
+
+          expect(cpu.tokens.self_delegated)
+            .toBe(MongoIrreversibleTracesGenerator.getSampleStakeCpuQuantity());
+          expect(cpu.unstaking_request.amount).toBe(0);
         });
       });
       describe('RAM traces', () => {
@@ -290,15 +303,6 @@ describe('Blockchain tr traces sync tests', () => {
       });
     });
 
-    it('check emission trace', async () => {
-      const emissionTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeClaimEmission());
-
-      expect(emissionTraces.length).toBe(1);
-      const emissionTrace = emissionTraces[0];
-
-      IrreversibleTracesChecker.checkEmission(emissionTrace);
-    });
-
     it('just save unknown transaction to database without any processing', async () => {
       // Find a social transaction
       // TODO
@@ -315,6 +319,11 @@ describe('Blockchain tr traces sync tests', () => {
     });
 
     it('process a totally malformed transaction via the unknown processor', async () => {
+      // Manual testing
+      // TODO
+    });
+
+    it('stake-unstake amount is not an integer', async () => {
       // Manual testing
       // TODO
     });
