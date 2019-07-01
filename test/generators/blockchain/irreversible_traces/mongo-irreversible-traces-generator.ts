@@ -2,6 +2,8 @@ import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import IrreversibleTracesClient   = require('../../../../lib/blockchain-traces/client/irreversible-traces-client');
 import MongoExternalModelProvider = require('../../../../lib/eos/service/mongo-external-model-provider');
+import BalancesHelper = require('../../../../lib/common/helper/blockchain/balances-helper');
+import { UOS } from '../../../../lib/common/dictionary/symbols-dictionary';
 
 const ACTION_TRACES_COLLECTION_NAME = MongoExternalModelProvider.actionTracesCollection();
 
@@ -13,6 +15,22 @@ class MongoIrreversibleTracesGenerator {
       'adendumblock',
       'cryptolionsu',
     ];
+  }
+
+  public static getSampleStakeCpuQuantity(): number {
+    return 2;
+  }
+
+  public static getSampleStakeNetQuantity(): number {
+    return 3;
+  }
+
+  public static getSampleUnstakeCpuQuantity(): number {
+    return 1;
+  }
+
+  public static getSampleUnstakeNetQuantity(): number {
+    return 4;
   }
 
   // @ts-ignore
@@ -37,12 +55,18 @@ class MongoIrreversibleTracesGenerator {
       this.getSampleClaimEmissionTrace,
 
       // Stake and unstake
+
+      // stake only
       this.getSampleStakeCpuOnlyTrace,
-      this.getSampleStakeBothCpuAndNetTrace,
       this.getSampleStakeNetOnlyTrace,
+      this.getSampleStakeBothCpuAndNetTrace,
+
+      // unstake only
       this.getSampleUnstakeCpuOnlyTrace,
       this.getSampleUnstakeNetOnlyTrace,
       this.getSampleUnstakeBothCpuAndNetTrace,
+
+      // both stake and unstake
       this.getSampleStakeCpuAndUnstakeNetTrace,
 
       // RAM
@@ -1603,9 +1627,13 @@ class MongoIrreversibleTracesGenerator {
 
   // @ts-ignore
   public static getSampleStakeCpuOnlyTrace(actor: UserModel, actsFor: UserModel) {
-    const blockNumber = 25330106;
-    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b106';
-    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c106';
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(106);
+
+    const stake_net_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(0, UOS);
+    const stake_cpu_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleStakeCpuQuantity(),
+      UOS,
+    );
 
     return {
       blocknum : blockNumber,
@@ -1651,8 +1679,8 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             from : actor.account_name,
             receiver : actor.account_name,
-            stake_net_quantity : '0.0000 UOS',
-            stake_cpu_quantity : '2.0000 UOS',
+            stake_net_quantity,
+            stake_cpu_quantity,
             transfer : 0,
           },
           inline_traces : [
@@ -1693,7 +1721,7 @@ class MongoIrreversibleTracesGenerator {
               act_data : {
                 from : actor.account_name,
                 to : 'eosio.stake',
-                quantity : '2.0000 UOS',
+                quantity : stake_cpu_quantity,
                 memo : 'stake bandwidth',
               },
               inline_traces : [
@@ -1734,7 +1762,7 @@ class MongoIrreversibleTracesGenerator {
                   act_data : {
                     from : actor.account_name,
                     to : 'eosio.stake',
-                    quantity : '2.0000 UOS',
+                    quantity : stake_cpu_quantity,
                     memo : 'stake bandwidth',
                   },
                   inline_traces : [],
@@ -1776,7 +1804,7 @@ class MongoIrreversibleTracesGenerator {
                   act_data : {
                     from : actor.account_name,
                     to : 'eosio.stake',
-                    quantity : '2.0000 UOS',
+                    quantity : stake_cpu_quantity,
                     memo : 'stake bandwidth',
                   },
                   inline_traces : [],
@@ -1795,6 +1823,16 @@ class MongoIrreversibleTracesGenerator {
     const blockNumber = 25330107;
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b107';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c107';
+
+
+    const stake_cpu_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleStakeCpuQuantity(),
+      UOS,
+    );
+    const stake_net_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleStakeNetQuantity(),
+      UOS,
+    );
 
     return {
       blocknum : blockNumber,
@@ -1845,7 +1883,7 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             from : actor.account_name,
             receiver : actor.account_name,
-            stake_net_quantity : '2.0000 UOS',
+            stake_net_quantity,
             stake_cpu_quantity : '0.0000 UOS',
             transfer : 0,
           },
@@ -1889,7 +1927,7 @@ class MongoIrreversibleTracesGenerator {
             from : actor.account_name,
             receiver : actor.account_name,
             stake_net_quantity : '0.0000 UOS',
-            stake_cpu_quantity : '3.0000 UOS',
+            stake_cpu_quantity,
             transfer : 0,
           },
           inline_traces : [
@@ -2033,6 +2071,12 @@ class MongoIrreversibleTracesGenerator {
     const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b108';
     const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c108';
 
+    const stake_cpu_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(0, UOS);
+    const stake_net_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleStakeNetQuantity(),
+      UOS,
+    );
+
     return {
       blocknum : blockNumber,
       blockid : blockId,
@@ -2077,8 +2121,8 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             from : actor.account_name,
             receiver : actor.account_name,
-            stake_net_quantity : '3.0000 UOS',
-            stake_cpu_quantity : '0.0000 UOS',
+            stake_net_quantity,
+            stake_cpu_quantity,
             transfer : 0,
           },
           inline_traces : [
@@ -2119,7 +2163,7 @@ class MongoIrreversibleTracesGenerator {
               act_data : {
                 from : actor.account_name,
                 to : 'eosio.stake',
-                quantity : '3.0000 UOS',
+                quantity : stake_net_quantity,
                 memo : 'stake bandwidth',
               },
               inline_traces : [
@@ -2160,7 +2204,7 @@ class MongoIrreversibleTracesGenerator {
                   act_data : {
                     from : actor.account_name,
                     to : 'eosio.stake',
-                    quantity : '3.0000 UOS',
+                    quantity : stake_net_quantity,
                     memo : 'stake bandwidth',
                   },
                   inline_traces : [],
@@ -2202,7 +2246,7 @@ class MongoIrreversibleTracesGenerator {
                   act_data : {
                     from : actor.account_name,
                     to : 'eosio.stake',
-                    quantity : '3.0000 UOS',
+                    quantity : stake_net_quantity,
                     memo : 'stake bandwidth',
                   },
                   inline_traces : [],
@@ -2218,9 +2262,12 @@ class MongoIrreversibleTracesGenerator {
 
   // @ts-ignore
   public static getSampleUnstakeCpuOnlyTrace(actor: UserModel, actsFor: UserModel) {
-    const blockNumber = 25330109;
-    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b109';
-    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c109';
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(109);
+
+    const unstake_cpu_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleUnstakeCpuQuantity(),
+      UOS,
+    );
 
     return {
       blocknum : blockNumber,
@@ -2272,7 +2319,7 @@ class MongoIrreversibleTracesGenerator {
             from : actor.account_name,
             receiver : actor.account_name,
             unstake_net_quantity : '0.0000 UOS',
-            unstake_cpu_quantity : '3.0000 UOS',
+            unstake_cpu_quantity,
           },
           inline_traces : [],
         },
@@ -2283,9 +2330,12 @@ class MongoIrreversibleTracesGenerator {
 
   // @ts-ignore
   public static getSampleUnstakeNetOnlyTrace(actor: UserModel, actsFor: UserModel) {
-    const blockNumber = 25330110;
-    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b110';
-    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c110';
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(110);
+
+    const unstake_net_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleUnstakeNetQuantity(),
+      UOS,
+    );
 
     return {
       blocknum : blockNumber,
@@ -2336,8 +2386,8 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             from : actor.account_name,
             receiver : actor.account_name,
-            unstake_net_quantity : '2.0000 UOS',
-            unstake_cpu_quantity : '0.0000 UOS',
+            unstake_net_quantity,
+            unstake_cpu_quantity: '0.0000 UOS',
           },
           inline_traces : [],
         },
@@ -2348,9 +2398,18 @@ class MongoIrreversibleTracesGenerator {
 
   // @ts-ignore
   public static getSampleUnstakeBothCpuAndNetTrace(actor: UserModel, actsFor: UserModel) {
-    const blockNumber = 25330111;
-    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b111';
-    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c111';
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(111);
+
+    const unstake_net_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleUnstakeNetQuantity(),
+      UOS,
+    );
+
+    const unstake_cpu_quantity: string = BalancesHelper.getTokensMajorOnlyAmountAsString(
+      MongoIrreversibleTracesGenerator.getSampleUnstakeCpuQuantity(),
+      UOS,
+    );
+
 
     return {
       blocknum : blockNumber,
@@ -2401,7 +2460,7 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             from : actor.account_name,
             receiver : actor.account_name,
-            unstake_net_quantity : '1.0000 UOS',
+            unstake_net_quantity,
             unstake_cpu_quantity : '0.0000 UOS',
           },
           inline_traces : [],
@@ -2449,7 +2508,7 @@ class MongoIrreversibleTracesGenerator {
             from : actor.account_name,
             receiver : actor.account_name,
             unstake_net_quantity : '0.0000 UOS',
-            unstake_cpu_quantity : '4.0000 UOS',
+            unstake_cpu_quantity,
           },
           inline_traces : [],
         },

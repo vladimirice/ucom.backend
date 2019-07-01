@@ -1,8 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import { StringToAnyCollection } from '../../../common/interfaces/common-types';
-import { ITraceActionData } from '../../interfaces/blockchain-actions-interfaces';
+import {
+  IActNameToActionDataArray,
+  IFromToMemo,
+  ITraceActionClaimEmission,
+} from '../../interfaces/blockchain-actions-interfaces';
 import { UOS } from '../../../common/dictionary/symbols-dictionary';
-import { ITrace } from '../../interfaces/blockchain-traces-interfaces';
 
 import AbstractTracesProcessor = require('../abstract-traces-processor');
 import BalancesHelper = require('../../../common/helper/blockchain/balances-helper');
@@ -11,33 +14,35 @@ const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 const joi = require('joi');
 
 class ClaimEmissionTraceProcessor extends AbstractTracesProcessor {
-  readonly actionDataSchema: StringToAnyCollection = {
-    owner: joi.string().required().min(1).max(12),
+  readonly expectedActionsData = {
+    withdrawal: {
+      validationSchema: {
+        owner: joi.string().required().min(1).max(12),
+      },
+      minNumberOfActions: 1,
+      maxNumberOfActions: 1,
+    },
   };
-
-  readonly expectedActName: string = 'withdrawal';
-
-  readonly expectedActionsLength: number = 1;
 
   readonly serviceName: string = 'vote-for-calculators';
 
   readonly traceType: number = BlockchainTrTraces.getTypeClaimEmission();
 
-  getFromToAndMemo(actionData: ITraceActionData): { from: string; to: string | null; memo: string } {
+  getFromToAndMemo(actNameToActionDataArray: IActNameToActionDataArray): IFromToMemo {
+    const actionData = <ITraceActionClaimEmission>actNameToActionDataArray.withdrawal[0];
     return {
-      from: actionData.owner,
+      from: actionData.act_data.owner,
       memo: '',
       to: null,
     };
   }
 
-  getTraceThumbnail(
-    // @ts-ignore
-    actionData: ITraceActionData,
-    trace: ITrace,
-  ): StringToAnyCollection {
+  getTraceThumbnail(actNameToActionDataArray: IActNameToActionDataArray): StringToAnyCollection {
+    const action = <ITraceActionClaimEmission>actNameToActionDataArray.withdrawal[0];
+
+    // TODO - more inline traces data inside the interface
     // TODO use joi schema and possibly move to the abstract class
-    const inlineTraces = trace.actions[0].inline_traces;
+    const inlineTraces = action.inline_traces;
 
     if (inlineTraces.length !== 2) {
       // this is an error

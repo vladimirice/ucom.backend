@@ -2,8 +2,10 @@
 import { injectable } from 'inversify';
 
 import 'reflect-metadata';
-import { ITraceActionData, ITraceTransferTokensData } from '../../interfaces/blockchain-actions-interfaces';
-import { UOS } from '../../../common/dictionary/symbols-dictionary';
+import {
+  IActNameToActionDataArray, IFromToMemo, ITraceActionTransferTokens,
+} from '../../interfaces/blockchain-actions-interfaces';
+import { UOS, UOS_REGEX } from '../../../common/dictionary/symbols-dictionary';
 
 import BalancesHelper = require('../../../common/helper/blockchain/balances-helper');
 import AbstractTracesProcessor = require('./../abstract-traces-processor');
@@ -12,38 +14,46 @@ const joi = require('joi');
 
 const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 
+// eslint-disable-next-line security/detect-non-literal-regexp
+
+
 @injectable()
 class TransferUosTokensTraceProcessor extends AbstractTracesProcessor {
   readonly serviceName: string = 'transfer-uos-tokens';
 
   readonly traceType: number = BlockchainTrTraces.getTypeTransfer();
 
-  readonly expectedActName: string  = 'transfer';
-
-  readonly expectedActionsLength: number  = 1;
-
-  readonly actionDataSchema = {
-    from:               joi.string().required().min(1).max(12),
-    to:                 joi.string().required().min(1).max(12),
-    memo:               joi.string().empty(''),
-    // eslint-disable-next-line security/detect-non-literal-regexp
-    quantity:           joi.string().required().regex(new RegExp(UOS)),
+  readonly expectedActionsData = {
+    transfer: {
+      validationSchema: {
+        from:               joi.string().required().min(1).max(12),
+        to:                 joi.string().required().min(1).max(12),
+        memo:               joi.string().empty(''),
+        quantity:           joi.string().required().regex(UOS_REGEX),
+      },
+      minNumberOfActions: 1,
+      maxNumberOfActions: 1,
+    },
   };
 
-  getTraceThumbnail(actionData: ITraceTransferTokensData) {
+  getTraceThumbnail(actNameToActionDataArray: IActNameToActionDataArray) {
+    const actionData = <ITraceActionTransferTokens>actNameToActionDataArray.transfer[0];
+
     return {
       tokens: {
-        active:   BalancesHelper.getTokensAmountFromString(actionData.quantity, UOS),
+        active:   BalancesHelper.getTokensAmountFromString(actionData.act_data.quantity, UOS),
         currency: UOS,
       },
     };
   }
 
-  getFromToAndMemo(actionData: ITraceActionData): { from: string; to: string | null; memo: string } {
+  getFromToAndMemo(actNameToActionDataArray: IActNameToActionDataArray): IFromToMemo {
+    const actionData = <ITraceActionTransferTokens>actNameToActionDataArray.transfer[0];
+
     return {
-      from: actionData.from,
-      memo: actionData.memo,
-      to: actionData.to,
+      from: actionData.act_data.from,
+      memo: actionData.act_data.memo,
+      to: actionData.act_data.to,
     };
   }
 }

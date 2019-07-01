@@ -13,8 +13,12 @@ class BalancesHelper {
     return WalletApi.getAccountBalance(accountName, symbol);
   }
 
-  public static getTokensAmountFromString(stringValue: string, symbol: string) {
+  public static getTokensAmountFromString(stringValue: string, symbol: string): number {
     return +stringValue.replace(` ${symbol}`, '');
+  }
+
+  public static getTokensMajorOnlyAmountAsString(amount: number, symbol: string): string {
+    return `${amount}.0000 ${symbol}`;
   }
 }
 

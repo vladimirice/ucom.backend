@@ -33,6 +33,26 @@ class IrreversibleTracesChecker {
     expect(trace.producers).toMatchObject(expectedProducers);
   }
 
+  public static checkStakeUnstakeStructure(trace, expectedTrType: number) {
+    this.checkCommonTrTracesFields(trace);
+    expect(trace.tr_type).toBe(expectedTrType);
+
+    CommonChecker.expectNotEmpty(trace.resources);
+    CommonChecker.expectNotEmpty(trace.resources.cpu);
+    CommonChecker.expectNotEmpty(trace.resources.cpu.tokens);
+    CommonChecker.expectNotEmpty(trace.resources.cpu.unstaking_request);
+
+    CommonChecker.expectNotEmpty(trace.resources.net);
+    CommonChecker.expectNotEmpty(trace.resources.net.tokens);
+    CommonChecker.expectNotEmpty(trace.resources.net.unstaking_request);
+
+    expect(trace.resources.cpu.tokens.currency).toBe(UOS);
+    expect(trace.resources.net.tokens.currency).toBe(UOS);
+
+    expect(trace.resources.cpu.unstaking_request.currency).toBe(UOS);
+    expect(trace.resources.net.unstaking_request.currency).toBe(UOS);
+  }
+
   public static checkVoteForCalculators(trace, expectedCalculators: string[]) {
     this.checkCommonTrTracesFields(trace);
     expect(trace.tr_type).toBe(blockchainTrTypesDictionary.getTypeVoteForCalculatorNodes());

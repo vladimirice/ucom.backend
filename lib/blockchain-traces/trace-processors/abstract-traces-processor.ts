@@ -1,13 +1,18 @@
 import { injectable } from 'inversify';
 import { ValidationError } from 'joi';
 
-import { ITraceChainMetadata, TraceProcessor } from '../interfaces/traces-sync-interfaces';
+import { TraceProcessor } from '../interfaces/traces-sync-interfaces';
 import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfaces';
 
 import 'reflect-metadata';
-import { ITraceActionData } from '../interfaces/blockchain-actions-interfaces';
+import {
+  IActNameToActionDataArray,
+  IFromToMemo,
+  ITraceAction,
+  ITraceActionData,
+} from '../interfaces/blockchain-actions-interfaces';
 import { StringToAnyCollection } from '../../common/interfaces/common-types';
-import { WorkerLogger } from '../../../config/winston';
+import { MalformedProcessingError, UnableToProcessError } from './processor-errors';
 
 import CommonTracesProcessor = require('./common-traces-processor');
 
@@ -19,51 +24,42 @@ abstract class AbstractTracesProcessor implements TraceProcessor {
 
   abstract readonly traceType: number;
 
-  abstract readonly expectedActName: string;
-
-  abstract readonly expectedActionsLength: number;
-
-  abstract readonly actionDataSchema: StringToAnyCollection;
-
-  abstract getTraceThumbnail(actionData: ITraceActionData, trace: ITrace): StringToAnyCollection;
-
-  abstract getFromToAndMemo(actionData: ITraceActionData): {from: string, to: string | null, memo: string};
-
-  public processTrace(trace: ITrace, metadata: ITraceChainMetadata): IProcessedTrace | null {
-    if (metadata.isError) {
-      return null;
+  abstract readonly expectedActionsData: {
+    [index: string]: {
+      validationSchema: StringToAnyCollection,
+      minNumberOfActions: number,
+      maxNumberOfActions: number,
     }
+  };
 
-    if (trace.actions.length !== this.expectedActionsLength) {
-      return null;
-    }
+  abstract getTraceThumbnail(actNameToActionDataArray: IActNameToActionDataArray): StringToAnyCollection;
 
-    const { act } = trace.actions[0];
-    if (act.name !== this.expectedActName) {
-      return null;
-    }
+  abstract getFromToAndMemo(actNameToActionDataArray: IActNameToActionDataArray): IFromToMemo;
 
-    const actionData: ITraceActionData = <ITraceActionData>trace.actions[0].act_data;
-    const { error }: {error: ValidationError} = joi.validate(actionData, this.actionDataSchema, {
-      abortEarly: false,
-      allowUnknown: false,
-    });
+  public processTrace(trace: ITrace): IProcessedTrace {
+    this.allActNamesAllowedOrError(trace);
 
-    if (error) {
-      WorkerLogger.warn('Action name is ok but there are validation errors', {
-        service: this.serviceName,
-        error,
+    const validatedActionsData: IActNameToActionDataArray = {};
+
+    for (const actName in this.expectedActionsData) {
+      if (!this.expectedActionsData.hasOwnProperty(actName)) {
+        continue;
+      }
+
+      const { validationSchema, minNumberOfActions, maxNumberOfActions } = this.expectedActionsData[actName];
+
+      validatedActionsData[actName] = AbstractTracesProcessor.findActionsDataByRules(
+        actName,
+        validationSchema,
+        minNumberOfActions,
+        maxNumberOfActions,
         trace,
-      });
-
-      metadata.isError = true;
-
-      return null;
+      );
     }
 
-    const processedTrace = this.getTraceThumbnail(actionData, trace);
+    const processedTrace = this.getTraceThumbnail(validatedActionsData);
 
-    const { from, to, memo } = this.getFromToAndMemo(actionData);
+    const { from, to, memo } = this.getFromToAndMemo(validatedActionsData);
 
     return CommonTracesProcessor.getTraceToInsertToDb(
       this.traceType,
@@ -73,6 +69,54 @@ abstract class AbstractTracesProcessor implements TraceProcessor {
       to,
       memo,
     );
+  }
+
+  private allActNamesAllowedOrError(trace: ITrace): void {
+    const allowedActNames: string[] = Object.keys(this.expectedActionsData);
+
+    const notAllowed: ITraceAction[] = trace.actions.filter(action => !allowedActNames.includes(action.act.name));
+
+    if (notAllowed.length > 0) {
+      throw new UnableToProcessError();
+    }
+  }
+
+  private static findActionsDataByRules(
+    actName: string,
+    validationSchema: StringToAnyCollection,
+    minNumberOfActions: number,
+    maxNumberOfActions: number,
+    trace: ITrace,
+  ): ITraceAction[] {
+    const targetActions: ITraceAction[] = trace.actions.filter(action => action.act.name === actName);
+
+    if (targetActions.length < minNumberOfActions || targetActions.length > maxNumberOfActions) {
+      throw new UnableToProcessError();
+    }
+
+    for (const action of targetActions) {
+      AbstractTracesProcessor.validateActionByActData(action, validationSchema);
+    }
+
+    return targetActions;
+  }
+
+  private static validateActionByActData(
+    action: ITraceAction,
+    validationSchema: StringToAnyCollection,
+  ): ITraceAction {
+    const actData: ITraceActionData = action.act_data;
+
+    const { error }: { error: ValidationError } = joi.validate(actData, validationSchema, {
+      abortEarly: false,
+      allowUnknown: false,
+    });
+
+    if (error) {
+      throw new MalformedProcessingError('Action name is ok but there are validation errors');
+    }
+
+    return action;
   }
 }
 

@@ -24,24 +24,67 @@ interface ITraceActionAct {
   name:           string;
 }
 
-interface ITraceActionData extends StringToAnyCollection {}
-
-interface ITraceTransferTokensData extends ITraceActionData {
-  from:     string;
-  to:       string;
-  quantity: string; // 10.0000 UOS - not a number, it is a number + symbol
-  memo:     string;
+interface IActNameToActionDataArray {
+  [index: string]: ITraceAction[];
 }
 
-interface ITraceVoteForBPs extends ITraceActionData {
-  voter:      string;
-  proxy:      string;
-  producers:  string[];
+interface IFromToMemo {
+  from: string,
+  to:   string | null,
+  memo: string,
+}
+
+interface ITraceActionData extends StringToAnyCollection {}
+
+interface ITraceActionTransferTokens extends ITraceAction {
+  act_data: {
+    from:     string;
+    to:       string;
+    quantity: string; // 10.0000 UOS - not a number, it is a number + symbol
+    memo:     string;
+  }
+}
+
+interface ITraceActionVoteForBPs extends ITraceAction {
+  act_data: {
+    voter:      string;
+    proxy:      string;
+    producers:  string[];
+  }
+}
+
+interface ITraceActionVoteForCalculators extends ITraceAction {
+  act_data: {
+    voter:        string;
+    calculators:  string[];
+  }
+}
+
+interface ITraceActionClaimEmission extends ITraceAction {
+  act_data: {
+    owner:          string;
+    inline_traces:  any;
+  }
+}
+
+interface ITraceActionDelegateBw extends ITraceAction {
+  act_data: {
+    from:               string,
+    receiver:           string,
+    stake_net_quantity: string, // example - '0.0000 UOS',
+    stake_cpu_quantity: string, // example - '2.0000 UOS',
+    transfer :          number,
+  },
 }
 
 export {
+  ITraceActionDelegateBw,
+  IFromToMemo,
+  IActNameToActionDataArray,
   ITraceAction,
   ITraceActionData,
-  ITraceVoteForBPs,
-  ITraceTransferTokensData,
+  ITraceActionVoteForCalculators,
+  ITraceActionVoteForBPs,
+  ITraceActionTransferTokens,
+  ITraceActionClaimEmission,
 };

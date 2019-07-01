@@ -95,99 +95,72 @@ describe('Blockchain tr traces sync tests', () => {
         });
       });
       describe('Staking and unstaking', () => {
-        it('Stake CPU only', async () => {
-          /*
-            getTypeStakeResources
+        it('Staking only traces', async () => {
+          const trType: number = BlockchainTrTraces.getTypeStakeResources();
 
-              actions.length = 1
-              act: delegatebw
+          const stakingTraces = traces.filter(item => item.tr_type === trType);
+          expect(stakingTraces.length).toBe(3);
 
-              act_data : {
-                from : actor.account_name,
-                receiver : actor.account_name,
-                stake_net_quantity : '0.0000 UOS',
-                stake_cpu_quantity : '2.0000 UOS',
-                transfer : 0,
-              },
+          for (const trace of stakingTraces) {
+            IrreversibleTracesChecker.checkStakeUnstakeStructure(trace, trType);
 
-              all the information is inside act_data
+            expect(trace.resources.cpu.unstaking_request.amount).toBe(0);
+            expect(trace.resources.net.unstaking_request.amount).toBe(0);
+          }
 
-              inline traces - only single
+          const stakeCpuOnly = stakingTraces.some(
+            item => item.resources.cpu.tokens.self_delegated === MongoIrreversibleTracesGenerator.getSampleStakeCpuQuantity()
+            && item.resources.net.tokens.self_delegated === 0,
+          );
+          expect(stakeCpuOnly).toBe(true);
 
-              response {
-                resources: {
-                  cpu: {
-                    tokens: {
-                      currency: UOS,
-                      self_delegated: 2 // this is a quantity
-                    }
-                  }
-                  net: // same
-                }
-              }
+          const stakeNetOnly = stakingTraces.some(
+            item => item.resources.net.tokens.self_delegated === MongoIrreversibleTracesGenerator.getSampleStakeNetQuantity()
+            && item.resources.cpu.tokens.self_delegated === 0,
+          );
 
-             */
+          expect(stakeNetOnly).toBe(true);
+
+          const stakeBothCpuAndNet = stakingTraces.some(
+            item => item.resources.net.tokens.self_delegated === MongoIrreversibleTracesGenerator.getSampleStakeNetQuantity()
+                 && item.resources.cpu.tokens.self_delegated === MongoIrreversibleTracesGenerator.getSampleStakeCpuQuantity(),
+          );
+
+          expect(stakeBothCpuAndNet).toBe(true);
         });
 
-        it('Stake NET only', async () => {
-          // same but net_quantity is filled
-        });
+        it('Unstaking only traces', async () => {
+          const trType: number = BlockchainTrTraces.getTypeUnstakingRequest();
 
-        it('Stake both CPU and NET', async () => {
-          /*
-          getTypeStakeResources
-            actions.length = 2
-            inside one = zero net and non-zero cpu
-            inside another = zero cpu and non-zero net
-           */
-        });
+          const stakingTraces = traces.filter(item => item.tr_type === trType);
+          expect(stakingTraces.length).toBe(3);
 
-        it('Unstake CPU only', async () => {
+          for (const trace of stakingTraces) {
+            IrreversibleTracesChecker.checkStakeUnstakeStructure(trace, trType);
 
-          /**
-           *
-           * getTypeUnstakingRequest
+            expect(trace.resources.cpu.self_delegated.amount).toBe(0);
+            expect(trace.resources.net.self_delegated.amount).toBe(0);
+          }
 
-           single action
-           act name undelegatebw
+          const unstakeCpuOnly = stakingTraces.some(
+            item => item.resources.cpu.unstaking_request.amount === MongoIrreversibleTracesGenerator.getSampleUnstakeCpuQuantity()
+              && item.resources.net.unstaking_request.amount === 0,
+          );
+          expect(unstakeCpuOnly).toBe(true);
 
-           act_data - enough for processing
+          const unstakeNetOnly = stakingTraces.some(
+            item => item.resources.net.unstaking_request.amount === MongoIrreversibleTracesGenerator.getSampleUnstakeNetQuantity()
+              && item.resources.cpu.unstaking_request.amount === 0,
+          );
 
-           act_data : {
-            from : actor.account_name,
-            receiver : actor.account_name,
-            unstake_net_quantity : '0.0000 UOS',
-            unstake_cpu_quantity : '3.0000 UOS',
-          },
+          expect(unstakeNetOnly).toBe(true);
 
+          const unstakeBothCpuAndNet = stakingTraces.some(
+            item => item.resources.net.unstaking_request.amount === MongoIrreversibleTracesGenerator.getSampleUnstakeNetQuantity()
+              && item.resources.cpu.unstaking_request.amount === MongoIrreversibleTracesGenerator.getSampleUnstakeCpuQuantity(),
+          );
 
-           cpu {
-            unstaking_request: {
-              amount: 4, // quantity
-              currency: 'UOS',
-            }
-            net {
-              // same
-            }
-           }
-
-           there is no `tokens` field as for the stake
-           */
-
-          // TODO
-        });
-
-        it('Unstake NET only', async () => {
-          // TODO
-        });
-
-        it('Unstake both CPU and NET', async () => {
-          // TODO
-          /*
-            actions.length = 2
-            inside one = zero net and non-zero cpu
-            inside another = zero cpu and non-zero net
-           */
+          expect(unstakeBothCpuAndNet).toBe(true);
         });
 
         it('Unstake CPU but stake NET', async () => {
@@ -327,14 +300,22 @@ describe('Blockchain tr traces sync tests', () => {
     });
 
     it('just save unknown transaction to database without any processing', async () => {
+      // Find a social transaction
       // TODO
     });
 
     it('sync a new portion of data - from last saved block', async () => {
+      // Manual testing
       // TODO
     });
 
     it('catch a duplication - no processing - on conflict do nothing', async () => {
+      // Manual testing
+      // TODO
+    });
+
+    it('process a totally malformed transaction via the unknown processor', async () => {
+      // Manual testing
       // TODO
     });
   });

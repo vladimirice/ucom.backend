@@ -4,7 +4,6 @@ import 'reflect-metadata';
 import { BlockchainTracesDiTypes } from '../interfaces/di-interfaces';
 import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfaces';
 import { WorkerLogger } from '../../../config/winston';
-import { ITraceChainMetadata } from '../interfaces/traces-sync-interfaces';
 import { AppError } from '../../api/errors';
 import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
 
@@ -13,6 +12,7 @@ import IrreversibleTracesClient = require('../client/irreversible-traces-client'
 import TracesCommonFieldsValidator = require('../validator/traces-common-fields-validator');
 import BlockchainTracesProcessorChain = require('./blockchain-traces-processor-chain');
 import IrreversibleTracesRepository = require('../repository/irreversible-traces-repository');
+import UnknownTraceProcessor = require('../trace-processors/processors/unknown-trace-processor');
 
 const _ = require('lodash');
 
@@ -111,21 +111,19 @@ class BlockchainTracesSyncService {
   }
 
   private processOneTrace(trace: ITrace): IProcessedTrace {
-    const metadata: ITraceChainMetadata = {
-      isError: false,
-    };
-
     const { error } = this.tracesCommonFieldsValidator.validateOneTrace(trace);
-    if (error) {
-      WorkerLogger.error('Malformed transaction. tracesCommonFieldsValidator failure. Write to the DB as unknown transaction', {
-        service: SERVICE_NAME,
-        error,
-      });
-
-      metadata.isError = true;
+    if (!error) {
+      return this.blockchainTracesProcessorChain.processChain(trace);
     }
 
-    return this.blockchainTracesProcessorChain.processChain(trace, metadata);
+    WorkerLogger.error('Malformed transaction. tracesCommonFieldsValidator failure. Write to the DB as unknown transaction', {
+      service: SERVICE_NAME,
+      error,
+    });
+
+    const unknownProcessor = new UnknownTraceProcessor();
+
+    return unknownProcessor.processTrace(trace);
   }
 
   private static async fetchTracesFromMongoDb(

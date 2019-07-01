@@ -1,6 +1,10 @@
 /* eslint-disable class-methods-use-this */
 import { StringToAnyCollection } from '../../../common/interfaces/common-types';
-import { ITraceActionData } from '../../interfaces/blockchain-actions-interfaces';
+import {
+  IActNameToActionDataArray,
+  IFromToMemo,
+  ITraceActionVoteForCalculators,
+} from '../../interfaces/blockchain-actions-interfaces';
 
 import AbstractTracesProcessor = require('../abstract-traces-processor');
 
@@ -8,30 +12,36 @@ const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 const joi = require('joi');
 
 class VoteForCalculatorsTraceProcessor extends AbstractTracesProcessor {
-  readonly actionDataSchema: StringToAnyCollection = {
-    voter:        joi.string().required().min(1).max(12),
-    calculators:  joi.array().items(joi.string()),
+  readonly serviceName: string = 'vote-for-calculators';
+
+  readonly traceType: number = BlockchainTrTraces.getTypeVoteForCalculatorNodes();
+
+  readonly expectedActionsData = {
+    votecalc: {
+      validationSchema: {
+        voter:        joi.string().required().min(1).max(12),
+        calculators:  joi.array().items(joi.string()),
+      },
+      minNumberOfActions: 1,
+      maxNumberOfActions: 1,
+    },
   };
 
-  readonly expectedActName: string        = 'votecalc';
+  getFromToAndMemo(actNameToActionDataArray: IActNameToActionDataArray): IFromToMemo {
+    const actionData = <ITraceActionVoteForCalculators>actNameToActionDataArray.votecalc[0];
 
-  readonly expectedActionsLength: number  = 1;
-
-  readonly serviceName: string            = 'vote-for-calculators';
-
-  readonly traceType: number              = BlockchainTrTraces.getTypeVoteForCalculatorNodes();
-
-  getFromToAndMemo(actionData: ITraceActionData): { from: string; to: string | null; memo: string } {
     return {
-      from: actionData.voter,
+      from: actionData.act_data.voter,
       memo: '',
       to: null,
     };
   }
 
-  getTraceThumbnail(actionData: ITraceActionData): StringToAnyCollection {
+  getTraceThumbnail(actNameToActionDataArray: IActNameToActionDataArray): StringToAnyCollection {
+    const actionData = <ITraceActionVoteForCalculators>actNameToActionDataArray.votecalc[0];
+
     return {
-      calculators: actionData.calculators,
+      calculators: actionData.act_data.calculators,
     };
   }
 }
