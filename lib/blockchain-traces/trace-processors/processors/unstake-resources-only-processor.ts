@@ -6,7 +6,6 @@ import {
   ITraceActionUndelegateBw,
 } from '../../interfaces/blockchain-actions-interfaces';
 import { UOS } from '../../../common/dictionary/symbols-dictionary';
-import { MalformedProcessingError } from '../processor-errors';
 
 import AbstractTracesProcessor = require('../abstract-traces-processor');
 import BalancesHelper = require('../../../common/helper/blockchain/balances-helper');
@@ -51,7 +50,7 @@ class UnstakeResourcesOnlyProcessor extends AbstractTracesProcessor {
 
       if (givenCpuQuantity !== 0) {
         if (cpuQuantity !== 0) {
-          throw new MalformedProcessingError('There is more than one stake cpu action inside a trace');
+          this.throwMalformedError('There is more than one stake cpu action inside a trace');
         }
 
         cpuQuantity = givenCpuQuantity;
@@ -59,7 +58,7 @@ class UnstakeResourcesOnlyProcessor extends AbstractTracesProcessor {
 
       if (givenNetQuantity !== 0) {
         if (netQuantity !== 0) {
-          throw new MalformedProcessingError('There is more than one stake net action inside a trace');
+          this.throwMalformedError('There is more than one stake net action inside a trace');
         }
 
         netQuantity = givenNetQuantity;
@@ -67,7 +66,7 @@ class UnstakeResourcesOnlyProcessor extends AbstractTracesProcessor {
     }
 
     if (cpuQuantity === 0 && netQuantity === 0) {
-      throw new MalformedProcessingError('Both CPU and NET quantities are zero but at least one of them must be > 0');
+      this.throwMalformedError('Both CPU and NET quantities are zero but at least one of them must be > 0');
     }
 
     response.resources.cpu.unstaking_request.amount = cpuQuantity;

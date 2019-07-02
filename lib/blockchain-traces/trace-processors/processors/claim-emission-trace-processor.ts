@@ -51,7 +51,7 @@ class ClaimEmissionTraceProcessor extends AbstractTracesProcessor {
     const transferInlineTrace = inlineTraces.find(item => item.act.name === 'transfer')!;
 
     if (!transferInlineTrace) {
-      this.throwMalformedError('There is no transfer transaction');
+      this.throwMalformedError('There is no transfer trace');
     }
 
     return {

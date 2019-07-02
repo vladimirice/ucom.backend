@@ -23,7 +23,7 @@ class BuySellRamHelper {
     }
 
     response.ramPrice = this.getRamPrice(inlineTraces, traceType);
-    response.ramFee = this.getRamFee(inlineTraces);
+    response.ramFee   = this.getRamFee(inlineTraces);
 
     return response;
   }

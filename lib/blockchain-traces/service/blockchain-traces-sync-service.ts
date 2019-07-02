@@ -34,7 +34,11 @@ class BlockchainTracesSyncService {
     this.blockchainTracesProcessorChain = blockchainTracesProcessorChain;
   }
 
-  public async process(limit: number = 100, resync: boolean = false): Promise<TotalParametersResponse> {
+  public async process(
+    singleBatchSize: number = 100,
+    onlyOneBatch: boolean = false,
+    resync: boolean = false,
+  ): Promise<TotalParametersResponse> {
     let blockNumberGreaterThan: number | null = null;
     if (!resync) {
       blockNumberGreaterThan = await IrreversibleTracesRepository.findLastBlockNumber();
@@ -44,12 +48,16 @@ class BlockchainTracesSyncService {
     let totalSkippedCounter   = 0;
 
     do {
-      const result = await this.processBatch(limit, blockNumberGreaterThan);
+      const result = await this.processBatch(singleBatchSize, blockNumberGreaterThan);
 
       totalProcessedCounter += result.insertedCount;
       totalSkippedCounter   += result.skippedCount;
 
       blockNumberGreaterThan = result.lastBlockNumber;
+
+      if (onlyOneBatch) {
+        break;
+      }
     } while (blockNumberGreaterThan !== null);
 
     return {

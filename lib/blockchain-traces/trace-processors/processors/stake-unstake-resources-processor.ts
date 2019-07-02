@@ -6,7 +6,6 @@ import {
   ITraceActionUndelegateBw,
 } from '../../interfaces/blockchain-actions-interfaces';
 import { UOS } from '../../../common/dictionary/symbols-dictionary';
-import { MalformedProcessingError } from '../processor-errors';
 
 import AbstractTracesProcessor = require('../abstract-traces-processor');
 import BalancesHelper = require('../../../common/helper/blockchain/balances-helper');
@@ -53,7 +52,7 @@ class StakeUnstakeResourcesProcessor extends AbstractTracesProcessor {
       = BalancesHelper.getTokensAmountFromString(unstakeAction.act_data.unstake_cpu_quantity, UOS);
 
     if (unstakeNetQuantity !== 0 && unstakeCpuQuantity !== 0) {
-      throw new MalformedProcessingError('Both net and cpu is unstaked in one action. Expected that only one resource per action.');
+      this.throwMalformedError('Both net and cpu is unstaked in one action. Expected that only one resource per action.');
     }
 
     response.resources.net.unstaking_request.amount = unstakeNetQuantity;
@@ -67,7 +66,7 @@ class StakeUnstakeResourcesProcessor extends AbstractTracesProcessor {
       = BalancesHelper.getTokensAmountFromString(stakeAction.act_data.stake_cpu_quantity, UOS);
 
     if (stakeNetQuantity !== 0 && stakeCpuQuantity !== 0) {
-      throw new MalformedProcessingError('Both net and cpu is unstaked in one action. Expected that only one resource per action.');
+      this.throwMalformedError('Both net and cpu is unstaked in one action. Expected that only one resource per action.');
     }
 
     response.resources.net.tokens.self_delegated = stakeNetQuantity;

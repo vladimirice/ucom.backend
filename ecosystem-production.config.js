@@ -235,15 +235,15 @@ module.exports = {
         NODE_ENV,
       },
     },
-    {
-      name: `${NODE_ENV}-worker-sync-tr-traces`,
-      script: 'lib/eos/workers/sync-tr-traces-worker.js',
-
-      watch: false,
-      cron_restart: '0 * * * *',
-      env: {
-        NODE_ENV,
-      },
-    },
+    // {
+    //   name: `${NODE_ENV}-sync-irreversible-traces-worker`,
+    //   script: 'lib/eos/workers/sync-irreversible-traces-worker.js',
+    //
+    //   watch: false,
+    //   cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
+    //   env: {
+    //     NODE_ENV,
+    //   },
+    // },
   ],
 };

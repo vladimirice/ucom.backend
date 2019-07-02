@@ -1,8 +1,10 @@
 import { WorkerOptionsDto } from '../../common/interfaces/options-dto';
+import { diContainer } from '../../../config/inversify/inversify.config';
+import { BlockchainTracesDiTypes } from '../../blockchain-traces/interfaces/di-interfaces';
 
 import EosApi = require('../../eos/eosApi');
-import BlockchainTrTracesService = require('../service/tr-traces-service/blockchain-tr-traces-service');
 import WorkerHelper = require('../../common/helper/worker-helper');
+import BlockchainTracesSyncService = require('../../blockchain-traces/service/blockchain-traces-sync-service');
 
 const options: WorkerOptionsDto = {
   processName: 'sync-tr-traces',
@@ -12,7 +14,10 @@ const options: WorkerOptionsDto = {
 async function toExecute() {
   EosApi.initBlockchainLibraries();
 
-  await BlockchainTrTracesService.syncMongoDbAndPostgres();
+  const syncService: BlockchainTracesSyncService
+    = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
+
+  return syncService.process();
 }
 
 (async () => {

@@ -110,12 +110,12 @@ abstract class AbstractTracesProcessor implements TraceProcessor {
     const actData: ITraceActionData = action.act_data;
 
     const { error }: { error: ValidationError } = joi.validate(actData, validationSchema, {
-      abortEarly: false,
+      abortEarly:   false,
       allowUnknown: false,
     });
 
     if (error) {
-      this.throwMalformedError('Action name is ok but there are validation errors');
+      this.throwMalformedError(JSON.stringify(error));
     }
 
     return action;

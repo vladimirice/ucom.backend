@@ -80,7 +80,7 @@ class BlockchainTrTracesFetchService {
       current.tr_type = blockchainTrTracesDictionary.getLabelTransferTo();
     }
 
-    usersPostProcessor.processModelAuthorForListEntity(current.User);
+    usersPostProcessor.processOnlyUserItself(current.User);
   }
 }
 

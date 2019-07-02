@@ -8,30 +8,16 @@ import SeedsHelper = require('../helpers/seeds-helper');
 import BlockchainTracesSyncService = require('../../../lib/blockchain-traces/service/blockchain-traces-sync-service');
 
 import IrreversibleTracesChecker = require('../../helpers/blockchain/irreversible-traces/irreversible-traces-checker');
+import CommonChecker = require('../../helpers/common/common-checker');
+import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
+import knex = require('../../../config/knex');
 
 const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
-
-const delay = require('delay');
-// eslint-disable-next-line node/no-missing-require,node/no-missing-require
-const helpers = require('../helpers');
-
-// eslint-disable-next-line node/no-missing-require
-const gen = require('../../generators');
-
-const blockchainTrTracesService =
-  require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
-
-const blockchainTrTracesDictionary  =
-  // eslint-disable-next-line import/order
-  require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
-
-helpers.Mock.mockAllBlockchainPart();
-helpers.Mock.mockAllTransactionSigning();
 
 let userVlad: UserModel;
 let userJane: UserModel;
 
-const JEST_TIMEOUT = 40000;
+const JEST_TIMEOUT = 5000;
 
 describe('Blockchain tr traces sync tests', () => {
   beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); });
@@ -42,19 +28,81 @@ describe('Blockchain tr traces sync tests', () => {
   }, JEST_TIMEOUT);
 
   describe('irreversible transaction traces', () => {
-    let traces;
-    beforeEach(async () => {
-      await MongoIrreversibleTracesGenerator.insertAllSampleTraces(userVlad, userJane);
+    describe('sync logic', () => {
+      it('sync a new portion of data - from last saved block', async () => {
+        const { unique } = await MongoIrreversibleTracesGenerator.insertAllSampleTraces(userVlad, userJane);
+        const onlyOneBatch = true;
 
-      const syncService: BlockchainTracesSyncService
-        = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
+        const syncService: BlockchainTracesSyncService
+          = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
 
-      await syncService.process();
+        await syncService.process(5, onlyOneBatch);
+        await syncService.process(unique + 5, onlyOneBatch);
 
-      traces = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
-    }, JEST_TIMEOUT);
+        const traces = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
+
+        expect(traces.length).toBe(unique);
+      });
+
+      it('process batch by batch correctly', async () => {
+        const { unique } = await MongoIrreversibleTracesGenerator.insertAllSampleTraces(userVlad, userJane);
+
+        const syncService: BlockchainTracesSyncService
+          = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
+
+        await syncService.process(5);
+
+        const traces = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
+
+        expect(traces.length).toBe(unique);
+      });
+
+      it('resync by adding not existing ones', async () => {
+        const { unique } = await MongoIrreversibleTracesGenerator.insertAllSampleTraces(userVlad, userJane);
+        const syncService: BlockchainTracesSyncService
+          = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
+
+        await syncService.process();
+
+        const deleted = await knex(BlockchainModelProvider.irreversibleTracesTableName())
+          .delete()
+          .where({
+            tr_type: BlockchainTrTraces.getTypeStakeResources(),
+          }).returning('id');
+
+        const tracesBefore = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
+
+        expect(tracesBefore.length).toBe(unique - deleted.length);
+
+        await syncService.process();
+        const tracesNoChanges = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
+
+        expect(tracesNoChanges.length).toBe(unique - deleted.length);
+
+        const batchSize = 100;
+        const onlyOneBatch = false;
+        const resync = true;
+
+        await syncService.process(batchSize, onlyOneBatch, resync);
+        const allTracesAgain = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
+
+        expect(allTracesAgain.length).toBe(unique);
+      }, JEST_TIMEOUT);
+    });
 
     describe('check traces', () => {
+      let traces;
+      beforeEach(async () => {
+        await MongoIrreversibleTracesGenerator.insertAllSampleTraces(userVlad, userJane);
+
+        const syncService: BlockchainTracesSyncService
+          = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
+
+        await syncService.process();
+
+        traces = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
+      }, JEST_TIMEOUT);
+
       it('check emission trace', async () => {
         const emissionTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeClaimEmission());
 
@@ -63,7 +111,6 @@ describe('Blockchain tr traces sync tests', () => {
 
         IrreversibleTracesChecker.checkEmission(emissionTrace);
       });
-
       it('validate a tokens transfer traces - from and to', async () => {
         const transferTraceFrom = traces.find(item => item.tr_type === BlockchainTrTraces.getLabelTransferFrom());
         IrreversibleTracesChecker.checkUosTransferFrom(transferTraceFrom, userJane);
@@ -232,249 +279,16 @@ describe('Blockchain tr traces sync tests', () => {
           );
         });
       });
-    });
 
-    it('just save unknown transaction to database without any processing', async () => {
-      // Find a social transaction
-      // TODO
-    });
+      it('just save unknown transaction to database without any processing', async () => {
+        const traceType: number = BlockchainTrTraces.getTypeUnknown();
+        const targetTraces = traces.filter(item => item.tr_type === traceType);
+        expect(targetTraces.length).toBe(2);
 
-    it('sync a new portion of data - from last saved block', async () => {
-      // Manual testing
-      // TODO
-    });
-
-    it('catch a duplication - no processing - on conflict do nothing', async () => {
-      // Manual testing
-      // TODO
-    });
-
-    it('process a totally malformed transaction via the unknown processor', async () => {
-      // Manual testing
-      // TODO
-    });
-
-    it('stake-unstake amount is not an integer', async () => {
-      // Manual testing
-      // TODO
-    });
-  });
-
-  // eslint-disable-next-line sonarjs/cognitive-complexity
-  describe('check sync', () => {
-    it.skip('Check stakeResources sync and fetch', async () => {
-      const accountAlias = 'vlad';
-
-      const netAmountSeparated = 2;
-      const cpuAmountSeparated = 3;
-
-      const netAmountBoth = 4;
-      const cpuAmountBoth = 5;
-
-      const [netSeparatedTr, cpuSeparatedTr, bothTr] = await Promise.all([
-        gen.BlockchainTr.createStakeOrUnstake(accountAlias, netAmountSeparated, 0),
-        gen.BlockchainTr.createStakeOrUnstake(accountAlias, 0, cpuAmountSeparated),
-        gen.BlockchainTr.createStakeOrUnstake(accountAlias, netAmountBoth, cpuAmountBoth),
-      ]);
-
-      delay(1000); // approximate lag of mining
-
-      const trType = blockchainTrTracesDictionary.getTypeStakeResources();
-
-      await blockchainTrTracesService.syncMongoDbAndPostgres(
-        [trType],
-        [netSeparatedTr, cpuSeparatedTr, bothTr],
-      );
-
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
-        userVlad,
-        200,
-        queryString,
-      );
-
-      expect(models.length).toBe(3);
-
-      let checked = 0;
-      models.forEach((model) => {
-        if (model.raw_tr_data.id === netSeparatedTr) {
-          expect(model.resources.net.tokens.self_delegated).toBe(netAmountSeparated);
-          expect(model.resources.cpu.tokens.self_delegated).toBe(0);
-          checked += 1;
-        } else if (model.raw_tr_data.id === cpuSeparatedTr) {
-          expect(model.resources.net.tokens.self_delegated).toBe(0);
-          expect(model.resources.cpu.tokens.self_delegated).toBe(cpuAmountSeparated);
-          checked += 1;
-        } else if (model.raw_tr_data.id === bothTr) {
-          expect(model.resources.net.tokens.self_delegated).toBe(netAmountBoth);
-          expect(model.resources.cpu.tokens.self_delegated).toBe(cpuAmountBoth);
-          checked += 1;
-        }
+        const unknownTrace = targetTraces[0];
+        CommonChecker.expectNotEmpty(unknownTrace);
       });
-
-      expect(checked).toBe(3);
-
-      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    }, JEST_TIMEOUT);
-
-    it.skip('Check TR_TYPE_STAKE_WITH_UNSTAKE sync and fetch', async () => {
-      const userAlias = 'vlad';
-
-      const trOneNet = -1;
-      const trOneCpu = 4;
-
-      const trTwoNet = 3;
-      const trTwoCpu = -2;
-
-      const [trOne, trTwo] = await Promise.all([
-        gen.BlockchainTr.createStakeOrUnstake(userAlias, trOneNet, trOneCpu),
-        gen.BlockchainTr.createStakeOrUnstake(userAlias, trTwoNet, trTwoCpu),
-      ]);
-
-      delay(1000); // approximate lag of mining
-
-      const trType = blockchainTrTracesDictionary.getTypeStakeWithUnstake();
-      await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne, trTwo]);
-
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
-        userVlad,
-        200,
-        queryString,
-      );
-      expect(models.length).toBe(2);
-
-      let checked = 0;
-      models.forEach((model) => {
-        if (model.raw_tr_data.id === trOne) {
-          expect(model.resources.cpu.tokens.self_delegated).toBe(trOneCpu);
-          expect(model.resources.net.unstaking_request.amount).toBe(Math.abs(trOneNet));
-          checked += 1;
-        } else if (model.raw_tr_data.id === trTwo) {
-          expect(model.resources.net.tokens.self_delegated).toBe(trTwoNet);
-          expect(model.resources.cpu.unstaking_request.amount).toBe(Math.abs(trTwoCpu));
-          checked += 1;
-        }
-      });
-
-      expect(checked).toBe(2);
-
-      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    },      JEST_TIMEOUT);
-
-    it.skip('Check TR_TYPE_UNSTAKING_REQUEST sync and fetch', async () => {
-      const trType = blockchainTrTracesDictionary.getTypeUnstakingRequest();
-
-      const accountAlias = 'vlad';
-
-      const netAmountSeparated = -2;
-      const cpuAmountSeparated = -3;
-
-      const netAmountBoth = -1;
-      const cpuAmountBoth = -2;
-
-      const [netSeparatedTr, cpuSeparatedTr, bothTr] = await Promise.all([
-        gen.BlockchainTr.createStakeOrUnstake(accountAlias, netAmountSeparated, 0),
-        gen.BlockchainTr.createStakeOrUnstake(accountAlias, 0, cpuAmountSeparated),
-        gen.BlockchainTr.createStakeOrUnstake(accountAlias, netAmountBoth, cpuAmountBoth),
-      ]);
-
-      delay(1000); // approximate lag of mining
-
-      await blockchainTrTracesService.syncMongoDbAndPostgres(
-        [trType],
-        [netSeparatedTr, cpuSeparatedTr, bothTr],
-      );
-
-      const queryString = helpers.Req.getPaginationQueryString(1, 10);
-      const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
-        userVlad,
-        200,
-        queryString,
-      );
-
-      expect(models.length).toBe(3);
-
-      let checked = 0;
-      models.forEach((model) => {
-        if (model.raw_tr_data.id === netSeparatedTr) {
-          expect(model.resources.net.unstaking_request.amount).toBe(Math.abs(netAmountSeparated));
-          expect(model.resources.cpu.unstaking_request.amount).toBe(0);
-          checked += 1;
-        } else if (model.raw_tr_data.id === cpuSeparatedTr) {
-          expect(model.resources.net.unstaking_request.amount).toBe(0);
-          expect(model.resources.cpu.unstaking_request.amount).toBe(Math.abs(cpuAmountSeparated));
-          checked += 1;
-        } else if (model.raw_tr_data.id === bothTr) {
-          expect(model.resources.net.unstaking_request.amount).toBe(Math.abs(netAmountBoth));
-          expect(model.resources.cpu.unstaking_request.amount).toBe(Math.abs(cpuAmountBoth));
-          checked += 1;
-        }
-      });
-
-      expect(checked).toBe(3);
-
-      helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-    },      JEST_TIMEOUT);
-  });
-
-  it.skip('Check TR_TYPE_BUY_RAM sync and fetch', async () => {
-    const userAlias = 'vlad';
-    const bytesAmount = 1024 * 1024 * 5;
-
-    const trOne = await gen.BlockchainTr.createBuyRam(userAlias, bytesAmount);
-
-    delay(1000); // approximate lag of mining
-
-    const trType = blockchainTrTracesDictionary.getTypeBuyRamBytes();
-
-    await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne]);
-
-    const queryString = helpers.Req.getPaginationQueryString(1, 10);
-    const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
-      userVlad,
-      200,
-      queryString,
-    );
-
-    expect(models.length).toBe(1);
-
-    expect(models[0].resources.ram.amount).toBe(bytesAmount / 1024);
-    expect(models[0].resources.ram.tokens.amount).toBeGreaterThan(1);
-
-    helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-  },      JEST_TIMEOUT);
-
-  it.skip('Check TR_TYPE_SELL_RAM sync and fetch', async () => {
-    const userAlias = 'vlad';
-    const bytesAmount = 1024 * 1024 * 5;
-
-    const trOne = await gen.BlockchainTr.createSellRam(userAlias, bytesAmount);
-
-    delay(1000); // approximate lag of mining
-
-    const trType = blockchainTrTracesDictionary.getTypeSellRam();
-
-    await blockchainTrTracesService.syncMongoDbAndPostgres([trType], [trOne]);
-
-    const queryString = helpers.Req.getPaginationQueryString(1, 10);
-    const models = await helpers.Blockchain.requestToGetMyselfBlockchainTraces(
-      userVlad,
-      200,
-      queryString,
-    );
-
-    expect(models.length).toBe(1);
-
-    expect(models[0].resources.ram.amount).toBe(bytesAmount / 1024);
-    expect(models[0].resources.ram.tokens.amount).toBeGreaterThan(1);
-
-    helpers.Blockchain.checkMyselfBlockchainTransactionsStructure(models);
-  }, JEST_TIMEOUT);
-
-  describe('Skipped autotests', () => {
-    it.skip('Check TR_TYPE_MYSELF_REGISTRATION sync and fetch', async () => {});
-    it.skip('Check all social transactions', async () => {});
+    });
   });
 });
 

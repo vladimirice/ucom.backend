@@ -98,6 +98,9 @@ class MongoIrreversibleTracesGenerator {
 
       // Unknown - future social one
       this.getSampleDownvoteTrace,
+      this.getSampleDownvoteTrace, // duplication
+
+      this.getSampleTotallyMalformedTrace,
     ];
 
     for (const func of set) {
@@ -114,6 +117,11 @@ class MongoIrreversibleTracesGenerator {
 
     const fromForeign = this.getSampleTransferTokensFromActorTrace(<UserModel>foreignUser, actor, 501);
     await collection.insertOne(fromForeign);
+
+    return {
+      total: set.length + 2,
+      unique: set.length + 1,
+    };
   }
 
   public static getSampleTransferTokensFromActorTrace(actor: UserModel, actsFor: UserModel, tracePrefix: number = 100) {
@@ -2714,6 +2722,30 @@ class MongoIrreversibleTracesGenerator {
             interaction_type_id : 4,
           },
           inline_traces : [],
+        },
+      ],
+      blocktime : '2019-04-01T10:04:14.000',
+    };
+  }
+
+
+  public static getSampleTotallyMalformedTrace(
+    actor: UserModel,
+    // @ts-ignore
+    actsFor: UserModel,
+  ) {
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(700);
+
+    return {
+      malformed: true,
+      blocknum : blockNumber,
+      blockid : blockId,
+      trxid : trxId,
+      account : actor.account_name,
+      irreversible : true,
+      actions : [
+        {
+          malformed: true,
         },
       ],
       blocktime : '2019-04-01T10:04:14.000',
