@@ -14,6 +14,7 @@ import UnstakeResourcesOnlyProcessor = require('../trace-processors/processors/u
 import StakeUnstakeResourcesProcessor = require('../trace-processors/processors/stake-unstake-resources-processor');
 import BuyRamProcessor = require('../trace-processors/processors/buy-ram-processor');
 import SellRamProcessor = require('../trace-processors/processors/sell-ram-processor');
+import UpvotesTraceProcessor = require('../trace-processors/processors/upvotes-trace-processor');
 
 function addTraceProcessors(diContainer: Container) {
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(TransferUosTokensTraceProcessor);
@@ -25,6 +26,7 @@ function addTraceProcessors(diContainer: Container) {
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(StakeUnstakeResourcesProcessor);
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(BuyRamProcessor);
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(SellRamProcessor);
+  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UpvotesTraceProcessor);
 
   // Next line must always be the last line
   // this processor is suspended - now just skip unknown trace

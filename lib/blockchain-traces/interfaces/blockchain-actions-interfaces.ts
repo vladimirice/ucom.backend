@@ -60,6 +60,14 @@ interface ITraceActionVoteForCalculators extends ITraceAction {
   }
 }
 
+interface ITraceActionUpvoteContent extends ITraceAction {
+  act_data: {
+    acc:                  string;
+    content_id:           string;
+    interaction_type_id:  number;
+  }
+}
+
 interface ITraceActionClaimEmission extends ITraceAction {
   act_data: {
     owner:          string;
@@ -105,6 +113,7 @@ interface ITraceActionUndelegateBw extends ITraceAction {
 }
 
 export {
+  ITraceActionUpvoteContent,
   ITraceActionDelegateBw,
   ITraceActionUndelegateBw,
 

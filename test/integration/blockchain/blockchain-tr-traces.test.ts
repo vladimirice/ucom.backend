@@ -102,6 +102,18 @@ describe('Blockchain tr traces sync tests', () => {
         traces = await BlockchainHelper.requestToGetMyselfBlockchainTraces(userVlad);
       }, JEST_TIMEOUT);
 
+      describe('social traces', () => {
+        it('upvotes content', async () => {
+          const targetTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeUpvoteContent());
+
+          expect(targetTraces.length).toBe(1);
+          const trace = targetTraces[0];
+
+          IrreversibleTracesChecker.checkCommonTrTracesFields(trace);
+          expect(trace.memo).toBe('');
+        });
+      });
+
       it('check emission trace', async () => {
         const emissionTraces = traces.filter(item => item.tr_type === BlockchainTrTraces.getTypeClaimEmission());
 

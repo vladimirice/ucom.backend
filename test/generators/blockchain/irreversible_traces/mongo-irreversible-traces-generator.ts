@@ -97,8 +97,7 @@ class MongoIrreversibleTracesGenerator {
       this.getSampleSellRamTrace,
 
       // Unknown - future social one
-      this.getSampleDownvoteTrace,
-      this.getSampleDownvoteTrace, // duplication
+      this.getSampleUpvoteTrace,
 
       this.getSampleTotallyMalformedTrace,
     ];
@@ -119,7 +118,7 @@ class MongoIrreversibleTracesGenerator {
     await collection.insertOne(fromForeign);
 
     return {
-      unique: set.length - 3 + 2,
+      unique: set.length + 1,
     };
   }
 
@@ -2669,10 +2668,8 @@ class MongoIrreversibleTracesGenerator {
   }
 
   // @ts-ignore
-  public static getSampleDownvoteTrace(actor: UserModel, actsFor: UserModel) {
-    const blockNumber = 25330113;
-    const trxId       = '7cb3e80e1b83ee326a71d6285aebb7b8a8db97ecba7213057966c7a18844b113';
-    const blockId     = '0182821bfd8f32c8ec8652c51f56d9538ba0d858b4130f961b6c19549805c113';
+  public static getSampleUpvoteTrace(actor: UserModel, actsFor: UserModel) {
+    const { blockNumber, trxId, blockId } = MongoIrreversibleTracesGenerator.getTraceIdsAndNumbersWithSuffix(713);
 
     return {
       blocknum : blockNumber,
@@ -2718,7 +2715,7 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             acc : actor.account_name,
             content_id : 'pstdr-xubjvejhjt8rayz1',
-            interaction_type_id : 4,
+            interaction_type_id : 2,
           },
           inline_traces : [],
         },
