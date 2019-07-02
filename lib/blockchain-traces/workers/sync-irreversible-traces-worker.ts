@@ -1,6 +1,6 @@
 import { WorkerOptionsDto } from '../../common/interfaces/options-dto';
 import { diContainer } from '../../../config/inversify/inversify.config';
-import { BlockchainTracesDiTypes } from '../../blockchain-traces/interfaces/di-interfaces';
+import { BlockchainTracesDiTypes } from '../interfaces/di-interfaces';
 
 import EosApi = require('../../eos/eosApi');
 import WorkerHelper = require('../../common/helper/worker-helper');
