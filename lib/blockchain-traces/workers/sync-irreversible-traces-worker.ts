@@ -8,7 +8,7 @@ import BlockchainTracesSyncService = require('../../blockchain-traces/service/bl
 
 const options: WorkerOptionsDto = {
   processName: 'sync-tr-traces',
-  durationInSecondsToAlert: 3200,
+  durationInSecondsToAlert: 50,
 };
 
 async function toExecute() {

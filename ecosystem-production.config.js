@@ -240,7 +240,7 @@ module.exports = {
     //   script: 'lib/blockchain-traces/workers/sync-irreversible-traces-worker.js',
     //
     //   watch: false,
-    //   cron_restart: CRON_PATTERN_EVERY_FIVE_MINUTES,
+    //   cron_restart: CRON_PATTERN_EVERY_MINUTE,
     //   env: {
     //     NODE_ENV,
     //   },
