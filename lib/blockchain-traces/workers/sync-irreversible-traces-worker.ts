@@ -17,7 +17,7 @@ async function toExecute() {
   const syncService: BlockchainTracesSyncService
     = diContainer.get(BlockchainTracesDiTypes.blockchainTracesSyncService);
 
-  return syncService.process();
+  return syncService.process(5);
 }
 
 (async () => {

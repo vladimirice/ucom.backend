@@ -58,6 +58,8 @@ class BlockchainTracesSyncService {
       if (onlyOneBatch) {
         break;
       }
+
+      console.log(`Batch is done. Batch size is: ${singleBatchSize}. Current totalProcessedCounter: ${totalProcessedCounter}`);
     } while (blockNumberGreaterThan !== null);
 
     return {
@@ -100,7 +102,15 @@ class BlockchainTracesSyncService {
     }
 
     const preparedTransactions: string[] = manyProcessedTraces.map(item => item.tr_id);
-    const insertedTransactions = await IrreversibleTracesRepository.insertManyTraces(manyProcessedTraces);
+
+    let insertedTransactions;
+    try {
+      insertedTransactions = await IrreversibleTracesRepository.insertManyTraces(manyProcessedTraces);
+    } catch (error) {
+      console.error('A fatal error is occurred. Lets dump the traces');
+      console.dir(manyProcessedTraces);
+      throw error;
+    }
 
     const duplications = _.difference(preparedTransactions, insertedTransactions);
 
