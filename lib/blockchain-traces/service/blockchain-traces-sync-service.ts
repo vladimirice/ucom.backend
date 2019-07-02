@@ -33,7 +33,7 @@ class BlockchainTracesSyncService {
   }
 
   public async process(
-    singleBatchSize: number = 1000,
+    singleBatchSize: number = 2000,
     onlyOneBatch: boolean = false,
     resync: boolean = false,
   ): Promise<TotalParametersResponse> {
@@ -51,14 +51,19 @@ class BlockchainTracesSyncService {
       totalProcessedCounter += result.insertedCount;
       totalSkippedCounter   += result.skippedCount;
 
+      console.log(`Batch is done. Batch size is: ${singleBatchSize}. Current totalProcessedCounter: ${totalProcessedCounter}`);
+      if (result.lastBlockNumber === blockNumberGreaterThan) {
+        break;
+      }
+
       blockNumberGreaterThan = result.lastBlockNumber;
 
       if (onlyOneBatch) {
         break;
       }
 
-      console.log(`Batch is done. Batch size is: ${singleBatchSize}. Current totalProcessedCounter: ${totalProcessedCounter}`);
-    } while (blockNumberGreaterThan !== null);
+      // eslint-disable-next-line no-constant-condition
+    } while (true);
 
     return {
       totalProcessedCounter,
