@@ -33,7 +33,7 @@ class BlockchainTracesSyncService {
   }
 
   public async process(
-    singleBatchSize: number = 200,
+    singleBatchSize: number = 1000,
     onlyOneBatch: boolean = false,
     resync: boolean = false,
   ): Promise<TotalParametersResponse> {
@@ -94,6 +94,8 @@ class BlockchainTracesSyncService {
       }
     }
 
+    console.log(`Last block number is: ${manyTraces[manyTraces.length - 1].blocknum}`);
+
     if (manyProcessedTraces.length === 0) {
       return {
         lastBlockNumber:  manyTraces[manyTraces.length - 1].blocknum,
@@ -153,7 +155,7 @@ class BlockchainTracesSyncService {
     if (typeof blockNumberGreaterThan === 'number') {
       where.$and.push({
         blocknum: {
-          $gt: blockNumberGreaterThan,
+          $gte: blockNumberGreaterThan, // greater than or equal - no typo
         },
       });
     }
