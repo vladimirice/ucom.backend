@@ -33,7 +33,7 @@ class BlockchainTracesSyncService {
   }
 
   public async process(
-    singleBatchSize: number = 100,
+    singleBatchSize: number = 200,
     onlyOneBatch: boolean = false,
     resync: boolean = false,
   ): Promise<TotalParametersResponse> {
