@@ -8,7 +8,6 @@ import SeedsHelper = require('../helpers/seeds-helper');
 import BlockchainTracesSyncService = require('../../../lib/blockchain-traces/service/blockchain-traces-sync-service');
 
 import IrreversibleTracesChecker = require('../../helpers/blockchain/irreversible-traces/irreversible-traces-checker');
-import CommonChecker = require('../../helpers/common/common-checker');
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 import knex = require('../../../config/knex');
 
@@ -278,15 +277,6 @@ describe('Blockchain tr traces sync tests', () => {
             expectedUos,
           );
         });
-      });
-
-      it('just save unknown transaction to database without any processing', async () => {
-        const traceType: number = BlockchainTrTraces.getTypeUnknown();
-        const targetTraces = traces.filter(item => item.tr_type === traceType);
-        expect(targetTraces.length).toBe(2);
-
-        const unknownTrace = targetTraces[0];
-        CommonChecker.expectNotEmpty(unknownTrace);
       });
     });
   });

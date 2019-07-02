@@ -5,7 +5,6 @@ import { TraceProcessor } from '../interfaces/traces-sync-interfaces';
 import TracesCommonFieldsValidator = require('../validator/traces-common-fields-validator');
 import BlockchainTracesSyncService = require('../service/blockchain-traces-sync-service');
 import BlockchainTracesProcessorChain = require('../service/blockchain-traces-processor-chain');
-import UnknownTraceProcessor = require('../trace-processors/processors/unknown-trace-processor');
 import TransferUosTokensTraceProcessor = require('../trace-processors/processors/transfer-uos-tokens-trace-processor');
 import VoteForBlockProducersTraceProcessor = require('../trace-processors/processors/vote-for-block-producers-trace-processor');
 import VoteForCalculatorsTraceProcessor = require('../trace-processors/processors/vote-for-calculators-trace-processor');
@@ -28,7 +27,8 @@ function addTraceProcessors(diContainer: Container) {
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(SellRamProcessor);
 
   // Next line must always be the last line
-  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UnknownTraceProcessor);
+  // this processor is suspended - now just skip unknown trace
+  // diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UnknownTraceProcessor);
 }
 
 export const initBlockchainTraces = (diContainer: Container) => {

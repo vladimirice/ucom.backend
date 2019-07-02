@@ -119,8 +119,7 @@ class MongoIrreversibleTracesGenerator {
     await collection.insertOne(fromForeign);
 
     return {
-      total: set.length + 2,
-      unique: set.length + 1,
+      unique: set.length - 3 + 2,
     };
   }
 

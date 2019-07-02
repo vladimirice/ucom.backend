@@ -4,7 +4,6 @@ import 'reflect-metadata';
 import { BlockchainTracesDiTypes } from '../interfaces/di-interfaces';
 import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfaces';
 import { WorkerLogger } from '../../../config/winston';
-import { AppError } from '../../api/errors';
 import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
 
 import MongoExternalModelProvider = require('../../eos/service/mongo-external-model-provider');
@@ -12,7 +11,6 @@ import IrreversibleTracesClient = require('../client/irreversible-traces-client'
 import TracesCommonFieldsValidator = require('../validator/traces-common-fields-validator');
 import BlockchainTracesProcessorChain = require('./blockchain-traces-processor-chain');
 import IrreversibleTracesRepository = require('../repository/irreversible-traces-repository');
-import UnknownTraceProcessor = require('../trace-processors/processors/unknown-trace-processor');
 
 const _ = require('lodash');
 
@@ -89,16 +87,19 @@ class BlockchainTracesSyncService {
 
     const manyProcessedTraces: any = [];
     for (const trace of manyTraces) {
-      const processedTrace: any = this.processOneTrace(trace);
-      manyProcessedTraces.push(processedTrace);
+      const processedTrace: IProcessedTrace | null = this.processOneTrace(trace);
+
+      if (processedTrace !== null) {
+        manyProcessedTraces.push(processedTrace);
+      }
     }
 
     if (manyProcessedTraces.length === 0) {
-      throw new AppError('It must be at least one trace to process');
-    }
-
-    if (manyProcessedTraces.length !== manyTraces.length) {
-      throw new AppError('manyProcessedTraces.length !== manyTraces.length');
+      return {
+        lastBlockNumber:  manyTraces[manyTraces.length - 1].blocknum,
+        skippedCount:     manyTraces.length,
+        insertedCount:    0,
+      };
     }
 
     const preparedTransactions: string[] = manyProcessedTraces.map(item => item.tr_id);
@@ -128,20 +129,13 @@ class BlockchainTracesSyncService {
     };
   }
 
-  private processOneTrace(trace: ITrace): IProcessedTrace {
+  private processOneTrace(trace: ITrace): IProcessedTrace | null {
     const { error } = this.tracesCommonFieldsValidator.validateOneTrace(trace);
     if (!error) {
       return this.blockchainTracesProcessorChain.processChain(trace);
     }
 
-    WorkerLogger.error('Malformed transaction. tracesCommonFieldsValidator failure. Write to the DB as unknown transaction', {
-      service: SERVICE_NAME,
-      error,
-    });
-
-    const unknownProcessor = new UnknownTraceProcessor();
-
-    return unknownProcessor.processTrace(trace);
+    return null;
   }
 
   private static async fetchTracesFromMongoDb(

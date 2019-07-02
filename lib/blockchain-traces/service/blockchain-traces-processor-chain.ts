@@ -3,7 +3,6 @@ import 'reflect-metadata';
 import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfaces';
 import { TraceProcessor } from '../interfaces/traces-sync-interfaces';
 import { BlockchainTracesDiTypes } from '../interfaces/di-interfaces';
-import { AppError } from '../../api/errors';
 
 import { WorkerLogger } from '../../../config/winston';
 import { MalformedProcessingError, UnableToProcessError } from '../trace-processors/processor-errors';
@@ -18,7 +17,7 @@ class BlockchainTracesProcessorChain {
     this.manyProcessors = manyProcessors;
   }
 
-  public processChain(trace: ITrace): IProcessedTrace {
+  public processChain(trace: ITrace): IProcessedTrace | null {
     for (const processor of this.manyProcessors) {
       let processedTrace;
       try {
@@ -42,7 +41,7 @@ class BlockchainTracesProcessorChain {
       return processedTrace;
     }
 
-    throw new AppError(`There is no processor for the trace, but must be. Trace is: ${JSON.stringify(trace)}`);
+    return null;
   }
 }
 
