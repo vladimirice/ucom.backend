@@ -1,4 +1,4 @@
-import { UOS, UOS_REGEX } from '../../common/dictionary/symbols-dictionary';
+import { UOS, UOS_REGEX } from '../../../common/dictionary/symbols-dictionary';
 
 const joi = require('joi');
 

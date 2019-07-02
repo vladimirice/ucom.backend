@@ -12,8 +12,6 @@ const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 const joi = require('joi');
 
 class VoteForCalculatorsTraceProcessor extends AbstractTracesProcessor {
-  readonly serviceName: string = 'vote-for-calculators';
-
   readonly traceType: number = BlockchainTrTraces.getTypeVoteForCalculatorNodes();
 
   readonly expectedActionsData = {

@@ -16,8 +16,6 @@ const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 
 @injectable()
 class VoteForBlockProducersTraceProcessor extends AbstractTracesProcessor {
-  readonly serviceName      = 'vote-for-block-producers';
-
   readonly traceType        = BlockchainTrTraces.getTypeVoteForBp();
 
   readonly expectedActionsData = {

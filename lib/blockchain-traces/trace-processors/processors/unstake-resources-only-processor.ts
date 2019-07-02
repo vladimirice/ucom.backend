@@ -10,7 +10,7 @@ import { MalformedProcessingError } from '../processor-errors';
 
 import AbstractTracesProcessor = require('../abstract-traces-processor');
 import BalancesHelper = require('../../../common/helper/blockchain/balances-helper');
-import StakeUnstakeHelper = require('../stake-unstake-helper');
+import StakeUnstakeHelper = require('../helpers/stake-unstake-helper');
 
 const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 
@@ -23,8 +23,6 @@ class UnstakeResourcesOnlyProcessor extends AbstractTracesProcessor {
       maxNumberOfActions:   2, // Both CPU and NET
     },
   };
-
-  readonly serviceName = 'unstake-resources-only';
 
   readonly traceType: number = BlockchainTrTraces.getTypeUnstakingRequest();
 

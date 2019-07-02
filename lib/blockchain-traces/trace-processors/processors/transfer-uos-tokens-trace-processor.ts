@@ -5,32 +5,21 @@ import 'reflect-metadata';
 import {
   IActNameToActionDataArray, IFromToMemo, ITraceActionTransferTokens,
 } from '../../interfaces/blockchain-actions-interfaces';
-import { UOS, UOS_REGEX } from '../../../common/dictionary/symbols-dictionary';
+import { UOS } from '../../../common/dictionary/symbols-dictionary';
 
 import BalancesHelper = require('../../../common/helper/blockchain/balances-helper');
 import AbstractTracesProcessor = require('./../abstract-traces-processor');
-
-const joi = require('joi');
+import TransferUosHelper = require('../helpers/transfer-uos-helper');
 
 const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 
-// eslint-disable-next-line security/detect-non-literal-regexp
-
-
 @injectable()
 class TransferUosTokensTraceProcessor extends AbstractTracesProcessor {
-  readonly serviceName: string = 'transfer-uos-tokens';
-
   readonly traceType: number = BlockchainTrTraces.getTypeTransfer();
 
   readonly expectedActionsData = {
     transfer: {
-      validationSchema: {
-        from:               joi.string().required().min(1).max(12),
-        to:                 joi.string().required().min(1).max(12),
-        memo:               joi.string().empty(''),
-        quantity:           joi.string().required().regex(UOS_REGEX),
-      },
+      validationSchema:   TransferUosHelper.getValidationSchema(),
       minNumberOfActions: 1,
       maxNumberOfActions: 1,
     },

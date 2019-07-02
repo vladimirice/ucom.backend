@@ -33,7 +33,30 @@ class MongoIrreversibleTracesGenerator {
     return 4;
   }
 
-  // @ts-ignore
+  public static getRamBytesToBuy(): number {
+    return 100024;
+  }
+
+  public static getBuyRamBytesUos(): number {
+    return 5.0486;
+  }
+
+  public static getBuyRamBytesUosFee(): number {
+    return 0.0254;
+  }
+
+  public static getRamBytesToSell(): number {
+    return 80001;
+  }
+
+  public static getSellRamBytesUos(): number {
+    return 3.0156;
+  }
+
+  public static getSellRamBytesUosFee(): number {
+    return 0.0182;
+  }
+
   public static async insertAllSampleTraces(actor: UserModel, actsFor: UserModel) {
     usedTracesSuffixes = [];
 
@@ -1048,7 +1071,7 @@ class MongoIrreversibleTracesGenerator {
           act_data : {
             payer : actor.account_name,
             receiver : actor.account_name,
-            bytes : 100024,
+            bytes : MongoIrreversibleTracesGenerator.getRamBytesToBuy(),
           },
           inline_traces : [
             {
@@ -1088,7 +1111,7 @@ class MongoIrreversibleTracesGenerator {
               act_data : {
                 from : actor.account_name,
                 to : 'eosio.ram',
-                quantity : '5.0486 UOS',
+                quantity : `${MongoIrreversibleTracesGenerator.getBuyRamBytesUos()} UOS`,
                 memo : 'buy ram',
               },
               inline_traces : [
@@ -1215,7 +1238,7 @@ class MongoIrreversibleTracesGenerator {
               act_data : {
                 from : actor.account_name,
                 to : 'eosio.ramfee',
-                quantity : '0.0254 UOS',
+                quantity : `${MongoIrreversibleTracesGenerator.getBuyRamBytesUosFee()} UOS`,
                 memo : 'ram fee',
               },
               inline_traces : [
@@ -1361,7 +1384,7 @@ class MongoIrreversibleTracesGenerator {
           account_ram_deltas : [],
           act_data : {
             account : actor.account_name,
-            bytes : 100001,
+            bytes : MongoIrreversibleTracesGenerator.getRamBytesToSell(),
           },
           inline_traces : [
             {
@@ -1401,7 +1424,7 @@ class MongoIrreversibleTracesGenerator {
               act_data : {
                 from : 'eosio.ram',
                 to : actor.account_name,
-                quantity : '5.0729 UOS',
+                quantity : `${MongoIrreversibleTracesGenerator.getSellRamBytesUos()} UOS`,
                 memo : 'sell ram',
               },
               inline_traces : [
@@ -1528,7 +1551,7 @@ class MongoIrreversibleTracesGenerator {
               act_data : {
                 from : actor.account_name,
                 to : 'eosio.ramfee',
-                quantity : '0.0254 UOS',
+                quantity : `${MongoIrreversibleTracesGenerator.getSellRamBytesUosFee()} UOS`,
                 memo : 'sell ram fee',
               },
               inline_traces : [

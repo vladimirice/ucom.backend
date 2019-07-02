@@ -16,7 +16,7 @@ const delay = require('delay');
 const helpers = require('../helpers');
 
 // eslint-disable-next-line node/no-missing-require
-const gen     = require('../../generators');
+const gen = require('../../generators');
 
 const blockchainTrTracesService =
   require('../../../lib/eos/service/tr-traces-service/blockchain-tr-traces-service');
@@ -195,110 +195,41 @@ describe('Blockchain tr traces sync tests', () => {
       });
       describe('RAM traces', () => {
         it('buy RAM bytes', async () => {
-          // TODO
-          /*
-            actions.length = 1
-            getTypeBuyRamBytes
+          const expectedBytes: number = MongoIrreversibleTracesGenerator.getRamBytesToBuy();
+          const expectedUos: number = MongoIrreversibleTracesGenerator.getBuyRamBytesUos()
+            + MongoIrreversibleTracesGenerator.getBuyRamBytesUosFee();
 
-            act = buyrambytes
+          const trType: number = BlockchainTrTraces.getTypeBuyRamBytes();
 
-          act_data : {
-            payer : actor.account_name,
-            receiver : actor.account_name,
-            bytes : 100024,
-          },
+          const targetTraces = traces.filter(item => item.tr_type === trType);
+          expect(targetTraces.length).toBe(1);
 
-          inline_traces.length = 2
-
-          first inline trace - actual price
-
-          act name = 'transfer'
-          act_data : {
-            from : actor.account_name,
-            to : 'eosio.ram',
-            quantity : '5.0486 UOS',
-            memo : 'buy ram',
-          },
-
-          second inline trace commission
-          act name = 'transfer'
-
-          act_data : {
-            from : actor.account_name,
-            to : 'eosio.ramfee',
-            quantity : '0.0254 UOS',
-            memo : 'ram fee',
-          },
-
-          ----------------------
-          response:
-
-          resources {
-            ram: {
-              amount: 100500,
-              dimension: "kB",
-              tokens: {
-                amount: 100,
-                currency: 'UOS',
-              }
-            }
-          }
-           */
+          const oneTrace = targetTraces[0];
+          IrreversibleTracesChecker.checkBuySellRamTrace(
+            oneTrace,
+            trType,
+            expectedBytes,
+            expectedUos,
+          );
         });
 
         it('sell RAM bytes', async () => {
-          // TODO
-          /*
-          actions.length = 1
-          getTypeSellRam
+          const expectedBytes: number = MongoIrreversibleTracesGenerator.getRamBytesToSell();
+          const expectedUos: number = MongoIrreversibleTracesGenerator.getSellRamBytesUos()
+            - MongoIrreversibleTracesGenerator.getSellRamBytesUosFee();
 
-          act name = sellram
+          const trType: number = BlockchainTrTraces.getTypeSellRam();
 
-          act_data : {
-            account : actor.account_name,
-            bytes : 100001,
-          },
+          const targetTraces = traces.filter(item => item.tr_type === trType);
+          expect(targetTraces.length).toBe(1);
 
-          ---------------------------
-
-          inline_traces.length = 2
-
-          first inline trace
-          act name transfer
-
-          act_data : {
-            from : 'eosio.ram',
-            to : actor.account_name,
-            quantity : '5.0729 UOS',
-            memo : 'sell ram',
-          },
-
-          ---------------------------
-
-          second inline trace
-          act name transfer
-
-          act_data : {
-            from : actor.account_name,
-            to : 'eosio.ramfee',
-            quantity : '0.0254 UOS',
-            memo : 'sell ram fee',
-          },
-
-
-          ===========================
-
-          resources {
-            ram: {
-              amount: 100500,
-              dimension: "kB",
-              tokens: {
-                amount: 100,
-                currency: 'UOS',
-              }
-            }
-          }
-       */
+          const oneTrace = targetTraces[0];
+          IrreversibleTracesChecker.checkBuySellRamTrace(
+            oneTrace,
+            trType,
+            expectedBytes,
+            expectedUos,
+          );
         });
       });
     });

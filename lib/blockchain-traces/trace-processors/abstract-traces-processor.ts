@@ -20,8 +20,6 @@ const joi = require('joi');
 
 @injectable()
 abstract class AbstractTracesProcessor implements TraceProcessor {
-  abstract readonly serviceName: string;
-
   abstract readonly traceType: number;
 
   abstract readonly expectedActionsData: {
@@ -48,7 +46,7 @@ abstract class AbstractTracesProcessor implements TraceProcessor {
 
       const { validationSchema, minNumberOfActions, maxNumberOfActions } = this.expectedActionsData[actName];
 
-      validatedActionsData[actName] = AbstractTracesProcessor.findActionsDataByRules(
+      validatedActionsData[actName] = this.findActionsDataByRules(
         actName,
         validationSchema,
         minNumberOfActions,
@@ -71,6 +69,10 @@ abstract class AbstractTracesProcessor implements TraceProcessor {
     );
   }
 
+  protected throwMalformedError(message: string): void {
+    throw new MalformedProcessingError(`Trace type: ${this.traceType}. ${message}`);
+  }
+
   private allActNamesAllowedOrError(trace: ITrace): void {
     const allowedActNames: string[] = Object.keys(this.expectedActionsData);
 
@@ -81,7 +83,7 @@ abstract class AbstractTracesProcessor implements TraceProcessor {
     }
   }
 
-  private static findActionsDataByRules(
+  private findActionsDataByRules(
     actName: string,
     validationSchema: StringToAnyCollection,
     minNumberOfActions: number,
@@ -95,13 +97,13 @@ abstract class AbstractTracesProcessor implements TraceProcessor {
     }
 
     for (const action of targetActions) {
-      AbstractTracesProcessor.validateActionByActData(action, validationSchema);
+      this.validateActionByActData(action, validationSchema);
     }
 
     return targetActions;
   }
 
-  private static validateActionByActData(
+  private validateActionByActData(
     action: ITraceAction,
     validationSchema: StringToAnyCollection,
   ): ITraceAction {
@@ -113,7 +115,7 @@ abstract class AbstractTracesProcessor implements TraceProcessor {
     });
 
     if (error) {
-      throw new MalformedProcessingError('Action name is ok but there are validation errors');
+      this.throwMalformedError('Action name is ok but there are validation errors');
     }
 
     return action;

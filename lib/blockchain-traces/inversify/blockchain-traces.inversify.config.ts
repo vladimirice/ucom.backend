@@ -13,6 +13,8 @@ import ClaimEmissionTraceProcessor = require('../trace-processors/processors/cla
 import StakeResourcesOnlyProcessor = require('../trace-processors/processors/stake-resources-only-processor');
 import UnstakeResourcesOnlyProcessor = require('../trace-processors/processors/unstake-resources-only-processor');
 import StakeUnstakeResourcesProcessor = require('../trace-processors/processors/stake-unstake-resources-processor');
+import BuyRamProcessor = require('../trace-processors/processors/buy-ram-processor');
+import SellRamProcessor = require('../trace-processors/processors/sell-ram-processor');
 
 function addTraceProcessors(diContainer: Container) {
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(TransferUosTokensTraceProcessor);
@@ -22,6 +24,8 @@ function addTraceProcessors(diContainer: Container) {
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(StakeResourcesOnlyProcessor);
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UnstakeResourcesOnlyProcessor);
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(StakeUnstakeResourcesProcessor);
+  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(BuyRamProcessor);
+  diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(SellRamProcessor);
 
   // Next line must always be the last line
   diContainer.bind<TraceProcessor>(BlockchainTracesDiTypes.tracesProcessor).to(UnknownTraceProcessor);

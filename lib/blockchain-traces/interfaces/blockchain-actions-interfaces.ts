@@ -2,7 +2,7 @@ import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
 interface ITraceAction {
   act_data:           ITraceActionData; // here is a main payload
-  inline_traces:      StringToAnyCollection[]; // here is a payload for RAM also
+  inline_traces:      ITraceAction[]; // here is a payload for RAM also
 
   receipt:            StringToAnyCollection;
   account_ram_deltas: StringToAnyCollection[];
@@ -63,8 +63,25 @@ interface ITraceActionVoteForCalculators extends ITraceAction {
 interface ITraceActionClaimEmission extends ITraceAction {
   act_data: {
     owner:          string;
-    inline_traces:  any;
   }
+  inline_traces:  any;
+}
+
+interface ITraceActionBuyRam extends ITraceAction {
+  act_data: {
+    payer:    string,
+    receiver: string,
+    bytes:    number,
+  }
+  inline_traces:  ITraceAction[];
+}
+
+interface ITraceActionSellRam extends ITraceAction {
+  act_data: {
+    account:  string,
+    bytes:    number,
+  }
+  inline_traces:  ITraceAction[];
 }
 
 interface ITraceActionDelegateBw extends ITraceAction {
@@ -83,13 +100,16 @@ interface ITraceActionUndelegateBw extends ITraceAction {
     receiver:             string,
     unstake_net_quantity: string, // example - '0.0000 UOS',
     unstake_cpu_quantity: string, // example - '2.0000 UOS',
-    transfer:            number,
+    transfer:             number,
   },
 }
 
 export {
   ITraceActionDelegateBw,
   ITraceActionUndelegateBw,
+
+  ITraceActionBuyRam,
+  ITraceActionSellRam,
 
   IFromToMemo,
   IActNameToActionDataArray,

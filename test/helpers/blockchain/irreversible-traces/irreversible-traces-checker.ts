@@ -22,6 +22,28 @@ class IrreversibleTracesChecker {
     expect(trace.tokens).toEqual(expected);
   }
 
+  public static checkBuySellRamTrace(trace, trType: number, expectedBytes: number, expectedUos: number): void {
+    this.checkCommonTrTracesFields(trace);
+    expect(trace.tr_type).toBe(trType);
+    expect(trace.memo).toBe('');
+
+    CommonChecker.expectNotEmpty(trace.resources);
+
+    const expected = {
+      ram: {
+        amount: +(expectedBytes / 1024).toFixed(4),
+        dimension: 'kB',
+        tokens: {
+          amount: +expectedUos.toFixed(4),
+          currency: UOS,
+        },
+      },
+    };
+
+    expect(trace.resources).toEqual(expected);
+  }
+
+
   public static checkVoteForBps(trace, expectedProducers: string[]) {
     this.checkCommonTrTracesFields(trace);
     expect(trace.tr_type).toBe(blockchainTrTypesDictionary.getTypeVoteForBp());
