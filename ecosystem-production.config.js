@@ -235,15 +235,15 @@ module.exports = {
         NODE_ENV,
       },
     },
-    // {
-    //   name: `${NODE_ENV}-sync-irreversible-traces-worker`,
-    //   script: 'lib/blockchain-traces/workers/sync-irreversible-traces-worker.js',
-    //
-    //   watch: false,
-    //   cron_restart: CRON_PATTERN_EVERY_MINUTE,
-    //   env: {
-    //     NODE_ENV,
-    //   },
-    // },
+    {
+      name: `${NODE_ENV}-sync-irreversible-traces-worker`,
+      script: 'lib/blockchain-traces/workers/sync-irreversible-traces-worker.js',
+
+      watch: false,
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
+      env: {
+        NODE_ENV,
+      },
+    },
   ],
 };

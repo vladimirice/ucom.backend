@@ -2,7 +2,10 @@
 import BlockchainModelProvider = require('../../eos/service/blockchain-model-provider');
 import knex = require('../../../config/knex');
 import UsersModelProvider = require('../../users/users-model-provider');
+import EnvHelper = require('../../common/helper/env-helper');
 const TABLE_NAME = BlockchainModelProvider.irreversibleTracesTableName();
+
+const { BlockchainTrTraces }  = require('ucom-libs-wallet').Dictionary;
 
 class IrreversibleTracesRepository {
   public static async insertManyTraces(traces): Promise<string[]> {
@@ -50,7 +53,7 @@ class IrreversibleTracesRepository {
       toSelect.push(`${TABLE_NAME}.${field} AS ${field}`);
     });
 
-    const dbData = await knex.select(toSelect)
+    const queryBuilder = knex.select(toSelect)
       .from(TABLE_NAME)
       .andWhere(function () {
         this.where('account_name_from', accountName);
@@ -72,6 +75,17 @@ class IrreversibleTracesRepository {
       .offset(params.offset)
       .limit(params.limit)
     ;
+
+    if (EnvHelper.isProductionEnv()) {
+      queryBuilder.whereNotIn(
+        'tr_type',
+        [
+          BlockchainTrTraces.getTypeUpvoteContent(),
+        ],
+      );
+    }
+
+    const dbData = await queryBuilder;
 
     // Hydration
     // #task - use existing library
