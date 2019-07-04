@@ -1,5 +1,12 @@
 # U°Community Backend API Service
 
+## Main features
+* Social network - Users, Posts, Comments etc.
+* All social actions are written to the blockchain
+* User's rating = blockchain rating.
+* UOS/EOS blockchain integration
+* 600+ autotests
+* High-load architecture - queue servers, background tasks, database sharding
 
 ## Content
 * [Main goals](#main-goals)
