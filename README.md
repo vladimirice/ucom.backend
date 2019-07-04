@@ -6,6 +6,7 @@
 * [Installation](documentation/INSTALLATION.md)
 * [How-to](documentation/HOW_TO.md)
 * [Architecture](documentation/ARCHITECTURE.md)
+* [Entities](documentation/ENTITIES.md) - a list of all project entities (Users, Posts, etc.)
 * [Features](documentation/features)
     * [Current workflow](documentation/features/CURRENT_WORKFLOW.md)
     * [Services and applications](documentation/features/SERVICES_AND_APPLICATIONS.md)

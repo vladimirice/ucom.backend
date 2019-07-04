@@ -26,6 +26,7 @@ const UsersUpdatingSchema = joi.object().keys({
   users_education:      joi.array(),
   users_jobs:           joi.array(),
   users_sources:        joi.array(),
+  entity_images:        joi.any(),
 });
 
 export {

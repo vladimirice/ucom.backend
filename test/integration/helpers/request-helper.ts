@@ -110,6 +110,14 @@ class RequestHelper {
     return request(server).get(url);
   }
 
+  public static getRequestObjForPatch(url: string, myself: UserModel): SuperAgentRequest {
+    const req =  request(server).patch(url);
+
+    RequestHelper.addAuthToken(req, myself);
+
+    return req;
+  }
+
   public static getGetRequestAsMyself(url: string, myself: UserModel): IResponseBody {
     const req = this.getRequestObjForGet(url);
 
@@ -289,6 +297,22 @@ class RequestHelper {
     this.addFieldsToRequest(req, fields);
 
     return req;
+  }
+
+  public static addFormFieldsToRequestWithStringify(
+    req: SuperAgentRequest,
+    fields: StringToAnyCollection,
+  ): void {
+    const processed: StringToAnyCollection = {};
+    for (const field in fields) {
+      if (!fields.hasOwnProperty(field)) {
+        continue;
+      }
+
+      processed[field] = typeof fields[field] === 'string' ? fields[field] : JSON.stringify(fields[field]);
+    }
+
+    this.addFieldsToRequest(req, processed);
   }
 
   public static addFieldsToRequest(
@@ -526,6 +550,8 @@ class RequestHelper {
 
   /**
    *
+   * @deprecated
+   * GraphQL is used
    * @param {Object} myself
    * @param {Object} userToRequest
    * @returns {Promise<Object>}

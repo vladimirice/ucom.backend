@@ -277,7 +277,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
    * @param {Array} modelsToInclude
    * @return {Promise<Object>}
    */
-  static async findOneBy(where, modelsToInclude = null) {
+  static async findOneBy(where, modelsToInclude: string[] | null = null) {
     const include = this.getIncludeByKeys(modelsToInclude);
 
     const result = await this.getOrganizationModel().findOne({

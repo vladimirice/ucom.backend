@@ -45,6 +45,9 @@ module.exports = (db, Sequelize) => {
     current_rate: {
       type: Sequelize.DECIMAL(10, 10)
     },
+    entity_images: {
+      type: Sequelize.JSONB,
+    },
     created_at: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.NOW,
@@ -86,6 +89,7 @@ module.exports = (db, Sequelize) => {
       'user_id',
       'powered_by',
       'about',
+      'entity_images',
     ];
   };
 

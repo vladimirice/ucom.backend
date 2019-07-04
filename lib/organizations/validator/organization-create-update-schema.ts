@@ -1,3 +1,5 @@
+import EntityImagesModelProvider = require('../../entity-images/service/entity-images-model-provider');
+
 const joi = require('joi');
 
 // tslint:disable-next-line:variable-name
@@ -22,6 +24,8 @@ const CreateOrUpdateOrganizationSchema = joi.object().keys({
   social_networks:      joi.array(),
   community_sources:    joi.array(),
   partnership_sources:  joi.array(),
+
+  [EntityImagesModelProvider.entityImagesColumn()]:        joi.any(),
 });
 
 export {

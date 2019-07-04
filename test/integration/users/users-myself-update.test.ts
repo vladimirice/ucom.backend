@@ -136,7 +136,7 @@ describe('Myself API', () => {
         }
 
         UsersHelper.validateUserJson(res.body, userVlad, updatedUser);
-      }, JEST_TIMEOUT * 100);
+      }, JEST_TIMEOUT);
 
       describe('myself sources', () => {
         it('Update users sources', async () => {

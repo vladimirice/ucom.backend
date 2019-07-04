@@ -118,7 +118,6 @@ const minorTables = [
 
   'tags',
   'entity_stats_current',
-  'blockchain_tr_traces',
 
   'blockchain_nodes',
 

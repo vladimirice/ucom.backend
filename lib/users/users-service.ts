@@ -13,6 +13,7 @@ import UpdateManyToManyHelper = require('../api/helpers/UpdateManyToManyHelper')
 import UserInputSanitizer = require('../api/sanitizers/user-input-sanitizer');
 import DeleteAllInArrayValidator = require('../common/validator/form-data/delete-all-in-array-validator');
 import knex = require('../../config/knex');
+import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
 
 const _ = require('lodash');
 
@@ -39,6 +40,8 @@ class UsersService {
         requestData[field] = null;
       }
     }
+
+    EntityImageInputService.processEntityImageOrMakeItEmpty(requestData);
 
     const userId = currentUser.id;
     const user = await UsersRepository.getUserById(userId);

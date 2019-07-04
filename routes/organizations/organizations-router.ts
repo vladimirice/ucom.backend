@@ -1,15 +1,16 @@
 /* tslint:disable:max-line-length */
+import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
+import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+
 import OrganizationsFetchService = require('../../lib/organizations/service/organizations-fetch-service');
 import OrganizationsValidateDiscussions = require('../../lib/organizations/discussions/service/organizations-validate-discussions');
 import OrganizationsModifyDiscussions = require('../../lib/organizations/discussions/service/organizations-modify-discussions');
 import PostsInputProcessor = require('../../lib/posts/validators/posts-input-processor');
 import DiServiceLocator = require('../../lib/api/services/di-service-locator');
 import UserToOrganizationActivity = require('../../lib/users/activity/user-to-organization-activity');
-import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
 import ActivityApiMiddleware = require('../../lib/activity/middleware/activity-api-middleware');
 import PostService = require('../../lib/posts/post-service');
 import OrganizationService = require('../../lib/organizations/service/organization-service');
-import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 
 const express = require('express');

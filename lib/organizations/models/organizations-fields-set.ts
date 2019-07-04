@@ -1,5 +1,7 @@
 import { IModelFieldsSet } from '../../common/interfaces/models-dto';
 
+import EntityImagesModelProvider = require('../../entity-images/service/entity-images-model-provider');
+
 const fieldsSet: IModelFieldsSet = {
   // Editable by a user request
   avatar_filename: {
@@ -72,6 +74,12 @@ const fieldsSet: IModelFieldsSet = {
     type: 'string',
     request: {
       sanitizationType: 'text',
+    },
+  },
+  [EntityImagesModelProvider.entityImagesColumn()]: {
+    type: 'any',
+    request: {
+      sanitizationType: 'any',
     },
   },
 

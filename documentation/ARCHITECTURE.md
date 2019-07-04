@@ -31,22 +31,6 @@ All blockchain-related business logic must be placed
 * REDIS
 * RabbitMq
 
-### Entities list
-* Users (Myself as a user state: user + auth token)
-* Posts (Publications, reposts, etc.)
-* Comments
-* Organizations (communities)
-* Tags
-* Blockchain nodes - for caching blockchain state
-
-
-### Entities states (response fields structure):
-* `Full` - all possible fields
-* `Preview` - amount of fields required for lists of entities
-* `Card` - minimum amount of fields, used in `object inside object` situations, 
-ex. `entity_for` - for whom post is published, User or Organization data.
-
-It is possible that in the future such states will completely be moved to frontend. Because of GraphQL implementation.
 
 ## Statistics module
 
@@ -117,7 +101,7 @@ In the future, these classes will be refactored to split declaration and impleme
 * [StatsHelper](../test/integration/helpers/stats-helper.ts) has a collection of an expected field structure separated from the main codebase - this is by design. It is required
 to code the expected values before implementing the solution (TDD principle). If somebody occasionally changes the implementation, the autotest will fail.
 * There is a universal `StatsHelper` parameters checker, based on `expected set` declared manually inside autotests.
-* Here is [an example of test suite for posts](../test/integration/stats/stats-only-orgs.test.ts) 
+* Here is [an example of test suite for posts](../test/integration/stats/stats-organizations.test.ts) 
 
 ## Airdrop and balances
 

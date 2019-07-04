@@ -20,6 +20,8 @@ export const graphqlOrganizationsTypes = `
     about: String
     powered_by: String
     
+    entity_images: JSON
+    
     importance_delta: Float
     activity_index_delta: Float
     posts_total_amount_delta: Int

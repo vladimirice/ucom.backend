@@ -1,7 +1,8 @@
 import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
 import { ListResponse } from '../../common/interfaces/lists-interfaces';
+import { ModelWithEntityImages } from '../../entity-images/interfaces/model-interfaces';
 
-interface OrgModel {
+interface OrgModel extends ModelWithEntityImages {
   readonly id: number;
   readonly current_vote: number;
 

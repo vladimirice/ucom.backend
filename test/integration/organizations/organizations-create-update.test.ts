@@ -1,6 +1,5 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-import MockHelper = require('../helpers/mock-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 import RequestHelper = require('../helpers/request-helper');
@@ -12,15 +11,11 @@ import OrgsCurrentParamsRepository = require('../../../lib/organizations/reposit
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import EntitySourcesRepository = require('../../../lib/entities/repository/entity-sources-repository');
 import CommonChecker = require('../../helpers/common/common-checker');
+import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 
 const request = require('supertest');
 const _ = require('lodash');
 const faker = require('faker');
-
-const organizationsRepositories = require('../../../lib/organizations/repository');
-const entitySourceRepository = require('../../../lib/entities/repository').Sources;
-const orgModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
-
 
 const server = RequestHelper.getApiApplication();
 
@@ -29,14 +24,13 @@ let userJane: UserModel;
 let userPetr: UserModel;
 let userRokky: UserModel;
 
-MockHelper.mockAllBlockchainPart();
-
 const JEST_TIMEOUT = 5000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
 describe('Organizations. Create-update requests', () => {
-  afterAll(async () => { await SeedsHelper.doAfterAll(); });
+  beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); });
+  afterAll(async () => { await SeedsHelper.afterAllWithoutGraphQl(); });
 
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
@@ -81,7 +75,7 @@ describe('Organizations. Create-update requests', () => {
 
         const body = await OrganizationsHelper.requestToCreateNew(user, fields, sourcesToInsert);
 
-        const sources = await entitySourceRepository.findAllByEntity(body.id, 'org');
+        const sources = await EntitySourcesRepository.findAllByEntity(body.id, 'org');
 
         expect(sources.length).toBe(socialNetworks.length);
 
@@ -113,7 +107,7 @@ describe('Organizations. Create-update requests', () => {
 
         ResponseHelper.expectStatusCreated(res);
 
-        const lastOrg = await organizationsRepositories.Main.findLastByAuthor(user.id);
+        const lastOrg = await OrganizationsRepository.findLastByAuthor(user.id);
 
         expect(lastOrg.phone_number).toBe('');
         expect(lastOrg.personal_website_url).toBe('');
@@ -138,7 +132,7 @@ describe('Organizations. Create-update requests', () => {
         // noinspection JSDeprecatedSymbols
         const body =
           await OrganizationsHelper.requestToCreateNewOrganization(userPetr, newModelFields);
-        const lastModel = await organizationsRepositories.Main.findLastByAuthor(userPetr.id);
+        const lastModel = await OrganizationsRepository.findLastByAuthor(userPetr.id);
         expect(lastModel).not.toBeNull();
 
         expect(body.id).toBe(lastModel.id);
@@ -176,7 +170,7 @@ describe('Organizations. Create-update requests', () => {
           .field('random_field_two', extraFields.random_field_two)
         ;
 
-        const lastModel = await organizationsRepositories.Main.findLastByAuthor(userPetr.id);
+        const lastModel = await OrganizationsRepository.findLastByAuthor(userPetr.id);
         expect(lastModel).not.toBeNull();
 
         ResponseHelper.expectStatusCreated(res);
@@ -188,7 +182,7 @@ describe('Organizations. Create-update requests', () => {
 
       // tslint:disable-next-line:max-line-length
       it('should be possible to create two organizations with empty emails - no unique error', async () => {
-        const countBefore = await organizationsRepositories.Main.countAllOrganizations();
+        const countBefore = await OrganizationsRepository.countAllOrganizations();
 
         const requestOnePromise = request(server)
           .post(RequestHelper.getOrganizationsUrl())
@@ -215,10 +209,10 @@ describe('Organizations. Create-update requests', () => {
         ResponseHelper.expectStatusCreated(resultOne);
         ResponseHelper.expectStatusCreated(resultTwo);
 
-        const countAfter = await organizationsRepositories.Main.countAllOrganizations();
+        const countAfter = await OrganizationsRepository.countAllOrganizations();
 
         expect(countAfter).toBe(countBefore + 2);
-      });
+      }, JEST_TIMEOUT * 3);
 
       it('Empty values of unique fields must be written to DB as nulls', async () => {
         const user = userPetr;
@@ -233,7 +227,7 @@ describe('Organizations. Create-update requests', () => {
         ;
         ResponseHelper.expectStatusCreated(res);
 
-        const lastOrg = await organizationsRepositories.Main.findLastByAuthor(user.id);
+        const lastOrg = await OrganizationsRepository.findLastByAuthor(user.id);
 
         expect(lastOrg.id).toBe(res.body.id);
         expect(lastOrg.email).toBeNull();
@@ -244,7 +238,7 @@ describe('Organizations. Create-update requests', () => {
         const sampleFields = OrganizationsHelper.getSampleOrganizationsParams();
 
         const infectedFields = _.clone(sampleFields);
-        const textFields = organizationsRepositories.Main.getModelSimpleTextFields();
+        const textFields = OrganizationsRepository.getModelSimpleTextFields();
 
         const injection = '<script>alert("Hello");</script><img src="https://hacked.url"/>';
 
@@ -256,7 +250,7 @@ describe('Organizations. Create-update requests', () => {
 
         // noinspection JSDeprecatedSymbols
         await OrganizationsHelper.requestToCreateNewOrganization(userPetr, infectedFields);
-        const lastModel = await organizationsRepositories.Main.findLastByAuthor(userPetr.id);
+        const lastModel = await OrganizationsRepository.findLastByAuthor(userPetr.id);
 
         delete sampleFields.avatar_filename;
 
@@ -276,7 +270,7 @@ describe('Organizations. Create-update requests', () => {
 
         const secondOrgModel = await OrganizationsRepository.findOneById(secondOrgId);
         CommonChecker.expectNotEmpty(secondOrgModel.users_team);
-      }, JEST_TIMEOUT);
+      }, JEST_TIMEOUT * 3);
 
       it('should allow to add board to the organization', async () => {
         const author = userVlad;
@@ -304,7 +298,7 @@ describe('Organizations. Create-update requests', () => {
         await UsersHelper.directlySetUserConfirmsInvitation(+res.body.id, userJane);
         await UsersHelper.directlySetUserConfirmsInvitation(+res.body.id, userPetr);
 
-        const lastModel = await organizationsRepositories.Main.findLastByAuthor(author.id);
+        const lastModel = await OrganizationsRepository.findLastByAuthor(author.id);
 
         const usersTeam = lastModel.users_team;
         expect(usersTeam).toBeDefined();
@@ -385,7 +379,7 @@ describe('Organizations. Create-update requests', () => {
 
         ResponseHelper.expectStatusCreated(res);
 
-        const lastOrg = await organizationsRepositories.Main.findLastByAuthor(userPetr.id);
+        const lastOrg = await OrganizationsRepository.findLastByAuthor(userPetr.id);
 
         expect(lastOrg.id).toBe(res.body.id);
         expect(lastOrg.id).not.toBe(100500);
@@ -396,7 +390,7 @@ describe('Organizations. Create-update requests', () => {
         const user = userVlad;
 
         await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
-        const existingOrg = await organizationsRepositories.Main.findFirstByAuthor(user.id);
+        const existingOrg = await OrganizationsRepository.findFirstByAuthor(user.id);
 
         const twoFieldsRes = await request(server)
           .post(RequestHelper.getOrganizationsUrl())
@@ -431,9 +425,7 @@ describe('Organizations. Create-update requests', () => {
 
         expect(oneFieldErrors.some(error => error.field === 'nickname')).toBeTruthy();
         expect(oneFieldErrors.some(error => error.field === 'email')).toBeFalsy();
-
-        // If only one duplication then only one error
-      });
+      }, JEST_TIMEOUT * 3);
     });
   });
 
@@ -448,7 +440,7 @@ describe('Organizations. Create-update requests', () => {
         await OrganizationsHelper.createSocialNetworksDirectly(orgId);
 
         const sources =
-          await EntitySourcesRepository.findAllByEntity(orgId, orgModelProvider.getEntityName());
+          await EntitySourcesRepository.findAllByEntity(orgId, OrganizationsModelProvider.getEntityName());
 
         const sourcesForRequest: any = [];
 
@@ -478,7 +470,7 @@ describe('Organizations. Create-update requests', () => {
           source_url:     faker.internet.url(),
           source_type_id: 4, // from Dict - social networks
           entity_id:      orgId,
-          entity_name:    orgModelProvider.getEntityName(),
+          entity_name:    OrganizationsModelProvider.getEntityName(),
         };
 
         sourcesForRequest.push(newSource);
@@ -525,7 +517,7 @@ describe('Organizations. Create-update requests', () => {
           is_official:  sourceToModify.is_official,
           entity_id:    `${orgId}`, // should not be changed because of restrictions
         },                                  modifiedSource);
-      }, JEST_TIMEOUT);
+      }, JEST_TIMEOUT * 3);
 
       // tslint:disable-next-line:max-line-length
       it.skip('If ID of different entity is provided - new one will be created and id will be ignored', async () => {
@@ -567,7 +559,7 @@ describe('Organizations. Create-update requests', () => {
           newUsersTeam,
         );
 
-        const orgAfter = await organizationsRepositories.Main.findOneById(orgId, 0);
+        const orgAfter = await OrganizationsRepository.findOneById(orgId, 0);
         const avatarFilenameAfter = orgAfter.avatar_filename;
 
         delete sampleOrganizationFields.avatar_filename;
@@ -628,7 +620,7 @@ describe('Organizations. Create-update requests', () => {
 
         ResponseHelper.expectStatusOk(res);
 
-        const lastModel = await organizationsRepositories.Main.findOneById(orgId);
+        const lastModel = await OrganizationsRepository.findOneById(orgId);
 
         ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
       });
@@ -638,7 +630,7 @@ describe('Organizations. Create-update requests', () => {
         const user = userVlad;
         const orgId = await OrganizationsGenerator.createOrgWithoutTeam(user);
 
-        const org = await organizationsRepositories.Main.findOneById(orgId);
+        const org = await OrganizationsRepository.findOneById(orgId);
 
         const newModelFields = {
           title:    org.title,
@@ -658,7 +650,7 @@ describe('Organizations. Create-update requests', () => {
 
         ResponseHelper.expectStatusOk(res);
 
-        const lastModel = await organizationsRepositories.Main.findOneById(orgId);
+        const lastModel = await OrganizationsRepository.findOneById(orgId);
 
         ResponseHelper.expectValuesAreExpected(newModelFields, lastModel);
       });
@@ -667,7 +659,7 @@ describe('Organizations. Create-update requests', () => {
         // Required because frontend will send fields which are not been implemented in backend
         const user = userJane;
         await OrganizationsGenerator.createOrgWithoutTeam(user);
-        const orgBefore = await organizationsRepositories.Main.findLastByAuthor(user.id);
+        const orgBefore = await OrganizationsRepository.findLastByAuthor(user.id);
         const orgId = orgBefore.id;
 
         const fieldsToChange = {
@@ -691,7 +683,7 @@ describe('Organizations. Create-update requests', () => {
 
         ResponseHelper.expectStatusOk(res);
 
-        const orgAfter = await organizationsRepositories.Main.findOneById(orgId);
+        const orgAfter = await OrganizationsRepository.findOneById(orgId);
 
         ResponseHelper.expectValuesAreExpected(fieldsToChange, orgAfter);
 
@@ -716,7 +708,7 @@ describe('Organizations. Create-update requests', () => {
       it('should not be possible to change avatar filename without attaching a file', async () => {
         const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
 
-        const orgBefore = await organizationsRepositories.Main.findOneById(orgId);
+        const orgBefore = await OrganizationsRepository.findOneById(orgId);
 
         const res = await request(server)
           .patch(RequestHelper.getOneOrganizationUrl(orgId))
@@ -728,7 +720,7 @@ describe('Organizations. Create-update requests', () => {
 
         ResponseHelper.expectStatusOk(res);
 
-        const orgAfter = await organizationsRepositories.Main.findOneById(orgId);
+        const orgAfter = await OrganizationsRepository.findOneById(orgId);
 
         expect(orgAfter.avatar_filename).toBe(orgBefore.avatar_filename);
         expect(orgAfter.avatar_filename).not.toBe('avatar_is_changed.jpg');
@@ -768,9 +760,9 @@ describe('Organizations. Create-update requests', () => {
         const orgIdToTakeNickname = await OrganizationsGenerator.createOrgWithoutTeam(userPetr);
 
         const [currentOrg, orgToTakeEmail, orgToTakeNickname] = await Promise.all([
-          organizationsRepositories.Main.findOneById(currentOrgId),
-          organizationsRepositories.Main.findOneById(orgIdToTakeEmail),
-          organizationsRepositories.Main.findOneById(orgIdToTakeNickname),
+          OrganizationsRepository.findOneById(currentOrgId),
+          OrganizationsRepository.findOneById(orgIdToTakeEmail),
+          OrganizationsRepository.findOneById(orgIdToTakeNickname),
         ]);
 
         const newModelFields = {
@@ -795,7 +787,7 @@ describe('Organizations. Create-update requests', () => {
         expect(errors).toBeDefined();
         expect(errors.some(error => error.field === 'email')).toBeTruthy();
         expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
-      });
+      }, JEST_TIMEOUT * 3);
 
       // tslint:disable-next-line:max-line-length
       it('should not be possible to update with given nickname, if email is same as given org but nickname is same as in other org', async () => {
@@ -803,8 +795,8 @@ describe('Organizations. Create-update requests', () => {
         const otherOrgId = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
 
         const [currentOrg, otherOrg] = await Promise.all([
-          organizationsRepositories.Main.findOneById(currentOrgId),
-          organizationsRepositories.Main.findOneById(otherOrgId),
+          OrganizationsRepository.findOneById(currentOrgId),
+          OrganizationsRepository.findOneById(otherOrgId),
         ]);
 
         const newModelFields = {
@@ -828,7 +820,7 @@ describe('Organizations. Create-update requests', () => {
         expect(errors).toBeDefined();
         expect(errors.some(error => error.field === 'email')).toBeFalsy();
         expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
-      });
+      }, JEST_TIMEOUT * 3);
 
       it('should not be possible to update org without auth token', async () => {
         const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
@@ -839,7 +831,7 @@ describe('Organizations. Create-update requests', () => {
         ;
 
         ResponseHelper.expectStatusUnauthorized(res);
-      });
+      }, JEST_TIMEOUT * 3);
 
       it.skip('should throw correct error messages related to invalid fields', async () => {
       });

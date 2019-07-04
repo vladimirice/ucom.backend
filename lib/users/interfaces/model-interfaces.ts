@@ -3,8 +3,9 @@ import { RequestQueryDto } from '../../api/filters/interfaces/query-filter-inter
 import {
   UosAccountPropertiesValuesDto,
 } from '../../uos-accounts-properties/interfaces/model-interfaces';
+import { ModelWithEntityImages } from '../../entity-images/interfaces/model-interfaces';
 
-interface UserModel {
+interface UserModel extends ModelWithEntityImages {
   readonly id: number;
   readonly account_name: string;
 
@@ -13,7 +14,7 @@ interface UserModel {
   [index: string]: any
 }
 
-interface UserModelCard {
+interface UserModelCard extends ModelWithEntityImages {
   readonly id: number;
   readonly account_name: string;
 

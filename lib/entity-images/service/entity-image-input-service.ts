@@ -1,5 +1,6 @@
 import { ModelWithEntityImages } from '../interfaces/model-interfaces';
 import { BadRequestError } from '../../api/errors';
+import { IRequestBody } from '../../common/interfaces/common-types';
 
 import EntityImagesInputValidator = require('../validator/entity-images-input-validator');
 import EntityImagesModelProvider = require('./entity-images-model-provider');
@@ -22,6 +23,20 @@ class EntityImageInputService {
     this.addEntityImageFieldOrException(model, body[fieldName]);
   }
 
+  public static processEntityImageOrMakeItEmpty(
+    body: IRequestBody,
+  ): void {
+    const inputValue = body[fieldName];
+
+    if (typeof inputValue === 'undefined') {
+      this.setEmptyEntityImages(body);
+
+      return;
+    }
+
+    this.addEntityImageFromRequest(<ModelWithEntityImages>body, inputValue);
+  }
+
   private static addEntityImageFieldOrException(
     model: ModelWithEntityImages,
     inputValue: string | undefined,
@@ -30,6 +45,13 @@ class EntityImageInputService {
       throw new BadRequestError('entity_images field must be provided. For empty value please provide empty object {}');
     }
 
+    this.addEntityImageFromRequest(model, inputValue);
+  }
+
+  private static addEntityImageFromRequest(
+    model: ModelWithEntityImages,
+    inputValue: string,
+  ): void {
     EntityImagesInputValidator.validateStringInput(inputValue);
 
     let parsed;

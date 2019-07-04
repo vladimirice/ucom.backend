@@ -22,10 +22,12 @@ const users         = UsersModelProvider.getTableName();
 
 class OrganizationsDiscussionsRepository {
   public static async findManyDiscussions(orgId: number) {
-    let toSelect = QueryFilterService.getPrefixedAttributes(
+    const toSelect = QueryFilterService.getPrefixedSelectAndSkipSome(
       PostsModelProvider.getPostsFieldsForCard(),
       posts,
-      false,
+      [
+        'comments_count',
+      ],
     );
 
     // #task - use knex hydrator or ORM or separate libs
@@ -38,10 +40,11 @@ class OrganizationsDiscussionsRepository {
       userTablePrefix,
     );
 
-    toSelect = Array.prototype.concat(toSelect, usersToSelect);
-
     const data = await knex(TABLE_NAME)
-      .select(toSelect)
+      .select([
+        ...toSelect,
+        ...usersToSelect,
+      ])
       // eslint-disable-next-line func-names
       .innerJoin(posts, function () {
         // @ts-ignore
