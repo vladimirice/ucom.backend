@@ -1,18 +1,16 @@
 # U°Community Backend API Service
 
-[![dependencies Status](https://david-dm.org/UOSnetwork/ucom.backend/status.svg)](https://david-dm.org/UOSnetwork/ucom.backend) 
-[![devDependencies Status](https://david-dm.org/UOSnetwork/ucom.backend/dev-status.svg)](https://david-dm.org/UOSnetwork/ucom.backend?type=dev)
-[![Known Vulnerabilities](https://snyk.io/test/github/vladimirice/ucom.backend/badge.svg)](https://snyk.io/test/github/vladimirice/ucom.backend)
 
 ## Content
 * [Main goals](#main-goals)
 * [Installation](documentation/INSTALLATION.md)
 * [How-to](documentation/HOW_TO.md)
 * [Architecture](documentation/ARCHITECTURE.md)
-* Features
+* [Features](documentation/features)
     * [Current workflow](documentation/features/CURRENT_WORKFLOW.md)
     * [Services and applications](documentation/features/SERVICES_AND_APPLICATIONS.md)
     * [Affiliate programs](documentation/features/AFFILIATE_PROGRAMS.md)
+    * [Entity images](documentation/features/ENTITY_IMAGES.md)
 * [Infrastructure](documentation/INFRASTRUCTURE.md)
 * [Improvements and scaling strategies](documentation/IMPROVEMENTS_AND_SCALING_STRATEGIES.md)
 * [Style guide](documentation/STYLE_GUIDE.md)
