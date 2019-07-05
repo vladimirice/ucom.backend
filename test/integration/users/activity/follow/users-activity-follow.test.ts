@@ -28,6 +28,8 @@ MockHelper.mockAllBlockchainPart();
 const JEST_TIMEOUT = 5000;
 
 describe('User to user activity', () => {
+  beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); });
+
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
 
