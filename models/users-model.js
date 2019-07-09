@@ -85,6 +85,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    profile_updated_at: {
+      type: DataTypes.DATE,
+    },
   }, {
     underscored: true,
     freezeTableName: true,

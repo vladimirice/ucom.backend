@@ -9,7 +9,17 @@ const _ = require('lodash');
 require('jest-expect-message');
 
 class CommonChecker {
-  public static expectFieldNotToBeNull(model: any, field: string) {
+  public static expectFieldIsStringDateTime(model: any, field: string): void {
+    // @ts-ignore
+    expect(model[field], `${field} is null`).not.toBeNull();
+    // @ts-ignore
+    expect(typeof model[field], `${field} is not string. Type is: ${typeof model[field]}`).toBe('string');
+
+    expect(model[field]).toMatch('Z');
+    expect(model[field]).toMatch('T');
+  }
+
+  public static expectFieldNotToBeNull(model: any, field: string): void {
     // @ts-ignore
     expect(model[field], `${field} is null`).not.toBeNull();
   }

@@ -2,6 +2,8 @@
 import { Transaction } from 'knex';
 import { AppError } from '../api/errors';
 import { UserModel } from './interfaces/model-interfaces';
+import { ISignedTransactionObject } from '../eos/interfaces/transactions-interfaces';
+import { IActivityModel } from './interfaces/users-activity/dto-interfaces';
 
 import knex = require('../../config/knex');
 import UsersActivityRepository = require('./repository/users-activity-repository');
@@ -9,6 +11,8 @@ import NotificationsEventIdDictionary = require('../entities/dictionary/notifica
 import UsersActivityFollowRepository = require('./repository/users-activity/users-activity-follow-repository');
 import ActivityGroupDictionary = require('../activity/activity-group-dictionary');
 import UsersModelProvider = require('./users-model-provider');
+
+const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 const status = require('statuses');
 const _ = require('lodash');
@@ -40,13 +44,13 @@ class UserActivityService {
   public static async processUserVotesChangingForBlockProducers(userId, blockchainNodeIds, transaction, eventId: number) {
     const data: any = [];
 
-    for (let i = 0; i < blockchainNodeIds.length; i += 1) {
+    for (const element of blockchainNodeIds) {
       data.push({
         activity_type_id:   ACTIVITY_TYPE__UPVOTE_NODE,
         activity_group_id:  activityGroupDictionary.getUserInteractsWithBlockchainNode(),
 
         user_id_from: userId,
-        entity_id_to: blockchainNodeIds[i],
+        entity_id_to: element,
 
         entity_name:  blockchainModelProvider.getEntityName(),
         event_id:     eventId,
@@ -66,13 +70,13 @@ class UserActivityService {
   static async processUserCancelVotesForBlockProducers(userId, blockchainNodeIds, transaction, eventId: number) {
     const data: any = [];
 
-    for (let i = 0; i < blockchainNodeIds.length; i += 1) {
+    for (const element of blockchainNodeIds) {
       data.push({
         activity_type_id:   ACTIVITY_TYPE__CANCEL_NODE_UPVOTING_NODE,
         activity_group_id:  activityGroupDictionary.getUserInteractsWithBlockchainNode(),
 
         user_id_from: userId,
-        entity_id_to: blockchainNodeIds[i],
+        entity_id_to: element,
 
         entity_name:  blockchainModelProvider.getEntityName(),
         event_id:     eventId,
@@ -169,6 +173,26 @@ class UserActivityService {
     };
 
     return usersActivityRepository.createNewActivity(data, transaction);
+  }
+
+  public static async createForUserCreatesProfile(
+    signedTransaction: ISignedTransactionObject,
+    currentUserId: number,
+    transaction: Transaction | null = null,
+  ): Promise<IActivityModel> {
+    const data = {
+      user_id_from:       currentUserId,
+      entity_id_to:       currentUserId,
+      signed_transaction: signedTransaction,
+
+      activity_type_id:   ActivityGroupDictionary.getUserProfile(), // type and group are the same
+      activity_group_id:  ActivityGroupDictionary.getUserProfile(),
+
+      entity_name:        UsersModelProvider.getEntityName(),
+      event_id:           EventsIds.userCreatesProfile(),
+    };
+
+    return usersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
   /**
@@ -625,8 +649,15 @@ class UserActivityService {
    * @param {Object} activity
    * @return {Promise<void>}
    */
-  static async sendPayloadToRabbit(activity) {
+  static async sendPayloadToRabbit(activity: IActivityModel) {
     const jsonPayload = userActivitySerializer.getActivityDataToCreateJob(activity.id);
+
+    await activityProducer.publishWithUserActivity(jsonPayload);
+  }
+
+  static async sendPayloadToRabbitEosV2(activity: IActivityModel) {
+    const jsonPayload: string =
+      userActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
 
     await activityProducer.publishWithUserActivity(jsonPayload);
   }

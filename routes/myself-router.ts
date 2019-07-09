@@ -7,8 +7,11 @@ import BlockchainTrTracesFetchService = require('../lib/eos/service/tr-traces-se
 import UsersFetchService = require('../lib/users/service/users-fetch-service');
 import UsersService = require('../lib/users/users-service');
 import PostsFetchService = require('../lib/posts/service/posts-fetch-service');
+import ProfileTransactionCreator = require('../lib/users/profile/service/profile-transaction-creator');
 
 const express = require('express');
+const statuses = require('statuses');
+
 require('express-async-errors');
 
 const router = express.Router();
@@ -79,6 +82,16 @@ router.post('/notifications/:notification_id/seen', [authTokenMiddleWare], async
   const response = await EntityNotificationsService.markNotificationAsSeen(notificationId, userId);
 
   res.send(response);
+});
+
+router.post('/transactions/registration-profile', [authTokenMiddleWare, cpUpload], async (req, res) => {
+  const currentUser: UserModel = DiServiceLocator.getCurrentUserOrException(req);
+
+  await ProfileTransactionCreator.createRegistrationProfileTransaction(req, currentUser);
+
+  res.status(statuses('Created')).send({
+    success: true,
+  });
 });
 
 /* Update Myself Profile */

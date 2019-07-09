@@ -106,6 +106,14 @@ class RequestHelper {
     return request(server).post(url);
   }
 
+  public static getRequestObjForPostWithMyself(url: string, myself: UserModel): SuperAgentRequest {
+    const req =  request(server).post(url);
+
+    RequestHelper.addAuthToken(req, myself);
+
+    return req;
+  }
+
   public static getRequestObjForGet(url: string): SuperAgentRequest {
     return request(server).get(url);
   }

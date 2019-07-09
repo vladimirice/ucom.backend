@@ -50,8 +50,11 @@ const eventRequiresPrompt = [
 ];
 
 // #task - it is not a notification events. Here is event_id dictionary for users_activity
+/**
+ * @deprecated readonly
+ * Consider to create new types inside a common lib (event-ids-dictionary)
+ */
 class NotificationsEventIdDictionary {
-
   /**
    * @deprecated
    * @see EventsIds.registration()

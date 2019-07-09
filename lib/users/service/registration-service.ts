@@ -30,6 +30,7 @@ class RegistrationService {
       private_key:          EosApi.getActivePrivateKeyByBrainkey(requestData.brainkey),
       owner_public_key:     EosApi.getOwnerPublicKeyByBrainKey(requestData.brainkey),
       is_tracking_allowed:  !!requestData.is_tracking_allowed || false,
+      profile_updated_at:   new Date(),
     };
 
     const newUser = await db
