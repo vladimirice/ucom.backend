@@ -64,7 +64,7 @@ router.post('/transactions/registration-profile', [authTokenMiddleWare, cpUpload
 /* Update Myself Profile */
 router.patch('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const response = await UsersService.processUserUpdating(req, currentUser);
-    res.send(response);
+    const updatedUser = await UsersService.processUserUpdating(req, currentUser);
+    res.send(updatedUser);
 });
 module.exports = router;

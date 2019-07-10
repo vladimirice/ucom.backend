@@ -195,6 +195,26 @@ class UserActivityService {
     return usersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
+  public static async createForUserUpdatesProfile(
+    signedTransaction: ISignedTransactionObject,
+    currentUserId: number,
+    transaction: any = null,
+  ): Promise<IActivityModel> {
+    const data = {
+      user_id_from:       currentUserId,
+      entity_id_to:       currentUserId,
+      signed_transaction: signedTransaction,
+
+      activity_type_id:   ActivityGroupDictionary.getUserProfile(), // type and group are the same
+      activity_group_id:  ActivityGroupDictionary.getUserProfile(),
+
+      entity_name:        UsersModelProvider.getEntityName(),
+      event_id:           EventsIds.userUpdatesProfile(),
+    };
+
+    return usersActivityRepository.createNewActivity(data, transaction);
+  }
+
   /**
    *
    * @param {number} activityTypeId
