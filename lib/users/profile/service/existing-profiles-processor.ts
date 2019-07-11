@@ -90,7 +90,7 @@ class ExistingProfilesProcessor {
         });
 
       const [newActivity] = await Promise.all([
-        UserActivityService.createForUserCreatesProfile(signedTransaction, user.id, trx),
+        UserActivityService.createForUserUpdatesProfileViaKnex(signedTransaction, user.id, trx),
         queryBuilder,
       ]);
 
