@@ -189,7 +189,7 @@ class UserActivityService {
       activity_group_id:  ActivityGroupDictionary.getUserProfile(),
 
       entity_name:        UsersModelProvider.getEntityName(),
-      event_id:           EventsIds.userCreatesProfile(),
+      event_id:           EventsIds.userUpdatesProfile(),
     };
 
     return usersActivityRepository.createNewKnexActivity(data, transaction);

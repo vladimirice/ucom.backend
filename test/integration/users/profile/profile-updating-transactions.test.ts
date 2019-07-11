@@ -1,17 +1,18 @@
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../../helpers/seeds-helper');
-import knex = require('../../../../config/knex');
-import UsersModelProvider = require('../../../../lib/users/users-model-provider');
-import ActivityGroupDictionary = require('../../../../lib/activity/activity-group-dictionary');
 import CommonChecker = require('../../../helpers/common/common-checker');
-import UsersActivityCommonHelper = require('../../../helpers/users/activity/users-activity-common-helper');
 import OneUserRequestHelper = require('../../../helpers/users/one-user-request-helper');
+import UsersProfileRequest = require('../../../helpers/users/profile/users-profile-request');
+import ExistingProfilesProcessor = require('../../../../lib/users/profile/service/existing-profiles-processor');
+import UsersProfileChecker = require('../../../helpers/users/profile/users-profile-checker');
 
-const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 const { ContentApi } = require('ucom-libs-wallet');
 
 let userVlad: UserModel;
+let userJane: UserModel;
+let userPetr: UserModel;
+let userRokky: UserModel;
 
 const beforeAfterOptions = {
   isGraphQl: false,
@@ -31,7 +32,7 @@ describe('Existing profile updating in the blockchain', () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
   });
   beforeEach(async () => {
-    [userVlad] = await SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Positive', () => {
@@ -46,7 +47,6 @@ describe('Existing profile updating in the blockchain', () => {
         updatedProfile,
       );
 
-      // @ts-ignore
       const updatedUser = await OneUserRequestHelper.updateMyself(userVlad, {
         ...updatedProfile,
         signed_transaction: signedTransaction,
@@ -54,21 +54,21 @@ describe('Existing profile updating in the blockchain', () => {
 
       CommonChecker.expectFieldIsStringDateTime(updatedUser, 'profile_updated_at');
 
-      const eventId = EventsIds.userUpdatesProfile();
-
-      const activity = await knex(UsersModelProvider.getUsersActivityTableName())
-        .where({
-          activity_type_id:   ActivityGroupDictionary.getUserProfile(),
-          activity_group_id:  ActivityGroupDictionary.getUserProfile(),
-          user_id_from:       userVlad.id,
-          entity_id_to:       userVlad.id,
-          entity_name:        UsersModelProvider.getEntityName(),
-          event_id:           eventId,
-        });
-
-      CommonChecker.expectOnlyOneNotEmptyItem(activity);
-      await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
+      await UsersProfileChecker.checkProfileUpdating(userVlad);
     }, JEST_TIMEOUT * 3);
+
+    it('process existing profiles without transactions', async () => {
+      await UsersProfileRequest.sendProfileAfterRegistrationForUser(userVlad);
+
+      const processed = await ExistingProfilesProcessor.process();
+
+      expect(processed.totalProcessedCounter).toBe(3);
+      expect(processed.totalSkippedCounter).toBe(0);
+
+      for (const user of [userJane, userPetr, userRokky]) {
+        await UsersProfileChecker.checkProfileUpdating(user);
+      }
+    }, JEST_TIMEOUT * 6);
   });
 });
 

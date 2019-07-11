@@ -32,6 +32,7 @@ module.exports = {
     "eslint/no-unused-vars": 'off',
     "import/no-unresolved": 'off',
     "import/prefer-default-export": 'off',
+    "func-names": 'off',
   },
   "overrides": [
     {

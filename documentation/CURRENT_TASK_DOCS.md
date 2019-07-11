@@ -12,7 +12,7 @@ const { ContentApi } = require('ucom-libs-wallet');
 
 Request URL
 ```
-POST /transactions/registration-profile
+POST api/v1/myself/transactions/registration-profile
 Headers: Auth token
 ```
 
@@ -25,6 +25,8 @@ user_created_at: moment().utc().format(),
 Notes:
 * If error is occurred - log it and redirect user. Do not break the registration flow.
 
+[Autotest](../test/integration/users/profile/profile-registration-transactions.test.ts)
+
 ### During a regular profile updating
 
 Attach one more field with the transaction
@@ -35,6 +37,8 @@ signed_transaction: '{.....}',          // a result of the call of ContentApi.up
 Notes:
 * provide a full JSON, composed from user profile.
 * Process errors as regular - break a cycle if there are any errors.
+
+[Autotest](../test/integration/users/profile/profile-updating-transactions.test.ts)
 
 ## Users list
 
