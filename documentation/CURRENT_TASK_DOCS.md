@@ -37,6 +37,26 @@ signed_transaction: '{.....}',          // a result of the call of ContentApi.up
 Notes:
 * provide a full JSON, composed from user profile.
 * Process errors as regular - break a cycle if there are any errors.
+* fields list
+
+```
+const allowedFields: string[] = [
+  'id',
+  'account_name',
+  'first_name',
+  'last_name',
+  'entity_images',
+  'avatar_filename',
+  'about',
+  'mood_message',
+  'created_at',
+  'updated_at',
+  'personal_website_url',
+  'is_tracking_allowed',
+
+  // also all user sources `social networks`
+];
+```
 
 [Autotest](../test/integration/users/profile/profile-updating-transactions.test.ts)
 
