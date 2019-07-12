@@ -63,6 +63,7 @@ class UsersService {
     }
 
     requestData.profile_updated_at = moment().utc().format();
+    requestData.profile_updated_by = 1;
 
     const activity: IActivityModel | null = await models.sequelize
       .transaction(async (transaction) => {

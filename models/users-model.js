@@ -88,6 +88,9 @@ module.exports = (sequelize, DataTypes) => {
     profile_updated_at: {
       type: DataTypes.DATE,
     },
+    profile_updated_by: {
+      type: DataTypes.SMALLINT,
+    },
   }, {
     underscored: true,
     freezeTableName: true,
