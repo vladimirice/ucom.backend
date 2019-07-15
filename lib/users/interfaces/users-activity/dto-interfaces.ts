@@ -1,3 +1,7 @@
+interface IActivityModel {
+  id: number;
+}
+
 interface ActivityConditionsDto {
   activity_type_id:   number;
   activity_group_id:  number;
@@ -5,5 +9,6 @@ interface ActivityConditionsDto {
 }
 
 export {
+  IActivityModel,
   ActivityConditionsDto,
 };

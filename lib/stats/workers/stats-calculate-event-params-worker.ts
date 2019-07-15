@@ -9,7 +9,7 @@ import WorkerHelper = require('../../common/helper/worker-helper');
 
 const options: WorkerOptionsDto = {
   processName: 'stats-calculate-event-params',
-  durationInSecondsToAlert: 600,
+  durationInSecondsToAlert: 60 * 20,
 };
 
 async function toExecute() {

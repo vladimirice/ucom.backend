@@ -6,7 +6,7 @@ import {
   OrgModelResponse,
 } from '../../../lib/organizations/interfaces/model-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
+import { NumberToNumberCollection, StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
@@ -1008,6 +1008,25 @@ class OrganizationsHelper {
         }
       });
     }
+  }
+
+  public static async updateOneOrganization(
+    orgId: number,
+    myself: UserModel,
+    fields: StringToAnyCollection,
+  ) {
+    if (!fields.title) {
+      fields.title = faker.company.companyName();
+    }
+
+    if (!fields.nickname) {
+      fields.nickname = `${faker.name.firstName()}_${RequestHelper.generateRandomNumber(0, 10, 0)}`;
+    }
+
+    const req = RequestHelper.getRequestObjForPatch(RequestHelper.getOneOrganizationUrl(orgId), myself);
+    RequestHelper.addFormFieldsToRequestWithStringify(req, fields);
+
+    return RequestHelper.makeRequestAndGetBody(req);
   }
 
   // noinspection OverlyComplexFunctionJS

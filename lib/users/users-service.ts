@@ -3,6 +3,7 @@
 import { BadRequestError } from '../api/errors';
 import { UserModel } from './interfaces/model-interfaces';
 import { IRequestBody, StringToAnyCollection } from '../common/interfaces/common-types';
+import { IActivityModel } from './interfaces/users-activity/dto-interfaces';
 
 import UsersRepository = require('./users-repository');
 import UserPostProcessor = require('./user-post-processor');
@@ -13,6 +14,9 @@ import UpdateManyToManyHelper = require('../api/helpers/UpdateManyToManyHelper')
 import UserInputSanitizer = require('../api/sanitizers/user-input-sanitizer');
 import DeleteAllInArrayValidator = require('../common/validator/form-data/delete-all-in-array-validator');
 import knex = require('../../config/knex');
+import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
+import moment = require('moment');
+import UserActivityService = require('./user-activity-service');
 
 const _ = require('lodash');
 
@@ -40,6 +44,8 @@ class UsersService {
       }
     }
 
+    EntityImageInputService.processEntityImageOrMakeItEmpty(requestData);
+
     const userId = currentUser.id;
     const user = await UsersRepository.getUserById(userId);
 
@@ -56,11 +62,29 @@ class UsersService {
       requestData.achievements_filename = files.achievements_filename[0].filename;
     }
 
-    await models.sequelize
+    requestData.profile_updated_at = moment().utc().format();
+    requestData.profile_updated_by = 1;
+
+    const activity: IActivityModel | null = await models.sequelize
       .transaction(async (transaction) => {
         await UsersService.processArrayFields(user, requestData, transaction);
         await UsersRepository.updateUserById(userId, requestData, transaction);
+
+        let newActivity: IActivityModel | null = null;
+        if (requestData.signed_transaction) {
+          newActivity = await UserActivityService.createForUserUpdatesProfile(
+            body.signed_transaction,
+            currentUser.id,
+            transaction,
+          );
+        }
+
+        return newActivity;
       });
+
+    if (activity !== null) {
+      await UserActivityService.sendPayloadToRabbitEosV2(activity);
+    }
 
     const userModel = await UsersRepository.getUserById(userId);
     const userJson = userModel.toJSON();

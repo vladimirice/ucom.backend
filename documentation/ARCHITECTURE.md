@@ -5,7 +5,6 @@ Table of contents
 * [Statistics module](#statistics-module)
 * [Airdrop and balances](#airdrop-and-balances)
 * [Images uploader](#images-uploader)
-* [Entity images](#entity-images)
 * users_activity - TODO
 * REDIS Redlock - TODO
 
@@ -32,22 +31,6 @@ All blockchain-related business logic must be placed
 * REDIS
 * RabbitMq
 
-### Entities list
-* Users (Myself as a user state: user + auth token)
-* Posts (Publications, reposts, etc.)
-* Comments
-* Organizations (communities)
-* Tags
-* Blockchain nodes - for caching blockchain state
-
-
-### Entities states (response fields structure):
-* `Full` - all possible fields
-* `Preview` - amount of fields required for lists of entities
-* `Card` - minimum amount of fields, used in `object inside object` situations, 
-ex. `entity_for` - for whom post is published, User or Organization data.
-
-It is possible that in the future such states will completely be moved to frontend. Because of GraphQL implementation.
 
 ## Statistics module
 
@@ -118,7 +101,7 @@ In the future, these classes will be refactored to split declaration and impleme
 * [StatsHelper](../test/integration/helpers/stats-helper.ts) has a collection of an expected field structure separated from the main codebase - this is by design. It is required
 to code the expected values before implementing the solution (TDD principle). If somebody occasionally changes the implementation, the autotest will fail.
 * There is a universal `StatsHelper` parameters checker, based on `expected set` declared manually inside autotests.
-* Here is [an example of test suite for posts](../test/integration/stats/stats-only-orgs.test.ts) 
+* Here is [an example of test suite for posts](../test/integration/stats/stats-organizations.test.ts) 
 
 ## Airdrop and balances
 
@@ -283,57 +266,4 @@ example for .gif
     ],
     metadata: {}
 };
-```
-
-## Entity images
-
-In order to add image(s) to any entity please consider to use a `entity_images` architectural feature.
-
-**The steps to do this:**
-* Create a new column using a migration - [example](../migrations_knex_monolith/20190405081637-alter-comments-add-entity-images.js).
-* *Optional:* add a new column to an appropriate ORM model.
-* Extend an existing model interface by `ModelWithEntityImages`. The interface is [here](../lib/entity-images/interfaces/model-interfaces.ts).
-* Make it possible to add a `entity_images` field to model during a creation process via [entity images input service](../lib/entity-images/service/entity-image-input-service.ts).
-* Make it possible to update a `entity_images` field (not yet implemented, TODO).
-* Write the autotests - [example](../test/integration/comments/comments-entity-images.test.ts).
-* Add the `entity_images` field to the GraphQL client library and to the GraphQL backend application server.
-* If there are any legacy fields to hold images then please don't forget to migrate existing images from these fields to the new field.
-
-**Related code conventions:**
-* Any other existing methods to store entity-related images are deprecated. Any new methods to store images are forbidden.
-* Do not use a column name inside the code as a plain string. Use this method:
-```
-EntityImagesModelProvider.entityImagesColumn()
-```
-* Keep in mind that a concrete `entity_images` JSON structure is up to the client application.
-It is not required to validate it somehow.
-* In order to clear a existing `entity_images` value please send empty object `{}`.
-
-**Entity images structure example:**
-```
-{
-   "article_title": [
-      {
-         "url":"https://backend.u.community/upload/main_image_filename-1545901400947.jpg",
-         "type": "original",
-      },
-      {
-         "url":"https://backend.u.community/upload/main_image_filename-123dadsada.jpg",
-         "type": "resize",
-         "size": '800x800',
-      },
-   ],
-   "main_slider_gallery": [
-      'slider_1': {
-         "url":"https://backend.u.community/upload/main_image_filename-1545901400947.jpg",
-         "type": "original",
-         "position": 1,
-      },
-      {
-         "url":"https://backend.u.community/upload/main_image_filename-1545901400947.jpg"
-         "type": "original"
-         "position": 1,
-      },
-   ],
-}
 ```

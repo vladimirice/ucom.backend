@@ -11,7 +11,13 @@ const GROUP__USER_INTERACTS_WITH_BLOCKCHAIN_NODE = 30;
 const GROUP_CONTENT_UPDATING = 40;
 const GROUP_TAG_EVENT = 50;
 
+const GROUP__USER_PROFILE = 60;
+
 class ActivityGroupDictionary {
+  public static getUserProfile(): number {
+    return GROUP__USER_PROFILE;
+  }
+
   /**
    *
    * @return {number}

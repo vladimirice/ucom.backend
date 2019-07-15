@@ -1,0 +1,5 @@
+interface ISignedTransactionObject {}
+
+export {
+  ISignedTransactionObject,
+};

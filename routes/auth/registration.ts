@@ -1,4 +1,5 @@
 import { UsersDiTypes } from '../../lib/users/interfaces/di-interfaces';
+
 import UsersAuthService = require('../../lib/users/service/users-auth-service');
 
 const express = require('express');

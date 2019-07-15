@@ -4,8 +4,6 @@ import 'reflect-metadata';
 import { BlockchainTracesDiTypes } from '../interfaces/di-interfaces';
 import { IProcessedTrace, ITrace } from '../interfaces/blockchain-traces-interfaces';
 import { WorkerLogger } from '../../../config/winston';
-import { ITraceChainMetadata } from '../interfaces/traces-sync-interfaces';
-import { AppError } from '../../api/errors';
 import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
 
 import MongoExternalModelProvider = require('../../eos/service/mongo-external-model-provider');
@@ -34,7 +32,11 @@ class BlockchainTracesSyncService {
     this.blockchainTracesProcessorChain = blockchainTracesProcessorChain;
   }
 
-  public async process(limit: number = 100, resync: boolean = false): Promise<TotalParametersResponse> {
+  public async process(
+    singleBatchSize: number = 2000,
+    onlyOneBatch: boolean = false,
+    resync: boolean = false,
+  ): Promise<TotalParametersResponse> {
     let blockNumberGreaterThan: number | null = null;
     if (!resync) {
       blockNumberGreaterThan = await IrreversibleTracesRepository.findLastBlockNumber();
@@ -44,13 +46,24 @@ class BlockchainTracesSyncService {
     let totalSkippedCounter   = 0;
 
     do {
-      const result = await this.processBatch(limit, blockNumberGreaterThan);
+      const result = await this.processBatch(singleBatchSize, blockNumberGreaterThan);
 
       totalProcessedCounter += result.insertedCount;
       totalSkippedCounter   += result.skippedCount;
 
+      console.log(`Batch is done. Batch size is: ${singleBatchSize}. Current totalProcessedCounter: ${totalProcessedCounter}`);
+      if (result.lastBlockNumber === blockNumberGreaterThan) {
+        break;
+      }
+
       blockNumberGreaterThan = result.lastBlockNumber;
-    } while (blockNumberGreaterThan !== null);
+
+      if (onlyOneBatch) {
+        break;
+      }
+
+      // eslint-disable-next-line no-constant-condition
+    } while (true);
 
     return {
       totalProcessedCounter,
@@ -79,20 +92,33 @@ class BlockchainTracesSyncService {
 
     const manyProcessedTraces: any = [];
     for (const trace of manyTraces) {
-      const processedTrace: any = this.processOneTrace(trace);
-      manyProcessedTraces.push(processedTrace);
+      const processedTrace: IProcessedTrace | null = this.processOneTrace(trace);
+
+      if (processedTrace !== null) {
+        manyProcessedTraces.push(processedTrace);
+      }
     }
+
+    console.log(`Last block number is: ${manyTraces[manyTraces.length - 1].blocknum}`);
 
     if (manyProcessedTraces.length === 0) {
-      throw new AppError('It must be at least one trace to process');
-    }
-
-    if (manyProcessedTraces.length !== manyTraces.length) {
-      throw new AppError('manyProcessedTraces.length !== manyTraces.length');
+      return {
+        lastBlockNumber:  manyTraces[manyTraces.length - 1].blocknum,
+        skippedCount:     manyTraces.length,
+        insertedCount:    0,
+      };
     }
 
     const preparedTransactions: string[] = manyProcessedTraces.map(item => item.tr_id);
-    const insertedTransactions = await IrreversibleTracesRepository.insertManyTraces(manyProcessedTraces);
+
+    let insertedTransactions;
+    try {
+      insertedTransactions = await IrreversibleTracesRepository.insertManyTraces(manyProcessedTraces);
+    } catch (error) {
+      console.error('A fatal error is occurred. Lets dump the traces');
+      console.dir(manyProcessedTraces);
+      throw error;
+    }
 
     const duplications = _.difference(preparedTransactions, insertedTransactions);
 
@@ -110,22 +136,13 @@ class BlockchainTracesSyncService {
     };
   }
 
-  private processOneTrace(trace: ITrace): IProcessedTrace {
-    const metadata: ITraceChainMetadata = {
-      isError: false,
-    };
-
+  private processOneTrace(trace: ITrace): IProcessedTrace | null {
     const { error } = this.tracesCommonFieldsValidator.validateOneTrace(trace);
-    if (error) {
-      WorkerLogger.error('Malformed transaction. tracesCommonFieldsValidator failure. Write to the DB as unknown transaction', {
-        service: SERVICE_NAME,
-        error,
-      });
-
-      metadata.isError = true;
+    if (!error) {
+      return this.blockchainTracesProcessorChain.processChain(trace);
     }
 
-    return this.blockchainTracesProcessorChain.processChain(trace, metadata);
+    return null;
   }
 
   private static async fetchTracesFromMongoDb(
@@ -143,7 +160,7 @@ class BlockchainTracesSyncService {
     if (typeof blockNumberGreaterThan === 'number') {
       where.$and.push({
         blocknum: {
-          $gt: blockNumberGreaterThan,
+          $gte: blockNumberGreaterThan, // greater than or equal - no typo
         },
       });
     }

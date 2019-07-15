@@ -5,7 +5,9 @@ const BlockchainTrTracesFetchService = require("../lib/eos/service/tr-traces-ser
 const UsersFetchService = require("../lib/users/service/users-fetch-service");
 const UsersService = require("../lib/users/users-service");
 const PostsFetchService = require("../lib/posts/service/posts-fetch-service");
+const ProfileTransactionCreator = require("../lib/users/profile/service/profile-transaction-creator");
 const express = require('express');
+const statuses = require('statuses');
 require('express-async-errors');
 const router = express.Router();
 const authTokenMiddleWare = require('../lib/auth/auth-token-middleware');
@@ -52,10 +54,17 @@ router.post('/notifications/:notification_id/seen', [authTokenMiddleWare], async
     const response = await EntityNotificationsService.markNotificationAsSeen(notificationId, userId);
     res.send(response);
 });
+router.post('/transactions/registration-profile', [authTokenMiddleWare, cpUpload], async (req, res) => {
+    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
+    await ProfileTransactionCreator.createRegistrationProfileTransaction(req, currentUser);
+    res.status(statuses('Created')).send({
+        success: true,
+    });
+});
 /* Update Myself Profile */
 router.patch('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const response = await UsersService.processUserUpdating(req, currentUser);
-    res.send(response);
+    const updatedUser = await UsersService.processUserUpdating(req, currentUser);
+    res.send(updatedUser);
 });
 module.exports = router;

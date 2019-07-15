@@ -12,7 +12,7 @@ const ACTIVITY_JOIN = 3;
  */
 class ActivityTypesDictionary {
   /**
-   *
+   * @deprecated
    * @returns {number}
    */
   static getFollowId() {
@@ -20,7 +20,7 @@ class ActivityTypesDictionary {
   }
 
   /**
-   *
+   * @deprecated
    * @returns {number}
    */
   static getUpvoteId() {
@@ -28,7 +28,7 @@ class ActivityTypesDictionary {
   }
 
   /**
-   *
+   * @deprecated
    * @returns {number}
    */
   static getJoinId() {
@@ -36,7 +36,7 @@ class ActivityTypesDictionary {
   }
 
   /**
-   *
+   * @deprecated
    * @returns {number}
    */
   static getDownvoteId() {

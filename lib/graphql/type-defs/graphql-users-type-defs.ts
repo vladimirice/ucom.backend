@@ -21,6 +21,8 @@ export const graphqlUsersTypes = `
     avatar_filename: String
     current_rate: Float!
     
+    entity_images: JSON
+    
     I_follow: JSON, 
     followed_by: JSON,
     myselfData: MyselfData,

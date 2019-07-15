@@ -1,5 +1,7 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+import { UserModel } from '../../users/interfaces/model-interfaces';
+
 import OrgsCurrentParamsRepository = require('../repository/organizations-current-params-repository');
 import OrganizationsFetchDiscussions = require('../discussions/service/organizations-fetch-discussions');
 import OrganizationsInputProcessor = require('../validator/organizations-input-processor');
@@ -8,7 +10,7 @@ import UsersTeamService = require('../../users/users-team-service');
 import UserActivityService = require('../../users/user-activity-service');
 import EntitySourceService = require('../../entities/service/entity-sources-service');
 import DiServiceLocator = require('../../api/services/di-service-locator');
-import { UserModel } from '../../users/interfaces/model-interfaces';
+import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 
 const status  = require('statuses');
 const _       = require('lodash');
@@ -49,6 +51,7 @@ class OrganizationService {
 
   public static async processNewOrganizationCreation(req, currentUser: UserModel) {
     OrganizationsInputProcessor.process(req.body);
+    EntityImageInputService.processEntityImageOrMakeItEmpty(req.body);
 
     await OrganizationService.addSignedTransactionsForOrganizationCreation(req);
 
@@ -80,10 +83,10 @@ class OrganizationService {
 
         // eslint-disable-next-line no-shadow
         const boardInvitationActivity: any = [];
-        for (let i = 0; i < usersTeamIds.length; i += 1) {
+        for (const element of usersTeamIds) {
           const res = await usersActivity.processUsersBoardInvitation(
             currentUser.id,
-            usersTeamIds[i],
+            element,
             newModel.id,
             transaction,
           );
@@ -133,13 +136,14 @@ class OrganizationService {
    * @private
    */
   private static async sendOrgTeamInvitationsToRabbit(boardInvitationActivity) {
-    for (let i = 0; i < boardInvitationActivity.length; i += 1) {
-      await usersActivity.sendPayloadToRabbit(boardInvitationActivity[i]);
+    for (const element of boardInvitationActivity) {
+      await usersActivity.sendPayloadToRabbit(element);
     }
   }
 
   public static async updateOrganization(req, currentUser: UserModel) {
     OrganizationsInputProcessor.process(req.body);
+    EntityImageInputService.processEntityImageOrMakeItEmpty(req.body);
 
     if (_.isEmpty(req.body) && _.isEmpty(req.files)) {
       throw new BadRequestError({
@@ -208,10 +212,10 @@ class OrganizationService {
 
     const usersTeamIds = usersTeamService.getUsersTeamIds(usersToAddFromRequest);
     const boardInvitationActivity: any = [];
-    for (let i = 0; i < usersTeamIds.length; i += 1) {
+    for (const element of usersTeamIds) {
       const res = await usersActivity.processUsersBoardInvitation(
         currentUser.id,
-        usersTeamIds[i],
+        element,
         orgId,
         transaction,
       );
@@ -227,12 +231,12 @@ class OrganizationService {
       id: modelId,
     };
 
-    const modelsToInclude = [
+    const modelsToInclude: string[] = [
       'Users',
       'users_team',
     ];
 
-    const model = await organizationsRepositories.Main.findOneBy(where, modelsToInclude);
+    const model = await OrganizationsRepository.findOneBy(where, modelsToInclude);
 
     const entitySources = await entitySourceService.findAndGroupAllEntityRelatedSources(
       modelId,

@@ -1,15 +1,38 @@
 import { GraphqlRequestHelper } from '../common/graphql-request-helper';
 import { UserModel, UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 import ResponseHelper = require('../../integration/helpers/response-helper');
 import RequestHelper = require('../../integration/helpers/request-helper');
+import EntityImagesGenerator = require('../../generators/common/entity-images-generator');
+import EntityImagesChecker = require('../entity-images/entity-images-checker');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
 const supertest = require('supertest');
 
 class OneUserRequestHelper {
+  public static async setSampleEntityImages(myself: UserModel): Promise<UserModel> {
+    const fieldsToChange: StringToAnyCollection = EntityImagesGenerator.getObjectWithEntityImages();
+
+    const updatedUser: UserModel = await this.updateMyself(myself, fieldsToChange);
+
+    EntityImagesChecker.checkForOneModel(updatedUser, fieldsToChange.entity_images);
+
+    return updatedUser;
+  }
+
+  public static async updateMyself(
+    myself: UserModel,
+    fieldsToChange: StringToAnyCollection,
+  ): Promise<UserModel> {
+    const request = RequestHelper.getRequestObjForPatch(RequestHelper.getMyselfUrl(), myself);
+    RequestHelper.addFormFieldsToRequestWithStringify(request, fieldsToChange);
+
+    return RequestHelper.makeRequestAndGetBody(request);
+  }
+
   public static async deleteAllFromArray(myself: UserModel, field: string): Promise<IResponseBody> {
     const res = await supertest(RequestHelper.getApiApplication())
       .patch(RequestHelper.getMyselfUrl())

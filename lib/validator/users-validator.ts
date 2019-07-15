@@ -22,10 +22,12 @@ const UsersUpdatingSchema = joi.object().keys({
   first_currency_year:  joi.string().min(2).max(255).allow(''),
   personal_website_url: joi.string().min(2).max(255).allow(''),
   is_tracking_allowed:  joi.boolean().default(true),
+  signed_transaction:   joi.any(),
 
   users_education:      joi.array(),
   users_jobs:           joi.array(),
   users_sources:        joi.array(),
+  entity_images:        joi.any(),
 });
 
 export {

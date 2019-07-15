@@ -1,4 +1,22 @@
+import { ModelWithEntityImages } from '../../../lib/entity-images/interfaces/model-interfaces';
+
 class EntityImagesGenerator {
+  public static getObjectWithEntityImages(): ModelWithEntityImages {
+    return {
+      entity_images: {
+        something: [
+          {
+            some_url_key: 'http://localhost:3000/upload/sample_filename_5.jpg',
+            comment: '12345',
+          },
+        ],
+        another_key: {
+          success: true,
+        },
+      },
+    };
+  }
+
   public static getSampleEntityImagesValue(): any {
     return {
       article_title: [

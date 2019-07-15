@@ -1,7 +1,6 @@
 import MockHelper = require('../../../helpers/mock-helper');
 import SeedsHelper = require('../../../helpers/seeds-helper');
 import OrganizationsHelper = require('../../../helpers/organizations-helper');
-import UsersHelper = require('../../../helpers/users-helper');
 import UsersActivityRepository = require('../../../../../lib/users/repository/users-activity-repository');
 import OrganizationsGenerator = require('../../../../generators/organizations-generator');
 import UsersActivityFollowRepository = require('../../../../../lib/users/repository/users-activity/users-activity-follow-repository');
@@ -67,86 +66,6 @@ describe('User follows-unfollows organizations. Without transaction checking.', 
 
       expect(org.myselfData).toBeDefined();
       expect(org.myselfData.follow).toBeFalsy();
-    });
-  });
-
-  describe('Single organization. List of followers', () => {
-    describe('Positive scenarios', () => {
-      it('should return list of org followers if fetching as guest', async () => {
-        const orgId = 1;
-
-        const followedByExpected = [
-          userJane,
-          userVlad,
-        ];
-
-        for (let i = 0; i < followedByExpected.length; i += 1) {
-          await OrganizationsHelper.requestToCreateOrgFollowHistory(followedByExpected[i], orgId);
-        }
-
-        const org = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
-
-        const followedBy = org.followed_by;
-        expect(followedBy).toBeTruthy();
-        expect(followedBy.length).toBe(followedByExpected.length);
-
-        followedByExpected.forEach((expected) => {
-          const actual = followedBy.find(data => data.id === expected.id);
-          UsersHelper.checkUserPreview(actual);
-        });
-      });
-
-      it('should return list of org followers if fetching as myself', async () => {
-        const orgId = 1;
-
-        const followedByExpected = [
-          userJane,
-          userVlad,
-        ];
-
-        for (let i = 0; i < followedByExpected.length; i += 1) {
-          await OrganizationsHelper.requestToCreateOrgFollowHistory(followedByExpected[i], orgId);
-        }
-
-        const org = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, orgId);
-
-        const followedBy = org.followed_by;
-        expect(followedBy).toBeTruthy();
-        expect(followedBy.length).toBe(followedByExpected.length);
-
-        followedByExpected.forEach((expected) => {
-          const actual = followedBy.find(data => data.id === expected.id);
-          UsersHelper.checkUserPreview(actual);
-        });
-      });
-    });
-
-    describe('Negative scenarios', () => {
-      it('should return list of empty followers if fetching as guest', async () => {
-        const orgId = 1;
-        const otherOrgId = 2;
-
-        await OrganizationsHelper.requestToCreateOrgFollowHistory(userVlad, otherOrgId); // to disturb data
-
-        const org = await OrganizationsHelper.requestToGetOneOrganizationAsGuest(orgId);
-
-        const followedBy = org.followed_by;
-        expect(followedBy).toBeTruthy();
-        expect(followedBy.length).toBe(0);
-      });
-
-      it('should return list of empty followers if fetching as myself', async () => {
-        const orgId = 1;
-        const otherOrgId = 2;
-
-        await OrganizationsHelper.requestToCreateOrgFollowHistory(userVlad, otherOrgId); // to disturb data
-
-        const org = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, orgId);
-
-        const followedBy = org.followed_by;
-        expect(followedBy).toBeTruthy();
-        expect(followedBy.length).toBe(0);
-      });
     });
   });
 

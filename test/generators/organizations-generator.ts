@@ -1,8 +1,11 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
 import UsersHelper = require('../integration/helpers/users-helper');
+
+import EntityImagesGenerator = require('./common/entity-images-generator');
 
 const request = require('supertest');
 const faker   = require('faker');
@@ -101,15 +104,16 @@ class OrganizationsGenerator {
     return orgId;
   }
 
-  /**
-   *
-   * @param {Object} author
-   * @param {Object[]} teamMembers
-   * @return {Promise<Object>}
-   */
-  static async createOrgWithTeam(
+  public static createOrganizationWithEntityImages(author: UserModel): Promise<number> {
+    const extraFields: StringToAnyCollection = EntityImagesGenerator.getObjectWithEntityImages();
+
+    return this.createOrgWithTeam(author, [], extraFields);
+  }
+
+  public static async createOrgWithTeam(
     author: UserModel,
     teamMembers: UserModel[] = [],
+    extraFields: StringToAnyCollection | null = null,
   ): Promise<number> {
     // noinspection JSUnresolvedFunction
     const title = faker.company.companyName();
@@ -133,6 +137,10 @@ class OrganizationsGenerator {
       const field = `users_team[${i}][id]`;
       const user = teamMembers[i];
       req.field(field, user.id);
+    }
+
+    if (extraFields) {
+      RequestHelper.addFormFieldsToRequestWithStringify(req, extraFields);
     }
 
     const res = await req;

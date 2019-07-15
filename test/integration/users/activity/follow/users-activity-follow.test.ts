@@ -28,6 +28,8 @@ MockHelper.mockAllBlockchainPart();
 const JEST_TIMEOUT = 5000;
 
 describe('User to user activity', () => {
+  beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); });
+
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
 
@@ -197,123 +199,6 @@ describe('User to user activity', () => {
         expect(userWithMyself).toBeFalsy();
       }, JEST_TIMEOUT);
     });
-  });
-
-  describe('Single user. I_follow, followed_by and myselfData', () => {
-    it('I_follow and followed_by of single user - exists', async () => {
-      const iFollowExpected = [
-        userVlad,
-        userRokky,
-      ];
-
-      const followedByExpected = [
-        userJane,
-        userVlad,
-      ];
-
-      await ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad);
-      await ActivityHelper.requestToCreateFollowHistory(userPetr, userRokky);
-
-      await Promise.all([
-        ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
-        ActivityHelper.requestToCreateFollowHistory(userVlad, userPetr),
-      ]);
-
-      const janeSampleRate = await UsersHelper.setSampleRateToUser(userJane);
-      const userRokkySampleRate = await UsersHelper.setSampleRateToUser(userRokky);
-
-      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
-
-      const followedBy = user.followed_by;
-      expect(followedBy).toBeDefined();
-      followedByExpected.forEach((item) => {
-        expect(followedBy.some(data => data.id === item.id)).toBeTruthy();
-      });
-
-      const iFollow = user.I_follow;
-      expect(iFollow).toBeDefined();
-      iFollowExpected.forEach((item) => {
-        expect(iFollow.some(data => data.id === item.id)).toBeTruthy();
-      });
-
-      followedBy.forEach((follower) => {
-        UsersHelper.checkIncludedUserPreview({
-          User: follower,
-        });
-      });
-
-      const userJaneResponse = followedBy.find(data => data.id === userJane.id);
-      expect(+userJaneResponse.current_rate).toBe(+janeSampleRate);
-
-      const userRokkyResponse = iFollow.find(data => data.id === userRokky.id);
-      expect(+userRokkyResponse.current_rate).toBe(+userRokkySampleRate);
-    }, JEST_TIMEOUT);
-
-    it('I_follow and followed_by of single user - does not exist', async () => {
-      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
-
-      const followedBy = user.followed_by;
-      expect(followedBy).toBeDefined();
-      expect(followedBy.length).toBe(0);
-
-      const iFollow = user.I_follow;
-      expect(iFollow).toBeDefined();
-      expect(iFollow.length).toBe(0);
-    }, JEST_TIMEOUT);
-
-    it('Myself - I follow but not my follower', async () => {
-      await ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
-      await ActivityHelper.requestToCreateUnfollowHistory(userPetr, userJane);  // disturbance
-      await ActivityHelper.requestToCreateFollowHistory(userPetr, userVlad);  // disturbance
-
-      const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
-
-      const { myselfData } = user;
-
-      expect(myselfData).toBeDefined();
-      expect(myselfData.follow).toBeTruthy();
-      expect(myselfData.myFollower).toBeFalsy();
-    }, JEST_TIMEOUT);
-
-    it('Myself - My follower but I do not follow', async () => {
-      await Promise.all([
-        ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
-        ActivityHelper.requestToCreateUnfollowHistory(userJane, userPetr),  // disturbance
-      ]);
-
-      await ActivityHelper.requestToCreateFollowHistory(userJane, userVlad); // disturbance
-
-      const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
-
-      const { myselfData } = user;
-
-      expect(myselfData).toBeDefined();
-      expect(myselfData.follow).toBeFalsy();
-      expect(myselfData.myFollower).toBeTruthy();
-    }, JEST_TIMEOUT);
-
-    it('Myself both follow and my follower', async () => {
-      await Promise.all([
-        ActivityHelper.requestToCreateFollowHistory(userJane, userPetr),
-        ActivityHelper.requestToCreateFollowHistory(userPetr, userJane),
-        ActivityHelper.requestToCreateUnfollowHistory(userVlad, userJane), // disturbance
-      ]);
-
-      const user = await RequestHelper.requestUserByIdAsMyself(userJane, userPetr);
-
-      const { myselfData } = user;
-
-      expect(myselfData).toBeDefined();
-      expect(myselfData.follow).toBeTruthy();
-      expect(myselfData.myFollower).toBeTruthy();
-    }, JEST_TIMEOUT);
-
-    it('MyselfData. Does not exist if no token', async () => {
-      await ActivityHelper.requestToCreateFollowHistory(userJane, userPetr);
-      const user = await RequestHelper.requestUserByIdAsGuest(userPetr);
-
-      expect(user.myselfData).not.toBeDefined();
-    }, JEST_TIMEOUT);
   });
 
   describe('Post author myself activity', () => {

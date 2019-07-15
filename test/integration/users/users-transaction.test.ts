@@ -1,15 +1,16 @@
 export {};
 
+const delay = require('delay');
+
+// eslint-disable-next-line node/no-missing-require
 const helpers = require('../helpers');
 const usersRepository = require('../../../lib/users/repository');
-const delay = require('delay');
 const rabbitMqService = require('../../../lib/jobs/rabbitmq-service');
 
 let userVlad;
 let userJane;
 
 describe('Blockchain transactions', () => {
-
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
     [userVlad, userJane] = await Promise.all([

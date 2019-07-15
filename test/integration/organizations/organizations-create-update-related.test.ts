@@ -11,6 +11,7 @@ import EntityResponseState = require('../../../lib/common/dictionary/EntityRespo
 import UsersHelper = require('../helpers/users-helper');
 import ResponseHelper = require('../helpers/response-helper');
 import _ = require('lodash');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -119,7 +120,7 @@ describe('Organizations create,update related entities', () => {
       const vladOrgModelBefore: OrgModelResponse =
         await OrganizationsHelper.requestToGetOneOrganizationAsGuest(vladOrgId);
 
-      CommonHelper.expectModelsExistence(vladOrgModelBefore.discussions, vladPostsIds, true);
+      CommonChecker.expectModelsExistence(vladOrgModelBefore.discussions, vladPostsIds, true);
 
 
       await OrganizationsGenerator.deleteAllDiscussions(userVlad, vladOrgId);
@@ -140,7 +141,7 @@ describe('Organizations create,update related entities', () => {
       const janeOrgModelAfter: OrgModelResponse =
         await OrganizationsHelper.requestToGetOneOrganizationAsGuest(janeOrgId);
 
-      CommonHelper.expectModelsExistence(janeOrgModelAfter.discussions, janePostsIds, true);
+      CommonChecker.expectModelsExistence(janeOrgModelAfter.discussions, janePostsIds, true);
     }, 10000);
   });
 
@@ -168,12 +169,12 @@ describe('Organizations create,update related entities', () => {
         };
 
         CommonHelper.checkOneOrganizationFully(orgModel, options);
-        CommonHelper.expectModelsExistence(orgModel.discussions, postsIds, true);
+        CommonChecker.expectModelsExistence(orgModel.discussions, postsIds, true);
 
         const secondOrgModel: OrgModelResponse =
           await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
 
-        CommonHelper.expectModelsExistence(secondOrgModel.discussions, secondOrgPostIds, true);
+        CommonChecker.expectModelsExistence(secondOrgModel.discussions, secondOrgPostIds, true);
 
         // Change order of two elements for first organization and two for second
 
@@ -189,8 +190,8 @@ describe('Organizations create,update related entities', () => {
           OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId),
         ]);
 
-        CommonHelper.expectModelsExistence(firstModelWithShuffled.discussions, reorderedFirstPostsIds, true);
-        CommonHelper.expectModelsExistence(secondModelWithShuffled.discussions, reorderedSecondPostsIds, true);
+        CommonChecker.expectModelsExistence(firstModelWithShuffled.discussions, reorderedFirstPostsIds, true);
+        CommonChecker.expectModelsExistence(secondModelWithShuffled.discussions, reorderedSecondPostsIds, true);
 
         // Delete some of discussions
         reorderedFirstPostsIds.pop();
@@ -209,8 +210,8 @@ describe('Organizations create,update related entities', () => {
           OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId),
         ]);
 
-        CommonHelper.expectModelsExistence(firstModelWithDeleted.discussions, reorderedFirstPostsIds, true);
-        CommonHelper.expectModelsExistence(secondModelWithDeleted.discussions, reorderedSecondPostsIds, true);
+        CommonChecker.expectModelsExistence(firstModelWithDeleted.discussions, reorderedFirstPostsIds, true);
+        CommonChecker.expectModelsExistence(secondModelWithDeleted.discussions, reorderedSecondPostsIds, true);
       }, JEST_TIMEOUT);
 
       it('Check all create-modify discussions workflow for the state from maximum to lower', async () => {
@@ -236,12 +237,12 @@ describe('Organizations create,update related entities', () => {
         };
 
         CommonHelper.checkOneOrganizationFully(orgModel, options);
-        CommonHelper.expectModelsExistence(orgModel.discussions, postsIds, true);
+        CommonChecker.expectModelsExistence(orgModel.discussions, postsIds, true);
 
         const secondOrgModel: OrgModelResponse =
           await OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId);
 
-        CommonHelper.expectModelsExistence(secondOrgModel.discussions, secondOrgPostIds, true);
+        CommonChecker.expectModelsExistence(secondOrgModel.discussions, secondOrgPostIds, true);
 
         // Change order of two elements for first organization and two for second
 
@@ -257,8 +258,8 @@ describe('Organizations create,update related entities', () => {
           OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId),
         ]);
 
-        CommonHelper.expectModelsExistence(firstModelWithShuffled.discussions, reorderedFirstPostsIds, true);
-        CommonHelper.expectModelsExistence(secondModelWithShuffled.discussions, reorderedSecondPostsIds, true);
+        CommonChecker.expectModelsExistence(firstModelWithShuffled.discussions, reorderedFirstPostsIds, true);
+        CommonChecker.expectModelsExistence(secondModelWithShuffled.discussions, reorderedSecondPostsIds, true);
 
         // Delete some of discussions
         reorderedFirstPostsIds.pop();
@@ -277,8 +278,8 @@ describe('Organizations create,update related entities', () => {
           OrganizationsHelper.requestToGetOneOrganizationAsGuest(secondOrgId),
         ]);
 
-        CommonHelper.expectModelsExistence(firstModelWithDeleted.discussions, reorderedFirstPostsIds, true);
-        CommonHelper.expectModelsExistence(secondModelWithDeleted.discussions, reorderedSecondPostsIds, true);
+        CommonChecker.expectModelsExistence(firstModelWithDeleted.discussions, reorderedFirstPostsIds, true);
+        CommonChecker.expectModelsExistence(secondModelWithDeleted.discussions, reorderedSecondPostsIds, true);
       }, JEST_TIMEOUT);
     });
 

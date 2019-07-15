@@ -1,5 +1,4 @@
 "use strict";
-/* tslint:disable:max-line-length */
 const OrganizationsFetchService = require("../../lib/organizations/service/organizations-fetch-service");
 const OrganizationsValidateDiscussions = require("../../lib/organizations/discussions/service/organizations-validate-discussions");
 const OrganizationsModifyDiscussions = require("../../lib/organizations/discussions/service/organizations-modify-discussions");

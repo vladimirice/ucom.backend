@@ -236,11 +236,11 @@ module.exports = {
       },
     },
     {
-      name: `${NODE_ENV}-worker-sync-tr-traces`,
-      script: 'lib/eos/workers/sync-tr-traces-worker.js',
+      name: `${NODE_ENV}-sync-irreversible-traces-worker`,
+      script: 'lib/blockchain-traces/workers/sync-irreversible-traces-worker.js',
 
       watch: false,
-      cron_restart: '0 * * * *',
+      cron_restart: CRON_PATTERN_EVERY_MINUTE,
       env: {
         NODE_ENV,
       },

@@ -5,13 +5,11 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 // import BlockchainService = require('../../../lib/eos/service/blockchain-service');
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
-import UsersHelper = require('./users-helper');
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 import BlockchainCacheService = require('../../../lib/blockchain-nodes/service/blockchain-cache-service');
 
 const { TransactionSender } = require('ucom-libs-social-transactions');
 const { WalletApi } = require('ucom-libs-wallet');
-const blockchainTrTypesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 const request = require('supertest');
 
@@ -2507,16 +2505,18 @@ class BlockchainHelper {
   /**
    * @return {Promise<Object>}
    */
-  static async requestToGetMyselfBlockchainTransactions(
+  static async requestToGetMyselfBlockchainTraces(
     myself,
     expectedStatus = 200,
-    queryString = '',
+    queryString: string | null = null,
     allowEmpty = false,
   ) {
     let url = RequestHelper.getMyselfBlockchainTransactionsUrl();
 
     if (queryString) {
       url += `${queryString}`;
+    } else {
+      url += RequestHelper.getPaginationQueryString(1, 50);
     }
 
     const req = request(server)
@@ -2537,208 +2537,6 @@ class BlockchainHelper {
     ResponseHelper.expectValidListResponse(res, allowEmpty);
 
     return res.body.data;
-  }
-
-  /**
-   *
-   * @param models
-   */
-  static checkMyselfBlockchainTransactionsStructure(models) {
-    const trTypeToProcessor = {
-      [blockchainTrTypesDictionary.getTypeTransfer()]:          BlockchainHelper.checkTrTransfer,
-      [blockchainTrTypesDictionary.getLabelTransferFrom()]:     BlockchainHelper.checkTrTransfer,
-      [blockchainTrTypesDictionary.getLabelTransferTo()]:       BlockchainHelper.checkTrTransfer,
-
-      [blockchainTrTypesDictionary.getTypeStakeResources()]:    BlockchainHelper.checkTrStake,
-      [blockchainTrTypesDictionary.getTypeUnstakingRequest()]:  BlockchainHelper.checkUnstakingRequest,
-      [blockchainTrTypesDictionary.getTypeStakeWithUnstake()]:  BlockchainHelper.checkTrStakeWithUnstake,
-      [blockchainTrTypesDictionary.getTypeVoteForBp()]:         BlockchainHelper.checkTrVoteForBp,
-      [blockchainTrTypesDictionary.getTypeClaimEmission()]:     BlockchainHelper.getTypeEmission,
-      [blockchainTrTypesDictionary.getTypeBuyRamBytes()]:       BlockchainHelper.checkTypeBuyOrSellRam,
-      [blockchainTrTypesDictionary.getTypeSellRam()]:           BlockchainHelper.checkTypeBuyOrSellRam,
-    };
-
-    models.forEach((model) => {
-      expect(model.tr_type).toBeDefined();
-
-      const checker = trTypeToProcessor[model.tr_type];
-
-      if (checker) {
-        checker(model);
-      } else {
-        throw new Error(`There is no processor for tr_type: ${model.tr_type}`);
-      }
-    });
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static checkTrTransfer(model) {
-    const possibleValues = [
-      blockchainTrTypesDictionary.getLabelTransferFrom(),
-      blockchainTrTypesDictionary.getLabelTransferTo(),
-    ];
-
-    BlockchainHelper.checkCommonTrTracesFields(model);
-    expect(~possibleValues.indexOf(model.tr_type)).toBeTruthy();
-    expect(model.tokens).toBeDefined();
-    expect(typeof model.tokens.active).toBe('number');
-    expect(model.tokens.currency).toBe('UOS');
-
-    UsersHelper.checkIncludedUserPreview(model);
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static checkTrStake(model) {
-    BlockchainHelper.checkCommonTrTracesFields(model);
-    expect(model.memo).toBe('');
-    expect(model.tr_type).toBe(blockchainTrTypesDictionary.getTypeStakeResources());
-
-    expect(model.resources).toBeDefined();
-
-    expect(model.resources.cpu).toBeDefined();
-    expect(model.resources.cpu.tokens).toBeDefined();
-    expect(model.resources.cpu.tokens.currency).toBe('UOS');
-    expect(typeof model.resources.cpu.tokens.self_delegated).toBe('number');
-    expect(model.resources.cpu.tokens.self_delegated).toBeGreaterThanOrEqual(0);
-
-    expect(model.resources.net).toBeDefined();
-    expect(model.resources.net.tokens).toBeDefined();
-    expect(model.resources.net.tokens.currency).toBe('UOS');
-    expect(model.resources.net.tokens.self_delegated).toBeGreaterThanOrEqual(0);
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static checkTrStakeWithUnstake(model) {
-    BlockchainHelper.checkCommonTrTracesFields(model);
-    expect(model.memo).toBe('');
-    expect(model.tr_type).toBe(blockchainTrTypesDictionary.getTypeStakeWithUnstake());
-
-    expect(model.resources).toBeDefined();
-
-    expect(model.resources.cpu).toBeDefined();
-    expect(model.resources.cpu.tokens).toBeDefined();
-    expect(model.resources.cpu.tokens.currency).toBe('UOS');
-    expect(typeof model.resources.cpu.tokens.self_delegated).toBe('number');
-    expect(model.resources.cpu.tokens.self_delegated).toBeGreaterThanOrEqual(0);
-
-    expect(model.resources.cpu.unstaking_request).toBeDefined();
-    expect(model.resources.cpu.unstaking_request.amount).toBeGreaterThanOrEqual(0);
-
-    expect(model.resources.net).toBeDefined();
-    expect(model.resources.net.tokens).toBeDefined();
-    expect(model.resources.net.tokens.currency).toBe('UOS');
-    expect(typeof model.resources.net.tokens.self_delegated).toBe('number');
-    expect(model.resources.net.tokens.self_delegated).toBeGreaterThanOrEqual(0);
-    expect(model.resources.net.unstaking_request).toBeDefined();
-    expect(model.resources.net.unstaking_request.amount).toBeGreaterThanOrEqual(0);
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static checkUnstakingRequest(model) {
-    BlockchainHelper.checkCommonTrTracesFields(model);
-    expect(model.memo).toBe('');
-    expect(model.tr_type).toBe(blockchainTrTypesDictionary.getTypeUnstakingRequest());
-
-    expect(model.resources).toBeDefined();
-
-    expect(model.resources.cpu).toBeDefined();
-    expect(model.resources.cpu.tokens).not.toBeDefined();
-
-    expect(model.resources.cpu.unstaking_request).toBeDefined();
-    expect(model.resources.cpu.unstaking_request.amount).toBeGreaterThanOrEqual(0);
-    expect(model.resources.cpu.unstaking_request.currency).toBe('UOS');
-
-    expect(model.resources.net).toBeDefined();
-    expect(model.resources.net.tokens).not.toBeDefined();
-
-    expect(model.resources.net.unstaking_request).toBeDefined();
-    expect(model.resources.net.unstaking_request.amount).toBeGreaterThanOrEqual(0);
-    expect(model.resources.net.unstaking_request.currency).toBe('UOS');
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static checkTrVoteForBp(model) {
-    BlockchainHelper.checkCommonTrTracesFields(model);
-    expect(model.memo).toBe('');
-    expect(model.tr_type).toBe(blockchainTrTypesDictionary.getTypeVoteForBp());
-
-    expect(Array.isArray(model.producers)).toBeTruthy();
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static getTypeEmission(model) {
-    BlockchainHelper.checkCommonTrTracesFields(model);
-
-    expect(model.memo).toBe('');
-    expect(model.tr_type).toBe(blockchainTrTypesDictionary.getTypeClaimEmission());
-
-    expect(model.tokens).toBeDefined();
-    expect(model.tokens.emission).toBeGreaterThan(0);
-    expect(model.tokens.currency).toBe('UOS');
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static checkTypeBuyOrSellRam(model) {
-    const expectedTrTypes = [
-      blockchainTrTypesDictionary.getTypeBuyRamBytes(),
-      blockchainTrTypesDictionary.getTypeSellRam(),
-    ];
-
-    BlockchainHelper.checkCommonTrTracesFields(model);
-
-    expect(model.memo).toBe('');
-    expect(~expectedTrTypes.indexOf(model.tr_type)).toBeTruthy();
-
-    expect(model.resources).toBeDefined();
-    expect(model.resources.ram).toBeDefined();
-    expect(model.resources.ram.amount).toBeGreaterThan(0);
-    expect(model.resources.ram.dimension).toBe('kB');
-
-    expect(model.resources.ram.tokens).toBeDefined();
-    expect(model.resources.ram.tokens.amount).toBeGreaterThan(0);
-    expect(model.resources.ram.tokens.currency).toBe('UOS');
-  }
-
-  /**
-   *
-   * @param {Object} model
-   * @private
-   */
-  static checkCommonTrTracesFields(model) {
-    expect(typeof model.updated_at).toBe('string');
-    expect(model.updated_at.length).toBeGreaterThan(0);
-    expect(model.raw_tr_data).toBeDefined();
-    expect(model.raw_tr_data.block_data).toBeDefined();
-    expect(Object.keys(model.raw_tr_data.block_data).length).toBe(7);
-    expect(Object.keys(model.raw_tr_data).length).toBeGreaterThan(0);
   }
 
   static checkManyNodes(models, isMyselfDataRequired, blockchainNodesType: number | null = null) {

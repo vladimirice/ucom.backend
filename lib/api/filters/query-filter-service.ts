@@ -187,6 +187,7 @@ class QueryFilterService {
     params.attributes = this.getPrefixedAttributes(params.attributes, mainTableName, prefixAll);
   }
 
+
   public static getPrefixedAttributes(
     attributes: string[],
     prefix: string,
@@ -206,6 +207,27 @@ class QueryFilterService {
 
       return attribute;
     });
+  }
+
+  public static getPrefixedSelectAndSkipSome(
+    attributes: string[],
+    prefix: string,
+    skip: string[],
+    prefixForAlias: string = '',
+  ): string[] {
+    const prefixed: string[] = [];
+    for (const field of attributes) {
+      if (skip.includes(field))  {
+        prefixed.push(field);
+
+        continue;
+      }
+
+      const value: string = `${prefix}.${field} AS ${prefixForAlias}${field}`;
+      prefixed.push(value);
+    }
+
+    return prefixed;
   }
 
   /**

@@ -1,12 +1,12 @@
 import { ListResponse } from '../../../common/interfaces/lists-interfaces';
 
-const moment = require('moment');
+import IrreversibleTracesRepository = require('../../../blockchain-traces/repository/irreversible-traces-repository');
 
-const blockchainTrTracesRepository  = require('../../repository/blockchain-tr-traces-repository');
+const moment = require('moment');
+const blockchainTrTracesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
+
 const usersPostProcessor            = require('../../../users/user-post-processor');
 const queryFilterService            = require('../../../api/filters/query-filter-service');
-
-const blockchainTrTracesDictionary = require('ucom-libs-wallet').Dictionary.BlockchainTrTraces;
 
 class BlockchainTrTracesFetchService {
   /**
@@ -19,16 +19,19 @@ class BlockchainTrTracesFetchService {
     const params = queryFilterService.getQueryParameters(query, {}, []);
 
     const [data, totalAmount] = await Promise.all([
-      blockchainTrTracesRepository.findAllByAccountNameFromTo(accountName, params),
-      blockchainTrTracesRepository.countAllByAccountNameFromTo(accountName),
+      IrreversibleTracesRepository.findAllByAccountNameFromTo(accountName, params),
+      IrreversibleTracesRepository.countAllByAccountNameFromTo(accountName),
     ]);
 
-    for (let i = 0; i < data.length; i += 1) {
-      const current = data[i];
+    for (const current of data) {
       current.updated_at = moment(current.tr_executed_at).utc().format();
       delete current.tr_executed_at;
 
       for (const field in current.tr_processed_data) {
+        if (!current.tr_processed_data.hasOwnProperty(field)) {
+          continue;
+        }
+
         current[field] = current.tr_processed_data[field];
       }
 
@@ -77,7 +80,7 @@ class BlockchainTrTracesFetchService {
       current.tr_type = blockchainTrTracesDictionary.getLabelTransferTo();
     }
 
-    usersPostProcessor.processModelAuthorForListEntity(current.User);
+    usersPostProcessor.processOnlyUserItself(current.User);
   }
 }
 

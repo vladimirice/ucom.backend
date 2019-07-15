@@ -1,6 +1,8 @@
 /* tslint:disable:max-line-length */
+import { Transaction } from 'knex';
 import { EntityParamAggregatesDto } from '../../stats/interfaces/dto-interfaces';
 import { UsersActivityModelDto } from '../interfaces/users-activity/model-interfaces';
+import { IActivityModel } from '../interfaces/users-activity/dto-interfaces';
 
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import knex = require('../../../config/knex');
@@ -121,8 +123,9 @@ class UsersActivityRepository {
     return this.getModel().create(data, { transaction });
   }
 
-  public static async createNewKnexActivity(row, trx): Promise<any> {
-    const data = await trx(TABLE_NAME).insert(row).returning('*');
+  public static async createNewKnexActivity(row, trx: Transaction | null = null): Promise<IActivityModel> {
+    const queryBuilder = trx ? trx(TABLE_NAME) : knex(TABLE_NAME);
+    const data = await queryBuilder.insert(row).returning('*');
 
     return data[0];
   }
@@ -807,13 +810,19 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
   }
 
   /**
+   * #task - use follow index instead
    *
    * @param {number} userId
    * @returns {Promise<any>}
    */
-  static async findOneUserActivityData(userId) {
+  static async findOneUserFollowActivityData(userId) {
     const entityName       = usersModelProvider.getEntityName();
     const activityGroupId = activityGroupDictionary.getGroupUserUserInteraction();
+
+    const excludeEventIds: number[] = [
+      NotificationsEventIdDictionary.getUserTrustsYou(),
+      NotificationsEventIdDictionary.getUserUntrustsYou(),
+    ];
 
     const sql = `SELECT
                     DISTINCT ON (user_id_from, entity_id_to, entity_name, activity_group_id)
@@ -825,6 +834,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
                   WHERE
                     entity_name           = '${entityName}'
                     AND activity_group_id = ${activityGroupId}
+                    AND event_id NOT IN (${excludeEventIds.join(', ')})
                     AND (
                           user_id_from = ${+userId} OR entity_id_to = ${+userId}
                         )

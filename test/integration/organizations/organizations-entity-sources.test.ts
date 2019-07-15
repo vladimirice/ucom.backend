@@ -58,6 +58,7 @@ describe('Organizations. Entity source related creation-updating', () => {
           'user_id',
           'about',
           'powered_by',
+          'entity_images',
         ];
 
         ResponseHelper.expectAllFieldsExistenceForArray(body, expectedFields);
@@ -93,6 +94,7 @@ describe('Organizations. Entity source related creation-updating', () => {
           'avatar_filename',
           'nickname',
           'title',
+          'entity_images',
         ];
 
         body.forEach((model) => {

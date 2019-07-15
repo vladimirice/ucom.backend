@@ -74,6 +74,9 @@ module.exports = (sequelize, DataTypes) => {
     is_tracking_allowed: {
       type: DataTypes.BOOLEAN,
     },
+    entity_images: {
+      type: DataTypes.JSONB,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
@@ -81,6 +84,12 @@ module.exports = (sequelize, DataTypes) => {
     updated_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
+    },
+    profile_updated_at: {
+      type: DataTypes.DATE,
+    },
+    profile_updated_by: {
+      type: DataTypes.SMALLINT,
     },
   }, {
     underscored: true,
@@ -161,6 +170,7 @@ module.exports = (sequelize, DataTypes) => {
         'nickname',
         'avatar_filename',
         'current_rate',
+        'entity_images',
       ];
     };
   };

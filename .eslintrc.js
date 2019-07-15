@@ -26,12 +26,13 @@ module.exports = {
   },
   "rules": {
     "optimize-regex/optimize-regex": "warn",
-    "node/no-unsupported-features/es-syntax": false,
-    "eslint/no-use-before-define": false,
-    "node/no-unpublished-require": false,
-    "eslint/no-unused-vars": false,
-    "import/no-unresolved": false,
-    "import/prefer-default-export": false,
+    "node/no-unsupported-features/es-syntax": 'off',
+    "eslint/no-use-before-define": 'off',
+    "node/no-unpublished-require": 'off',
+    "eslint/no-unused-vars": 'off',
+    "import/no-unresolved": 'off',
+    "import/prefer-default-export": 'off',
+    "func-names": 'off',
   },
   "overrides": [
     {

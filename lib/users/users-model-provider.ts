@@ -17,6 +17,7 @@ const USERS_ACTIVITY_TABLE_NAME           = 'users_activity';
 const USERS_ACTIVITY_TRUST_TABLE_NAME     = 'users_activity_trust';
 const USERS_ACTIVITY_FOLLOW_TABLE_NAME    = 'users_activity_follow';
 const USERS_ACTIVITY_REFERRAL_TABLE_NAME  = 'affiliates.users_activity_referral';
+const USERS_SOURCES_TABLE_NAME            = 'users_sources';
 
 const USERS_ENTITY_NAME = EntityNames.USERS; // in db there is a fixed char length of 10
 
@@ -53,24 +54,20 @@ class UsersModelProvider {
     return this.getUsersTableName();
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static getBlockchainIdFieldName() {
+  public static getBlockchainIdFieldName(): string {
     return 'account_name';
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static getUsersTableName() {
+  public static getUsersTableName(): string {
     return USERS_TABLE_NAME;
   }
 
   public static getUsersActivityReferralTableName(): string {
     return USERS_ACTIVITY_REFERRAL_TABLE_NAME;
+  }
+
+  public static getUsersSourcesTableName(): string {
+    return USERS_SOURCES_TABLE_NAME;
   }
 
   public static getUsersActivityTableName(): string {
