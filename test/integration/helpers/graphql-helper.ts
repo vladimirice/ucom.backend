@@ -141,6 +141,26 @@ export class GraphqlHelper {
     return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
   }
 
+  public static async getManyOrgsBySearchPatternAsMyself(
+    searchPattern: string,
+    orderBy: string = '-current_rate',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const params = {
+      filters: {
+        organizations_identity_pattern: searchPattern,
+      },
+      page,
+      order_by: orderBy,
+      per_page: perPage,
+    };
+
+    const query: string = GraphQLSchema.getManyOrganizationQueryPart(params);
+
+    return GraphqlRequestHelper.makeRequestFromOneQueryPartByFetch(query, 'many_organizations');
+  }
+
   public static async getManyOrgsForHot(
     myself: UserModel,
     page: number = 1,

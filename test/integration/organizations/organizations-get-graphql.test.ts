@@ -1,9 +1,9 @@
-import { DbParamsDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
+import _ from 'lodash';
+import { DbParamsDto, RequestQueryDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import { GraphqlHelper } from '../helpers/graphql-helper';
 
-import _ = require('lodash');
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
@@ -67,29 +67,31 @@ describe('Organizations. Get requests', () => {
         OrganizationsHelper.checkOrgListResponseStructure(response);
         CommonChecker.expectModelIdsExistenceInResponseList(response, orgsIds);
       }, JEST_TIMEOUT);
+
+      it('use a search filter for organizations', async () => {
+        const searchPattern = 'a';
+
+        await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+        const response = await GraphqlHelper.getManyOrgsBySearchPatternAsMyself('a');
+
+        CommonChecker.expectNotEmptyArray(response.data);
+
+        for (const item of response.data) {
+          const inTitle     = item.title.includes(searchPattern);
+          const inNickname  = item.nickname.includes(searchPattern);
+
+          expect(inTitle || inNickname).toBe(true);
+        }
+      }, JEST_TIMEOUT);
     });
 
-
     describe('Trending organizations', () => {
-      const overviewType = EntityListCategoryDictionary.getTrending();
-
       it('Test trending - only test for graphql client error', async () => {
         await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
         const response = await GraphqlHelper.getManyOrgsForTrending(userVlad);
 
         checkOrgsPage(response);
       }, JEST_TIMEOUT);
-
-      it.skip('Users list for trending orgs', async () => {
-        // #task - very basic smoke test. It is required to check ordering
-
-        const response: any = await GraphqlHelper.getOrgsUsersAsMyself(
-          userVlad,
-          overviewType,
-        );
-
-        CommonHelper.checkUsersListResponse(response, usersCheckOptions);
-      });
     });
 
     describe('Hot orgs', () => {
@@ -253,7 +255,8 @@ describe('Organizations. Get requests', () => {
           ],
         };
 
-        const posts = await OrganizationsRepository.findAllOrgForList(params);
+        const query = {};
+        const posts = await OrganizationsRepository.findAllOrgForList(<RequestQueryDto>query, params);
 
         const response = await GraphqlHelper.getManyOrgsAsMyself(userVlad, '-current_rate,-id', page, perPage);
         const firstPage = response.data;

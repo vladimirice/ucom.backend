@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { DbParamsDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
+import { DbParamsDto, RequestQueryDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 
@@ -189,7 +189,9 @@ describe('Organizations. Get requests', () => {
           ],
         };
 
-        const posts = await OrganizationsRepository.findAllOrgForList(params);
+        // #task - this is a legacy related to wrong params concept
+        const requestQuery = {};
+        const posts = await OrganizationsRepository.findAllOrgForList(<RequestQueryDto>requestQuery, params);
         // noinspection JSDeprecatedSymbols
         const firstPage = await OrganizationsHelper.requestAllOrgsWithPagination(page, perPage, true);
 

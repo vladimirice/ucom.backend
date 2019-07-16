@@ -2,7 +2,11 @@
 
 import { QueryBuilder } from 'knex';
 import { OrgIdToOrgModelCard, OrgModel, OrgModelResponse } from '../interfaces/model-interfaces';
-import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
+import {
+  DbParamsDto,
+  QueryFilteredRepository,
+  RequestQueryDto,
+} from '../../api/filters/interfaces/query-filter-interfaces';
 import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 import { RequestQueryBlockchainNodes } from '../../blockchain-nodes/interfaces/blockchain-nodes-interfaces';
 
@@ -158,17 +162,21 @@ class OrganizationsRepository implements QueryFilteredRepository {
     });
   }
 
-  static async countAllOrganizations(params: DbParamsDto | null = null): Promise<number> {
-    const query = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
+  public static async countAllOrganizations(
+    requestQuery: RequestQueryDto | null = null,
+    params: DbParamsDto | null = null,
+  ): Promise<number> {
+    const queryBuilder = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
 
-    orgDbModel.prototype.addCurrentParamsLeftJoin(query);
+    orgDbModel.prototype.addCurrentParamsLeftJoin(queryBuilder);
+    orgDbModel.prototype.addSearchWhere(queryBuilder, requestQuery);
 
     if (params && params.whereRaw) {
       // noinspection JSIgnoredPromiseFromCall
-      query.whereRaw(params.whereRaw);
+      queryBuilder.whereRaw(params.whereRaw);
     }
 
-    const res = await query;
+    const res = await queryBuilder;
 
     return +res[0].amount;
   }
@@ -544,6 +552,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
   }
 
   public static async findAllOrgForList(
+    query: RequestQueryDto,
     params: DbParamsDto,
   ): Promise<OrgModelResponse[]> {
     QueryFilterService.addExtraAttributes(
@@ -552,7 +561,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
       OrganizationsModelProvider.getCurrentParamsTableName(),
     );
 
-    const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
+    const res = await orgDbModel.prototype.findAllOrgsBy(query, params).fetchAll();
     const numericalFields = this.getNumericalFields()
       .concat(OrgsCurrentParamsRepository.getStatsFields(), ['number_of_followers']);
 

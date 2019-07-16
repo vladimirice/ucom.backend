@@ -2,6 +2,11 @@
 
 This file is for frontend team only
 
+## Entities search filter
+
+TODO
+
+
 ## Save profile to blockchain
 
 ```

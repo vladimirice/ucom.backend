@@ -32,6 +32,8 @@ export const graphqlOrganizationsTypes = `
     overview_type: String
     entity_name: String
     post_type_id: Int
+    
+    organizations_identity_pattern: String
   }
   
   input one_org_activity_filtering {
