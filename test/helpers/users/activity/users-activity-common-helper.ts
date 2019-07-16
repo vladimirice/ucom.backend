@@ -74,7 +74,7 @@ class UsersActivityCommonHelper {
           },
           act: {
             account: 'uos.activity',
-            name: 'socialaction',
+            name: 'socialactndt',
             authorization: [
               {
                 actor: accountNameFrom,
@@ -118,7 +118,7 @@ class UsersActivityCommonHelper {
           },
           act: {
             account: 'uos.activity',
-            name: 'socialaction',
+            name: 'socialactndt',
             authorization: [
               {
                 actor: accountNameFrom,
