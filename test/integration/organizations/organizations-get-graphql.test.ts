@@ -72,16 +72,16 @@ describe('Organizations. Get requests', () => {
         const searchPattern = 'a';
 
         await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
-        const response = await GraphqlHelper.getManyOrgsBySearchPatternAsMyself('a');
+        const response = await GraphqlHelper.getManyOrgsBySearchPatternAsMyself(searchPattern);
 
-        CommonChecker.expectNotEmptyArray(response.data);
-
-        for (const item of response.data) {
-          const inTitle     = item.title.includes(searchPattern);
-          const inNickname  = item.nickname.includes(searchPattern);
-
-          expect(inTitle || inNickname).toBe(true);
-        }
+        CommonChecker.expectManyEntitiesMatchSearchPattern(
+          response.data,
+          searchPattern,
+          [
+            'title',
+            'nickname',
+          ],
+        );
       }, JEST_TIMEOUT);
     });
 

@@ -9,6 +9,39 @@ const _ = require('lodash');
 require('jest-expect-message');
 
 class CommonChecker {
+  public static expectManyEntitiesMatchSearchPattern(manyEntities: any[], searchPattern: string, manyFields: string[]): void {
+    this.expectNotEmptyArray(manyEntities);
+
+    for (const entity of manyEntities) {
+      this.expectEntityMatchSearchPattern(entity, searchPattern, manyFields);
+    }
+  }
+
+  public static expectEntityMatchSearchPattern(entity: any, searchPattern: string, manyFields: string[]): void {
+    this.expectNotEmpty(entity);
+    this.expectNotEmpty(manyFields);
+    this.expectNotEmpty(searchPattern);
+
+    let isMatch = false;
+    for (const field of manyFields) {
+      if (!entity[field]) {
+        throw new TypeError(`Provided entity does not have a field: ${field}. Entity: ${JSON.stringify(entity)}`);
+      }
+
+      if (typeof entity[field] !== 'string') {
+        throw new TypeError(`All fields to check matching must have a type string. Field ${field} = ${entity[field]}. Entity: ${JSON.stringify(entity)}`);
+      }
+
+      isMatch = entity[field].includes(searchPattern);
+
+      if (isMatch) {
+        break;
+      }
+    }
+
+    expect(isMatch).toBe(true);
+  }
+
   public static expectFieldIsStringDateTime(model: any, field: string): void {
     // @ts-ignore
     expect(model[field], `${field} is null`).not.toBeNull();

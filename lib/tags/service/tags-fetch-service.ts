@@ -19,18 +19,18 @@ const organizationsFetchService =
 const apiPostProcessor = require('../../common/service/api-post-processor');
 
 class TagsFetchService {
-  public static async findAndProcessManyTags(query: RequestQueryDto): Promise<TagsListResponse> {
+  public static async findAndProcessManyTags(requestQuery: RequestQueryDto): Promise<TagsListResponse> {
     const repository: QueryFilteredRepository = TagsRepository;
 
     const params: DbParamsDto =
-      QueryFilterService.getQueryParametersWithRepository(query, repository, true);
+      QueryFilterService.getQueryParametersWithRepository(requestQuery, repository, true);
 
     const promises: any = [
-      TagsRepository.findManyTagsForList(params),
-      TagsRepository.countManyTagsForList(params),
+      TagsRepository.findManyTagsForList(requestQuery, params),
+      TagsRepository.countManyTagsForList(requestQuery, params),
     ];
 
-    return this.findAndProcessManyByParams(promises, query, params);
+    return this.findAndProcessManyByParams(promises, requestQuery, params);
   }
 
   public static async findAndProcessOneTagById(

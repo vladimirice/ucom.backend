@@ -1,4 +1,4 @@
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { UserModel, UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 import {
   PostModelMyselfResponse,
   PostModelResponse, PostRequestQueryDto,
@@ -159,6 +159,74 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getManyOrganizationQueryPart(params);
 
     return GraphqlRequestHelper.makeRequestFromOneQueryPartByFetch(query, 'many_organizations');
+  }
+
+  public static async getManyTagsBySearchPatternAsMyself(
+    searchPattern: string,
+    orderBy: string = '-current_rate',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const params = {
+      filters: {
+        tags_identity_pattern: searchPattern,
+      },
+      page,
+      order_by: orderBy,
+      per_page: perPage,
+    };
+
+    const query: string = GraphQLSchema.getManyTagsQueryPart(params);
+
+    return GraphqlRequestHelper.makeRequestFromOneQueryPartByFetch(query, 'many_tags');
+  }
+
+  public static async getManyEntitiesBySearchPattern(
+    searchPattern: string,
+  ): Promise<{
+    many_organizations: OrgListResponse,
+    many_tags: TagsListResponse,
+    many_users: UsersListResponse,
+  }> {
+    const commonParams = {
+      page: 1,
+      per_page: 10,
+    };
+
+    const tagsParams = {
+      filters: {
+        tags_identity_pattern: searchPattern,
+      },
+      order_by: '-current_rate',
+      ...commonParams,
+    };
+
+    const organizationParams = {
+      filters: {
+        organizations_identity_pattern: searchPattern,
+      },
+      order_by: '-current_rate',
+
+      ...commonParams,
+    };
+
+    const usersParams = {
+      filters: {
+        users_identity_pattern: searchPattern,
+      },
+
+      order_by: '-scaled_importance',
+
+      ...commonParams,
+    };
+
+    const queryParts: string[] = [
+      GraphQLSchema.getManyTagsQueryPart(tagsParams),
+      GraphQLSchema.getManyOrganizationQueryPart(organizationParams),
+      GraphQLSchema.getManyUsersQueryPart(usersParams, false),
+    ];
+
+    return GraphqlRequestHelper.makeRequestFromQueryPartsByFetch(queryParts);
   }
 
   public static async getManyOrgsForHot(

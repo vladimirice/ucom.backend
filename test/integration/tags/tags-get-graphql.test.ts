@@ -11,6 +11,7 @@ import TagsRepository = require('../../../lib/tags/repository/tags-repository');
 import EntityEventParamGeneratorV2 = require('../../generators/entity/entity-event-param-generator-v2');
 import _ = require('lodash');
 import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 let userVlad: UserModel;
 
@@ -41,6 +42,24 @@ describe('GET Tags via graphql #graphql #tags', () => {
         myselfData: true,
       },
     };
+
+    it('use a search filter for tags', async () => {
+      const searchPattern = 'e';
+
+      await EntityEventParamGeneratorV2.createAndProcessManyEventsForManyEntities();
+      const response = await GraphqlHelper.getManyTagsBySearchPatternAsMyself(searchPattern);
+
+      CommonChecker.expectNotEmptyArray(response.data);
+      expect(response.data.length).toBe(2);
+
+      CommonChecker.expectManyEntitiesMatchSearchPattern(
+        response.data,
+        searchPattern,
+        [
+          'title',
+        ],
+      );
+    }, JEST_TIMEOUT);
 
     describe('Trending tags', () => {
       const overviewType = EntityListCategoryDictionary.getTrending();

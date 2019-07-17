@@ -4,8 +4,12 @@ This file is for frontend team only
 
 ## Entities search filter
 
-TODO
+[Example](../test/integration/helpers/graphql-helper.ts)
 
+Notes:
+* there is no scaled_importance for communities and tags. Use order_by=-current_rate for them. For users use
+order_by=-scaled_importance
+* Identity pattern field name is different for different entities
 
 ## Save profile to blockchain
 

@@ -1,4 +1,5 @@
-import { DbParamsDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import { QueryBuilder } from 'knex';
+import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import TagsModelProvider = require('../service/tags-model-provider');
@@ -15,12 +16,25 @@ const CURRENT_PARAMS_TABLE_NAME = TagsModelProvider.getCurrentParamsTableName();
 const TagDbModel = bookshelf.Model.extend({
   tableName: TABLE_NAME,
 
-  findAllTagsBy(params: DbParamsDto) {
-    return this.query((query) => {
+  findAllTagsBy(requestQuery: RequestQueryDto, params: DbParamsDto) {
+    return this.query((queryBuilder) => {
       QueryFilterService.processAttributes(params, TABLE_NAME);
-      QueryFilterService.addParamsToKnexQuery(query, params);
-      this.addCurrentParamsInnerJoin(query);
+      QueryFilterService.addParamsToKnexQuery(queryBuilder, params);
+
+      this.addSearchWhere(queryBuilder, requestQuery);
+
+      this.addCurrentParamsInnerJoin(queryBuilder);
     });
+  },
+
+  addSearchWhere(queryBuilder: QueryBuilder, requestQuery: RequestQueryDto) {
+    const searchPattern: string = requestQuery.tags_identity_pattern;
+
+    if (!searchPattern) {
+      return;
+    }
+
+    queryBuilder.where('title', 'ilike', `%${searchPattern}%`);
   },
 
   addCurrentParamsInnerJoin(query) {
