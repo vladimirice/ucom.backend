@@ -169,7 +169,10 @@ class OrganizationsRepository implements QueryFilteredRepository {
     const queryBuilder = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
 
     orgDbModel.prototype.addCurrentParamsLeftJoin(queryBuilder);
-    orgDbModel.prototype.addSearchWhere(queryBuilder, requestQuery);
+
+    if (requestQuery) {
+      orgDbModel.prototype.addSearchWhere(queryBuilder, requestQuery);
+    }
 
     if (params && params.whereRaw) {
       // noinspection JSIgnoredPromiseFromCall
