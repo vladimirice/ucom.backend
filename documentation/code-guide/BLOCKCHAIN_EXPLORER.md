@@ -13,7 +13,7 @@
 
 ## Workflow
 * [Worker](../../lib/blockchain-traces/workers/sync-irreversible-traces-worker.ts) starts.
-    * [Blockchain traces service](../../lib/blockchain-traces/service/blockchain-traces-sync-service.ts) is already correctly configured with the help of `Inversify` library (dependency injection).
+    * [Blockchain traces service](../../lib/blockchain-traces/service/blockchain-traces-sync-service.ts) is already correctly configured with the help of [Inversify library (dependency injection)](https://www.npmjs.com/package/inversify).
     * All existing processors form a chain
 * [Blockchain traces service](../../lib/blockchain-traces/service/blockchain-traces-sync-service.ts) fetch a batch of transactions from MongoDB.
 * [Blockchain traces chain](../../lib/blockchain-traces/service/blockchain-traces-processor-chain.ts) calls processors one by one with a single trace as an argument.
@@ -25,6 +25,11 @@
 * At the end, data prepared by processors is saved to the PostgreSQL database.
 * [Blockchain fetch service](../../lib/eos/service/tr-traces-service/blockchain-tr-traces-fetch-service.ts) provides an API for the frontend applications to receive user's transactions history
 
+## Where to find test framework components:
+* [Autotests](../../test/integration/blockchain/blockchain-tr-traces.test.ts)
+* [A generator of data for autotests](../../test/generators/blockchain/irreversible_traces/mongo-irreversible-traces-generator.ts)
+* [Request helper](../../test/integration/blockchain/blockchain-tr-traces.test.ts)
+* [Response checker](../../test/helpers/blockchain/irreversible-traces/irreversible-traces-checker.ts)
 
 ## How to add a new blockchain processor
 
