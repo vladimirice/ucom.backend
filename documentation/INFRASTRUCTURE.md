@@ -2,7 +2,9 @@
 
 ## Schema
 
-[Current infrastructure](jpg/production-infrastructure.jpg)
+![Current infrastructure](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/production-infrastructure.jpg)
+
+
 [Desired infrastructure](jpg/web-application-desired-infrastructure.jpg)
 
 Notes:
