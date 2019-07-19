@@ -2,20 +2,30 @@
 
 [![Known Vulnerabilities](https://snyk.io/test/github/vladimirice/ucom.backend/badge.svg)](https://snyk.io/test/github/vladimirice/ucom.backend)
 
-## Main features
+## Most interesting features
 * Social network - Users, Posts, Comments etc.
 * All social actions are written to the blockchain
-* User's rating = blockchain rating.
-* UOS/EOS blockchain integration
-* 600+ autotests
-* High-load architecture - queue servers, background tasks, database sharding
+* User's rating are calculated by blockchain.
+* UOS/EOS blockchain integration.
 
-## Content
-* [Main goals](#main-goals)
+## Most interesting technical solutions
+* Background queues - RabbitMQ.
+* All social network events are saved as quick as possible to process later by queue consumers.
+* Database sharding - separate analytics database.
+* GraphQL API
+* 600+ autotests, test-driven-development (TDD)
+
+## Most interesting code guide
+* [blockchain explorer](documentation/code-guide/BLOCKCHAIN_EXPLORER.md)
+* airdrop payment system - SOON!
+* affiliate network      - SOON!
+* stats module           - SOON!
+
+## Table of contents
 * [Installation](documentation/INSTALLATION.md)
 * [How-to](documentation/HOW_TO.md)
 * [Architecture](documentation/ARCHITECTURE.md)
-* [Entities](documentation/ENTITIES.md) - a list of all project entities (Users, Posts, etc.)
+* [Entities](documentation/ENTITIES.md)
 * [Features](documentation/features)
     * [Current workflow](documentation/features/CURRENT_WORKFLOW.md)
     * [Services and applications](documentation/features/SERVICES_AND_APPLICATIONS.md)
@@ -28,12 +38,6 @@
 * [Problems and solutions](documentation/PROBLEMS_AND_SOLUTIONS.md)
 * [For reference](documentation/FOR_REFERENCE.md)
 
-## Main goals
-
-* User authentication (via JWT tokens, stateless).
-* Business logic validation before sending transactions to blockchain.
-* Content storage. In future all content will be stored inside IPFS
-* Blockchain information caching - for example, transactions and block producers explorer.
 
 
 See [CONTRIBUTING](../../../uos.docs/blob/master/CONTRIBUTING.md) for U°Community projects information.
