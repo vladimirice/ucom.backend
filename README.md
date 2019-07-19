@@ -15,6 +15,9 @@
 * GraphQL API
 * 600+ autotests, test-driven-development (TDD)
 
+
+![Social action workflow](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/social-action-workflow.jpg)
+
 ## Most interesting code guide
 * [blockchain explorer](documentation/code-guide/BLOCKCHAIN_EXPLORER.md)
 * airdrop payment system - SOON!
