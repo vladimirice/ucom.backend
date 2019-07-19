@@ -1,5 +1,6 @@
 # Blockchain explorer
 
+![Blockchain explorer](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/blockchain-explorer.jpg)
 
 ## Components
 * There is a MongoDB database node to save raw blockchain transactions data.
@@ -23,3 +24,11 @@
 ## How to explore transactions
 * At the end, data prepared by processors is saved to the PostgreSQL database.
 * [Blockchain fetch service](../../lib/eos/service/tr-traces-service/blockchain-tr-traces-fetch-service.ts) provides an API for the frontend applications to receive user's transactions history
+
+
+## How to add a new blockchain processor
+
+* Create a new processor, [example](../../lib/blockchain-traces/trace-processors/processors/transfer-uos-tokens-trace-processor.ts)
+* Add a processor to the [inversify container config](../../lib/blockchain-traces/inversify/blockchain-traces.inversify.config.ts)
+* `UnknownTraceProcessor` must always be at the end of the list (if it is enabled)
+* Keep in mind that a `chain of responsibility pattern` is implemented. A criterion for processing must be very strict.
