@@ -272,15 +272,6 @@ class UserActivityService {
     return usersActivityRepository.createNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {Object} newPost
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} eventId
-   * @param {Object|null} transaction
-   * @return {Promise<void|Object|*>}
-   */
   public static async processOrganizationCreatesPost(
     newPost,
     eventId,
@@ -310,6 +301,7 @@ class UserActivityService {
   public static async processPostIsUpdated(
     updatedPost,
     currentUserId,
+    eventId: number | null,
     transaction,
     signedTransaction = '',
   ) {
@@ -322,7 +314,7 @@ class UserActivityService {
       user_id_from:       currentUserId,
       entity_id_to:       updatedPost.id,
       entity_name:        entityName,
-      event_id:            EventsIds.userUpdatesMediaPostFromHimself(),
+      event_id:           eventId,
 
       signed_transaction: signedTransaction,
     };
@@ -369,13 +361,13 @@ class UserActivityService {
 
   public static async processUserHimselfCreatesPost(
     newPost,
+    eventId,
     signedTransaction,
     currentUserId,
     transaction = null,
   ) {
     const activityGroupId = activityGroupDictionary.getGroupContentCreation();
     const entityName      = postsModelProvider.getEntityName();
-    const eventId         = EventsIds.userCreatesMediaPostFromHimself();
 
     const data = {
       activity_type_id:   newPost.post_type_id,

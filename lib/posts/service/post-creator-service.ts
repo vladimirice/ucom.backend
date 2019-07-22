@@ -3,6 +3,7 @@
 import { IdOnlyDto } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
+import { IActivityModel } from '../../users/interfaces/users-activity/dto-interfaces';
 
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
@@ -16,9 +17,10 @@ import EosPostsInputProcessor = require('../../eos/input-processor/content/eos-p
 import UsersModelProvider = require('../../users/users-model-provider');
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 
-const _ = require('lodash');
 
+const _ = require('lodash');
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+
 const { AppError } = require('../../../lib/api/errors');
 
 const db = require('../../../models').sequelize;
@@ -26,9 +28,9 @@ const db = require('../../../models').sequelize;
 const { BadRequestError } = require('../../../lib/api/errors');
 
 const eosTransactionService = require('../../eos/eos-transaction-service');
-
 const UsersActivityService  = require('../../users/user-activity-service');
 const usersActivityRepository = require('../../users/repository/users-activity-repository');
+
 const postsRepository         = require('../posts-repository');
 
 const models = require('../../../models');
@@ -37,7 +39,7 @@ const models = require('../../../models');
  * beginning of refactoring
  */
 class PostCreatorService {
-  public static async processNewPostCreation(req, eventId = null, currentUser: UserModel) {
+  public static async processNewPostCreation(req: any, eventId: number | null = null, currentUser: UserModel) {
     // #task - wrap in database transaction
 
     const { files } = req;
@@ -323,7 +325,13 @@ class PostCreatorService {
     return newPost;
   }
 
-  private static async createNewActivity(newPost, signedTransaction, currentUserId, eventId = null, transaction = null) {
+  private static async createNewActivity(
+    newPost,
+    signedTransaction,
+    currentUserId,
+    eventId: number | null = null,
+    transaction = null,
+  ): Promise<IActivityModel> {
     if (newPost.organization_id) {
       return UserActivityService.processOrganizationCreatesPost(
         newPost,
@@ -336,6 +344,7 @@ class PostCreatorService {
 
     return UserActivityService.processUserHimselfCreatesPost(
       newPost,
+      eventId,
       signedTransaction,
       currentUserId,
       transaction,

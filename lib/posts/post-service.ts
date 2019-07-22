@@ -9,6 +9,7 @@ import PostCreatorService = require('./service/post-creator-service');
 import UserActivityService = require('../users/user-activity-service');
 import PostsRepository = require('./posts-repository');
 import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
+import PostToEventIdService = require('./service/post-to-event-id-service');
 
 const _ = require('lodash');
 
@@ -132,9 +133,12 @@ class PostService {
         });
       }
 
+      const eventId = PostToEventIdService.getUpdatingEventIdByPost(updated);
+
       const activity = await UserActivityService.processPostIsUpdated(
         updated,
         currentUserId,
+        eventId,
         transaction,
         signedTransaction,
       );
