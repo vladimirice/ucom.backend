@@ -1,4 +1,7 @@
+/* eslint-disable no-console */
 /* tslint:disable:max-line-length */
+import { IActivityOptions } from '../interfaces/activity-interfaces';
+
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 
 const { TransactionSender } = require('ucom-libs-social-transactions');
@@ -24,7 +27,7 @@ const eventIdsToSkip = [
 ];
 
 class BlockchainJobProcessor {
-  static async process(message) {
+  static async process(message: { id: number, options: IActivityOptions }) {
     if (!message.id) {
       throw new Error(`Malformed message. ID is required. Message is: ${JSON.stringify(message)}`);
     }
@@ -53,6 +56,15 @@ class BlockchainJobProcessor {
       blockchainResponse = await this.pushByLegacyEosJs(message);
     }
 
+    if (blockchainResponse === null
+      && message.options
+      && message.options.suppressEmptyTransactionError === true
+    ) {
+      console.log(`This message has empty signed transaction and skipped by options: ${JSON.stringify(message)}`);
+
+      return;
+    }
+
     await UsersActivityRepository.setIsSentToBlockchainAndResponse(
       message.id,
       JSON.stringify(blockchainResponse),
@@ -68,6 +80,13 @@ class BlockchainJobProcessor {
   private static async pushByEosJsV2(message): Promise<any> {
     const signedTransaction: string | null =
       await UsersActivityRepository.getSignedTransactionByActivityId(message.id);
+
+    // #task - backward compatibility. Remove in the future
+    if (!signedTransaction
+      && message.options
+      && message.options.suppressEmptyTransactionError === true) {
+      return null;
+    }
 
     if (!signedTransaction) {
       throw new Error(`There is no activity data with id: ${message.id}`);

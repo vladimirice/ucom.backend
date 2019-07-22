@@ -1,29 +1,25 @@
-const rabbitMqService = require('./rabbitmq-service');
+import RabbitMqService = require('./rabbitmq-service');
 
 class ActivityProducer {
-
-  static async publishWithContentCreation(message) {
-    return await this.publish(message, rabbitMqService.getContentCreationBindingKey());
+  public static async publishWithContentCreation(message) {
+    return this.publish(message, RabbitMqService.getContentCreationBindingKey());
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  static async publishWithContentUpdating(message) {
-    return await this.publish(message, rabbitMqService.getContentUpdatingBindingKey());
+  public static async publishWithContentUpdating(message) {
+    return this.publish(message, RabbitMqService.getContentUpdatingBindingKey());
   }
 
-  static async publishWithUserActivity(message) {
-    return await this.publish(message, rabbitMqService.getUserActivityBindingKey());
+  public static async publishWithUserActivity(message) {
+    return this.publish(message, RabbitMqService.getUserActivityBindingKey());
   }
 
-  static async publish(message, bindingKey) {
-    const channel = await rabbitMqService.getChannel();
-    const result = await channel.publish(
-      rabbitMqService.getExchangeName(),
+  private static async publish(message, bindingKey) {
+    const channel = await RabbitMqService.getChannel();
+    return channel.publish(
+      RabbitMqService.getExchangeName(),
       bindingKey,
-      new Buffer(message),
+      Buffer.from(message),
     );
-
-    return result;
   }
 }
 

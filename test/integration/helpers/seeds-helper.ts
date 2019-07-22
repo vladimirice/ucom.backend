@@ -526,6 +526,15 @@ class SeedsHelper {
     return this.doAfterAll(beforeAfterOptions);
   }
 
+  public static async afterAllWithoutGraphQlNoConnectionsKill() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      noConnectionsKill: true,
+    };
+
+    return this.doAfterAll(beforeAfterOptions);
+  }
+
   public static async afterAllWithGraphQl() {
     const beforeAfterOptions = {
       isGraphQl: true,
@@ -537,15 +546,17 @@ class SeedsHelper {
   public static async doAfterAll(
     options: any = null,
   ): Promise<void> {
-    await this.sequelizeAfterAll();
+    await this.sequelizeAfterAll(options);
 
     if (options && options.isGraphQl) {
       await GraphqlRequestHelper.afterAll();
     }
   }
 
-  public static async sequelizeAfterAll() {
-    await CloseHandlersHelper.closeDbConnections();
+  public static async sequelizeAfterAll(options: any) {
+    if (!options || !options.noConnectionsKill) {
+      await CloseHandlersHelper.closeDbConnections();
+    }
 
     await RabbitMqService.purgeAllQueues();
     await RabbitMqService.closeAll();

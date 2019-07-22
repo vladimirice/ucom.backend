@@ -114,6 +114,38 @@ class RequestHelper {
     return req;
   }
 
+  public static async makePostRequestAsMyselfWithFields(
+    url: string,
+    myself: UserModel,
+    fields: any,
+    expectedStatus: number = 200,
+  ) {
+    const req = RequestHelper.getRequestObjForPostWithMyself(url, myself);
+
+    this.addFormFieldsToRequestWithStringify(req, fields);
+
+    const res = await req;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res;
+  }
+
+  public static async makePatchRequestAsMyselfWithFields(
+    url: string,
+    myself: UserModel,
+    fields: any,
+    expectedStatus: number = 200,
+  ) {
+    const req = RequestHelper.getRequestObjForPatch(url, myself);
+
+    this.addFormFieldsToRequestWithStringify(req, fields);
+
+    const res = await req;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res;
+  }
+
   public static getRequestObjForGet(url: string): SuperAgentRequest {
     return request(server).get(url);
   }

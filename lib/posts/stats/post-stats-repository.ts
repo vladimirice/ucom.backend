@@ -1,18 +1,18 @@
 const models = require('../../../models');
+
 const db = models.sequelize;
 
 const postsModelProvider = require('../service/posts-model-provider');
 
 class PostStatsRepository {
-
   static async createNew(postId, transaction) {
-    return await this.getModel().create({
+    return this.getModel().create({
       post_id: postId,
-    },                                  { transaction });
+    }, { transaction });
   }
 
   static async increaseField(postId, field, increaseBy, transaction) {
-    return await this.getModel().update({
+    return this.getModel().update({
       [field]: db.literal(`${field} + ${increaseBy}`),
     },                                  {
       transaction,
@@ -23,7 +23,7 @@ class PostStatsRepository {
   }
 
   static async findOneByPostId(postId, raw) {
-    return await this.getModel().findOne({
+    return this.getModel().findOne({
       raw,
       where: {
         post_id: postId,

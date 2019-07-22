@@ -11,6 +11,7 @@ const _ = require('lodash');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 
 const entityImagesField: string = EntityImagesModelProvider.entityImagesColumn();
@@ -274,20 +275,43 @@ class PostsGenerator {
     return Promise.all(promises);
   }
 
-  public static async createMediaPostByUserHimself(
-    user: UserModel,
-    values: any = {},
-  ): Promise<number> {
-    const defaultValues = {
+  public static getSampleMediaPostFields(myself: UserModel) {
+    return {
       title: 'Extremely new post',
       description: 'Our super post description',
       leading_text: 'extremely leading text',
       post_type_id: ContentTypeDictionary.getTypeMediaPost(),
-      user_id: user.id,
+      user_id: myself.id,
       current_rate: 0,
       current_vote: 0,
       entity_images: '{}',
     };
+  }
+
+  public static async createMediaPostWithGivenFields(
+    myself: UserModel,
+    fields: any,
+  ): Promise<number> {
+    const url = RequestHelper.getPostsUrl();
+
+    const response =
+      await RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields);
+
+    return +response.body.id;
+  }
+
+  /**
+   * @deprecated
+   * @see createMediaPostWithGivenFields
+   *
+   * @param user
+   * @param values
+   */
+  public static async createMediaPostByUserHimself(
+    user: UserModel,
+    values: any = {},
+  ): Promise<number> {
+    const defaultValues = this.getSampleMediaPostFields(user);
 
     const newPostFields = _.defaults(values, defaultValues);
 
@@ -302,6 +326,7 @@ class PostsGenerator {
       .field('current_rate', newPostFields.current_rate)
       .field('current_vote', newPostFields.current_vote)
       .field('entity_images', newPostFields.entity_images);
+
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;

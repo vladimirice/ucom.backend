@@ -1,13 +1,14 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length no-parameter-reassignment */
 import { PostModelResponse } from './interfaces/model-interfaces';
+import { UserModel } from '../users/interfaces/model-interfaces';
+import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
 
 import PostsFetchService = require('./service/posts-fetch-service');
 import PostCreatorService = require('./service/post-creator-service');
 import UserActivityService = require('../users/user-activity-service');
 import PostsRepository = require('./posts-repository');
 import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
-import { UserModel } from '../users/interfaces/model-interfaces';
 
 const _ = require('lodash');
 
@@ -82,7 +83,7 @@ class PostService {
     delete params.current_rate;
     delete params.current_vote;
 
-    // noinspection JSDeprecatedSymbols
+    const signedTransaction: string = params.signed_transaction || '';
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({
@@ -135,6 +136,7 @@ class PostService {
         updated,
         currentUserId,
         transaction,
+        signedTransaction,
       );
 
       return {
@@ -143,7 +145,12 @@ class PostService {
       };
     });
 
-    await UserActivityService.sendContentUpdatingPayloadToRabbit(newActivity);
+    const activityOptions: IActivityOptions = {
+      eosJsV2: true,
+      suppressEmptyTransactionError: true, // #task backward compatibility
+    };
+
+    await UserActivityService.sendContentUpdatingPayloadToRabbit(newActivity, activityOptions);
 
     if (PostService.isDirectPost(updatedPost)) {
       return PostsFetchService.findOnePostByIdAndProcess(updatedPost.id, currentUser.id);

@@ -12,6 +12,7 @@ const BINDING_KEY__USER_ACTIVITY    = 'user-activity';
 const blockchainBindingKeys = [
   BINDING_KEY__USER_ACTIVITY,
   BINDING_KEY__CONTENT_CREATION,
+  BINDING_KEY__CONTENT_UPDATING,
 ];
 
 const notificationsBindingKeys = [
@@ -43,9 +44,9 @@ class RabbitMqService {
       }
 
       return channel;
-    } catch (err) {
+    } catch (error) {
       this.resetChannelAndConnection();
-      throw err;
+      throw error;
     }
   }
 
@@ -61,15 +62,15 @@ class RabbitMqService {
     }
   }
 
-  static getContentCreationBindingKey() {
+  static getContentCreationBindingKey(): string {
     return BINDING_KEY__CONTENT_CREATION;
   }
 
-  static getContentUpdatingBindingKey() {
+  static getContentUpdatingBindingKey(): string {
     return BINDING_KEY__CONTENT_UPDATING;
   }
 
-  static getUserActivityBindingKey() {
+  static getUserActivityBindingKey(): string {
     return BINDING_KEY__USER_ACTIVITY;
   }
 
@@ -187,12 +188,12 @@ class RabbitMqService {
         connection = await amqplib.connect(rabbitMqConfig.connection_string);
         RabbitMqService.setConnectionEventHandlers();
       }
-    } catch (err) {
-      if (err.message.includes('ECONNREFUSED')) {
+    } catch (error) {
+      if (error.message.includes('ECONNREFUSED')) {
         throw new rabbitMqError.ConnectionRefusedError('RabbitMq refused to connect');
       }
 
-      throw err;
+      throw error;
     }
   }
 

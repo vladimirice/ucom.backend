@@ -4,6 +4,7 @@ import { AppError } from '../api/errors';
 import { UserModel } from './interfaces/model-interfaces';
 import { ISignedTransactionObject } from '../eos/interfaces/transactions-interfaces';
 import { IActivityModel } from './interfaces/users-activity/dto-interfaces';
+import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
 
 import knex = require('../../config/knex');
 import UsersActivityRepository = require('./repository/users-activity-repository');
@@ -11,6 +12,7 @@ import NotificationsEventIdDictionary = require('../entities/dictionary/notifica
 import UsersActivityFollowRepository = require('./repository/users-activity/users-activity-follow-repository');
 import ActivityGroupDictionary = require('../activity/activity-group-dictionary');
 import UsersModelProvider = require('./users-model-provider');
+import UserActivitySerializer = require('./job/user-activity-serializer');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
@@ -305,19 +307,13 @@ class UserActivityService {
     return usersActivityRepository.createNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {Object} updatedPost
-   * @param {number} currentUserId
-   * @param {Object} transaction
-   * @returns {Promise<Object>}
-   */
   public static async processPostIsUpdated(
     updatedPost,
     currentUserId,
     transaction,
+    signedTransaction = '',
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentUpdating();
+    const activityGroupId = ActivityGroupDictionary.getGroupContentUpdating();
     const entityName      = postsModelProvider.getEntityName();
 
     const data = {
@@ -326,8 +322,9 @@ class UserActivityService {
       user_id_from:       currentUserId,
       entity_id_to:       updatedPost.id,
       entity_name:        entityName,
+      event_id:            EventsIds.userUpdatesMediaPostFromHimself(),
 
-      signed_transaction: '',
+      signed_transaction: signedTransaction,
     };
 
     return usersActivityRepository.createNewActivity(data, transaction);
@@ -370,24 +367,15 @@ class UserActivityService {
     return usersActivityRepository.createNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {Object} newPost
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} eventId
-   * @param {Object|null} transaction
-   * @return {Promise<void|Object|*>}
-   */
-  static async processUserHimselfCreatesPost(
+  public static async processUserHimselfCreatesPost(
     newPost,
-    eventId,
     signedTransaction,
     currentUserId,
     transaction = null,
   ) {
     const activityGroupId = activityGroupDictionary.getGroupContentCreation();
     const entityName      = postsModelProvider.getEntityName();
+    const eventId         = EventsIds.userCreatesMediaPostFromHimself();
 
     const data = {
       activity_type_id:   newPost.post_type_id,
@@ -695,7 +683,7 @@ class UserActivityService {
     await activityProducer.publishWithUserActivity(jsonPayload);
   }
 
-  static async sendPayloadToRabbitEosV2(activity: IActivityModel) {
+  public static async sendPayloadToRabbitEosV2(activity: IActivityModel): Promise<void> {
     const jsonPayload: string =
       userActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
 
@@ -708,13 +696,20 @@ class UserActivityService {
     await activityProducer.publishWithContentCreation(jsonPayload);
   }
 
-  /**
-   *
-   * @param {Object} activity
-   * @returns {Promise<void>}
-   */
-  public static async sendContentUpdatingPayloadToRabbit(activity) {
-    const jsonPayload = userActivitySerializer.getActivityDataToCreateJob(activity.id);
+  public static async sendContentCreationPayloadToRabbitWithOptions(
+    activity: IActivityModel,
+    options: IActivityOptions,
+  ): Promise<void> {
+    const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await activityProducer.publishWithContentCreation(jsonPayload);
+  }
+
+  public static async sendContentUpdatingPayloadToRabbit(
+    activity: IActivityModel,
+    options: IActivityOptions,
+  ): Promise<void> {
+    const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
 
     await activityProducer.publishWithContentUpdating(jsonPayload);
   }
