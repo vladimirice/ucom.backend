@@ -553,7 +553,7 @@ class SeedsHelper {
     }
   }
 
-  public static async sequelizeAfterAll(options: any) {
+  public static async sequelizeAfterAll(options: any = null) {
     if (!options || !options.noConnectionsKill) {
       await CloseHandlersHelper.closeDbConnections();
     }

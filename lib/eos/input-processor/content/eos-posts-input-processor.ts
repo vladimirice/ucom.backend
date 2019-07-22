@@ -13,6 +13,12 @@ class EosPostsInputProcessor {
     postTypeId,
     organizationBlockchainId = null,
   ): Promise<IActivityOptions> {
+    if (postTypeId === ContentTypeDictionary.getTypeDirectPost()) {
+      return {
+        eosJsV2: false,
+      };
+    }
+
     const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
 
     if (transactionDetails !== null) {
@@ -21,12 +27,6 @@ class EosPostsInputProcessor {
 
       return {
         eosJsV2: true,
-      };
-    }
-
-    if (postTypeId === ContentTypeDictionary.getTypeDirectPost()) {
-      return {
-        eosJsV2: false,
       };
     }
 

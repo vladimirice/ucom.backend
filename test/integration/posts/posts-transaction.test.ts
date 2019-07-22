@@ -95,7 +95,7 @@ describe('Posts related blockchain transactions.', () => {
       };
 
       helpers.EosTransaction.checkTransactionsParts(activity, expected);
-    }, 10000);
+    }, 30000);
   });
 
   describe('Organization posting related transactions', () => {

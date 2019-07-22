@@ -7,13 +7,13 @@ import {
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { UosAccountPropertiesDto, UosAccountsResponseDto } from '../../../lib/uos-accounts-properties/interfaces/model-interfaces';
 
-import PostCreatorService = require('../../../lib/posts/service/post-creator-service');
 import AirdropsTransactionsSender = require('../../../lib/airdrops/service/blockchain/airdrops-transactions-sender');
 import AirdropsFetchTableRowsService = require('../../../lib/airdrops/service/blockchain/airdrops-fetch-table-rows-service');
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ImportanceGenerator = require('../../generators/blockchain/importance/uos-accounts-properties-generator');
 import UosAccountsPropertiesFetchService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-fetch-service');
 import EosApi = require('../../../lib/eos/eosApi');
+import EosPostsInputProcessor = require('../../../lib/eos/input-processor/content/eos-posts-input-processor');
 
 // @ts-ignore
 const uniqid = require('uniqid');
@@ -524,7 +524,7 @@ class MockHelper {
 
   static mockPostTransactionSigning() {
     // @ts-ignore
-    PostCreatorService.addSignedTransactionDetailsToBody = async function (
+    EosPostsInputProcessor.addSignedTransactionDetailsToBody = async function (
       body,
       // @ts-ignore
       user,
