@@ -2,6 +2,22 @@
 
 This file is for frontend team only
 
+## Content to the blockchain
+
+[Examples](../test/integration/posts/media-posts/posts-media-create-update-transactions.test.ts)
+
+
+Notes:
+* entity_tags -> extract them by yourself
+    * if there are no entity_tags - provide an empty array
+* Modify a post creation/updating request
+    * add blockchain ID
+    * add signed_transaction
+* For post updating - a full set of updated fields must be provided as transaction content attribute. Not only
+changed fields.
+* Only for media posts (publications). Do not send transactions for direct posts, reposts, comments, etc.
+
+
 ## Entities search filter
 
 [Example](../test/integration/helpers/graphql-helper.ts)
