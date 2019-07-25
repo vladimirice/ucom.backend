@@ -301,8 +301,7 @@ class PostsGenerator {
   }
 
   /**
-   * @deprecated
-   * @see createMediaPostWithGivenFields
+   * prefer to use createMediaPostWithGivenFields
    *
    * @param user
    * @param values
