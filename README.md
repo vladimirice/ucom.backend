@@ -17,6 +17,7 @@
 
 ## Most interesting code guide
 * [UOS data flow](documentation/architecture/UOS_DATA_FLOW.md)
+* [UOS test components](documentation/architecture/UOS_TESTS_COMPONENTS.md)
 * [blockchain explorer](documentation/features/BLOCKCHAIN_EXPLORER.md)
 
 * airdrop payment system - SOON!
