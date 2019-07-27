@@ -21,9 +21,15 @@
 * affiliate network      - SOON!
 * stats module           - SOON!
 
-![Social action workflow](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/social-action-workflow.jpg)
+![UOS data flow](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/uos-data-flow.jpg)
+
+![UOS libraries](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/uos-libraries.jpg)
+
+![UOS test framework](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/uos-test-framework.jpg)
 
 ![Current infrastructure](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/production-infrastructure.jpg)
+
+![Social action workflow](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/social-action-workflow.jpg)
 
 ## Table of contents
 * [Installation](documentation/INSTALLATION.md)

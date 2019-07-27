@@ -15,6 +15,8 @@ const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
+const moment = require('moment');
+
 const ActivityGroupDictionary   = require('../../../../lib/activity/activity-group-dictionary');
 
 let userVlad;
@@ -145,7 +147,9 @@ describe('Create/update media posts and push content to the blockchain', () => {
           leading_text:   '',
           entity_images:  {},
           entity_tags:    ['winter', 'summer'],
+
           blockchain_id:  postBefore.blockchain_id,
+          created_at:     moment(postBefore.created_at).utc().format(),
         };
 
         const signed_transaction = await PublicationsApi.signUpdatePublicationFromUser(
@@ -203,6 +207,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
           entity_images:  {},
           entity_tags:    ['winter', 'summer'],
           blockchain_id:  postBefore.blockchain_id,
+          created_at:     moment(postBefore.created_at).utc().format(),
         };
 
         const signed_transaction = await PublicationsApi.signUpdatePublicationFromOrganization(

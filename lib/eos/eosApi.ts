@@ -18,6 +18,7 @@ const ACCOUNT_NAME_LENGTH = 12;
 
 const AIRDROPS_GITHUB_SENDER = 'airdrops_github_sender';
 const AIRDROPS_GITHUB_HOLDER = 'airdrops_github_holder';
+const HISTORICAL_SENDER_ACCOUNT_NAME = 'uoshistorian';
 
 const initBlockchainExecutors = {
   [EnvHelper.testEnv()]: () => {
@@ -50,6 +51,10 @@ class EosApi {
 
   public static getGithubAirdropActivePrivateKey(): string {
     return accountsData[AIRDROPS_GITHUB_SENDER].activePk;
+  }
+
+  public static getHistoricalSenderPrivateKey(): string {
+    return accountsData[HISTORICAL_SENDER_ACCOUNT_NAME].activePk;
   }
 
   public static getGithubAirdropHolderAccountName(): string {
