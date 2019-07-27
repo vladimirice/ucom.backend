@@ -16,7 +16,9 @@
 * 600+ autotests, test-driven-development (TDD)
 
 ## Most interesting code guide
-* [blockchain explorer](documentation/code-guide/BLOCKCHAIN_EXPLORER.md)
+* [UOS data flow](documentation/architecture/UOS_DATA_FLOW.md)
+* [blockchain explorer](documentation/features/BLOCKCHAIN_EXPLORER.md)
+
 * airdrop payment system - SOON!
 * affiliate network      - SOON!
 * stats module           - SOON!
@@ -25,7 +27,7 @@
 
 ![UOS libraries](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/uos-libraries.jpg)
 
-![UOS test framework](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/uos-test-framework.jpg)
+![UOS test components](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/uos-test-components.jpg)
 
 ![Current infrastructure](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/production-infrastructure.jpg)
 
