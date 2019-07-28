@@ -1,5 +1,4 @@
-# HOW TO
-
+# Step-by-step for coding
 
 ## How are blockchain nodes `amounts` calculated
 
@@ -10,14 +9,14 @@
 
 ## How to reload all services
 
-* Reload backend infrastructure services. See [uos_backend_deploy_production](../uos_backend_deploy_production.sh)
+* Reload backend infrastructure services. See [uos_backend_deploy_production](../../uos_backend_deploy_production.sh)
 * Reload iframely service
 ```
 make pm2-reload-iframely
 ```
 * Reload frontend application (server site rendering)
 
-## How to create new table
+## How to create a new table
 * Run the following command:
 ```
 NAME='migration-file-name' make docker-db-create-migration-monolith
@@ -28,8 +27,8 @@ NAME='migration-file-name' make docker-db-create-migration-monolith
 ```
     make docker-migrate-monolith-via-knex
 ```
-* Add table to [SeedsHelper](../test/integration/helpers/seeds-helper.ts) `minorTables` or `majorTables` array 
-* Same workflow for the `events` - refer to [Makefile](../Makefile)
+* Add table to [SeedsHelper](../../test/integration/helpers/seeds-helper.ts) `minorTables` or `majorTables` array 
+* Same workflow for the `events` - refer to [Makefile](../../Makefile)
 
 ## How to add new transaction method
 
@@ -48,4 +47,4 @@ ab \
 ```
 
 ## Helpers
-* [BatchProcessingHelper](../lib/common/helper/batch-processing-helper.ts)
+* [BatchProcessingHelper](../../lib/common/helper/batch-processing-helper.ts)

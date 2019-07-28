@@ -4,7 +4,6 @@
 
 ### Entities processing
 
-
 **Strategy:**
 Use the Postgres CTE and array aggregate features instead of the separate requests: 
 * First - for the entity itself.

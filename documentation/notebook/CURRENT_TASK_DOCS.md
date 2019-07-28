@@ -4,7 +4,7 @@ This file is for frontend team only
 
 ## Content to the blockchain
 
-[Examples](../test/integration/posts/media-posts/posts-media-create-update-transactions.test.ts)
+[Examples](../../test/integration/posts/media-posts/posts-media-create-update-transactions.test.ts)
 
 
 Notes:
@@ -20,7 +20,7 @@ changed fields.
 
 ## Entities search filter
 
-[Example](../test/integration/helpers/graphql-helper.ts)
+[Example](../../test/integration/helpers/graphql-helper.ts)
 
 Notes:
 * there is no scaled_importance for communities and tags. Use order_by=-current_rate for them. For users use
@@ -50,7 +50,7 @@ user_created_at: moment().utc().format(),
 Notes:
 * If error is occurred - log it and redirect user. Do not break the registration flow.
 
-[Autotest](../test/integration/users/profile/profile-registration-transactions.test.ts)
+[Autotest](../../test/integration/users/profile/profile-registration-transactions.test.ts)
 
 ### During a regular profile updating
 
@@ -83,8 +83,40 @@ const allowedFields: string[] = [
 ];
 ```
 
-[Autotest](../test/integration/users/profile/profile-updating-transactions.test.ts)
+[Autotest](../../test/integration/users/profile/profile-updating-transactions.test.ts)
 
 ## Users list
 
-[Fetch using different filters](../test/integration/users/get/users-get-graphql.test.ts)
+[Fetch using different filters](../../test/integration/users/get/users-get-graphql.test.ts)
+
+# Feeds
+
+A GraphQL method `getManyPostsQueryPart`
+
+Dictionary
+```
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
+const { PostTypes } = require(ucom.libs.common).Posts.Dictionary;
+
+// publications filters
+entityNamesFrom = [EntityNames.ORGANIZATIONS]
+entityNamesFor   = [EntityNames.ORGANIZATIONS]
+ORDER BY '-current_rate'
+
+// direct posts filters (feed)
+entityNamesFrom = [EntityNames.ORGANIZATIONS, EntityNames.USERS]
+entityNamesFor = [EntityNames.ORGANIZATIONS]
+ORDER BY '-id'
+```
+
+In order to include comments please specify a comments_query parameters inside the filter.
+In order to fetch posts without comment - skip this query
+
+[examples](../../test/helpers/posts/posts-graphql-request.ts)
+* A Community main page top publications - `getOrgMainPageTopPublications`
+* A Community main page feed - `getOrgMainPageFeed`
+
+
+An example of users side block request is here:
+[here](../../test/helpers/users/many-users-request-helper.ts) (method `getManyTrendingUsersAsMyself`)
+

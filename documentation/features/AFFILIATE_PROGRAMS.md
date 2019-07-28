@@ -1,6 +1,6 @@
 # Affiliate programs
 
-[JPEG Schema](../jpg/referral-program-workflow.jpg)
+![Affiliate program workflow](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/referral-program-workflow.jpg)
 
 A referral program is a kind of affiliate programs.
 
@@ -16,7 +16,7 @@ app-redirect | A separate application which provides affiliate program `click` c
 A referral link structure:
 https://hello.u.community/{referral_program_id}/{referrer_identity}/?{utm_labels_query_string}
 
-An example for staging:
+An example of staging:
 https://staging-hello.u.community/jR/omgomgomgomg
 
 ----------------------------------------------
@@ -29,7 +29,7 @@ const { Interactions }  = require('ucom-libs-wallet').Dictionary;
 const { SocialApi }     = require('ucom-libs-wallet');
 ```
 
-Step 1 - fetch a `referral program state`
+Step 1 - fetch a `referral program state.`
 
 * Before the registration:
 POST /api/v1/affiliates/actions
@@ -54,10 +54,10 @@ Response:
 }
 ```
 
-Case 2 - there is no any cookie (a regular registration)
+Case 2 - there is no cookie (a regular registration)
 Status code is 422 (Unprocessable Entity)
 
-Response body is empty
+The response body is empty.
 
 Case 3 - errors. A regular errors format. Status code is 4**
 

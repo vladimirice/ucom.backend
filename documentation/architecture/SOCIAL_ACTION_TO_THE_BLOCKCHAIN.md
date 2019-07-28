@@ -1,6 +1,6 @@
-# Current workflow
+# Current social action workflow
 
-[JPEG Schema](../jpg/current-workflows.jpg)
+![Current social action workflow](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/current-workflows.jpg)
 
 Notes:
 * In every valuable business action frontend application, backend API application and blockchain application are involved.

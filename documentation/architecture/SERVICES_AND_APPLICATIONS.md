@@ -5,7 +5,7 @@ Applications:
 * Uploader - to upload an image and receive absolute URL for it.
 * GraphQL API - to fetch data
 * REST API - for the CRUD operations
-* iframely
+* iframely - youtube iframe processor
 * server-side rendering frontend application (see `ucom.frontend`)
 * redirect - a redirect part of the affiliate program.
 

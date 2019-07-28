@@ -4,7 +4,7 @@
 * It is required to remove any unused methods and rename the methods with `v2`. They were used for backward compatibility.
 
 ## Refactor legacy implementations
-* organizations lists - fetch these only via knex. Use sequelize only for join for legacy models.
+* organizations lists - fetch these only via knex. Use sequelize only to join for legacy models.
 * error-middleware for string errors - correct processing
 
 ## Fix architectural errors

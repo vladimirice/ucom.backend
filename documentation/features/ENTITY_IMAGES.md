@@ -2,13 +2,13 @@
 
 Estimated time to implement - 2h per entity.
 
-To add image(s) to any entity please consider to use a `entity_images` architectural feature.
+To add image(s) to any entity, please consider using a `entity_images` architectural feature.
 
 **The steps to do this:**
 * Create a new column using a migration - [example](../../migrations_knex_monolith/20190405081637-alter-comments-add-entity-images.js).
 * *Optional:* add a new column to an appropriate ORM model.
-* Extend an existing model interface by `ModelWithEntityImages`. The interface is [here](../../lib/entity-images/interfaces/model-interfaces.ts).
-* Make it possible to add a `entity_images` field to model during a creation process via [entity images input service](../../lib/entity-images/service/entity-image-input-service.ts).
+* Extend an existing model interface by `ModelWithEntityImages.` The interface is [here](../../lib/entity-images/interfaces/model-interfaces.ts).
+* Make it possible to add a `entity_images` field to the model during a creation process via [entity images input service](../../lib/entity-images/service/entity-image-input-service.ts).
 * Make it possible to update a `entity_images` field (not yet implemented, TODO).
 * Write the autotests - [example](../../test/integration/comments/comments-entity-images.test.ts).
 * Add the `entity_images` field to the GraphQL client library and to the GraphQL backend application server.
@@ -22,7 +22,7 @@ EntityImagesModelProvider.entityImagesColumn()
 ```
 * Keep in mind that a concrete `entity_images` JSON structure is up to the client application.
 It is not required to validate it somehow.
-* In order to clear a existing `entity_images` value please send empty object `{}`.
+* To clear an existing `entity_images` value, please send empty object `{}.`
 
 **Entity images structure example:**
 ```
