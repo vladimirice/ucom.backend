@@ -1,6 +1,4 @@
-/* eslint-disable */
-export {};
-
+/* eslint-disable no-use-before-define,no-console,guard-for-in */
 type votedEntity = {
   entity_id: number;
   entity_name: string;
@@ -110,3 +108,5 @@ async function setZeroCurrentVoteForInvalidOnlyTransactions(tableName: string, e
 
   await knex.raw(sql);
 }
+
+export {};

@@ -1,9 +1,9 @@
 import { BadRequestError, HttpForbiddenError } from '../../../api/errors';
+import { OrgModel } from '../../interfaces/model-interfaces';
 
 import OrganizationsRepository = require('../../repository/organizations-repository');
 import PostsRepository = require('../../../posts/posts-repository');
 import OrganizationsDiscussionsRepository = require('../repository/organizations-discussions-repository');
-import { OrgModel } from '../../interfaces/model-interfaces';
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 

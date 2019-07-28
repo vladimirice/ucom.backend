@@ -1,3 +1,4 @@
+// eslint-disable-next-line unicorn/filename-case
 const STATE__FULL         = 'full';
 const STATE__LIST         = 'list';
 const STATE__NOTIFICATION = 'notification';

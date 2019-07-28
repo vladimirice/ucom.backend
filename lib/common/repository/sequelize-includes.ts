@@ -23,7 +23,7 @@ class SequelizeIncludes {
   static getIncludeForPostCommentsObject(): any {
     return {
       attributes: models.comments.getFieldsForPreview(),
-      model: models['comments'],
+      model: models.comments,
       as: 'comments',
       required: false,
       include: [

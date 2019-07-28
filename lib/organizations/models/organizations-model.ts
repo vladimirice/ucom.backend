@@ -1,9 +1,9 @@
+import { QueryBuilder } from 'knex';
 import { DbParamsDto, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
 import UsersModelProvider = require('../../users/users-model-provider');
-import { QueryBuilder } from 'knex';
 
 const bookshelfLib = require('bookshelf');
 const knex = require('../../../config/knex');

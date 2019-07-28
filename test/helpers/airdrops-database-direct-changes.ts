@@ -1,8 +1,9 @@
+import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { IAirdrop } from '../../lib/airdrops/interfaces/model-interfaces';
+
 import AirdropsModelProvider = require('../../lib/airdrops/service/airdrops-model-provider');
 import knex = require('../../config/knex');
 import UsersExternalRepository = require('../../lib/users-external/repository/users-external-repository');
-import { UserModel } from '../../lib/users/interfaces/model-interfaces';
-import { IAirdrop } from '../../lib/airdrops/interfaces/model-interfaces';
 import moment = require('moment');
 import DatetimeHelper = require('../../lib/common/helper/datetime-helper');
 
@@ -14,7 +15,7 @@ class AirdropsDatabaseDirectChanges {
       .update({
         status: 3,
       })
-      .where('users_external_id', externalUser!.id)
+      .where('users_external_id', externalUser!.id);
   }
 
   public static async setAirdropInProcess(airdrop: IAirdrop) {

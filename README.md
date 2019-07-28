@@ -18,9 +18,9 @@
 ## Most interesting descriptions - have a look
 * [UOS data flow](documentation/architecture/UOS_DATA_FLOW.md)
 * [UOS test components](documentation/architecture/UOS_TESTS_COMPONENTS.md)
+* [Affiliate programs](documentation/features/AFFILIATE_PROGRAMS.md)
 * [Blockchain explorer](documentation/features/BLOCKCHAIN_EXPLORER.md)
 * [Airdrop payments processing](documentation/features/AIRDROP_PAYMENTS_PROCESSING.md)
-* [Analytics module](documentation/features/ANALYTICS_MODULE.md)
 
 ![UOS data flow](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/uos-data-flow.jpg)
 

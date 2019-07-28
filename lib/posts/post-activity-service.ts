@@ -18,7 +18,7 @@ class PostActivityService {
    * @returns {Promise<boolean>}
    */
   static async doesUserVotePost(userIdFrom, modelIdTo) {
-    return await usersActivityRepository.doesUserVotePost(userIdFrom, modelIdTo);
+    return usersActivityRepository.doesUserVotePost(userIdFrom, modelIdTo);
   }
 
   /**
@@ -79,6 +79,7 @@ class PostActivityService {
     const doesExists = await PostActivityService.doesUserVotePost(userFrom.id, modelId);
 
     if (doesExists) {
+      // eslint-disable-next-line new-cap
       throw new badRequestError({
         general: 'Vote duplication is not allowed',
       });
@@ -87,6 +88,7 @@ class PostActivityService {
     const modelTo = await postsRepository.findOneById(modelId);
 
     if (modelTo.user_id === userFrom.id) {
+      // eslint-disable-next-line new-cap
       throw new badRequestError({
         general: 'It is not allowed to vote for your own comment',
       });

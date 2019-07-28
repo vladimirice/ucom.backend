@@ -6,6 +6,7 @@ import UsersActivityRepository = require('../../../lib/users/repository/users-ac
 
 const delay = require('delay');
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 
 class ActivityHelper {
@@ -57,17 +58,13 @@ class ActivityHelper {
     const usersIdsToFollow: any    = [];
     const usersIdsToUnfollow: any  = [];
 
-    for (let i = 0; i < usersToFollow.length; i += 1) {
-      const user: any = usersToFollow[i];
-
+    for (const user of usersToFollow) {
       usersIdsToFollow.push(user.id);
 
       await this.requestToCreateFollowHistory(whoActs, user);
     }
 
-    for (let i = 0; i < usersToUnfollow.length; i += 1) {
-      const user: any = usersToUnfollow[i];
-
+    for (const user of usersToUnfollow) {
       usersIdsToUnfollow.push(user.id);
 
       await this.requestToCreateUnfollowHistory(whoActs, user);
@@ -93,15 +90,11 @@ class ActivityHelper {
     idsToFollow: number[] = [],
     idsToUnfollow: number[] = [],
   ) {
-    for (let i = 0; i < idsToFollow.length; i += 1) {
-      const current = idsToFollow[i];
-
+    for (const current of idsToFollow) {
       await this.requestToCreateOrgFollowHistory(whoActs, current);
     }
 
-    for (let i = 0; i < idsToUnfollow.length; i += 1) {
-      const current = idsToUnfollow[i];
-
+    for (const current of idsToUnfollow) {
       await this.requestToCreateOrgUnfollowHistory(whoActs, current);
     }
   }

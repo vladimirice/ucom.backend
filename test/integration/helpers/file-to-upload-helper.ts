@@ -3,6 +3,7 @@ import RequestHelper = require('./request-helper');
 const request = require('supertest');
 const config = require('config');
 const fs = require('fs');
+
 const server = RequestHelper.getApiApplication();
 
 const filePath = `${__dirname}/../../../seeders/images/ankr_network.png`;

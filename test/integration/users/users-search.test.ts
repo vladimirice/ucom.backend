@@ -6,6 +6,7 @@ const server = RequestHelper.getApiApplication();
 const requestHelper = require('../helpers/request-helper');
 const responseHelper = require('../helpers/response-helper');
 
+// eslint-disable-next-line node/no-missing-require
 const helpers = require('../helpers');
 
 let userVlad;

@@ -1,5 +1,8 @@
 import { AirdropDebtDto, OneUserAirdropDto } from '../../lib/airdrops/interfaces/dto-interfaces';
 import { GraphqlHelper } from '../integration/helpers/graphql-helper';
+import { IAirdrop } from '../../lib/airdrops/interfaces/model-interfaces';
+import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
 
 import _ = require('lodash');
 import AirdropsTokensRepository = require('../../lib/airdrops/repository/airdrops-tokens-repository');
@@ -8,9 +11,6 @@ import AccountTypesDictionary = require('../../lib/accounts/dictionary/account-t
 import AirdropsUsersRepository = require('../../lib/airdrops/repository/airdrops-users-repository');
 import ResponseHelper = require('../integration/helpers/response-helper');
 import AccountsTransactionsRepository = require('../../lib/accounts/repository/accounts-transactions-repository');
-import { IAirdrop } from '../../lib/airdrops/interfaces/model-interfaces';
-import { UserModel } from '../../lib/users/interfaces/model-interfaces';
-import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
 import CurrencyHelper = require('../../lib/common/helper/CurrencyHelper');
 
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;

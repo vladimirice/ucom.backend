@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-for-loop */
 /* tslint:disable:max-line-length */
 import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
 import { PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';

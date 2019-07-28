@@ -18,7 +18,7 @@ class ClicksRepository {
       .limit(1);
 
     if (AffiliatesAttributionIdsDictionary.isLastWins(offer)) {
-      subquery.orderBy('id', 'DESC')
+      subquery.orderBy('id', 'DESC');
     } else {
       subquery.orderBy('id', 'ASC');
     }

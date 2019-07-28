@@ -14,6 +14,7 @@ import TagsCurrentParamsRepository = require('../../../lib/tags/repository/tags-
 const delay = require('delay');
 
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 
 const postsRepository = require('../../../lib/posts/posts-repository');

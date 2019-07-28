@@ -1,8 +1,10 @@
+/* eslint-disable no-console */
+import { WorkerLogger } from '../../../../config/winston';
+import { WorkerOptionsDto } from '../../../common/interfaces/options-dto';
+
 import BalancesHelper = require('../../../common/helper/blockchain/balances-helper');
 import EosApi = require('../../../eos/eosApi');
-import { WorkerLogger } from '../../../../config/winston';
 import CurrencyHelper = require('../../../common/helper/CurrencyHelper');
-import { WorkerOptionsDto } from '../../../common/interfaces/options-dto';
 import WorkerHelper = require('../../../common/helper/worker-helper');
 
 const options: WorkerOptionsDto = {
@@ -23,7 +25,7 @@ function triggerTooLowAlertIfRequired(balance: number, symbol: string): void {
   WorkerLogger.error('UOS airdrop balance too low alert', {
     service: 'airdrops-balances-monitoring',
     current_balance: CurrencyHelper.getHumanReadableNumber(balance),
-    symbol: symbol,
+    symbol,
     alert_limit: CurrencyHelper.getHumanReadableNumber(executionOptions.alertLimit),
   });
 
@@ -38,7 +40,7 @@ function triggerBalanceIsChangedAlertIfRequired(balance: number, symbol: string)
   WorkerLogger.error('UOS holder balance is changed alert', {
     service: 'airdrops-balances-monitoring',
     current_balance: CurrencyHelper.getHumanReadableNumber(balance),
-    symbol: symbol,
+    symbol,
     required_balance: CurrencyHelper.getHumanReadableNumber(executionOptions.uosHolderBalance),
     difference: CurrencyHelper.getHumanReadableNumber(balance - executionOptions.uosHolderBalance),
   });
@@ -51,7 +53,7 @@ async function toExecute() {
   const accountNameHolder = EosApi.getGithubAirdropHolderAccountName();
   const manySymbols = [
     'UOS',
-    'UOSF'
+    'UOSF',
   ];
 
   EosApi.initBlockchainLibraries();

@@ -1,11 +1,10 @@
 import SeedsHelper = require('../helpers/seeds-helper');
+import CommentsGenerator = require('../../generators/comments-generator');
+import NotificationsHelper = require('../helpers/notifications-helper');
+import CommonHelper = require('../helpers/common-helper');
 
-const seedsHelper = require('../helpers/seeds-helper');
-const notificationsHelper = require('../helpers/notifications-helper');
-const commonHelper = require('../helpers/common-helper');
 
 const postsGenerator    = require('../../generators/posts-generator');
-const commentsGenerator = require('../../generators/comments-generator');
 const orgGenerator      = require('../../generators/organizations-generator');
 
 const eventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
@@ -26,7 +25,7 @@ describe('Mentions parsing by consumer', () => {
   afterAll(async () => { await SeedsHelper.doAfterAll(beforeAfterOptions); });
 
   beforeEach(async () => {
-    [userVlad, userJane, userPetr] = await seedsHelper.beforeAllRoutine();
+    [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
   });
 
   describe('Creating - mentions for new comments from org', () => {
@@ -38,7 +37,7 @@ describe('Mentions parsing by consumer', () => {
         const postId: number =
           await postsGenerator.createMediaPostOfOrganization(userJane, orgId);
         const comment: any =
-          await commentsGenerator.createCommentForPost(postId, userJane, description);
+          await CommentsGenerator.createCommentForPost(postId, userJane, description);
 
         expect(comment.organization_id).toBe(orgId);
 
@@ -47,9 +46,9 @@ describe('Mentions parsing by consumer', () => {
         };
 
         const mentionNotification =
-          await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
+          await NotificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
 
-        commonHelper.checkUserMentionsYouInsideComment(
+        CommonHelper.checkUserMentionsYouInsideComment(
           mentionNotification[0],
           options,
           comment.id,
@@ -66,9 +65,9 @@ describe('Mentions parsing by consumer', () => {
             await postsGenerator.createMediaPostOfOrganization(userJane, orgId);
 
           const comment: any =
-            await commentsGenerator.createCommentForPost(postId, userVlad);
+            await CommentsGenerator.createCommentForPost(postId, userVlad);
 
-          const commentOnComment: any = await commentsGenerator.createCommentOnComment(
+          const commentOnComment: any = await CommentsGenerator.createCommentOnComment(
             postId,
             comment.id,
             userJane,
@@ -82,9 +81,9 @@ describe('Mentions parsing by consumer', () => {
           };
 
           const mentionNotification =
-            await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
+            await NotificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
 
-          commonHelper.checkUserMentionsYouInsideComment(
+          CommonHelper.checkUserMentionsYouInsideComment(
             mentionNotification[0],
             options,
             commentOnComment.id,
@@ -104,16 +103,16 @@ describe('Mentions parsing by consumer', () => {
 
           const postId: number = await postsGenerator.createMediaPostByUserHimself(userJane);
           const comment: any =
-            await commentsGenerator.createCommentForPost(postId, userVlad, description);
+            await CommentsGenerator.createCommentForPost(postId, userVlad, description);
 
           const options = {
             postProcessing: 'notification',
           };
 
           const mentionNotification =
-            await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
+            await NotificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
 
-          commonHelper.checkUserMentionsYouInsideComment(
+          CommonHelper.checkUserMentionsYouInsideComment(
             mentionNotification[0],
             options,
             comment.id,
@@ -128,16 +127,16 @@ describe('Mentions parsing by consumer', () => {
 
           const postId: number = await postsGenerator.createMediaPostByUserHimself(userJane);
           const comment: any =
-            await commentsGenerator.createCommentForPost(postId, userVlad, description);
+            await CommentsGenerator.createCommentForPost(postId, userVlad, description);
 
           const options = {
             postProcessing: 'notification',
           };
 
           const petrMentionNotification =
-            await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
+            await NotificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
 
-          commonHelper.checkUserMentionsYouInsideComment(
+          CommonHelper.checkUserMentionsYouInsideComment(
             petrMentionNotification[0],
             options,
             comment.id,
@@ -146,17 +145,17 @@ describe('Mentions parsing by consumer', () => {
           );
 
           const janeNotifications =
-            await notificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
+            await NotificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
 
           expect(janeNotifications.some(
-              item => item.event_id === eventIdDictionary.getUserCommentsPost(),
+            (item: any) => item.event_id === eventIdDictionary.getUserCommentsPost(),
           )).toBeTruthy();
 
           const janeMention = janeNotifications.find(
-              item => item.event_id === eventIdDictionary.getUserHasMentionedYouInComment(),
+            (item: any) => item.event_id === eventIdDictionary.getUserHasMentionedYouInComment(),
           );
 
-          commonHelper.checkUserMentionsYouInsideComment(
+          CommonHelper.checkUserMentionsYouInsideComment(
             janeMention,
             options,
             comment.id,
@@ -172,9 +171,9 @@ describe('Mentions parsing by consumer', () => {
 
           const postId: number = await postsGenerator.createMediaPostByUserHimself(userJane);
           const comment: any =
-            await commentsGenerator.createCommentForPost(postId, userVlad);
+            await CommentsGenerator.createCommentForPost(postId, userVlad);
 
-          const commentOnComment: any = await commentsGenerator.createCommentOnComment(
+          const commentOnComment: any = await CommentsGenerator.createCommentOnComment(
             postId,
             comment.id,
             userJane,
@@ -186,9 +185,9 @@ describe('Mentions parsing by consumer', () => {
           };
 
           const mentionNotification =
-            await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
+            await NotificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
 
-          commonHelper.checkUserMentionsYouInsideComment(
+          CommonHelper.checkUserMentionsYouInsideComment(
             mentionNotification[0],
             options,
             commentOnComment.id,
@@ -202,9 +201,9 @@ describe('Mentions parsing by consumer', () => {
 
           const postId: number = await postsGenerator.createMediaPostByUserHimself(userJane);
           const comment: any =
-            await commentsGenerator.createCommentForPost(postId, userVlad);
+            await CommentsGenerator.createCommentForPost(postId, userVlad);
 
-          const commentOnComment: any = await commentsGenerator.createCommentOnComment(
+          const commentOnComment: any = await CommentsGenerator.createCommentOnComment(
             postId,
             comment.id,
             userJane,
@@ -216,9 +215,9 @@ describe('Mentions parsing by consumer', () => {
           };
 
           const mentionNotification =
-            await notificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
+            await NotificationsHelper.requestToGetExactNotificationsAmount(userPetr, 1);
 
-          commonHelper.checkUserMentionsYouInsideComment(
+          CommonHelper.checkUserMentionsYouInsideComment(
             mentionNotification[0],
             options,
             commentOnComment.id,
@@ -227,24 +226,23 @@ describe('Mentions parsing by consumer', () => {
           );
 
           const janeNotifications =
-            await notificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
+            await NotificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
 
           expect(janeNotifications.some(
-            item => item.event_id === eventIdDictionary.getUserCommentsPost(),
+            (item: any) => item.event_id === eventIdDictionary.getUserCommentsPost(),
           )).toBeTruthy();
 
           const janeMention = janeNotifications.find(
-            item => item.event_id === eventIdDictionary.getUserHasMentionedYouInComment(),
+            (item: any) => item.event_id === eventIdDictionary.getUserHasMentionedYouInComment(),
           );
           // Yes this is a feature - Jane can mention herself
-          commonHelper.checkUserMentionsYouInsideComment(
+          CommonHelper.checkUserMentionsYouInsideComment(
             janeMention,
             options,
             commentOnComment.id,
             userJane.id,
             userJane.id,
           );
-
         }, JEST_TIMEOUT);
       });
     });
@@ -260,13 +258,13 @@ describe('Mentions parsing by consumer', () => {
           newPostFields,
         );
 
-        const notification = await notificationsHelper.requestToGetOnlyOneNotification(userPetr);
+        const notification = await NotificationsHelper.requestToGetOnlyOneNotification(userPetr);
 
         const options = {
           postProcessing: 'notification',
         };
 
-        commonHelper.checkUserMentionsYouInsidePost(
+        CommonHelper.checkUserMentionsYouInsidePost(
           notification,
           options,
           expectedPostId,
@@ -286,13 +284,13 @@ describe('Mentions parsing by consumer', () => {
           newPostFields.description,
         );
 
-        const notification = await notificationsHelper.requestToGetOnlyOneNotification(userPetr);
+        const notification = await NotificationsHelper.requestToGetOnlyOneNotification(userPetr);
 
         const options = {
           postProcessing: 'notification',
         };
 
-        commonHelper.checkUserMentionsYouInsidePost(
+        CommonHelper.checkUserMentionsYouInsidePost(
           notification,
           options,
           expectedPost.id,
@@ -318,17 +316,17 @@ describe('Mentions parsing by consumer', () => {
         };
 
         const notifications =
-          await notificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
+          await NotificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
 
         expect(notifications.some(
-          item => item.event_id === eventIdDictionary.getUserCreatesDirectPostForOtherUser()),
-        ).toBeTruthy();
+          (item: any) => item.event_id === eventIdDictionary.getUserCreatesDirectPostForOtherUser(),
+        )).toBeTruthy();
 
         const mentionNotification = notifications.find(
-          item => item.event_id === eventIdDictionary.getUserHasMentionedYouInPost(),
+          (item: any) => item.event_id === eventIdDictionary.getUserHasMentionedYouInPost(),
         );
 
-        commonHelper.checkUserMentionsYouInsidePost(
+        CommonHelper.checkUserMentionsYouInsidePost(
           mentionNotification,
           options,
           expectedPost.id,

@@ -1,8 +1,9 @@
-import { inject, injectable } from "inversify";
-import "reflect-metadata";
+import { inject, injectable } from 'inversify';
+import 'reflect-metadata';
+import { Request } from 'express';
 import { UsersDiTypes } from '../interfaces/di-interfaces';
 import { IRequestBody } from '../../common/interfaces/common-types';
-import { Request } from 'express';
+
 import RegistrationService = require('./registration-service');
 
 @injectable()

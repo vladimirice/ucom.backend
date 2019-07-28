@@ -4,8 +4,7 @@ import EosApi = require('../../../lib/eos/eosApi');
 const yargs = require('yargs');
 
 
-
-const argv = yargs
+const { argv } = yargs
   .option('account_name', {
     alias: 'a',
     describe: 'account_name',
@@ -20,8 +19,7 @@ const argv = yargs
     default: 'UOS',
   })
   .help()
-  .alias('help', 'h')
-  .argv;
+  .alias('help', 'h');
 
 (async () => {
   EosApi.initBlockchainLibraries();
@@ -29,8 +27,9 @@ const argv = yargs
   const doesExist: boolean = await EosApi.doesAccountExist(argv.account_name);
 
   if (!doesExist) {
+    // eslint-disable-next-line no-console
     console.error(`There is no such account: ${argv.account_name}`);
   } else {
-    await BalancesHelper.printManyBalancesOfOneAccount(argv.account_name, [argv.symbol])
+    await BalancesHelper.printManyBalancesOfOneAccount(argv.account_name, [argv.symbol]);
   }
 })();

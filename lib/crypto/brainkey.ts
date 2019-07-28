@@ -2,8 +2,8 @@ const dictionary  = require('./dictionary');
 
 class Brainkey {
   // #task - this is non-production brainkey generator
-  static generateSimple (wordsAmount) {
-    const words = dictionary['en'].split(',');
+  static generateSimple(wordsAmount) {
+    const words = dictionary.en.split(',');
     const wordsLength = words.length;
 
     const res: any = [];

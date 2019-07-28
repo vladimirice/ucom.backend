@@ -1,7 +1,6 @@
 const postStatsRepository = require('./post-stats-repository');
 
 class PostStatsService {
-
   /**
    *
    * @param   {number} postId

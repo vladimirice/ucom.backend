@@ -6,7 +6,7 @@ class AffiliatesResponse {
   }
 
   public static getAccountNameSourceFromResponse(body: IResponseBody): string {
-    return body.affiliates_actions[0].account_name_source
+    return body.affiliates_actions[0].account_name_source;
   }
 }
 

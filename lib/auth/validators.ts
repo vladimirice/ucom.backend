@@ -1,3 +1,4 @@
+/* eslint-disable newline-per-chained-call */
 /* tslint:disable:max-line-length */
 import EosApi = require('../eos/eosApi');
 
@@ -51,9 +52,8 @@ class AuthValidator {
       'vlad', 'jane',
     ];
 
-    if (premiumAccounts.indexOf(accountName) === -1
-      && accountName.match(/^[a-z1-5]{12}$/) === null) {
-
+    if (!premiumAccounts.includes(accountName)
+      && accountName.match(/^[1-5a-z]{12}$/) === null) {
       throw new BadRequestError({
         account_name: 'Account name must contain only a-z or 1-5 and must have exactly 12 symbols length',
       });
@@ -77,11 +77,11 @@ class AuthValidator {
 
   static formatErrorMessages(errors) {
     const result: any = [];
-    for (let i = 0; i < errors.length; i += 1) {
-      const key = errors[i].context.key;
+    for (const element of errors) {
+      const { key } = element.context;
       result.push({
         field: key,
-        message: errors[i].message.replace(/['"]+/g, ''),
+        message: element.message.replace(/["']+/g, ''),
       });
     }
 

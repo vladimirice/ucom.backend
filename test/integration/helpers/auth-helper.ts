@@ -1,9 +1,9 @@
 const expect = require('expect');
 
 class AuthHelper {
-  static validateAuthResponse (res, accountName) {
+  static validateAuthResponse(res, accountName) {
     expect(res.status).toBe(200);
-    const body = res.body;
+    const { body } = res;
 
     expect(body).toHaveProperty('success', true);
     expect(body).toHaveProperty('token');

@@ -1,4 +1,5 @@
 import { IModelDto } from '../../common/interfaces/common-model-interfaces';
+
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import OffersModel = require('./offers-model');
 const { Model } = require('objection');
@@ -7,12 +8,17 @@ class StreamsModel extends Model implements IModelDto {
   readonly id!:           number;
 
   readonly user_id!:      number;
+
   readonly account_name!: string;
+
   readonly offer_id!:     number;
+
   readonly landing_url!:  string;
+
   readonly redirect_url!: string;
 
   readonly created_at!:   Date;
+
   readonly updated_at!:   Date;
 
   readonly offer!: OffersModel;
@@ -39,11 +45,12 @@ class StreamsModel extends Model implements IModelDto {
         join: {
           from: `${this.getTableName()}.offer_id`,
           to: `${OffersModel.getTableName()}.id`,
-        }
-      }
-    }
+        },
+      },
+    };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   getNumericalFields(): string[] {
     return [
       'id',

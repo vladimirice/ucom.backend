@@ -37,7 +37,7 @@ class EntityNotificationsService {
         await usersTeamRepository.setStatusConfirmed(entityName, entityId, userId, transaction);
       });
 
-    return await this.getAndProcessOneNotification(notificationId, userId);
+    return this.getAndProcessOneNotification(notificationId, userId);
   }
 
   public static async markNotificationAsSeen(notificationId: number, userId: number) {
@@ -55,7 +55,7 @@ class EntityNotificationsService {
       await notificationsRepo.setStatusSeenAndFinished(notificationId);
     }
 
-    return await this.getAndProcessOneNotification(notificationId, userId);
+    return this.getAndProcessOneNotification(notificationId, userId);
   }
 
   public static async declinePromptNotification(notificationId: number, userId: number) {
@@ -77,7 +77,7 @@ class EntityNotificationsService {
         await usersTeamRepository.setStatusDeclined(entityName, entityId, userId, transaction);
       });
 
-    return await this.getAndProcessOneNotification(notificationId, userId);
+    return this.getAndProcessOneNotification(notificationId, userId);
   }
 
   /**
@@ -85,6 +85,7 @@ class EntityNotificationsService {
    * @param {number} notificationId
    * @return {Promise<Object>}
    */
+  // eslint-disable-next-line class-methods-use-this
   async pendingPromptNotification(notificationId) {
     // #task validate request
 

@@ -20,7 +20,7 @@ class OffersCreatorService {
 
       post_id: postId,
       status: ProcessStatusesDictionary.new(),
-      title: title,
+      title,
       attribution_id: AffiliatesAttributionIdsDictionary.firstWins(),
       event_id: EventsIds.registration(),
       participation_id: AffiliatesParticipationIdsDictionary.all(),
@@ -35,7 +35,7 @@ class OffersCreatorService {
     await offer
       .$query()
       .patch({
-        redirect_url_template: redirectUrlTemplate
+        redirect_url_template: redirectUrlTemplate,
       });
 
     return offer;

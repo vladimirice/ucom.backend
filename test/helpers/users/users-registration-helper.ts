@@ -1,6 +1,7 @@
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
+
 import EosApi = require('../../../lib/eos/eosApi');
 import EosJsEcc = require('../../../lib/crypto/eosjs-ecc');
-import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import RequestHelper = require('../../integration/helpers/request-helper');
 import AffiliatesCommonHelper = require('../affiliates/affiliates-common-helper');
 import ResponseHelper = require('../../integration/helpers/response-helper');
@@ -10,7 +11,6 @@ class UsersRegistrationHelper {
     extraFields: StringToAnyCollection = {},
     uniqueId: string | null = null,
   ) {
-
     const accountData = this.generateRandomAccount();
 
     return this.registerNewUser(accountData, extraFields, uniqueId);
@@ -63,7 +63,7 @@ class UsersRegistrationHelper {
     publicActiveKey: string
 
     sign: string,
-  } {
+    } {
     const brainKey = EosApi.generateBrainkey();
 
     const [privateOwnerKey, privateActiveKey] = EosApi.getKeysByBrainkey(brainKey);
@@ -87,7 +87,7 @@ class UsersRegistrationHelper {
       publicActiveKey,
 
       sign,
-    }
+    };
   }
 }
 

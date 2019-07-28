@@ -1,10 +1,12 @@
+import postService from '../../../lib/posts/post-service';
+
 import PostsHelper = require('../helpers/posts-helper');
 
 export {};
 
+// eslint-disable-next-line node/no-missing-require
 const helpers = require('../helpers');
-const postService = require('../../../lib/posts/post-service');
-
+// eslint-disable-next-line node/no-missing-require
 const seedsHelper = require('../helpers/seeds-helper');
 
 let userVlad;

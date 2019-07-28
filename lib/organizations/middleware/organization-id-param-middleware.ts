@@ -30,8 +30,8 @@ class OrgApiMiddleware {
       req.organization_model  = model;
 
       next();
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   }
 }

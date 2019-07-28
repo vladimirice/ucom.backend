@@ -5,7 +5,6 @@ const knex = require('../../../config/knex');
 const TABLE_NAME = 'entity_state_log';
 
 class EntityStateLogRepository {
-
   /**
    *
    * @param {number} entityId
@@ -17,7 +16,8 @@ class EntityStateLogRepository {
       entity_name: entityName,
     };
 
-    return knex(TABLE_NAME).where(where).orderBy('id', 'DESC').limit(1).first();
+    return knex(TABLE_NAME).where(where).orderBy('id', 'DESC').limit(1)
+      .first();
   }
 
   /**

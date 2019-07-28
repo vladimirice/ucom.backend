@@ -2,9 +2,8 @@ import CommentsGenerator = require('../../generators/comments-generator');
 import PostsGenerator = require('../../generators/posts-generator');
 import RequestHelper = require('../helpers/request-helper');
 
-export {};
-
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 const gen = require('../../generators');
 
@@ -287,3 +286,5 @@ describe('Comments', () => {
     });
   });
 });
+
+export {};

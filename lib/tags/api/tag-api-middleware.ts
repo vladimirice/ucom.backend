@@ -1,4 +1,5 @@
 import { Response } from 'express';
+
 const { BadRequestError } = require('../../../lib/api/errors');
 
 const tagsRepository = require('../repository/tags-repository');
@@ -38,8 +39,8 @@ class TagApiMiddleware {
       req.db_tag        = dbTag;
 
       next();
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   }
 }

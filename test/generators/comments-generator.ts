@@ -1,11 +1,13 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { CommentModel, CommentModelResponse } from '../../lib/comments/interfaces/model-interfaces';
+
 import RequestHelper = require('../integration/helpers/request-helper');
 
 const request = require('supertest');
 
 const requestHelper = require('../integration/helpers/request-helper.ts');
 const responseHelper = require('../integration/helpers/response-helper.ts');
+
 const server = RequestHelper.getApiApplication();
 
 class CommentsGenerator {

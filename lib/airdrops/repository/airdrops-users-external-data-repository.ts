@@ -1,5 +1,6 @@
 import { Transaction } from 'knex';
 import { FreshUserDto } from '../interfaces/dto-interfaces';
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
 import knex = require('../../../config/knex');
 const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
@@ -7,7 +8,6 @@ const { AirdropStatuses } = require('ucom.libs.common').Airdrop.Dictionary;
 import UsersExternalModelProvider = require('../../users-external/service/users-external-model-provider');
 import AirdropsModelProvider = require('../service/airdrops-model-provider');
 import RepositoryHelper = require('../../common/repository/repository-helper');
-import { StringToAnyCollection } from '../../common/interfaces/common-types';
 
 const TABLE_NAME = AirdropsModelProvider.airdropsUsersExternalDataTableName();
 const usersExternal: string = UsersExternalModelProvider.usersExternalTableName();
@@ -80,7 +80,6 @@ class AirdropsUsersExternalDataRepository {
   public static async getManyUsersWithStatusNew(
     airdropId: number,
   ): Promise<FreshUserDto[]> {
-
     const blacklisted = AirdropsModelProvider.getUsersExternalDataBlacklistedIds();
 
     // #hardcore - it is a dirty solution of the participants issue. Pending worker here does too much work

@@ -2,10 +2,10 @@ import RequestHelper = require('../helpers/request-helper');
 
 export {};
 
+const request = require('supertest');
 const helpers = require('../helpers');
 const gen     = require('../../generators');
 
-const request = require('supertest');
 const server = RequestHelper.getApiApplication();
 const userHelper = require('../helpers/users-helper');
 
@@ -130,7 +130,7 @@ describe('User to post activity', () => {
 
       it('Not possible to vote by myself post', async () => {
         const posts = await postRepository.findAllByAuthor(userVlad.id);
-        const postId = posts[0]['id'];
+        const postId = posts[0].id;
 
         const res = await request(server)
           .post(`/api/v1/posts/${postId}/upvote`)
@@ -269,7 +269,7 @@ describe('User to post activity', () => {
 
     it.skip('Not possible to upvote twice', async () => {
       const posts = await postsService.findAllByAuthor(userVlad.id);
-      const postId = posts[0]['id'];
+      const postId = posts[0].id;
 
       const res = await request(server)
         .post(`/api/v1/posts/${postId}/upvote`)
@@ -288,7 +288,7 @@ describe('User to post activity', () => {
 
     it.skip('Not possible to join to myself post', async () => {
       const posts = await postsService.findAllByAuthor(userVlad.id);
-      const postId = posts[0]['id'];
+      const postId = posts[0].id;
 
       const res = await request(server)
         .post(`/api/v1/posts/${postId}/upvote`)

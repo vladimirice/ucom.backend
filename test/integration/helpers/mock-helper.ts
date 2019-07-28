@@ -468,14 +468,16 @@ class MockHelper {
 
   private static mockUserRegistration() {
     // @ts-ignore
-    EosApi.transactionToCreateNewAccount = async function(newAccountName, ownerPubKey, activePubKey) {};
+    // eslint-disable-next-line no-empty-function
+    EosApi.transactionToCreateNewAccount = async function (newAccountName, ownerPubKey, activePubKey) {};
     // @ts-ignore
-    EosApi.isAccountAvailable = async function(accountName: string) { return true };
+    EosApi.isAccountAvailable = async function (accountName: string) { return true; };
   }
 
   static mockOrganizationCreationBlockchainProducer() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
+    // eslint-disable-next-line no-empty-function
     organizationService.sendOrgCreationActivityToRabbit = async function (newUserActivity) {};
   }
 

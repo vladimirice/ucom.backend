@@ -8,6 +8,7 @@ import RequestHelper = require('./request-helper');
 
 const request = require('supertest');
 const _ = require('lodash');
+
 const server = RequestHelper.getApiApplication();
 
 const models = require('../../../models');

@@ -4,6 +4,7 @@ import {
 } from '../interfaces/model-interfaces';
 import { StringToNumberCollection } from '../../common/interfaces/common-types';
 import { InsertUpdateHelperFields } from '../../common/interfaces/options-dto';
+import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
 
 import UsersModelProvider = require('../../users/users-model-provider');
 import BatchProcessingHelper = require('../../common/helper/batch-processing-helper');
@@ -12,7 +13,6 @@ import knex = require('../../../config/knex');
 import UsersRepository = require('../../users/users-repository');
 import UosAccountsModelProvider = require('./uos-accounts-model-provider');
 import InsertUpdateRepositoryHelper = require('../../common/helper/repository/insert-update-repository-helper');
-import { TotalParametersResponse } from '../../common/interfaces/response-interfaces';
 
 
 const fields: InsertUpdateHelperFields = {

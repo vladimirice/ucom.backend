@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/catch-error-name */
 // eslint-disable-next-line no-unused-vars
 import { Request, Response } from 'express';
 

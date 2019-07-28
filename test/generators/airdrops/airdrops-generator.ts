@@ -55,7 +55,7 @@ class AirdropsGenerator {
     let orgId = givenOrgId;
 
     if (!orgId) {
-      orgId = await OrganizationsGenerator.createOrgWithoutTeam(postAuthor)
+      orgId = await OrganizationsGenerator.createOrgWithoutTeam(postAuthor);
     }
 
     const postId = await PostsGenerator.createMediaPostOfOrganization(postAuthor, orgId);

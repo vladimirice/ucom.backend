@@ -4,4 +4,4 @@ const AffiliatesDiTypes = {
 
 export {
   AffiliatesDiTypes,
-}
+};
