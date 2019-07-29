@@ -55,7 +55,12 @@ class MediaPostResendingService {
   }
 
   private static async resendPostsOneByOne(manyPosts, printPushResponse: boolean) {
+    let processedCount = 0;
     for (const post of manyPosts) {
+      if (processedCount % 100 === 0) {
+        console.log(`Current processed count is: ${processedCount}`);
+      }
+
       post.created_at = moment(post.created_at).utc().format();
       post.updated_at = moment(post.updated_at).utc().format();
 
@@ -83,6 +88,8 @@ class MediaPostResendingService {
         console.log(`Transaction id: ${pushingResponse.transaction_id}`);
         console.dir(JSON.stringify(pushingResponse.processed.action_traces[0].act.data));
       }
+
+      processedCount += 1;
     }
   }
 }
