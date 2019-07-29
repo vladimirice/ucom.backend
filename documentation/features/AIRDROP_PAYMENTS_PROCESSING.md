@@ -2,7 +2,7 @@
 
 ![Airdrop payment transactions](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/airdrop-payment-transactions.jpg)
 
-![Debt-credit pattern table structure](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/debt-credit-pattern-table-structure.jpg)
+![Debt-credit pattern table structure](https://raw.githubusercontent.com/UOSnetwork/ucom.backend/master/documentation/jpg/debt-credit-pattern-table-structure.png)
 
 There are different accounts in the system to represent the balance flows:
 
