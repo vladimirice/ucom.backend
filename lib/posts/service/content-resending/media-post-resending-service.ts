@@ -10,7 +10,7 @@ import OrganizationsModelProvider = require('../../../organizations/service/orga
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
-const { EosClient } = require('ucom-libs-wallet');
+const { EosClient, WalletApi } = require('ucom-libs-wallet');
 const moment = require('moment');
 
 class MediaPostResendingService {
@@ -20,6 +20,10 @@ class MediaPostResendingService {
     printPushResponse: boolean = false,
   ): Promise<TotalParametersResponse> {
     EosApi.initBlockchainLibraries();
+
+    const stateBefore = await WalletApi.getAccountState(EosApi.getHistoricalSenderAccountName());
+    console.log(`Account sources: ${EosApi.getHistoricalSenderAccountName()}`);
+    console.dir(stateBefore.resources);
 
     const manyPosts = await this.getManyMediaPosts(createdAtLessOrEqualThan, limit);
 

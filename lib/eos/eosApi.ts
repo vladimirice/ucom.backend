@@ -53,6 +53,10 @@ class EosApi {
     return accountsData[AIRDROPS_GITHUB_SENDER].activePk;
   }
 
+  public static getHistoricalSenderAccountName(): string {
+    return HISTORICAL_SENDER_ACCOUNT_NAME;
+  }
+
   public static getHistoricalSenderPrivateKey(): string {
     return accountsData[HISTORICAL_SENDER_ACCOUNT_NAME].activePk;
   }
