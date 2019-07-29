@@ -1,6 +1,6 @@
 # Referral program
 
-Goal: a bonus (extra tokens emission) for the already registered user who brought the new user (bonus for the registration).
+**Goal**: a bonus (extra tokens emission) for the already registered user who brought the new user (bonus for the registration).
 
 `Affiliates` - is a common word for affiliate partnership marketing modules. `Referral program` is a kind of affiliate
 partnership. 
@@ -42,10 +42,8 @@ Component name | Component type | Description
 --- | --- | --- 
 [Prepare ecosystem](../../test/helpers/affiliates/affiliates-before-all-helper.ts) | Before all | Before all methods used from `Jest`
 [Program generator](../../test/generators/affiliates/affiliates-generator.ts) | Generator | Create a referral program post 
-- | - | -
 [Redirect request maker](../../test/helpers/affiliates/redirect-request.ts) | Request maker | Autotests helper class to make redirect requests 
-[Redirect response checker](../../test/helpers/affiliates/redirect-checker.ts) | Response checker | Autotests helper class to check redirect response 
-- | - | -
+[Redirect response checker](../../test/helpers/affiliates/redirect-checker.ts) | Response checker | Autotests helper class to check redirect response
 [Referral program request maker](../../test/helpers/affiliates/affiliates-request.ts) | Request maker | Autotests helper class to make referral request 
 [Referral program response checker](../../test/helpers/affiliates/affiliates-checker.ts) | Response checker | Autotests helper class to check referral response 
 
