@@ -18,6 +18,7 @@ class MediaPostResendingService {
     createdAtLessOrEqualThan: string,
     limit: number,
     printPushResponse: boolean = false,
+    offset: number = 0,
   ): Promise<TotalParametersResponse> {
     EosApi.initBlockchainLibraries();
 
@@ -25,7 +26,7 @@ class MediaPostResendingService {
     console.log(`Account sources: ${EosApi.getHistoricalSenderAccountName()}`);
     console.dir(stateBefore.resources);
 
-    const manyPosts = await this.getManyMediaPosts(createdAtLessOrEqualThan, limit);
+    const manyPosts = await this.getManyMediaPosts(createdAtLessOrEqualThan, limit, offset);
 
     await this.resendPostsOneByOne(manyPosts, printPushResponse);
 
@@ -35,7 +36,7 @@ class MediaPostResendingService {
     };
   }
 
-  private static getManyMediaPosts(createdAtLessOrEqualThan: string, limit: number) {
+  private static getManyMediaPosts(createdAtLessOrEqualThan: string, limit: number, offset: number) {
     return knex(`${PostsModelProvider.getTableName()} AS p`)
       .select([
         'p.blockchain_id as blockchain_id',
@@ -55,6 +56,7 @@ class MediaPostResendingService {
       .where('p.created_at', '<=', createdAtLessOrEqualThan)
       .orderBy('p.id', 'ASC')
       .limit(limit)
+      .offset(offset)
     ;
   }
 

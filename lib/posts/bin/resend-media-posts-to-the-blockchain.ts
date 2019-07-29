@@ -10,6 +10,11 @@ const { argv } = yargs
     type: 'number',
     demand: true,
   })
+  .option('offset', {
+    describe: 'offset',
+    type: 'number',
+    demand: true,
+  })
   .option('createdAtLessOrEqualThan', {
     describe: 'createdAtLessOrEqualThan',
     type: 'string',
@@ -25,12 +30,15 @@ const { argv } = yargs
 ;
 
 (async () => {
-  const { createdAtLessOrEqualThan, limit, printPushResponse } = argv;
+  const {
+    createdAtLessOrEqualThan, limit, printPushResponse, offset,
+  } = argv;
 
   const totalResponse = await MediaPostResendingService.resendMediaPosts(
     createdAtLessOrEqualThan,
     limit,
     printPushResponse,
+    offset,
   );
 
   console.dir(totalResponse);
