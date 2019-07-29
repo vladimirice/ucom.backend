@@ -16,9 +16,12 @@
 * 600+ autotests, test-driven-development (TDD)
 
 ## Most interesting descriptions - have a look
+**Architecture**:
 * [UOS data flow](documentation/architecture/UOS_DATA_FLOW.md)
 * [UOS test components](documentation/architecture/UOS_TESTS_COMPONENTS.md)
-* [Affiliate programs](documentation/features/AFFILIATE_PROGRAMS.md)
+
+**Code**:
+* [Referral program](documentation/features/REFERRAL_PROGRAM.md)
 * [Blockchain explorer](documentation/features/BLOCKCHAIN_EXPLORER.md)
 * [Airdrop payments processing](documentation/features/AIRDROP_PAYMENTS_PROCESSING.md)
 
@@ -41,7 +44,7 @@
     * [Social action to the blockchain](documentation/architecture/SOCIAL_ACTION_TO_THE_BLOCKCHAIN.md)
     * [Entities](documentation/architecture/ENTITIES.md)
 * [Features](documentation/features)
-    * [Affiliate programs](documentation/features/AFFILIATE_PROGRAMS.md)
+    * [Referral program](documentation/features/REFERRAL_PROGRAM.md)
     * [Airdrop and balances](documentation/features/AIRDROP_PAYMENTS_PROCESSING.md)
     * [Analytics module](documentation/features/ANALYTICS_MODULE.md)
     * [Blockchain explorer](documentation/features/BLOCKCHAIN_EXPLORER.md)
