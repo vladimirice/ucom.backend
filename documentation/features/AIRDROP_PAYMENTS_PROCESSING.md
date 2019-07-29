@@ -20,8 +20,8 @@ Note: for every new `symbol`, a group of accounts should be created.
 
 Note: beforehand, `debt` and `income` accounts must be created.
 
-* There is a new token distribution for airdrop, amount = 100 000 tokens (`TNS`). 
-* New transaction - from `income` (- 100 000) to `debt` (100 000).
+* There is a new token distribution for airdrop, amount = 1 000 tokens (`TNS`). 
+* New transaction - from `income` (- 1 000) to `debt` (1 000).
 * User is asking about his airdrop state.
 * User fulfills some business conditions to participate (ex. follows DevExchange community)
 * Background worker checks conditions and determines users that fulfill all conditions.
