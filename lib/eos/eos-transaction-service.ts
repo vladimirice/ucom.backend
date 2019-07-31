@@ -1,3 +1,5 @@
+import { IActivityOptions } from './interfaces/activity-interfaces';
+
 const { TransactionFactory } = require('ucom-libs-social-transactions');
 const eosBlockchainUniqid = require('../eos/eos-blockchain-uniqid');
 
@@ -21,6 +23,12 @@ class EosTransactionService {
       contentBlockchainId,
       activityTypeId,
     );
+  }
+
+  public static getEosVersionBasedOnSignedTransaction(signedTransaction: string): IActivityOptions {
+    return {
+      eosJsV2: signedTransaction.includes('serializedTransaction'),
+    };
   }
 
   /**

@@ -4,15 +4,12 @@ import CommentsGenerator = require('../../generators/comments-generator');
 import PostsGenerator = require('../../generators/posts-generator');
 import EosTransactionHelper = require('../helpers/eos-transaction-helpers');
 
-export {};
-
 const delay   = require('delay');
 
 const rabbitMqService         = require('../../../lib/jobs/rabbitmq-service');
 const usersActivityRepository = require('../../../lib/users/repository').Activity;
 
 const commentsRepository = require('../../../lib/comments/repository').Main;
-
 
 let userVlad;
 let userJane;
@@ -209,7 +206,7 @@ describe('Comment related blockchain transactions.', () => {
 
   describe('Comments activity transactions', () => {
     describe('Votes related transactions', () => {
-      it('Jane upvotes Vlad posts', async () => {
+      it('Jane upvotes Vlad comment', async () => {
         const postId  = await PostsGenerator.createMediaPostByUserHimself(userVlad);
         const comment = await CommentsGenerator.createCommentForPost(postId, userVlad);
 
@@ -233,7 +230,7 @@ describe('Comment related blockchain transactions.', () => {
         expect(JSON.parse(activity.blockchain_response)).toMatchObject(expectedPushResult);
       }, 20000);
 
-      it('Jane DOWNVOTES Vlad posts', async () => {
+      it('Jane DOWNVOTES Vlad comment', async () => {
         const postId  = await PostsGenerator.createMediaPostByUserHimself(userVlad);
         const comment = await CommentsGenerator.createCommentForPost(postId, userVlad);
 
@@ -259,3 +256,5 @@ describe('Comment related blockchain transactions.', () => {
     });
   });
 });
+
+export {};

@@ -155,7 +155,7 @@ describe('Organizations. Get requests', () => {
           PostsGenerator.createUserDirectPostForOtherUser(userJane, targetUser),
         ];
 
-        const [newMediaPostId, newPostOfferId] =
+        const [newMediaPostId, newPostOfferId]: number[] =
           await Promise.all(promisesToCreatePosts);
 
         // @ts-ignore

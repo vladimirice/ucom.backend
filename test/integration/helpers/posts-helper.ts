@@ -680,15 +680,23 @@ class PostsHelper {
     return res;
   }
 
-  static async requestToUpvotePost(
-    whoUpvote: UserModel,
+  public static async requestToUpvotePost(
+    myself: UserModel,
     postId: number,
-    expectCreated:boolean = true,
+    expectCreated: boolean = true,
+    signedTransaction: any = null,
   ) {
-    const res = await request(server)
-      .post(`/api/v1/posts/${postId}/upvote`)
-      .set('Authorization', `Bearer ${whoUpvote.token}`)
-    ;
+    const url = `/api/v1/posts/${postId}/upvote`;
+
+    const req = RequestHelper.getRequestObjForPostWithMyself(url, myself);
+
+    if (signedTransaction) {
+      RequestHelper.addFormFieldsToRequestWithStringify(req, {
+        signed_transaction: signedTransaction,
+      });
+    }
+
+    const res = await req;
 
     if (expectCreated) {
       ResponseHelper.expectStatusCreated(res);
@@ -697,19 +705,22 @@ class PostsHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {Object} user
-   * @param {number} postId
-   * @returns {Promise<void>}
-   */
-  static async requestToDownvotePost(user, postId) {
-    const res = await request(server)
-      .post(`/api/v1/posts/${postId}/downvote`)
-      .set('Authorization', `Bearer ${user.token}`)
-    ;
+  public static async requestToDownvotePost(
+    myself: UserModel,
+    postId: number,
+    signedTransaction: any = null,
+  ) {
+    const url = `/api/v1/posts/${postId}/downvote`;
 
-    ResponseHelper.expectStatusCreated(res);
+    const req = RequestHelper.getRequestObjForPostWithMyself(url, myself);
+
+    if (signedTransaction) {
+      RequestHelper.addFormFieldsToRequestWithStringify(req, {
+        signed_transaction: signedTransaction,
+      });
+    }
+
+    const res = await req;
 
     return res.body;
   }

@@ -339,6 +339,12 @@ class RequestHelper {
     return req;
   }
 
+  public static addSignedTransactionToRequest(req: SuperAgentRequest, signedTransaction): void {
+    this.addFormFieldsToRequestWithStringify(req, {
+      signed_transaction: signedTransaction,
+    });
+  }
+
   public static addFormFieldsToRequestWithStringify(
     req: SuperAgentRequest,
     fields: StringToAnyCollection,

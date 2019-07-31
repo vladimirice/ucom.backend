@@ -13,6 +13,7 @@ import UsersActivityFollowRepository = require('./repository/users-activity/user
 import ActivityGroupDictionary = require('../activity/activity-group-dictionary');
 import UsersModelProvider = require('./users-model-provider');
 import UserActivitySerializer = require('./job/user-activity-serializer');
+import ActivityProducer = require('../jobs/activity-producer');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
@@ -695,6 +696,15 @@ class UserActivityService {
     const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
 
     await activityProducer.publishWithContentCreation(jsonPayload);
+  }
+
+  public static async sendPayloadToRabbitWithOptions(
+    activity: IActivityModel,
+    options: IActivityOptions,
+  ): Promise<void> {
+    const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await ActivityProducer.publishWithUserActivity(jsonPayload);
   }
 
   public static async sendContentUpdatingPayloadToRabbit(

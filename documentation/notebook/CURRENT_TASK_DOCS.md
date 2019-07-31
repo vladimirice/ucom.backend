@@ -2,6 +2,24 @@
 
 This file is for frontend team only
 
+## Sign upvote/downvote by frontend application.
+
+Required for:
+* all types of posts
+* all comments/replies
+
+
+add post body with a single field inside:
+{
+    signed_transaction: // result of wallet method call, see examples below
+}
+
+upvote/downvote posts:
+test/integration/posts/activity/posts-activity.test.ts
+
+upvote/downvote comments/replies:
+test/integration/comments/activity/comments-activity-transactions.test.ts
+
 ## Content to the blockchain
 
 [Examples](../../test/integration/posts/media-posts/posts-media-create-update-transactions.test.ts)

@@ -1,34 +1,33 @@
-import RequestHelper = require('../helpers/request-helper');
-
-export {};
+import RequestHelper = require('../../helpers/request-helper');
+import SeedsHelper = require('../../helpers/seeds-helper');
+import PostsGenerator = require('../../../generators/posts-generator');
+import OrganizationsGenerator = require('../../../generators/organizations-generator');
+import PostsHelper = require('../../helpers/posts-helper');
+import MockHelper = require('../../helpers/mock-helper');
+import UsersActivityRepository = require('../../../../lib/users/repository/users-activity-repository');
+import NotificationsNotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
+import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
+import PostsRepository = require('../../../../lib/posts/posts-repository');
 
 const request = require('supertest');
-const helpers = require('../helpers');
-const gen     = require('../../generators');
 
 const server = RequestHelper.getApiApplication();
-const userHelper = require('../helpers/users-helper');
+const userHelper = require('../../helpers/users-helper');
 
-const seedsHelper = require('../helpers/seeds-helper');
-const responseHelper = require('../helpers/response-helper');
-const usersActivityRepository = require('../../../lib/users/repository').Activity;
-const postRepository = require('../../../lib/posts/posts-repository');
-
-const eventIdDictionary = require('../../../lib/entities/dictionary').EventId;
-
-const postsService = require('../../../lib/posts/repository').Main;
+const responseHelper = require('../../helpers/response-helper');
+const postRepository = require('../../../../lib/posts/posts-repository');
 
 let userVlad;
 let userJane;
 let userPetr;
 
-helpers.Mock.mockAllTransactionSigning();
+MockHelper.mockAllTransactionSigning();
 
 const JEST_TIMEOUT = 10000;
 
 describe('User to post activity', () => {
-  beforeEach(async () => { await seedsHelper.initSeeds(); });
-  afterAll(async () => { await seedsHelper.sequelizeAfterAll(); });
+  beforeEach(async () => { await SeedsHelper.initSeeds(); });
+  afterAll(async () => { await SeedsHelper.sequelizeAfterAll(); });
 
   beforeAll(async () => {
     // noinspection JSCheckFunctionSignatures
@@ -55,15 +54,15 @@ describe('User to post activity', () => {
     const postIdToUpvote    = await postRepository.findFirstMediaPostIdUserId(targetUserId);
     const postIdToDownvote  = await postRepository.findLastMediaPostIdUserId(targetUserId);
 
-    const postIdToNoVote    = await gen.Posts.createMediaPostByUserHimself(userJane);
-    await gen.Posts.createRepostOfUserPost(userVlad, postIdToNoVote);
+    const postIdToNoVote    = await PostsGenerator.createMediaPostByUserHimself(userJane);
+    await PostsGenerator.createRepostOfUserPost(userVlad, postIdToNoVote);
 
-    await helpers.Posts.requestToUpvotePost(userVlad, postIdToUpvote);
-    await helpers.Posts.requestToDownvotePost(userVlad, postIdToDownvote);
-    await helpers.Posts.requestToUpvotePost(userPetr, postIdToUpvote); // disturbance
+    await PostsHelper.requestToUpvotePost(userVlad, postIdToUpvote);
+    await PostsHelper.requestToDownvotePost(userVlad, postIdToDownvote);
+    await PostsHelper.requestToUpvotePost(userPetr, postIdToUpvote); // disturbance
 
     const res = await request(server)
-      .get(`${helpers.Req.getPostsUrl()}?post_type_id=1`)
+      .get(`${RequestHelper.getPostsUrl()}?post_type_id=1`)
       .set('Authorization', `Bearer ${userVlad.token}`)
     ;
 
@@ -84,20 +83,20 @@ describe('User to post activity', () => {
   describe('Upvote-related tests', () => {
     describe('Positive scenarios', () => {
       it('Jane upvotes organization post of Vlad', async () => {
-        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
-        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
 
-        await helpers.PostHelper.requestToUpvotePost(userJane, postId);
+        await PostsHelper.requestToUpvotePost(userJane, postId);
 
         const activity =
-          await usersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
-        expect(activity.event_id).toBe(eventIdDictionary.getUserUpvotesPostOfOrg());
+          await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
+        expect(activity.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesPostOfOrg());
       });
 
       it('Jane upvotes Vlad posts', async () => {
-        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-        const body = await helpers.PostHelper.requestToUpvotePost(userJane, postId);
+        const body = await PostsHelper.requestToUpvotePost(userJane, postId);
         expect(body.current_vote).toBe(1);
 
         const changedPost = await postRepository.findOneById(postId);
@@ -105,9 +104,9 @@ describe('User to post activity', () => {
         expect(changedPost.current_vote).toBe(1);
 
         const activity =
-          await usersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
+          await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
         expect(+activity.entity_id_to).toBe(+postId);
-        expect(activity.event_id).toBe(eventIdDictionary.getUserUpvotesPostOfOtherUser());
+        expect(activity.event_id).toBe(NotificationsNotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser());
       });
 
       it.skip('should create valid users_activity record', async () => {
@@ -118,7 +117,7 @@ describe('User to post activity', () => {
       it('Not possible to vote twice', async () => {
         const post = await postRepository.findLastMediaPostByAuthor(userVlad.id);
 
-        await helpers.PostHelper.requestToUpvotePost(userJane, post.id);
+        await PostsHelper.requestToUpvotePost(userJane, post.id);
 
         const responseTwo = await request(server)
           .post(`/api/v1/posts/${post.id}/upvote`)
@@ -142,7 +141,6 @@ describe('User to post activity', () => {
 
       it('Should return 400 if postID is not a valid integer', async () => {
         const postId = 'invalidPostId';
-        const userJane = await userHelper.getUserJane();
 
         const res = await request(server)
           .post(`/api/v1/posts/${postId}/upvote`)
@@ -153,7 +151,6 @@ describe('User to post activity', () => {
       });
       it('Should return 404 if on post with provided ID', async () => {
         const postId = '100500';
-        const userJane = await userHelper.getUserJane();
 
         const res = await request(server)
           .post(`/api/v1/posts/${postId}/upvote`)
@@ -177,9 +174,9 @@ describe('User to post activity', () => {
       it('Jane downvotes post', async () => {
         const whoVotes = userJane;
 
-        const postId = await gen.Posts.createMediaPostByUserHimself(userVlad);
+        const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-        const body = await helpers.PostHelper.requestToDownvotePost(whoVotes, postId);
+        const body = await PostsHelper.requestToDownvotePost(whoVotes, postId);
         expect(body.current_vote).toBeDefined();
         expect(body.current_vote).toBe(-1);
 
@@ -187,20 +184,20 @@ describe('User to post activity', () => {
         expect(postVoteAfter).toBe(-1);
 
         const usersActivity =
-          await usersActivityRepository.findLastByUserIdAndEntityId(whoVotes.id, postId);
+          await UsersActivityRepository.findLastByUserIdAndEntityId(whoVotes.id, postId);
         expect(+usersActivity.entity_id_to).toBe(+postId);
-        expect(usersActivity.event_id).toBe(eventIdDictionary.getUserDownvotesPostOfOtherUser());
+        expect(usersActivity.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesPostOfOtherUser());
       });
 
       it('Jane DOWNVOTE organization post of Vlad', async () => {
-        const orgId = await gen.Org.createOrgWithoutTeam(userVlad);
-        const postId = await gen.Posts.createMediaPostOfOrganization(userVlad, orgId);
+        const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+        const postId = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
 
-        await helpers.PostHelper.requestToDownvotePost(userJane, postId);
+        await PostsHelper.requestToDownvotePost(userJane, postId);
 
         const activity =
-          await usersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
-        expect(activity.event_id).toBe(eventIdDictionary.getUserDownvotesPostOfOrg());
+          await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
+        expect(activity.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesPostOfOrg());
       });
 
       it.skip('should create valid users_activity record', async () => {
@@ -211,7 +208,7 @@ describe('User to post activity', () => {
         const post = await postRepository.findLastMediaPostByAuthor(userVlad.id);
         const whoVotes = userJane;
 
-        await helpers.PostHelper.requestToDownvotePost(whoVotes, post.id);
+        await PostsHelper.requestToDownvotePost(whoVotes, post.id);
 
         const responseTwo = await request(server)
           .post(`/api/v1/posts/${post.id}/downvote`)
@@ -233,7 +230,6 @@ describe('User to post activity', () => {
       }, JEST_TIMEOUT);
       it('Should return 400 if postID is not a valid integer', async () => {
         const postId = 'invalidPostId';
-        const userJane = await userHelper.getUserJane();
 
         const res = await request(server)
           .post(`/api/v1/posts/${postId}/downvote`)
@@ -244,7 +240,6 @@ describe('User to post activity', () => {
       });
       it('Should return 404 if on post with provided ID', async () => {
         const postId = '100500';
-        const userJane = await userHelper.getUserJane();
 
         const res = await request(server)
           .post(`/api/v1/posts/${postId}/downvote`)
@@ -268,7 +263,7 @@ describe('User to post activity', () => {
     });
 
     it.skip('Not possible to upvote twice', async () => {
-      const posts = await postsService.findAllByAuthor(userVlad.id);
+      const posts = await PostsRepository.findAllByAuthor(userVlad.id);
       const postId = posts[0].id;
 
       const res = await request(server)
@@ -287,7 +282,7 @@ describe('User to post activity', () => {
     });
 
     it.skip('Not possible to join to myself post', async () => {
-      const posts = await postsService.findAllByAuthor(userVlad.id);
+      const posts = await PostsRepository.findAllByAuthor(userVlad.id);
       const postId = posts[0].id;
 
       const res = await request(server)
@@ -297,37 +292,7 @@ describe('User to post activity', () => {
 
       responseHelper.expectStatusBadRequest(res);
     });
-
-    it.skip('Should return 400 if postID is not a valid integer', async () => {
-      const postId = 'invalidPostId';
-      const userJane = await userHelper.getUserJane();
-
-      const res = await request(server)
-        .post(`/api/v1/posts/${postId}/upvote`)
-        .set('Authorization', `Bearer ${userJane.token}`)
-      ;
-
-      responseHelper.expectStatusBadRequest(res);
-    });
-
-    it.skip('Should return 404 if on post with provided ID', async () => {
-      const postId = '100500';
-      const userJane = await userHelper.getUserJane();
-
-      const res = await request(server)
-        .post(`/api/v1/posts/${postId}/upvote`)
-        .set('Authorization', `Bearer ${userJane.token}`)
-      ;
-
-      responseHelper.expectStatusNotFound(res);
-    });
-
-    it.skip('Not possible to follow without auth token', async () => {
-      const res = await request(server)
-        .post('/api/v1/posts/1/upvote')
-      ;
-
-      responseHelper.expectStatusUnauthorized(res);
-    });
   });
 });
+
+export {};

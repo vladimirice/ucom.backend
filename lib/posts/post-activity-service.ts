@@ -1,10 +1,13 @@
 /* tslint:disable:max-line-length */
+import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
+
+import EosTransactionService = require('../eos/eos-transaction-service');
+
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const { BadRequestError:badRequestError } = require('../api/errors');
 
 const usersActivityService = require('../users/user-activity-service');
 
-const eosService = require('../eos/eos-transaction-service');
 const postsRepository = require('./repository').Main;
 const eventIdDictionary = require('../entities/dictionary').EventId;
 
@@ -94,21 +97,12 @@ class PostActivityService {
       });
     }
 
-    await eosService.appendSignedUserVotesContent(userFrom, body, modelTo.blockchain_id, activityTypeId);
+    await EosTransactionService.appendSignedUserVotesContent(userFrom, body, modelTo.blockchain_id, activityTypeId);
 
     return modelTo;
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {Object} modelTo
-   * @param {number} activityTypeId
-   * @param {string} signedTransaction
-   * @returns {Promise<*>}
-   * @private
-   */
-  static async userVotesPost(userFrom, modelTo, activityTypeId, signedTransaction) {
+  public static async userVotesPost(userFrom, modelTo, activityTypeId, signedTransaction): Promise<void> {
     const eventId = this.getEventId(activityTypeId, modelTo);
 
     const activity = await usersActivityService.createForUserVotesPost(
@@ -119,7 +113,11 @@ class PostActivityService {
       eventId,
     );
 
-    await usersActivityService.sendPayloadToRabbit(activity);
+    const options: IActivityOptions = EosTransactionService.getEosVersionBasedOnSignedTransaction(
+      signedTransaction,
+    );
+
+    await usersActivityService.sendPayloadToRabbitWithOptions(activity, options);
   }
 
   /**

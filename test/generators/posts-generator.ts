@@ -1,11 +1,12 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
-import { PostModelResponse } from '../../lib/posts/interfaces/model-interfaces';
+import { PostModel, PostModelResponse } from '../../lib/posts/interfaces/model-interfaces';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
 import UsersHelper = require('../integration/helpers/users-helper');
 import OrganizationsGenerator = require('./organizations-generator');
 import EntityImagesModelProvider = require('../../lib/entity-images/service/entity-images-model-provider');
+import PostsRepository = require('../../lib/posts/posts-repository');
 
 const _ = require('lodash');
 
@@ -300,12 +301,15 @@ class PostsGenerator {
     return +response.body.id;
   }
 
-  /**
-   * prefer to use createMediaPostWithGivenFields
-   *
-   * @param user
-   * @param values
-   */
+  public static async createMediaPostByUserHimselfAndGetModel(
+    user: UserModel,
+    values: any = {},
+  ): Promise<PostModel> {
+    const postId: number = await this.createMediaPostByUserHimself(user, values);
+
+    return PostsRepository.findOnlyPostItselfById(postId);
+  }
+
   public static async createMediaPostByUserHimself(
     user: UserModel,
     values: any = {},

@@ -1,4 +1,5 @@
 import { BadRequestError } from '../api/errors';
+import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
 
 import CommentsRepository = require('./comments-repository');
 import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
@@ -139,7 +140,9 @@ class CommentsActivityService {
       eventId,
     );
 
-    await UserActivityService.sendPayloadToRabbit(activity);
+    const options: IActivityOptions = EosTransactionService.getEosVersionBasedOnSignedTransaction(signedTransaction);
+
+    await UserActivityService.sendPayloadToRabbitWithOptions(activity, options);
   }
 
   /**
