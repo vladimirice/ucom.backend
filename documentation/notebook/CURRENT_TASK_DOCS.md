@@ -10,15 +10,17 @@ Required for:
 
 
 add post body with a single field inside:
+```
 {
     signed_transaction: // result of wallet method call, see examples below
 }
+```
 
-upvote/downvote posts:
-test/integration/posts/activity/posts-activity.test.ts
+Examples:
 
-upvote/downvote comments/replies:
-test/integration/comments/activity/comments-activity-transactions.test.ts
+[upvote/downvote posts](../../test/integration/posts/activity/posts-activity-transactions.test.ts)
+
+[upvote/downvote comments/replies](../../test/integration/comments/activity/comments-activity-transactions.test.ts)
 
 ## Content to the blockchain
 
