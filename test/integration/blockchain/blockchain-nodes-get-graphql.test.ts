@@ -65,7 +65,7 @@ describe('Blockchain nodes get - graphql', () => {
             expect(node.bp_status).toBe(Dictionary.BlockchainNodes.statusBackup());
           }
         }
-      });
+      }, JEST_TIMEOUT * 3);
     });
 
     describe('searching by title', () => {

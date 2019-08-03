@@ -7,6 +7,10 @@ interface UsersActivityIndexModelDto {
   created_at:   any;
 }
 
+interface UsersActivityIndexVoteModel extends UsersActivityIndexModelDto{
+  interaction_type: number;
+}
+
 interface UsersActivityModelDto {
   id: number;
 
@@ -32,4 +36,5 @@ interface UsersActivityModelDto {
 export {
   UsersActivityIndexModelDto,
   UsersActivityModelDto,
+  UsersActivityIndexVoteModel,
 };

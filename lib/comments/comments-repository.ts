@@ -1,3 +1,4 @@
+import { Transaction } from 'knex';
 import { DbParamsDto } from '../api/filters/interfaces/query-filter-interfaces';
 import {
   NumberToNumberCollection,
@@ -5,8 +6,13 @@ import {
 import { DbCommentParamsDto } from './interfaces/query-filter-interfaces';
 import { CommentModel, ParentIdToDbCommentCollection } from './interfaces/model-interfaces';
 
+import { AppError } from '../api/errors';
+
+const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
+
 import knex = require('../../config/knex');
 import CommentsModelProvider = require('./service/comments-model-provider');
+
 import UsersModelProvider = require('../users/users-model-provider');
 
 const _ = require('lodash');
@@ -14,9 +20,10 @@ const _ = require('lodash');
 const models = require('../../models');
 
 const db = models.sequelize;
-const { Op } = db.Sequelize;
 
+const { Op } = db.Sequelize;
 const orgModelProvider = require('../organizations/service').ModelProvider;
+
 const commentsModelProvider = require('./service').ModelProvider;
 
 const model = commentsModelProvider.getModel();
@@ -87,34 +94,30 @@ class CommentsRepository {
     return result ? result.blockchain_id : null;
   }
 
-  /**
-   *
-   * @param {number} id
-   * @returns {Promise<*>}
-   */
-  static async incrementCurrentVoteCounter(id) {
-    return this.getModel().update({
-      current_vote: db.literal('current_vote + 1'),
-    }, {
-      where: {
-        id,
-      },
-    });
-  }
+  public static async changeCurrentVotesByActivityType(
+    commentId: number,
+    interactionType: number,
+    transaction: Transaction,
+  ): Promise<void> {
+    const allowed = [
+      InteractionTypeDictionary.getUpvoteId(),
+      InteractionTypeDictionary.getDownvoteId(),
+    ];
 
-  /**
-   *
-   * @param {number} id
-   * @returns {Promise<*>}
-   */
-  static async decrementCurrentVoteCounter(id) {
-    return this.getModel().update({
-      current_vote: db.literal('current_vote - 1'),
-    }, {
-      where: {
-        id,
-      },
-    });
+    if (!allowed.includes(interactionType)) {
+      throw new AppError(`Allowed interaction types are: ${allowed}`);
+    }
+
+    const queryBuilder = transaction(TABLE_NAME)
+      .where('id', commentId);
+
+    if (interactionType === InteractionTypeDictionary.getUpvoteId()) {
+      queryBuilder.increment('current_vote', 1);
+    } else {
+      queryBuilder.decrement('current_vote', 1);
+    }
+
+    await queryBuilder;
   }
 
   /**

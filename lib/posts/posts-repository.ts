@@ -1,3 +1,4 @@
+import { Transaction } from 'knex';
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { EntityAggregatesDto, ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 import {
@@ -6,6 +7,7 @@ import {
 } from '../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from './interfaces/model-interfaces';
 import { AppError, BadRequestError } from '../api/errors';
+
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
@@ -28,14 +30,18 @@ const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
 const db = models.sequelize;
 const { Op } = db.Sequelize;
 
+// eslint-disable-next-line import/order
+const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const orgModelProvider    = require('../organizations/service/organizations-model-provider');
 const postsModelProvider  = require('./service/posts-model-provider');
+
 const usersModelProvider  = require('../users/users-model-provider');
 
 const POST_TYPE__MEDIA_POST = ContentTypeDictionary.getTypeMediaPost();
-const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
 
+const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
 const postStatsRepository = require('./stats/post-stats-repository');
+
 const commentsRepository  = require('../comments/comments-repository');
 
 const TABLE_NAME = 'posts';
@@ -341,32 +347,30 @@ class PostsRepository implements QueryFilteredRepository {
     return !!res;
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  static async incrementCurrentVoteCounter(id, by = 1) {
-    // noinspection TypeScriptValidateJSTypes
-    return this.getModel().increment('current_vote', {
-      by,
-      where: {
-        id,
-      },
-    });
-  }
+  public static async changeCurrentVotesByActivityType(
+    postId: number,
+    interactionType: number,
+    transaction: Transaction,
+  ) {
+    const allowed = [
+      InteractionTypeDictionary.getUpvoteId(),
+      InteractionTypeDictionary.getDownvoteId(),
+    ];
 
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {number} id
-   * @param {number} by
-   * @returns {Promise<*>}
-   */
-  static async decrementCurrentVoteCounter(id, by = 1) {
-    // noinspection TypeScriptValidateJSTypes
-    return this.getModel().decrement('current_vote', {
-      by,
-      where: {
-        id,
-      },
-    });
+    if (!allowed.includes(interactionType)) {
+      throw new AppError(`Allowed interaction types are: ${allowed}`);
+    }
+
+    const queryBuilder = transaction(TABLE_NAME)
+      .where('id', postId);
+
+    if (interactionType === InteractionTypeDictionary.getUpvoteId()) {
+      queryBuilder.increment('current_vote', 1);
+    } else {
+      queryBuilder.decrement('current_vote', 1);
+    }
+
+    await queryBuilder;
   }
 
   static async findLastByAuthor(userId, isRaw = true) {

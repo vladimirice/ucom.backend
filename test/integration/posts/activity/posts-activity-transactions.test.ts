@@ -11,7 +11,7 @@ let userJane;
 
 const { ContentInteractionsApi } = require('ucom-libs-wallet').Content;
 
-const JEST_TIMEOUT = 10000;
+const JEST_TIMEOUT = 20000;
 
 describe('User to post activity', () => {
   beforeAll(async () => {

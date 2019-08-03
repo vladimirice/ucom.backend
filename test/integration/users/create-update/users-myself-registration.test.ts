@@ -23,9 +23,7 @@ describe('Test registration workflow', () => {
 
     CommonChecker.expectFieldIsStringDateTime(body.user, 'profile_updated_at');
     await UsersHelper.ensureUserExistByPatch(body.token);
-  });
-
-  it.skip('given public key must not match existing one', async () => {});
+  }, 15000);
 });
 
 export {};

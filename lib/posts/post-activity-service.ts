@@ -1,85 +1,51 @@
 /* tslint:disable:max-line-length */
 import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
+import { UserModel } from '../users/interfaces/model-interfaces';
+import { PostModel } from './interfaces/model-interfaces';
+import { IRequestBody } from '../common/interfaces/common-types';
 
 import EosTransactionService = require('../eos/eos-transaction-service');
+import PostsRepository = require('./posts-repository');
+import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
+import UserActivityService = require('../users/user-activity-service');
+import knex = require('../../config/knex');
+import UsersActivityVoteRepository = require('../users/repository/users-activity/users-activity-vote-repository');
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const { BadRequestError:badRequestError } = require('../api/errors');
 
-const usersActivityService = require('../users/user-activity-service');
-
-const postsRepository = require('./repository').Main;
-const eventIdDictionary = require('../entities/dictionary').EventId;
-
-const usersActivityRepository = require('../users/repository/users-activity-repository');
-
 class PostActivityService {
-  /**
-   *
-   * @param {number} userIdFrom
-   * @param {number} modelIdTo
-   * @returns {Promise<boolean>}
-   */
-  static async doesUserVotePost(userIdFrom, modelIdTo) {
-    return usersActivityRepository.doesUserVotePost(userIdFrom, modelIdTo);
+  public static async userUpvotesPost(
+    currentUser: UserModel,
+    postId: number,
+    body: IRequestBody,
+  ): Promise<{ current_vote: number }> {
+    const interactionType = InteractionTypeDictionary.getUpvoteId();
+
+    await this.userVotesPost(currentUser, postId, interactionType, body);
+
+    return this.getCurrentVote(postId);
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} modelIdTo
-   * @param {Object} body
-   * @returns {Promise<*>}
-   */
-  static async userUpvotesPost(userFrom, modelIdTo, body) {
-    // #task need DB transaction
-    const activityTypeId = InteractionTypeDictionary.getUpvoteId();
-    const modelTo = await this.checkVotePreconditionsAndGetModelTo(userFrom, modelIdTo, body, activityTypeId);
+  public static async userDownvotesPost(
+    currentUser: UserModel,
+    postId: number,
+    body: IRequestBody,
+  ): Promise<{ current_vote: number }> {
+    const interactionType = InteractionTypeDictionary.getDownvoteId();
 
-    await this.userVotesPost(userFrom, modelTo, activityTypeId, body.signed_transaction);
-    await postsRepository.incrementCurrentVoteCounter(modelIdTo);
+    await this.userVotesPost(currentUser, postId, interactionType, body);
 
-    const currentVote = await postsRepository.getPostCurrentVote(modelIdTo);
-
-    return {
-      current_vote: currentVote,
-    };
+    return this.getCurrentVote(postId);
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} modelIdTo
-   * @param {Object} body
-   * @returns {Promise<*>}
-   */
-  static async userDownvotesPost(userFrom, modelIdTo, body) {
-    // #task need DB transaction
-    const activityTypeId = InteractionTypeDictionary.getDownvoteId();
-
-    const modelTo = await this.checkVotePreconditionsAndGetModelTo(userFrom, modelIdTo, body, activityTypeId);
-
-    await this.userVotesPost(userFrom, modelTo, activityTypeId, body.signed_transaction);
-    await postsRepository.decrementCurrentVoteCounter(modelIdTo);
-
-    const currentVote = await postsRepository.getPostCurrentVote(modelIdTo);
-
-    return {
-      current_vote: currentVote,
-    };
-  }
-
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} modelId
-   * @param {Object} body
-   * @param {number} activityTypeId
-   * @returns {Promise<Object>}
-   * @private
-   */
-  private static async checkVotePreconditionsAndGetModelTo(userFrom, modelId, body, activityTypeId) {
-    const doesExists = await PostActivityService.doesUserVotePost(userFrom.id, modelId);
+  private static async checkVotePreconditionsAndGetModelTo(
+    currentUser: UserModel,
+    postId: number,
+    body: IRequestBody,
+    interactionType: number,
+  ): Promise<PostModel> {
+    const doesExists = await UsersActivityVoteRepository.doesUserVotePost(currentUser.id, postId);
 
     if (doesExists) {
       // eslint-disable-next-line new-cap
@@ -88,63 +54,81 @@ class PostActivityService {
       });
     }
 
-    const modelTo = await postsRepository.findOneById(modelId);
+    const post: PostModel = await PostsRepository.findOneById(postId);
 
-    if (modelTo.user_id === userFrom.id) {
+    if (post.user_id === currentUser.id) {
       // eslint-disable-next-line new-cap
       throw new badRequestError({
         general: 'It is not allowed to vote for your own comment',
       });
     }
 
-    await EosTransactionService.appendSignedUserVotesContent(userFrom, body, modelTo.blockchain_id, activityTypeId);
+    await EosTransactionService.appendSignedUserVotesContent(currentUser, body, post.blockchain_id, interactionType);
 
-    return modelTo;
+    return post;
   }
 
-  public static async userVotesPost(userFrom, modelTo, activityTypeId, signedTransaction): Promise<void> {
-    const eventId = this.getEventId(activityTypeId, modelTo);
+  private static async userVotesPost(
+    currentUser: UserModel,
+    postId: number,
+    interactionType: number,
+    body: IRequestBody,
+  ): Promise<void> {
+    const post = await this.checkVotePreconditionsAndGetModelTo(currentUser, postId, body, interactionType);
 
-    const activity = await usersActivityService.createForUserVotesPost(
-      activityTypeId,
-      signedTransaction,
-      userFrom.id,
-      modelTo.id,
-      eventId,
-    );
+    const eventId: number = this.getEventId(interactionType, post);
+
+    const activity = await knex.transaction(async (transaction) => {
+      const [newActivity] = await Promise.all([
+        UserActivityService.createForUserVotesPost(
+          interactionType,
+          body.signed_transaction,
+          currentUser.id,
+          post.id,
+          eventId,
+          transaction,
+        ),
+        PostsRepository.changeCurrentVotesByActivityType(post.id, interactionType, transaction),
+
+        UsersActivityVoteRepository.insertOnePostVote(currentUser.id, post.id, interactionType, transaction),
+      ]);
+
+      return newActivity;
+    });
 
     const options: IActivityOptions = EosTransactionService.getEosVersionBasedOnSignedTransaction(
-      signedTransaction,
+      body.signed_transaction,
     );
 
-    await usersActivityService.sendPayloadToRabbitWithOptions(activity, options);
+    await UserActivityService.sendPayloadToRabbitWithOptions(activity, options);
   }
 
-  /**
-   *
-   * @param {number} activityTypeId
-   * @param {Object} modelTo
-   * @return {number}
-   * @private
-   */
-  private static getEventId(activityTypeId, modelTo) {
-    if (activityTypeId === InteractionTypeDictionary.getUpvoteId()) {
+  private static getEventId(interactionType: number, modelTo: PostModel): number {
+    if (interactionType === InteractionTypeDictionary.getUpvoteId()) {
       if (modelTo.organization_id) {
-        return eventIdDictionary.getUserUpvotesPostOfOrg();
+        return NotificationsEventIdDictionary.getUserUpvotesPostOfOrg();
       }
 
-      return eventIdDictionary.getUserUpvotesPostOfOtherUser();
+      return NotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser();
     }
 
-    if (activityTypeId === InteractionTypeDictionary.getDownvoteId()) {
+    if (interactionType === InteractionTypeDictionary.getDownvoteId()) {
       if (modelTo.organization_id) {
-        return eventIdDictionary.getUserDownvotesPostOfOrg();
+        return NotificationsEventIdDictionary.getUserDownvotesPostOfOrg();
       }
 
-      return eventIdDictionary.getUserDownvotesPostOfOtherUser();
+      return NotificationsEventIdDictionary.getUserDownvotesPostOfOtherUser();
     }
 
-    throw new Error(`Unsupported activityTypeId: ${activityTypeId}`);
+    throw new Error(`Unsupported activityTypeId: ${interactionType}`);
+  }
+
+  private static async getCurrentVote(postId: number): Promise<{ current_vote: number }>  {
+    const currentVote = await PostsRepository.getPostCurrentVote(postId);
+
+    return {
+      current_vote: currentVote!,
+    };
   }
 }
 

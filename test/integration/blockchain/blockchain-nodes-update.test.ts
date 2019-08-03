@@ -282,7 +282,7 @@ describe('Blockchain nodes updating', () => {
       rokkyMustVoteTo.forEach((node) => {
         expect(rokkyActivity.some(data => +data.entity_id_to === node.id)).toBeTruthy();
       });
-    }, JEST_TIMEOUT * 2);
+    }, JEST_TIMEOUT * 3);
   });
 
   describe('Calculators processing', () => {

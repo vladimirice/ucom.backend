@@ -14,6 +14,8 @@ import ActivityGroupDictionary = require('../activity/activity-group-dictionary'
 import UsersModelProvider = require('./users-model-provider');
 import UserActivitySerializer = require('./job/user-activity-serializer');
 import ActivityProducer = require('../jobs/activity-producer');
+import PostsModelProvider = require('../posts/service/posts-model-provider');
+import CommentsModelProvider = require('../comments/service/comments-model-provider');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
@@ -143,39 +145,26 @@ class UserActivityService {
     return usersActivityRepository.createNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {number} activityTypeId
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} postIdTo
-   * @param {number} eventId
-   * @param {Object} transaction
-   * @return {Promise<void|Object|*>}
-   */
   public static async createForUserVotesPost(
-    activityTypeId,
-    signedTransaction,
-    currentUserId,
-    postIdTo,
-    eventId,
-    transaction = null,
+    activityTypeId: number,
+    signedTransaction: string,
+    currentUserId: number,
+    postIdTo: number,
+    eventId: number,
+    transaction: Transaction,
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentInteraction();
-    const entityName      = postsModelProvider.getEntityName();
-
     const data = {
       activity_type_id:   activityTypeId,
-      activity_group_id:  activityGroupId,
+      activity_group_id:  ActivityGroupDictionary.getGroupContentInteraction(),
       user_id_from:       currentUserId,
       entity_id_to:       postIdTo,
-      entity_name:        entityName,
+      entity_name:        PostsModelProvider.getEntityName(),
       signed_transaction: signedTransaction,
 
       event_id:           eventId,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
   public static async createForUserCreatesProfile(
@@ -238,39 +227,28 @@ class UserActivityService {
     return usersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {number} activityTypeId
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} modelIdTo
-   * @param {number} eventId
-   * @param {Object} transaction
-   * @return {Promise<void|Object|*>}
-   */
   public static async createForUserVotesComment(
-    activityTypeId,
-    signedTransaction,
-    currentUserId,
-    modelIdTo,
-    eventId,
-    transaction = null,
+    interactionType: number,
+    signedTransaction: string,
+    currentUserId: number,
+    commentId: number,
+    eventId: number,
+    transaction: Transaction,
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentInteraction();
-    const entityName      = commentsModelProvider.getEntityName();
-
     const data = {
-      activity_type_id:   activityTypeId,
-      activity_group_id:  activityGroupId,
+      activity_type_id:   interactionType,
+      activity_group_id:  activityGroupDictionary.getGroupContentInteraction(),
+
       user_id_from:       currentUserId,
-      entity_id_to:       modelIdTo,
-      entity_name:        entityName,
+      entity_id_to:       commentId,
+
+      entity_name:        CommentsModelProvider.getEntityName(),
       signed_transaction: signedTransaction,
 
       event_id:           eventId,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return usersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
   public static async processOrganizationCreatesPost(

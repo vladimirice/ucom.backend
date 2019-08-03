@@ -176,33 +176,6 @@ class UsersActivityRepository {
 
   /**
    *
-   * @param {number} userIdFrom
-   * @param {number} modelIdTo
-   * @returns {Promise<boolean>}
-   */
-  static async doesUserVotePost(userIdFrom, modelIdTo) {
-    const entityName = postsModelProvider.getEntityName();
-
-    const activityTypeVoting = [
-      InteractionTypeDictionary.getUpvoteId(),
-      InteractionTypeDictionary.getDownvoteId(),
-    ];
-
-    const sql = `
-      SELECT COUNT(1) FROM ${TABLE_NAME}
-      WHERE user_id_from = ${+userIdFrom}
-        AND entity_id_to = ${+modelIdTo}
-        AND entity_name = '${entityName}'
-        AND activity_type_id IN (${activityTypeVoting.join(', ')})
-    `;
-
-    const res = await models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT });
-
-    return +res[0].count > 0;
-  }
-
-  /**
-   *
    * @param {number} userId
    * @param {number[]} postsIds
    * @return {Promise<Object[]>}

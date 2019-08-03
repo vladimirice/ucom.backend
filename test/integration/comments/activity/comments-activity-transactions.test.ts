@@ -38,7 +38,7 @@ describe('User to post activity', () => {
 
       const eventId = NotificationsEventIdDictionary.getUserUpvotesCommentOfOtherUser();
       await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 3);
   });
 
   describe('Downvote-related tests', () => {
@@ -56,7 +56,7 @@ describe('User to post activity', () => {
 
       const eventId = NotificationsEventIdDictionary.getUserDownvotesCommentOfOtherUser();
       await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 3);
   });
 });
 

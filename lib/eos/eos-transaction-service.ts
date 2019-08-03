@@ -1,18 +1,17 @@
 import { IActivityOptions } from './interfaces/activity-interfaces';
+import { UserModel } from '../users/interfaces/model-interfaces';
+import { IRequestBody } from '../common/interfaces/common-types';
 
 const { TransactionFactory } = require('ucom-libs-social-transactions');
 const eosBlockchainUniqid = require('../eos/eos-blockchain-uniqid');
 
 class EosTransactionService {
-  /**
-   *
-   * @param {Object} user
-   * @param {Object} body
-   * @param {string} contentBlockchainId
-   * @param {number} activityTypeId
-   * @return {Promise<void>}
-   */
-  static async appendSignedUserVotesContent(user, body, contentBlockchainId, activityTypeId) {
+  public static async appendSignedUserVotesContent(
+    user: UserModel,
+    body: IRequestBody,
+    contentBlockchainId: string,
+    interactionType: number,
+  ): Promise<void> {
     if (body.signed_transaction) {
       return;
     }
@@ -21,7 +20,7 @@ class EosTransactionService {
       user.account_name,
       user.private_key,
       contentBlockchainId,
-      activityTypeId,
+      interactionType,
     );
   }
 

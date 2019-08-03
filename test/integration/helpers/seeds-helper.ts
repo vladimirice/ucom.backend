@@ -72,6 +72,8 @@ const minorTablesToSkipSequences = [
   UsersExternalModelProvider.usersExternalAuthLogTableName(),
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
+  UsersModelProvider.getUsersActivityVoteTableName(),
+
   AirdropsModelProvider.airdropsTableName(),
 
   'offers',
@@ -91,6 +93,7 @@ const minorTables = [
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
   UsersModelProvider.getUsersActivityReferralTableName(),
+  UsersModelProvider.getUsersActivityVoteTableName(),
 
   UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
