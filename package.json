@@ -57,7 +57,7 @@
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
     "sanitize-html": "^1.20.1",
-    "sequelize": "^5.12.2",
+    "sequelize": "^5.12.3",
     "sha256": "^0.2.0",
     "socket.io": "^2.2.0",
     "statuses": "1.5.0",
@@ -78,7 +78,7 @@
     "@types/expect": "^1.20.4",
     "@types/express": "^4.17.0",
     "@types/ioredis": "^4.0.13",
-    "@types/jest": "^24.0.16",
+    "@types/jest": "^24.0.17",
     "@types/joi": "^14.3.3",
     "@types/knex": "^0.16.1",
     "@types/lodash": "^4.14.136",
@@ -109,12 +109,12 @@
     "faker": "^4.1.0",
     "jest": "^24.8.0",
     "jest-expect-message": "^1.0.2",
-    "snyk": "^1.208.0",
+    "snyk": "^1.210.0",
     "socket.io-client": "^2.2.0",
     "supertest": "^4.0.2",
     "ts-jest": "^24.0.2",
-    "tsutils": "^3.14.1",
+    "tsutils": "^3.17.0",
     "typescript": "^3.5.3",
-    "ucom-libs-graphql-schemas": "^1.26.0"
+    "ucom-libs-graphql-schemas": "^1.27.0"
   }
 }

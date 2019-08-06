@@ -4,7 +4,8 @@ This file is for frontend team only
 
 ## Get vote details
 [For posts](../../test/integration/posts/activity/posts-activity-get-users.test.ts)
-
+[For comments](../../test/integration/comments/activity/comments-activity-get-users.test.ts)
+[Request itself](../../test/helpers/common/one-entity-request-helper.ts)
 
 ## Sign upvote/downvote by frontend application.
 
