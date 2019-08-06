@@ -157,7 +157,7 @@ describe('Blockchain nodes get - graphql', () => {
         for (const firstPageItem of firstPageData) {
           expect(secondPageData.some(item => item.id === firstPageItem.id)).toBeFalsy();
         }
-      });
+      }, JEST_TIMEOUT * 2);
     });
 
 
@@ -279,7 +279,7 @@ describe('Blockchain nodes get - graphql', () => {
 
       BlockchainNodesChecker.checkThatVotesAreEmptyForOneUser(response, userPetr, typeCalculator);
       BlockchainNodesChecker.checkThatVotesAreEmptyForOneUser(response, userRokky, typeCalculator);
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 2);
 
     it('Vote for calculators via mock and receive result', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
@@ -305,7 +305,7 @@ describe('Blockchain nodes get - graphql', () => {
 
       BlockchainNodesChecker.checkThatVotesAreEmptyForOneUser(response, userPetr, typeBlockProducer);
       BlockchainNodesChecker.checkThatVotesAreEmptyForOneUser(response, userRokky, typeBlockProducer);
-    }, JEST_TIMEOUT);
+    }, JEST_TIMEOUT * 2);
 
     it('Vote for both block producers and calculators via mock and receive result', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
