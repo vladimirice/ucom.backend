@@ -28,6 +28,8 @@ export const graphqlUsersTypes = `
     followed_by: JSON,
     myselfData: MyselfData,
     
+    relatedMetadata: JSON,
+    
     score: Float
     external_login: String
     

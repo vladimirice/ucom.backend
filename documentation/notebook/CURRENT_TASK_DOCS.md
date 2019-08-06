@@ -2,6 +2,10 @@
 
 This file is for frontend team only
 
+## Get vote details
+[For posts](../../test/integration/posts/activity/posts-activity-get-users.test.ts)
+
+
 ## Sign upvote/downvote by frontend application.
 
 Required for:

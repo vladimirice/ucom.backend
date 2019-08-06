@@ -14,7 +14,6 @@ let userRokky: UserModel;
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
-
 const JEST_TIMEOUT = 10000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
@@ -28,6 +27,10 @@ afterAll(async () => {
 beforeEach(async () => {
   [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
 });
+
+function expectContentVote(user: UserModel, expectedValue: number): void {
+  expect(user.relatedMetadata.contentVote).toBe(expectedValue);
+}
 
 it('Users who upvote a post', async () => {
   const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
@@ -46,7 +49,11 @@ it('Users who upvote a post', async () => {
     );
 
   CommonChecker.expectModelIdsExistenceInResponseList(response, [userJane.id, userPetr.id], 2);
-}, JEST_TIMEOUT_DEBUG);
+
+  for (const user of response.data) {
+    expectContentVote(user, InteractionTypeDictionary.getUpvoteId());
+  }
+}, JEST_TIMEOUT);
 
 it('Users who downvote a post', async () => {
   const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
@@ -65,7 +72,11 @@ it('Users who downvote a post', async () => {
     );
 
   CommonChecker.expectModelIdsExistenceInResponseList(response, [userJane.id, userPetr.id], 2);
-}, JEST_TIMEOUT_DEBUG);
+
+  for (const user of response.data) {
+    expectContentVote(user, InteractionTypeDictionary.getDownvoteId());
+  }
+}, JEST_TIMEOUT);
 
 it('Users who vote a post', async () => {
   const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
@@ -79,8 +90,14 @@ it('Users who vote a post', async () => {
   await Promise.all(promises);
 
   const response = await OneEntityRequestHelper.getOneEntityUsersWhoVote(postId, EntityNames.POSTS);
-
   CommonChecker.expectModelIdsExistenceInResponseList(response, [userJane.id, userPetr.id, userRokky.id], promises.length);
 
-  // TODO - fetch a metadata value - upvote or downvote
-}, JEST_TIMEOUT_DEBUG);
+  for (const user of response.data) {
+    CommonChecker.expectNotEmpty(user.relatedMetadata);
+
+    const contentVote = [userJane.id, userPetr.id].includes(user.id) ?
+      InteractionTypeDictionary.getDownvoteId() : InteractionTypeDictionary.getUpvoteId();
+
+    expectContentVote(user, contentVote);
+  }
+}, JEST_TIMEOUT);

@@ -446,6 +446,8 @@ class UsersRepository {
 
     UsersRepository.addListParamsToQueryBuilder(queryBuilder, params);
 
+    queryBuilder.select(`${tableName}.interaction_type`);
+
     return queryBuilder;
   }
 

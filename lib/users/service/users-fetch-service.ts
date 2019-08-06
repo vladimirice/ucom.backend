@@ -131,7 +131,17 @@ class UsersFetchService {
       UsersActivityVoteRepository.countUsersThatVoteContent(query.entity_id, query.entity_name, interaction_type),
     ];
 
-    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+    const processed = await this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+
+    for (const user of processed.data) {
+      user.relatedMetadata = {
+        contentVote: user.interaction_type,
+      };
+
+      delete user.interaction_type;
+    }
+
+    return processed;
   }
 
   public static async findManyOrganizationFollowers(
