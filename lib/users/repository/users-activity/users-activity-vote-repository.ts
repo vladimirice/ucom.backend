@@ -5,6 +5,7 @@ import UsersModelProvider = require('../../users-model-provider');
 import PostsModelProvider = require('../../../posts/service/posts-model-provider');
 import knex = require('../../../../config/knex');
 import CommentsModelProvider = require('../../../comments/service/comments-model-provider');
+import RepositoryHelper = require('../../../common/repository/repository-helper');
 
 const TABLE_NAME = UsersModelProvider.getUsersActivityVoteTableName();
 
@@ -83,6 +84,27 @@ class UsersActivityVoteRepository {
       .first();
 
     return res || null;
+  }
+
+  public static async countUsersThatVoteContent(
+    entityId: number,
+    entityName: string,
+    interactionType: number | null = null,
+  ): Promise<number> {
+    const queryBuilder = knex(TABLE_NAME)
+      .count(`${TABLE_NAME}.id AS amount`)
+      .where({
+        entity_id: entityId,
+        entity_name: entityName,
+      });
+
+    if (interactionType !== null) {
+      queryBuilder.andWhere('interaction_type', interactionType);
+    }
+
+    const result = await queryBuilder;
+
+    return RepositoryHelper.getKnexCountAsNumber(result);
   }
 }
 

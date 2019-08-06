@@ -32,10 +32,10 @@ const fields: InsertUpdateHelperFields = {
     key: 'staked_balance',
     type: 'number',
   },
-  // validity: {
-  //   key: 'validity',
-  //   type: 'number',
-  // },
+  validity: {
+    key: 'validity',
+    type: 'number',
+  },
   importance: {
     key: 'importance',
     type: 'number',

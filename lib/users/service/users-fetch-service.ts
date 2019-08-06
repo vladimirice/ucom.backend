@@ -1,4 +1,5 @@
 import {
+  OneContentActivityUsersQueryDto,
   UserIdToUserModelCard,
   UserModel, UsersActivityQueryDto,
   UsersListResponse, UsersRequestQueryDto,
@@ -31,6 +32,7 @@ import StreamsRepository = require('../../affiliates/repository/streams-reposito
 import ConversionsRepository = require('../../affiliates/repository/conversions-repository');
 import UsersQueryBuilderService = require('./users-fetch-query-builder-service');
 import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
+import UsersActivityVoteRepository = require('../repository/users-activity/users-activity-vote-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -111,6 +113,23 @@ class UsersFetchService {
 
     const promises: Promise<any>[]  =
       UsersQueryBuilderService.getPromisesByActivityType(query, userId, params);
+
+    return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
+  public static async findOneContentVotingUsers(
+    query: OneContentActivityUsersQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
+    const repository  = UsersRepository;
+    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
+
+    const { interaction_type } = query;
+
+    const promises = [
+      UsersRepository.findAllWhoVoteContent(query.entity_id, query.entity_name, params, interaction_type),
+      UsersActivityVoteRepository.countUsersThatVoteContent(query.entity_id, query.entity_name, interaction_type),
+    ];
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
   }

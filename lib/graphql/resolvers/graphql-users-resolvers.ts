@@ -1,5 +1,6 @@
 import { OneUserAirdropDto } from '../../airdrops/interfaces/dto-interfaces';
 import {
+  OneContentActivityUsersQueryDto,
   UserModel,
   UsersActivityQueryDto,
   UsersListResponse,
@@ -15,7 +16,6 @@ import OneUserInputProcessor = require('../../users/input-processor/one-user-inp
 import UsersFetchService = require('../../users/service/users-fetch-service');
 import GraphQlInputService = require('../../api/graph-ql/service/graph-ql-input-service');
 
-// @ts-ignore
 export const graphqlUsersResolvers = {
   async one_user_airdrop(
     // @ts-ignore
@@ -75,6 +75,22 @@ export const graphqlUsersResolvers = {
     const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
 
     return UsersFetchService.findOneUserActivity(userId, usersQuery, currentUserId);
+  },
+  async one_content_voting_users(
+    // @ts-ignore
+    parent,
+    args,
+    ctx,
+  ): Promise<UsersListResponse> {
+    const usersQuery: OneContentActivityUsersQueryDto = {
+      page: args.page,
+      per_page: args.per_page,
+      sort_by: args.order_by,
+      ...args.filters,
+    };
+    const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+
+    return UsersFetchService.findOneContentVotingUsers(usersQuery, currentUserId);
   },
   /**
    * @deprecated

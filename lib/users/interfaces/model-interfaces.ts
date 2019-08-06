@@ -44,6 +44,12 @@ interface UsersActivityQueryDto extends UsersRequestQueryDto {
   readonly activity: string;
 }
 
+interface OneContentActivityUsersQueryDto extends RequestQueryDto {
+ readonly entity_id: number;
+ readonly entity_name: string;
+ readonly interaction_type?: number;
+}
+
 interface OrganizationsActivityQueryDto extends RequestQueryDto {
   readonly organization_identity: string;
   readonly activity:              string;
@@ -58,4 +64,5 @@ export {
   UsersActivityQueryDto,
 
   OrganizationsActivityQueryDto,
+  OneContentActivityUsersQueryDto,
 };

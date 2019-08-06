@@ -425,6 +425,30 @@ class UsersRepository {
     return UsersRepository.findAllWhoActsForUser(userId, params, activityTableName);
   }
 
+  public static findAllWhoVoteContent(
+    entityId: number,
+    entityName: string,
+    params: DbParamsDto,
+    interactionType: number | null = null,
+  ): QueryBuilder {
+    const tableName = UsersModelProvider.getUsersActivityVoteTableName();
+
+    const queryBuilder = knex(TABLE_NAME)
+      .innerJoin(tableName, function () {
+        this.on(`${tableName}.user_id`, `${TABLE_NAME}.id`)
+          .andOn(`${tableName}.entity_name`, knex.raw(`'${entityName}'`))
+          .andOn(`${tableName}.entity_id`, knex.raw(entityId));
+
+        if (interactionType !== null) {
+          this.andOn(`${tableName}.interaction_type`, knex.raw(interactionType));
+        }
+      });
+
+    UsersRepository.addListParamsToQueryBuilder(queryBuilder, params);
+
+    return queryBuilder;
+  }
+
   public static findAllWhoFollowsOrganization(
     organizationId: number,
     params: DbParamsDto,
@@ -834,6 +858,7 @@ class UsersRepository {
     const set: string[] = [
       UsersModelProvider.getUsersActivityFollowTableName(),
       UsersModelProvider.getUsersActivityTrustTableName(),
+      UsersModelProvider.getUsersActivityVoteTableName(),
     ];
 
     if (!set.includes(tableName)) {
