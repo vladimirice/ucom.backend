@@ -23,7 +23,7 @@ const typeCalculator: number = Dictionary.BlockchainNodes.typeCalculator();
 const _ = require('lodash');
 
 let initialMockFunction;
-const JEST_TIMEOUT = 5000;
+const JEST_TIMEOUT = 20000;
 
 describe('Blockchain nodes updating', () => {
   beforeAll(async () => {

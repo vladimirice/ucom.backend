@@ -23,7 +23,7 @@ const typeCalculator: number = Dictionary.BlockchainNodes.typeCalculator();
 
 const typeBlockProducerAll = 100; // fake id to simplify development
 
-const JEST_TIMEOUT = 10000;
+const JEST_TIMEOUT = 40000;
 
 const initialMockFunction = BlockchainNodes.getAll;
 
@@ -96,7 +96,7 @@ describe('Blockchain nodes get - graphql', () => {
         for (const expected of expectedTitles) {
           expect(data.some(item => item.title === expected)).toBeTruthy();
         }
-      });
+      }, JEST_TIMEOUT);
       it('should find nothing because nothing matches search request', async () => {
         await BlockchainNodesMock.mockGetBlockchainNodesWalletMethod({}, false);
         await BlockchainHelper.updateBlockchainNodes();
@@ -113,7 +113,7 @@ describe('Blockchain nodes get - graphql', () => {
         const response = await GraphqlRequestHelper.makeRequestFromQueryPartsWithAliasesAsMyself(userVlad, partsWithAliases);
 
         ResponseHelper.checkEmptyResponseList(response.block_producers);
-      });
+      }, JEST_TIMEOUT);
     });
 
     describe('Pagination', () => {
