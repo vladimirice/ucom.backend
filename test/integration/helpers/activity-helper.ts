@@ -1,4 +1,5 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { ISignedTransactionObject } from '../../../lib/eos/interfaces/transactions-interfaces';
 
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
@@ -14,11 +15,18 @@ class ActivityHelper {
     whoActs: UserModel,
     targetUser: UserModel,
     expectedStatus: number = 201,
+    signedTransaction: any = null,
   ): Promise<any> {
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getFollowUrl(targetUser.id))
       .set('Authorization', `Bearer ${whoActs.token}`)
     ;
+
+    if (signedTransaction !== null) {
+      RequestHelper.addSignedTransactionToRequest(req, signedTransaction);
+    }
+
+    const res = await req;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
@@ -137,44 +145,59 @@ class ActivityHelper {
     await this.requestToUnfollowOrganization(targetOrgId, whoActs);
   }
 
-  static async requestToFollowOrganization(
+  public static async requestToFollowOrganization(
     orgId: number,
     user: UserModel,
     expectedStatus: number = 201,
+    signedTransaction: ISignedTransactionObject | null = null,
   ): Promise<any> {
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
     ;
 
+    RequestHelper.addSignedTransactionToRequestIfSet(req, signedTransaction);
+    const res = await req;
+
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
 
-  static async requestToUnfollowOrganization(orgId, user, expectedStatus = 201) {
-    const res = await request(server)
+  public static async requestToUnfollowOrganization(
+    orgId: number,
+    myself: UserModel,
+    expectedStatus = 201,
+    signedTransaction: ISignedTransactionObject | null = null,
+  ) {
+    const req = request(server)
       .post(RequestHelper.getOrgUnfollowUrl(orgId))
-      .set('Authorization', `Bearer ${user.token}`)
+      .set('Authorization', `Bearer ${myself.token}`)
     ;
 
+    RequestHelper.addSignedTransactionToRequestIfSet(req, signedTransaction);
+
+    const res = await req;
+
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
   }
 
-  /**
-   *
-   * @param {Object} whoActs
-   * @param {Object} targetUser
-   * @param {number} expectedStatus
-   * @returns {Promise<{Object}>}
-   */
-  static async requestToCreateUnfollow(whoActs, targetUser, expectedStatus = 201) {
-    const res = await request(server)
+  public static async requestToCreateUnfollow(
+    whoActs: UserModel,
+    targetUser: UserModel,
+    expectedStatus: number = 201,
+    signedTransaction: any = null,
+  ) {
+    const req = request(server)
       .post(RequestHelper.getUnfollowUrl(targetUser.id))
       .set('Authorization', `Bearer ${whoActs.token}`)
     ;
+
+    RequestHelper.addSignedTransactionToRequestIfSet(req, signedTransaction);
+
+    const res = await req;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 

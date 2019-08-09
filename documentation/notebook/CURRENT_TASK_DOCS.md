@@ -2,6 +2,10 @@
 
 This file is for frontend team only
 
+## Follow/Unfollow - new transactions
+[User to user](../../test/integration/users/activity/follow/users-activity-follow-transactions.test.ts)
+[User to organization](../../test/integration/organizations/activity/follow/organizations-activity-follow-transactions.test.ts)
+
 ## Get vote details
 [For posts](../../test/integration/posts/activity/posts-activity-get-users.test.ts)
 [For comments](../../test/integration/comments/activity/comments-activity-get-users.test.ts)

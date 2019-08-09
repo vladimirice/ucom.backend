@@ -3,6 +3,7 @@ import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+import { ISignedTransactionObject } from '../../../lib/eos/interfaces/transactions-interfaces';
 
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
@@ -337,6 +338,17 @@ class RequestHelper {
     this.addFieldsToRequest(req, fields);
 
     return req;
+  }
+
+  public static addSignedTransactionToRequestIfSet(
+    req: SuperAgentRequest,
+    signedTransaction: ISignedTransactionObject | null = null,
+  ): void {
+    if (signedTransaction === null) {
+      return;
+    }
+
+    this.addSignedTransactionToRequest(req, signedTransaction);
   }
 
   public static addSignedTransactionToRequest(req: SuperAgentRequest, signedTransaction): void {

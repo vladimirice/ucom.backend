@@ -5,6 +5,7 @@ import { UserModel } from './interfaces/model-interfaces';
 import { ISignedTransactionObject } from '../eos/interfaces/transactions-interfaces';
 import { IActivityModel } from './interfaces/users-activity/dto-interfaces';
 import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
+import { IRequestBody } from '../common/interfaces/common-types';
 
 import knex = require('../../config/knex');
 import UsersActivityRepository = require('./repository/users-activity-repository');
@@ -16,6 +17,8 @@ import UserActivitySerializer = require('./job/user-activity-serializer');
 import ActivityProducer = require('../jobs/activity-producer');
 import PostsModelProvider = require('../posts/service/posts-model-provider');
 import CommentsModelProvider = require('../comments/service/comments-model-provider');
+
+import EosTransactionService = require('../eos/eos-transaction-service');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
@@ -556,26 +559,21 @@ class UserActivityService {
     };
   }
 
-  /**
-   * @param {Object} userFrom
-   * @param {number} userIdTo
-   * @param {Object} body
-   * @returns {Promise<void>} created activity model
-   */
-  static async userFollowsAnotherUser(userFrom, userIdTo, body) {
+  public static async userFollowsAnotherUser(
+    userFrom: UserModel,
+    userIdTo: number,
+    body: IRequestBody,
+  ): Promise<void> {
     const activityTypeId = InteractionTypeDictionary.getFollowId();
 
     await this.userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body);
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} userIdTo
-   * @param {Object} body
-   * @returns {Promise<Object>}
-   */
-  public static async userUnfollowsUser(userFrom, userIdTo, body): Promise<void> {
+  public static async userUnfollowsUser(
+    userFrom: UserModel,
+    userIdTo: number,
+    body: IRequestBody,
+  ): Promise<void> {
     const activityTypeId = InteractionTypeDictionary.getUnfollowId();
 
     await this.userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body);
@@ -596,41 +594,36 @@ class UserActivityService {
     );
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} userIdTo
-   * @param {number} activityTypeId
-   * @param {Object} body
-   * @returns {Promise<boolean>}
-   * @private
-   */
   private static async userFollowOrUnfollowUser(
     userFrom: UserModel,
     userIdTo: number,
     activityTypeId: number,
-    body: any,
+    body: IRequestBody,
   ) {
     await this.checkPreconditions(userFrom, userIdTo, activityTypeId);
     const userToAccountName = await usersRepository.findAccountNameById(userIdTo);
 
-    let signed: string;
+    let signedTransaction: string;
     if (body && !_.isEmpty(body) && body.signed_transaction) {
-      signed = body.signed_transaction;
+      signedTransaction = body.signed_transaction;
     } else {
-      signed = await this.getSignedFollowTransaction(
+      signedTransaction = await this.getSignedFollowTransaction(
         userFrom, userToAccountName, activityTypeId,
       );
     }
 
     const activity = await this.processUserFollowsOrUnfollowsUser(
       activityTypeId,
-      signed,
+      signedTransaction,
       userFrom.id,
       userIdTo,
     );
 
-    await this.sendPayloadToRabbit(activity);
+    const options: IActivityOptions = EosTransactionService.getEosVersionBasedOnSignedTransaction(
+      signedTransaction,
+    );
+
+    await UserActivityService.sendPayloadToRabbitWithOptions(activity, options);
   }
 
   private static async getSignedFollowTransaction(userFrom, userToAccountName, activityTypeId) {

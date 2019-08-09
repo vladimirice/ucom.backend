@@ -1,10 +1,16 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
+import { UserModel } from '../interfaces/model-interfaces';
+import { IRequestBody } from '../../common/interfaces/common-types';
+import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
 
 import UsersActivityRepository = require('../repository/users-activity-repository');
 import knex = require('../../../config/knex');
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
+
+import EosTransactionService = require('../../eos/eos-transaction-service');
+import UserActivityService = require('../user-activity-service');
 
 const status = require('statuses');
 
@@ -17,62 +23,52 @@ const activityGroupDictionary = require('../../activity/activity-group-dictionar
 const { BadRequestError, AppError } = require('../../api/errors');
 const organizationsRepositories = require('../../organizations/repository');
 
-const userActivityService = require('../../users/user-activity-service');
-
 const eventIdDictionary = require('../../entities/dictionary').EventId;
 
 const ENTITY_NAME = orgModelProvider.getEntityName();
 
 class UserToOrganizationActivity {
-  /**
-   * @param {Object} userFrom
-   * @param {number} orgIdTo
-   * @param {Object} body
-   * @returns {Promise<void>} created activity model
-   */
-  static async userFollowsOrganization(userFrom, orgIdTo, body) {
+  public static async userFollowsOrganization(
+    userFrom: UserModel,
+    organizationId: number,
+    body: IRequestBody,
+  ): Promise<void> {
     const activityTypeId = InteractionTypeDictionary.getFollowId();
 
-    await this.userFollowsOrUnfollowsOrganization(userFrom, orgIdTo, activityTypeId, body);
+    await this.userFollowsOrUnfollowsOrganization(userFrom, organizationId, activityTypeId, body);
   }
 
-  /**
-   * @param {Object} userFrom
-   * @param {number} orgIdTo
-   * @param {Object} body
-   * @returns {Promise<void>} created activity model
-   */
-  static async userUnfollowsOrganization(userFrom, orgIdTo, body) {
+  public static async userUnfollowsOrganization(
+    userFrom: UserModel,
+    organizationId: number,
+    body: IRequestBody,
+  ): Promise<void> {
     const activityTypeId = InteractionTypeDictionary.getUnfollowId();
 
-    return this.userFollowsOrUnfollowsOrganization(userFrom, orgIdTo, activityTypeId, body);
+    await this.userFollowsOrUnfollowsOrganization(userFrom, organizationId, activityTypeId, body);
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} orgId
-   * @param {number} activityTypeId
-   * @param {Object|string|null} body
-   * @returns {Promise<boolean>}
-   * @private
-   */
-  private static async userFollowsOrUnfollowsOrganization(userFrom, orgId, activityTypeId, body) {
-    await this.addSignedTransactionsForOrganizationFollowing(body, userFrom, orgId, activityTypeId);
+  private static async userFollowsOrUnfollowsOrganization(
+    userFrom: UserModel,
+    organizationId: number,
+    activityTypeId: number,
+    body: IRequestBody,
+  ): Promise<void> {
+    await this.addSignedTransactionsForOrganizationFollowing(body, userFrom, organizationId, activityTypeId);
 
     const activityGroupId = activityGroupDictionary.getGroupContentInteraction();
-    await this.checkFollowPreconditions(userFrom, orgId, activityTypeId, activityGroupId);
+    await this.checkFollowPreconditions(userFrom, organizationId, activityTypeId, activityGroupId);
 
     const activity = await knex.transaction(async (trx) => {
       const eventId = activityTypeId === InteractionTypeDictionary.getFollowId() ?
         eventIdDictionary.getUserFollowsOrg() : eventIdDictionary.getUserUnfollowsOrg();
 
-      await this.createFollowIndex(eventId, userFrom.id, orgId, trx);
+      await this.createFollowIndex(eventId, userFrom.id, organizationId, trx);
 
       const newActivityData = {
         activity_type_id:   activityTypeId,
         user_id_from:       userFrom.id,
-        entity_id_to:       orgId,
+        entity_id_to:       organizationId,
         signed_transaction: body.signed_transaction,
         entity_name:        ENTITY_NAME,
         activity_group_id:  activityGroupId,
@@ -83,9 +79,11 @@ class UserToOrganizationActivity {
       return UsersActivityRepository.createNewKnexActivity(newActivityData, trx);
     });
 
-    await userActivityService.sendPayloadToRabbit(activity);
+    const options: IActivityOptions = EosTransactionService.getEosVersionBasedOnSignedTransaction(
+      body.signed_transaction,
+    );
 
-    return true;
+    await UserActivityService.sendPayloadToRabbitWithOptions(activity, options);
   }
 
   private static async createFollowIndex(

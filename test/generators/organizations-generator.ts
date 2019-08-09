@@ -1,11 +1,13 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
+import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
 import UsersHelper = require('../integration/helpers/users-helper');
 
 import EntityImagesGenerator = require('./common/entity-images-generator');
+import OrganizationsRepository = require('../../lib/organizations/repository/organizations-repository');
 
 const request = require('supertest');
 const faker   = require('faker');
@@ -87,8 +89,14 @@ class OrganizationsGenerator {
    * @param {Object} author
    * @return {Promise<Object>}
    */
-  static async createOrgWithoutTeam(author: UserModel): Promise<number> {
+  public static async createOrgWithoutTeam(author: UserModel): Promise<number> {
     return this.createOrgWithTeam(author);
+  }
+
+  public static async createOrgWithoutTeamAndGetModel(myself: UserModel): Promise<OrgModel> {
+    const orgId: number = await this.createOrgWithTeam(myself);
+
+    return OrganizationsRepository.findOnlyItselfById(orgId);
   }
 
   public static async createOrgWithTeamAndConfirmAll(
