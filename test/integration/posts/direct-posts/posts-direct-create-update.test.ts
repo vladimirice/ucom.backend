@@ -42,7 +42,7 @@ describe('Direct posts create-update', () => {
     describe('Positive', () => {
       describe('Positive', () => {
         it('Post current params row should be created during post creation', async () => {
-          const postId = await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
+          const postId = await PostsGenerator.createLegacyDirectPostForUserAndGetId(userVlad, userJane);
 
           const data = await PostsCurrentParamsRepository.getCurrentStatsByEntityId(postId);
 

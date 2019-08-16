@@ -111,10 +111,10 @@ describe('#posts #direct #get #graphql', () => {
         const isCommentsEmpty: boolean = false;
 
         const janeDirectPostId: number =
-          await PostsGenerator.createDirectPostForUserAndGetId(userJane, userVlad);
+          await PostsGenerator.createLegacyDirectPostForUserAndGetId(userJane, userVlad);
 
         const petrDirectPostId: number =
-          await PostsGenerator.createDirectPostForUserAndGetId(userPetr, userJane);
+          await PostsGenerator.createLegacyDirectPostForUserAndGetId(userPetr, userJane);
 
         const [postOneCommentId, postTwoCommentId]: [number, number] = await Promise.all([
           CommentsGenerator.createCommentForPostAndGetId(janeDirectPostId, userVlad),
@@ -177,7 +177,7 @@ describe('#posts #direct #get #graphql', () => {
     describe('Positive', () => {
       it('Get one direct post for user - should be related FOR info. #posts #users', async () => {
         const postId: number =
-          await PostsGenerator.createDirectPostForUserAndGetId(userJane, userVlad);
+          await PostsGenerator.createLegacyDirectPostForUserAndGetId(userJane, userVlad);
 
         const post: PostModelMyselfResponse =
           await GraphqlHelper.getOnePostAsMyself(userVlad, postId);

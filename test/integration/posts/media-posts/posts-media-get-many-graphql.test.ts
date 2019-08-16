@@ -518,7 +518,7 @@ describe('GET posts via graphql', () => {
       const { postId, repostId } = await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
 
       const directPostId: number =
-        await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
+        await PostsGenerator.createLegacyDirectPostForUserAndGetId(userVlad, userJane);
 
       // @ts-ignore
       const postFiltering: PostRequestQueryDto = {

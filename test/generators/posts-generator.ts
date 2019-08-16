@@ -1,5 +1,6 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { PostModel, PostModelResponse } from '../../lib/posts/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
@@ -57,7 +58,7 @@ class PostsGenerator {
         this.createPostOfferOfOrganization(orgAuthor, orgId),
       ); // User himself creates posts of organization
       promises.push(
-        this.createDirectPostForOrganization(directPostAuthor, orgId, null, false, true),
+        this.createDirectPostForOrganizationLegacy(directPostAuthor, orgId, null, false, true),
       ); // Somebody creates direct post on organization wall
     }
 
@@ -200,7 +201,7 @@ class PostsGenerator {
     wallOwner: UserModel,
     repostAuthor: UserModel,
   ): Promise<{postId: number, repostId: number}> {
-    const postId  = await this.createDirectPostForUserAndGetId(postAuthor, wallOwner);
+    const postId  = await this.createLegacyDirectPostForUserAndGetId(postAuthor, wallOwner);
     const repostId = await this.createRepostOfUserPost(repostAuthor, postId);
 
     return {
@@ -410,14 +411,18 @@ class PostsGenerator {
     const promises: any[] = [];
     for (let i = 0; i < amount; i += 1) {
       promises.push(
-        this.createDirectPostForUserAndGetId(myself, wallOwner, null),
+        this.createLegacyDirectPostForUserAndGetId(myself, wallOwner, null),
       );
     }
 
     return Promise.all(promises);
   }
 
-  public static async createDirectPostForUserAndGetId(
+  /**
+   * @deprecated
+   * @see createDirectPostForUserAndGetId
+   */
+  public static async createLegacyDirectPostForUserAndGetId(
     myself: UserModel,
     wallOwner: UserModel,
     givenDescription: string | null = null,
@@ -432,15 +437,10 @@ class PostsGenerator {
   }
 
   /**
-   * @param {Object} myself
-   * @param {number} targetOrgId
-   * @param {string|null} givenDescription
-   * @param {boolean} withImage
-   * @param {boolean} idOnly
-   * @return {Promise<number>}
-   *
+   * @deprecated
+   * @see createDirectPostForOrganization
    */
-  static async createDirectPostForOrganization(
+  static async createDirectPostForOrganizationLegacy(
     myself: UserModel,
     targetOrgId: number,
     givenDescription: string | null = null,
@@ -459,7 +459,7 @@ class PostsGenerator {
     withImage: boolean = false,
     idOnly: boolean = false,
   ): Promise<PostModelResponse> {
-    const url = RequestHelper.getOrgDirectPostV2UrlV(targetOrgId);
+    const url = RequestHelper.getOrgDirectPostV2Url(targetOrgId);
 
     return this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
   }
@@ -471,7 +471,7 @@ class PostsGenerator {
     withImage: boolean = false,
     idOnly: boolean = false,
   ): Promise<number> {
-    const url = RequestHelper.getOrgDirectPostV2UrlV(targetOrgId);
+    const url = RequestHelper.getOrgDirectPostV2Url(targetOrgId);
 
     const data = await this.createDirectPost(url, myself, givenDescription, withImage, idOnly);
 
@@ -486,7 +486,7 @@ class PostsGenerator {
     const promises: any[] = [];
     for (let i = 0; i < amount; i += 1) {
       promises.push(
-        this.createDirectPostForOrganization(myself, orgId, null, true, true),
+        this.createDirectPostForOrganizationLegacy(myself, orgId, null, true, true),
       );
     }
 
@@ -523,7 +523,59 @@ class PostsGenerator {
     return res.body;
   }
 
-  static async createDirectPost(
+  public static async createDirectPostForUser(
+    myself: UserModel,
+    userTo: UserModel,
+    givenContent: StringToAnyCollection = {},
+  ): Promise<any> {
+    const url = RequestHelper.getUserDirectPostUrlV2(userTo);
+
+    const fields = {
+      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      description: 'Sample description',
+      [EntityImagesModelProvider.entityImagesColumn()]: '{}',
+      ...givenContent,
+    };
+
+    const response = await RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields);
+
+    return response.body;
+  }
+
+  public static async createDirectPostForOrganization(
+    myself: UserModel,
+    organizationId: number,
+    givenContent: StringToAnyCollection = {},
+  ): Promise<any> {
+    const url = RequestHelper.getOrgDirectPostV2Url(organizationId);
+
+    const fields = {
+      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      entity_images: '{}',
+      description: 'New post sample description',
+      ...givenContent,
+    };
+
+    const response = await RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields);
+
+    return response.body;
+  }
+
+  public static async createDirectPostForUserAndGetId(
+    myself: UserModel,
+    userTo: UserModel,
+    givenContent: StringToAnyCollection = {},
+  ): Promise<number> {
+    const body = await this.createDirectPostForUser(myself, userTo, givenContent);
+
+    return body.id;
+  }
+
+  /**
+   * @deprecated
+   * @see createDirectPostForUser or create a new one
+   */
+  public static async createDirectPost(
     url: string,
     myself: UserModel,
     givenDescription: string | null = null,

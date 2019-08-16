@@ -148,7 +148,7 @@ describe('Stats totals', () => {
       const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
       await PostsHelper.requestToUpvotePost(userJane, postId);
 
-      const directPostId = await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
+      const directPostId = await PostsGenerator.createLegacyDirectPostForUserAndGetId(userVlad, userJane);
       await PostsHelper.requestToUpvotePost(userJane, directPostId);
 
       const comment = await CommentsGenerator.createCommentForPost(postId, userPetr);
@@ -173,7 +173,7 @@ describe('Stats totals', () => {
       const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
       await PostsHelper.requestToDownvotePost(userJane, postId);
 
-      const directPostId = await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
+      const directPostId = await PostsGenerator.createLegacyDirectPostForUserAndGetId(userVlad, userJane);
       await PostsHelper.requestToDownvotePost(userJane, directPostId);
 
       const comment = await CommentsGenerator.createCommentForPost(postId, userPetr);
@@ -219,7 +219,7 @@ describe('Stats totals', () => {
     it('Current number of reposts of direct posts', async () => {
       const number = 2;
 
-      const postId = await PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane);
+      const postId = await PostsGenerator.createLegacyDirectPostForUserAndGetId(userVlad, userJane);
 
       await Promise.all([
         await PostsGenerator.createRepostOfUserPost(userJane, postId),

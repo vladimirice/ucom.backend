@@ -1,33 +1,40 @@
-import { IActivityOptions } from '../../interfaces/activity-interfaces';
-import { BadRequestError } from '../../../api/errors';
+/* eslint-disable no-case-declarations */
+import { AppError, BadRequestError } from '../../../api/errors';
+import { UserModel } from '../../../users/interfaces/model-interfaces';
+import { IRequestBody } from '../../../common/interfaces/common-types';
 
 import BlockchainUniqId = require('../../eos-blockchain-uniqid');
 import EosContentInputProcessor = require('./eos-content-input-processor');
+import EosTransactionService = require('../../eos-transaction-service');
+import UsersRepository = require('../../../users/users-repository');
+import OrganizationsRepository = require('../../../organizations/repository/organizations-repository');
 
 const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 class EosPostsInputProcessor {
   public static async addSignedTransactionDetailsToBody(
-    body,
-    user,
-    postTypeId,
-    organizationBlockchainId = null,
-  ): Promise<IActivityOptions> {
-    if (postTypeId === ContentTypeDictionary.getTypeDirectPost()) {
-      return {
-        eosJsV2: false,
-      };
-    }
-
+    body: IRequestBody,
+    currentUser: UserModel,
+    postTypeId: number,
+    organizationBlockchainId: string | null = null,
+  ): Promise<void> {
     const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
 
     if (transactionDetails !== null) {
       body.blockchain_id      = transactionDetails.blockchain_id;
       body.signed_transaction = transactionDetails.signed_transaction;
 
-      return {
-        eosJsV2: true,
-      };
+      return;
+    }
+
+    if (postTypeId === ContentTypeDictionary.getTypeDirectPost()) {
+      await this.addSignedTransactionForDirectPost(
+        body,
+        currentUser,
+      );
+
+      return;
     }
 
     // noinspection IfStatementWithTooManyBranchesJS
@@ -42,8 +49,8 @@ class EosPostsInputProcessor {
     if (organizationBlockchainId) {
       // eslint-disable-next-line no-underscore-dangle
       body.signed_transaction = await TransactionFactory._getSignedOrganizationCreatesContent(
-        user.account_name,
-        user.private_key,
+        currentUser.account_name,
+        currentUser.private_key,
         organizationBlockchainId,
         body.blockchain_id,
         postTypeId,
@@ -51,16 +58,40 @@ class EosPostsInputProcessor {
     } else {
       // eslint-disable-next-line no-underscore-dangle
       body.signed_transaction = await TransactionFactory._userHimselfCreatesPost(
-        user.account_name,
-        user.private_key,
+        currentUser.account_name,
+        currentUser.private_key,
         body.blockchain_id,
         postTypeId,
       );
     }
+  }
 
-    return {
-      eosJsV2: false,
-    };
+  private static async addSignedTransactionForDirectPost(
+    body: IRequestBody,
+    currentUser: UserModel,
+  ): Promise<void> {
+    switch (body.entity_name_for) {
+      case EntityNames.USERS:
+        const accountNameFor: string = await UsersRepository.findAccountNameById(body.entity_id_for);
+
+        await EosTransactionService.appendSignedLegacyUserCreatesDirectPostForOtherUser(
+          body,
+          currentUser,
+          accountNameFor,
+        );
+        break;
+      case EntityNames.ORGANIZATIONS:
+        const organizationBlockchainId: string = await OrganizationsRepository.findBlockchainIdById(body.entity_id_for);
+
+        await EosTransactionService.appendSignedUserCreatesDirectPostForOrg(
+          body,
+          currentUser,
+          organizationBlockchainId,
+        );
+        break;
+      default:
+        throw new AppError(`Unsupported entity_name_for: ${body.entity_name_for}`);
+    }
   }
 }
 

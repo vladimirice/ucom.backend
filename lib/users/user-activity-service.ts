@@ -299,6 +299,9 @@ class UserActivityService {
       event_id:           eventId,
 
       signed_transaction: signedTransaction,
+
+      entity_id_on: updatedPost.entity_id_for,
+      entity_name_on: updatedPost.entity_name_for,
     };
 
     return usersActivityRepository.createNewActivity(data, transaction);

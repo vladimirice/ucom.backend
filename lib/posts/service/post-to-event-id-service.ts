@@ -1,5 +1,9 @@
+import { PostModel } from '../interfaces/model-interfaces';
+import { AppError } from '../../api/errors';
+
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 class PostToEventIdService {
   public static getCreateMediaPostEventId(body: any): number {
@@ -8,7 +12,11 @@ class PostToEventIdService {
       EventsIds.userCreatesMediaPostFromHimself();
   }
 
-  public static getUpdatingEventIdByPost(post): number | null {
+  public static getUpdatingEventIdByPost(post: PostModel): number | null {
+    if (post.post_type_id === ContentTypeDictionary.getTypeDirectPost()) {
+      return this.getUpdateDirectPostEventId(post);
+    }
+
     if (post.post_type_id !== ContentTypeDictionary.getTypeMediaPost()) {
       return null;
     }
@@ -18,6 +26,21 @@ class PostToEventIdService {
     }
 
     return EventsIds.userUpdatesMediaPostFromOrganization();
+  }
+
+  private static getUpdateDirectPostEventId(post: PostModel): number {
+    const map = {
+      [EntityNames.USERS]:          EventsIds.userUpdatesDirectPostForUser(),
+      [EntityNames.ORGANIZATIONS]:  EventsIds.userUpdatesDirectPostForOrganization(),
+    };
+
+    const eventId = map[post.entity_name_for];
+
+    if (!eventId) {
+      throw new AppError(`Unsupported entity_name_for: ${post.entity_name_for}`);
+    }
+
+    return eventId;
   }
 }
 

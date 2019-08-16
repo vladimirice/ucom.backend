@@ -47,7 +47,7 @@ describe('#Feeds #GraphQL', () => {
   describe('Positive', () => {
     it('Mixed types of posts - comments for all', async () => {
       const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
-      const directPostId = await PostsGenerator.createDirectPostForUserAndGetId(userJane, userVlad);
+      const directPostId = await PostsGenerator.createLegacyDirectPostForUserAndGetId(userJane, userVlad);
 
       await CommentsGenerator.createManyCommentsForPost(postId, userJane, 20);
       await CommentsGenerator.createManyCommentsForPost(directPostId, userVlad, 20);

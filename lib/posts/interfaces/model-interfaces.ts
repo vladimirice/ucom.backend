@@ -19,6 +19,9 @@ interface PostModel {
 
   readonly post?: PostModel; // for repost. Repost includes reposted post
 
+  readonly blockchain_id: string;
+  readonly created_at:    Date;
+
   [index: string]: any;
 }
 

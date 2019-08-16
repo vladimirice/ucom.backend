@@ -107,7 +107,7 @@ describe('Tags parsing by consumer', () => {
           description: `Our super #${expectedTags[0]} post #${expectedTags[1]} description`,
         };
 
-        const directPost = await PostsGenerator.createDirectPostForOrganization(
+        const directPost = await PostsGenerator.createDirectPostForOrganizationLegacy(
           user,
           orgId,
           newPostFields.description,
@@ -287,7 +287,7 @@ describe('Tags parsing by consumer', () => {
           description: `Our super #${initialTags[0]} post #${initialTags[1]} description`,
         };
 
-        const postBefore = await PostsGenerator.createDirectPostForOrganization(
+        const postBefore = await PostsGenerator.createDirectPostForOrganizationLegacy(
           user,
           orgId,
           newPostFields.description,

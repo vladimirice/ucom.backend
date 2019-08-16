@@ -145,7 +145,7 @@ class EntityTagsGenerator {
   ): Promise<number> {
     const description = `Hi everyone! #${tagTitle} is so close.`;
 
-    const postId: number = await PostsGenerator.createDirectPostForUserAndGetId(
+    const postId: number = await PostsGenerator.createLegacyDirectPostForUserAndGetId(
       myself,
       wallOwner,
       description,

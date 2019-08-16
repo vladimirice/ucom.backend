@@ -113,7 +113,7 @@ describe('Notifications create-update', () => {
       it('User creates direct post for organization', async () => {
         const orgId = await OrganizationsGenerator.createOrgWithTeam(userVlad);
 
-        await PostsGenerator.createDirectPostForOrganization(userJane, orgId);
+        await PostsGenerator.createDirectPostForOrganizationLegacy(userJane, orgId);
 
         let notifications = [];
         while (_.isEmpty(notifications)) {

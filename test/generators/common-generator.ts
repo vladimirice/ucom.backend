@@ -84,7 +84,7 @@ class CommonGenerator {
 
       // ======== Jane Org wall ==========
       PostsGenerator.createMediaPostOfOrganization(userJane, janeOrgIdOne), // 8
-      PostsGenerator.createDirectPostForOrganization(userVlad, janeOrgIdTwo), // 9
+      PostsGenerator.createDirectPostForOrganizationLegacy(userVlad, janeOrgIdTwo), // 9
     ];
 
     const usersToFollow: UserModel[] = [
@@ -309,10 +309,10 @@ class CommonGenerator {
 
     await Promise.all([
       PostsGenerator.createManyMediaPostsOfOrganization(userVlad, orgIdWithThreeMediaAndTwoDirectPosts, 3),
-      PostsGenerator.createDirectPostForOrganization(userJane, orgIdWithThreeMediaAndTwoDirectPosts),
-      PostsGenerator.createDirectPostForOrganization(userPetr, orgIdWithThreeMediaAndTwoDirectPosts),
+      PostsGenerator.createDirectPostForOrganizationLegacy(userJane, orgIdWithThreeMediaAndTwoDirectPosts),
+      PostsGenerator.createDirectPostForOrganizationLegacy(userPetr, orgIdWithThreeMediaAndTwoDirectPosts),
 
-      PostsGenerator.createDirectPostForOrganization(userPetr, orgIdWithOneDirectPost),
+      PostsGenerator.createDirectPostForOrganizationLegacy(userPetr, orgIdWithOneDirectPost),
       PostsGenerator.createMediaPostOfOrganization(userRokky, orgIdWithOneMediaPost),
     ]);
   }

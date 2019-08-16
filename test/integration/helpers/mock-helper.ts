@@ -14,6 +14,7 @@ import ImportanceGenerator = require('../../generators/blockchain/importance/uos
 import UosAccountsPropertiesFetchService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-fetch-service');
 import EosApi = require('../../../lib/eos/eosApi');
 import EosPostsInputProcessor = require('../../../lib/eos/input-processor/content/eos-posts-input-processor');
+import EosTransactionService = require('../../../lib/eos/eos-transaction-service');
 
 // @ts-ignore
 const uniqid = require('uniqid');
@@ -558,26 +559,26 @@ class MockHelper {
     };
 
     // noinspection JSUnusedLocalSymbols
-    eosTransactionService.appendSignedUserCreatesDirectPostForOtherUser = function (
+    EosTransactionService.appendSignedLegacyUserCreatesDirectPostForOtherUser = async function (
       body,
       // @ts-ignore
       user,
       // @ts-ignore
       accountNameTo,
-    ) {
+    ): Promise<void> {
       body.blockchain_id = 'sample_blockchain_id';
 
       body.signed_transaction = 'sample_signed_transaction';
     };
 
-    // noinspection JSUnusedLocalSymbols
-    eosTransactionService.appendSignedUserCreatesDirectPostForOrg = function (
+    // eslint-disable-next-line sonarjs/no-identical-functions
+    EosTransactionService.appendSignedUserCreatesDirectPostForOrg = async function (
       body,
       // @ts-ignore
       user,
       // @ts-ignore
       orgBlockchainIdTo,
-    ) {
+    ): Promise<void> {
       body.blockchain_id = 'sample_blockchain_id';
 
       body.signed_transaction = 'sample_signed_transaction';

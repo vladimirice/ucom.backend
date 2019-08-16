@@ -1,6 +1,6 @@
 /* tslint:disable:max-line-length */
 
-import { IdOnlyDto } from '../../common/interfaces/common-types';
+import { IdOnlyDto, IRequestBody } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
 import { IActivityModel } from '../../users/interfaces/users-activity/dto-interfaces';
@@ -16,6 +16,7 @@ import UserActivityService = require('../../users/user-activity-service');
 import EosPostsInputProcessor = require('../../eos/input-processor/content/eos-posts-input-processor');
 import UsersModelProvider = require('../../users/users-model-provider');
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
+import EosTransactionService = require('../../eos/eos-transaction-service');
 
 
 const _ = require('lodash');
@@ -35,15 +36,16 @@ const postsRepository         = require('../posts-repository');
 
 const models = require('../../../models');
 
-/**
- * beginning of refactoring
- */
 class PostCreatorService {
-  public static async processNewPostCreation(req: any, eventId: number | null = null, currentUser: UserModel) {
+  public static async processNewPostCreation(
+    req: any,
+    eventId: number | null = null,
+    currentUser: UserModel,
+  ) {
     // #task - wrap in database transaction
 
     const { files } = req;
-    const { body }  = req;
+    const { body }: { body: IRequestBody }  = req;
 
     // #task - provide Joi validation
     if (body && body.title && body.title.length > 255) {
@@ -71,12 +73,15 @@ class PostCreatorService {
       }
     }
 
-    const options: IActivityOptions = await EosPostsInputProcessor.addSignedTransactionDetailsToBody(
+    await EosPostsInputProcessor.addSignedTransactionDetailsToBody(
       body,
       currentUser,
       postTypeId,
       orgBlockchainId,
     );
+
+    const options: IActivityOptions =
+      EosTransactionService.getEosVersionBasedOnSignedTransaction(body.signed_transaction);
 
     await this.makeOrganizationRelatedChecks(body, currentUser);
     await this.addAttributesOfEntityFor(body, currentUser);

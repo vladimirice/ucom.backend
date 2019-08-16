@@ -673,7 +673,7 @@ class RequestHelper {
     return `${organizationsUrl}/${orgId}/posts`;
   }
 
-  public static getOrgDirectPostV2UrlV(orgId: number): string {
+  public static getOrgDirectPostV2Url(orgId: number): string {
     return `${organizationsV2Url}/${orgId}/posts`;
   }
 

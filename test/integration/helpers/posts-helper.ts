@@ -1,5 +1,5 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { PostModel, PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
 
@@ -165,6 +165,29 @@ class PostsHelper {
   }
 
   /**
+   * #task - other update methods are deprecated
+   */
+  public static async updatePost(
+    postId: number,
+    myself: UserModel,
+    fields: any,
+  ): Promise<PostModel> {
+    const url = RequestHelper.getOnePostV2Url(postId);
+
+    const resultFields = {
+      entity_images: '{}',
+      ...fields,
+    };
+
+    const response = await RequestHelper.makePatchRequestAsMyselfWithFields(url, myself, resultFields);
+
+    return response.body;
+  }
+
+  /**
+   *
+   * @deprecated
+   * @see updatePost
    *
    * @param {Object} user
    * @param {number} postId
@@ -663,7 +686,7 @@ class PostsHelper {
    * @returns {Promise<Object>}
    */
   static async requestToSetPostTeam(postId, user, teamUsers) {
-    const boardToChange = teamUsers.map(item => ({
+    const boardToChange = teamUsers.map((item) => ({
       user_id: item.id,
     }));
 

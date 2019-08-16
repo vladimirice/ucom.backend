@@ -219,12 +219,7 @@ class UsersRepository {
     });
   }
 
-  /**
-   *
-   * @param {number} id
-   * @returns {Promise<string>}
-   */
-  static async findAccountNameById(id) {
+  public static async findAccountNameById(id: number): Promise<string> {
     const result = await this.getModel().findOne({
       attributes: ['account_name'],
       where: { id },
@@ -648,7 +643,7 @@ class UsersRepository {
     });
 
     if (isRaw) {
-      return modelResult.map(data => data.toJSON());
+      return modelResult.map((data) => data.toJSON());
     }
 
     return modelResult;
@@ -690,7 +685,7 @@ class UsersRepository {
       ],
     });
 
-    return rows.map(row => row.toJSON());
+    return rows.map((row) => row.toJSON());
   }
 
   public static getDefaultListParams() {

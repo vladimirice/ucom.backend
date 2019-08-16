@@ -58,8 +58,8 @@ describe('Organizations feeds - main page', () => {
       ]);
 
       userHimselfDirectPosts = await Promise.all([
-        PostsGenerator.createDirectPostForUserAndGetId(userVlad, userJane),
-        PostsGenerator.createDirectPostForUserAndGetId(userJane, userVlad),
+        PostsGenerator.createLegacyDirectPostForUserAndGetId(userVlad, userJane),
+        PostsGenerator.createLegacyDirectPostForUserAndGetId(userJane, userVlad),
       ]);
     });
 

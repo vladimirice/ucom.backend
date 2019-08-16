@@ -48,32 +48,26 @@ class EosTransactionService {
     );
   }
 
-  /**
-   *
-   * @param {Object} body
-   * @param {Object} user
-   * @param {string} accountNameTo
-   * @return {Promise<void>}
-   */
-  static async appendSignedUserCreatesDirectPostForOtherUser(body, user, accountNameTo) {
+  public static async appendSignedLegacyUserCreatesDirectPostForOtherUser(
+    body: IRequestBody,
+    user: UserModel,
+    accountNameFor: string,
+  ): Promise<void> {
     body.blockchain_id = eosBlockchainUniqid.getUniqidForDirectPost();
 
     body.signed_transaction = await TransactionFactory.getSignedDirectPostCreationForUser(
       user.account_name,
       user.private_key,
-      accountNameTo,
+      accountNameFor,
       body.blockchain_id,
     );
   }
 
-  /**
-   *
-   * @param {Object} body
-   * @param {Object} user
-   * @param {string} orgBlockchainIdTo
-   * @return {Promise<void>}
-   */
-  static async appendSignedUserCreatesDirectPostForOrg(body, user, orgBlockchainIdTo) {
+  public static async appendSignedUserCreatesDirectPostForOrg(
+    body: IRequestBody,
+    user: UserModel,
+    orgBlockchainIdTo: string,
+  ): Promise<void> {
     body.blockchain_id = eosBlockchainUniqid.getUniqidForDirectPost();
 
     body.signed_transaction = await TransactionFactory.getSignedDirectPostCreationForOrg(

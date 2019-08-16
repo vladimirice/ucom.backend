@@ -84,7 +84,7 @@ describe('Posts related blockchain transactions.', () => {
       const targetUser  = userJane;
 
       const orgId = await gen.Org.createOrgWithoutTeam(targetUser);
-      await gen.Posts.createDirectPostForOrganization(postAuthor, orgId);
+      await gen.Posts.createDirectPostForOrganizationLegacy(postAuthor, orgId);
 
       const activity = await helpers.Activity.requestToWaitAndGetTransaction(postAuthor);
 

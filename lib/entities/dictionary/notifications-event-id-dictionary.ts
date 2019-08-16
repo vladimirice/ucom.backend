@@ -25,7 +25,6 @@ const USER_DOWNVOTES_ORG_COMMENT  = 54;
 
 const USER_UNFOLLOWS_ORG          = 55;
 
-const USER_CREATES_DIRECT_POST_FOR_YOU    = 70;
 const USER_COMMENTS_YOUR_POST             = 71;
 const USER_LEAVES_COMMENT_ON_YOUR_COMMENT = 72;
 
@@ -55,14 +54,6 @@ const eventRequiresPrompt = [
  * Consider to create new types inside a common lib (event-ids-dictionary)
  */
 class NotificationsEventIdDictionary {
-  /**
-   * @deprecated
-   * @see EventsIds.registration()
-   */
-  public static getRegistration(): number {
-    return EventsIds.registration();
-  }
-
   public static getUserHasMentionedYouInPost(): number {
     return USER_HAS_MENTIONED_YOU_IN_POST;
   }
@@ -211,11 +202,11 @@ class NotificationsEventIdDictionary {
   }
 
   /**
-   *
-   * @return {number}
+   * @deprecated
+   * @see EventsIds.userCreatesDirectPostForOtherUser()
    */
-  static getUserCreatesDirectPostForOtherUser() {
-    return USER_CREATES_DIRECT_POST_FOR_YOU;
+  public static getUserCreatesDirectPostForOtherUser(): number {
+    return EventsIds.userCreatesDirectPostForOtherUser();
   }
 
   /**
