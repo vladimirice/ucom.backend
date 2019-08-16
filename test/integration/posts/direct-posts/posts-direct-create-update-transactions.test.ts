@@ -12,6 +12,7 @@ import UsersActivityCommonHelper = require('../../../helpers/users/activity/user
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import PostsHelper = require('../../helpers/posts-helper');
+import DirectPostResendingService = require('../../../../lib/posts/service/content-resending/direct-post-resending-service');
 
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
@@ -40,6 +41,17 @@ describe('Create/update direct post and push content to the blockchain', () => {
   });
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
+  });
+
+  describe('Direct post resending - history', () => {
+    it.skip('Resend direct posts for org', async () => {
+      const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
+      await PostsGenerator.createManyDirectPostsForOrganization(userVlad, orgId, 3);
+
+      const createdAt = '2019-11-11 00:00:00';
+
+      await DirectPostResendingService.resendDirectPostsForOrganizations(createdAt, 1, true, 0);
+    }, JEST_TIMEOUT_DEBUG);
   });
 
   describe('Direct post creation with a transaction', () => {
