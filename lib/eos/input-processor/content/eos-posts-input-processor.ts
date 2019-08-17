@@ -19,6 +19,10 @@ class EosPostsInputProcessor {
     postTypeId: number,
     organizationBlockchainId: string | null = null,
   ): Promise<void> {
+    if (postTypeId === ContentTypeDictionary.getTypeRepost()) {
+      throw new AppError('Reposts is not supported here. Consider to use different method');
+    }
+
     const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
 
     if (transactionDetails !== null) {
@@ -66,6 +70,24 @@ class EosPostsInputProcessor {
     }
   }
 
+  public static async addSignedTransactionDetailsToBodyForRepost(
+    body: IRequestBody,
+    currentUser: UserModel,
+    parentBlockchainId: string,
+  ): Promise<void> {
+    const added: boolean = this.addSignedTransactionDetailsFromRequest(body);
+
+    if (added) {
+      return;
+    }
+
+    await EosTransactionService.appendSignedUserCreatesRepost(
+      body,
+      currentUser,
+      parentBlockchainId,
+    );
+  }
+
   private static async addSignedTransactionForDirectPost(
     body: IRequestBody,
     currentUser: UserModel,
@@ -92,6 +114,19 @@ class EosPostsInputProcessor {
       default:
         throw new AppError(`Unsupported entity_name_for: ${body.entity_name_for}`);
     }
+  }
+
+  private static addSignedTransactionDetailsFromRequest(body: IRequestBody): boolean {
+    const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
+
+    if (transactionDetails === null) {
+      return false;
+    }
+
+    body.blockchain_id      = transactionDetails.blockchain_id;
+    body.signed_transaction = transactionDetails.signed_transaction;
+
+    return true;
   }
 }
 

@@ -30,14 +30,11 @@ class EosTransactionService {
     };
   }
 
-  /**
-   *
-   * @param {Object} body
-   * @param {Object} user
-   * @param {string} parentContentBlockchainId
-   * @return {Promise<void>}
-   */
-  static async appendSignedUserCreatesRepost(body, user, parentContentBlockchainId) {
+  public static async appendSignedUserCreatesRepost(
+    body: IRequestBody,
+    user: UserModel,
+    parentContentBlockchainId: string,
+  ): Promise<void> {
     body.blockchain_id = eosBlockchainUniqid.getUniqidForRepost();
 
     body.signed_transaction = await TransactionFactory.getSignedUserCreatesRepostOtherPost(

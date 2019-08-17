@@ -542,6 +542,33 @@ class PostsGenerator {
     return response.body;
   }
 
+  public static async createRepostAndGetId(
+    myself: UserModel,
+    postId: number,
+    givenContent: StringToAnyCollection = {},
+  ): Promise<any> {
+    const url = RequestHelper.getCreateRepostUrl(postId);
+
+    const fields = {
+      description: 'Sample repost creation description',
+      ...givenContent,
+    };
+
+    const response = await RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields, 201);
+
+    return +response.body.id;
+  }
+
+  public static async createRepostAndGetModel(
+    myself: UserModel,
+    postId: number,
+    givenContent: StringToAnyCollection = {},
+  ): Promise<PostModel> {
+    const repostId: number = await this.createRepostAndGetId(myself, postId, givenContent);
+
+    return PostsRepository.findOnlyPostItselfById(repostId);
+  }
+
   public static async createDirectPostForOrganization(
     myself: UserModel,
     organizationId: number,

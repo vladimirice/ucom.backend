@@ -330,11 +330,7 @@ class NotificationsEventIdDictionary {
     return this.getUserRepostsOtherUserPost();
   }
 
-  /**
-   *
-   * @return {number}
-   */
-  static getUserRepostsOtherUserPost() {
+  public static getUserRepostsOtherUserPost(): number {
     return USER_REPOSTS_OTHER_USER_POST;
   }
 

@@ -1,32 +1,31 @@
 import PostsGenerator = require('../../generators/posts-generator');
-
-export {};
+import SeedsHelper = require('../helpers/seeds-helper');
+import EosTransactionHelper = require('../helpers/eos-transaction-helpers');
+import ActivityHelper = require('../helpers/activity-helper');
+import OrganizationsGenerator = require('../../generators/organizations-generator');
+import PostsHelper = require('../helpers/posts-helper');
+import PostsRepository = require('../../../lib/posts/posts-repository');
+import UsersActivityRepository = require('../../../lib/users/repository/users-activity-repository');
 
 const delay = require('delay');
-const helpers = require('../helpers');
-const gen     = require('../../generators');
 
-const usersActivityRepository = require('../../../lib/users/repository').Activity;
-const { ContentTypeDictionary, InteractionTypeDictionary }
-  = require('ucom-libs-social-transactions');
-
-const postsRepository = require('../../../lib/posts/repository').Main;
+const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 let userVlad;
 let userJane;
 
 describe('Posts related blockchain transactions.', () => {
   beforeAll(async () => {
-    [userVlad, userJane] = await helpers.SeedsHelper.beforeAllRoutine();
+    [userVlad, userJane] = await SeedsHelper.beforeAllRoutine();
   });
 
   afterAll(async () => {
-    await helpers.SeedsHelper.sequelizeAfterAll();
+    await SeedsHelper.sequelizeAfterAll();
   });
 
   beforeEach(async () => {
-    await helpers.SeedsHelper.initPostOfferSeeds();
-    await helpers.EosTransaction.purgeQueues();
+    await SeedsHelper.initPostOfferSeeds();
+    await EosTransactionHelper.purgeQueues();
   });
 
   describe('User creates repost', () => {
@@ -34,23 +33,23 @@ describe('Posts related blockchain transactions.', () => {
       const parentPostAuthor = userVlad;
       const repostAuthor = userJane;
 
-      const postId = await gen.Posts.createMediaPostByUserHimself(parentPostAuthor);
-      await gen.Posts.createRepostOfUserPost(repostAuthor, postId);
+      const postId = await PostsGenerator.createMediaPostByUserHimself(parentPostAuthor);
+      await PostsGenerator.createRepostOfUserPost(repostAuthor, postId);
 
-      const parentPost = await postsRepository.findOnlyPostItselfById(postId);
+      const parentPost = await PostsRepository.findOnlyPostItselfById(postId);
 
       let activity;
 
       while (!activity) {
         activity =
-          await usersActivityRepository.findLastWithBlockchainIsSentStatus(repostAuthor.id);
+          await UsersActivityRepository.findLastWithBlockchainIsSentStatus(repostAuthor.id);
         await delay(100);
       }
 
       const expectedSignedTransaction =
-        helpers.EosTransaction.getPartOfSignedUserCreatesRepost(repostAuthor.account_name);
+        EosTransactionHelper.getPartOfSignedUserCreatesRepost(repostAuthor.account_name);
       const expectedBlockchainResponse  =
-        helpers.EosTransaction.getPartOfBlockchainResponseOnUserCreatesRepost(
+        EosTransactionHelper.getPartOfBlockchainResponseOnUserCreatesRepost(
           repostAuthor.account_name,
           parentPost.blockchain_id,
         );
@@ -63,38 +62,36 @@ describe('Posts related blockchain transactions.', () => {
   describe('User creates direct post', () => {
     it('direct post on user - valid transaction', async () => {
       const postAuthor  = userVlad;
-      const targetUser  = userJane;
 
-      await gen.Posts.createUserDirectPostForOtherUser(postAuthor, targetUser);
+      await PostsGenerator.createUserDirectPostForOtherUser(postAuthor, userJane);
 
-      const activity = await helpers.Activity.requestToWaitAndGetTransaction(postAuthor);
+      const activity = await ActivityHelper.requestToWaitAndGetTransaction(postAuthor);
 
       const expected = {
         signed_transaction:
-          helpers.EosTransaction.getPartOfSignedUserCreatesDirectPostOfOtherUser(),
+          EosTransactionHelper.getPartOfSignedUserCreatesDirectPostOfOtherUser(),
         blockchain_response:
-          helpers.EosTransaction.getPartOfBlockchainResponseOnUserCreatesDirectPostOfOtherUser(),
+          EosTransactionHelper.getPartOfBlockchainResponseOnUserCreatesDirectPostOfOtherUser(),
       };
 
-      helpers.EosTransaction.checkTransactionsParts(activity, expected);
+      EosTransactionHelper.checkTransactionsParts(activity, expected);
     }, 10000);
 
     it('direct post on organization - valid transaction', async () => {
       const postAuthor  = userVlad;
-      const targetUser  = userJane;
 
-      const orgId = await gen.Org.createOrgWithoutTeam(targetUser);
-      await gen.Posts.createDirectPostForOrganizationLegacy(postAuthor, orgId);
+      const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userJane);
+      await PostsGenerator.createDirectPostForOrganizationLegacy(postAuthor, orgId);
 
-      const activity = await helpers.Activity.requestToWaitAndGetTransaction(postAuthor);
+      const activity = await ActivityHelper.requestToWaitAndGetTransaction(postAuthor);
 
       const expected = {
-        signed_transaction: helpers.EosTransaction.getPartOfSignedUserCreatesDirectPostOfOrg(),
+        signed_transaction: EosTransactionHelper.getPartOfSignedUserCreatesDirectPostOfOrg(),
         blockchain_response:
-          helpers.EosTransaction.getPartOfBlockchainResponseOnUserCreatesDirectPostOfOrg(),
+          EosTransactionHelper.getPartOfBlockchainResponseOnUserCreatesDirectPostOfOrg(),
       };
 
-      helpers.EosTransaction.checkTransactionsParts(activity, expected);
+      EosTransactionHelper.checkTransactionsParts(activity, expected);
     }, 30000);
   });
 
@@ -107,14 +104,14 @@ describe('Posts related blockchain transactions.', () => {
 
         await PostsGenerator.createMediaPostOfOrganization(user, orgId);
         while (!activity) {
-          activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
           await delay(100);
         }
 
         expect(JSON.parse(activity.signed_transaction))
-          .toMatchObject(helpers.EosTransaction.getPartOfSignedOrgCreatesMediaPostTransaction());
+          .toMatchObject(EosTransactionHelper.getPartOfSignedOrgCreatesMediaPostTransaction());
         expect(JSON.parse(activity.blockchain_response))
-          .toMatchObject(helpers.EosTransaction.getPartOfBlockchainResponseOnOrgCreatesMediaPost());
+          .toMatchObject(EosTransactionHelper.getPartOfBlockchainResponseOnOrgCreatesMediaPost());
       }, 20000);
     });
 
@@ -125,54 +122,52 @@ describe('Posts related blockchain transactions.', () => {
   describe('Posts activity transactions', () => {
     describe('Votes related transactions', () => {
       it('Jane upvotes Vlad posts', async () => {
-        const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
-        await helpers.PostHelper.requestToUpvotePost(userJane, postId);
+        const postId  = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+        await PostsHelper.requestToUpvotePost(userJane, postId);
 
-        const blockchainId = await postsRepository.findBlockchainIdById(postId);
+        const blockchainId = await PostsRepository.findBlockchainIdById(postId);
 
         let activity;
         while (!activity) {
-          activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userJane.id);
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userJane.id);
           await delay(100);
         }
 
         const expectedPushResult =
-          helpers.EosTransaction.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
+          EosTransactionHelper.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
             userJane.account_name,
             blockchainId,
-            InteractionTypeDictionary.getUpvoteId(),
           );
 
         expect(JSON.parse(activity.signed_transaction))
-          .toMatchObject(helpers.EosTransaction.getPartOfSignedUserVotesPostOfOtherUser());
+          .toMatchObject(EosTransactionHelper.getPartOfSignedUserVotesPostOfOtherUser());
         expect(JSON.parse(activity.blockchain_response))
           .toMatchObject(expectedPushResult);
       }, 10000);
 
       it('Jane downvotes Vlad posts', async () => {
-        const postId  = await gen.Posts.createMediaPostByUserHimself(userVlad);
-        await helpers.PostHelper.requestToDownvotePost(userJane, postId);
+        const postId  = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+        await PostsHelper.requestToDownvotePost(userJane, postId);
 
-        const blockchainId = await postsRepository.findBlockchainIdById(postId);
+        const blockchainId = await PostsRepository.findBlockchainIdById(postId);
 
         let activity;
         while (!activity) {
-          activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userJane.id);
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userJane.id);
           await delay(100);
         }
 
         const expectedPushResult =
-          helpers.EosTransaction.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
+          EosTransactionHelper.getPartOfBlockchainResponseOnUserUpvotesPostOfOtherUser(
             userJane.account_name,
             blockchainId,
-            InteractionTypeDictionary.getDownvoteId(),
           );
 
         expect(JSON.parse(activity.signed_transaction))
-          .toMatchObject(helpers.EosTransaction.getPartOfSignedUserVotesPostOfOtherUser());
+          .toMatchObject(EosTransactionHelper.getPartOfSignedUserVotesPostOfOtherUser());
         expect(JSON.parse(activity.blockchain_response))
           .toMatchObject(expectedPushResult);
-      }, 10000);
+      }, 20000);
     });
   });
 
@@ -184,17 +179,17 @@ describe('Posts related blockchain transactions.', () => {
 
         await PostsGenerator.createMediaPostByUserHimself(user);
         while (!activity) {
-          activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
+          activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
           await delay(100);
         }
 
         const postTypeId = ContentTypeDictionary.getTypeMediaPost();
 
         expect(JSON.parse(activity.signed_transaction)).toMatchObject(
-          helpers.EosTransaction.getPartOfSignedUserHimselfCreatesMediaPostTransaction(),
+          EosTransactionHelper.getPartOfSignedUserHimselfCreatesMediaPostTransaction(),
         );
         expect(JSON.parse(activity.blockchain_response)).toMatchObject(
-          helpers.EosTransaction.getPartOfBlockchainResponseOnUserCreatesMediaPost(postTypeId),
+          EosTransactionHelper.getPartOfBlockchainResponseOnUserCreatesMediaPost(postTypeId),
         );
       }, 20000);
     });
@@ -205,18 +200,20 @@ describe('Posts related blockchain transactions.', () => {
 
       await PostsGenerator.createPostOfferByUserHimself(user);
       while (!activity) {
-        activity = await usersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
+        activity = await UsersActivityRepository.findLastWithBlockchainIsSentStatus(userVlad.id);
         await delay(100);
       }
 
       const postTypeId = ContentTypeDictionary.getTypeOffer();
 
       expect(JSON.parse(activity.signed_transaction)).toMatchObject(
-        helpers.EosTransaction.getPartOfSignedUserHimselfCreatesMediaPostTransaction(),
+        EosTransactionHelper.getPartOfSignedUserHimselfCreatesMediaPostTransaction(),
       );
       expect(JSON.parse(activity.blockchain_response)).toMatchObject(
-        helpers.EosTransaction.getPartOfBlockchainResponseOnUserCreatesMediaPost(postTypeId),
+        EosTransactionHelper.getPartOfBlockchainResponseOnUserCreatesMediaPost(postTypeId),
       );
     }, 20000);
   });
 });
+
+export {};

@@ -4,6 +4,8 @@ import { IdOnlyDto, IRequestBody } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
 import { IActivityModel } from '../../users/interfaces/users-activity/dto-interfaces';
+import { PostModel } from '../interfaces/model-interfaces';
+import { AppError, BadRequestError } from '../../api/errors';
 
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
@@ -17,23 +19,13 @@ import EosPostsInputProcessor = require('../../eos/input-processor/content/eos-p
 import UsersModelProvider = require('../../users/users-model-provider');
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import EosTransactionService = require('../../eos/eos-transaction-service');
-
+import UsersActivityRepository = require('../../users/repository/users-activity-repository');
+import PostsRepository = require('../posts-repository');
 
 const _ = require('lodash');
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
-const { AppError } = require('../../../lib/api/errors');
-
 const db = require('../../../models').sequelize;
-
-const { BadRequestError } = require('../../../lib/api/errors');
-
-const eosTransactionService = require('../../eos/eos-transaction-service');
-const UsersActivityService  = require('../../users/user-activity-service');
-const usersActivityRepository = require('../../users/repository/users-activity-repository');
-
-const postsRepository         = require('../posts-repository');
-
 const models = require('../../../models');
 
 class PostCreatorService {
@@ -111,7 +103,7 @@ class PostCreatorService {
     // #task - create new post via knex only and provide related transaction
     await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
 
-    await UsersActivityService.sendContentCreationPayloadToRabbitWithOptions(newActivity, options);
+    await UserActivityService.sendContentCreationPayloadToRabbitWithOptions(newActivity, options);
 
     if (PostsFetchService.isDirectPost(newPost)) {
       // Direct Post creation = full post content, not only ID
@@ -121,36 +113,38 @@ class PostCreatorService {
     return newPost;
   }
 
-  /**
-   *
-   * @param {Object} givenBody
-   * @param {number} postId
-   * @param {Object} user
-   * @return {Promise<{id: *}>}
-   */
-  public static async processRepostCreation(givenBody, postId, user): Promise<IdOnlyDto> {
-    const parentPost = await this.checkParentPostOfRepost(postId, user.id);
+  public static async processRepostCreation(
+    givenBody: IRequestBody,
+    postId: number,
+    currentUser: UserModel,
+  ): Promise<IdOnlyDto> {
+    const parentPost: PostModel = await this.checkParentPostOfRepost(postId, currentUser.id);
 
     const body = _.pick(givenBody, ['signed_transaction', 'blockchain_id']);
     body.post_type_id = ContentTypeDictionary.getTypeRepost();
     body.parent_id = postId;
 
-    body.entity_id_for    = user.id;
+    body.entity_id_for    = currentUser.id;
     body.entity_name_for  = UsersModelProvider.getEntityName();
 
     EntityImageInputService.setEmptyEntityImages(body);
 
-    await eosTransactionService.appendSignedUserCreatesRepost(body, user, parentPost.blockchain_id);
+    await EosPostsInputProcessor.addSignedTransactionDetailsToBodyForRepost(
+      body,
+      currentUser,
+      parentPost.blockchain_id,
+    );
+
     const eventId = NotificationsEventIdDictionary.getRepostEventId(parentPost.organization_id);
 
     const { newPost, newActivity } = await db
       .transaction(async (transaction) => {
-        const model = await postsRepository.createNewPost(body, user.id, transaction);
+        const model = await PostsRepository.createNewPost(body, currentUser.id, transaction);
 
         const activity = await PostCreatorService.createNewActivityForRepost(
           model,
           body.signed_transaction,
-          user.id,
+          currentUser.id,
           eventId,
           transaction,
         );
@@ -164,7 +158,10 @@ class PostCreatorService {
 
     // #task - create new post via knex only and provide related transaction
     await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
-    await UsersActivityService.sendContentCreationPayloadToRabbit(newActivity);
+
+    const options: IActivityOptions =
+      EosTransactionService.getEosVersionBasedOnSignedTransaction(body.signed_transaction);
+    await UserActivityService.sendContentCreationPayloadToRabbitWithOptions(newActivity, options);
 
     return {
       id: newPost.id,
@@ -179,7 +176,7 @@ class PostCreatorService {
    * @return {Promise<Object>}
    */
   private static async checkParentPostOfRepost(postId, userId) {
-    const post = await postsRepository.findOneOnlyWithOrganization(postId);
+    const post = await PostsRepository.findOneOnlyWithOrganization(postId);
 
     if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
       throw new BadRequestError({
@@ -202,7 +199,7 @@ class PostCreatorService {
       });
     }
 
-    const isRepost = await usersActivityRepository.doesUserHaveRepost(userId, postId);
+    const isRepost = await UsersActivityRepository.doesUserHaveRepost(userId, postId);
 
     if (isRepost) {
       throw new BadRequestError({
@@ -233,7 +230,7 @@ class PostCreatorService {
     let newActivity;
 
     if (newPost.organization_id) {
-      newActivity = await UsersActivityService.processOrganizationCreatesRepost(
+      newActivity = await UserActivityService.processOrganizationCreatesRepost(
         newPost,
         eventId,
         signedTransaction,
@@ -241,7 +238,7 @@ class PostCreatorService {
         transaction,
       );
     } else {
-      newActivity = await UsersActivityService.processUserHimselfCreatesRepost(
+      newActivity = await UserActivityService.processUserHimselfCreatesRepost(
         newPost,
         eventId,
         signedTransaction,
@@ -310,16 +307,16 @@ class PostCreatorService {
     let newPost;
     switch (postTypeId) {
       case ContentTypeDictionary.getTypeMediaPost():
-        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
+        newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeOffer():
         newPost = await PostOfferRepository.createNewOffer(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeDirectPost():
-        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
+        newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
       case ContentTypeDictionary.getTypeRepost():
-        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
+        newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
       default:
         throw new BadRequestError({
