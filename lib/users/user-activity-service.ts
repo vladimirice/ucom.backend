@@ -505,9 +505,9 @@ class UserActivityService {
 
     let activityGroupId;
     if (isOrganization) {
-      activityGroupId = activityGroupDictionary.getGroupContentCreationByOrganization();
+      activityGroupId = ActivityGroupDictionary.getGroupContentCreationByOrganization();
     } else {
-      activityGroupId = activityGroupDictionary.getGroupContentCreation();
+      activityGroupId = ActivityGroupDictionary.getGroupContentCreation();
     }
 
     const data = {

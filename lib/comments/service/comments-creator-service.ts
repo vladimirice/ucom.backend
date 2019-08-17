@@ -1,6 +1,9 @@
 /* eslint-disable max-len */
-import { CommentModelInput } from '../interfaces/model-interfaces';
+import { CommentModel, CommentModelInput } from '../interfaces/model-interfaces';
 import { UserModel } from '../../users/interfaces/model-interfaces';
+import { IRequestBody } from '../../common/interfaces/common-types';
+import { PostModel } from '../../posts/interfaces/model-interfaces';
+import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
 
 import PostsRepository = require('../../posts/posts-repository');
 import CommentsRepository = require('../comments-repository');
@@ -14,6 +17,8 @@ import OrganizationsModelProvider = require('../../organizations/service/organiz
 import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 import CommentsInputProcessor = require('../validators/comments-input-processor');
+import EosTransactionService = require('../../eos/eos-transaction-service');
+import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
 
 const _ = require('lodash');
 const { TransactionFactory } = require('ucom-libs-social-transactions');
@@ -59,22 +64,28 @@ export class CommentsCreatorService {
   }
 
   private static async createNewComment(
-    body,
-    parentIdInBlockchain,
-    post,
-    parentModel,
-    isCommentOnComment,
-    currentUser,
+    body: IRequestBody,
+    parentIdInBlockchain: string,
+    post: PostModel,
+    parentModel: CommentModel | null,
+    isCommentOnComment: boolean,
+    currentUser: UserModel,
   ) {
     const organizationBlockchainId = post.organization ? post.organization.blockchain_id : null;
 
-    await this.addTransactionDataToBody(
-      body,
-      currentUser,
-      parentIdInBlockchain,
-      isCommentOnComment,
-      organizationBlockchainId,
-    );
+    const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
+    if (transactionDetails !== null) {
+      body.blockchain_id      = transactionDetails.blockchain_id;
+      body.signed_transaction = transactionDetails.signed_transaction;
+    } else {
+      await this.addLegacyTransactionDataToBody(
+        body,
+        currentUser,
+        parentIdInBlockchain,
+        isCommentOnComment,
+        organizationBlockchainId,
+      );
+    }
 
     await this.processOrganizationAction(post, body, currentUser);
 
@@ -122,7 +133,9 @@ export class CommentsCreatorService {
         };
       });
 
-    await UserActivityService.sendContentCreationPayloadToRabbit(newActivity);
+    const options: IActivityOptions =
+      EosTransactionService.getEosVersionBasedOnSignedTransaction(body.signed_transaction);
+    await UserActivityService.sendContentCreationPayloadToRabbitWithOptions(newActivity, options);
 
     return newModel;
   }
@@ -207,22 +220,12 @@ export class CommentsCreatorService {
     body.organization_id = post.organization.id;
   }
 
-  /**
-   *
-   * @param {Object}      body
-   * @param {Object}      currentUser
-   * @param {string}      parentModelBlockchainId
-   * @param {boolean}     isCommentOnComment
-   * @param {string|null} organizationBlockchainId
-   * @return {Promise<void>}
-   * @private
-   */
-  private static async addTransactionDataToBody(
-    body,
-    currentUser,
-    parentModelBlockchainId,
-    isCommentOnComment,
-    organizationBlockchainId = null,
+  private static async addLegacyTransactionDataToBody(
+    body: IRequestBody,
+    currentUser: UserModel,
+    parentModelBlockchainId: string,
+    isCommentOnComment: boolean,
+    organizationBlockchainId: string | null = null,
   ) {
     const newCommentBlockchainId = BlockchainUniqId.getUniqIdWithoutId(BLOCKCHAIN_COMMENT_PREFIX);
 

@@ -102,6 +102,16 @@ class PostsGenerator {
     return +res.body.id;
   }
 
+  public static async createMediaPostOfOrganizationAndGetModel(
+    user: UserModel,
+    orgId: number,
+    values: any = {},
+  ): Promise<PostModel> {
+    const postId: number = await this.createMediaPostOfOrganization(user, orgId, values);
+
+    return PostsRepository.findOnlyPostItselfById(postId);
+  }
+
   /**
    *
    * @param {Object} user

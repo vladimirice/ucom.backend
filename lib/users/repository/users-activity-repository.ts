@@ -64,7 +64,7 @@ class UsersActivityRepository {
     ];
 
     const sql = `
-      SELECT array_agg(activity_type_id || '__' || amount ORDER BY activity_type_id ASC), entity_id_to FROM
+      SELECT array_agg(activity_type_id || '__' || amount ORDER BY activity_type_id), entity_id_to FROM
         (
           SELECT COUNT(1) as amount, activity_type_id, entity_id_to FROM users_activity
           WHERE event_id IN (${eventIds.join(', ')})
@@ -108,7 +108,7 @@ class UsersActivityRepository {
 
     const data = await knex.raw(sql);
 
-    return data.rows.map(row => ({
+    return data.rows.map((row) => ({
       aggregates: RepositoryHelper.splitAggregates(row),
       entityId: +row[entityIdField],
     }));
@@ -290,7 +290,7 @@ class UsersActivityRepository {
 
     const data = await RepositoryHelper.getKnexRawData(sql);
 
-    return data.map(item => +item.entity_id_to);
+    return data.map((item) => +item.entity_id_to);
   }
 
   public static async findAllUpvoteUsersBlockchainNodesActivity(
@@ -471,6 +471,19 @@ class UsersActivityRepository {
       })
       .orderBy('id', 'desc')
       .limit(1)
+      .first();
+  }
+
+  public static async findLastByEventIdWithBlockchainIsSentStatusById(
+    id: number,
+  ): Promise<UsersActivityModelDto> {
+    const blockchainStatus = blockchainStatusDictionary.getStatusIsSent();
+
+    return knex(TABLE_NAME)
+      .where({
+        id,
+        blockchain_status: blockchainStatus,
+      })
       .first();
   }
 
