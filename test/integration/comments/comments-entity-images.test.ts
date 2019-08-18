@@ -12,7 +12,7 @@ import RequestHelper = require('../helpers/request-helper');
 let userVlad: UserModel;
 let userJane: UserModel;
 
-const JEST_TIMEOUT = 5000;
+const JEST_TIMEOUT = 15000;
 
 const beforeAfterOptions = {
   isGraphQl: false,

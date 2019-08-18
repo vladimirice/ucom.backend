@@ -28,6 +28,7 @@ import knex = require('../../../config/knex');
 import IrreversibleTracesClient = require('../../../lib/blockchain-traces/client/irreversible-traces-client');
 import MongoExternalModelProvider = require('../../../lib/eos/service/mongo-external-model-provider');
 import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
+import UsersRepository = require('../../../lib/users/users-repository');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -326,7 +327,7 @@ class SeedsHelper {
 
     await mongoDbConnection.deleteMany({});
 
-    const usersModel = usersRepositories.Main.getUsersModelName();
+    const usersModel = UsersRepository.getUsersModelName();
 
     // init users
     const usersSequence = this.getSequenceNameByModelName(usersModel);
@@ -398,47 +399,28 @@ class SeedsHelper {
     }
 
     // noinspection SqlResolve
-    const allSequences = await models.sequelize.query('SELECT sequence_name FROM information_schema.sequences;');
+    const allSequences = await knex.raw('SELECT sequence_name FROM information_schema.sequences;');
 
-    const resetSequencePromises: any = [];
-
-    allSequences[0].forEach((data) => {
+    const sequenceRestarts: string[] = [];
+    allSequences.rows.forEach((data) => {
       const name = data.sequence_name;
 
       if (!skipSequencesNames.includes(name)) {
         // @deprecated - sequence reset was required for seeds, not for generators
-        resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE "${name}" RESTART;`));
+        sequenceRestarts.push(`ALTER SEQUENCE "${name}" RESTART;`);
       }
     });
 
-    await Promise.all(resetSequencePromises);
+    await knex.raw(sequenceRestarts.join('; '));
+    await knex.raw(`TRUNCATE TABLE ${minorTables}`);
 
-    const minorTablesPromises: any = [];
-
-    minorTables.forEach((table) => {
-      minorTablesPromises.push(models.sequelize.query(`DELETE FROM ${table} WHERE 1=1`));
-    });
-
-    await Promise.all(minorTablesPromises);
-
-    // eslint-disable-next-line unicorn/no-for-loop
-    for (let i = 0; i < majorTables.length; i += 1) {
-      if (majorTables[i] === 'Users') {
-        await models.sequelize.query('DELETE FROM "Users" WHERE 1=1');
+    for (const table of majorTables) {
+      if (table === 'Users') {
+        await knex.raw('DELETE FROM "Users" WHERE 1=1');
       } else {
-        await models.sequelize.query(`DELETE FROM ${majorTables[i]} WHERE 1=1`);
+        await knex.raw(`DELETE FROM ${table} WHERE 1=1`);
       }
     }
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {string} tableName
-   * @returns {Promise<void>}
-   */
-  static async truncateTable(tableName) {
-    await models.sequelize.query(`TRUNCATE TABLE ${tableName};`);
   }
 
   static async initSeedsForUsers() {

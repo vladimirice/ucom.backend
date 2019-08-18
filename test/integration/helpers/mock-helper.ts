@@ -15,16 +15,13 @@ import UosAccountsPropertiesFetchService = require('../../../lib/uos-accounts-pr
 import EosApi = require('../../../lib/eos/eosApi');
 import EosPostsInputProcessor = require('../../../lib/eos/input-processor/content/eos-posts-input-processor');
 import EosTransactionService = require('../../../lib/eos/eos-transaction-service');
+import ActivityProducer = require('../../../lib/jobs/activity-producer');
+import OrganizationService = require('../../../lib/organizations/service/organization-service');
+import UserToOrganizationActivity = require('../../../lib/users/activity/user-to-organization-activity');
+import UserActivityService = require('../../../lib/users/user-activity-service');
 
 // @ts-ignore
 const uniqid = require('uniqid');
-
-const userActivityService = require('../../../lib/users/user-activity-service');
-const organizationService = require('../../../lib/organizations/service/organization-service');
-const usersToOrgActivity = require('../../../lib/users/activity/user-to-organization-activity');
-const activityProducer = require('../../../lib/jobs/activity-producer');
-
-const eosTransactionService = require('../../../lib/eos/eos-transaction-service');
 
 let orgCounter = 1;
 let postCreationCounter = 1;
@@ -479,13 +476,13 @@ class MockHelper {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
     // eslint-disable-next-line no-empty-function
-    organizationService.sendOrgCreationActivityToRabbit = async function (newUserActivity) {};
+    OrganizationService.sendOrgCreationActivityToRabbit = async function (newUserActivity) {};
   }
 
   static mockUsersActivityBackendSigner() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
-    userActivityService.getSignedFollowTransaction = async function (userFrom, userToAccountName, activityTypeId) {
+    UserActivityService.getSignedFollowTransaction = async function (userFrom, userToAccountName, activityTypeId) {
       // console.log('MOCK UserActivityService.getSignedFollowTransaction is called');
 
       return 'sample_signed_transaction';
@@ -495,7 +492,7 @@ class MockHelper {
   static mockCommentTransactionSigning() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
-    CommentsCreatorService.addTransactionDataToBody = async function (
+    CommentsCreatorService.addLegacyTransactionDataToBody = async function (
       body,
       // @ts-ignore
       currentUser,
@@ -515,7 +512,8 @@ class MockHelper {
 
   static mockSendingToQueue() {
     // noinspection JSUnusedLocalSymbols
-    activityProducer.publish = async function (
+    // @ts-ignore
+    ActivityProducer.publish = async function (
       // @ts-ignore
       message,
       // @ts-ignore
@@ -547,13 +545,13 @@ class MockHelper {
     };
 
     // noinspection JSUnusedLocalSymbols
-    eosTransactionService.appendSignedUserCreatesRepost = function (
+    EosTransactionService.appendSignedUserCreatesRepost = async function (
       body,
       // @ts-ignore
       user,
       // @ts-ignore
       parentContentBlockchainId,
-    ) {
+    ): Promise<void> {
       body.blockchain_id = 'sample_blockchain_id';
       body.signed_transaction = 'sample_signed_transaction';
     };
@@ -586,7 +584,8 @@ class MockHelper {
   }
 
   static mockOrganizationBlockchain() {
-    organizationService.addSignedTransactionsForOrganizationCreation = async function (req) {
+    // @ts-ignore
+    OrganizationService.addSignedTransactionsForOrganizationCreation = async function (req) {
       req.blockchain_id = `sample_blockchain_id_${orgCounter}`;
       req.signed_transaction = 'sample_signed_transaction';
 
@@ -596,7 +595,7 @@ class MockHelper {
 
   static mockUserVotesPost() {
     // noinspection JSUnusedLocalSymbols
-    eosTransactionService.appendSignedUserVotesContent = function (
+    EosTransactionService.appendSignedUserVotesContent = async function (
       // @ts-ignore
       user,
       body,
@@ -611,7 +610,8 @@ class MockHelper {
 
   static mockOrganizationFollowingSigning() {
     // noinspection JSUnusedLocalSymbols
-    usersToOrgActivity.addSignedTransactionsForOrganizationFollowing = async function (
+    // @ts-ignore
+    UserToOrganizationActivity.addSignedTransactionsForOrganizationFollowing = async function (
       body,
       // @ts-ignore
       currentUser,
@@ -628,17 +628,8 @@ class MockHelper {
    */
   static mockBlockchainPart() {
     // noinspection JSUnusedLocalSymbols
-    userActivityService.sendPayloadToRabbit = function (
-      // @ts-ignore
-      activity,
-      // @ts-ignore
-      scope,
-    ) {
-      // console.log('SEND TO RABBIT MOCK IS CALLED');
-    };
-
-    // noinspection JSUnusedLocalSymbols
-    userActivityService.sendPayloadToRabbit = function (
+    // @ts-ignore
+    UserActivityService.sendPayloadToRabbit = async function (
       // @ts-ignore
       activity,
       // @ts-ignore

@@ -29,7 +29,7 @@ let userVlad: UserModel;
 let userJane: UserModel;
 let userPetr: UserModel;
 
-const JEST_TIMEOUT = 10000;
+const JEST_TIMEOUT = 20000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
@@ -60,11 +60,11 @@ describe('Comments', () => {
         const post = await PostsHelper.requestToGetOnePostAsMyself(postId, userVlad);
         const { comments } = post;
 
-        const upvotedCommentOne = comments.find(comment => comment.id === commentToUpvote.id);
+        const upvotedCommentOne = comments.find((comment) => comment.id === commentToUpvote.id);
         expect(upvotedCommentOne.myselfData).toBeDefined();
         expect(upvotedCommentOne.myselfData.myselfVote).toBe('upvote');
 
-        const upvotedCommentTwo = comments.find(comment => comment.id === commentToDownvote.id);
+        const upvotedCommentTwo = comments.find((comment) => comment.id === commentToDownvote.id);
         expect(upvotedCommentTwo.myselfData).toBeDefined();
         expect(upvotedCommentTwo.myselfData.myselfVote).toBe('downvote');
 
@@ -96,7 +96,7 @@ describe('Comments', () => {
         ;
 
         ResponseHelper.expectStatusBadRequest(resTwo);
-      });
+      }, JEST_TIMEOUT);
 
       it('Not possible to upvote if downvote already', async () => {
         const postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
@@ -110,7 +110,7 @@ describe('Comments', () => {
         ;
 
         ResponseHelper.expectStatusBadRequest(resTwo);
-      });
+      }, JEST_TIMEOUT);
     });
   });
 
@@ -154,7 +154,7 @@ describe('Comments', () => {
           });
 
         CommonChecker.expectNotEmpty(indexRecord);
-      });
+      }, JEST_TIMEOUT);
 
       it('User upvotes comment of organization', async () => {
         const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);

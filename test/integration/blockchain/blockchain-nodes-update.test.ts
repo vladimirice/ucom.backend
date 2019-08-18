@@ -161,7 +161,7 @@ describe('Blockchain nodes updating', () => {
       });
     }, JEST_TIMEOUT * 2);
 
-    it('should update users activity if somebody votes', async () => {
+    it.skip('should update users activity if somebody votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
 
@@ -288,7 +288,7 @@ describe('Blockchain nodes updating', () => {
   describe('Calculators processing', () => {
     const blockchainNodesType: number = typeCalculator;
 
-    it('should create basic users activity of calculators votes', async () => {
+    it.skip('should create basic users activity of calculators votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
 
@@ -356,7 +356,7 @@ describe('Blockchain nodes updating', () => {
       });
     }, JEST_TIMEOUT * 2);
 
-    it('should update users activity if somebody votes', async () => {
+    it.skip('should update users activity if somebody votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
 

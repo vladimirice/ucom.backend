@@ -9,6 +9,7 @@ import CommonChecker = require('../../helpers/common/common-checker');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import UosAccountsModelProvider = require('../../../lib/uos-accounts-properties/service/uos-accounts-model-provider');
 import knex = require('../../../config/knex');
+import UsersRepository = require('../../../lib/users/users-repository');
 
 const request = require('supertest');
 const usersSeeds = require('../../../seeders/users/users');
@@ -402,7 +403,7 @@ class UsersHelper {
    */
   static async getUserVlad() {
     const vladSeed = UsersHelper.getUserVladSeed();
-    const vladFromDb = await usersRepository.getUserByAccountName(vladSeed.account_name);
+    const vladFromDb = await UsersRepository.getUserByAccountName(vladSeed.account_name);
     expect(vladFromDb).toBeDefined();
 
     const vladDbData = {

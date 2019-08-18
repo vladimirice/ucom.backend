@@ -31,7 +31,7 @@ MockHelper.mockAllBlockchainJobProducers();
 
 describe('Notifications create-update', () => {
   afterAll(async () => {
-    // await helpers.SeedsHelper.doAfterAll();
+    await SeedsHelper.doAfterAll();
   });
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
@@ -279,7 +279,7 @@ describe('Notifications create-update', () => {
         };
 
         CommonHelper.checkUserDownvotesCommentOfOtherUser(notification, options);
-      });
+      }, JEST_TIMEOUT);
 
       it('user UPVOTES comment of organization', async () => {
         const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
@@ -343,7 +343,8 @@ describe('Notifications create-update', () => {
         expect(notification.event_id).toBe(NotificationsEventIdDictionary.getUserCommentsOrgComment());
 
         CommonHelper.checkUserCommentsOrgCommentNotification(notification);
-      });
+      }, JEST_TIMEOUT);
+
       it('User creates comment on organization post', async () => {
         const orgAuthor = userVlad;
         const commentAuthor = userJane;
@@ -367,7 +368,7 @@ describe('Notifications create-update', () => {
         };
 
         CommonHelper.checkOneNotificationsFromList(notification, options);
-      }, 10000);
+      }, JEST_TIMEOUT);
 
       it.skip('should not create notification if user comments his own post', async () => {
       });

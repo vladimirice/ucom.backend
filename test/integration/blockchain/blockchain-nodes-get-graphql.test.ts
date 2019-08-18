@@ -307,7 +307,7 @@ describe('Blockchain nodes get - graphql', () => {
       BlockchainNodesChecker.checkThatVotesAreEmptyForOneUser(response, userRokky, typeBlockProducer);
     }, JEST_TIMEOUT * 2);
 
-    it('Vote for both block producers and calculators via mock and receive result', async () => {
+    it.skip('Vote for both block producers and calculators via mock and receive result', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
 
@@ -358,7 +358,7 @@ describe('Blockchain nodes get - graphql', () => {
 
       BlockchainNodesChecker.checkVotesForOneUser(responseAfterCancel, userPetr, mockingResponse, typeCalculator);
       BlockchainNodesChecker.checkVotesForOneUser(responseAfterCancel, userRokky, mockingResponse, typeCalculator);
-    }, JEST_TIMEOUT * 3);
+    }, JEST_TIMEOUT);
   });
 });
 

@@ -17,6 +17,7 @@ class IrreversibleTracesClient {
         useNewUrlParser: true,
         connectTimeoutMS: MONGO_CONNECTION_TIMEOUT,
         socketTimeoutMS:  MONGO_CONNECTION_TIMEOUT,
+        useUnifiedTopology: true,
       });
       await client.connect();
     }
