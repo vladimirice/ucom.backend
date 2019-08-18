@@ -6,9 +6,9 @@ This file is for frontend team only
 
 Add as much data to the post/comment content - as possible. Examples contain only sample minimum data.
 
-[Send direct posts transaction](../../test/integration/posts/direct-posts/posts-direct-create-update-transactions.test.ts)
-[Send reposts transaction - creation only](../../test/integration/posts/post-repost/posts-reposts-create-transactions.test.ts)
-[Send comments and replies](../../test/integration/comments/comments-create-update-transactions.test.ts)
+* [Send direct posts transaction](../../test/integration/posts/direct-posts/posts-direct-create-update-transactions.test.ts)
+* [Send reposts transaction - creation only](../../test/integration/posts/post-repost/posts-reposts-create-transactions.test.ts)
+* [Send comments and replies](../../test/integration/comments/comments-create-update-transactions.test.ts)
 
 ## Follow/Unfollow - new transactions
 [User to user](../../test/integration/users/activity/follow/users-activity-follow-transactions.test.ts)
