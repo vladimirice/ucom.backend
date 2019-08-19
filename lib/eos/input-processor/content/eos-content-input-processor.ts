@@ -2,6 +2,10 @@ import { IRequestBody } from '../../../common/interfaces/common-types';
 import { BadRequestError } from '../../../api/errors';
 
 class EosContentInputProcessor {
+  public static getSignedTransactionOrNull(body): string | null {
+    return body.signed_transaction || null;
+  }
+
   public static getSignedTransactionFromBody(
     body: IRequestBody,
   ): { signed_transaction: string, blockchain_id: string } | null {

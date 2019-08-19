@@ -80,7 +80,7 @@ describe('Organizations. Create-update requests', () => {
         expect(sources.length).toBe(socialNetworks.length);
 
         for (const expected of socialNetworks) {
-          const actual = sources.find(data => data.source_url === expected.source_url);
+          const actual = sources.find((data) => data.source_url === expected.source_url);
 
           expect(actual.source_type_id).toBe(expected.source_type_id);
           expect(actual.source_group_id).toBe(1);
@@ -305,7 +305,7 @@ describe('Organizations. Create-update requests', () => {
         expect(usersTeam.length).toBe(2);
 
         newPostUsersTeamFields.forEach((teamMember) => {
-          const record = usersTeam.find(data => data.user_id === teamMember.user_id);
+          const record = usersTeam.find((data) => data.user_id === teamMember.user_id);
           expect(record).toBeDefined();
           expect(+record.entity_id).toBe(+lastModel.id);
           expect(record.entity_name).toMatch('org');
@@ -313,7 +313,7 @@ describe('Organizations. Create-update requests', () => {
         });
 
         // should not add author to the board - ignore it
-        expect(usersTeam.some(data => data.user_id === author.id)).toBeFalsy();
+        expect(usersTeam.some((data) => data.user_id === author.id)).toBeFalsy();
       });
     });
 
@@ -340,11 +340,11 @@ describe('Organizations. Create-update requests', () => {
 
         expect(errors).toBeDefined();
 
-        const titleError = errors.find(error => error.field === 'title');
+        const titleError = errors.find((error) => error.field === 'title');
         expect(titleError).toBeDefined();
         expect(titleError.message).toMatch('required');
 
-        const nicknameError = errors.find(error => error.field === 'nickname');
+        const nicknameError = errors.find((error) => error.field === 'nickname');
         expect(nicknameError).toBeDefined();
         expect(nicknameError.message).toMatch('required');
       });
@@ -363,8 +363,8 @@ describe('Organizations. Create-update requests', () => {
 
         const { errors } = res.body;
 
-        expect(errors.some(data => data.field === 'email')).toBeTruthy();
-        expect(errors.some(data => data.field === 'personal_website_url')).toBeTruthy();
+        expect(errors.some((data) => data.field === 'email')).toBeTruthy();
+        expect(errors.some((data) => data.field === 'personal_website_url')).toBeTruthy();
       });
 
       it('should not be possible to set organization ID or user_id directly', async () => {
@@ -406,8 +406,8 @@ describe('Organizations. Create-update requests', () => {
         expect(errors).toBeDefined();
         expect(errors.length).toBe(2);
 
-        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
-        expect(errors.some(error => error.field === 'email')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'nickname')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'email')).toBeTruthy();
 
         const oneFieldRes = await request(server)
           .post(RequestHelper.getOrganizationsUrl())
@@ -423,8 +423,8 @@ describe('Organizations. Create-update requests', () => {
         expect(oneFieldErrors).toBeDefined();
         expect(oneFieldErrors.length).toBe(1);
 
-        expect(oneFieldErrors.some(error => error.field === 'nickname')).toBeTruthy();
-        expect(oneFieldErrors.some(error => error.field === 'email')).toBeFalsy();
+        expect(oneFieldErrors.some((error) => error.field === 'nickname')).toBeTruthy();
+        expect(oneFieldErrors.some((error) => error.field === 'email')).toBeFalsy();
       }, JEST_TIMEOUT * 3);
     });
   });
@@ -498,9 +498,9 @@ describe('Organizations. Create-update requests', () => {
 
         expect(socialNetworksAfter.length).toBe(sources.length);
 
-        expect(socialNetworksAfter.some(source => source.id === sourceToDelete.id)).toBeFalsy();
+        expect(socialNetworksAfter.some((source) => source.id === sourceToDelete.id)).toBeFalsy();
 
-        const modifiedSource = socialNetworksAfter.find(source => source.id === sourceToModify.id);
+        const modifiedSource = socialNetworksAfter.find((source) => source.id === sourceToModify.id);
         expect(modifiedSource).toBeDefined();
 
         // sourceToModify.source_url = faker.internet.url();
@@ -532,7 +532,7 @@ describe('Organizations. Create-update requests', () => {
         const orgId = await OrganizationsGenerator.createOrgWithTeam(user, [userPetr]);
         const orgBefore = await OrganizationsRepository.findOneById(orgId, 0);
 
-        const userPetrBefore = orgBefore.users_team.find(data => data.user_id === userPetr.id);
+        const userPetrBefore = orgBefore.users_team.find((data) => data.user_id === userPetr.id);
 
         const avatarFilenameBefore = orgBefore.avatar_filename;
 
@@ -572,14 +572,14 @@ describe('Organizations. Create-update requests', () => {
         const usersTeam = orgAfter.users_team;
         expect(usersTeam).toBeDefined();
 
-        expect(usersTeam.some(data => data.user_id === userJane.id)).toBeFalsy();
-        expect(usersTeam.some(data => data.user_id === userRokky.id)).toBeTruthy();
+        expect(usersTeam.some((data) => data.user_id === userJane.id)).toBeFalsy();
+        expect(usersTeam.some((data) => data.user_id === userRokky.id)).toBeTruthy();
 
-        const userPetrAfter = usersTeam.find(data => data.user_id === userPetr.id);
+        const userPetrAfter = usersTeam.find((data) => data.user_id === userPetr.id);
 
         expect(userPetrAfter).toMatchObject(userPetrBefore);
 
-        expect(usersTeam.some(data => data.user_id === userVlad.id)).toBeFalsy();
+        expect(usersTeam.some((data) => data.user_id === userVlad.id)).toBeFalsy();
       });
 
       it.skip('should be possible to remove all board by clearing it', async () => {
@@ -785,8 +785,8 @@ describe('Organizations. Create-update requests', () => {
         expect(errors.length).toBe(2);
 
         expect(errors).toBeDefined();
-        expect(errors.some(error => error.field === 'email')).toBeTruthy();
-        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'email')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'nickname')).toBeTruthy();
       }, JEST_TIMEOUT * 3);
 
       // tslint:disable-next-line:max-line-length
@@ -818,8 +818,8 @@ describe('Organizations. Create-update requests', () => {
         expect(errors.length).toBe(1);
 
         expect(errors).toBeDefined();
-        expect(errors.some(error => error.field === 'email')).toBeFalsy();
-        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'email')).toBeFalsy();
+        expect(errors.some((error) => error.field === 'nickname')).toBeTruthy();
       }, JEST_TIMEOUT * 3);
 
       it('should not be possible to update org without auth token', async () => {

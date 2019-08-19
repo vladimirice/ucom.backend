@@ -131,7 +131,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
 
     const data = await db.query(sql, { type: db.QueryTypes.SELECT });
 
-    return data.map(row => row.user_id);
+    return data.map((row) => row.user_id);
   }
 
   /**
@@ -333,7 +333,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
    * @return {Promise<Object>}
    */
   static async findOnlyItselfById(id) {
-    return orgModelProvider.getModel().findOne({
+    return OrganizationsModelProvider.getModel().findOne({
       where: { id },
       raw: true,
     });

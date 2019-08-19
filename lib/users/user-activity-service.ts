@@ -19,6 +19,7 @@ import PostsModelProvider = require('../posts/service/posts-model-provider');
 import CommentsModelProvider = require('../comments/service/comments-model-provider');
 
 import EosTransactionService = require('../eos/eos-transaction-service');
+import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
@@ -101,25 +102,42 @@ class UserActivityService {
     return usersActivityRepository.bulkCreateNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} newOrganizationId
-   * @param {Object} transaction
-   * @return {Promise<Object>}
-   */
-  static async processNewOrganization(signedTransaction, currentUserId, newOrganizationId, transaction) {
+  public static async processNewOrganization(
+    signedTransaction: string,
+    currentUserId: number,
+    newOrganizationId: string,
+    transaction,
+  ) {
     const data = {
       activity_type_id:   ContentTypeDictionary.getTypeOrganization(),
-      activity_group_id:  activityGroupDictionary.getGroupContentCreation(),
+      activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
       user_id_from:       currentUserId,
       entity_id_to:       newOrganizationId,
-      entity_name:        orgModelProvider.getEntityName(),
+      entity_name:        OrganizationsModelProvider.getEntityName(),
       signed_transaction: signedTransaction,
+      event_id:           EventsIds.userCreatesOrganization(),
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
+  }
+
+  public static async processOrganizationUpdating(
+    signedTransaction: string,
+    currentUserId: number,
+    newOrganizationId: number,
+    transaction,
+  ) {
+    const data = {
+      activity_type_id:   ContentTypeDictionary.getTypeOrganization(),
+      activity_group_id:  ActivityGroupDictionary.getGroupContentUpdating(),
+      user_id_from:       currentUserId,
+      entity_id_to:       newOrganizationId,
+      entity_name:        OrganizationsModelProvider.getEntityName(),
+      signed_transaction: signedTransaction,
+      event_id:           EventsIds.userUpdatesOrganization(),
+    };
+
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -650,6 +668,13 @@ class UserActivityService {
     await activityProducer.publishWithUserActivity(jsonPayload);
   }
 
+  public static async sendPayloadToRabbitWithEosVersion(activity: IActivityModel, signedTransaction: string) {
+    const options: IActivityOptions =
+      EosTransactionService.getEosVersionBasedOnSignedTransaction(signedTransaction);
+
+    this.sendPayloadToRabbitWithOptions(activity, options);
+  }
+
   public static async sendPayloadToRabbitEosV2(activity: IActivityModel): Promise<void> {
     const jsonPayload: string =
       userActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
@@ -663,14 +688,17 @@ class UserActivityService {
     await activityProducer.publishWithContentCreation(jsonPayload);
   }
 
-  public static async sendContentCreationPayloadToRabbitWithOptions(
-    activity: IActivityModel,
-    options: IActivityOptions,
-  ): Promise<void> {
-    const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
 
-    await activityProducer.publishWithContentCreation(jsonPayload);
+  public static async sendContentCreationPayloadToRabbitWithEosVersion(
+    activity: IActivityModel,
+    signedTransactions: string,
+  ): Promise<void> {
+    const options: IActivityOptions =
+      EosTransactionService.getEosVersionBasedOnSignedTransaction(signedTransactions);
+
+    this.sendContentCreationPayloadToRabbitWithOptions(activity, options);
   }
+
 
   public static async sendPayloadToRabbitWithOptions(
     activity: IActivityModel,
@@ -686,6 +714,15 @@ class UserActivityService {
     options: IActivityOptions,
   ): Promise<void> {
     const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await activityProducer.publishWithContentUpdating(jsonPayload);
+  }
+
+  public static async sendContentUpdatingPayloadToRabbitEosV2(
+    activity: IActivityModel,
+  ): Promise<void> {
+    const jsonPayload: string =
+      userActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
 
     await activityProducer.publishWithContentUpdating(jsonPayload);
   }
@@ -776,6 +813,15 @@ class UserActivityService {
     }
 
     throw new AppError(`Unsupported eventId: ${eventId}`);
+  }
+
+  private static async sendContentCreationPayloadToRabbitWithOptions(
+    activity: IActivityModel,
+    options: IActivityOptions,
+  ): Promise<void> {
+    const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await activityProducer.publishWithContentCreation(jsonPayload);
   }
 }
 

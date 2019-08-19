@@ -8,6 +8,7 @@ import EosContentInputProcessor = require('./eos-content-input-processor');
 import EosTransactionService = require('../../eos-transaction-service');
 import UsersRepository = require('../../../users/users-repository');
 import OrganizationsRepository = require('../../../organizations/repository/organizations-repository');
+import UserActivityService = require('../../../users/user-activity-service');
 
 const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
@@ -116,7 +117,20 @@ class EosPostsInputProcessor {
     }
   }
 
-  private static addSignedTransactionDetailsFromRequest(body: IRequestBody): boolean {
+  public static async addSignedTransactionsForOrganizationCreation(currentUser: UserModel, body: any): Promise<void> {
+    const added = this.addSignedTransactionDetailsFromRequest(body);
+
+    if (added) {
+      return;
+    }
+
+    const blockchainId = BlockchainUniqId.getUniqIdWithoutId('org');
+
+    body.blockchain_id = blockchainId;
+    body.signed_transaction = await UserActivityService.createAndSignOrganizationCreationTransaction(currentUser, blockchainId);
+  }
+
+  public static addSignedTransactionDetailsFromRequest(body: IRequestBody): boolean {
     const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
 
     if (transactionDetails === null) {

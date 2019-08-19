@@ -159,6 +159,13 @@ class RequestHelper {
     return req;
   }
 
+  public static getRequestObjForPatchWithFields(url: string, myself: UserModel, fields: any): SuperAgentRequest {
+    const req = this.getRequestObjForPatch(url, myself);
+    this.addFormFieldsToRequestWithStringify(req, fields);
+
+    return req;
+  }
+
   public static getGetRequestAsMyself(url: string, myself: UserModel): IResponseBody {
     const req = this.getRequestObjForGet(url);
 

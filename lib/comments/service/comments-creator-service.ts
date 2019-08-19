@@ -3,7 +3,6 @@ import { CommentModel, CommentModelInput } from '../interfaces/model-interfaces'
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { IRequestBody } from '../../common/interfaces/common-types';
 import { PostModel } from '../../posts/interfaces/model-interfaces';
-import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
 
 import PostsRepository = require('../../posts/posts-repository');
 import CommentsRepository = require('../comments-repository');
@@ -17,7 +16,6 @@ import OrganizationsModelProvider = require('../../organizations/service/organiz
 import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 import CommentsInputProcessor = require('../validators/comments-input-processor');
-import EosTransactionService = require('../../eos/eos-transaction-service');
 import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
 
 const _ = require('lodash');
@@ -133,9 +131,7 @@ export class CommentsCreatorService {
         };
       });
 
-    const options: IActivityOptions =
-      EosTransactionService.getEosVersionBasedOnSignedTransaction(body.signed_transaction);
-    await UserActivityService.sendContentCreationPayloadToRabbitWithOptions(newActivity, options);
+    await UserActivityService.sendContentCreationPayloadToRabbitWithEosVersion(newActivity, body.signed_transaction);
 
     return newModel;
   }

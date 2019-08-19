@@ -82,6 +82,18 @@ const fieldsSet: IModelFieldsSet = {
       sanitizationType: 'any',
     },
   },
+  blockchain_id: {
+    type: 'text',
+    request: {
+      sanitizationType: 'text',
+    },
+  },
+  signed_transaction: {
+    type: 'text',
+    request: {
+      sanitizationType: 'text',
+    },
+  },
 
   // not editable by user request
   id: {
@@ -89,9 +101,6 @@ const fieldsSet: IModelFieldsSet = {
   },
   user_id: {
     type: 'number',
-  },
-  blockchain_id: {
-    type: 'string',
   },
   current_rate: {
     type: 'number',

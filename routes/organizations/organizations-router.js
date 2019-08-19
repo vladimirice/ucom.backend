@@ -9,6 +9,8 @@ const ActivityApiMiddleware = require("../../lib/activity/middleware/activity-ap
 const PostService = require("../../lib/posts/post-service");
 const OrganizationService = require("../../lib/organizations/service/organization-service");
 const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
+const OrganizationsCreatorService = require("../../lib/organizations/service/organizations-creator-service");
+const OrganizationsUpdatingService = require("../../lib/organizations/service/organizations-updating-service");
 const express = require('express');
 const status = require('statuses');
 require('express-async-errors');
@@ -49,7 +51,7 @@ orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], a
 /* Create new organization */
 orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const model = await OrganizationService.processNewOrganizationCreation(req, currentUser);
+    const model = await OrganizationsCreatorService.processNewOrganizationCreation(req, currentUser);
     return res.status(201).send({
         id: model.id,
     });
@@ -81,7 +83,7 @@ orgRouter.delete('/:organization_id/discussions', [authTokenMiddleWare, cpUpload
 /* Update organization */
 orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    await OrganizationService.updateOrganization(req, currentUser);
+    await OrganizationsUpdatingService.updateOrganization(req, currentUser);
     return res.status(200).send({
         status: 'ok',
     });

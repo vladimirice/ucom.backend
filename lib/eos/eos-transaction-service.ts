@@ -1,6 +1,7 @@
 import { IActivityOptions } from './interfaces/activity-interfaces';
 import { UserModel } from '../users/interfaces/model-interfaces';
 import { IRequestBody } from '../common/interfaces/common-types';
+import { AppError } from '../api/errors';
 
 const { TransactionFactory } = require('ucom-libs-social-transactions');
 const eosBlockchainUniqid = require('../eos/eos-blockchain-uniqid');
@@ -25,6 +26,10 @@ class EosTransactionService {
   }
 
   public static getEosVersionBasedOnSignedTransaction(signedTransaction: string): IActivityOptions {
+    if (!signedTransaction) {
+      throw new AppError('Signed transaction must be determined');
+    }
+
     return {
       eosJsV2: signedTransaction.includes('serializedTransaction'),
     };

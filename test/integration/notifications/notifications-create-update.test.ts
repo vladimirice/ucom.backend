@@ -478,7 +478,7 @@ describe('Notifications create-update', () => {
 
           const newTeamMembers: any[] = Array.prototype.concat(teamMembers, userRokky);
 
-          await OrganizationsGenerator.updateOrgUsersTeam(newOrgId, author, newTeamMembers);
+          await OrganizationsGenerator.updateOrganization(newOrgId, author, newTeamMembers);
 
           const notification = await NotificationsHelper.requestToGetOnlyOneNotification(userRokky);
 
@@ -524,7 +524,7 @@ describe('Notifications create-update', () => {
 
           const usersTeam = org.users_team;
 
-          const userJaneMember = usersTeam.find(data => data.id === userJane.id);
+          const userJaneMember = usersTeam.find((data) => data.id === userJane.id);
           expect(userJaneMember.users_team_status)
             .toBe(UsersTeamStatusDictionary.getStatusConfirmed());
         }, 10000);
@@ -564,7 +564,7 @@ describe('Notifications create-update', () => {
             newOrgId,
           );
 
-          const userPetrMember = usersTeam.find(data => data.user_id === userPetr.id);
+          const userPetrMember = usersTeam.find((data) => data.user_id === userPetr.id);
           expect(userPetrMember.status).toBe(UsersTeamStatusDictionary.getStatusDeclined());
         });
 

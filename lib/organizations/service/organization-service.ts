@@ -1,231 +1,16 @@
-/* eslint-disable max-len */
-/* tslint:disable:max-line-length */
 import { UserModel } from '../../users/interfaces/model-interfaces';
 
-import OrgsCurrentParamsRepository = require('../repository/organizations-current-params-repository');
 import OrganizationsFetchDiscussions = require('../discussions/service/organizations-fetch-discussions');
-import OrganizationsInputProcessor = require('../validator/organizations-input-processor');
 import OrganizationsRepository = require('../repository/organizations-repository');
-import UsersTeamService = require('../../users/users-team-service');
-import UserActivityService = require('../../users/user-activity-service');
 import EntitySourceService = require('../../entities/service/entity-sources-service');
-import DiServiceLocator = require('../../api/services/di-service-locator');
-import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
-
-const status  = require('statuses');
-const _       = require('lodash');
-const joi     = require('joi');
+import OrganizationsModelProvider = require('./organizations-model-provider');
+import UsersActivityRepository = require('../../users/repository/users-activity-repository');
+import ActivityGroupDictionary = require('../../activity/activity-group-dictionary');
+import ApiPostProcessor = require('../../common/service/api-post-processor');
 
 const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
-const usersActivity = require('../../users/user-activity-service');
-
-const organizationsRepositories = require('../repository');
-const models = require('../../../models');
-const { AppError, BadRequestError, HttpForbiddenError } = require('../../../lib/api/errors');
-
-const db = models.sequelize;
-
-const { CreateOrUpdateOrganizationSchema } =
-  require('../validator/organization-create-update-schema');
-const authValidator = require('../../auth/validators');
-
-
-const eosBlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
-const usersTeamService = require('../../users/users-team-service');
-const entitySourceService = require('../../entities/service').Sources;
-const organizationsModelProvider = require('./organizations-model-provider');
-const usersActivityRepository = require('../../users/repository').Activity;
-const activityGroupDictionary = require('../../activity/activity-group-dictionary');
-
-const apiPostProcessor = require('../../common/service').PostProcessor;
-
 class OrganizationService {
-  /**
-   *
-   * @return {string}
-   */
-  static getEntityName() {
-    return organizationsModelProvider.getEntityName();
-  }
-
-  public static async processNewOrganizationCreation(req, currentUser: UserModel) {
-    OrganizationsInputProcessor.process(req.body);
-    EntityImageInputService.processEntityImageOrMakeItEmpty(req.body);
-
-    await OrganizationService.addSignedTransactionsForOrganizationCreation(req);
-
-    const body = await this.processUserRequest(req, currentUser);
-    body.blockchain_id = req.blockchain_id;
-
-    const { newOrganization, newUserActivity, boardInvitationActivity } = await db
-      .transaction(async (transaction) => {
-        const newModel =
-          await OrganizationsRepository.createNewOrganization(body, transaction);
-
-        const usersTeam = await UsersTeamService.processNewModelWithTeam(
-          newModel.id,
-          OrganizationService.getEntityName(),
-          body,
-          currentUser.id,
-          transaction,
-        );
-
-        const usersTeamIds = UsersTeamService.getUsersTeamIds(usersTeam);
-
-        // eslint-disable-next-line no-shadow
-        const newUserActivity = await UserActivityService.processNewOrganization(
-          req.signed_transaction,
-          currentUser.id,
-          newModel.id,
-          transaction,
-        );
-
-        // eslint-disable-next-line no-shadow
-        const boardInvitationActivity: any = [];
-        for (const element of usersTeamIds) {
-          const res = await usersActivity.processUsersBoardInvitation(
-            currentUser.id,
-            element,
-            newModel.id,
-            transaction,
-          );
-
-          boardInvitationActivity.push(res);
-        }
-
-        const entityName = organizationsModelProvider.getEntityName();
-        await EntitySourceService.processCreationRequest(
-          newModel.id,
-          entityName,
-          body,
-          transaction,
-        );
-
-        // noinspection JSUnusedGlobalSymbols
-        return {
-          newUserActivity,
-          boardInvitationActivity,
-          newOrganization: newModel,
-        };
-      });
-
-    // #task - create new entity via knex only and provide related transaction
-    // #task use Promise.all when possible
-    await OrgsCurrentParamsRepository.insertRowForNewEntity(newOrganization.id);
-    await OrganizationService.sendOrgCreationActivityToRabbit(newUserActivity);
-    await OrganizationService.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
-
-    return newOrganization;
-  }
-
-  /**
-   *
-   * @param {Object} newUserActivity
-   * @return {Promise<void>}
-   * @private
-   */
-  private static async sendOrgCreationActivityToRabbit(newUserActivity) {
-    await usersActivity.sendPayloadToRabbit(newUserActivity);
-  }
-
-  /**
-   *
-   * @param {Object[]} boardInvitationActivity
-   * @return {Promise<void>}
-   * @private
-   */
-  private static async sendOrgTeamInvitationsToRabbit(boardInvitationActivity) {
-    for (const element of boardInvitationActivity) {
-      await usersActivity.sendPayloadToRabbit(element);
-    }
-  }
-
-  public static async updateOrganization(req, currentUser: UserModel) {
-    OrganizationsInputProcessor.process(req.body);
-    EntityImageInputService.processEntityImageOrMakeItEmpty(req.body);
-
-    if (_.isEmpty(req.body) && _.isEmpty(req.files)) {
-      throw new BadRequestError({
-        general: 'Updating by empty body and empty file uploading is not allowed',
-      });
-    }
-
-    const orgId = req.organization_id;
-    const userId = currentUser.id;
-
-    await OrganizationService.checkUpdatePermissions(orgId, userId);
-    const body = await this.processUserRequest(req, currentUser);
-
-    const { updatedModel, boardInvitationActivity } = await db
-      .transaction(async (transaction) => {
-        const [updatedCount, updatedModels] = await organizationsRepositories.Main.getOrganizationModel().update(body, {
-          transaction,
-          where: {
-            id: orgId,
-            user_id: userId,
-          },
-          returning: true,
-          raw: true,
-        });
-
-        const deltaData = await usersTeamService.processUsersTeamUpdating(
-          orgId,
-          organizationsModelProvider.getEntityName(),
-          body,
-          currentUser.id,
-          transaction,
-        );
-
-        if (updatedCount !== 1) {
-          throw new AppError(`No success to update organization with ID ${orgId} and author ID ${userId}`, status('not found'));
-        }
-
-        await entitySourceService.processSourcesUpdating(
-          orgId,
-          organizationsModelProvider.getEntityName(),
-          body,
-          transaction,
-        );
-
-        // eslint-disable-next-line no-shadow
-        let boardInvitationActivity = [];
-        if (deltaData) {
-          boardInvitationActivity = await this.processUsersTeamInvitations(deltaData.added, orgId, transaction, currentUser);
-        }
-
-        return {
-          boardInvitationActivity,
-          updatedModel: updatedModels[0],
-        };
-      });
-
-    await OrganizationService.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
-
-    return updatedModel;
-  }
-
-  private static async processUsersTeamInvitations(usersToAddFromRequest, orgId, transaction, currentUser: UserModel) {
-    if (!usersToAddFromRequest || _.isEmpty(usersToAddFromRequest)) {
-      return [];
-    }
-
-    const usersTeamIds = usersTeamService.getUsersTeamIds(usersToAddFromRequest);
-    const boardInvitationActivity: any = [];
-    for (const element of usersTeamIds) {
-      const res = await usersActivity.processUsersBoardInvitation(
-        currentUser.id,
-        element,
-        orgId,
-        transaction,
-      );
-
-      boardInvitationActivity.push(res);
-    }
-
-    return boardInvitationActivity;
-  }
-
   public static async findOneOrgByIdAndProcess(modelId: number, currentUser: UserModel | null) {
     const where = {
       id: modelId,
@@ -238,21 +23,21 @@ class OrganizationService {
 
     const model = await OrganizationsRepository.findOneBy(where, modelsToInclude);
 
-    const entitySources = await entitySourceService.findAndGroupAllEntityRelatedSources(
+    const entitySources = await EntitySourceService.findAndGroupAllEntityRelatedSources(
       modelId,
-      organizationsModelProvider.getEntityName(),
+      OrganizationsModelProvider.getEntityName(),
     );
 
-    const activityData = await usersActivityRepository.findEntityRelatedActivityWithInvolvedUsersData(
+    const activityData = await UsersActivityRepository.findEntityRelatedActivityWithInvolvedUsersData(
       modelId,
-      organizationsModelProvider.getEntityName(),
+      OrganizationsModelProvider.getEntityName(),
       InteractionTypeDictionary.getFollowId(),
-      activityGroupDictionary.getGroupContentInteraction(),
+      ActivityGroupDictionary.getGroupContentInteraction(),
     );
 
     const currentUserId = currentUser ? currentUser.id : null;
 
-    apiPostProcessor.processOneOrgFully(model, currentUserId, activityData);
+    ApiPostProcessor.processOneOrgFully(model, currentUserId, activityData);
 
     // #refactor. Add to the model inside EntitySourceService
     model.social_networks      = entitySources.social_networks;
@@ -266,183 +51,6 @@ class OrganizationService {
       data: model,
       metadata: [],
     };
-  }
-
-  /**
-   *
-   * @param {Object} req
-   * @private
-   * @return {Object}
-   */
-  private static getRequestBodyWithFilenames(req) {
-    const { body } = req;
-    // Lets change file
-    const { files } = req;
-
-    OrganizationService.parseSourceFiles(files);
-
-    // // noinspection OverlyComplexBooleanExpressionJS
-    // if (files && files.avatar_filename && files.avatar_filename[0] && files.avatar_filename[0].filename) {
-    //   body.avatar_filename = files.avatar_filename[0].filename;
-    // } else if (body.avatar_filename) {
-    //   delete body.avatar_filename;
-    // }
-
-    files.forEach((file) => {
-      if (file.fieldname !== 'avatar_filename') {
-        OrganizationService.addSourceAvatarFilenameToBody(file, body);
-      } else {
-        body.avatar_filename = file.filename;
-        body.avatar_filename_from_file = true;
-      }
-    });
-
-    if (body.avatar_filename_from_file !== true) {
-      delete body.avatar_filename;
-    }
-
-    return body;
-  }
-
-  private static addSourceAvatarFilenameToBody(file, body) {
-    const bodySources = body[file.modelSourceKey];
-    if (!bodySources) {
-      return;
-    }
-
-    const bodySource = bodySources[file.modelSourcePosition];
-    if (!bodySource) {
-      return;
-    }
-
-    bodySource.avatar_filename = file.filename;
-    bodySource.avatar_filename_from_file = true; // in order to avoid avatar filename changing by only name - without file
-  }
-
-  private static parseSourceFiles(files) {
-    files.forEach((file) => {
-      if (file.fieldname !== 'avatar_filename') {
-        const sourceKey = file.filename.substr(0, file.filename.indexOf('-'));
-        const sourcePosition = +file.filename.substring(
-          OrganizationService.getPosition(file.filename, '-', 1) + 1,
-          OrganizationService.getPosition(file.filename, '-', 2),
-        );
-
-        file.modelSourceKey = sourceKey;
-        file.modelSourcePosition = sourcePosition;
-      }
-    });
-  }
-
-  private static getPosition(string, subString, index) {
-    return string.split(subString, index).join(subString).length;
-  }
-
-  private static async processUserRequest(req, currentUser: UserModel) {
-    const body = OrganizationService.getRequestBodyWithFilenames(req);
-
-    const { error, value } = joi.validate(body, CreateOrUpdateOrganizationSchema, {
-      allowUnknown: true,
-      abortEarly: false,
-      stripUnknown: true,
-    });
-
-    if (error) {
-      throw new BadRequestError(
-        authValidator.formatErrorMessages(error.details),
-      );
-    }
-
-    OrganizationService.makeEmptyStringUniqueFieldsNull(value);
-
-    await OrganizationService.checkUniqueFields(value, req.organization_id);
-
-    value.user_id = currentUser.id;
-
-    return value;
-  }
-
-  /**
-   *
-   * @param   {Object} values
-   * @param   {number|null} organizationId
-   * @return  {Promise<void>}
-   * @private
-   */
-  private static async checkUniqueFields(values, organizationId = null) {
-    const uniqueFields = organizationsRepositories.Main.getOrganizationModel().getUniqueFields();
-
-    const toFind = {};
-
-    uniqueFields.forEach((field) => {
-      if (values[field]) {
-        toFind[field] = values[field];
-      }
-    });
-
-    const existed = await organizationsRepositories.Main.findWithUniqueFields(toFind);
-
-    const errors: any = [];
-    for (const current of existed) {
-      if (organizationId && current.id === organizationId) {
-        // this is model itself
-        continue;
-      }
-
-      uniqueFields.forEach((field) => {
-        if (current[field] === toFind[field]) {
-          errors.push({
-            field,
-            message: 'This value is already occupied. You should try another one.',
-          });
-        }
-      });
-    }
-
-    if (errors.length > 0) {
-      throw new BadRequestError(errors);
-    }
-  }
-
-  /**
-   *
-   * @param {Object} body
-   * @private
-   */
-  private static makeEmptyStringUniqueFieldsNull(body) {
-    const uniqueFields = organizationsRepositories.Main.getOrganizationModel().getUniqueFields();
-
-    uniqueFields.forEach((field) => {
-      if (body[field] === '') {
-        body[field] = null;
-      }
-    });
-  }
-
-  /**
-   *
-   * @param {number} orgId
-   * @param {number} userId
-   */
-  private static async checkUpdatePermissions(orgId, userId) {
-    const doesExist = await organizationsRepositories.Main.doesExistWithUserId(orgId, userId);
-
-    if (!doesExist) {
-      throw new HttpForbiddenError(`It is not allowed for user with ID ${userId} to update organization with ID: ${orgId}`);
-    }
-  }
-
-  /**
-   * Remove this after signing transactions on frontend
-   * @param {Object} req
-   * @return {Promise<void>}
-   * @private
-   */
-  private static async addSignedTransactionsForOrganizationCreation(req) {
-    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-
-    req.blockchain_id = eosBlockchainUniqId.getUniqIdWithoutId('org');
-    req.signed_transaction = await usersActivity.createAndSignOrganizationCreationTransaction(currentUser, req.blockchain_id);
   }
 }
 

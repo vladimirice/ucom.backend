@@ -439,11 +439,11 @@ class OrganizationsHelper {
   }
 
   static async checkSourcesAfterUpdating(sourceAfter, sourceSet) {
-    expect(sourceAfter.some(data => data.id === sourceSet.internal.to_delete.id)).toBeFalsy();
-    expect(sourceAfter.some(data => data.id === sourceSet.external.to_delete.id)).toBeFalsy();
+    expect(sourceAfter.some((data) => data.id === sourceSet.internal.to_delete.id)).toBeFalsy();
+    expect(sourceAfter.some((data) => data.id === sourceSet.external.to_delete.id)).toBeFalsy();
 
     sourceSet.internal.to_check.forEach((source) => {
-      const existed = sourceAfter.find(data => data.id === source.id);
+      const existed = sourceAfter.find((data) => data.id === source.id);
       expect(existed).toBeDefined();
 
       expect(existed).toEqual(source);
@@ -451,7 +451,7 @@ class OrganizationsHelper {
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     sourceSet.external.to_check.forEach((source) => {
-      const existed = sourceAfter.find(data => data.id === source.id);
+      const existed = sourceAfter.find((data) => data.id === source.id);
       expect(existed).toBeDefined();
 
       expect(existed).toEqual(source);
@@ -459,12 +459,12 @@ class OrganizationsHelper {
 
     // adding
     const expectedAdded = sourceSet.internal.to_add;
-    const actualAdded = sourceAfter.find(data => +data.entity_id === +expectedAdded.entity_id);
+    const actualAdded = sourceAfter.find((data) => +data.entity_id === +expectedAdded.entity_id);
     expect(actualAdded).toBeDefined();
     expect(actualAdded).toMatchObject(expectedAdded);
 
     const expectedAddedExternal = sourceSet.external.to_add;
-    const actualAddedExternal = sourceAfter.find(data => data.source_url === expectedAddedExternal.source_url && data.source_type === 'external');
+    const actualAddedExternal = sourceAfter.find((data) => data.source_url === expectedAddedExternal.source_url && data.source_type === 'external');
     expect(actualAddedExternal).toBeDefined();
 
     await FileToUploadHelper.isFileUploaded(actualAddedExternal.avatar_filename);
@@ -811,13 +811,8 @@ class OrganizationsHelper {
   }
 
   /**
-   *
-   * @param {number} orgId
-   * @param {Object} user
-   * @param {Object} newModelFields
-   * @param {Object[]} usersTeam
-   * @return {Promise<Object>}
-   *
+   * @deprecated
+   * @see OrganizationsGenerator.updateOrganization()
    */
   static async requestToUpdateOrganization(orgId, user, newModelFields, usersTeam) {
     const res = await request(server)
@@ -1010,6 +1005,10 @@ class OrganizationsHelper {
     }
   }
 
+  /**
+   * @deprecated
+   * @see OrganizationsGenerator.updateOrganization()
+   */
   public static async updateOneOrganization(
     orgId: number,
     myself: UserModel,
@@ -1029,16 +1028,9 @@ class OrganizationsHelper {
     return RequestHelper.makeRequestAndGetBody(req);
   }
 
-  // noinspection OverlyComplexFunctionJS
   /**
-   *
-   * @param {number} orgId
-   * @param {Object} user
-   * @param {Object} fields
-   * @param {Object} sources
-   * @param {Object[]} socialNetworks
-   * @param {number} expectedStatus
-   * @return {Promise<Object>}
+   * @deprecated
+   * @see OrganizationsGenerator.updateOrganization()
    */
   static async requestToUpdateExisting(
     orgId: number,

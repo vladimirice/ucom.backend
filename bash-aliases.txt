@@ -1,5 +1,6 @@
 alias p-clip-post-types='echo "const { PostTypes } = require('\''ucom.libs.common'\'').Posts.Dictionary;" | xclip -selection clipboard'
 alias p-clip-entity-names='echo "const { EntityNames } = require('\''ucom.libs.common'\'').Common.Dictionary;" | xclip -selection clipboard'
+alias p-clip-events-ids='echo "const { EventsIds } = require('\''ucom.libs.common'\'').Events.Dictionary;" | xclip -selection clipboard'
 
 alias p-link-graphql='npm link ucom-libs-graphql-schemas'
 alias p-i-graphql='npm i ucom-libs-graphql-schemas'

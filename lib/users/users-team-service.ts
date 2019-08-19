@@ -72,12 +72,12 @@ class UsersTeamService {
     return usersTeam;
   }
 
-  static async processUsersTeamUpdating(
-    entityId,
-    entityName,
-    data,
-    idToExclude = null,
-    transaction = null,
+  public static async processUsersTeamUpdating(
+    entityId: number,
+    entityName: string,
+    data: any,
+    idToExclude: number | null = null,
+    transaction: any = null,
   ) {
     if (!data[USERS_TEAM_PROPERTY]) {
       return null;
@@ -96,7 +96,7 @@ class UsersTeamService {
       return null;
     }
 
-    const usersTeamFiltered = usersTeam.filter(item => +item.id !== idToExclude);
+    const usersTeamFiltered = usersTeam.filter((item) => +item.id !== idToExclude);
 
     const sourceModels = await usersTeamRepository.findAllRelatedToEntity(entityName, entityId);
     const deltaData = updateManyToManyHelper.getCreateDeleteOnlyDelta(

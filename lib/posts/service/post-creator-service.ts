@@ -2,7 +2,6 @@
 
 import { IdOnlyDto, IRequestBody } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
-import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
 import { IActivityModel } from '../../users/interfaces/users-activity/dto-interfaces';
 import { PostModel } from '../interfaces/model-interfaces';
 import { AppError, BadRequestError } from '../../api/errors';
@@ -18,7 +17,6 @@ import UserActivityService = require('../../users/user-activity-service');
 import EosPostsInputProcessor = require('../../eos/input-processor/content/eos-posts-input-processor');
 import UsersModelProvider = require('../../users/users-model-provider');
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
-import EosTransactionService = require('../../eos/eos-transaction-service');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import PostsRepository = require('../posts-repository');
 
@@ -72,9 +70,6 @@ class PostCreatorService {
       orgBlockchainId,
     );
 
-    const options: IActivityOptions =
-      EosTransactionService.getEosVersionBasedOnSignedTransaction(body.signed_transaction);
-
     await this.makeOrganizationRelatedChecks(body, currentUser);
     await this.addAttributesOfEntityFor(body, currentUser);
 
@@ -103,7 +98,7 @@ class PostCreatorService {
     // #task - create new post via knex only and provide related transaction
     await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
 
-    await UserActivityService.sendContentCreationPayloadToRabbitWithOptions(newActivity, options);
+    await UserActivityService.sendContentCreationPayloadToRabbitWithEosVersion(newActivity, body.signed_transaction);
 
     if (PostsFetchService.isDirectPost(newPost)) {
       // Direct Post creation = full post content, not only ID
@@ -159,9 +154,7 @@ class PostCreatorService {
     // #task - create new post via knex only and provide related transaction
     await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
 
-    const options: IActivityOptions =
-      EosTransactionService.getEosVersionBasedOnSignedTransaction(body.signed_transaction);
-    await UserActivityService.sendContentCreationPayloadToRabbitWithOptions(newActivity, options);
+    await UserActivityService.sendContentCreationPayloadToRabbitWithEosVersion(newActivity, body.signed_transaction);
 
     return {
       id: newPost.id,
