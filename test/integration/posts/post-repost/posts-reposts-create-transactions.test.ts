@@ -81,7 +81,7 @@ it('create direct post for user providing a transaction', async () => {
   await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
 }, JEST_TIMEOUT);
 
-it('Resend direct posts for org', async () => {
+it.skip('Resend direct posts for org', async () => {
   await PostsGenerator.createUserPostAndRepost(userJane, userVlad);
 
   const createdAt = '2019-11-11 00:00:00';
