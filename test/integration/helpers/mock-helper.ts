@@ -16,7 +16,6 @@ import EosApi = require('../../../lib/eos/eosApi');
 import EosPostsInputProcessor = require('../../../lib/eos/input-processor/content/eos-posts-input-processor');
 import EosTransactionService = require('../../../lib/eos/eos-transaction-service');
 import ActivityProducer = require('../../../lib/jobs/activity-producer');
-import OrganizationService = require('../../../lib/organizations/service/organization-service');
 import UserToOrganizationActivity = require('../../../lib/users/activity/user-to-organization-activity');
 import UserActivityService = require('../../../lib/users/user-activity-service');
 
@@ -450,9 +449,11 @@ class MockHelper {
     this.mockUserVotesPost();
   }
 
+  /**
+   * @deprecated
+   */
   static mockAllBlockchainJobProducers() {
     // #task - only organization now. In process
-    this.mockOrganizationCreationBlockchainProducer();
   }
 
   public static mockAllBlockchainPart(mockSending: boolean = true): void {
@@ -470,13 +471,6 @@ class MockHelper {
     EosApi.transactionToCreateNewAccount = async function (newAccountName, ownerPubKey, activePubKey) {};
     // @ts-ignore
     EosApi.isAccountAvailable = async function (accountName: string) { return true; };
-  }
-
-  static mockOrganizationCreationBlockchainProducer() {
-    // noinspection JSUnusedLocalSymbols
-    // @ts-ignore
-    // eslint-disable-next-line no-empty-function
-    OrganizationService.sendOrgCreationActivityToRabbit = async function (newUserActivity) {};
   }
 
   static mockUsersActivityBackendSigner() {
@@ -583,11 +577,14 @@ class MockHelper {
     };
   }
 
-  static mockOrganizationBlockchain() {
-    // @ts-ignore
-    OrganizationService.addSignedTransactionsForOrganizationCreation = async function (req) {
-      req.blockchain_id = `sample_blockchain_id_${orgCounter}`;
-      req.signed_transaction = 'sample_signed_transaction';
+  private static mockOrganizationBlockchain() {
+    EosPostsInputProcessor.addSignedTransactionsForOrganizationCreation = async function (
+      // @ts-ignore
+      currentUser,
+      body,
+    ) {
+      body.blockchain_id = `sample_blockchain_id_${orgCounter}`;
+      body.signed_transaction = 'sample_signed_transaction';
 
       orgCounter += 1;
     };
