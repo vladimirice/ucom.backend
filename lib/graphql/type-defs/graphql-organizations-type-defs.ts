@@ -26,6 +26,7 @@ export const graphqlOrganizationsTypes = `
     activity_index_delta: Float
     posts_total_amount_delta: Int
     number_of_followers: Int
+    blockchain_id: String
   }
 
   input org_filtering {
