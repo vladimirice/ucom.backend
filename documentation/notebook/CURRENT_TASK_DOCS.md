@@ -10,6 +10,13 @@ Add as much data to the post/comment content - as possible. Examples contain onl
 * [Send reposts transaction - creation only](../../test/integration/posts/post-repost/posts-reposts-create-transactions.test.ts)
 * [Send comments and replies](../../test/integration/comments/comments-create-update-transactions.test.ts)
 
+### Communities
+* [Create/update communities](../../test/integration/organizations/organizations-create-update-transactions.test.ts)
+* Not required to save users_team
+* Not required to save discussions
+* But required to save social networks, partnerships.
+
+
 ## Follow/Unfollow - new transactions
 [User to user](../../test/integration/users/activity/follow/users-activity-follow-transactions.test.ts)
 [User to organization](../../test/integration/organizations/activity/follow/organizations-activity-follow-transactions.test.ts)
