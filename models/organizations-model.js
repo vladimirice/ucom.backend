@@ -86,6 +86,7 @@ module.exports = (db, Sequelize) => {
       'avatar_filename',
       'nickname',
       'current_rate',
+      'blockchain_id',
       'user_id',
       'powered_by',
       'about',
@@ -138,15 +139,6 @@ module.exports = (db, Sequelize) => {
         plural: USERS_TEAM_TABLE_NAME,
       }
     });
-
-    // models[TABLE_NAME].hasMany(models['activity_user_post'], {foreignKey: 'post_id_to'});
-    // models[TABLE_NAME].hasMany(models['post_users_team'], {
-    //   foreignKey: 'post_id',
-    //   as: {
-    //     singular: "post_users_team",
-    //     plural: "post_users_team"
-    //   }
-    // });
   };
 
   return Model;
