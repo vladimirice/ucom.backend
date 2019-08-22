@@ -42,9 +42,9 @@ describe('Organizations. Entity source related creation-updating', () => {
 
         const body = await OrganizationsHelper.requestToSearchCommunity('inc');
         expect(body.length).toBe(2);
-        expect(body.some(data => data.entity_id === vladIncId
+        expect(body.some((data) => data.entity_id === vladIncId
           && data.entity_name === OrganizationsModelProvider.getEntityName())).toBeTruthy();
-        expect(body.some(data => data.entity_id === janeIncId
+        expect(body.some((data) => data.entity_id === janeIncId
           && data.entity_name === OrganizationsModelProvider.getEntityName())).toBeTruthy();
 
         const expectedFields = [
@@ -53,6 +53,7 @@ describe('Organizations. Entity source related creation-updating', () => {
           'current_rate',
 
           'avatar_filename',
+          'blockchain_id',
           'nickname',
           'title',
           'user_id',
@@ -74,8 +75,8 @@ describe('Organizations. Entity source related creation-updating', () => {
         const body = await OrganizationsHelper.requestToSearchPartnership('vlad');
 
         expect(body.length).toBe(4);
-        const vladIncFromResponse = body.find(data => data.entity_id === vladIncId);
-        const userVladFromResponse = body.find(data => data.entity_id === userVlad.id
+        const vladIncFromResponse = body.find((data) => data.entity_id === vladIncId);
+        const userVladFromResponse = body.find((data) => data.entity_id === userVlad.id
           && data.title === `${userVlad.first_name} ${userVlad.last_name}`);
 
         expect(vladIncFromResponse).toBeDefined();
@@ -97,8 +98,10 @@ describe('Organizations. Entity source related creation-updating', () => {
           'entity_images',
         ];
 
+        // #task - hardcode
         body.forEach((model) => {
           delete model.user_id;
+          delete model.blockchain_id;
         });
 
         ResponseHelper.expectAllFieldsExistenceForArray(body, expectedFields);
@@ -180,7 +183,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         await EntitySourcesRepository.findAllByEntity(body.id, OrganizationsModelProvider.getEntityName());
       expect(sources.length).toBe(5);
 
-      const communitySourceOrgActual = sources.find(data => data.source_group_id === 2
+      const communitySourceOrgActual = sources.find((data) => data.source_group_id === 2
           && +data.source_entity_id === +communitySourceOrg.entity_id
           && data.source_entity_name === communitySourceOrg.entity_name);
 
@@ -198,7 +201,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         text_data:          '',
       },                                  communitySourceOrgActual);
 
-      const communitySourceExternalActual = sources.find(data => data.source_group_id === 2
+      const communitySourceExternalActual = sources.find((data) => data.source_group_id === 2
           && data.source_url === communitySourceExternal.source_url);
 
       expect(communitySourceExternalActual.avatar_filename).toBeDefined();
@@ -226,7 +229,7 @@ describe('Organizations. Entity source related creation-updating', () => {
 
       },                                  communitySourceExternalActual);
 
-      const partnershipSourceInternalActual = sources.find(data => data.source_group_id === 3
+      const partnershipSourceInternalActual = sources.find((data) => data.source_group_id === 3
           && +data.source_entity_id === +partnershipSourceOrg.entity_id
           && data.source_entity_name === partnershipSourceOrg.entity_name);
 
@@ -244,7 +247,7 @@ describe('Organizations. Entity source related creation-updating', () => {
         text_data:          '',
       },                                  partnershipSourceInternalActual);
 
-      const partnershipSourceExternalActual = sources.find(data => data.source_group_id === 3
+      const partnershipSourceExternalActual = sources.find((data) => data.source_group_id === 3
           && data.source_url === partnershipSourceExternal.source_url);
 
       const textDataTwo = JSON.stringify(
@@ -272,7 +275,7 @@ describe('Organizations. Entity source related creation-updating', () => {
       expect(partnershipSourceExternalActual.avatar_filename).not.toBeNull();
       await OrganizationsHelper.isAvatarImageUploaded(partnershipSourceExternalActual.avatar_filename);
 
-      const partnershipSourceUserInternalActual = sources.find(data => data.source_group_id === 3
+      const partnershipSourceUserInternalActual = sources.find((data) => data.source_group_id === 3
           && +data.source_entity_id === +partnershipSourceUsers.entity_id
           && data.source_entity_name === partnershipSourceUsers.entity_name);
 
@@ -311,7 +314,7 @@ describe('Organizations. Entity source related creation-updating', () => {
       const sourcesWithoutSocialNetworks = await EntitySourcesRepository.findAllByEntity(firstOrgCreationBody.id, 'org');
       CommonChecker.expectNotEmpty(sourcesWithoutSocialNetworks);
 
-      const socialNetwork = sourcesWithoutSocialNetworks.find(item => item.source_group_id === EntitySourcesDictionary.socialNetworksGroup());
+      const socialNetwork = sourcesWithoutSocialNetworks.find((item) => item.source_group_id === EntitySourcesDictionary.socialNetworksGroup());
       CommonChecker.expectEmpty(socialNetwork);
 
       await OrganizationsHelper.deleteAllFromArray(userVlad, firstOrgCreationBody.id, 'community_sources');
