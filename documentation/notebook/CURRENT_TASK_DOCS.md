@@ -2,6 +2,28 @@
 
 This file is for frontend team only
 
+## Social key registration binding
+
+Registration process:
+1. Send a regular registration request via AJAX
+2. Bind a social key using the newcomer active key
+```
+const { SocialKeyApi } = require('ucom-libs-wallet');
+
+const { publicKey: socialPublicKey } = SocialKeyApi.generateSocialKeyFromActivePrivateKey(activePrivateKey);
+
+await SocialKeyApi.bindSocialKeyWithSocialPermissions(
+    accountName,
+    activePrivateKey,
+    socialPublicKey,
+);
+
+```
+3. Save a social key inside the local storage.
+4. Check referral status.
+
+P.S. Do not use social key now. Transactions are not ready yet.
+
 ## Content transactions to the frontend
 
 Add as much data to the post/comment content - as possible. Examples contain only sample minimum data.
