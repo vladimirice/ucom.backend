@@ -1,9 +1,11 @@
 import SeedsHelper = require('../../helpers/seeds-helper');
-// @ts-ignore
 import UsersRegistrationHelper = require('../../../helpers/users/users-registration-helper');
-// @ts-ignore
 import UsersHelper = require('../../helpers/users-helper');
 import CommonChecker = require('../../../helpers/common/common-checker');
+
+const { WalletApi } = require('ucom-libs-wallet');
+
+const JEST_TIMEOUT = 15000;
 
 describe('Test registration workflow', () => {
   beforeAll(async () => {
@@ -23,7 +25,11 @@ describe('Test registration workflow', () => {
 
     CommonChecker.expectFieldIsStringDateTime(body.user, 'profile_updated_at');
     await UsersHelper.ensureUserExistByPatch(body.token);
-  }, 15000);
+
+    const state = await WalletApi.getAccountState(body.user.account_name);
+
+    CommonChecker.expectNotEmpty(state);
+  }, JEST_TIMEOUT);
 });
 
 export {};

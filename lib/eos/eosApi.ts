@@ -1,20 +1,15 @@
 /* eslint-disable unicorn/filename-case */
 import EnvHelper = require('../common/helper/env-helper');
 
-const { WalletApi, ConfigService } = require('ucom-libs-wallet');
+const { WalletApi, ConfigService, RegistrationApi } = require('ucom-libs-wallet');
 
 const ecc = require('eosjs-ecc');
 
 const { TransactionFactory, TransactionSender } = require('ucom-libs-social-transactions');
-const brainkey = require('../crypto/brainkey');
 
 const accountsData = require('../../config/accounts-data');
 
 const accountCreator = accountsData.account_creator;
-
-const BRAINKEY_LENGTH = 12;
-
-const ACCOUNT_NAME_LENGTH = 12;
 
 const AIRDROPS_GITHUB_SENDER = 'airdrops_github_sender';
 const AIRDROPS_GITHUB_HOLDER = 'airdrops_github_holder';
@@ -76,21 +71,6 @@ class EosApi {
     EnvHelper.executeByEnvironment(initBlockchainExecutors);
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static createRandomAccountName() {
-    let text = '';
-    const possible = 'abcdefghijklmnopqrstuvwxyz12345';
-
-    for (let i = 0; i < ACCOUNT_NAME_LENGTH; i += 1) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-
-    return text;
-  }
-
   // noinspection JSUnusedGlobalSymbols
   static async doesAccountExist(accountName: string) {
     const result = await TransactionSender.isAccountAvailable(accountName);
@@ -102,25 +82,17 @@ class EosApi {
     return TransactionSender.isAccountAvailable(accountName);
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  static generateBrainkey() {
-    return brainkey.generateSimple(BRAINKEY_LENGTH);
-  }
-
-  /**
-   *
-   * @param {string} newAccountName
-   * @param {string} ownerPubKey
-   * @param {string} activePubKey
-   * @return {Promise<*>}
-   */
-  static async transactionToCreateNewAccount(newAccountName, ownerPubKey, activePubKey) {
-    return TransactionSender.createNewAccountInBlockchain(
+  public static async transactionToCreateNewAccount(
+    newAccountName: string,
+    ownerPublicKey: string,
+    activePublicKey: string,
+  ) {
+    return RegistrationApi.createNewAccountInBlockchain(
       accountCreator.account_name,
       accountCreator.activePk,
       newAccountName,
-      ownerPubKey,
-      activePubKey,
+      ownerPublicKey,
+      activePublicKey,
     );
   }
 
