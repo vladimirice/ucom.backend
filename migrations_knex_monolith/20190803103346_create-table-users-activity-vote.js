@@ -1,12 +1,6 @@
 const TABLE_NAME = 'users_activity_vote';
 
 exports.up = (knex) => {
-  /*
-
-
-  unique index
-   */
-
   const sql = `
       SELECT setval('migrations_knex_id_seq', MAX(id), true) FROM migrations_knex;
       

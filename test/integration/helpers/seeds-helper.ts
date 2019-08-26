@@ -350,10 +350,10 @@ class SeedsHelper {
       ]);
 
     await Promise.all([
-      UsersCurrentParamsRepository.insertRowForNewEntity(userVlad.id),
-      UsersCurrentParamsRepository.insertRowForNewEntity(userJane.id),
-      UsersCurrentParamsRepository.insertRowForNewEntity(userPetr.id),
-      UsersCurrentParamsRepository.insertRowForNewEntity(userRokky.id),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userVlad.id, null),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userJane.id, null),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userPetr.id, null),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userRokky.id, null),
     ]);
 
     if (options && options.mock.uosAccountsProperties) {

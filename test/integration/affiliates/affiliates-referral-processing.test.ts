@@ -27,7 +27,7 @@ const beforeAfterOptions = {
 
 EosApi.initBlockchainLibraries();
 
-const JEST_TIMEOUT = 5000;
+const JEST_TIMEOUT = 15000;
 // @ts-ignore
 const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 1000;
 

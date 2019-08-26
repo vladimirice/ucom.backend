@@ -10,15 +10,22 @@ const { BadRequestError } = require('../../lib/api/errors');
 class AuthValidator {
   static validateRegistration(req) {
     const schema = {
-      account_name:         joi.string().min(1).max(255).required().label('Account name'),
-      public_key:           joi.string().min(1).max(255).required().label('Public key'),
-      sign:                 joi.string().min(1).max(255).required().label('Sign'),
-      brainkey:             joi.string().min(1).max(255).required().label('Brainkey'),
-      is_tracking_allowed:  joi.boolean().label('is_tracking_allowed').default(false),
+      account_name:           joi.string().min(1).max(255).required().label('Account name'),
+
+      public_key:             joi.string().min(1).max(255).label('Public key'), // legacy
+      active_public_key:      joi.string().min(1).max(255).label('Active public key'),
+      owner_public_key:       joi.string().min(1).max(255).label('Owner public key'),
+      social_public_key:      joi.string().min(1).max(255).label('Social public key'),
+
+      sign:                   joi.string().min(1).max(255).required().label('Sign'),
+      brainkey:               joi.string().min(1).max(255).label('Brainkey'), // legacy
+      is_tracking_allowed:    joi.boolean().label('is_tracking_allowed').default(false),
     };
 
     return joi.validate(req, schema, {
-      abortEarly: false,
+      allowUnknown: true,
+      stripUnknown: true,
+      abortEarly:   false,
     });
   }
 

@@ -1,4 +1,4 @@
-import { QueryBuilder } from 'knex';
+import { QueryBuilder, Transaction } from 'knex';
 import { UserIdToUserModelCard, UserModel, UsersRequestQueryDto } from './interfaces/model-interfaces';
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
 import { DbParamsDto, RequestQueryDto } from '../api/filters/interfaces/query-filter-interfaces';
@@ -20,6 +20,7 @@ import QueryFilterService = require('../api/filters/query-filter-service');
 import KnexQueryBuilderHelper = require('../common/helper/repository/knex-query-builder-helper');
 import RepositoryHelper = require('../common/repository/repository-helper');
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
+import EosBlockchainStatusDictionary = require('../eos/eos-blockchain-status-dictionary');
 
 const _ = require('lodash');
 
@@ -65,6 +66,16 @@ class UsersRepository {
     RepositoryHelper.convertStringFieldsToNumbersForArray(data, this.getPropsFields(), []);
 
     return data;
+  }
+
+  public static async setBlockchainRegistrationIsSent(user: UserModel, transaction: Transaction): Promise<void> {
+    await transaction(UsersModelProvider.getTableName())
+      .update({
+        blockchain_registration_status: EosBlockchainStatusDictionary.getStatusIsSent(),
+      })
+      .where({
+        id: user.id,
+      });
   }
 
   public static async findManyAsRelatedToEntity(
@@ -164,16 +175,10 @@ class UsersRepository {
     );
   }
 
-  /**
-   *
-   * @param {Object} data
-   * @param {Object} transaction
-   * @return {Promise<data>}
-   */
-  static async createNewUser(data, transaction) {
-    return model.create(data, {
-      transaction,
-    });
+  public static async createNewUser(data, transaction: Transaction): Promise<any> {
+    const result = await transaction(TABLE_NAME).returning('*').insert(data);
+
+    return result[0];
   }
 
   /**

@@ -212,7 +212,7 @@ class UsersService {
       }),
 
       deltaData.changed.map(async (data) => {
-        const toUpdate = user[modelName].find(innerData => +innerData.id === +data.id);
+        const toUpdate = user[modelName].find((innerData) => +innerData.id === +data.id);
 
         data.is_official = !!data.is_official;
         await toUpdate.update(data, { transaction });

@@ -20,7 +20,7 @@ describe('Test registration workflow', () => {
     await SeedsHelper.beforeAllRoutine();
   });
 
-  it('Register new user', async () => {
+  it('Register new user - a transaction with the social key', async () => {
     const { body } = await UsersRegistrationHelper.registerNewUserWithRandomAccountData();
 
     CommonChecker.expectFieldIsStringDateTime(body.user, 'profile_updated_at');
@@ -29,7 +29,20 @@ describe('Test registration workflow', () => {
     const state = await WalletApi.getAccountState(body.user.account_name);
 
     CommonChecker.expectNotEmpty(state);
-  }, JEST_TIMEOUT);
+  }, JEST_TIMEOUT * 100);
+
+  describe('Legacy', () => {
+    it('Register new user - legacy transaction', async () => {
+      const { body } = await UsersRegistrationHelper.registerNewUserWithRandomAccountDataLegacy();
+
+      CommonChecker.expectFieldIsStringDateTime(body.user, 'profile_updated_at');
+      await UsersHelper.ensureUserExistByPatch(body.token);
+
+      const state = await WalletApi.getAccountState(body.user.account_name);
+
+      CommonChecker.expectNotEmpty(state);
+    }, JEST_TIMEOUT);
+  });
 });
 
 export {};
