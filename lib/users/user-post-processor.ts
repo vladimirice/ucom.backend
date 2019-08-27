@@ -1,5 +1,5 @@
 import { MyselfDataDto } from '../common/interfaces/post-processing-dto';
-import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
+import { UserIdToUserModelCard, UserModel, UserModelCard } from './interfaces/model-interfaces';
 
 import NumbersHelper = require('../common/helper/numbers-helper');
 import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
@@ -118,7 +118,7 @@ class UserPostProcessor {
     }
   }
 
-  public static processOnlyUserItself(user: UserModel): void {
+  public static processOnlyUserItself(user: UserModel | UserModelCard): void {
     this.normalizeMultiplier(user);
     this.deleteSensitiveData(user);
 

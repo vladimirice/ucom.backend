@@ -19,7 +19,7 @@ class UsersAuthService {
   public async processNewUserRegistration(request: Request) {
     const { body }: IRequestBody = request;
 
-    return  this.registrationService.processRegistration(body);
+    return this.registrationService.processRegistration(body);
   }
 }
 

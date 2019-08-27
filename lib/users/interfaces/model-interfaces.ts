@@ -11,7 +11,13 @@ interface UserModel extends ModelWithEntityImages {
 
   readonly uos_accounts_properties?: UosAccountPropertiesValuesDto
 
+  readonly social_public_key: string;
+
   [index: string]: any
+}
+
+interface UserModelTests extends UserModel {
+  social_private_key: string;
 }
 
 interface UserModelCard extends ModelWithEntityImages {
@@ -58,6 +64,8 @@ interface OrganizationsActivityQueryDto extends RequestQueryDto {
 export {
   UserModelCard,
   UserModel,
+  UserModelTests,
+
   UserIdToUserModelCard,
   UsersListResponse,
   UsersRequestQueryDto,

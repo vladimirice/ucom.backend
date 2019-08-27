@@ -1,9 +1,12 @@
+import ResponseHelper = require('./response-helper');
+
 const expect = require('expect');
 
 class AuthHelper {
-  static validateAuthResponse(res, accountName) {
-    expect(res.status).toBe(200);
-    const { body } = res;
+  static validateAuthResponse(response, accountName: string) {
+    ResponseHelper.expectStatusOk(response);
+
+    const { body } = response;
 
     expect(body).toHaveProperty('success', true);
     expect(body).toHaveProperty('token');

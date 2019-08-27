@@ -31,13 +31,16 @@ class AuthValidator {
 
   static validateLogin(req) {
     const schema = {
-      account_name: joi.string().min(1).max(255).required().label('Account name'),
-      public_key: joi.string().min(1).max(255).required().label('Public key'),
-      sign: joi.string().min(1).max(255).required().label('Sign'),
+      account_name:       joi.string().min(1).max(255).required().label('Account name'),
+      public_key:         joi.string().min(1).max(255).label('Active public key'), // legacy
+      social_public_key:  joi.string().min(1).max(255).label('Social public key'), // make required after the frontend feature
+      sign:               joi.string().min(1).max(255).required().label('Sign'),
     };
 
     return joi.validate(req, schema, {
       abortEarly: false,
+      allowUnknown: true,
+      stripUnknown: true,
     });
   }
 

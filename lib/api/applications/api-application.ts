@@ -17,7 +17,7 @@ const EosApi = require('../../eos/eosApi');
 const usersRouter = require('../../../routes/users-route');
 const usersV2Router = require('../../../routes/users-route-v2');
 
-const authRouter = require('../../../routes/auth');
+const authRouter = require('../../users/router/auth-router');
 const myselfRouter = require('../../../routes/myself-router');
 const postsRouter = require('../../../routes/posts/posts-router');
 const postsV2Router = require('../../../routes/posts/posts-v2-router');

@@ -27,6 +27,22 @@ const orgModelProvider    = require('../../../lib/organizations/service').ModelP
 require('jest-expect-message');
 
 class UsersHelper {
+  public static getUserVladAlias(): string {
+    return 'vlad';
+  }
+
+  public static getUserJaneAlias(): string {
+    return 'jane';
+  }
+
+  public static getUserPetrAlias(): string {
+    return 'petr';
+  }
+
+  public static getUserRokkyAlias(): string {
+    return 'rokky';
+  }
+
   public static propsAndCurrentParamsOptions(isMyself: boolean) {
     return {
       author: {
@@ -397,13 +413,11 @@ class UsersHelper {
     ]);
   }
 
-  /**
-   *
-   * @returns {PromiseLike<{id: *, token: *}>}
-   */
-  static async getUserVlad() {
-    const vladSeed = UsersHelper.getUserVladSeed();
-    const vladFromDb = await UsersRepository.getUserByAccountName(vladSeed.account_name);
+  public static async getUserVlad() {
+    const alias = this.getUserVladAlias();
+
+    const seed = UsersHelper.getUserVladSeed();
+    const vladFromDb = await UsersRepository.getUserByAccountName(seed.account_name);
     expect(vladFromDb).toBeDefined();
 
     const vladDbData = {
@@ -413,10 +427,18 @@ class UsersHelper {
     const token = authService.getNewJwtToken(vladDbData);
 
     return {
-      ...vladSeed,
+      ...this.getSocialKeyParts(alias),
+      ...seed,
       ...vladDbData,
       token,
       github_code: 'github_code_vlad',
+    };
+  }
+
+  private static getSocialKeyParts(accountNameAlias: string) {
+    return {
+      social_private_key: accountsData[accountNameAlias].socialPrivateKey,
+      social_public_key: accountsData[accountNameAlias].socialPublicKey,
     };
   }
 
@@ -456,6 +478,8 @@ class UsersHelper {
    * @returns {Promise<Object>}
    */
   static async getUserPetr() {
+    const alias = this.getUserPetrAlias();
+
     const seed = UsersHelper.getUserPetrSeed();
     const userAccountData = accountsData.petr;
 
@@ -469,17 +493,16 @@ class UsersHelper {
     const token = authService.getNewJwtToken(data);
 
     return {
+      ...this.getSocialKeyParts(alias),
       ...seed,
       ...data,
       token,
     };
   }
 
-  /**
-   *
-   * @returns {Promise<Object>}
-   */
-  static async getUserRokky() {
+  public static async getUserRokky() {
+    const alias = this.getUserRokkyAlias();
+
     const seed = UsersHelper.getUserRokkySeed();
     const userAccountData = accountsData.rokky;
 
@@ -493,17 +516,16 @@ class UsersHelper {
     const token = authService.getNewJwtToken(data);
 
     return {
+      ...this.getSocialKeyParts(alias),
       ...seed,
       ...data,
       token,
     };
   }
 
-  /**
-   *
-   * @returns {PromiseLike<{id: *, token: *}>}
-   */
-  static async getUserJane() {
+  public static async getUserJane() {
+    const alias = this.getUserJaneAlias();
+
     const seed = UsersHelper.getUserJaneSeed();
     const fromDb = await usersRepository.getUserByAccountName(seed.account_name);
     expect(fromDb).toBeDefined();
@@ -515,6 +537,7 @@ class UsersHelper {
     const token = authService.getNewJwtToken(data);
 
     return {
+      ...this.getSocialKeyParts(alias),
       ...seed,
       ...data,
       token,

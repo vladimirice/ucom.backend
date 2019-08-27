@@ -36,7 +36,17 @@ await SocialKeyApi.bindSocialKeyWithSocialPermissions(
 
 ### Authorization using a social key
 
-Case 1: A regular authorization.
+* проверяем есть ли соц ключ в local storage
+* если его нет - разлогиниваем юзера
+* юзер как и обычно вводит брейнкей при авторизации
+* в фоне генерим и привязываем ему соц ключ
+* кладем соц ключ в local storage
+* авторизуем юзера. 
+* получаем состояние когда и соц ключ и активный ключ есть в local storage
+
+будущее recovery - все то же самое что и выше. 
+
+Case 1: A regular authorization, social key exists
 * Create a signature (sign field) by the social_private_key, not the active_private_key.
 * Send the social_public_key, not the activity_public_key.
 
@@ -64,6 +74,10 @@ await SocialKeyApi.bindSocialKeyWithSocialPermissions(
 );
 
 ```
+
+* use a social_public_key to generate authorization signature
+
+
 
 
 ## Content transactions to the frontend

@@ -30,6 +30,8 @@ class RegistrationService {
 
       public_key:           activePublicKey,
       owner_public_key:     ownerPublicKey,
+
+      social_public_key:    requestData.social_public_key || null,
       is_tracking_allowed:  !!requestData.is_tracking_allowed || false,
 
       profile_updated_at:   new Date(),
@@ -59,7 +61,7 @@ class RegistrationService {
 
   // eslint-disable-next-line class-methods-use-this
   private async checkRegistrationRequest(body: IRequestBody) {
-    const { error, value:requestData } = AuthValidator.validateRegistration(body);
+    const { error, value: requestData } = AuthValidator.validateRegistration(body);
 
     if (error) {
       throw new JoiBadRequestError(error);

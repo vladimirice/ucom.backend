@@ -36,6 +36,10 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getLogInUrl(): string {
+    return `${apiV1Prefix}/auth/login`;
+  }
+
   public static getApiApplication() {
     return server;
   }
