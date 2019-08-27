@@ -34,6 +34,38 @@ await SocialKeyApi.bindSocialKeyWithSocialPermissions(
 5. Only after the successful binding - save a social private key to the local storage
 6. Redirect user to the main page (a regular registration request)
 
+### Authorization using a social key
+
+Case 1: A regular authorization.
+* Create a signature (sign field) by the social_private_key, not the active_private_key.
+* Send the social_public_key, not the activity_public_key.
+
+Case 2: Bind/restore a social key - ask user to restore/bind again a social key.
+* Use an active private key to generate social key parts:
+```
+const { SocialKeyApi } = require('ucom-libs-wallet');
+const socialKeyParts = SocialKeyApi.generateSocialKeyFromActivePrivateKey(activePrivateKey);
+```
+
+* Check out - is it required to bind a social key:
+```
+const { SocialKeyApi } = require('ucom-libs-wallet');
+const socialKey = await SocialKeyApi.getAccountCurrentSocialKey(accountName);
+
+if (socialKey) {
+    return; // not required to bind a social key - already exists
+}
+
+// bind it
+await SocialKeyApi.bindSocialKeyWithSocialPermissions(
+    accountName,
+    activePrivateKey,
+    socialPublicKey,
+);
+
+```
+
+
 ## Content transactions to the frontend
 
 Add as much data to the post/comment content - as possible. Examples contain only sample minimum data.
@@ -164,132 +196,3 @@ const allowedFields: string[] = [
 ## Users list
 
 [Fetch using different filters](../../test/integration/users/get/users-get-graphql.test.ts)
-
-# Feeds
-
-A GraphQL method `getManyPostsQueryPart`
-
-Dictionary
-```
-const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
-const { PostTypes } = require(ucom.libs.common).Posts.Dictionary;
-
-// publications filters
-entityNamesFrom = [EntityNames.ORGANIZATIONS]
-entityNamesFor   = [EntityNames.ORGANIZATIONS]
-ORDER BY '-current_rate'
-
-// direct posts filters (feed)
-entityNamesFrom = [EntityNames.ORGANIZATIONS, EntityNames.USERS]
-entityNamesFor = [EntityNames.ORGANIZATIONS]
-ORDER BY '-id'
-```
-
-In order to include comments please specify a comments_query parameters inside the filter.
-In order to fetch posts without comment - skip this query
-
-[examples](../../test/helpers/posts/posts-graphql-request.ts)
-* A Community main page top publications - `getOrgMainPageTopPublications`
-* A Community main page feed - `getOrgMainPageFeed`
-
-
-An example of users side block request is here:
-[here](../../test/helpers/users/many-users-request-helper.ts) (method `getManyTrendingUsersAsMyself`)
-
-## Referral program
-
-A referral program is a kind of affiliate programs.
-
-### Related services
-
-Name | Description
---- | ---
-app-redirect | A separate application which provides affiliate program `click` conversion
-
-
-### A referral link
-
-A referral link structure:
-https://hello.u.community/{referral_program_id}/{referrer_identity}/?{utm_labels_query_string}
-
-An example of staging:
-https://staging-hello.u.community/jR/omgomgomgomg
-
-----------------------------------------------
-
-### A frontend part of the registration
-libs to import:
-```
-const { EventsIds }     = require('ucom.libs.common').Events.Dictionary;
-const { Interactions }  = require('ucom-libs-wallet').Dictionary;
-const { SocialApi }     = require('ucom-libs-wallet');
-```
-
-Step 1 - fetch a `referral program state.`
-
-* Before the registration:
-POST /api/v1/affiliates/actions
-```
-body {
-    event_id: EventsIds.registration(),
-};
-```
-
-Case 1 - there is a cookie
-Status code is: 200
-Response:
-```
-{
-    affiliates_actions: [
-        {
-            offer_id: 5,
-            account_name_source: 'spirinspirin',    // to pass to the SocialApi.getReferralFromUserSignedTransactionAsJson wallet function
-            action: Interactions.referral(),        // what function to call - SocialApi.getReferralFromUserSignedTransactionAsJson
-        }
-    ],
-}
-```
-
-Case 2 - there is no cookie (a regular registration)
-Status code is 422 (Unprocessable Entity)
-
-The response body is empty.
-
-Case 3 - errors. A regular errors format. Status code is 4**
-
---------------
-
-Step 2 - a registration request
-
-1. Make a regular registration request.
-2. Make a referral-transaction request if required (status code for `referral-programs` was 200).
-
-POST /api/v1/affiliates/referral-transaction
-
-Request body
-```
-{
-    signed_transaction: '{.....}',          // a result of the call of SocialApi.getReferralFromUserSignedTransactionAsJson
-    account_name_source: 'spirinspirin',    // a parameter passed to SocialApi.getReferralFromUserSignedTransactionAsJson
-    
-    offer_id: 5,                            // provided by /api/v1/affiliates/actions response
-    action: 'referral'                      // provided by /api/v1/affiliates/actions response
-}
-```
-
-Response body
-```
-{
-    success: true,
-}
-```
-
-### A frontend part of referral info
-
-* GraphQL library method - `getOneUserReferralsQueryPart`. An interface - as for the Trust feature.
-
-* how to fetch user referral URL?
-`myself.affiliates.referral_redirect_url`
-
-how to fetch a referrer (source_user)?
-`myself.affiliates.source_user`
