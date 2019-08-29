@@ -165,6 +165,7 @@ class OrganizationsGenerator {
     const defaultFields = {
       title:    faker.company.companyName(),
       nickname: faker.name.firstName(),
+      signed_transaction: 'signed_transaction',
     };
 
     const fields = {

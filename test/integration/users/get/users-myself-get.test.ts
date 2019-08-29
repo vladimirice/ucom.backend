@@ -139,19 +139,19 @@ describe('Myself. Get requests', () => {
           expect(post.myselfData.repost_available).toBeDefined();
         });
 
-        const repostedPost = posts.find(post => post.id === postIdToRepost);
+        const repostedPost = posts.find((post) => post.id === postIdToRepost);
         expect(repostedPost).toBeDefined();
         expect(repostedPost.myselfData.repost_available).toBeFalsy();
 
-        const secondRepostedPost = posts.find(post => post.id === secondPostIdToRepost);
+        const secondRepostedPost = posts.find((post) => post.id === secondPostIdToRepost);
         expect(secondRepostedPost).toBeDefined();
         expect(secondRepostedPost.myselfData.repost_available).toBeFalsy();
 
-        const notRepostedPost = posts.find(post => post.id === postIdNotToRepost);
+        const notRepostedPost = posts.find((post) => post.id === postIdNotToRepost);
         expect(notRepostedPost).toBeDefined();
         expect(notRepostedPost.myselfData.repost_available).toBeTruthy();
 
-        const secondNotRepostedPost = posts.find(post => post.id === secondPostIdNotToRepost);
+        const secondNotRepostedPost = posts.find((post) => post.id === secondPostIdNotToRepost);
         expect(secondNotRepostedPost).toBeDefined();
         expect(secondNotRepostedPost.myselfData.repost_available).toBeTruthy();
       });
@@ -243,21 +243,21 @@ describe('Myself. Get requests', () => {
           expect(post.description).toBeDefined();
         });
 
-        expect(posts.some(post => post.id === vladMediaPost)).toBeTruthy();
-        expect(posts.some(post => post.id === vladPostOffer)).toBeTruthy();
-        expect(posts.some(post => post.id === vladDirectPost.id)).toBeTruthy();
+        expect(posts.some((post) => post.id === vladMediaPost)).toBeTruthy();
+        expect(posts.some((post) => post.id === vladPostOffer)).toBeTruthy();
+        expect(posts.some((post) => post.id === vladDirectPost.id)).toBeTruthy();
 
-        expect(posts.some(post => post.id === janeMediaPost)).toBeTruthy();
-        expect(posts.some(post => post.id === janePostOffer)).toBeTruthy();
-        expect(posts.some(post => post.id === janeDirectPost.id)).toBeTruthy();
+        expect(posts.some((post) => post.id === janeMediaPost)).toBeTruthy();
+        expect(posts.some((post) => post.id === janePostOffer)).toBeTruthy();
+        expect(posts.some((post) => post.id === janeDirectPost.id)).toBeTruthy();
 
-        expect(posts.some(post => post.id === petrMediaPost)).toBeTruthy();
-        expect(posts.some(post => post.id === petrPostOffer)).toBeTruthy();
-        expect(posts.some(post => post.id === petrDirectPost.id)).toBeTruthy();
+        expect(posts.some((post) => post.id === petrMediaPost)).toBeTruthy();
+        expect(posts.some((post) => post.id === petrPostOffer)).toBeTruthy();
+        expect(posts.some((post) => post.id === petrDirectPost.id)).toBeTruthy();
 
-        expect(posts.some(post => post.id === janeMediaPostOrg)).toBeTruthy();
-        expect(posts.some(post => post.id === janePostOfferOrg)).toBeTruthy();
-        expect(posts.some(post => post.id === janeDirectPostOrg.id)).toBeTruthy();
+        expect(posts.some((post) => post.id === janeMediaPostOrg)).toBeTruthy();
+        expect(posts.some((post) => post.id === janePostOfferOrg)).toBeTruthy();
+        expect(posts.some((post) => post.id === janeDirectPostOrg.id)).toBeTruthy();
       });
     });
 
