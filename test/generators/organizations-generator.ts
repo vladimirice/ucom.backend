@@ -8,6 +8,7 @@ import UsersHelper = require('../integration/helpers/users-helper');
 
 import EntityImagesGenerator = require('./common/entity-images-generator');
 import OrganizationsRepository = require('../../lib/organizations/repository/organizations-repository');
+import BlockchainUniqId = require('../../lib/eos/eos-blockchain-uniqid');
 
 const request = require('supertest');
 const faker   = require('faker');
@@ -124,11 +125,13 @@ class OrganizationsGenerator {
     ;
 
     const defaultFields = {
-      title:      faker.company.companyName(),
-      about:      faker.company.companyName(),
-      powered_by: faker.company.companyName(),
-      nickname:   `${faker.name.firstName()}_${RequestHelper.generateRandomNumber(0, 10, 0)}`,
-      email:      faker.internet.email(),
+      title:              faker.company.companyName(),
+      about:              faker.company.companyName(),
+      powered_by:         faker.company.companyName(),
+      nickname:           `${faker.name.firstName()}_${RequestHelper.generateRandomNumber(0, 10, 0)}`,
+      email:              faker.internet.email(),
+      signed_transaction: 'signed_transaction',
+      blockchain_id:      BlockchainUniqId.getUniqidByScope('organizations'),
     };
 
     const fields = {

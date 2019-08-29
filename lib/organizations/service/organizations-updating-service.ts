@@ -1,6 +1,5 @@
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { AppError, BadRequestError, HttpForbiddenError } from '../../api/errors';
-import { IActivityModel } from '../../users/interfaces/users-activity/dto-interfaces';
 
 import UserActivityService = require('../../users/user-activity-service');
 import UsersTeamService = require('../../users/users-team-service');
@@ -9,7 +8,7 @@ import EntityImageInputService = require('../../entity-images/service/entity-ima
 import OrganizationsRepository = require('../repository/organizations-repository');
 import OrganizationsModelProvider = require('./organizations-model-provider');
 import EntitySourceService = require('../../entities/service/entity-sources-service');
-import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
+import EosInputProcessor = require('../../eos/input-processor/content/eos-input-processor');
 
 const _       = require('lodash');
 
@@ -35,7 +34,7 @@ class OrganizationsUpdatingService {
     await this.checkUpdatePermissions(orgId, userId);
     const body = await OrganizationsInputProcessor.processUpdating(req, currentUser);
 
-    const signedTransaction: string | null = EosContentInputProcessor.getSignedTransactionOrNull(body);
+    EosInputProcessor.isSignedTransactionOrError(body);
 
     const { updatedModel, newActivity, boardInvitationActivity } = await db
       .transaction(async (transaction) => {
@@ -76,15 +75,12 @@ class OrganizationsUpdatingService {
         }
 
         // #task - remove backward compatibility
-        let activity: IActivityModel | null = null;
-        if (signedTransaction !== null) {
-          activity = await UserActivityService.processOrganizationUpdating(
-            signedTransaction,
-            currentUser.id,
-            updatedModels[0].id,
-            transaction,
-          );
-        }
+        const activity = await UserActivityService.processOrganizationUpdating(
+          body.signed_transaction,
+          currentUser.id,
+          updatedModels[0].id,
+          transaction,
+        );
 
         return {
           boardInvitationActivity,

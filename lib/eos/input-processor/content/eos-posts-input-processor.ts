@@ -8,7 +8,7 @@ import EosContentInputProcessor = require('./eos-content-input-processor');
 import EosTransactionService = require('../../eos-transaction-service');
 import UsersRepository = require('../../../users/users-repository');
 import OrganizationsRepository = require('../../../organizations/repository/organizations-repository');
-import UserActivityService = require('../../../users/user-activity-service');
+import EosInputProcessor = require('./eos-input-processor');
 
 const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
@@ -76,7 +76,7 @@ class EosPostsInputProcessor {
     currentUser: UserModel,
     parentBlockchainId: string,
   ): Promise<void> {
-    const added: boolean = this.addSignedTransactionDetailsFromRequest(body);
+    const added: boolean = EosInputProcessor.addSignedTransactionDetailsFromRequest(body);
 
     if (added) {
       return;
@@ -115,32 +115,6 @@ class EosPostsInputProcessor {
       default:
         throw new AppError(`Unsupported entity_name_for: ${body.entity_name_for}`);
     }
-  }
-
-  public static async addSignedTransactionsForOrganizationCreation(currentUser: UserModel, body: any): Promise<void> {
-    const added = this.addSignedTransactionDetailsFromRequest(body);
-
-    if (added) {
-      return;
-    }
-
-    const blockchainId = BlockchainUniqId.getUniqIdWithoutId('org');
-
-    body.blockchain_id = blockchainId;
-    body.signed_transaction = await UserActivityService.createAndSignOrganizationCreationTransaction(currentUser, blockchainId);
-  }
-
-  public static addSignedTransactionDetailsFromRequest(body: IRequestBody): boolean {
-    const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
-
-    if (transactionDetails === null) {
-      return false;
-    }
-
-    body.blockchain_id      = transactionDetails.blockchain_id;
-    body.signed_transaction = transactionDetails.signed_transaction;
-
-    return true;
   }
 }
 

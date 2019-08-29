@@ -22,7 +22,6 @@ import UserActivityService = require('../../../lib/users/user-activity-service')
 // @ts-ignore
 const uniqid = require('uniqid');
 
-let orgCounter = 1;
 let postCreationCounter = 1;
 
 class MockHelper {
@@ -437,13 +436,11 @@ class MockHelper {
   }
 
   static mockAllTransactionSigning() {
-    orgCounter = 1;
     postCreationCounter = 1;
 
     this.mockPostTransactionSigning();
     this.mockUsersActivityBackendSigner();
     this.mockCommentTransactionSigning();
-    this.mockOrganizationBlockchain();
     this.mockOrganizationFollowingSigning();
 
     this.mockUserVotesPost();
@@ -577,19 +574,6 @@ class MockHelper {
     };
   }
 
-  private static mockOrganizationBlockchain() {
-    EosPostsInputProcessor.addSignedTransactionsForOrganizationCreation = async function (
-      // @ts-ignore
-      currentUser,
-      body,
-    ) {
-      body.blockchain_id = `sample_blockchain_id_${orgCounter}`;
-      body.signed_transaction = 'sample_signed_transaction';
-
-      orgCounter += 1;
-    };
-  }
-
   static mockUserVotesPost() {
     // noinspection JSUnusedLocalSymbols
     EosTransactionService.appendSignedUserVotesContent = async function (
@@ -635,7 +619,6 @@ class MockHelper {
       // console.log('SEND TO RABBIT MOCK IS CALLED');
     };
 
-    this.mockOrganizationBlockchain();
     this.mockOrganizationFollowingSigning();
   }
 }

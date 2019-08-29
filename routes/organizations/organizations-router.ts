@@ -1,5 +1,7 @@
+import { Request, Response } from 'express';
 /* tslint:disable:max-line-length */
 import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
+
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 
 import OrganizationsFetchService = require('../../lib/organizations/service/organizations-fetch-service');
@@ -73,11 +75,11 @@ orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], a
 });
 
 /* Create new organization */
-orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-  const model = await OrganizationsCreatorService.processNewOrganizationCreation(req, currentUser);
+orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (request: Request, response: Response) => {
+  const currentUser = DiServiceLocator.getCurrentUserOrException(request);
+  const model = await OrganizationsCreatorService.processNewOrganizationCreation(request, currentUser);
 
-  return res.status(201).send({
+  return response.status(201).send({
     id: model.id,
   });
 });

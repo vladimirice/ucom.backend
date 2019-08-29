@@ -149,7 +149,7 @@ class ActivityHelper {
     orgId: number,
     user: UserModel,
     expectedStatus: number = 201,
-    signedTransaction: ISignedTransactionObject | null = null,
+    signedTransaction: ISignedTransactionObject | null = 'signed_transaction',
   ): Promise<any> {
     const req = request(server)
       .post(RequestHelper.getOrgFollowUrl(orgId))

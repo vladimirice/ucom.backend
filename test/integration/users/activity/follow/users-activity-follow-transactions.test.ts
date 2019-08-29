@@ -34,7 +34,13 @@ it('Follow', async () => {
 }, JEST_TIMEOUT);
 
 it('Unfollow', async () => {
-  await ActivityHelper.requestToCreateFollow(userVlad, userJane);
+  const signedTransactionObjectFollow = await SocialApi.getFollowAccountSignedTransaction(
+    userVlad.account_name,
+    userVlad.private_key,
+    userJane.account_name,
+  );
+
+  await ActivityHelper.requestToCreateFollow(userVlad, userJane, 201, signedTransactionObjectFollow);
 
   const signedTransactionObject = await SocialApi.getUnfollowAccountSignedTransaction(
     userVlad.account_name,

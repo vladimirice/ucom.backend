@@ -8,6 +8,7 @@ import { ISignedTransactionObject } from '../../../lib/eos/interfaces/transactio
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
+import BlockchainUniqId = require('../../../lib/eos/eos-blockchain-uniqid');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -365,6 +366,16 @@ class RequestHelper {
   public static addSignedTransactionToRequest(req: SuperAgentRequest, signedTransaction): void {
     this.addFormFieldsToRequestWithStringify(req, {
       signed_transaction: signedTransaction,
+    });
+  }
+
+  public static addFakeSignedTransactionString(req: SuperAgentRequest) {
+    this.addSignedTransactionToRequest(req, 'signed_transaction');
+  }
+
+  public static addFakeBlockchainIdForOrganization(req: SuperAgentRequest) {
+    this.addFormFieldsToRequestWithStringify(req, {
+      blockchain_id: BlockchainUniqId.getUniqidByScope('organizations'),
     });
   }
 

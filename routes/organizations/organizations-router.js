@@ -49,10 +49,10 @@ orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], a
     res.send(response);
 });
 /* Create new organization */
-orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
-    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const model = await OrganizationsCreatorService.processNewOrganizationCreation(req, currentUser);
-    return res.status(201).send({
+orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (request, response) => {
+    const currentUser = DiServiceLocator.getCurrentUserOrException(request);
+    const model = await OrganizationsCreatorService.processNewOrganizationCreation(request, currentUser);
+    return response.status(201).send({
         id: model.id,
     });
 });

@@ -18,6 +18,7 @@ import FileToUploadHelper = require('./file-to-upload-helper');
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import CommonChecker = require('../../helpers/common/common-checker');
+import BlockchainUniqId = require('../../../lib/eos/eos-blockchain-uniqid');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -185,6 +186,8 @@ class OrganizationsHelper {
     const res = await request(server)
       .post(RequestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
+      .field('signed_transaction', 'signed_transaction')
+      .field('blockchain_id', BlockchainUniqId.getUniqidByScope('organizations'))
     ;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
@@ -203,6 +206,8 @@ class OrganizationsHelper {
     const res = await request(server)
       .post(RequestHelper.getOrgUnfollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
+      .field('signed_transaction', 'signed_transaction')
+      .field('blockchain_id', 'blockchain_id')
     ;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
@@ -834,6 +839,8 @@ class OrganizationsHelper {
       .field('users_team[1][id]', usersTeam[1].user_id)
       .field('users_team[2][id]', usersTeam[2].user_id)
 
+      .field('signed_transaction', 'signed_transaction')
+
       .attach('avatar_filename', newModelFields.avatar_filename)
     ;
 
@@ -944,6 +951,8 @@ class OrganizationsHelper {
     const req = request(server)
       .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${user.token}`)
+      .field('signed_transaction', 'signed_transaction')
+      .field('blockchain_id', BlockchainUniqId.getUniqidByScope('organizations'))
     ;
 
     if (_.isEmpty(fields)) {
@@ -1025,6 +1034,8 @@ class OrganizationsHelper {
     const req = RequestHelper.getRequestObjForPatch(RequestHelper.getOneOrganizationUrl(orgId), myself);
     RequestHelper.addFormFieldsToRequestWithStringify(req, fields);
 
+    RequestHelper.addFakeSignedTransactionString(req);
+
     return RequestHelper.makeRequestAndGetBody(req);
   }
 
@@ -1070,6 +1081,8 @@ class OrganizationsHelper {
       }
     });
 
+    RequestHelper.addFakeSignedTransactionString(req);
+
     const res = await req;
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
@@ -1084,6 +1097,8 @@ class OrganizationsHelper {
       .field('title', 'sample title')
       .field('nickname', 'sample nickname')
     ;
+
+    RequestHelper.addFakeSignedTransactionString(req);
 
     const response = await req;
     ResponseHelper.expectStatusOk(response);
@@ -1123,6 +1138,8 @@ class OrganizationsHelper {
       .field('city', newModelFields.city)
       .field('address', newModelFields.address)
       .field('personal_website_url', newModelFields.personal_website_url)
+      .field('signed_transaction', 'signed_transaction')
+      .field('blockchain_id', BlockchainUniqId.getUniqidByScope('organizations'))
       .field('users_team[]', '') // this is to catch and fix bug by TDD
       .attach('avatar_filename', newModelFields.avatar_filename)
     ;

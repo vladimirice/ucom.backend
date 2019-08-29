@@ -1,7 +1,14 @@
 import { IRequestBody } from '../../../common/interfaces/common-types';
 import { BadRequestError } from '../../../api/errors';
 
+import EosInputProcessor = require('./eos-input-processor');
+
 class EosContentInputProcessor {
+  public static validateContentSignedTransactionDetailsOrError(body: IRequestBody): void {
+    EosInputProcessor.isSignedTransactionOrError(body);
+    EosInputProcessor.isBlockchainIdOrError(body);
+  }
+
   public static getSignedTransactionOrNull(body): string | null {
     return body.signed_transaction || null;
   }

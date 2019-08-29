@@ -9,7 +9,7 @@ import OrganizationsRepository = require('../repository/organizations-repository
 import UsersTeamService = require('../../users/users-team-service');
 import UserActivityService = require('../../users/user-activity-service');
 import OrganizationsUpdatingService = require('./organizations-updating-service');
-import EosPostsInputProcessor = require('../../eos/input-processor/content/eos-posts-input-processor');
+import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
 
 const models = require('../../../models');
 
@@ -20,7 +20,7 @@ class OrganizationsCreatorService {
     OrganizationsInputProcessor.process(req.body);
     EntityImageInputService.processEntityImageOrMakeItEmpty(req.body);
 
-    await EosPostsInputProcessor.addSignedTransactionsForOrganizationCreation(currentUser, req.body);
+    EosContentInputProcessor.validateContentSignedTransactionDetailsOrError(req.body);
 
     const body = await OrganizationsInputProcessor.processCreation(req, currentUser);
 
