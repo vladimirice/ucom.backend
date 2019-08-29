@@ -8,7 +8,6 @@ import EosContentInputProcessor = require('./eos-content-input-processor');
 import EosTransactionService = require('../../eos-transaction-service');
 import UsersRepository = require('../../../users/users-repository');
 import OrganizationsRepository = require('../../../organizations/repository/organizations-repository');
-import EosInputProcessor = require('./eos-input-processor');
 
 const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
@@ -76,7 +75,7 @@ class EosPostsInputProcessor {
     currentUser: UserModel,
     parentBlockchainId: string,
   ): Promise<void> {
-    const added: boolean = EosInputProcessor.addSignedTransactionDetailsFromRequest(body);
+    const added: boolean = EosContentInputProcessor.addSignedTransactionDetailsFromRequest(body);
 
     if (added) {
       return;

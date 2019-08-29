@@ -24,6 +24,8 @@ class ActivityHelper {
 
     if (signedTransaction !== null) {
       RequestHelper.addSignedTransactionToRequest(req, signedTransaction);
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
     }
 
     const res = await req;
@@ -175,7 +177,11 @@ class ActivityHelper {
       .set('Authorization', `Bearer ${myself.token}`)
     ;
 
-    RequestHelper.addSignedTransactionToRequestIfSet(req, signedTransaction);
+    if (signedTransaction) {
+      RequestHelper.addSignedTransactionToRequestIfSet(req, signedTransaction);
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
+    }
 
     const res = await req;
 
@@ -195,7 +201,11 @@ class ActivityHelper {
       .set('Authorization', `Bearer ${whoActs.token}`)
     ;
 
-    RequestHelper.addSignedTransactionToRequestIfSet(req, signedTransaction);
+    if (signedTransaction !== null) {
+      RequestHelper.addSignedTransactionToRequest(req, signedTransaction);
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
+    }
 
     const res = await req;
 

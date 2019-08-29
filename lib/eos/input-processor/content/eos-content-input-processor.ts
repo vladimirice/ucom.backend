@@ -35,6 +35,19 @@ class EosContentInputProcessor {
       blockchain_id,
     };
   }
+
+  public static addSignedTransactionDetailsFromRequest(body: IRequestBody): boolean {
+    const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
+
+    if (transactionDetails === null) {
+      return false;
+    }
+
+    body.blockchain_id      = transactionDetails.blockchain_id;
+    body.signed_transaction = transactionDetails.signed_transaction;
+
+    return true;
+  }
 }
 
 export  = EosContentInputProcessor;
