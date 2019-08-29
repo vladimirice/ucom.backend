@@ -1,5 +1,5 @@
 import { IRequestBody } from '../../common/interfaces/common-types';
-import { BadRequestError } from '../../api/errors';
+import { BadRequestError, getErrorMessagePair } from '../../api/errors';
 import { UserModel } from '../interfaces/model-interfaces';
 
 import AuthValidator = require('../../auth/validators');
@@ -23,10 +23,7 @@ class LoginService {
     const user = await UsersService.findOneByAccountName(requestData.account_name);
 
     if (!user) {
-      throw new BadRequestError([{
-        field: 'account_name',
-        message: 'Incorrect Brainkey or Account name',
-      }]);
+      throw new BadRequestError(getErrorMessagePair('account_name', 'Incorrect Brainkey or Account name'));
     }
 
     const socialPublicKey: string | null = await this.processSocialPublicKey(requestData, user);
@@ -72,7 +69,7 @@ class LoginService {
     }
 
     if (socialPublicKeyFromRequest !== user.social_public_key) {
-      throw new BadRequestError(`User: ${user.account_name} has a different social public key: ${user.social_public_key}. Provided one: ${socialPublicKeyFromRequest}`);
+      throw new BadRequestError(getErrorMessagePair('account_name', `User: ${user.account_name} has a different social public key: ${user.social_public_key}. Provided one: ${socialPublicKeyFromRequest}`));
     }
 
     return socialPublicKeyFromRequest;
@@ -82,11 +79,11 @@ class LoginService {
     const currentSocialKey = await SocialKeyApi.getAccountCurrentSocialKey(accountName);
 
     if (!currentSocialKey) {
-      throw new BadRequestError(`There is no social key for the user: ${accountName}. Bind it beforehand.`);
+      throw new BadRequestError(getErrorMessagePair('account_name', `There is no social key for the user: ${accountName}. Bind it beforehand.`));
     }
 
     if (givenPublicSocialKey !== currentSocialKey) {
-      throw new BadRequestError(`User ${accountName} has different public social key: ${currentSocialKey}. Provided one is: ${givenPublicSocialKey}`);
+      throw new BadRequestError(getErrorMessagePair('account_name', `User ${accountName} has different public social key: ${currentSocialKey}. Provided one is: ${givenPublicSocialKey}`));
     }
   }
 }

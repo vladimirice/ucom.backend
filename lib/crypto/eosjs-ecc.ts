@@ -1,4 +1,4 @@
-import { BadRequestError } from '../api/errors';
+import { BadRequestError, getErrorMessagePair } from '../api/errors';
 
 const ecc = require('eosjs-ecc');
 
@@ -22,10 +22,7 @@ class EosJsEcc {
         throw new BadRequestError('error');
       }
     } catch (error) {
-      throw new BadRequestError([{
-        field: 'account_name',
-        message: 'Incorrect Brainkey or Account name or one of the private keys',
-      }]);
+      throw new BadRequestError(getErrorMessagePair('account_name', 'Incorrect Brainkey or Account name or one of the private keys'));
     }
   }
 
@@ -35,7 +32,7 @@ class EosJsEcc {
 
   public static isValidPublicOrError(publicKey: string): void {
     if (!ecc.isValidPublic(publicKey)) {
-      throw new BadRequestError(`Provided public key is not valid: ${publicKey}`);
+      throw new BadRequestError(getErrorMessagePair('account_name', `Provided public key is not valid: ${publicKey}`));
     }
   }
 
