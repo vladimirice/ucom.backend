@@ -41,8 +41,14 @@ docker-init-db-by-sql dis:
 pm2-reload-test-ecosystem pmt:
 	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
 
-pm2-reload-production-ecosystem:
-	ssh gt 'bash -s' < ./scripts/deployment/pm2-reload-production.sh
+pm2-reload-ecosystem-staging:
+	ssh gt 'bash -s' < ./ci-scripts/deploy/pm2-reload-ecosystem-remote.sh staging 1 1
+
+pm2-reload-ecosystem-production:
+	ssh gt 'bash -s' < ./ci-scripts/deploy/pm2-reload-ecosystem-remote.sh production 1 1
+
+pm2-reload-ecosystem-iframely:
+	ssh gt 'bash -s' < ./ci-scripts/deploy/pm2-reload-ecosystem-remote.sh production 0 0 1
 
 docker-npm-ci:
 	${DOCKER_B_EXEC_CMD} npm ci
@@ -103,9 +109,6 @@ deploy-staging deploy:
 	make docker-check-project
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
-
-pm2-reload-iframely:
-	ssh gt 'bash -s' < ./ifamely_reload.sh
 
 deploy-staging-no-check deploy-no-check:
 	git checkout staging
