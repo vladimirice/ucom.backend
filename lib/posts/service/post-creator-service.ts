@@ -14,11 +14,11 @@ import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 import UserActivityService = require('../../users/user-activity-service');
-import EosPostsInputProcessor = require('../../eos/input-processor/content/eos-posts-input-processor');
 import UsersModelProvider = require('../../users/users-model-provider');
 import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import PostsRepository = require('../posts-repository');
+import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
 
 const _ = require('lodash');
 const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
@@ -63,12 +63,7 @@ class PostCreatorService {
       }
     }
 
-    await EosPostsInputProcessor.addSignedTransactionDetailsToBody(
-      body,
-      currentUser,
-      postTypeId,
-      orgBlockchainId,
-    );
+    EosContentInputProcessor.areSignedTransactionDetailsOrError(body);
 
     await this.makeOrganizationRelatedChecks(body, currentUser);
     await this.addAttributesOfEntityFor(body, currentUser);
@@ -124,11 +119,7 @@ class PostCreatorService {
 
     EntityImageInputService.setEmptyEntityImages(body);
 
-    await EosPostsInputProcessor.addSignedTransactionDetailsToBodyForRepost(
-      body,
-      currentUser,
-      parentPost.blockchain_id,
-    );
+    EosContentInputProcessor.areSignedTransactionDetailsOrError(body);
 
     const eventId = NotificationsEventIdDictionary.getRepostEventId(parentPost.organization_id);
 

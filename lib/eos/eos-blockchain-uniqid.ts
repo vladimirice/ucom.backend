@@ -6,6 +6,7 @@ const POST_OFFER_PREFIX   = postsModelProvider.getPostOfferBlockchainIdPrefix();
 
 const prefixByScope = {
   organizations: 'org',
+  publications:   MEDIA_POST_PREFIX,
 };
 
 class BlockchainUniqId {

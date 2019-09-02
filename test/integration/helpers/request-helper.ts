@@ -379,6 +379,13 @@ class RequestHelper {
     });
   }
 
+  public static addFakeBlockchainIdAndSignedTransaction(req: SuperAgentRequest): void {
+    this.addFormFieldsToRequestWithStringify(req, {
+      blockchain_id:      'blockchain-id-12345',
+      signed_transaction: 'signed_transaction',
+    });
+  }
+
   public static addFormFieldsToRequestWithStringify(
     req: SuperAgentRequest,
     fields: StringToAnyCollection,

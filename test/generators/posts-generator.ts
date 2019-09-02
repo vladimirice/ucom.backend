@@ -88,7 +88,7 @@ class PostsGenerator {
 
     const newPostFields = _.defaults(values, defaultValues);
 
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
@@ -97,6 +97,10 @@ class PostsGenerator {
       .field('leading_text', newPostFields.leading_text)
       .field('organization_id', orgId)
       .field('entity_images', '{}');
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
@@ -184,10 +188,14 @@ class PostsGenerator {
     postId: number,
     expectedStatus: number = 201,
   ): Promise<number> {
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getCreateRepostUrl(postId))
       .set('Authorization', `Bearer ${repostAuthor.token}`)
       .field('description', 'hello from such strange one');
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
     return +res.body.id;
@@ -329,7 +337,7 @@ class PostsGenerator {
 
     const newPostFields = _.defaults(values, defaultValues);
 
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
@@ -340,6 +348,10 @@ class PostsGenerator {
       .field('current_rate', newPostFields.current_rate)
       .field('current_vote', newPostFields.current_vote)
       .field('entity_images', newPostFields.entity_images);
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
 
     ResponseHelper.expectStatusOk(res);
 
@@ -358,7 +370,7 @@ class PostsGenerator {
       action_button_title: 'TEST_BUTTON_CONTENT',
     };
 
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
@@ -370,20 +382,16 @@ class PostsGenerator {
       .field('current_vote', newPostFields.current_vote)
       .field('action_button_title', newPostFields.action_button_title)
       .field('entity_images', '{}');
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;
   }
 
-  /**
-   * @param {Object} myself
-   * @param {Object} wallOwner
-   * @param {string|null} givenDescription
-   * @param {boolean} withImage
-   * @return {Promise<void>}
-   *
-   */
-  static async createUserDirectPostForOtherUser(
+  public static async createUserDirectPostForOtherUser(
     myself: UserModel,
     wallOwner: UserModel,
     givenDescription: string | null = null,
@@ -512,6 +520,8 @@ class PostsGenerator {
 
     const fields = {
       [EntityImagesModelProvider.entityImagesColumn()]: '{}',
+      signed_transaction: 'signed_transaction',
+      blockchain_id: 'blockchain_id',
       ...givenFields,
       post_type_id: ContentTypeDictionary.getTypeDirectPost(),
     };
@@ -544,6 +554,8 @@ class PostsGenerator {
       post_type_id: ContentTypeDictionary.getTypeDirectPost(),
       description: 'Sample description',
       [EntityImagesModelProvider.entityImagesColumn()]: '{}',
+      signed_transaction: 'signed_transaction',
+      blockchain_id:      'blockchain_id',
       ...givenContent,
     };
 
@@ -587,9 +599,11 @@ class PostsGenerator {
     const url = RequestHelper.getOrgDirectPostV2Url(organizationId);
 
     const fields = {
-      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
-      entity_images: '{}',
-      description: 'New post sample description',
+      post_type_id:       ContentTypeDictionary.getTypeDirectPost(),
+      entity_images:      '{}',
+      description:        'New post sample description',
+      signed_transaction: 'signed_transaction',
+      blockchain_id:      'blockchain_id',
       ...givenContent,
     };
 
@@ -633,6 +647,8 @@ class PostsGenerator {
 
     RequestHelper.addAuthToken(req, myself);
     RequestHelper.addFieldsToRequest(req, fields);
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
 
     const res = await req;
 

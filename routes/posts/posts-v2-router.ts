@@ -49,10 +49,8 @@ PostsV2Router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, re
     throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
   }
 
-  const params = req.body;
-
-  PostsInputProcessor.process(params);
-  const updatedPost = await PostService.updateAuthorPost(postId, userId, params, currentUser);
+  PostsInputProcessor.process(req.body);
+  const updatedPost = await PostService.updateAuthorPost(postId, userId, req.body, currentUser);
 
   if (postService.isDirectPost(updatedPost)) {
     ApiPostProcessor.deleteCommentsFromModel(updatedPost);

@@ -436,13 +436,17 @@ class PostsHelper {
     const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getOrgDirectPostUrl(targetOrgId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
       .field(EntityImagesModelProvider.entityImagesColumn(),  '{}')
     ;
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
 
     ResponseHelper.expectStatusOk(res);
 
@@ -469,13 +473,16 @@ class PostsHelper {
       description += ` #${tag} `;
     });
 
-    const res = await request(server)
+    const req = request(server)
       .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field(EntityImagesModelProvider.entityImagesColumn(),   '{}')
     ;
 
+    RequestHelper.addFakeSignedTransactionString(req);
+
+    const res = await req;
     ResponseHelper.expectStatusOk(res);
 
     return res.body;
@@ -493,12 +500,16 @@ class PostsHelper {
       description += ` #${tag} `;
     });
 
-    const res = await request(server)
+    const req = request(server)
       .patch(RequestHelper.getOnePostV2Url(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('entity_images',   '{}')
     ;
+
+    RequestHelper.addFakeSignedTransactionString(req);
+
+    const res = await req;
 
     ResponseHelper.expectStatusOk(res);
 

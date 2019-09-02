@@ -13,7 +13,6 @@ import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ImportanceGenerator = require('../../generators/blockchain/importance/uos-accounts-properties-generator');
 import UosAccountsPropertiesFetchService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-fetch-service');
 import EosApi = require('../../../lib/eos/eosApi');
-import EosPostsInputProcessor = require('../../../lib/eos/input-processor/content/eos-posts-input-processor');
 import EosTransactionService = require('../../../lib/eos/eos-transaction-service');
 import ActivityProducer = require('../../../lib/jobs/activity-producer');
 import UserToOrganizationActivity = require('../../../lib/users/activity/user-to-organization-activity');
@@ -21,8 +20,6 @@ import UserActivityService = require('../../../lib/users/user-activity-service')
 
 // @ts-ignore
 const uniqid = require('uniqid');
-
-let postCreationCounter = 1;
 
 class MockHelper {
   public static mockUosAccountsPropertiesFetchService(
@@ -436,9 +433,6 @@ class MockHelper {
   }
 
   static mockAllTransactionSigning() {
-    postCreationCounter = 1;
-
-    this.mockPostTransactionSigning();
     this.mockUsersActivityBackendSigner();
     this.mockCommentTransactionSigning();
     this.mockOrganizationFollowingSigning();
@@ -511,66 +505,6 @@ class MockHelper {
       bindingKey,
     ) {
       return true;
-    };
-  }
-
-  static mockPostTransactionSigning() {
-    // @ts-ignore
-    EosPostsInputProcessor.addSignedTransactionDetailsToBody = async function (
-      body,
-      // @ts-ignore
-      user,
-      // @ts-ignore
-      postTypeId,
-      organizationBlockchainId = null,
-    ) {
-      if (organizationBlockchainId) {
-        body.blockchain_id = `sample_new_org_post_blockchain_id_${postCreationCounter}`;
-        body.signed_transaction = 'sample_new_org_post_transaction';
-      } else {
-        body.blockchain_id = `sample_user_himself_new_post_blockchain_id_${postCreationCounter}`;
-        body.signed_transaction = 'sample_user_himself_new_post_transaction';
-      }
-
-      postCreationCounter += 1;
-    };
-
-    // noinspection JSUnusedLocalSymbols
-    EosTransactionService.appendSignedUserCreatesRepost = async function (
-      body,
-      // @ts-ignore
-      user,
-      // @ts-ignore
-      parentContentBlockchainId,
-    ): Promise<void> {
-      body.blockchain_id = 'sample_blockchain_id';
-      body.signed_transaction = 'sample_signed_transaction';
-    };
-
-    // noinspection JSUnusedLocalSymbols
-    EosTransactionService.appendSignedLegacyUserCreatesDirectPostForOtherUser = async function (
-      body,
-      // @ts-ignore
-      user,
-      // @ts-ignore
-      accountNameTo,
-    ): Promise<void> {
-      body.blockchain_id = 'sample_blockchain_id';
-
-      body.signed_transaction = 'sample_signed_transaction';
-    };
-
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    EosTransactionService.appendSignedUserCreatesDirectPostForOrg = async function (
-      body,
-      // @ts-ignore
-      user,
-      // @ts-ignore
-      orgBlockchainIdTo,
-    ): Promise<void> {
-      body.blockchain_id = 'sample_blockchain_id';
-
-      body.signed_transaction = 'sample_signed_transaction';
     };
   }
 

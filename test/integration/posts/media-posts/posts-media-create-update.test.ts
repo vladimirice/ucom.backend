@@ -70,7 +70,7 @@ describe('Posts API', () => {
           current_vote: 0,
         };
 
-        const res = await request(server)
+        const req = request(server)
           .post(postsUrl)
           .set('Authorization', `Bearer ${myself.token}`)
           .field('title', newPostFields.title)
@@ -80,10 +80,14 @@ describe('Posts API', () => {
           .field('entity_images', '{}')
         ;
 
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
+
         ResponseHelper.expectStatusOk(res);
 
         const posts = await PostsRepository.findAllByAuthor(myself.id);
-        const newPost = posts.find(data => data.title === newPostFields.title);
+        const newPost = posts.find((data) => data.title === newPostFields.title);
         expect(newPost).toBeDefined();
 
         const { body } = res;
@@ -177,7 +181,7 @@ describe('Posts API', () => {
           leading_text: 'And leading text',
         };
 
-        const res = await request(server)
+        const req = request(server)
           .patch(`${postsUrl}/${postId}`)
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',         fieldsToChange.title)
@@ -185,6 +189,10 @@ describe('Posts API', () => {
           .field('leading_text',  fieldsToChange.leading_text)
           .field('entity_images',  '{}')
         ;
+
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusOk(res);
 
@@ -208,7 +216,7 @@ describe('Posts API', () => {
           leading_text: 'And leading text',
         };
 
-        const res = await request(server)
+        const req = request(server)
           .patch(`${postsUrl}/${firstPostBefore.id}`)
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',         fieldsToChange.title)
@@ -216,6 +224,10 @@ describe('Posts API', () => {
           .field('leading_text',  fieldsToChange.leading_text)
           .field('entity_images',  '{}')
         ;
+
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusOk(res);
 
@@ -397,11 +409,11 @@ describe('Posts API', () => {
       expect(postUsersTeam).toBeDefined();
       expect(postUsersTeam.length).toBe(1);
 
-      const userJaneInTeam = postUsersTeam.find(data => data.user_id === userJane.id);
+      const userJaneInTeam = postUsersTeam.find((data) => data.user_id === userJane.id);
       expect(userJaneInTeam).toBeDefined();
       expect(userJaneInTeam.post_id).toBe(firstPostBefore.id);
 
-      const userVladInTeam = postUsersTeam.find(data => data.user_id === userVlad.id);
+      const userVladInTeam = postUsersTeam.find((data) => data.user_id === userVlad.id);
       expect(userVladInTeam).not.toBeDefined();
     });
     it.skip('not possible to create media post or post offer as direct post', async () => {
@@ -464,7 +476,7 @@ describe('Posts API', () => {
       const postUsersTeam = lastPost.post_users_team;
       expect(postUsersTeam).toBeDefined();
       newPostUsersTeamFields.forEach((teamMember) => {
-        const record = postUsersTeam.find(data => data.user_id === teamMember.user_id);
+        const record = postUsersTeam.find((data) => data.user_id === teamMember.user_id);
         expect(record).toBeDefined();
         expect(record.post_id).toBe(lastPost.id);
       });

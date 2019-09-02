@@ -36,6 +36,18 @@ class EosContentInputProcessor {
     };
   }
 
+  public static areSignedTransactionUpdateDetailsOrError(body: IRequestBody): void {
+    if (!body.signed_transaction) {
+      throw new BadRequestError('Please provide transaction details for update: signed_transaction');
+    }
+  }
+
+  public static areSignedTransactionDetailsOrError(body: IRequestBody): void {
+    if (!this.getSignedTransactionFromBody(body)) {
+      throw new BadRequestError('Please provide transaction details: blockchain_id and signed_transaction');
+    }
+  }
+
   public static addSignedTransactionDetailsFromRequest(body: IRequestBody): boolean {
     const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
 

@@ -85,8 +85,8 @@ describe('Posts stats', () => {
 
         StatsHelper.checkManyEventsJsonValuesByExpectedSet(events, expectedSet);
 
-        const postOneEvent = events.find(item => +item.entity_id === firstPostId)!;
-        const postTwoEvent = events.find(item => +item.entity_id === secondPostId)!;
+        const postOneEvent = events.find((item) => +item.entity_id === firstPostId)!;
+        const postTwoEvent = events.find((item) => +item.entity_id === secondPostId)!;
 
         expect(+postOneEvent.result_value).toBe(4);
         expect(+postTwoEvent.result_value).toBe(1);
@@ -239,8 +239,8 @@ describe('Posts stats', () => {
 
         StatsHelper.checkManyEventsJsonValuesByExpectedSet(postEvents, expectedSet);
 
-        const postOneEvent = postEvents.find(item => +item.entity_id === postOneId)!;
-        const postTwoEvent = postEvents.find(item => +item.entity_id === postTwoId)!;
+        const postOneEvent = postEvents.find((item) => +item.entity_id === postOneId)!;
+        const postTwoEvent = postEvents.find((item) => +item.entity_id === postTwoId)!;
 
         expect(+postOneEvent.result_value).toBe(4);
         expect(+postTwoEvent.result_value).toBe(1);

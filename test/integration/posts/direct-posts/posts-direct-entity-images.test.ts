@@ -46,7 +46,7 @@ describe('direct posts entity images', () => {
           await PostsGenerator.createDirectPostForUserWithFields(userVlad, userJane, givenFields);
 
         const posts = await GraphqlHelper.getManyDirectPostsAsMyself(myself);
-        const newPost: PostModelResponse | undefined = posts.data.find(data => data.id === directPost.id);
+        const newPost: PostModelResponse | undefined = posts.data.find((data) => data.id === directPost.id);
 
         expect(newPost).toMatchObject(givenFields);
 
@@ -65,7 +65,7 @@ describe('direct posts entity images', () => {
           await PostsGenerator.createDirectPostForUserWithFields(userVlad, userJane, givenFields);
 
         const posts = await GraphqlHelper.getManyDirectPostsAsMyself(myself);
-        const newPost: PostModelResponse | undefined = posts.data.find(data => data.id === directPost.id);
+        const newPost: PostModelResponse | undefined = posts.data.find((data) => data.id === directPost.id);
 
         expect(newPost).toMatchObject(givenFields);
 
@@ -96,7 +96,7 @@ describe('direct posts entity images', () => {
 
         const posts = await GraphqlHelper.getManyDirectPostsAsMyself(myself);
 
-        const newPost = posts.data.find(data => data.id === directPost.id);
+        const newPost = posts.data.find((data) => data.id === directPost.id);
         ResponseHelper.expectNotEmpty(newPost);
 
         PostsHelper.checkEntityImages(newPost!);
@@ -126,17 +126,21 @@ describe('direct posts entity images', () => {
         },
       };
 
-      const res = await request(server)
+      const req = request(server)
         .patch(`${RequestHelper.getPostsUrl()}/${firstPostBefore.id}`)
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description',   fieldsToChange.description)
         .field(fieldName,  JSON.stringify(fieldsToChange.entity_images))
       ;
 
+      RequestHelper.addFakeSignedTransactionString(req);
+
+      const res = await req;
+
       ResponseHelper.expectStatusOk(res);
 
       const posts = await GraphqlHelper.getManyDirectPostsAsMyself(userVlad);
-      const newPost = posts.data.find(data => data.id === firstPostBefore.id);
+      const newPost = posts.data.find((data) => data.id === firstPostBefore.id);
 
       ResponseHelper.expectValuesAreExpected(fieldsToChange, newPost);
 
@@ -170,17 +174,21 @@ describe('direct posts entity images', () => {
         },
       };
 
-      const res = await request(server)
+      const req = request(server)
         .patch(`${RequestHelper.getPostsUrl()}/${firstPostBefore.id}`)
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description',   fieldsToChange.description)
         .field(fieldName,  JSON.stringify(fieldsToChange.entity_images))
       ;
 
+      RequestHelper.addFakeSignedTransactionString(req);
+
+      const res = await req;
+
       ResponseHelper.expectStatusOk(res);
 
       const posts = await GraphqlHelper.getManyDirectPostsAsMyself(userVlad);
-      const newPost = posts.data.find(data => data.id === firstPostBefore.id);
+      const newPost = posts.data.find((data) => data.id === firstPostBefore.id);
 
       ResponseHelper.expectValuesAreExpected(fieldsToChange, newPost);
 
@@ -206,16 +214,20 @@ describe('direct posts entity images', () => {
         [fieldName]: {},
       };
 
-      const res = await request(server)
+      const req = request(server)
         .patch(`${RequestHelper.getPostsUrl()}/${firstPostBefore.id}`)
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field(fieldName,  JSON.stringify(fieldsToChange.entity_images))
       ;
 
+      RequestHelper.addFakeSignedTransactionString(req);
+
+      const res = await req;
+
       ResponseHelper.expectStatusOk(res);
 
       const posts = await GraphqlHelper.getManyDirectPostsAsMyself(userVlad);
-      const newPost = posts.data.find(data => data.id === firstPostBefore.id);
+      const newPost = posts.data.find((data) => data.id === firstPostBefore.id);
 
       ResponseHelper.expectValuesAreExpected(fieldsToChange, newPost);
 

@@ -661,15 +661,6 @@ class UserActivityService {
     await ActivityProducer.publishWithUserActivity(jsonPayload);
   }
 
-  public static async sendContentUpdatingPayloadToRabbit(
-    activity: IActivityModel,
-    options: IActivityOptions,
-  ): Promise<void> {
-    const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
-
-    await ActivityProducer.publishWithContentUpdating(jsonPayload);
-  }
-
   public static async sendContentUpdatingPayloadToRabbitEosV2(
     activity: IActivityModel,
   ): Promise<void> {

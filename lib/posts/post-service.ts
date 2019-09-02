@@ -1,9 +1,6 @@
-/* eslint-disable max-len */
-/* tslint:disable:max-line-length no-parameter-reassignment */
 import { PostModelResponse } from './interfaces/model-interfaces';
 import { UserModel } from '../users/interfaces/model-interfaces';
-import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
-import { StringToAnyCollection } from '../common/interfaces/common-types';
+import { IRequestBody } from '../common/interfaces/common-types';
 
 import PostsFetchService = require('./service/posts-fetch-service');
 import PostCreatorService = require('./service/post-creator-service');
@@ -18,6 +15,7 @@ import OrganizationsModelProvider = require('../organizations/service/organizati
 import OrganizationsRepository = require('../organizations/repository/organizations-repository');
 import PostStatsRepository = require('./stats/post-stats-repository');
 import PostOfferRepository = require('./repository/post-offer-repository');
+import EosContentInputProcessor = require('../eos/input-processor/content/eos-content-input-processor');
 
 const _ = require('lodash');
 
@@ -72,18 +70,18 @@ class PostService {
   public static async updateAuthorPost(
     postId: number,
     userId: number,
-    params: StringToAnyCollection,
+    body: IRequestBody,
     currentUser: UserModel,
   ) {
     const currentUserId = currentUser.id;
 
     // #task #refactor - use pick and wrap into transaction
-    delete params.id;
-    delete params.user_id;
-    delete params.current_rate;
-    delete params.current_vote;
+    delete body.id;
+    delete body.user_id;
+    delete body.current_rate;
+    delete body.current_vote;
 
-    const signedTransaction: string = params.signed_transaction || '';
+    EosContentInputProcessor.areSignedTransactionUpdateDetailsOrError(body);
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({
@@ -97,19 +95,19 @@ class PostService {
     if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeMediaPost()) {
       // noinspection AssignmentToFunctionParameterJS
       // noinspection JSValidateTypes
-      params = _.pick(params, ['post_type_id', 'title', 'description', 'leading_text', 'entity_images']);
+      body = _.pick(body, ['post_type_id', 'title', 'description', 'leading_text', 'entity_images', 'signed_transaction']);
     }
 
     const { updatedPost, newActivity } = await models.sequelize.transaction(async (transaction) => {
-      if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeOffer() && params.post_users_team) {
-        await PostService.updatePostUsersTeam(postId, params, transaction);
+      if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeOffer() && body.post_users_team) {
+        await PostService.updatePostUsersTeam(postId, body, transaction);
       }
 
       // #refactor
-      const updatePostParams = _.cloneDeep(params);
+      const updatePostParams = _.cloneDeep(body);
       delete updatePostParams.entity_images;
 
-      EntityImageInputService.addEntityImageFieldFromBodyOrException(updatePostParams, params);
+      EntityImageInputService.addEntityImageFieldFromBodyOrException(updatePostParams, body);
 
       await models.posts.update(updatePostParams, {
         transaction,
@@ -124,7 +122,7 @@ class PostService {
       const updated = await PostsRepository.findOnlyPostItselfById(postId, transaction);
 
       if (updated.post_type_id === ContentTypeDictionary.getTypeOffer()) {
-        await models.post_offer.update(params, {
+        await models.post_offer.update(body, {
           transaction,
           where: {
             post_id: postId,
@@ -139,7 +137,7 @@ class PostService {
         currentUserId,
         eventId,
         transaction,
-        signedTransaction,
+        body.signed_transaction,
       );
 
       return {
@@ -148,12 +146,7 @@ class PostService {
       };
     });
 
-    const activityOptions: IActivityOptions = {
-      eosJsV2: true,
-      suppressEmptyTransactionError: true, // #task backward compatibility
-    };
-
-    await UserActivityService.sendContentUpdatingPayloadToRabbit(newActivity, activityOptions);
+    await UserActivityService.sendContentUpdatingPayloadToRabbitEosV2(newActivity);
 
     if (PostService.isDirectPost(updatedPost)) {
       return PostsFetchService.findOnePostByIdAndProcess(updatedPost.id, currentUser.id);
