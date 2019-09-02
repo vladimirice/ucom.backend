@@ -243,7 +243,7 @@ class PostsHelper {
       post_type_id: 1,
     };
 
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
@@ -252,6 +252,10 @@ class PostsHelper {
       .field('leading_text', newPostFields.leading_text)
       .field('organization_id', orgId)
     ;
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
@@ -701,13 +705,17 @@ class PostsHelper {
       user_id: item.id,
     }));
 
-    const res = await request(server)
+    const req = request(server)
       .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('post_users_team[0][id]', boardToChange[0].user_id)
       .field('post_users_team[1][id]', boardToChange[1].user_id)
       .field(EntityImagesModelProvider.entityImagesColumn(), '{}')
     ;
+
+    RequestHelper.addFakeSignedTransactionString(req);
+
+    const res = await req;
 
     ResponseHelper.expectStatusOk(res);
 

@@ -81,12 +81,16 @@ describe('Sanitization', () => {
         '    </ul>\n' +
         '</div></div></div>';
 
-      const res = await request(server)
+      const req = request(server)
         .patch(RequestHelper.getOnePostUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description',   fieldsToChange.description)
         .field('entity_images',   '{}')
       ;
+
+      RequestHelper.addFakeSignedTransactionString(req);
+
+      const res = await req;
 
       ResponseHelper.expectStatusOk(res);
 
@@ -113,12 +117,16 @@ describe('Sanitization', () => {
 </div><p class="12345">a</p>`,
       };
 
-      const res = await request(server)
+      const req = request(server)
         .patch(RequestHelper.getOnePostUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description',   fieldsToChange.description)
         .field('entity_images',   '{}')
       ;
+
+      RequestHelper.addFakeSignedTransactionString(req);
+
+      const res = await req;
 
       ResponseHelper.expectStatusOk(res);
 
@@ -138,7 +146,7 @@ describe('Sanitization', () => {
         description: '<script>alert("hello world!")</script><p>Html text</p>',
       };
 
-      const res = await request(server)
+      const req = request(server)
         .patch(RequestHelper.getOnePostUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('title',         fieldsToChange.title)
@@ -146,6 +154,10 @@ describe('Sanitization', () => {
         .field('leading_text',  fieldsToChange.leading_text)
         .field('entity_images',  '{}')
       ;
+
+      RequestHelper.addFakeSignedTransactionString(req);
+
+      const res = await req;
 
       ResponseHelper.expectStatusOk(res);
 

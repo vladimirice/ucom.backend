@@ -135,7 +135,7 @@ class PostsGenerator {
       organization_id: orgId,
     };
 
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
@@ -148,6 +148,10 @@ class PostsGenerator {
       .field('action_button_title', newPostFields.action_button_title)
       .field('organization_id', newPostFields.organization_id)
       .field(EntityImagesModelProvider.entityImagesColumn(), '{}');
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
     ResponseHelper.expectStatusOk(res);
 
     return +res.body.id;

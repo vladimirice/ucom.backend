@@ -1,6 +1,7 @@
 import postService from '../../../lib/posts/post-service';
 
 import PostsHelper = require('../helpers/posts-helper');
+import UsersHelper = require('../helpers/users-helper');
 
 export {};
 
@@ -42,8 +43,8 @@ describe('Users activity stats', () => {
       const sampleRate = 0.456;
 
       const [expectedVladRate, expectedJaneRate] = await Promise.all([
-        helpers.UserHelper.setSampleRateToUser(userVlad),
-        helpers.UserHelper.setSampleRateToUser(userJane, sampleRate),
+        UsersHelper.setSampleRateToUser(userVlad),
+        UsersHelper.setSampleRateToUser(userJane, sampleRate),
       ]);
 
       const firstPostBefore = await postService.findLastPostOfferByAuthor(userVlad.id);
@@ -58,10 +59,10 @@ describe('Users activity stats', () => {
 
       const team = post.post_users_team;
 
-      const teamVlad = team.find(member => member.id === userVlad.id);
+      const teamVlad = team.find((member) => member.id === userVlad.id);
       expect(teamVlad.current_rate).toBe(expectedVladRate);
 
-      const teamJane = team.find(member => member.id === userJane.id);
+      const teamJane = team.find((member) => member.id === userJane.id);
       expect(teamJane.current_rate).toBe(expectedJaneRate);
     }, 1000000);
   });
