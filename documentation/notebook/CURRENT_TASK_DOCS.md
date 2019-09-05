@@ -4,6 +4,22 @@ This file is for frontend team only
 
 ## Social key
 
+### Add more social permissions during the authorization:
+
+Check - does social key exist - use checking method
+```
+SocialKeyApi.getAccountCurrentSocialKey
+```
+If does not exist - call the same method as for registration, it now grants all permissions at once
+```
+SocialKeyApi.bindSocialKeyWithSocialPermissions
+```
+
+If the social key exist - try to call a new method of permissions binding - no exceptions must be
+```
+SocialKeyApi.addSocialPermissionsToEmissionAndProfile
+```
+
 ### Registration process
 
 1. Generate a social key and other keys
