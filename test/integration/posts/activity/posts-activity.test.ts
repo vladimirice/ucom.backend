@@ -1,3 +1,4 @@
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import RequestHelper = require('../../helpers/request-helper');
@@ -18,8 +19,6 @@ import CommonChecker = require('../../../helpers/common/common-checker');
 const request = require('supertest');
 
 const server = RequestHelper.getApiApplication();
-
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -60,15 +59,15 @@ describe('User to post activity', () => {
 
     const posts = res.body.data;
 
-    const postNoVote = posts.find(post => post.id === postIdToNoVote);
+    const postNoVote = posts.find((post) => post.id === postIdToNoVote);
     expect(postNoVote.myselfData.myselfVote).toBe('no_vote');
 
-    const upvotedPost = posts.find(post => post.id === postIdToUpvote);
+    const upvotedPost = posts.find((post) => post.id === postIdToUpvote);
     expect(upvotedPost.myselfData).toBeDefined();
     expect(upvotedPost.myselfData.myselfVote).toBeDefined();
     expect(upvotedPost.myselfData.myselfVote).toBe('upvote');
 
-    const downvotedPost = posts.find(post => post.id === postIdToDownvote);
+    const downvotedPost = posts.find((post) => post.id === postIdToDownvote);
     expect(downvotedPost.myselfData.myselfVote).toBe('downvote');
   }, JEST_TIMEOUT);
 
@@ -104,7 +103,7 @@ describe('User to post activity', () => {
           .where({
             entity_id: postId,
             user_id: userJane.id,
-            interaction_type: InteractionTypeDictionary.getUpvoteId(),
+            interaction_type: InteractionTypesDictionary.getUpvoteId(),
             entity_name: PostsModelProvider.getEntityName(),
           });
 
@@ -192,7 +191,7 @@ describe('User to post activity', () => {
           .where({
             entity_id: postId,
             user_id: userJane.id,
-            interaction_type: InteractionTypeDictionary.getDownvoteId(),
+            interaction_type: InteractionTypesDictionary.getDownvoteId(),
             entity_name: PostsModelProvider.getEntityName(),
           });
 

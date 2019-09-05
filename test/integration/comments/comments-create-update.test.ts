@@ -107,11 +107,15 @@ describe('#comments create update', () => {
         description: 'comment description',
       };
 
-      const res = await request(server)
+      const req = request(server)
         .post(RequestHelper.getCommentsUrl(postId))
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('description', fieldsToSet.description)
         .field(EntityImagesModelProvider.entityImagesColumn(), '{}');
+
+      RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+      const res = await req;
 
       ResponseHelper.expectStatusCreated(res);
 

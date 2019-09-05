@@ -64,6 +64,8 @@ class CommentsGenerator {
       .post(requestHelper.getCommentsUrl(postId))
       .field('description', description);
 
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
     if (typeof entityImages !== 'undefined') {
       RequestHelper.addEntityImagesField(req, entityImages);
     } else {
@@ -90,6 +92,8 @@ class CommentsGenerator {
     const fields = {
       description: 'New comment description',
       entity_images: '{}',
+      signed_transaction: 'signed_transaction',
+      blockchain_id: 'blockchain_id',
       ...givenFields,
     };
 
@@ -121,9 +125,11 @@ class CommentsGenerator {
     expectedStatus: number = 201,
   ): Promise<CommentModelResponse> {
     const req = request(server)
-      .post(requestHelper.getCommentOnCommentUrl(postId, parentCommentId))
+      .post(RequestHelper.getCommentOnCommentUrl(postId, parentCommentId))
       .field('description', description);
-    requestHelper.addAuthToken(req, user);
+    RequestHelper.addAuthToken(req, user);
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
 
     if (entityImages !== null) {
       RequestHelper.addEntityImagesField(req, entityImages);
@@ -150,6 +156,8 @@ class CommentsGenerator {
     const fields = {
       description: 'New comment on comment description',
       entity_images: '{}',
+      signed_transaction: 'signed_transaction',
+      blockchain_id: 'blockchain_id',
       ...givenFields,
     };
 

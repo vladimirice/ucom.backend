@@ -1,12 +1,11 @@
 /* eslint-disable no-console */
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { TotalParametersResponse } from '../../../common/interfaces/response-interfaces';
 
 import EosApi = require('../../../eos/eosApi');
 import knex = require('../../../../config/knex');
 import PostsModelProvider = require('../posts-model-provider');
 import UsersModelProvider = require('../../../users/users-model-provider');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
 const { EosClient, WalletApi } = require('ucom-libs-wallet');
@@ -50,7 +49,7 @@ class RepostResendingService {
       ])
       .innerJoin(`${UsersModelProvider.getTableName()} AS u`, 'u.id', 'p.user_id')
       .innerJoin(`${PostsModelProvider.getTableName()} AS parent`, 'parent.id', 'p.parent_id')
-      .where('p.post_type_id', ContentTypeDictionary.getTypeRepost())
+      .where('p.post_type_id', ContentTypesDictionary.getTypeRepost())
       .where('p.created_at', '<=', createdAtLessOrEqualThan)
       .orderBy('p.id', 'ASC')
       .limit(limit)

@@ -98,6 +98,8 @@ class CommentsHelper {
 
     if (signedTransaction) {
       RequestHelper.addSignedTransactionToRequest(req, signedTransaction);
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
     }
 
     const res = await req;
@@ -106,7 +108,6 @@ class CommentsHelper {
 
     return res.body;
   }
-
 
   public static async requestToDownvoteComment(
     postId: number,

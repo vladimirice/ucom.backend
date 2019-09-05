@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../../helpers/graphql-helper';
 import { PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
@@ -10,7 +11,6 @@ import PostsHelper = require('../../helpers/posts-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
 import PostsRepository = require('../../../../lib/posts/posts-repository');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
 
 const server = RequestHelper.getApiApplication();
@@ -43,7 +43,7 @@ describe('media posts entity images', () => {
           title: 'Extremely new post',
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
 
           [fieldName]: {},
         };
@@ -80,7 +80,7 @@ describe('media posts entity images', () => {
           title: 'Extremely new post',
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
         };
 
         const req = request(server)
@@ -115,7 +115,7 @@ describe('media posts entity images', () => {
           title: 'Extremely new post',
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
           [fieldName]: {
             something: [
               {

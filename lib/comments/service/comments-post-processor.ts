@@ -1,10 +1,7 @@
-/* eslint-disable max-len */
-/* tslint:disable:max-line-length */
-import { MyselfDataDto } from '../../common/interfaces/post-processing-dto';
 import { NumberToNumberCollection } from '../../common/interfaces/common-types';
 import { CommentModel } from '../interfaces/model-interfaces';
 
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
+const { InteractionTypesDictionary } = require('ucom.libs.common');
 
 class CommentsPostProcessor {
   /**
@@ -104,19 +101,17 @@ class CommentsPostProcessor {
         for (let i = 0; i < model[activityParameter].length; i += 1) {
           const current = model[activityParameter][i];
 
-          if (InteractionTypeDictionary.isUpvoteActivity(current) && current.user_id_from === currentUserId) {
+          if (InteractionTypesDictionary.isUpvoteActivity(current) && current.user_id_from === currentUserId) {
             myselfVote = 'upvote';
-          } else if (InteractionTypeDictionary.isDownvoteActivity(current) && current.user_id_from === currentUserId) {
+          } else if (InteractionTypesDictionary.isDownvoteActivity(current) && current.user_id_from === currentUserId) {
             myselfVote = 'downvote';
           }
         }
       }
 
-      const myselfData: MyselfDataDto = {
+      model.myselfData = {
         myselfVote,
       };
-
-      model.myselfData = myselfData;
     });
   }
 }

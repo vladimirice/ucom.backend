@@ -1,14 +1,12 @@
 /* eslint-disable no-console */
 /* tslint:disable:max-line-length */
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { IActivityOptions } from '../interfaces/activity-interfaces';
+import { AppError } from '../../api/errors';
 
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 
-const { TransactionSender } = require('ucom-libs-social-transactions');
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const { SocialApi } = require('ucom-libs-wallet');
-
-const userActivitySerializer = require('../../users/job/user-activity-serializer');
 
 const usersActivityRepository = require('../../users/repository').Activity;
 
@@ -18,7 +16,7 @@ const { ConsumerLogger } = require('../../../config/winston');
 const eventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 
 const activityIdsToSkip = [
-  InteractionTypeDictionary.getOrgTeamInvitation(),
+  InteractionTypesDictionary.getOrgTeamInvitation(),
 ];
 
 const eventIdsToSkip = [
@@ -53,7 +51,7 @@ class BlockchainJobProcessor {
     if (message.options && message.options.eosJsV2) {
       blockchainResponse = await this.pushByEosJsV2(message);
     } else {
-      blockchainResponse = await this.pushByLegacyEosJs(message);
+      throw new AppError('Only eosJsV2 is supported');
     }
 
     if (blockchainResponse === null
@@ -69,12 +67,6 @@ class BlockchainJobProcessor {
       message.id,
       JSON.stringify(blockchainResponse),
     );
-  }
-
-  private static async pushByLegacyEosJs(message): Promise<any> {
-    const signedTransaction = await userActivitySerializer.getActivityDataToPushToBlockchain(message);
-
-    return TransactionSender.pushTransaction(signedTransaction.transaction);
   }
 
   private static async pushByEosJsV2(message): Promise<any> {

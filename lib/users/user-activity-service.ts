@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
+import { ContentTypesDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
 import { AppError, BadRequestError, getErrorMessagePair } from '../api/errors';
 import { UserModel } from './interfaces/model-interfaces';
 import { ISignedTransactionObject } from '../eos/interfaces/transactions-interfaces';
@@ -25,9 +26,6 @@ import BlockchainModelProvider = require('../eos/service/blockchain-model-provid
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 const status = require('statuses');
-
-// tslint:disable-next-line:max-line-length
-const { ContentTypeDictionary, InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const ACTIVITY_TYPE__UPVOTE_NODE = 20;
 const ACTIVITY_TYPE__CANCEL_NODE_UPVOTING_NODE = 30;
@@ -92,7 +90,7 @@ class UserActivityService {
     transaction,
   ) {
     const data = {
-      activity_type_id:   ContentTypeDictionary.getTypeOrganization(),
+      activity_type_id:   ContentTypesDictionary.getTypeOrganization(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
       user_id_from:       currentUserId,
       entity_id_to:       newOrganizationId,
@@ -111,7 +109,7 @@ class UserActivityService {
     transaction,
   ) {
     const data = {
-      activity_type_id:   ContentTypeDictionary.getTypeOrganization(),
+      activity_type_id:   ContentTypesDictionary.getTypeOrganization(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentUpdating(),
       user_id_from:       currentUserId,
       entity_id_to:       newOrganizationId,
@@ -133,7 +131,7 @@ class UserActivityService {
    */
   static async processUsersBoardInvitation(currentUserId, targetUserId, newOrganizationId, transaction) {
     const data: any = {
-      activity_type_id:   InteractionTypeDictionary.getOrgTeamInvitation(),
+      activity_type_id:   InteractionTypesDictionary.getOrgTeamInvitation(),
       activity_group_id:  ActivityGroupDictionary.getGroupUsersTeamInvitation(),
       user_id_from:       currentUserId, // who acts. Org creator
       entity_id_to:       targetUserId, // who is invited. User from usersAdded
@@ -501,7 +499,7 @@ class UserActivityService {
     eventId,
     transaction,
   ) {
-    const activityTypeId      = ContentTypeDictionary.getTypeComment();
+    const activityTypeId      = ContentTypesDictionary.getTypeComment();
     const commentsEntityName  = CommentsModelProvider.getEntityName();
 
     let activityGroupId;
@@ -548,7 +546,7 @@ class UserActivityService {
     data.forEach((activity) => {
       activity.entity_id_to = +activity.entity_id_to;
 
-      if (InteractionTypeDictionary.isFollowActivity(activity)) {
+      if (InteractionTypesDictionary.isFollowActivity(activity)) {
         if (activity.user_id_from === userId) {
           IFollow.push(activity.entity_id_to);
         } else if (activity.entity_id_to === userId) {
@@ -568,7 +566,7 @@ class UserActivityService {
     userIdTo: number,
     body: IRequestBody,
   ): Promise<void> {
-    const activityTypeId = InteractionTypeDictionary.getFollowId();
+    const activityTypeId = InteractionTypesDictionary.getFollowId();
 
     await this.userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body);
   }
@@ -578,7 +576,7 @@ class UserActivityService {
     userIdTo: number,
     body: IRequestBody,
   ): Promise<void> {
-    const activityTypeId = InteractionTypeDictionary.getUnfollowId();
+    const activityTypeId = InteractionTypesDictionary.getUnfollowId();
 
     await this.userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body);
   }
@@ -694,11 +692,11 @@ class UserActivityService {
       },                        status('400'));
     }
 
-    if (!InteractionTypeDictionary.isOppositeActivityRequired(activityTypeId)) {
+    if (!InteractionTypesDictionary.isOppositeActivityRequired(activityTypeId)) {
       return;
     }
 
-    if (!currentFollowStatus || currentFollowStatus !== InteractionTypeDictionary.getOppositeFollowActivityTypeId(activityTypeId)) {
+    if (!currentFollowStatus || currentFollowStatus !== InteractionTypesDictionary.getOppositeFollowActivityTypeId(activityTypeId)) {
       throw new BadRequestError({
         general: 'It is not possible to unfollow before follow',
       },                        status('400'));
@@ -713,7 +711,7 @@ class UserActivityService {
   ): Promise<any> {
     const activityGroupId = ActivityGroupDictionary.getGroupUserUserInteraction();
     const entityName      = UsersModelProvider.getEntityName();
-    const eventId         = activityTypeId === InteractionTypeDictionary.getFollowId() ?
+    const eventId         = activityTypeId === InteractionTypesDictionary.getFollowId() ?
       NotificationsEventIdDictionary.getUserFollowsYou() : NotificationsEventIdDictionary.getUserUnfollowsYou();
 
     return knex.transaction(async (trx) => {

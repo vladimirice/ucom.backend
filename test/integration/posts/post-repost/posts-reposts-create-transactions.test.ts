@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../../lib/common/interfaces/common-types';
 import { PostModel } from '../../../../lib/posts/interfaces/model-interfaces';
@@ -10,8 +11,6 @@ import CommonChecker = require('../../../helpers/common/common-checker');
 import UsersActivityCommonHelper = require('../../../helpers/users/activity/users-activity-common-helper');
 import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import RepostResendingService = require('../../../../lib/posts/service/content-resending/repost-resending-service');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
@@ -66,7 +65,7 @@ it('create direct post for user providing a transaction', async () => {
 
   const activity = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({
-      activity_type_id:   ContentTypeDictionary.getTypeRepost(),
+      activity_type_id:   ContentTypesDictionary.getTypeRepost(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
       user_id_from:       userVlad.id,
       entity_id_to:       repost.id,

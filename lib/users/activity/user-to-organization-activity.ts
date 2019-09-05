@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../interfaces/model-interfaces';
 import { IRequestBody } from '../../common/interfaces/common-types';
 import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
@@ -18,8 +19,6 @@ import EosInputProcessor = require('../../eos/input-processor/content/eos-input-
 
 const status = require('statuses');
 
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
-
 const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
 
 class UserToOrganizationActivity {
@@ -28,7 +27,7 @@ class UserToOrganizationActivity {
     organizationId: number,
     body: IRequestBody,
   ): Promise<void> {
-    const activityTypeId = InteractionTypeDictionary.getFollowId();
+    const activityTypeId = InteractionTypesDictionary.getFollowId();
 
     await this.userFollowsOrUnfollowsOrganization(userFrom, organizationId, activityTypeId, body);
   }
@@ -38,7 +37,7 @@ class UserToOrganizationActivity {
     organizationId: number,
     body: IRequestBody,
   ): Promise<void> {
-    const activityTypeId = InteractionTypeDictionary.getUnfollowId();
+    const activityTypeId = InteractionTypesDictionary.getUnfollowId();
 
     await this.userFollowsOrUnfollowsOrganization(userFrom, organizationId, activityTypeId, body);
   }
@@ -55,7 +54,7 @@ class UserToOrganizationActivity {
     await this.checkFollowPreconditions(userFrom, organizationId, activityTypeId, activityGroupId);
 
     const activity = await knex.transaction(async (trx) => {
-      const eventId = activityTypeId === InteractionTypeDictionary.getFollowId() ?
+      const eventId = activityTypeId === InteractionTypesDictionary.getFollowId() ?
         NotificationsEventIdDictionary.getUserFollowsOrg() : NotificationsEventIdDictionary.getUserUnfollowsOrg();
 
       await this.createFollowIndex(eventId, userFrom.id, organizationId, trx);
@@ -128,11 +127,11 @@ class UserToOrganizationActivity {
       },                        status('400'));
     }
 
-    if (!InteractionTypeDictionary.isOppositeActivityRequired(activityTypeId)) {
+    if (!InteractionTypesDictionary.isOppositeActivityRequired(activityTypeId)) {
       return;
     }
 
-    if (!currentFollowStatus || currentFollowStatus !== InteractionTypeDictionary.getOppositeFollowActivityTypeId(activityTypeId)) {
+    if (!currentFollowStatus || currentFollowStatus !== InteractionTypesDictionary.getOppositeFollowActivityTypeId(activityTypeId)) {
       throw new BadRequestError({
         general: 'It is not possible to unfollow before follow',
       },                        status('400'));

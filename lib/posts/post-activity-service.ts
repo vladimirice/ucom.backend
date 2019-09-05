@@ -1,8 +1,8 @@
-/* tslint:disable:max-line-length */
 import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
 import { UserModel } from '../users/interfaces/model-interfaces';
 import { PostModel } from './interfaces/model-interfaces';
 import { IRequestBody } from '../common/interfaces/common-types';
+import { BadRequestError } from '../api/errors';
 
 import EosTransactionService = require('../eos/eos-transaction-service');
 import PostsRepository = require('./posts-repository');
@@ -10,9 +10,9 @@ import NotificationsEventIdDictionary = require('../entities/dictionary/notifica
 import UserActivityService = require('../users/user-activity-service');
 import knex = require('../../config/knex');
 import UsersActivityVoteRepository = require('../users/repository/users-activity/users-activity-vote-repository');
+import EosContentInputProcessor = require('../eos/input-processor/content/eos-content-input-processor');
 
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
-const { BadRequestError:badRequestError } = require('../api/errors');
+const { InteractionTypesDictionary } = require('ucom.libs.common');
 
 class PostActivityService {
   public static async userUpvotesPost(
@@ -20,7 +20,7 @@ class PostActivityService {
     postId: number,
     body: IRequestBody,
   ): Promise<{ current_vote: number }> {
-    const interactionType = InteractionTypeDictionary.getUpvoteId();
+    const interactionType = InteractionTypesDictionary.getUpvoteId();
 
     await this.userVotesPost(currentUser, postId, interactionType, body);
 
@@ -32,7 +32,7 @@ class PostActivityService {
     postId: number,
     body: IRequestBody,
   ): Promise<{ current_vote: number }> {
-    const interactionType = InteractionTypeDictionary.getDownvoteId();
+    const interactionType = InteractionTypesDictionary.getDownvoteId();
 
     await this.userVotesPost(currentUser, postId, interactionType, body);
 
@@ -43,13 +43,11 @@ class PostActivityService {
     currentUser: UserModel,
     postId: number,
     body: IRequestBody,
-    interactionType: number,
   ): Promise<PostModel> {
     const doesExists = await UsersActivityVoteRepository.doesUserVotePost(currentUser.id, postId);
 
     if (doesExists) {
-      // eslint-disable-next-line new-cap
-      throw new badRequestError({
+      throw new BadRequestError({
         general: 'Vote duplication is not allowed',
       });
     }
@@ -57,13 +55,12 @@ class PostActivityService {
     const post: PostModel = await PostsRepository.findOneById(postId);
 
     if (post.user_id === currentUser.id) {
-      // eslint-disable-next-line new-cap
-      throw new badRequestError({
+      throw new BadRequestError({
         general: 'It is not allowed to vote for your own comment',
       });
     }
 
-    await EosTransactionService.appendSignedUserVotesContent(currentUser, body, post.blockchain_id, interactionType);
+    EosContentInputProcessor.isSignedTransactionOrError(body);
 
     return post;
   }
@@ -74,7 +71,7 @@ class PostActivityService {
     interactionType: number,
     body: IRequestBody,
   ): Promise<void> {
-    const post = await this.checkVotePreconditionsAndGetModelTo(currentUser, postId, body, interactionType);
+    const post = await this.checkVotePreconditionsAndGetModelTo(currentUser, postId, body);
 
     const eventId: number = this.getEventId(interactionType, post);
 
@@ -104,7 +101,7 @@ class PostActivityService {
   }
 
   private static getEventId(interactionType: number, modelTo: PostModel): number {
-    if (interactionType === InteractionTypeDictionary.getUpvoteId()) {
+    if (interactionType === InteractionTypesDictionary.getUpvoteId()) {
       if (modelTo.organization_id) {
         return NotificationsEventIdDictionary.getUserUpvotesPostOfOrg();
       }
@@ -112,7 +109,7 @@ class PostActivityService {
       return NotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser();
     }
 
-    if (interactionType === InteractionTypeDictionary.getDownvoteId()) {
+    if (interactionType === InteractionTypesDictionary.getDownvoteId()) {
       if (modelTo.organization_id) {
         return NotificationsEventIdDictionary.getUserDownvotesPostOfOrg();
       }

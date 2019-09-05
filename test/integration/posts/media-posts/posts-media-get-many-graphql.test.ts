@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../../helpers/graphql-helper';
 import {
@@ -18,8 +19,6 @@ import OrganizationsHelper = require('../../helpers/organizations-helper');
 import TagsHelper = require('../../helpers/tags-helper');
 import StatsGenerator = require('../../../generators/stats-generator');
 import UsersHelper = require('../../helpers/users-helper');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -61,7 +60,7 @@ describe('GET posts via graphql', () => {
 
   describe('Media Posts trending', () => {
     const overviewType = EntityListCategoryDictionary.getTrending();
-    const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
+    const postTypeId: number = ContentTypesDictionary.getTypeMediaPost();
     const entitiesAmount = 22;
     const expectedOrderBy = 'importance_delta';
     const expectedUsersAmount = 4;
@@ -167,7 +166,7 @@ describe('GET posts via graphql', () => {
 
   describe('Media posts hot', () => {
     const overviewType = EntityListCategoryDictionary.getHot();
-    const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
+    const postTypeId: number = ContentTypesDictionary.getTypeMediaPost();
 
     const entitiesAmount = 22;
     const expectedOrderBy = 'activity_index_delta';
@@ -257,7 +256,7 @@ describe('GET posts via graphql', () => {
 
   describe('Fresh media posts', () => {
     const overviewType = EntityListCategoryDictionary.getFresh();
-    const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
+    const postTypeId: number = ContentTypesDictionary.getTypeMediaPost();
 
     const entitiesAmount = 22;
     const expectedOrderBy = 'post_id';
@@ -326,7 +325,7 @@ describe('GET posts via graphql', () => {
 
   describe('top media posts', () => {
     const overviewType = EntityListCategoryDictionary.getTop();
-    const postTypeId: number = ContentTypeDictionary.getTypeMediaPost();
+    const postTypeId: number = ContentTypesDictionary.getTypeMediaPost();
 
     const entitiesAmount = 22;
     const expectedOrderBy = 'current_rate';
@@ -491,10 +490,10 @@ describe('GET posts via graphql', () => {
 
       CommonHelper.expectModelsExistence(response.data, [postOneId, postTwoId]);
 
-      const postOneResponse: PostModelResponse = response.data.find(item => item.id === postOneId)!;
+      const postOneResponse: PostModelResponse = response.data.find((item) => item.id === postOneId)!;
       CommonHelper.expectModelsExistence(postOneResponse.comments.data, [postOneCommentId]);
 
-      const postTwoResponse: PostModelResponse = response.data.find(item => item.id === postTwoId)!;
+      const postTwoResponse: PostModelResponse = response.data.find((item) => item.id === postTwoId)!;
       CommonHelper.expectModelsExistence(postTwoResponse.comments.data, [postTwoCommentId]);
     }, JEST_TIMEOUT);
   });

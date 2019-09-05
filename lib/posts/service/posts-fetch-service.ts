@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 import {
   PostModel, PostModelResponse, PostRequestQueryDto, PostsListResponse,
@@ -22,8 +23,6 @@ import EntityListCategoryDictionary = require('../../stats/dictionary/entity-lis
 import PostsModelProvider = require('./posts-model-provider');
 import AirdropFetchService = require('../../airdrops/service/airdrop-fetch-service');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-
 const queryFilterService  = require('../../api/filters/query-filter-service');
 
 const usersActivityRepository    = require('../../users/repository/users-activity-repository');
@@ -34,7 +33,7 @@ const commentsFetchService = require('../../comments/service/comments-fetch-serv
  */
 class PostsFetchService {
   public static isDirectPost(post) {
-    return post.post_type_id === ContentTypeDictionary.getTypeDirectPost();
+    return post.post_type_id === ContentTypesDictionary.getTypeDirectPost();
   }
 
   /**
@@ -234,7 +233,7 @@ class PostsFetchService {
 
   private static async processEntityForCardForRepost(post: PostModelResponse): Promise<void> {
     // #task - it is not optimal. Here is N+1 problem. it is required to use JOIN or REDIS cache
-    if (post.post_type_id !== ContentTypeDictionary.getTypeRepost()) {
+    if (post.post_type_id !== ContentTypesDictionary.getTypeRepost()) {
       return;
     }
 

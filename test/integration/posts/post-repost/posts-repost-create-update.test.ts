@@ -1,3 +1,5 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
+
 import MockHelper = require('../../helpers/mock-helper');
 import UsersHelper = require('../../helpers/users-helper');
 import SeedsHelper = require('../../helpers/seeds-helper');
@@ -7,8 +9,6 @@ import PostsHelper = require('../../helpers/posts-helper');
 import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
 
 const expect  = require('expect');
-
-const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
 
 const postsRepository         = require('../../../../lib/posts/repository').MediaPosts;
 
@@ -82,7 +82,7 @@ describe('Post repost API', () => {
 
         const repost = await postsRepository.findOnlyPostItselfById(repostId);
 
-        expect(repost.post_type_id).toBe(ContentTypeDictionary.getTypeRepost());
+        expect(repost.post_type_id).toBe(ContentTypesDictionary.getTypeRepost());
         expect(repost.title).toBeNull();
         expect(repost.parent_id).toBeDefined();
         expect(repost.parent_id).toBe(postId);
@@ -90,7 +90,7 @@ describe('Post repost API', () => {
         const activity =
           await usersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
 
-        expect(activity.activity_type_id).toBe(ContentTypeDictionary.getTypeRepost());
+        expect(activity.activity_type_id).toBe(ContentTypesDictionary.getTypeRepost());
         expect(activity.user_id_from).toBe(repostAuthor.id);
         expect(+activity.entity_id_to).toBe(+repostId);
         expect(activity.entity_name).toBe(postsModelProvider.getEntityName());

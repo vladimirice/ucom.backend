@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { EntityParamAggregatesDto } from '../../stats/interfaces/dto-interfaces';
 import { UsersActivityModelDto } from '../interfaces/users-activity/model-interfaces';
 import { IActivityModel } from '../interfaces/users-activity/dto-interfaces';
@@ -9,8 +10,6 @@ import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import UsersActivityWhere = require('./users-activity/users-activity-where');
 import BlockchainModelProvider = require('../../eos/service/blockchain-model-provider');
-
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const models = require('../../../models');
 
@@ -195,8 +194,8 @@ class UsersActivityRepository {
     const eventIdRelatedToRepost = eventIdDictionary.getEventIdsRelatedToRepost();
 
     const votingActivityTypes = [
-      InteractionTypeDictionary.getUpvoteId(),
-      InteractionTypeDictionary.getDownvoteId(),
+      InteractionTypesDictionary.getUpvoteId(),
+      InteractionTypesDictionary.getDownvoteId(),
     ];
 
     const sql = `
@@ -656,8 +655,8 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @returns {Promise<any>}
    */
   public static async findOneUserActivityWithInvolvedUsersData(userId) {
-    const activityTypeFollow  = InteractionTypeDictionary.getFollowId();
-    const activityTypeUnfollow  = InteractionTypeDictionary.getUnfollowId();
+    const activityTypeFollow  = InteractionTypesDictionary.getFollowId();
+    const activityTypeUnfollow  = InteractionTypesDictionary.getUnfollowId();
 
     const usersTableName      = usersModelProvider.getUsersTableName();
     const activityTableName   = usersModelProvider.getUsersActivityTableName();
@@ -711,8 +710,8 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @return {Promise<{orgIds: Array, usersIds: Array}>}
    */
   static async findOneUserFollowActivity(userId) {
-    const activityTypeFollow  =  InteractionTypeDictionary.getFollowId();
-    const activityTypeUnfollow = InteractionTypeDictionary.getUnfollowId();
+    const activityTypeFollow  =  InteractionTypesDictionary.getFollowId();
+    const activityTypeUnfollow = InteractionTypesDictionary.getUnfollowId();
 
     const activityTableName   = usersModelProvider.getUsersActivityTableName();
     const activityGroupId     = activityGroupDictionary.getGroupUserUserInteraction();
@@ -769,8 +768,8 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
     userId: number,
     orgId: number,
   ): Promise<boolean> {
-    const activityTypeFollow = InteractionTypeDictionary.getFollowId();
-    const activityTypeUnfollow = InteractionTypeDictionary.getUnfollowId();
+    const activityTypeFollow = InteractionTypesDictionary.getFollowId();
+    const activityTypeUnfollow = InteractionTypesDictionary.getUnfollowId();
 
     const activityTableName = usersModelProvider.getUsersActivityTableName();
 
@@ -841,7 +840,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
           entity_id_to:       userIdTo,
           entity_name:        usersModelProvider.getEntityName(),
 
-          activity_type_id:   InteractionTypeDictionary.getFollowId(),
+          activity_type_id:   InteractionTypesDictionary.getFollowId(),
           activity_group_id:  activityGroupDictionary.getGroupUserUserInteraction(),
         },
         raw: true,
@@ -865,7 +864,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
           entity_id_to:       userIdTo,
           entity_name:        usersModelProvider.getEntityName(),
 
-          activity_type_id:   InteractionTypeDictionary.getUnfollowId(),
+          activity_type_id:   InteractionTypesDictionary.getUnfollowId(),
           activity_group_id:  activityGroupDictionary.getGroupUserUserInteraction(),
         },
         raw: true,
@@ -882,8 +881,8 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @return {Promise<Object>}
    */
   static async getLastFollowOrUnfollowActivityForUser(userIdFrom, userIdTo) {
-    const activityTypeFollow  = InteractionTypeDictionary.getFollowId();
-    const activityTypeUnfollow  = InteractionTypeDictionary.getUnfollowId();
+    const activityTypeFollow  = InteractionTypesDictionary.getFollowId();
+    const activityTypeUnfollow  = InteractionTypesDictionary.getUnfollowId();
 
     return this.getModel()
       .findOne({

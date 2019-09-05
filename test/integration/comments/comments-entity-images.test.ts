@@ -145,6 +145,8 @@ describe('Comments entity images', () => {
 
       const fields = {
         description: 'sample description',
+        signed_transaction: 'signed_transaction',
+        blockchain_id: 'blockchain_id',
         'entity_images[article_title][0][url]': 'https://example.com',
       };
 

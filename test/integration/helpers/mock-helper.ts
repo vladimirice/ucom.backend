@@ -13,7 +13,6 @@ import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ImportanceGenerator = require('../../generators/blockchain/importance/uos-accounts-properties-generator');
 import UosAccountsPropertiesFetchService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-fetch-service');
 import EosApi = require('../../../lib/eos/eosApi');
-import EosTransactionService = require('../../../lib/eos/eos-transaction-service');
 import ActivityProducer = require('../../../lib/jobs/activity-producer');
 import UserToOrganizationActivity = require('../../../lib/users/activity/user-to-organization-activity');
 import UserActivityService = require('../../../lib/users/user-activity-service');
@@ -436,8 +435,6 @@ class MockHelper {
     this.mockUsersActivityBackendSigner();
     this.mockCommentTransactionSigning();
     this.mockOrganizationFollowingSigning();
-
-    this.mockUserVotesPost();
   }
 
   /**
@@ -505,21 +502,6 @@ class MockHelper {
       bindingKey,
     ) {
       return true;
-    };
-  }
-
-  static mockUserVotesPost() {
-    // noinspection JSUnusedLocalSymbols
-    EosTransactionService.appendSignedUserVotesContent = async function (
-      // @ts-ignore
-      user,
-      body,
-      // @ts-ignore
-      contentBlockchainId,
-      // @ts-ignore
-      activityTypeId,
-    ) {
-      body.signed_transaction = 'sample_signed_for_content_voting';
     };
   }
 

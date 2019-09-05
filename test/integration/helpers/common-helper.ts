@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { CommentModelResponse, CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
@@ -19,8 +20,6 @@ import OrganizationsModelProvider = require('../../../lib/organizations/service/
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
 import CommonChecker = require('../../helpers/common/common-checker');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 require('jest-expect-message');
 
@@ -764,7 +763,7 @@ class CommonHelper {
     posts: PostModelResponse[],
     options: CheckerOptions,
   ): void {
-    posts.forEach(post => this.checkOnePostV2(post, options));
+    posts.forEach((post) => this.checkOnePostV2(post, options));
   }
 
   public static checkOnePostV2(
@@ -830,7 +829,7 @@ class CommonHelper {
     expect(post.user_id).toBeDefined();
     expect(post.id).toBeDefined();
 
-    expect(post.post_type_id).toBe(ContentTypeDictionary.getTypeRepost());
+    expect(post.post_type_id).toBe(ContentTypesDictionary.getTypeRepost());
     UsersHelper.checkIncludedUserPreview(post);
 
     if (isOrg) {
@@ -848,7 +847,7 @@ class CommonHelper {
    */
   public static async checkDirectPostInDb(post, expectedValues = {}, author) {
     await PostsHelper.expectPostDbValues(post, {
-      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      post_type_id: ContentTypesDictionary.getTypeDirectPost(),
       user_id: author.id,
       ...expectedValues,
     });
@@ -877,7 +876,7 @@ class CommonHelper {
   }
 
   private static checkPostTypeRelatedStructure(post: PostModelResponse, options) {
-    if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
+    if (post.post_type_id === ContentTypesDictionary.getTypeRepost()) {
       expect(_.isEmpty(post.post)).toBeFalsy();
 
       const postPostOptions = _.cloneDeep(options);

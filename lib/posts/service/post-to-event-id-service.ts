@@ -1,8 +1,8 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { PostModel } from '../interfaces/model-interfaces';
 import { AppError } from '../../api/errors';
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 class PostToEventIdService {
@@ -13,11 +13,11 @@ class PostToEventIdService {
   }
 
   public static getUpdatingEventIdByPost(post: PostModel): number | null {
-    if (post.post_type_id === ContentTypeDictionary.getTypeDirectPost()) {
+    if (post.post_type_id === ContentTypesDictionary.getTypeDirectPost()) {
       return this.getUpdateDirectPostEventId(post);
     }
 
-    if (post.post_type_id !== ContentTypeDictionary.getTypeMediaPost()) {
+    if (post.post_type_id !== ContentTypesDictionary.getTypeMediaPost()) {
       return null;
     }
 

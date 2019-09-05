@@ -13,7 +13,7 @@ class EosContentInputProcessor {
     return body.signed_transaction || null;
   }
 
-  public static getSignedTransactionFromBody(
+  private static getSignedTransactionFromBody(
     body: IRequestBody,
   ): { signed_transaction: string, blockchain_id: string } | null {
     const { signed_transaction, blockchain_id } = body;
@@ -37,8 +37,12 @@ class EosContentInputProcessor {
   }
 
   public static areSignedTransactionUpdateDetailsOrError(body: IRequestBody): void {
+    this.isSignedTransactionOrError(body);
+  }
+
+  public static isSignedTransactionOrError(body: IRequestBody): void {
     if (!body.signed_transaction) {
-      throw new BadRequestError('Please provide transaction details for update: signed_transaction');
+      throw new BadRequestError('Please provide a signed_transaction');
     }
   }
 

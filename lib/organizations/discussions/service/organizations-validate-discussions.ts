@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { BadRequestError, HttpForbiddenError } from '../../../api/errors';
 import { OrgModel } from '../../interfaces/model-interfaces';
 
@@ -5,10 +6,8 @@ import OrganizationsRepository = require('../../repository/organizations-reposit
 import PostsRepository = require('../../../posts/posts-repository');
 import OrganizationsDiscussionsRepository = require('../repository/organizations-discussions-repository');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-
 const allowedDiscussionsTypes: number[] = [
-  ContentTypeDictionary.getTypeMediaPost(),
+  ContentTypesDictionary.getTypeMediaPost(),
 ];
 
 const ALLOWED_DISCUSSIONS_AMOUNT_PER_ORG = 10;

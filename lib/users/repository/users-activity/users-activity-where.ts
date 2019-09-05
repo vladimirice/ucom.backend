@@ -1,6 +1,5 @@
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { ActivityConditionsDto } from '../../interfaces/users-activity/dto-interfaces';
-
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 import UsersModelProvider = require('../../users-model-provider');
 
@@ -10,14 +9,14 @@ import NotificationsEventIdDictionary = require('../../../entities/dictionary/no
 class UsersActivityWhere {
   public static getUpvoteFilter() {
     return {
-      activity_type_id:   InteractionTypeDictionary.getUpvoteId(),
+      activity_type_id:   InteractionTypesDictionary.getUpvoteId(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentInteraction(),
     };
   }
 
   public static getDownvoteFilter() {
     return {
-      activity_type_id:   InteractionTypeDictionary.getDownvoteId(),
+      activity_type_id:   InteractionTypesDictionary.getDownvoteId(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentInteraction(),
     };
   }
@@ -55,7 +54,7 @@ class UsersActivityWhere {
 
   private static getWhereTrustUser(): ActivityConditionsDto {
     return {
-      activity_type_id: InteractionTypeDictionary.getTrustId(),
+      activity_type_id: InteractionTypesDictionary.getTrustId(),
       activity_group_id: ActivityGroupDictionary.getGroupUserUserInteraction(),
       event_id: NotificationsEventIdDictionary.getUserTrustsYou(),
     };
@@ -63,7 +62,7 @@ class UsersActivityWhere {
 
   private static getWhereUntrustUser(): ActivityConditionsDto {
     return {
-      activity_type_id: InteractionTypeDictionary.getUntrustId(),
+      activity_type_id: InteractionTypesDictionary.getUntrustId(),
       activity_group_id: ActivityGroupDictionary.getGroupUserUserInteraction(),
       event_id: NotificationsEventIdDictionary.getUserUntrustsYou(),
     };

@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { TotalParametersResponse } from '../../../common/interfaces/response-interfaces';
 
 import EosApi = require('../../../eos/eosApi');
@@ -6,8 +7,6 @@ import knex = require('../../../../config/knex');
 import PostsModelProvider = require('../posts-model-provider');
 import UsersModelProvider = require('../../../users/users-model-provider');
 import OrganizationsModelProvider = require('../../../organizations/service/organizations-model-provider');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
 const { EosClient, WalletApi } = require('ucom-libs-wallet');
@@ -71,7 +70,7 @@ class DirectPostResendingService {
       .innerJoin(`${UsersModelProvider.getTableName()} AS u`, 'u.id', 'p.user_id')
       .innerJoin(`${UsersModelProvider.getTableName()} AS for`, 'for.id', 'p.entity_id_for')
       .where('p.entity_name_for', EntityNames.USERS)
-      .where('p.post_type_id', ContentTypeDictionary.getTypeDirectPost())
+      .where('p.post_type_id', ContentTypesDictionary.getTypeDirectPost())
       .where('p.created_at', '<=', createdAtLessOrEqualThan)
       .orderBy('p.id', 'ASC')
       .limit(limit)
@@ -94,7 +93,7 @@ class DirectPostResendingService {
       .innerJoin(`${UsersModelProvider.getTableName()} AS u`, 'u.id', 'p.user_id')
       .innerJoin(`${OrganizationsModelProvider.getTableName()} AS org`, 'org.id', 'p.entity_id_for')
       .where('p.entity_name_for', EntityNames.ORGANIZATIONS)
-      .where('p.post_type_id', ContentTypeDictionary.getTypeDirectPost())
+      .where('p.post_type_id', ContentTypesDictionary.getTypeDirectPost())
       .where('p.created_at', '<=', createdAtLessOrEqualThan)
       .orderBy('p.id', 'ASC')
       .limit(limit)

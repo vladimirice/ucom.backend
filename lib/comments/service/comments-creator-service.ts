@@ -13,15 +13,11 @@ import CommentsModelProvider = require('./comments-model-provider');
 import UserActivityService = require('../../users/user-activity-service');
 import UsersTeamRepository = require('../../users/repository/users-team-repository');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
-import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 import CommentsInputProcessor = require('../validators/comments-input-processor');
 import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
 
 const _ = require('lodash');
-const { TransactionFactory } = require('ucom-libs-social-transactions');
-
-const BLOCKCHAIN_COMMENT_PREFIX = 'cmmnt';
 
 const db = require('../../../models').sequelize;
 
@@ -37,23 +33,20 @@ export class CommentsCreatorService {
     const post                  = await PostsRepository.findOneOnlyWithOrganization(postId);
     const parentModel           = await CommentsRepository.findOneById(commentParentId);
 
-    const parentIdInBlockchain  = parentModel.blockchain_id;
     const isCommentOnComment    = true;
 
-    return this.createNewComment(body, parentIdInBlockchain, post, parentModel, isCommentOnComment, currentUser);
+    return this.createNewComment(body, post, parentModel, isCommentOnComment, currentUser);
   }
 
   public static async createNewCommentOnPost(body: any, postId: number, currentUser: UserModel): Promise<any> {
     CommentsInputProcessor.process(body);
 
     const post                  = await PostsRepository.findOneOnlyWithOrganization(postId);
-    const parentIdInBlockchain  = post.blockchain_id;
     const parentModel           = null;
     const isCommentOnComment    = false;
 
     return this.createNewComment(
       body,
-      parentIdInBlockchain,
       post,
       parentModel,
       isCommentOnComment,
@@ -63,27 +56,12 @@ export class CommentsCreatorService {
 
   private static async createNewComment(
     body: IRequestBody,
-    parentIdInBlockchain: string,
     post: PostModel,
     parentModel: CommentModel | null,
     isCommentOnComment: boolean,
     currentUser: UserModel,
   ) {
-    const organizationBlockchainId = post.organization ? post.organization.blockchain_id : null;
-
-    const transactionDetails = EosContentInputProcessor.getSignedTransactionFromBody(body);
-    if (transactionDetails !== null) {
-      body.blockchain_id      = transactionDetails.blockchain_id;
-      body.signed_transaction = transactionDetails.signed_transaction;
-    } else {
-      await this.addLegacyTransactionDataToBody(
-        body,
-        currentUser,
-        parentIdInBlockchain,
-        isCommentOnComment,
-        organizationBlockchainId,
-      );
-    }
+    EosContentInputProcessor.validateContentSignedTransactionDetailsOrError(body);
 
     await this.processOrganizationAction(post, body, currentUser);
 
@@ -214,61 +192,6 @@ export class CommentsCreatorService {
     }
 
     body.organization_id = post.organization.id;
-  }
-
-  private static async addLegacyTransactionDataToBody(
-    body: IRequestBody,
-    currentUser: UserModel,
-    parentModelBlockchainId: string,
-    isCommentOnComment: boolean,
-    organizationBlockchainId: string | null = null,
-  ) {
-    const newCommentBlockchainId = BlockchainUniqId.getUniqIdWithoutId(BLOCKCHAIN_COMMENT_PREFIX);
-
-    body.blockchain_id  = newCommentBlockchainId;
-    body.sign           = 'example_sign';
-
-    let signedTransaction;
-
-    if (organizationBlockchainId) {
-      if (isCommentOnComment) {
-        signedTransaction = await TransactionFactory.getSignedOrganizationCreatesCommentOnComment(
-          currentUser.account_name,
-          currentUser.private_key,
-          organizationBlockchainId,
-          newCommentBlockchainId,
-          parentModelBlockchainId,
-        );
-      } else {
-        signedTransaction = await TransactionFactory.getSignedOrganizationCreatesCommentOnPost(
-          currentUser.account_name,
-          currentUser.private_key,
-          organizationBlockchainId,
-          newCommentBlockchainId,
-          parentModelBlockchainId,
-        );
-      }
-    } else {
-      // regular post
-      // eslint-disable-next-line no-lonely-if
-      if (isCommentOnComment) {
-        signedTransaction = await TransactionFactory.getSignedUserHimselfCreatesCommentOnComment(
-          currentUser.account_name,
-          currentUser.private_key,
-          newCommentBlockchainId,
-          parentModelBlockchainId,
-        );
-      } else {
-        signedTransaction = await TransactionFactory.getSignedUserHimselfCreatesCommentOnPost(
-          currentUser.account_name,
-          currentUser.private_key,
-          newCommentBlockchainId,
-          parentModelBlockchainId,
-        );
-      }
-    }
-
-    body.signed_transaction = signedTransaction;
   }
 
   /**

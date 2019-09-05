@@ -1,3 +1,4 @@
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 
 import OrganizationsFetchDiscussions = require('../discussions/service/organizations-fetch-discussions');
@@ -7,8 +8,6 @@ import OrganizationsModelProvider = require('./organizations-model-provider');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import ActivityGroupDictionary = require('../../activity/activity-group-dictionary');
 import ApiPostProcessor = require('../../common/service/api-post-processor');
-
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 class OrganizationService {
   public static async findOneOrgByIdAndProcess(modelId: number, currentUser: UserModel | null) {
@@ -31,7 +30,7 @@ class OrganizationService {
     const activityData = await UsersActivityRepository.findEntityRelatedActivityWithInvolvedUsersData(
       modelId,
       OrganizationsModelProvider.getEntityName(),
-      InteractionTypeDictionary.getFollowId(),
+      InteractionTypesDictionary.getFollowId(),
       ActivityGroupDictionary.getGroupContentInteraction(),
     );
 

@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import { GraphqlHelper } from '../../helpers/graphql-helper';
@@ -9,8 +10,6 @@ import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-he
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-
 import UsersModelProvider = require('../../../../lib/users/users-model-provider');
 import UsersHelper = require('../../helpers/users-helper');
 import _ = require('lodash');
@@ -132,11 +131,11 @@ describe('#posts #direct #get #graphql', () => {
         );
 
         const postOneResponse: PostModelResponse =
-          response.data.find(item => item.id === janeDirectPostId)!;
+          response.data.find((item) => item.id === janeDirectPostId)!;
         CommonHelper.expectModelsExistence(postOneResponse.comments.data, [postOneCommentId]);
 
         const postTwoResponse: PostModelResponse =
-          response.data.find(item => item.id === petrDirectPostId)!;
+          response.data.find((item) => item.id === petrDirectPostId)!;
         CommonHelper.expectModelsExistence(postTwoResponse.comments.data, [postTwoCommentId]);
       }, JEST_TIMEOUT);
 
@@ -158,7 +157,7 @@ describe('#posts #direct #get #graphql', () => {
         );
 
         const postFiltering = {
-          post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+          post_type_id: ContentTypesDictionary.getTypeDirectPost(),
         };
 
         const response: PostsListResponse = await GraphqlHelper.getManyPostsAsGuest(postFiltering);

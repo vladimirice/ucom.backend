@@ -1,4 +1,5 @@
 import { Transaction } from 'knex';
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../interfaces/model-interfaces';
 import { AppError, BadRequestError } from '../../api/errors';
 
@@ -13,18 +14,16 @@ import SignedTransactionValidator = require('../../eos/validator/signed-transact
 import ActivityProducer = require('../../jobs/activity-producer');
 import UserActivitySerializer = require('../job/user-activity-serializer');
 
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
-
 class UsersTrustService {
   public static async trustUser(userFrom: UserModel, userIdTo: number, body: any): Promise<void> {
-    const activityTypeId: number  = InteractionTypeDictionary.getTrustId();
+    const activityTypeId: number  = InteractionTypesDictionary.getTrustId();
     const eventId: number         = NotificationsEventIdDictionary.getUserTrustsYou();
 
     await this.trustOrUntrustUser(userFrom, userIdTo, body, activityTypeId, eventId);
   }
 
   public static async untrustUser(userFrom: UserModel, userIdTo: number, body: any): Promise<void> {
-    const activityTypeId: number  = InteractionTypeDictionary.getUntrustId();
+    const activityTypeId: number  = InteractionTypesDictionary.getUntrustId();
     const eventId: number         = NotificationsEventIdDictionary.getUserUntrustsYou();
 
     await this.trustOrUntrustUser(userFrom, userIdTo, body, activityTypeId, eventId);
@@ -93,13 +92,13 @@ class UsersTrustService {
       throw new BadRequestError(`There is no user with ID: ${userIdTo}`, 404);
     }
 
-    if (isTrust !== null && activityTypeId !== InteractionTypeDictionary.getUntrustId()) {
+    if (isTrust !== null && activityTypeId !== InteractionTypesDictionary.getUntrustId()) {
       throw new BadRequestError(
         `User with ID ${userFrom.id} already trusts user with ID ${userIdTo}. Only untrust activity is allowed`,
       );
     }
 
-    if (isTrust === null && activityTypeId !== InteractionTypeDictionary.getTrustId()) {
+    if (isTrust === null && activityTypeId !== InteractionTypesDictionary.getTrustId()) {
       throw new BadRequestError(
         `User with ID ${userFrom.id} does not trust user with ID ${userIdTo}. Only trust activity is allowed`,
       );

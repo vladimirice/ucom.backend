@@ -1,4 +1,5 @@
 import { Transaction } from 'knex';
+import { InteractionTypesDictionary, ContentTypesDictionary } from 'ucom.libs.common';
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { EntityAggregatesDto, ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 import {
@@ -14,7 +15,6 @@ import RepositoryHelper = require('../common/repository/repository-helper');
 import PostsModelProvider = require('./service/posts-model-provider');
 import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-category-dictionary');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const _ = require('lodash');
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
@@ -30,14 +30,12 @@ const entityStatsCurrentModel = models[ENTITY_STATS_CURRENT_TABLE_NAME];
 const db = models.sequelize;
 const { Op } = db.Sequelize;
 
-// eslint-disable-next-line import/order
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 const orgModelProvider    = require('../organizations/service/organizations-model-provider');
 const postsModelProvider  = require('./service/posts-model-provider');
 
 const usersModelProvider  = require('../users/users-model-provider');
 
-const POST_TYPE__MEDIA_POST = ContentTypeDictionary.getTypeMediaPost();
+const POST_TYPE__MEDIA_POST = ContentTypesDictionary.getTypeMediaPost();
 
 const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
 const postStatsRepository = require('./stats/post-stats-repository');
@@ -53,19 +51,19 @@ const knex = require('../../config/knex');
 // @ts-ignore
 class PostsRepository implements QueryFilteredRepository {
   public static async countAllRepostsOfMediaPosts(): Promise<number> {
-    const typeId = ContentTypeDictionary.getTypeMediaPost();
+    const typeId = ContentTypesDictionary.getTypeMediaPost();
 
     return PostsRepository.countAllRepostsByParentType(typeId);
   }
 
   public static async countAllRepostsByDirectPosts(): Promise<number> {
-    const typeId = ContentTypeDictionary.getTypeDirectPost();
+    const typeId = ContentTypesDictionary.getTypeDirectPost();
 
     return PostsRepository.countAllRepostsByParentType(typeId);
   }
 
   private static async countAllRepostsByParentType(parentType: number): Promise<number> {
-    const typeRepost = ContentTypeDictionary.getTypeRepost();
+    const typeRepost = ContentTypesDictionary.getTypeRepost();
 
     const sql = `
       SELECT COUNT(1) FROM posts AS t
@@ -85,7 +83,7 @@ class PostsRepository implements QueryFilteredRepository {
     const res = await knex(TABLE_NAME)
       .count(`${TABLE_NAME}.id AS amount`)
       .where({
-        post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+        post_type_id: ContentTypesDictionary.getTypeMediaPost(),
       })
     ;
 
@@ -96,7 +94,7 @@ class PostsRepository implements QueryFilteredRepository {
     const res = await knex(TABLE_NAME)
       .count(`${TABLE_NAME}.id AS amount`)
       .where({
-        post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+        post_type_id: ContentTypesDictionary.getTypeDirectPost(),
       })
     ;
 
@@ -107,8 +105,8 @@ class PostsRepository implements QueryFilteredRepository {
     const orgEntityName: string = OrganizationsModelProvider.getEntityName();
 
     const postTypes: number[] = [
-      ContentTypeDictionary.getTypeMediaPost(),
-      ContentTypeDictionary.getTypeDirectPost(),
+      ContentTypesDictionary.getTypeMediaPost(),
+      ContentTypesDictionary.getTypeDirectPost(),
     ];
 
     const sql = `
@@ -125,7 +123,7 @@ class PostsRepository implements QueryFilteredRepository {
 
     const data = await knex.raw(sql);
 
-    return data.rows.map(row => ({
+    return data.rows.map((row) => ({
       aggregates: RepositoryHelper.splitAggregates(row),
       entityId: +row.entity_id_for,
     }));
@@ -134,8 +132,8 @@ class PostsRepository implements QueryFilteredRepository {
   public static async getManyUsersPostsAmount(
   ): Promise<EntityAggregatesDto[]> {
     const postTypes: number[] = [
-      ContentTypeDictionary.getTypeMediaPost(),
-      ContentTypeDictionary.getTypeDirectPost(),
+      ContentTypesDictionary.getTypeMediaPost(),
+      ContentTypesDictionary.getTypeDirectPost(),
     ];
 
     const sql = `
@@ -151,14 +149,14 @@ class PostsRepository implements QueryFilteredRepository {
 
     const data = await knex.raw(sql);
 
-    return data.rows.map(row => ({
+    return data.rows.map((row) => ({
       aggregates: RepositoryHelper.splitAggregates(row),
       entityId: +row.user_id,
     }));
   }
 
   public static async getManyPostsRepostsAmount() {
-    const postTypeId: number = ContentTypeDictionary.getTypeRepost();
+    const postTypeId: number = ContentTypesDictionary.getTypeRepost();
 
     const sql = `
        SELECT parent_id, blockchain_id, COUNT(1) AS amount FROM posts
@@ -168,7 +166,7 @@ class PostsRepository implements QueryFilteredRepository {
 
     const data = await knex.raw(sql);
 
-    return data.rows.map(item => ({
+    return data.rows.map((item) => ({
       entityId:       item.parent_id,
       blockchainId:   item.blockchain_id,
       repostsAmount:  +item.amount,
@@ -353,8 +351,8 @@ class PostsRepository implements QueryFilteredRepository {
     transaction: Transaction,
   ) {
     const allowed = [
-      InteractionTypeDictionary.getUpvoteId(),
-      InteractionTypeDictionary.getDownvoteId(),
+      InteractionTypesDictionary.getUpvoteId(),
+      InteractionTypesDictionary.getDownvoteId(),
     ];
 
     if (!allowed.includes(interactionType)) {
@@ -364,7 +362,7 @@ class PostsRepository implements QueryFilteredRepository {
     const queryBuilder = transaction(TABLE_NAME)
       .where('id', postId);
 
-    if (interactionType === InteractionTypeDictionary.getUpvoteId()) {
+    if (interactionType === InteractionTypesDictionary.getUpvoteId()) {
       queryBuilder.increment('current_vote', 1);
     } else {
       queryBuilder.decrement('current_vote', 1);
@@ -538,7 +536,7 @@ class PostsRepository implements QueryFilteredRepository {
 
     const data = await postsModelProvider.getModel().findAll(params);
 
-    return data.map(item => item.toJSON());
+    return data.map((item) => item.toJSON());
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -567,7 +565,7 @@ class PostsRepository implements QueryFilteredRepository {
       },
     ];
 
-    if (postTypeId === ContentTypeDictionary.getTypeOffer()) {
+    if (postTypeId === ContentTypesDictionary.getTypeOffer()) {
       include.push({
         attributes: postOfferAttributes,
         model: models.post_offer,
@@ -753,7 +751,7 @@ class PostsRepository implements QueryFilteredRepository {
       ],
     });
 
-    return rows.map(row => row.toJSON());
+    return rows.map((row) => row.toJSON());
   }
 
   // noinspection JSUnusedGlobalSymbols

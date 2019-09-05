@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { TotalParametersResponse } from '../../../common/interfaces/response-interfaces';
 
 import EosApi = require('../../../eos/eosApi');
@@ -6,8 +7,6 @@ import knex = require('../../../../config/knex');
 import PostsModelProvider = require('../posts-model-provider');
 import UsersModelProvider = require('../../../users/users-model-provider');
 import OrganizationsModelProvider = require('../../../organizations/service/organizations-model-provider');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
 const { EosClient, WalletApi } = require('ucom-libs-wallet');
@@ -52,7 +51,7 @@ class MediaPostResendingService {
       ])
       .innerJoin(`${UsersModelProvider.getTableName()} AS u`, 'u.id', 'p.user_id')
       .leftJoin(`${OrganizationsModelProvider.getTableName()} AS o`, 'o.id', 'p.organization_id')
-      .where('p.post_type_id', ContentTypeDictionary.getTypeMediaPost())
+      .where('p.post_type_id', ContentTypesDictionary.getTypeMediaPost())
       .where('p.created_at', '<=', createdAtLessOrEqualThan)
       .orderBy('p.id', 'ASC')
       .limit(limit)

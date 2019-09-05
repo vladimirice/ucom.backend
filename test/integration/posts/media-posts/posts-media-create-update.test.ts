@@ -1,3 +1,5 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
+
 import RequestHelper = require('../../helpers/request-helper');
 import MockHelper = require('../../helpers/mock-helper');
 import SeedsHelper = require('../../helpers/seeds-helper');
@@ -11,8 +13,6 @@ import PostsGenerator = require('../../../generators/posts-generator');
 import UsersModelProvider = require('../../../../lib/users/users-model-provider');
 import PostsModelProvider = require('../../../../lib/posts/service/posts-model-provider');
 import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const request = require('supertest');
 
@@ -64,7 +64,7 @@ describe('Posts API', () => {
           title: 'Extremely new post',
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
           user_id: myself.id,
           current_rate: 0,
           current_vote: 0,
@@ -118,7 +118,7 @@ describe('Posts API', () => {
           title,
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
           user_id: myself.id,
         };
 
@@ -142,7 +142,7 @@ describe('Posts API', () => {
           title: 'New title for post',
           description: 'Our super post description',
           leading_text: leadingText,
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
           user_id: myself.id,
         };
 
@@ -202,7 +202,7 @@ describe('Posts API', () => {
         // expect this is updating
 
         expect(activity.activity_group_id).toBe(ActivityGroupDictionary.getGroupContentUpdating());
-        expect(activity.activity_type_id).toBe(ContentTypeDictionary.getTypeMediaPost());
+        expect(activity.activity_type_id).toBe(ContentTypesDictionary.getTypeMediaPost());
       });
 
       it('Update Media Post by its author', async () => {
@@ -268,7 +268,7 @@ describe('Posts API', () => {
       expect(activity).not.toBeNull();
 
       const expectedValues = {
-        activity_type_id:   ContentTypeDictionary.getTypeMediaPost(), // media post creation
+        activity_type_id:   ContentTypesDictionary.getTypeMediaPost(), // media post creation
         activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
         entity_id_to:       `${newPostId}`,
         entity_name:        PostsModelProvider.getEntityName(),
@@ -288,7 +288,7 @@ describe('Posts API', () => {
         description: 'Our super post description',
         leading_text: 'extremely leading text',
         user_id: userVlad.id,
-        post_type_id: ContentTypeDictionary.getTypeOffer(),
+        post_type_id: ContentTypesDictionary.getTypeOffer(),
         current_rate: '0.0000000000',
         current_vote: 0,
       };
@@ -363,7 +363,7 @@ describe('Posts API', () => {
       expect(activity).not.toBeNull();
 
       const expectedValues = {
-        activity_type_id:   ContentTypeDictionary.getTypeOffer(), // media post creation
+        activity_type_id:   ContentTypesDictionary.getTypeOffer(), // media post creation
         activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
         entity_id_to:       `${newPostId}`,
         entity_name:        PostsModelProvider.getEntityName(),
@@ -426,7 +426,7 @@ describe('Posts API', () => {
         description: 'Our super post description',
         leading_text: 'extremely leading text',
         user_id: userVlad.id,
-        post_type_id: ContentTypeDictionary.getTypeOffer(),
+        post_type_id: ContentTypesDictionary.getTypeOffer(),
         current_rate: '0.0000000000',
         current_vote: 0,
       };

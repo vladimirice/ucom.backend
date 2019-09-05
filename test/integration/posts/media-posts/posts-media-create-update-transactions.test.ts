@@ -1,3 +1,5 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
+
 import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
 import knex = require('../../../../config/knex');
@@ -9,8 +11,6 @@ import PostsRestRequest = require('../../../helpers/posts/posts-rest-request');
 import UsersActivityCommonHelper = require('../../../helpers/users/activity/users-activity-common-helper');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import OrganizationsRepository = require('../../../../lib/organizations/repository/organizations-repository');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
@@ -55,7 +55,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
 
         const postRequestBody = {
           ...content,
-          post_type_id:       ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id:       ContentTypesDictionary.getTypeMediaPost(),
           signed_transaction,
           blockchain_id,
         };
@@ -69,7 +69,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
 
         const activity = await knex(UsersModelProvider.getUsersActivityTableName())
           .where({
-            activity_type_id:   ContentTypeDictionary.getTypeMediaPost(),
+            activity_type_id:   ContentTypesDictionary.getTypeMediaPost(),
             activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
             user_id_from:       userVlad.id,
             entity_id_to:       postId,
@@ -104,7 +104,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
 
         const postRequestBody = {
           ...content,
-          post_type_id:       ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id:       ContentTypesDictionary.getTypeMediaPost(),
           organization_id:    orgId,
 
           signed_transaction,
@@ -120,7 +120,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
 
         const activity = await knex(UsersModelProvider.getUsersActivityTableName())
           .where({
-            activity_type_id:   ContentTypeDictionary.getTypeMediaPost(),
+            activity_type_id:   ContentTypesDictionary.getTypeMediaPost(),
             activity_group_id:  ActivityGroupDictionary.getGroupContentCreationByOrganization(),
             user_id_from:       userVlad.id,
             entity_id_to:       postId,
@@ -161,7 +161,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
 
         const postRequestBody = {
           ...newPostState,
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
 
           signed_transaction,
         };
@@ -180,7 +180,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
 
         const activity = await knex(UsersModelProvider.getUsersActivityTableName())
           .where({
-            activity_type_id:   ContentTypeDictionary.getTypeMediaPost(),
+            activity_type_id:   ContentTypesDictionary.getTypeMediaPost(),
             activity_group_id:  ActivityGroupDictionary.getGroupContentUpdating(),
             user_id_from:       userVlad.id,
             entity_id_to:       postAfter.id,
@@ -220,7 +220,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
 
         const postRequestBody = {
           ...newPostState,
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
 
           signed_transaction,
           organization_id: orgId,
@@ -240,7 +240,7 @@ describe('Create/update media posts and push content to the blockchain', () => {
 
         const activity = await knex(UsersModelProvider.getUsersActivityTableName())
           .where({
-            activity_type_id:   ContentTypeDictionary.getTypeMediaPost(),
+            activity_type_id:   ContentTypesDictionary.getTypeMediaPost(),
             activity_group_id:  ActivityGroupDictionary.getGroupContentUpdating(),
             user_id_from:       userVlad.id,
             entity_id_to:       postAfter.id,

@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { PostModel } from '../../../lib/posts/interfaces/model-interfaces';
@@ -15,8 +16,6 @@ import ActivityGroupDictionary = require('../../../lib/activity/activity-group-d
 import CommentsGenerator = require('../../generators/comments-generator');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
 import CommentsResendingService = require('../../../lib/comments/service/content-resending/comments-resending-service');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
@@ -70,7 +69,7 @@ it('Create comment for post and provide a transaction', async () => {
 
   const activity = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({
-      activity_type_id:   ContentTypeDictionary.getTypeComment(),
+      activity_type_id:   ContentTypesDictionary.getTypeComment(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
       user_id_from:       userVlad.id,
       entity_id_to:       comment.id,
@@ -127,7 +126,7 @@ it('create comment for comment and provide a transaction', async () => {
 
   const activity = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({
-      activity_type_id:   ContentTypeDictionary.getTypeComment(),
+      activity_type_id:   ContentTypesDictionary.getTypeComment(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
       user_id_from:       userVlad.id,
       entity_id_to:       comment.id,
@@ -174,7 +173,7 @@ it('create comment for post from organization and provide a transaction', async 
 
   const activities = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({
-      activity_type_id:   ContentTypeDictionary.getTypeComment(),
+      activity_type_id:   ContentTypesDictionary.getTypeComment(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentCreationByOrganization(),
       user_id_from:       userVlad.id,
       entity_id_to:       comment.id,
@@ -228,7 +227,7 @@ it('create comment for comment from organization and provide a transaction', asy
 
   const activities = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({
-      activity_type_id:   ContentTypeDictionary.getTypeComment(),
+      activity_type_id:   ContentTypesDictionary.getTypeComment(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentCreationByOrganization(),
       user_id_from:       userVlad.id,
       entity_id_to:       comment.id,

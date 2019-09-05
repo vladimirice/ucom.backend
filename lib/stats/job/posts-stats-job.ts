@@ -1,4 +1,5 @@
 /* eslint-disable guard-for-in */
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { EntityEventParamDto } from '../interfaces/model-interfaces';
 import { EntityEventRepository } from '../repository/entity-event-repository';
 import {
@@ -16,8 +17,6 @@ import JsonValueService = require('../service/json-value-service');
 import PostsRepository = require('../../posts/posts-repository');
 import CommentsRepository = require('../../comments/comments-repository');
 import ActivityIndexFormulas = require('../formulas/activity-index-formulas');
-
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const ENTITY_NAME = PostsModelProvider.getEntityName();
 
@@ -253,7 +252,7 @@ class PostsStatsJob {
 
     const [activityType, value] = aggregate.split('__');
 
-    if (+activityType === InteractionTypeDictionary.getUpvoteId()) {
+    if (+activityType === InteractionTypesDictionary.getUpvoteId()) {
       payload.upvotes = +value;
     } else {
       payload.downvotes = +value;

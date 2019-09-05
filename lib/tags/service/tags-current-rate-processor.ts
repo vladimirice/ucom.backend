@@ -1,9 +1,8 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { PostWithTagCurrentRateDto, TagToRate } from '../interfaces/dto-interfaces';
 
 import TagsRepository = require('../repository/tags-repository');
 import PostsRepository = require('../../posts/posts-repository');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 interface IndexedTagToRate {
   [index: string]: TagToRate;
@@ -117,10 +116,10 @@ class TagsCurrentRateProcessor {
         }
 
         switch (post.post_type_id) {
-          case ContentTypeDictionary.getTypeMediaPost():
+          case ContentTypesDictionary.getTypeMediaPost():
             tagToRate[title].mediaPostsAmount += 1;
             break;
-          case ContentTypeDictionary.getTypeDirectPost():
+          case ContentTypesDictionary.getTypeDirectPost():
             tagToRate[title].directPostsAmount += 1;
             break;
           default:

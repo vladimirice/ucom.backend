@@ -19,7 +19,7 @@ import UsersModelProvider = require('../../../../lib/users/users-model-provider'
 import CommonChecker = require('../../../helpers/common/common-checker');
 import CommentsModelProvider = require('../../../../lib/comments/service/comments-model-provider');
 
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
+const { InteractionTypesDictionary } = require('ucom.libs.common');
 
 const request = require('supertest');
 
@@ -149,7 +149,7 @@ describe('Comments', () => {
           .where({
             entity_id: commentId,
             user_id: userVlad.id,
-            interaction_type: InteractionTypeDictionary.getUpvoteId(),
+            interaction_type: InteractionTypesDictionary.getUpvoteId(),
             entity_name: CommentsModelProvider.getEntityName(),
           });
 
@@ -244,7 +244,7 @@ describe('Comments', () => {
           .where({
             entity_id: commentId,
             user_id: userVlad.id,
-            interaction_type: InteractionTypeDictionary.getDownvoteId(),
+            interaction_type: InteractionTypesDictionary.getDownvoteId(),
             entity_name: CommentsModelProvider.getEntityName(),
           });
 

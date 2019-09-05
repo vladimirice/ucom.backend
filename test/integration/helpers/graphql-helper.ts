@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel, UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 import {
   PostModelMyselfResponse,
@@ -14,7 +15,6 @@ import TagsHelper = require('./tags-helper');
 import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 require('cross-fetch/polyfill');
 
@@ -85,7 +85,7 @@ export class GraphqlHelper {
   ): Promise<PostsListResponse> {
     // @ts-ignore
     const postFiltering: PostRequestQueryDto = {
-      post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+      post_type_id: ContentTypesDictionary.getTypeMediaPost(),
     };
 
     return this.getManyPostsAsMyself(
@@ -348,7 +348,7 @@ export class GraphqlHelper {
   ): Promise<PostsListResponse> {
     // @ts-ignore
     const postFiltering: PostRequestQueryDto = {
-      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      post_type_id: ContentTypesDictionary.getTypeDirectPost(),
     };
 
     return this.getManyPostsAsMyself(

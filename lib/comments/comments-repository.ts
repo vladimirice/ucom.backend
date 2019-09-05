@@ -8,7 +8,7 @@ import { CommentModel, ParentIdToDbCommentCollection } from './interfaces/model-
 
 import { AppError } from '../api/errors';
 
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
+const { InteractionTypesDictionary } = require('ucom.libs.common');
 
 import knex = require('../../config/knex');
 import CommentsModelProvider = require('./service/comments-model-provider');
@@ -57,7 +57,7 @@ class CommentsRepository {
 
     const data = await knex.raw(sql);
 
-    return data.rows.map(item => ({
+    return data.rows.map((item) => ({
       entityId:         +item.commentable_id,
       commentsAmount:   +item.amount,
     }));
@@ -100,8 +100,8 @@ class CommentsRepository {
     transaction: Transaction,
   ): Promise<void> {
     const allowed = [
-      InteractionTypeDictionary.getUpvoteId(),
-      InteractionTypeDictionary.getDownvoteId(),
+      InteractionTypesDictionary.getUpvoteId(),
+      InteractionTypesDictionary.getDownvoteId(),
     ];
 
     if (!allowed.includes(interactionType)) {
@@ -111,7 +111,7 @@ class CommentsRepository {
     const queryBuilder = transaction(TABLE_NAME)
       .where('id', commentId);
 
-    if (interactionType === InteractionTypeDictionary.getUpvoteId()) {
+    if (interactionType === InteractionTypesDictionary.getUpvoteId()) {
       queryBuilder.increment('current_vote', 1);
     } else {
       queryBuilder.decrement('current_vote', 1);
@@ -260,7 +260,7 @@ class CommentsRepository {
 
     const result = await model.findAll(params);
 
-    return result.map(data => data.toJSON());
+    return result.map((data) => data.toJSON());
   }
 
   // #task - it is supposed that commentable ID is always Post
@@ -313,7 +313,7 @@ class CommentsRepository {
 
     const result = await model.findAll(params);
 
-    return result.map(data => data.toJSON());
+    return result.map((data) => data.toJSON());
   }
 
   // noinspection JSUnusedGlobalSymbols

@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { PostModel, PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
@@ -16,7 +17,6 @@ import EntityResponseState = require('../../../lib/common/dictionary/EntityRespo
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
 
 const request = require('supertest');
-const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
 
 const server = RequestHelper.getApiApplication();
 const postRepository = require('../../../lib/posts/posts-repository');
@@ -272,16 +272,16 @@ class PostsHelper {
     expect(typeof post.entity_images).toBe('object');
 
     switch (post.post_type_id) {
-      case ContentTypeDictionary.getTypeMediaPost():
+      case ContentTypesDictionary.getTypeMediaPost():
         this.checkMediaPostFields(post, options);
         break;
-      case ContentTypeDictionary.getTypeOffer():
+      case ContentTypesDictionary.getTypeOffer():
         this.checkPostOfferFields(post, options);
         break;
-      case ContentTypeDictionary.getTypeDirectPost():
+      case ContentTypesDictionary.getTypeDirectPost():
         this.checkDirectPostItself(post, options);
         break;
-      case ContentTypeDictionary.getTypeRepost():
+      case ContentTypesDictionary.getTypeRepost():
         // #task - check repost itself fields
         break;
       default:
@@ -409,7 +409,7 @@ class PostsHelper {
    * @return {Promise<void>}
    */
   static async requestToCreateDirectPostForUser(user, targetUser, givenDescription = null) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
+    const postTypeId  = ContentTypesDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const res = await request(server)
@@ -437,7 +437,7 @@ class PostsHelper {
     targetOrgId,
     givenDescription = null,
   ) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
+    const postTypeId  = ContentTypesDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const req = request(server)
@@ -736,6 +736,8 @@ class PostsHelper {
       RequestHelper.addFormFieldsToRequestWithStringify(req, {
         signed_transaction: signedTransaction,
       });
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
     }
 
     const res = await req;
@@ -760,6 +762,8 @@ class PostsHelper {
       RequestHelper.addFormFieldsToRequestWithStringify(req, {
         signed_transaction: signedTransaction,
       });
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
     }
 
     const res = await req;

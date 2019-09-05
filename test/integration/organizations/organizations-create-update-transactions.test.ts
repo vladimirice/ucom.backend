@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { OrgModel } from '../../../lib/organizations/interfaces/model-interfaces';
@@ -11,8 +12,6 @@ import CommonChecker = require('../../helpers/common/common-checker');
 import UsersActivityCommonHelper = require('../../helpers/users/activity/users-activity-common-helper');
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import OrganizationsResendingService = require('../../../lib/organizations/service/content-resending/organizations-resending-service');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const { OrganizationsApi } = require('ucom-libs-wallet').Content;
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
@@ -61,7 +60,7 @@ it('Create new organization providing a frontend transaction', async () => {
 
   const activity = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({
-      activity_type_id:   ContentTypeDictionary.getTypeOrganization(),
+      activity_type_id:   ContentTypesDictionary.getTypeOrganization(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
       user_id_from:       userVlad.id,
       entity_id_to:       organization.id,
@@ -101,7 +100,7 @@ it('Update organization providing a frontend transaction', async () => {
   const eventId = EventsIds.userUpdatesOrganization();
   const activity = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({
-      activity_type_id:   ContentTypeDictionary.getTypeOrganization(),
+      activity_type_id:   ContentTypesDictionary.getTypeOrganization(),
       activity_group_id:  ActivityGroupDictionary.getGroupContentUpdating(),
       user_id_from:       userVlad.id,
       entity_id_to:       organizationAfter.id,

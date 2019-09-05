@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { PostModel, PostModelResponse } from '../../lib/posts/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
@@ -11,7 +12,6 @@ import PostsRepository = require('../../lib/posts/posts-repository');
 
 const _ = require('lodash');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
 
 const server = RequestHelper.getApiApplication();
@@ -128,7 +128,7 @@ class PostsGenerator {
       description: 'Our super post description',
       leading_text: 'extremely leading text',
       user_id: user.id,
-      post_type_id: ContentTypeDictionary.getTypeOffer(),
+      post_type_id: ContentTypesDictionary.getTypeOffer(),
       current_rate: '0.0000000000',
       current_vote: 0,
       action_button_title: 'TEST_BUTTON_CONTENT',
@@ -167,7 +167,7 @@ class PostsGenerator {
 
     const fields = {
       ...givenFields,
-      post_type_id: ContentTypeDictionary.getTypeRepost(),
+      post_type_id: ContentTypesDictionary.getTypeRepost(),
     };
 
     if (typeof fields[entityImagesField] === 'object') {
@@ -304,7 +304,7 @@ class PostsGenerator {
       title: 'Extremely new post',
       description: 'Our super post description',
       leading_text: 'extremely leading text',
-      post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+      post_type_id: ContentTypesDictionary.getTypeMediaPost(),
       user_id: myself.id,
       current_rate: 0,
       current_vote: 0,
@@ -368,7 +368,7 @@ class PostsGenerator {
       description: 'Our super post description',
       leading_text: 'extremely leading text',
       user_id: user.id,
-      post_type_id: ContentTypeDictionary.getTypeOffer(),
+      post_type_id: ContentTypesDictionary.getTypeOffer(),
       current_rate: '0.0000000000',
       current_vote: 0,
       action_button_title: 'TEST_BUTTON_CONTENT',
@@ -527,7 +527,7 @@ class PostsGenerator {
       signed_transaction: 'signed_transaction',
       blockchain_id: 'blockchain_id',
       ...givenFields,
-      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      post_type_id: ContentTypesDictionary.getTypeDirectPost(),
     };
 
     if (typeof fields[entityImagesField] === 'object') {
@@ -555,7 +555,7 @@ class PostsGenerator {
     const url = RequestHelper.getUserDirectPostUrlV2(userTo);
 
     const fields = {
-      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      post_type_id: ContentTypesDictionary.getTypeDirectPost(),
       description: 'Sample description',
       [EntityImagesModelProvider.entityImagesColumn()]: '{}',
       signed_transaction: 'signed_transaction',
@@ -603,7 +603,7 @@ class PostsGenerator {
     const url = RequestHelper.getOrgDirectPostV2Url(organizationId);
 
     const fields = {
-      post_type_id:       ContentTypeDictionary.getTypeDirectPost(),
+      post_type_id:       ContentTypesDictionary.getTypeDirectPost(),
       entity_images:      '{}',
       description:        'New post sample description',
       signed_transaction: 'signed_transaction',
@@ -638,7 +638,7 @@ class PostsGenerator {
     withImage: boolean = false,
     idOnly: boolean = false,
   ): Promise<PostModelResponse> {
-    const postTypeId = ContentTypeDictionary.getTypeDirectPost();
+    const postTypeId = ContentTypesDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const req = request(server)

@@ -1,6 +1,6 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { PostModelResponse } from '../interfaces/model-interfaces';
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const postsModelProvider = require('./posts-model-provider');
 
 class PostsPostProcessor {
@@ -13,10 +13,10 @@ class PostsPostProcessor {
     this.makeFieldsNumeric(post);
 
     switch (post.post_type_id) {
-      case ContentTypeDictionary.getTypeDirectPost():
+      case ContentTypesDictionary.getTypeDirectPost():
         this.processDirectPost(post);
         break;
-      case ContentTypeDictionary.getTypeOffer():
+      case ContentTypesDictionary.getTypeOffer():
         this.processPostOffer(post);
         break;
       default:
@@ -79,7 +79,7 @@ class PostsPostProcessor {
         continue;
       }
 
-      if (excludePostOffer.indexOf(field) !== -1) {
+      if (excludePostOffer.includes(field)) {
         continue;
       }
 
@@ -101,7 +101,7 @@ class PostsPostProcessor {
     const toExclude = postsModelProvider.getModel().getFieldsToExcludeFromDirectPost();
 
     for (const field in post) {
-      if (toExclude.indexOf(field) !== -1) {
+      if (toExclude.includes(field)) {
         delete post[field];
       }
     }

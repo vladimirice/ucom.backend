@@ -1,3 +1,4 @@
+import { InteractionTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../../helpers/seeds-helper');
@@ -14,7 +15,6 @@ let userPetr: UserModel;
 let userRokky: UserModel;
 
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
 
 const JEST_TIMEOUT = 10000;
 // @ts-ignore
@@ -56,13 +56,13 @@ it('Users who upvote a comment', async () => {
     await OneEntityRequestHelper.getOneEntityUsersWhoVote(
       postId,
       entityName,
-      InteractionTypeDictionary.getUpvoteId(),
+      InteractionTypesDictionary.getUpvoteId(),
     );
 
   CommonChecker.expectModelIdsExistenceInResponseList(response, [userJane.id, userPetr.id], 2);
 
   for (const user of response.data) {
-    expectContentVote(user, InteractionTypeDictionary.getUpvoteId());
+    expectContentVote(user, InteractionTypesDictionary.getUpvoteId());
   }
 }, JEST_TIMEOUT);
 
@@ -80,13 +80,13 @@ it('Users who downvote a comment', async () => {
     await OneEntityRequestHelper.getOneEntityUsersWhoVote(
       postId,
       entityName,
-      InteractionTypeDictionary.getDownvoteId(),
+      InteractionTypesDictionary.getDownvoteId(),
     );
 
   CommonChecker.expectModelIdsExistenceInResponseList(response, [userJane.id, userPetr.id], 2);
 
   for (const user of response.data) {
-    expectContentVote(user, InteractionTypeDictionary.getDownvoteId());
+    expectContentVote(user, InteractionTypesDictionary.getDownvoteId());
   }
 }, JEST_TIMEOUT);
 
@@ -111,7 +111,7 @@ it('Users who vote a comment', async () => {
     CommonChecker.expectNotEmpty(user.relatedMetadata);
 
     const contentVote = [userJane.id, userPetr.id].includes(user.id) ?
-      InteractionTypeDictionary.getDownvoteId() : InteractionTypeDictionary.getUpvoteId();
+      InteractionTypesDictionary.getDownvoteId() : InteractionTypesDictionary.getUpvoteId();
 
     expectContentVote(user, contentVote);
   }

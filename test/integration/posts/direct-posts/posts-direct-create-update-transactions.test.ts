@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../../lib/common/interfaces/common-types';
 import { OrgModel } from '../../../../lib/organizations/interfaces/model-interfaces';
@@ -14,12 +15,9 @@ import NotificationsEventIdDictionary = require('../../../../lib/entities/dictio
 import PostsHelper = require('../../helpers/posts-helper');
 import DirectPostResendingService = require('../../../../lib/posts/service/content-resending/direct-post-resending-service');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
-
 
 const moment = require('moment');
 
@@ -87,7 +85,7 @@ describe('Create/update direct post and push content to the blockchain', () => {
 
       const activity = await knex(UsersModelProvider.getUsersActivityTableName())
         .where({
-          activity_type_id:   ContentTypeDictionary.getTypeDirectPost(),
+          activity_type_id:   ContentTypesDictionary.getTypeDirectPost(),
           activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
           user_id_from:       userVlad.id,
           entity_id_to:       post.id,
@@ -136,7 +134,7 @@ describe('Create/update direct post and push content to the blockchain', () => {
 
       const activity = await knex(UsersModelProvider.getUsersActivityTableName())
         .where({
-          activity_type_id:   ContentTypeDictionary.getTypeDirectPost(),
+          activity_type_id:   ContentTypesDictionary.getTypeDirectPost(),
           activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
           user_id_from:       userVlad.id,
           entity_id_to:       post.id,
@@ -189,7 +187,7 @@ describe('Create/update direct post and push content to the blockchain', () => {
 
       const activity = await knex(UsersModelProvider.getUsersActivityTableName())
         .where({
-          activity_type_id:   ContentTypeDictionary.getTypeDirectPost(),
+          activity_type_id:   ContentTypesDictionary.getTypeDirectPost(),
           activity_group_id:  ActivityGroupDictionary.getGroupContentUpdating(),
           user_id_from:       userVlad.id,
           entity_id_to:       postAfter.id,
@@ -243,7 +241,7 @@ describe('Create/update direct post and push content to the blockchain', () => {
 
       const activity = await knex(UsersModelProvider.getUsersActivityTableName())
         .where({
-          activity_type_id:   ContentTypeDictionary.getTypeDirectPost(),
+          activity_type_id:   ContentTypesDictionary.getTypeDirectPost(),
           activity_group_id:  ActivityGroupDictionary.getGroupContentUpdating(),
           user_id_from:       userVlad.id,
           entity_id_to:       postAfter.id,

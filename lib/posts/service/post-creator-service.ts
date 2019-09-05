@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length */
 
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { IdOnlyDto, IRequestBody } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { IActivityModel } from '../../users/interfaces/users-activity/dto-interfaces';
@@ -21,7 +22,6 @@ import PostsRepository = require('../posts-repository');
 import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
 
 const _ = require('lodash');
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const db = require('../../../models').sequelize;
 const models = require('../../../models');
@@ -111,7 +111,7 @@ class PostCreatorService {
     const parentPost: PostModel = await this.checkParentPostOfRepost(postId, currentUser.id);
 
     const body = _.pick(givenBody, ['signed_transaction', 'blockchain_id']);
-    body.post_type_id = ContentTypeDictionary.getTypeRepost();
+    body.post_type_id = ContentTypesDictionary.getTypeRepost();
     body.parent_id = postId;
 
     body.entity_id_for    = currentUser.id;
@@ -162,13 +162,13 @@ class PostCreatorService {
   private static async checkParentPostOfRepost(postId, userId) {
     const post = await PostsRepository.findOneOnlyWithOrganization(postId);
 
-    if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
+    if (post.post_type_id === ContentTypesDictionary.getTypeRepost()) {
       throw new BadRequestError({
         general: 'It is not possible to create repost on repost',
       });
     }
 
-    if (post.post_type_id === ContentTypeDictionary.getTypeDirectPost()
+    if (post.post_type_id === ContentTypesDictionary.getTypeDirectPost()
       && post.entity_id_for === userId
       && post.entity_name_for === UsersModelProvider.getEntityName()
     ) {
@@ -263,7 +263,7 @@ class PostCreatorService {
    * @private
    */
   private static async addAttributesOfEntityFor(body, user) {
-    if (+body.post_type_id === ContentTypeDictionary.getTypeDirectPost()) {
+    if (+body.post_type_id === ContentTypesDictionary.getTypeDirectPost()) {
       // direct post entity_id_for is set beforehand. Refactor this in future
       return;
     }
@@ -290,16 +290,16 @@ class PostCreatorService {
 
     let newPost;
     switch (postTypeId) {
-      case ContentTypeDictionary.getTypeMediaPost():
+      case ContentTypesDictionary.getTypeMediaPost():
         newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
-      case ContentTypeDictionary.getTypeOffer():
+      case ContentTypesDictionary.getTypeOffer():
         newPost = await PostOfferRepository.createNewOffer(data, currentUserId, transaction);
         break;
-      case ContentTypeDictionary.getTypeDirectPost():
+      case ContentTypesDictionary.getTypeDirectPost():
         newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
-      case ContentTypeDictionary.getTypeRepost():
+      case ContentTypesDictionary.getTypeRepost():
         newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
       default:

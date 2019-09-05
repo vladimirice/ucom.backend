@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { PostModelResponse } from './interfaces/model-interfaces';
 import { UserModel } from '../users/interfaces/model-interfaces';
 import { IRequestBody } from '../common/interfaces/common-types';
@@ -18,8 +19,6 @@ import PostOfferRepository = require('./repository/post-offer-repository');
 import EosContentInputProcessor = require('../eos/input-processor/content/eos-content-input-processor');
 
 const _ = require('lodash');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const models = require('../../models');
 
@@ -92,14 +91,14 @@ class PostService {
 
     PostService.checkPostUpdatingConditions(postToUpdate, currentUserId);
 
-    if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeMediaPost()) {
+    if (postToUpdate.post_type_id === ContentTypesDictionary.getTypeMediaPost()) {
       // noinspection AssignmentToFunctionParameterJS
       // noinspection JSValidateTypes
       body = _.pick(body, ['post_type_id', 'title', 'description', 'leading_text', 'entity_images', 'signed_transaction']);
     }
 
     const { updatedPost, newActivity } = await models.sequelize.transaction(async (transaction) => {
-      if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeOffer() && body.post_users_team) {
+      if (postToUpdate.post_type_id === ContentTypesDictionary.getTypeOffer() && body.post_users_team) {
         await PostService.updatePostUsersTeam(postId, body, transaction);
       }
 
@@ -121,7 +120,7 @@ class PostService {
 
       const updated = await PostsRepository.findOnlyPostItselfById(postId, transaction);
 
-      if (updated.post_type_id === ContentTypeDictionary.getTypeOffer()) {
+      if (updated.post_type_id === ContentTypesDictionary.getTypeOffer()) {
         await models.post_offer.update(body, {
           transaction,
           where: {
@@ -161,16 +160,16 @@ class PostService {
    * @return {boolean}
    */
   static isDirectPost(post) {
-    return post.post_type_id === ContentTypeDictionary.getTypeDirectPost();
+    return post.post_type_id === ContentTypesDictionary.getTypeDirectPost();
   }
 
   public static async processNewDirectPostCreationForUser(req, currentUser: UserModel) {
     const userIdTo = req.user_id;
     delete req.user_id;
 
-    if (+req.body.post_type_id !== ContentTypeDictionary.getTypeDirectPost()) {
+    if (+req.body.post_type_id !== ContentTypesDictionary.getTypeDirectPost()) {
       throw new BadRequestError({
-        general: `Direct post is allowed only for post type ID ${ContentTypeDictionary.getTypeDirectPost()}`,
+        general: `Direct post is allowed only for post type ID ${ContentTypesDictionary.getTypeDirectPost()}`,
       });
     }
 
@@ -190,9 +189,9 @@ class PostService {
     const orgIdTo = req.organization_id;
     delete req.organization_id;
 
-    if (+req.body.post_type_id !== ContentTypeDictionary.getTypeDirectPost()) {
+    if (+req.body.post_type_id !== ContentTypesDictionary.getTypeDirectPost()) {
       throw new BadRequestError({
-        general: `Direct post is allowed only for post type ID ${ContentTypeDictionary.getTypeDirectPost()}`,
+        general: `Direct post is allowed only for post type ID ${ContentTypesDictionary.getTypeDirectPost()}`,
       });
     }
 
@@ -288,7 +287,7 @@ class PostService {
 
   private static checkPostUpdatingConditions(postToUpdate, currentUserId: number) {
     const unableToEdit = [
-      ContentTypeDictionary.getTypeRepost(),
+      ContentTypesDictionary.getTypeRepost(),
     ];
 
     if (~unableToEdit.indexOf(postToUpdate.post_type_id)) {

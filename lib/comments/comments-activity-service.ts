@@ -11,8 +11,9 @@ import EosTransactionService = require('../eos/eos-transaction-service');
 import ActivityUserCommentRepository = require('../activity/activity-user-comment-repository');
 import knex = require('../../config/knex');
 import UsersActivityVoteRepository = require('../users/repository/users-activity/users-activity-vote-repository');
+import EosContentInputProcessor = require('../eos/input-processor/content/eos-content-input-processor');
 
-const { InteractionTypeDictionary } = require('ucom-libs-social-transactions');
+const { InteractionTypesDictionary } = require('ucom.libs.common');
 
 class CommentsActivityService {
   public static async userUpvotesComment(
@@ -20,7 +21,7 @@ class CommentsActivityService {
     commentId: number,
     body: IRequestBody,
   ): Promise<{ current_vote: number }> {
-    const interactionType = InteractionTypeDictionary.getUpvoteId();
+    const interactionType = InteractionTypesDictionary.getUpvoteId();
 
     await this.userVotesComment(currentUser, commentId, interactionType, body);
 
@@ -32,7 +33,7 @@ class CommentsActivityService {
     commentId: number,
     body: IRequestBody,
   ): Promise<{ current_vote: number }> {
-    const interactionType = InteractionTypeDictionary.getDownvoteId();
+    const interactionType = InteractionTypesDictionary.getDownvoteId();
 
     await this.userVotesComment(currentUser, commentId, interactionType, body);
 
@@ -43,7 +44,6 @@ class CommentsActivityService {
     currentUser: UserModel,
     commentId: number,
     body: IRequestBody,
-    interactionType: number,
   ): Promise<CommentModel> {
     const doesExists = await UsersActivityVoteRepository.doesUserVoteComment(currentUser.id, commentId);
 
@@ -61,12 +61,7 @@ class CommentsActivityService {
       });
     }
 
-    await EosTransactionService.appendSignedUserVotesContent(
-      currentUser,
-      body,
-      comment.blockchain_id,
-      interactionType,
-    );
+    EosContentInputProcessor.isSignedTransactionOrError(body);
 
     return comment;
   }
@@ -81,7 +76,6 @@ class CommentsActivityService {
       currentUser,
       commentId,
       body,
-      interactionType,
     );
 
     const eventId: number = this.getEventId(interactionType, comment);
@@ -112,7 +106,7 @@ class CommentsActivityService {
   }
 
   private static getEventId(interactionType: number, modelTo: CommentModel): number {
-    if (interactionType === InteractionTypeDictionary.getUpvoteId()) {
+    if (interactionType === InteractionTypesDictionary.getUpvoteId()) {
       if (modelTo.organization_id) {
         return NotificationsEventIdDictionary.getUserUpvotesCommentOfOrg();
       }
@@ -120,7 +114,7 @@ class CommentsActivityService {
       return NotificationsEventIdDictionary.getUserUpvotesCommentOfOtherUser();
     }
 
-    if (interactionType === InteractionTypeDictionary.getDownvoteId()) {
+    if (interactionType === InteractionTypesDictionary.getDownvoteId()) {
       if (modelTo.organization_id) {
         return NotificationsEventIdDictionary.getUserDownvotesCommentOfOrg();
       }
