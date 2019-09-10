@@ -61,6 +61,7 @@ export const graphqlPostsTypes = `
     current_vote: Float!
     current_rate: Float!
     comments_count: Int!
+    views_count: Int
 
     entity_images: JSON
     
