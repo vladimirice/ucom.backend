@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
 
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { IRequestWithParams } from '../../lib/common/interfaces/common-types';
 
 import OrganizationsFetchService = require('../../lib/organizations/service/organizations-fetch-service');
 import OrganizationsValidateDiscussions = require('../../lib/organizations/discussions/service/organizations-validate-discussions');
@@ -16,6 +17,7 @@ import OrganizationService = require('../../lib/organizations/service/organizati
 import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
 import OrganizationsCreatorService = require('../../lib/organizations/service/organizations-creator-service');
 import OrganizationsUpdatingService = require('../../lib/organizations/service/organizations-updating-service');
+import ApiPostEvents = require('../../lib/common/service/api-post-events');
 
 const express = require('express');
 const status  = require('statuses');
@@ -46,13 +48,16 @@ const activityMiddlewareSet: any = [
 ];
 
 // @deprecated @see GraphQL
-orgRouter.get('/:organization_id', async (req, res) => {
-  const targetId = req.organization_id;
+orgRouter.get('/:organization_id', async (request: IRequestWithParams, response: Response) => {
+  const targetId = request.organization_id;
 
-  const currentUser = DiServiceLocator.getCurrentUserOrNull(req);
-  const response = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
+  const currentUser = DiServiceLocator.getCurrentUserOrNull(request);
+  const currentUserId = currentUser ? currentUser.id : null;
+  const organization = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
 
-  res.send(response);
+  await ApiPostEvents.processForOrganizationAndChangeProps(currentUserId, organization.data, request);
+
+  response.send(organization);
 });
 
 orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {

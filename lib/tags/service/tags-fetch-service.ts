@@ -1,3 +1,4 @@
+import { EntityNames } from 'ucom.libs.common';
 import { DbTag, TagsListResponse, TagsModelResponse } from '../interfaces/dto-interfaces';
 import {
   DbParamsDto,
@@ -8,6 +9,7 @@ import {
 import QueryFilterService = require('../../api/filters/query-filter-service');
 import TagsRepository = require('../repository/tags-repository');
 import ApiPostProcessor = require('../../common/service/api-post-processor');
+import UsersActivityEventsViewRepository = require('../../users/repository/users-activity/users-activity-events-view-repository');
 
 const moment = require('moment');
 
@@ -63,6 +65,8 @@ class TagsFetchService {
     // noinspection TypeScriptValidateJSTypes
     apiPostProcessor.processOneTag(dbTag);
 
+    dbTag.views_count = await UsersActivityEventsViewRepository.getViewsCountForEntity(dbTag.id, EntityNames.TAGS);
+
     return {
       posts,
       users,
@@ -70,6 +74,7 @@ class TagsFetchService {
 
       id:         dbTag.id,
       title:      dbTag.title,
+      views_count: dbTag.views_count,
       created_at: moment(dbTag.created_at).utc().format('YYYY-MM-DD HH:mm:ss'),
       current_rate: dbTag.current_rate,
     };

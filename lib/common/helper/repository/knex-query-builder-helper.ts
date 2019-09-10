@@ -18,9 +18,11 @@ class KnexQueryBuilderHelper {
 
   public static async addCountToQueryBuilderAndCalculate(
     queryBuilder: QueryBuilder,
-    countPrefix: string,
+    countPrefix: string | null = null,
   ) {
-    queryBuilder.count(`${countPrefix}.id as amount`);
+    const field = countPrefix ? `${countPrefix}.id` : 'id';
+
+    queryBuilder.count(`${field} as amount`);
     const data = await queryBuilder;
 
     return RepositoryHelper.getKnexCountAsNumber(data);

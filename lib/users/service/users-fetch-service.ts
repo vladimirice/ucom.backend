@@ -1,3 +1,4 @@
+import { EntityNames } from 'ucom.libs.common';
 import {
   OneContentActivityUsersQueryDto,
   UserIdToUserModelCard,
@@ -33,6 +34,7 @@ import ConversionsRepository = require('../../affiliates/repository/conversions-
 import UsersQueryBuilderService = require('./users-fetch-query-builder-service');
 import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
 import UsersActivityVoteRepository = require('../repository/users-activity/users-activity-vote-repository');
+import UsersActivityEventsViewRepository = require('../repository/users-activity/users-activity-events-view-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -74,6 +76,9 @@ class UsersFetchService {
     if (userId === currentUserId) {
       await this.addCurrentUserData(userJson);
     }
+
+    userJson.views_count =
+      await UsersActivityEventsViewRepository.getViewsCountForEntity(userJson.id, EntityNames.USERS);
 
     return userJson;
   }

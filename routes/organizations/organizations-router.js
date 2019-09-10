@@ -11,6 +11,7 @@ const OrganizationService = require("../../lib/organizations/service/organizatio
 const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
 const OrganizationsCreatorService = require("../../lib/organizations/service/organizations-creator-service");
 const OrganizationsUpdatingService = require("../../lib/organizations/service/organizations-updating-service");
+const ApiPostEvents = require("../../lib/common/service/api-post-events");
 const express = require('express');
 const status = require('statuses');
 require('express-async-errors');
@@ -30,11 +31,13 @@ const activityMiddlewareSet = [
     ActivityApiMiddleware.redlockBeforeActivity,
 ];
 // @deprecated @see GraphQL
-orgRouter.get('/:organization_id', async (req, res) => {
-    const targetId = req.organization_id;
-    const currentUser = DiServiceLocator.getCurrentUserOrNull(req);
-    const response = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
-    res.send(response);
+orgRouter.get('/:organization_id', async (request, response) => {
+    const targetId = request.organization_id;
+    const currentUser = DiServiceLocator.getCurrentUserOrNull(request);
+    const currentUserId = currentUser ? currentUser.id : null;
+    const organization = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
+    await ApiPostEvents.processForOrganizationAndChangeProps(currentUserId, organization.data, request);
+    response.send(organization);
 });
 orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {
     const currentUserId = DiServiceLocator.getCurrentUserIdOrNull(req);

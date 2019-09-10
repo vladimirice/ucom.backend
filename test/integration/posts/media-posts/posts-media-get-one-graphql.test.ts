@@ -2,20 +2,27 @@ import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { PostModelMyselfResponse, PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../../generators/interfaces/dto-interfaces';
 import { GraphqlHelper } from '../../helpers/graphql-helper';
+
 import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
+
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import CommonHelper = require('../../helpers/common-helper');
-import PostsGenerator = require('../../../generators/posts-generator');
 
+import PostsGenerator = require('../../../generators/posts-generator');
 import CommentsGenerator = require('../../../generators/comments-generator');
 import UsersHelper = require('../../helpers/users-helper');
 import PostsHelper = require('../../helpers/posts-helper');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import OrganizationsHelper = require('../../helpers/organizations-helper');
 import ActivityHelper = require('../../helpers/activity-helper');
+import CommonChecker = require('../../../helpers/common/common-checker');
+import knex = require('../../../../config/knex');
 
+import UsersModelProvider = require('../../../../lib/users/users-model-provider');
 let userVlad: UserModel;
+
 let userJane: UserModel;
 
 const JEST_TIMEOUT = 10000;
@@ -46,6 +53,48 @@ describe('Get One media post #graphql', () => {
     ]);
   });
 
+
+  describe('Media post views', () => {
+    let postId: number;
+    beforeEach(async () => {
+      postId = await PostsGenerator.createMediaPostByUserHimself(userVlad);
+    });
+
+    it('should create a new record inside users activity views - from logged user', async () => {
+      await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
+
+      const record = await knex(UsersModelProvider.getUsersActivityEventsViewTableName())
+        .where({
+          user_id: userVlad.id,
+          entity_id: postId,
+          entity_name: EntityNames.POSTS,
+        });
+
+      CommonChecker.expectNotEmpty(record);
+    }, JEST_TIMEOUT);
+
+    it('should create a new record inside users activity views - from guest', async () => {
+      await GraphqlHelper.getOnePostAsGuest(postId);
+
+      const record = await knex(UsersModelProvider.getUsersActivityEventsViewTableName())
+        .where({
+          user_id: null,
+          entity_id: postId,
+          entity_name: EntityNames.POSTS,
+        });
+
+      CommonChecker.expectNotEmpty(record);
+    }, JEST_TIMEOUT);
+
+    it('should contain number of post views - both for logged views and guest views', async () => {
+      await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
+      const post = await GraphqlHelper.getOnePostAsGuest(postId);
+
+      expect(post.views_count).toBeDefined();
+      expect(post.views_count).toBe(2);
+    });
+  });
+
   describe('Positive', () => {
     it('Get one media post WITHOUT comments as myself. #smoke #myself #media-post', async () => {
       const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
@@ -66,8 +115,8 @@ describe('Get One media post #graphql', () => {
       const { comments } = post;
 
       expect(comments.data.length).toBe(2);
-      expect(comments.data.some(item => item.id === commentOne.id)).toBeTruthy();
-      expect(comments.data.some(item => item.id === commentTwo.id)).toBeTruthy();
+      expect(comments.data.some((item) => item.id === commentOne.id)).toBeTruthy();
+      expect(comments.data.some((item) => item.id === commentTwo.id)).toBeTruthy();
 
       const options: CheckerOptions = {
         myselfData    : true,
@@ -109,8 +158,8 @@ describe('Get One media post #graphql', () => {
       const { comments } = post;
 
       expect(comments.data.length).toBe(2);
-      expect(comments.data.some(item => item.id === commentOne.id)).toBeTruthy();
-      expect(comments.data.some(item => item.id === commentTwo.id)).toBeTruthy();
+      expect(comments.data.some((item) => item.id === commentOne.id)).toBeTruthy();
+      expect(comments.data.some((item) => item.id === commentTwo.id)).toBeTruthy();
 
       const options: CheckerOptions = {
         myselfData    : false,

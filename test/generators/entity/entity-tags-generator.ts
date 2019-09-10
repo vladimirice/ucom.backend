@@ -1,6 +1,7 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import { StringToNumberCollection } from '../../../lib/common/interfaces/common-types';
+import { DbTag } from '../../../lib/tags/interfaces/dto-interfaces';
 
 import OrganizationsGenerator = require('../organizations-generator');
 import PostsGenerator = require('../posts-generator');
@@ -105,6 +106,16 @@ class EntityTagsGenerator {
     });
 
     return Promise.all(promises);
+  }
+
+  public static async createTagViaNewPostAndGetTag(
+    myself: UserModel,
+    tagTitle: string,
+  ): Promise<DbTag> {
+    await this.createTagViaNewPost(myself, tagTitle);
+
+    // @ts-ignore
+    return TagsRepository.findOneByTitle(tagTitle);
   }
 
   public static async createTagViaNewPost(

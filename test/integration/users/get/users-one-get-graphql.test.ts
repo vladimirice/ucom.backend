@@ -1,9 +1,13 @@
+import { EntityNames } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import OneUserRequestHelper = require('../../../helpers/users/one-user-request-helper');
 import UsersHelper = require('../../helpers/users-helper');
 import UsersRepository = require('../../../../lib/users/users-repository');
+import CommonChecker = require('../../../helpers/common/common-checker');
+import knex = require('../../../../config/knex');
+import UsersModelProvider = require('../../../../lib/users/users-model-provider');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -26,6 +30,45 @@ describe('Get one user via graphQL', () => {
   });
   beforeEach(async () => {
     [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
+  });
+
+  describe('One user profile view', () => {
+    it('should create a new record inside users activity views - from logged user', async () => {
+      await OneUserRequestHelper.getOneUserAsMyself(
+        userVlad,
+        userJane.id,
+      );
+
+      const record = await knex(UsersModelProvider.getUsersActivityEventsViewTableName())
+        .where({
+          user_id:    userVlad.id,
+          entity_id:  userJane.id,
+          entity_name: EntityNames.USERS,
+        });
+
+      CommonChecker.expectNotEmpty(record);
+    }, JEST_TIMEOUT);
+
+    it('should create a new record inside users activity views - from guest', async () => {
+      await OneUserRequestHelper.getOneUserAsGuest(userJane.id);
+
+      const record = await knex(UsersModelProvider.getUsersActivityEventsViewTableName())
+        .where({
+          user_id:    null,
+          entity_id:  userJane.id,
+          entity_name: EntityNames.USERS,
+        });
+
+      CommonChecker.expectNotEmpty(record);
+    }, JEST_TIMEOUT);
+
+    it('should contain number of views - both for logged views and guest views', async () => {
+      await OneUserRequestHelper.getOneUserAsGuest(userJane.id);
+      const user = await OneUserRequestHelper.getOneUserAsGuest(userJane.id);
+
+      expect(user.views_count).toBeDefined();
+      expect(user.views_count).toBe(2);
+    });
   });
 
   describe('Positive', () => {

@@ -74,6 +74,7 @@ const minorTablesToSkipSequences = [
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
   UsersModelProvider.getUsersActivityVoteTableName(),
+  UsersModelProvider.getUsersActivityEventsViewTableName(),
 
   AirdropsModelProvider.airdropsTableName(),
 
@@ -103,6 +104,7 @@ const minorTables = [
   AirdropsModelProvider.airdropsUsersExternalDataTableName(),
   AirdropsModelProvider.airdropsTokensTableName(),
   AirdropsModelProvider.airdropsUsersTableName(),
+  UsersModelProvider.getUsersActivityEventsViewTableName(),
 
   'entity_tags',
   'entity_state_log',

@@ -1,5 +1,5 @@
-/* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+/* eslint-disable max-len */
 import { ContentTypesDictionary } from 'ucom.libs.common';
 import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 import {
@@ -9,7 +9,10 @@ import { ApiLogger } from '../../../config/winston';
 import { AppError, BadRequestError } from '../../api/errors';
 import { OrgModelCard } from '../../organizations/interfaces/model-interfaces';
 import { UserIdToUserModelCard, UserModel, UsersRequestQueryDto } from '../../users/interfaces/model-interfaces';
+
 import { StringToAnyCollection } from '../../common/interfaces/common-types';
+
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 import PostsRepository = require('../posts-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
@@ -23,9 +26,11 @@ import EntityListCategoryDictionary = require('../../stats/dictionary/entity-lis
 import PostsModelProvider = require('./posts-model-provider');
 import AirdropFetchService = require('../../airdrops/service/airdrop-fetch-service');
 
-const queryFilterService  = require('../../api/filters/query-filter-service');
+import UsersActivityEventsViewRepository = require('../../users/repository/users-activity/users-activity-events-view-repository');
 
+const queryFilterService  = require('../../api/filters/query-filter-service');
 const usersActivityRepository    = require('../../users/repository/users-activity-repository');
+
 const commentsFetchService = require('../../comments/service/comments-fetch-service');
 
 /**
@@ -98,7 +103,7 @@ class PostsFetchService {
     postId: number,
     currentUserId: number | null,
     commentsQuery: RequestQueryComments,
-  ): Promise<PostModelResponse | null> {
+  ): Promise<PostModelResponse> {
     const post = await PostsRepository.findOneByIdV2(postId, true);
 
     if (!post) {
@@ -137,6 +142,8 @@ class PostsFetchService {
       currentUserId,
       commentsQuery,
     );
+
+    post.views_count = await UsersActivityEventsViewRepository.getViewsCountForEntity(postId, EntityNames.POSTS);
 
     return post;
   }

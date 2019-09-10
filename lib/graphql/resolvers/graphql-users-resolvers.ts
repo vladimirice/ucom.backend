@@ -15,6 +15,7 @@ import AuthService = require('../../auth/authService');
 import OneUserInputProcessor = require('../../users/input-processor/one-user-input-processor');
 import UsersFetchService = require('../../users/service/users-fetch-service');
 import GraphQlInputService = require('../../api/graph-ql/service/graph-ql-input-service');
+import ApiPostEvents = require('../../common/service/api-post-events');
 
 export const graphqlUsersResolvers = {
   async one_user_airdrop(
@@ -25,12 +26,19 @@ export const graphqlUsersResolvers = {
   ): Promise<OneUserAirdropDto> {
     return AirdropUsersService.getOneUserAirdrop(ctx.req, args.filters);
   },
-  // @ts-ignore
-  async one_user(parent, args, ctx): Promise<UserModel> {
+  async one_user(
+    // @ts-ignore
+    parent,
+    args,
+    ctx,
+  ): Promise<UserModel> {
     const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
     const userId: number = await OneUserInputProcessor.getUserIdByFilters(args.filters);
 
-    return UsersFetchService.findOneAndProcessFully(userId, currentUserId);
+    const user = await UsersFetchService.findOneAndProcessFully(userId, currentUserId);
+    await ApiPostEvents.processForUserProfileAndChangeProps(currentUserId, user, ctx.req);
+
+    return user;
   },
   /**
    * @deprecated

@@ -20,6 +20,8 @@ const USERS_ACTIVITY_VOTE_TABLE_NAME      = 'users_activity_vote';
 const USERS_ACTIVITY_REFERRAL_TABLE_NAME  = 'affiliates.users_activity_referral';
 const USERS_SOURCES_TABLE_NAME            = 'users_sources';
 
+const USERS_ACTIVITY_EVENTS_VIEW_TABLE_NAME  = 'users_activity_events_view';
+
 const USERS_ENTITY_NAME = EntityNames.USERS; // in db there is a fixed char length of 10
 
 class UsersModelProvider {
@@ -90,6 +92,10 @@ class UsersModelProvider {
 
   public static getUsersActivityVoteTableName(): string {
     return USERS_ACTIVITY_VOTE_TABLE_NAME;
+  }
+
+  public static getUsersActivityEventsViewTableName(): string {
+    return USERS_ACTIVITY_EVENTS_VIEW_TABLE_NAME;
   }
 
   /**

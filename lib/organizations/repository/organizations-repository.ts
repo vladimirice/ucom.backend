@@ -528,12 +528,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
     });
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @return {Promise<void>}
-   */
-  static async findAllAvailableForUser(userId) {
+  public static async findAllAvailableForUser(userId: number) {
     const status = usersTeamStatusDictionary.getStatusConfirmed();
 
     const mainPreviewAttributes = models[TABLE_NAME].getFieldsForPreview();

@@ -98,7 +98,7 @@ class TagsHelper {
     tagTitle: string,
     myself: UserModel,
     expectedResponseStatus: number = 200,
-  ): Promise<void> {
+  ): Promise<any> {
     const url = RequestHelper.getOneTagUrl(tagTitle);
     const req = request(server)
       .get(url)

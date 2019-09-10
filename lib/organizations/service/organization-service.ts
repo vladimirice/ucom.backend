@@ -1,4 +1,4 @@
-import { InteractionTypesDictionary } from 'ucom.libs.common';
+import { EntityNames, InteractionTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 
 import OrganizationsFetchDiscussions = require('../discussions/service/organizations-fetch-discussions');
@@ -8,9 +8,13 @@ import OrganizationsModelProvider = require('./organizations-model-provider');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import ActivityGroupDictionary = require('../../activity/activity-group-dictionary');
 import ApiPostProcessor = require('../../common/service/api-post-processor');
+import UsersActivityEventsViewRepository = require('../../users/repository/users-activity/users-activity-events-view-repository');
 
 class OrganizationService {
-  public static async findOneOrgByIdAndProcess(modelId: number, currentUser: UserModel | null) {
+  public static async findOneOrgByIdAndProcess(
+    modelId: number,
+    currentUser: UserModel | null,
+  ): Promise<{data: any, metadata: any}> {
     const where = {
       id: modelId,
     };
@@ -45,6 +49,11 @@ class OrganizationService {
 
     model.discussions =
       await OrganizationsFetchDiscussions.getManyDiscussions(model.id);
+
+    model.views_count = await UsersActivityEventsViewRepository.getViewsCountForEntity(
+      model.id,
+      EntityNames.ORGANIZATIONS,
+    );
 
     return {
       data: model,

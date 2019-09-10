@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 interface StringToNumberCollection {
   [index: string]: number;
 }
@@ -22,6 +24,10 @@ interface StringToAnyCollection {
   [index: string]: any;
 }
 
+interface IRequestWithParams extends Request{
+  [index: string]: any;
+}
+
 interface IRequestBody extends StringToAnyCollection {}
 
 interface NumberToAnyCollection {
@@ -41,5 +47,7 @@ export {
   IdToPropsCollection,
   IdOnlyDto,
   IdToNumberCollection,
+
+  IRequestWithParams,
   IRequestBody,
 };
