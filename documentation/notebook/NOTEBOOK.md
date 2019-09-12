@@ -2,240 +2,74 @@
 
 Goal - just to save workflow before implementation.
 
-# main-pages
+mini-post for the trust: decomposition
 
-Publications
-already spent 1h 26 min
+------------ Spirin ------------
+Нужно обсудить фильтры в фиде, которыми мы будем фильтровать авто-апдейты. У нас была еще задача по фильтрам
+"показывать только мой контент", вот она:
+https://github.com/UOSnetwork/ucom.backend/issues/167
 
+То есть, скорее всего фильтр нужно сделать универсальным, то есть с возможностью для будущего расширения.
 
-publications - only when author = team member (organization_id IS NOT NULL)
+Что пользователь может делать с постами? Все из этого он может делать с автоапдейтом?
+* Видеть в новостном фиде и у себя на стене.
+* Лайк или дизлайк и смотреть детализацию
+* Репостить себе в профиль
+* Шарить в социалках так, чтобы подгружалось описание
+* Писать к посту комментарии
+* Копировать ссылку и открывать на отдельной странице - в попапе или по ссылке
+* Просматривать автора поста
+* Просматривать коммьюнити поста, если сделан от лица коммьюнити
+* Смотреть импортанс поста
 
 
-top communities publications - 6h estimated
-* WHERE organization_id IS NOT NULL ORDER BY current_rate DESC LIMIT 5 - 1h
-* GraphQL instead of REST. - 2h - already done
-* Comments as a parameter 2h
-* remove also voting info
-* autotests & refactoring - 1h
 
-----------------------------------------
+---------------- Pasha ----------------
+Автоапдейт-пост это будет особый тип поста. У него будет пустой title и body, их нужно рендерить на основе отдельного нового поля:
+json_body. В этом поле по аналогии с notifications в специальной структуре будет представлены изменения. А как их отображать
+в html - можно удобно решать на уровне фронтенда.
 
-Step 1:
+Подходит такой вариант?
 
-Create a Common EntityNamesDictionary
-* Users (Myself as a user state: user + auth token)
-* Posts (Publications, reposts, etc.)
-* Comments
-* Organizations (communities)
-* Tags
-* Blockchain nodes - for caching blockchain state
 
+---------------- Petya ----------------
+Привет, Петя. Посмотри, пожалуйста, описание реализации автоапдейтов и покритикуй :)
 
-Step 2:
-create a queryParts GraphQL method for the community main pages
-filters:
-postTypeId
-entityNamesFrom - optional array
-[
-    'organizations', // publications
-]
-entityNamesFor - optional array
-[
-    'organizations',
-]
+* Решили в итоге, что обновление профиля/коммьюнити и т.п. будем делать пост по аналогии с репостом
+* Начинаем с траста/антраста, это хотят тоже оформить событием-постом, который можно апвоутить, комментить и т.п.
+* Это будет особый тип поста - автоапдейт. Название странное но прижилось. autoUpdate. то есть будет экшен:
+create_auto_update_post_from_user - в рамках первого этапа
+create_auto_update_post_from_organization - в будущем
 
-publications:
-entityNamesFrom = ['organizations']
-entityNamesFor   = ['organizations']
-ORDER BY current_rate DESC
+Редактировать эти "посты". Их контент будет формироваться в зависимости от изменений, то есть у этого поста
+(в отличие от репоста) в экшене будет заполнено свойство, в котором храним контент.
 
-direct posts:
-entityNamesFrom = ['organizations', 'users']
-entityNamesFor = ['organizations']
-ORDER BY id DESC
+* Я подумал, что можно создавать этот пост 2м экшенем в добавок к трасту. И в дальнейшем тот же принцип -
+при обновлении профиля юзера (а это транзакция тоже) - 2м экшенем добавлять создание этого спец-поста. Это ок?
+* Посту будет присваиваться id по аналогии с существующими постами. "Ссылка на то, что пост описывает" - это и будет "соседнее"
+действие экшена, у транзакции будет 2 экшена. То есть не нужно придумывать поле, указывающее на измененную сущность. Или все-таки нужно?
+* Не помешает ли алгоритму рейта, что транзакция теперь будет состоять не из 1го экшена, а из двух?
 
-include/included query (research) - optional
-[
-    'comments',
-]
 
+Add auto-post to the trust/untrust action
+Create a post in the backend Database, like repost, post-link to the updating action
+Add new type of post-auto-update to the user feeds
+Blockchain team communications
 
-Route it to the many_posts graphql-node
 
+-------- Auto-update for trust/untrust transaction - wallet part ---------
+After communications with Petya
 
-Step 3 - implement include filters
-as-is, already implemented as a hardcode
 
+------------ Auto-update for trust/untrust transaction - backend part
+* During the trust create a new post with the type `autoUpdate`
+* AutoUpdate post will have extra properties
+    * This post will have empty body and json payload structure about the changes. Dedicated field like for notifications.
+    * To show it inside feed fill entity_id_for, entity_name_for = for the given user => this post will be shown in the user fields
+    * Place a hardcoded value to remove autoupdates on production and on staging before Pasha implementation
+    * Write tests for commenting, voting, reposting
 
-Step 4 - implement from-to filters
-How to apply the filters:
-IF entityNameFrom = 'organizations' THEN add organization_id IS NOT NULL
-if also 'users' THEN do not add this criterion
 
-* fetch entityNamesFor
-* whitelist them
-* apply it WHERE entity_name_for IN (entityNamesFor.join(','))
-
------------------
-Script to migrate from main_image_filename to the entity_images
-
-SELECT
-       main_image_filename,
-       entity_images,
-       post_type_id,
-       created_at,
-       concat('http://backend.u.community/upload/', main_image_filename)
-FROM posts
-WHERE
-      main_image_filename IS NOT NULL
-  AND main_image_filename != ''
-  AND (
-    entity_images = '""'
-    OR entity_images IS NULL
-  )
-ORDER BY main_image_filename ASC
-
---------------
-
-Activity data provider 
-
-workflow
-
-* Fetch all blocks data one by one and save inside mock provider
-* Fetch also `random blocks` - initcalc and a couple of social transaction ones
-
--------------
-
-ask for last block or blocks (id > last memorized id) - 0.5
-
-* Get last block number
-SELECT block_number FROM ${TABLE_NAME} ORDER BY id DESC LIMIT 1;
-
-* Get last_irreversible_block_number
-SELECT last_state.irrblocknum FROM mongoDb.last_state
-
-* Get new blocks:
-SELECT * FROM mongoDb where blocknum > ${last_block_number} and blocknum > ${last_state.last_irreversible_block_number}
-
-for (const block of blocks) {
-check
-* should be irreversible = true
-* top level structure, fields existence
-** blocknum
-** blockid
-** trxid
-** account
-** irreversible
-** actions
-*** act_data inside
-** blocktime
-
-* Check every action basic structure
-** act_data - array
-
-** push it to chain of responsibility
-}
-
-transfer and link to next checker inside
-
-transfer checks data -
-if it is ok then generate backend-parsed data and return it
-=> special Dto to save to tr_traces
-else - move to next
-
-if nothing - special processor parse it as `undetermined` (special key) and put into db
-
-Next step:
-* Just receive data from chain processor and save it to db
-
-chain of responsibility - check conditions for every transaction processing block - 1h
-** If match then process it - call related processor => Save processed data to postgres (same structure but new table) - 0.5h
-Autotests, patterns implementations - 1.5h
-
-insert {
-    tr_type - determined by backend
-    tr_processed_data - raw data parsed by backend
-    memo - from action_traces
-    tr_id - raw data - first level
-    external_id - ? not required any more. Deprecated one
-    account_name_from - raw data
-    account_name_to - raw data
-    raw_tr_data - save raw tr trace from mongodb. Will be removed in the future
-}
-
-add new columns
-block_number -> blocknum
-block_id -> blockid
-tr_id -> trxid
-
-
-add column block id to new table
-
-===================
-
-Before staging deployment:
-* Create connection inside staging config
-
-Before production deployment:
-* Create connection inside staging config
-
-Before activity table renaming:
-* add filter for activity - WHERE tr_type != `${UNDETERMINED_TYPE}`
-* check manually all transactions - it is not required to provide integration autotests
-
-Extra:
-* Registration
-* Vote for calculators
-* Unstake resources as result (delayed action)
-
-
-### GraphQL as a constructor:
-* There is a query:
-
-query {
-
-}
-
-* inside it you can pass any `nodes`
-* there is a myselfData for blockchain nodes. Do not pass it inside blockchain nodes
-* create separate `node` - many_blockchain_nodes with the different filter
-* you can combine `nodes` as you want to create different web pages
-* inside a server you can parse overall query and decide to merge requests into one if appreciable (via JOIN)
-etc without any changes of a interface
-
-
-About aliases:
-* https://medium.com/graphql-mastery/graphql-quick-tip-aliases-567303a9ddc5
-
-======
-
-Airdrops resetting workflow:
-* disable all airdrops workers
-production_worker_airdrops_users_to_pending
-production_worker_airdrops_users_to_waiting
-production_worker_airdrops_users_to_received
-
-Clear tables data:
-ALTER SEQUENCE airdrops_id_seq RESTART;
-
-
-
-TRUNCATE TABLE airdrops_users_external_data;
-TRUNCATE TABLE airdrops_users;
-TRUNCATE TABLE accounts_transactions_parts;
-
-DELETE FROM airdrops_tokens WHERE 1=1;
-
-DELETE FROM accounts_transactions WHERE 1=1;
-
-DELETE FROM accounts WHERE 1=1;
-
-DELETE FROM airdrops WHERE 1=1;
-
-DELETE FROM users_external_auth_log WHERE 1=1;
-DELETE FROM users_external WHERE 1=1;
-
-DELETE FROM blockchain.outgoing_transactions_log WHERE 1=1;
-
-Reset airdrops sequence in order to create airdrop with an ID = 1
+---------- Auto-update for trust/untrust transaction - feeds part ----------
+* Add a filter - all posts
 
