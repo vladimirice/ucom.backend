@@ -15,7 +15,7 @@ interface ImportanceData {
 class EosImportance {
   public static async updateRatesByBlockchain(): Promise<void> {
     let lowerBound: number = 0;
-    const batchSize: number = 100;
+    const batchSize: number = 500;
 
     let importanceData: ImportanceData[] =
       await TransactionSender.getImportanceTableRows(lowerBound, batchSize);
