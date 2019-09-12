@@ -11,10 +11,11 @@ const whenFieldName       = 'organization_id';
 
 const windowIntervalHours           = 24 * 3;
 const windowIntervalOneWeekInHours  = 24 * 7;
+const windowIntervalHoursShorter    = 1;
 
 const oneToOneSet: DeltaParams[] = [
   {
-    windowIntervalHours: windowIntervalOneWeekInHours,
+    windowIntervalHours: windowIntervalHoursShorter,
 
     entityName:       ENTITY_NAME,
 
