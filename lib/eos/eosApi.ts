@@ -5,6 +5,8 @@ const { WalletApi, ConfigService, RegistrationApi } = require('ucom-libs-wallet'
 
 const ecc = require('eosjs-ecc');
 
+const { TransactionFactory, TransactionSender } = require('ucom-libs-social-transactions');
+
 const accountsData = require('../../config/accounts-data');
 
 const accountCreator = accountsData.account_creator;
@@ -17,14 +19,23 @@ const initBlockchainExecutors = {
   [EnvHelper.testEnv()]: () => {
     WalletApi.initForTestEnv();
     ConfigService.initForTestEnv();
+
+    TransactionFactory.initForTestEnv();
+    TransactionSender.initForTestEnv();
   },
   [EnvHelper.stagingEnv()]: () => {
     WalletApi.initForStagingEnv();
     ConfigService.initForStagingEnv();
+
+    TransactionFactory.initForStagingEnv();
+    TransactionSender.initForStagingEnv();
   },
   [EnvHelper.productionEnv()]: () => {
     WalletApi.initForProductionEnv();
     ConfigService.initForProductionEnv();
+
+    TransactionFactory.initForProductionEnv();
+    TransactionSender.initForProductionEnv();
   },
 };
 
