@@ -10,7 +10,7 @@ const currentTableName    = PostsModelProvider.getCurrentParamsTableName();
 const whenFieldName       = 'post_id';
 
 const windowIntervalHours = 24 * 3;
-const windowIntervalHoursShorter = 1;
+const windowIntervalHoursShorter = 6;
 
 const oneToOneSet: DeltaParams[] = [
   {
