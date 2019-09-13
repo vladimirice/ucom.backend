@@ -50,6 +50,7 @@
     * [Blockchain explorer](documentation/features/BLOCKCHAIN_EXPLORER.md)
     * [Entity images](documentation/features/ENTITY_IMAGES.md)
     * [Images uploader](documentation/features/IMAGES_UPLOADER.md)
+    * [Posts features list](documentation/features/POSTS_FEATURES.md)
 * Features - code only, no description yet
     * [Users](lib/users)
     * [Posts](lib/posts)
