@@ -1,4 +1,4 @@
-import { InteractionTypesDictionary } from 'ucom.libs.common';
+import { EventsIdsDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import RequestHelper = require('../../helpers/request-helper');
@@ -7,8 +7,6 @@ import PostsGenerator = require('../../../generators/posts-generator');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
 import PostsHelper = require('../../helpers/posts-helper');
 import UsersActivityRepository = require('../../../../lib/users/repository/users-activity-repository');
-import NotificationsNotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
-import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import ResponseHelper = require('../../helpers/response-helper');
 import PostsRepository = require('../../../../lib/posts/posts-repository');
 import UsersModelProvider = require('../../../../lib/users/users-model-provider');
@@ -81,7 +79,7 @@ describe('User to post activity', () => {
 
         const activity =
           await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
-        expect(activity.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesPostOfOrg());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserUpvotesPostOfOrg());
       });
 
       it('Jane upvotes Vlad posts', async () => {
@@ -97,7 +95,7 @@ describe('User to post activity', () => {
         const activity =
           await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
         expect(+activity.entity_id_to).toBe(+postId);
-        expect(activity.event_id).toBe(NotificationsNotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserUpvotesPostOfOtherUser());
 
         const indexRecord = await knex(UsersModelProvider.getUsersActivityVoteTableName())
           .where({
@@ -185,7 +183,7 @@ describe('User to post activity', () => {
         const usersActivity =
           await UsersActivityRepository.findLastByUserIdAndEntityId(whoVotes.id, postId);
         expect(+usersActivity.entity_id_to).toBe(+postId);
-        expect(usersActivity.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesPostOfOtherUser());
+        expect(usersActivity.event_id).toBe(EventsIdsDictionary.getUserDownvotesPostOfOtherUser());
 
         const indexRecord = await knex(UsersModelProvider.getUsersActivityVoteTableName())
           .where({
@@ -206,7 +204,7 @@ describe('User to post activity', () => {
 
         const activity =
           await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, postId);
-        expect(activity.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesPostOfOrg());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserDownvotesPostOfOrg());
       });
     });
     describe('Negative scenarios', () => {

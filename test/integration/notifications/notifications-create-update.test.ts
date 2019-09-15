@@ -1,3 +1,5 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
+
 import MockHelper = require('../helpers/mock-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import PostsGenerator = require('../../generators/posts-generator');
@@ -9,7 +11,6 @@ import CommentsGenerator = require('../../generators/comments-generator');
 import CommentsHelper = require('../helpers/comments-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 import ActivityHelper = require('../helpers/activity-helper');
-import NotificationsEventIdDictionary = require('../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import UsersTeamStatusDictionary = require('../../../lib/users/dictionary/users-team-status-dictionary');
 import UsersTeamRepository = require('../../../lib/users/repository/users-team-repository');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
@@ -101,7 +102,7 @@ describe('Notifications create-update', () => {
         const notification: any = notifications[0];
 
         expect(notification.event_id)
-          .toBe(NotificationsEventIdDictionary.getUserCreatesDirectPostForOtherUser());
+          .toBe(EventsIdsDictionary.userCreatesDirectPostForOtherUser());
 
         const options = {
           postProcessing: 'notification',
@@ -126,7 +127,7 @@ describe('Notifications create-update', () => {
 
         const notification: any = notifications[0];
 
-        expect(notification.event_id).toBe(NotificationsEventIdDictionary.getUserCreatesDirectPostForOrg());
+        expect(notification.event_id).toBe(EventsIdsDictionary.getUserCreatesDirectPostForOrg());
 
         const options = {
           postProcessing: 'notification',
@@ -156,7 +157,7 @@ describe('Notifications create-update', () => {
 
       const notification: any = notifications[0];
 
-      expect(notification.event_id).toBe(NotificationsEventIdDictionary.getUserCommentsPost());
+      expect(notification.event_id).toBe(EventsIdsDictionary.getUserCommentsPost());
 
       const options = {
         postProcessing: 'notification',
@@ -179,9 +180,7 @@ describe('Notifications create-update', () => {
       let notification;
 
       while (!notification) {
-        const notifications =
-          await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(userJane);
-        [notification] = notifications;
+        [notification] = await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(userJane);
         await delay(100);
       }
 
@@ -340,7 +339,7 @@ describe('Notifications create-update', () => {
 
         const notification: any = notifications[0];
 
-        expect(notification.event_id).toBe(NotificationsEventIdDictionary.getUserCommentsOrgComment());
+        expect(notification.event_id).toBe(EventsIdsDictionary.getUserCommentsOrgComment());
 
         CommonHelper.checkUserCommentsOrgCommentNotification(notification);
       }, JEST_TIMEOUT);
@@ -358,9 +357,7 @@ describe('Notifications create-update', () => {
 
         while (!notification) {
           await delay(100);
-          const notifications =
-            await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(orgAuthor);
-          [notification] = notifications;
+          [notification] = await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(orgAuthor);
         }
 
         const options = {

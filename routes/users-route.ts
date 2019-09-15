@@ -115,7 +115,7 @@ usersRouter.post('/:user_id/trust', [authTokenMiddleWare, cpUpload], async (req,
   const userFrom = req.user;
   const userToId = req.user_id;
 
-  await UsersTrustService.trustUser(userFrom, userToId, req.body);
+  await UsersTrustService.trustUser(userFrom.toJSON(), userToId, req.body);
 
   res.status(status('201')).send({
     success: true,
@@ -126,7 +126,7 @@ usersRouter.post('/:user_id/untrust', [authTokenMiddleWare, cpUpload], async (re
   const userFrom = req.user;
   const userToId = req.user_id;
 
-  await UsersTrustService.untrustUser(userFrom, userToId, req.body);
+  await UsersTrustService.untrustUser(userFrom.toJSON(), userToId, req.body);
 
   res.status(status('201')).send({
     success: true,

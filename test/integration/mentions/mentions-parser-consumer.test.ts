@@ -1,3 +1,5 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
+
 import SeedsHelper = require('../helpers/seeds-helper');
 import CommentsGenerator = require('../../generators/comments-generator');
 import NotificationsHelper = require('../helpers/notifications-helper');
@@ -6,8 +8,6 @@ import CommonHelper = require('../helpers/common-helper');
 
 const postsGenerator    = require('../../generators/posts-generator');
 const orgGenerator      = require('../../generators/organizations-generator');
-
-const eventIdDictionary   = require('../../../lib/entities/dictionary').EventId;
 
 let userVlad;
 let userJane;
@@ -148,11 +148,11 @@ describe('Mentions parsing by consumer', () => {
             await NotificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
 
           expect(janeNotifications.some(
-            (item: any) => item.event_id === eventIdDictionary.getUserCommentsPost(),
+            (item: any) => item.event_id === EventsIdsDictionary.getUserCommentsPost(),
           )).toBeTruthy();
 
           const janeMention = janeNotifications.find(
-            (item: any) => item.event_id === eventIdDictionary.getUserHasMentionedYouInComment(),
+            (item: any) => item.event_id === EventsIdsDictionary.getUserHasMentionedYouInComment(),
           );
 
           CommonHelper.checkUserMentionsYouInsideComment(
@@ -229,11 +229,11 @@ describe('Mentions parsing by consumer', () => {
             await NotificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
 
           expect(janeNotifications.some(
-            (item: any) => item.event_id === eventIdDictionary.getUserCommentsPost(),
+            (item: any) => item.event_id === EventsIdsDictionary.getUserCommentsPost(),
           )).toBeTruthy();
 
           const janeMention = janeNotifications.find(
-            (item: any) => item.event_id === eventIdDictionary.getUserHasMentionedYouInComment(),
+            (item: any) => item.event_id === EventsIdsDictionary.getUserHasMentionedYouInComment(),
           );
           // Yes this is a feature - Jane can mention herself
           CommonHelper.checkUserMentionsYouInsideComment(
@@ -319,11 +319,11 @@ describe('Mentions parsing by consumer', () => {
           await NotificationsHelper.requestToGetExactNotificationsAmount(userJane, 2);
 
         expect(notifications.some(
-          (item: any) => item.event_id === eventIdDictionary.getUserCreatesDirectPostForOtherUser(),
+          (item: any) => item.event_id === EventsIdsDictionary.userCreatesDirectPostForOtherUser(),
         )).toBeTruthy();
 
         const mentionNotification = notifications.find(
-          (item: any) => item.event_id === eventIdDictionary.getUserHasMentionedYouInPost(),
+          (item: any) => item.event_id === EventsIdsDictionary.getUserHasMentionedYouInPost(),
         );
 
         CommonHelper.checkUserMentionsYouInsidePost(

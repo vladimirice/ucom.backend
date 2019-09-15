@@ -1,5 +1,5 @@
 import { Transaction } from 'knex';
-import { InteractionTypesDictionary, ContentTypesDictionary } from 'ucom.libs.common';
+import { InteractionTypesDictionary, ContentTypesDictionary, EntityNames } from 'ucom.libs.common';
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { EntityAggregatesDto, ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 import {
@@ -8,6 +8,7 @@ import {
 } from '../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from './interfaces/model-interfaces';
 import { AppError, BadRequestError } from '../api/errors';
+import { StringToAnyCollection } from '../common/interfaces/common-types';
 
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
@@ -16,7 +17,7 @@ import PostsModelProvider = require('./service/posts-model-provider');
 import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-category-dictionary');
 
 const _ = require('lodash');
-const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
+const moment = require('moment');
 
 const models = require('../../models');
 
@@ -839,14 +840,31 @@ class PostsRepository implements QueryFilteredRepository {
     return TABLE_NAME;
   }
 
-  /**
-   *
-   * @param {Object} data
-   * @param {number} userId
-   * @param {Object} transaction
-   * @returns {Promise<Object>}
-   */
-  static async createNewPost(data, userId, transaction) {
+  public static async createAutoUpdate(
+    transaction: Transaction,
+    user_id: number,
+    entity_id_for: number,
+    entity_name_for: string,
+    blockchain_id: string,
+    json_data: StringToAnyCollection,
+  ) {
+    await transaction(TABLE_NAME).insert({
+      post_type_id: ContentTypesDictionary.getTypeAutoUpdate(),
+      user_id,
+      entity_id_for,
+      entity_name_for,
+      blockchain_id,
+
+      json_data,
+      ...this.getCreateDefaultFields(),
+    });
+  }
+
+  public static async createNewPost(
+    data: StringToAnyCollection,
+    userId: number,
+    transaction,
+  ) {
     data.user_id = userId;
     data.current_rate = 0;
     data.current_vote = 0;
@@ -1194,6 +1212,15 @@ class PostsRepository implements QueryFilteredRepository {
     const tableName = PostsModelProvider.getCurrentParamsTableName();
 
     return `${tableName}.activity_index_delta > ${lowerLimit}`;
+  }
+
+  private static getCreateDefaultFields() {
+    return {
+      current_vote: 0,
+      entity_images: {},
+      created_at: moment().utc().toDate(),
+      updated_at: moment().utc().toDate(),
+    };
   }
 }
 

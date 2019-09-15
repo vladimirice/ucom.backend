@@ -1,4 +1,4 @@
-import { ContentTypesDictionary } from 'ucom.libs.common';
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../../lib/common/interfaces/common-types';
 import { OrgModel } from '../../../../lib/organizations/interfaces/model-interfaces';
@@ -11,7 +11,6 @@ import UsersModelProvider = require('../../../../lib/users/users-model-provider'
 import CommonChecker = require('../../../helpers/common/common-checker');
 import UsersActivityCommonHelper = require('../../../helpers/users/activity/users-activity-common-helper');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
-import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import PostsHelper = require('../../helpers/posts-helper');
 import DirectPostResendingService = require('../../../../lib/posts/service/content-resending/direct-post-resending-service');
 
@@ -81,7 +80,7 @@ describe('Create/update direct post and push content to the blockchain', () => {
 
       expect(post.blockchain_id).toBe(blockchain_id);
 
-      const eventId = NotificationsEventIdDictionary.getUserCreatesDirectPostForOtherUser();
+      const eventId = EventsIdsDictionary.userCreatesDirectPostForOtherUser();
 
       const activity = await knex(UsersModelProvider.getUsersActivityTableName())
         .where({
@@ -130,7 +129,7 @@ describe('Create/update direct post and push content to the blockchain', () => {
 
       expect(post.blockchain_id).toBe(blockchain_id);
 
-      const eventId = NotificationsEventIdDictionary.getUserCreatesDirectPostForOrg();
+      const eventId = EventsIdsDictionary.getUserCreatesDirectPostForOrg();
 
       const activity = await knex(UsersModelProvider.getUsersActivityTableName())
         .where({

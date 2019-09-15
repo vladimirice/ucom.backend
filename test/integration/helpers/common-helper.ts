@@ -1,5 +1,5 @@
 /* eslint-disable max-len */
-import { ContentTypesDictionary } from 'ucom.libs.common';
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
 import { CommentModelResponse, CommentsListResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { PostModelResponse, PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
@@ -14,7 +14,6 @@ import _ = require('lodash');
 import OrganizationsHelper = require('./organizations-helper');
 import UsersHelper = require('./users-helper');
 import NotificationsHelper = require('./notifications-helper');
-import NotificationsEventIdDictionary = require('../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import PostsHelper = require('./posts-helper');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
@@ -188,31 +187,31 @@ class CommonHelper {
     }
 
     switch (model.event_id) {
-      case NotificationsEventIdDictionary.getOrgUsersTeamInvitation():
+      case EventsIdsDictionary.getOrgUsersTeamInvitation():
         this.checkOrgUsersTeamInvitationNotification(model);
         break;
-      case NotificationsEventIdDictionary.getUserFollowsYou():
+      case EventsIdsDictionary.getUserFollowsYou():
         this.checkUserFollowsYouNotification(model);
         break;
-      case NotificationsEventIdDictionary.getUserFollowsOrg():
+      case EventsIdsDictionary.getUserFollowsOrg():
         this.checkUserFollowsOrgNotification(model);
         break;
-      case NotificationsEventIdDictionary.getUserCommentsPost():
+      case EventsIdsDictionary.getUserCommentsPost():
         this.checkUserCommentsPostNotification(model, options);
         break;
-      case NotificationsEventIdDictionary.getUserCommentsComment():
+      case EventsIdsDictionary.getUserCommentsComment():
         this.checkUserCommentsOtherCommentNotification(model, options);
         break;
-      case NotificationsEventIdDictionary.getUserCommentsOrgPost():
+      case EventsIdsDictionary.getUserCommentsOrgPost():
         this.checkUserCommentsOrgPostNotification(model, options);
         break;
-      case NotificationsEventIdDictionary.getUserCommentsOrgComment():
+      case EventsIdsDictionary.getUserCommentsOrgComment():
         this.checkUserCommentsOrgCommentNotification(model);
         break;
-      case NotificationsEventIdDictionary.getUserCreatesDirectPostForOtherUser():
+      case EventsIdsDictionary.userCreatesDirectPostForOtherUser():
         this.checkUserCreatesDirectPostForOtherUser(model, options);
         break;
-      case NotificationsEventIdDictionary.getUserCreatesDirectPostForOrg():
+      case EventsIdsDictionary.getUserCreatesDirectPostForOrg():
         this.checkUserCreatesDirectPostForOrg(model, options);
         break;
       default:
@@ -233,7 +232,7 @@ class CommonHelper {
     expectedDataPostId,
     expectedTargetEntityPostId,
   ): void {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserRepostsOtherUserPost());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserRepostsOtherUserPost());
 
     this.checkOneRepostForNotification(model.data.post, false);
 
@@ -259,7 +258,7 @@ class CommonHelper {
     expectedUserIdFrom,
     expectedUserIdTo,
   ): void {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserHasMentionedYouInPost());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserHasMentionedYouInPost());
 
     expect(model.data.post.id).toBe(expectedPostId);
     expect(model.data.post.User.id).toBe(expectedUserIdFrom);
@@ -277,7 +276,7 @@ class CommonHelper {
     expectedUserIdFrom: number,
     expectedUserIdTo: number,
   ): void {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserHasMentionedYouInComment());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserHasMentionedYouInComment());
 
     expect(model.data.comment.id).toBe(expectedCommentId);
     CommentsHelper.checkOneCommentPreviewFields(model.data.comment, options);
@@ -298,7 +297,7 @@ class CommonHelper {
    * @param {number} expectedTargetEntityPostId
    */
   static checkUserRepostsOrgPost(model, options, expectedDataPostId, expectedTargetEntityPostId) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserRepostsOrgPost());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserRepostsOrgPost());
 
     this.checkOneRepostForNotification(model.data.post, false);
 
@@ -314,7 +313,7 @@ class CommonHelper {
    * @param {Object} model
    */
   static checkOrgUsersTeamInvitationNotification(model) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getOrgUsersTeamInvitation());
+    expect(model.event_id).toBe(EventsIdsDictionary.getOrgUsersTeamInvitation());
 
     OrganizationsHelper.checkOneOrganizationPreviewFields(model.data.organization);
 
@@ -327,7 +326,7 @@ class CommonHelper {
    * @param {Object} model
    */
   static checkUserFollowsYouNotification(model) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserFollowsYou());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserFollowsYou());
 
     UsersHelper.checkIncludedUserPreview(model.data);
     UsersHelper.checkIncludedUserPreview(model.target_entity);
@@ -338,7 +337,7 @@ class CommonHelper {
    * @param {Object} model
    */
   static checkUserTrustsYouNotification(model) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserTrustsYou());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserTrustsYou());
 
     UsersHelper.checkIncludedUserPreview(model.data);
     UsersHelper.checkIncludedUserPreview(model.target_entity);
@@ -349,7 +348,7 @@ class CommonHelper {
    * @param {Object} model
    */
   static checkUserFollowsOrgNotification(model) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserFollowsOrg());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserFollowsOrg());
 
     UsersHelper.checkIncludedUserPreview(model.data);
     OrganizationsHelper.checkOneOrganizationPreviewFields(model.target_entity.organization);
@@ -361,7 +360,7 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkUserUpvotesPostOfOtherUser(model, options = {}) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserUpvotesPostOfOtherUser());
 
     UsersHelper.checkIncludedUserPreview(model.data);
 
@@ -370,7 +369,7 @@ class CommonHelper {
   }
 
   static checkUserDownvotesPostOfOtherUser(model, options = {}) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesPostOfOtherUser());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserDownvotesPostOfOtherUser());
 
     UsersHelper.checkIncludedUserPreview(model.data);
 
@@ -379,7 +378,7 @@ class CommonHelper {
   }
 
   static checkUserUpvotesCommentOfOtherUser(model, options = {}) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesCommentOfOtherUser());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserUpvotesCommentOfOtherUser());
 
     UsersHelper.checkIncludedUserPreview(model.data);
 
@@ -390,7 +389,7 @@ class CommonHelper {
   }
 
   static checkUserDownvotesCommentOfOtherUser(model, options = {}) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesCommentOfOtherUser());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserDownvotesCommentOfOtherUser());
 
     UsersHelper.checkIncludedUserPreview(model.data);
 
@@ -406,7 +405,7 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkUserUpvotesPostOfOrg(model, options = {}) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesPostOfOrg());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserUpvotesPostOfOrg());
 
     UsersHelper.checkIncludedUserPreview(model.data);
 
@@ -417,7 +416,7 @@ class CommonHelper {
   }
 
   static checkUserDownvotesPostOfOrg(model, options = {}) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesPostOfOrg());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserDownvotesPostOfOrg());
 
     UsersHelper.checkIncludedUserPreview(model.data);
 
@@ -433,7 +432,7 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkUserUpvotesCommentOfOrg(model, options = {}) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesCommentOfOrg());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserUpvotesCommentOfOrg());
 
     UsersHelper.checkIncludedUserPreview(model.data);
     CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
@@ -451,7 +450,7 @@ class CommonHelper {
    * @param {Object} options
    */
   static checkUserDownvotesCommentOfOrg(model, options = {}) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesCommentOfOrg());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserDownvotesCommentOfOrg());
 
     UsersHelper.checkIncludedUserPreview(model.data);
     CommentsHelper.checkOneCommentPreviewFields(model.target_entity.comment, {
@@ -498,7 +497,7 @@ class CommonHelper {
   }
 
   static checkUserCommentsOrgCommentNotification(model) {
-    expect(model.event_id).toBe(NotificationsEventIdDictionary.getUserCommentsOrgComment());
+    expect(model.event_id).toBe(EventsIdsDictionary.getUserCommentsOrgComment());
 
     CommentsHelper.checkOneCommentPreviewFields(model.data.comment, {
       postProcessing: 'notification',

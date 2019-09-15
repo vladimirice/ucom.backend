@@ -1,7 +1,8 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
+
 import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
 import UsersActivityCommonHelper = require('../../../helpers/users/activity/users-activity-common-helper');
-import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import CommentsGenerator = require('../../../generators/comments-generator');
 import CommentsHelper = require('../../helpers/comments-helper');
 
@@ -36,7 +37,7 @@ describe('User to post activity', () => {
 
       await CommentsHelper.requestToUpvoteComment(postId, comment.id, userVlad, signedTransactionObject);
 
-      const eventId = NotificationsEventIdDictionary.getUserUpvotesCommentOfOtherUser();
+      const eventId = EventsIdsDictionary.getUserUpvotesCommentOfOtherUser();
       await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
     }, JEST_TIMEOUT * 3);
   });
@@ -54,7 +55,7 @@ describe('User to post activity', () => {
 
       await CommentsHelper.requestToDownvoteComment(postId, comment.id, userVlad, signedTransactionObject);
 
-      const eventId = NotificationsEventIdDictionary.getUserDownvotesCommentOfOtherUser();
+      const eventId = EventsIdsDictionary.getUserDownvotesCommentOfOtherUser();
       await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
     }, JEST_TIMEOUT * 3);
   });

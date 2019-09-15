@@ -1,3 +1,4 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
 import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
 import { UserModel } from '../users/interfaces/model-interfaces';
 import { PostModel } from './interfaces/model-interfaces';
@@ -6,7 +7,6 @@ import { BadRequestError } from '../api/errors';
 
 import EosTransactionService = require('../eos/eos-transaction-service');
 import PostsRepository = require('./posts-repository');
-import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
 import UserActivityService = require('../users/user-activity-service');
 import knex = require('../../config/knex');
 import UsersActivityVoteRepository = require('../users/repository/users-activity/users-activity-vote-repository');
@@ -103,18 +103,18 @@ class PostActivityService {
   private static getEventId(interactionType: number, modelTo: PostModel): number {
     if (interactionType === InteractionTypesDictionary.getUpvoteId()) {
       if (modelTo.organization_id) {
-        return NotificationsEventIdDictionary.getUserUpvotesPostOfOrg();
+        return EventsIdsDictionary.getUserUpvotesPostOfOrg();
       }
 
-      return NotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser();
+      return EventsIdsDictionary.getUserUpvotesPostOfOtherUser();
     }
 
     if (interactionType === InteractionTypesDictionary.getDownvoteId()) {
       if (modelTo.organization_id) {
-        return NotificationsEventIdDictionary.getUserDownvotesPostOfOrg();
+        return EventsIdsDictionary.getUserDownvotesPostOfOrg();
       }
 
-      return NotificationsEventIdDictionary.getUserDownvotesPostOfOtherUser();
+      return EventsIdsDictionary.getUserDownvotesPostOfOtherUser();
     }
 
     throw new Error(`Unsupported activityTypeId: ${interactionType}`);

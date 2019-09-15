@@ -5,7 +5,7 @@ import {
 } from '../../uos-accounts-properties/interfaces/model-interfaces';
 import { ModelWithEntityImages } from '../../entity-images/interfaces/model-interfaces';
 
-interface UserModel extends ModelWithEntityImages {
+interface UserModel extends UserModelPreview {
   readonly id: number;
   readonly account_name: string;
 
@@ -26,6 +26,8 @@ interface UserModelCard extends ModelWithEntityImages {
 
   [index: string]: string | number,
 }
+
+interface UserModelPreview extends UserModelCard {}
 
 interface UsersListResponse extends ListResponse {
   data: UserModelResponse[];
@@ -63,6 +65,7 @@ interface OrganizationsActivityQueryDto extends RequestQueryDto {
 
 export {
   UserModelCard,
+  UserModelPreview,
   UserModel,
   UserModelTests,
 

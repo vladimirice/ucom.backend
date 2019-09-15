@@ -23,7 +23,7 @@ init-project ip:
 	npm ci
 	make docker-init-test-db
 	make docker-compile-typescript
-	make pm2-reload-test-ecosystem
+	make pm2-reload-ecosystem-test
 	make docker-pm2-list
 
 docker-rebuild:
@@ -38,7 +38,7 @@ docker-init-db-by-sql dis:
 	docker cp ./migrations/sequelize-migrations-final-dump.sql ucom_backend_db_test:/
 	${DOCKER_DB_EXEC_CMD} psql -U uos uos_backend_app -f sequelize-migrations-final-dump.sql
 
-pm2-reload-test-ecosystem pmt:
+pm2-reload-ecosystem-test pmt:
 	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
 
 pm2-reload-ecosystem-staging:

@@ -1,10 +1,10 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
 import { PostModel } from '../../../../lib/posts/interfaces/model-interfaces';
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
 import PostsHelper = require('../../helpers/posts-helper');
 import UsersActivityCommonHelper = require('../../../helpers/users/activity/users-activity-common-helper');
-import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 
 let userVlad;
 let userJane;
@@ -36,7 +36,7 @@ describe('User to post activity', () => {
 
       await PostsHelper.requestToUpvotePost(userVlad, post.id, true, signedTransactionObject);
 
-      const eventId = NotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser();
+      const eventId = EventsIdsDictionary.getUserUpvotesPostOfOtherUser();
 
       await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
     }, JEST_TIMEOUT);
@@ -54,7 +54,7 @@ describe('User to post activity', () => {
 
       await PostsHelper.requestToDownvotePost(userVlad, post.id, signedTransactionObject);
 
-      const eventId = NotificationsEventIdDictionary.getUserDownvotesPostOfOtherUser();
+      const eventId = EventsIdsDictionary.getUserDownvotesPostOfOtherUser();
 
       await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
     }, JEST_TIMEOUT);

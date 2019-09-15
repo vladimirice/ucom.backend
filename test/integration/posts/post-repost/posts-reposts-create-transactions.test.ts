@@ -1,4 +1,4 @@
-import { ContentTypesDictionary } from 'ucom.libs.common';
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../../lib/common/interfaces/common-types';
 import { PostModel } from '../../../../lib/posts/interfaces/model-interfaces';
@@ -9,7 +9,6 @@ import knex = require('../../../../config/knex');
 import UsersModelProvider = require('../../../../lib/users/users-model-provider');
 import CommonChecker = require('../../../helpers/common/common-checker');
 import UsersActivityCommonHelper = require('../../../helpers/users/activity/users-activity-common-helper');
-import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import RepostResendingService = require('../../../../lib/posts/service/content-resending/repost-resending-service');
 
 const { PublicationsApi } = require('ucom-libs-wallet').Content;
@@ -61,7 +60,7 @@ it('create direct post for user providing a transaction', async () => {
 
   expect(repost.blockchain_id).toBe(blockchain_id);
 
-  const eventId = NotificationsEventIdDictionary.getUserRepostsOtherUserPost();
+  const eventId = EventsIdsDictionary.getUserRepostsOtherUserPost();
 
   const activity = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({

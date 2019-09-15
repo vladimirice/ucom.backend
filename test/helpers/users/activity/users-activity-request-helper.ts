@@ -21,6 +21,11 @@ class UsersActivityRequestHelper {
     return this.untrustOneUser(whoActs, targetUserId, signedTransaction);
   }
 
+  /**
+   * @deprecated - legacy
+   * @see - trustOneUserWithAutoUpdate
+   *
+   */
   static async trustOneUser(
     whoActs: UserModel,
     targetUserId: number,
@@ -32,6 +37,42 @@ class UsersActivityRequestHelper {
     return this.makeActivityRequest(whoActs, url, signedTransaction, expectedStatus);
   }
 
+  public static async trustOneUserWithAutoUpdate(
+    myself: UserModel,
+    targetUserId: number,
+    blockchainId: string,
+    signedTransaction: string,
+  ): Promise<any> {
+    const url: string = this.getTrustUrl(targetUserId);
+
+    const fields = {
+      signed_transaction: signedTransaction,
+      blockchain_id:      blockchainId,
+    };
+
+    return RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields, 201);
+  }
+
+  public static async untrustOneUserWithAutoUpdate(
+    myself: UserModel,
+    targetUserId: number,
+    blockchainId: string,
+    signedTransaction: string,
+  ): Promise<any> {
+    const url: string = this.getUntrustUrl(targetUserId);
+
+    const fields = {
+      signed_transaction: signedTransaction,
+      blockchain_id:      blockchainId,
+    };
+
+    return RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields, 201);
+  }
+
+  /**
+   * @deprecated Legacy
+   * @see untrustOneUserWithAutoUpdate
+   */
   static async untrustOneUser(
     whoActs: UserModel,
     targetUserId: number,

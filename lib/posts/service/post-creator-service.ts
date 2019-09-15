@@ -1,6 +1,6 @@
 /* tslint:disable:max-line-length */
 
-import { ContentTypesDictionary } from 'ucom.libs.common';
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
 import { IdOnlyDto, IRequestBody } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { IActivityModel } from '../../users/interfaces/users-activity/dto-interfaces';
@@ -16,7 +16,6 @@ import PostsCurrentParamsRepository = require('../repository/posts-current-param
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 import UserActivityService = require('../../users/user-activity-service');
 import UsersModelProvider = require('../../users/users-model-provider');
-import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import PostsRepository = require('../posts-repository');
 import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
@@ -121,7 +120,7 @@ class PostCreatorService {
 
     EosContentInputProcessor.areSignedTransactionDetailsOrError(body);
 
-    const eventId = NotificationsEventIdDictionary.getRepostEventId(parentPost.organization_id);
+    const eventId = EventsIdsDictionary.getRepostEventId(parentPost.organization_id);
 
     const { newPost, newActivity } = await db
       .transaction(async (transaction) => {

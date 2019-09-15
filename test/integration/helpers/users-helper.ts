@@ -225,8 +225,8 @@ class UsersHelper {
   }
 
   public static checkIncludedUserPreview(model, givenExpected = null, options: any = null, scopes: any = []) {
-    expect(model.User).toBeDefined();
-    expect(model.User instanceof Object).toBeTruthy();
+    CommonChecker.expectNotEmpty(model);
+    CommonChecker.expectNotEmpty(model.User);
 
     // @ts-ignore
     expect(typeof model.User.current_rate, 'It seems user is not post-processed')

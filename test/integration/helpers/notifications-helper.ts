@@ -3,6 +3,7 @@ import { AppError } from '../../../lib/api/errors';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
 import RequestHelper = require('./request-helper');
+import NotificationsStatusDictionary = require('../../../lib/entities/dictionary/notifications-status-dictionary');
 
 const request = require('supertest');
 
@@ -15,9 +16,6 @@ const responseHelper = require('./response-helper');
 
 const entityModelProvider = require('../../../lib/entities/service').ModelProvider;
 const usersModelProvider = require('../../../lib/users/service').ModelProvider;
-
-const notificationsStatusDictionary =
-  require('../../../lib/entities/dictionary').NotificationsStatus;
 
 const notificationsRepo =
   require('../../../lib/entities/repository').Notifications;
@@ -251,10 +249,10 @@ class NotificationsHelper {
       fieldsToCheck.confirmed  = 0;
     } else if (status === 'confirmed') {
       fieldsToCheck.finished   = true;
-      fieldsToCheck.confirmed  = notificationsStatusDictionary.getStatusConfirmed();
+      fieldsToCheck.confirmed  = NotificationsStatusDictionary.getStatusConfirmed();
     } else if (status === 'declined') {
       fieldsToCheck.finished   = true;
-      fieldsToCheck.confirmed  = notificationsStatusDictionary.getStatusDeclined();
+      fieldsToCheck.confirmed  = NotificationsStatusDictionary.getStatusDeclined();
     }
 
     expect(model).toMatchObject(fieldsToCheck);

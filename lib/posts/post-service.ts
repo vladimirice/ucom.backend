@@ -1,4 +1,4 @@
-import { ContentTypesDictionary } from 'ucom.libs.common';
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
 import { PostModelResponse } from './interfaces/model-interfaces';
 import { UserModel } from '../users/interfaces/model-interfaces';
 import { IRequestBody } from '../common/interfaces/common-types';
@@ -10,7 +10,6 @@ import PostsRepository = require('./posts-repository');
 import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
 import PostToEventIdService = require('./service/post-to-event-id-service');
 import UsersModelProvider = require('../users/users-model-provider');
-import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
 import UsersRepository = require('../users/users-repository');
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import OrganizationsRepository = require('../organizations/repository/organizations-repository');
@@ -175,7 +174,7 @@ class PostService {
 
     req.body.entity_id_for    = userIdTo;
     req.body.entity_name_for  = UsersModelProvider.getEntityName();
-    const eventId = NotificationsEventIdDictionary.getUserCreatesDirectPostForOtherUser();
+    const eventId = EventsIdsDictionary.userCreatesDirectPostForOtherUser();
 
     const accountNameTo = await UsersRepository.findAccountNameById(userIdTo);
     if (!accountNameTo) {
@@ -198,7 +197,7 @@ class PostService {
     req.body.entity_id_for    = orgIdTo;
     req.body.entity_name_for  = OrganizationsModelProvider.getEntityName();
 
-    const eventId = NotificationsEventIdDictionary.getUserCreatesDirectPostForOrg();
+    const eventId = EventsIdsDictionary.getUserCreatesDirectPostForOrg();
 
     const orgBlockchainId = await OrganizationsRepository.findBlockchainIdById(orgIdTo);
     if (!orgBlockchainId) {

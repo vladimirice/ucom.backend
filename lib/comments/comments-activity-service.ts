@@ -1,3 +1,4 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
 import { BadRequestError } from '../api/errors';
 import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
 import { UserModel } from '../users/interfaces/model-interfaces';
@@ -5,7 +6,6 @@ import { IRequestBody } from '../common/interfaces/common-types';
 import { CommentModel } from './interfaces/model-interfaces';
 
 import CommentsRepository = require('./comments-repository');
-import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
 import UserActivityService = require('../users/user-activity-service');
 import EosTransactionService = require('../eos/eos-transaction-service');
 import ActivityUserCommentRepository = require('../activity/activity-user-comment-repository');
@@ -108,18 +108,18 @@ class CommentsActivityService {
   private static getEventId(interactionType: number, modelTo: CommentModel): number {
     if (interactionType === InteractionTypesDictionary.getUpvoteId()) {
       if (modelTo.organization_id) {
-        return NotificationsEventIdDictionary.getUserUpvotesCommentOfOrg();
+        return EventsIdsDictionary.getUserUpvotesCommentOfOrg();
       }
 
-      return NotificationsEventIdDictionary.getUserUpvotesCommentOfOtherUser();
+      return EventsIdsDictionary.getUserUpvotesCommentOfOtherUser();
     }
 
     if (interactionType === InteractionTypesDictionary.getDownvoteId()) {
       if (modelTo.organization_id) {
-        return NotificationsEventIdDictionary.getUserDownvotesCommentOfOrg();
+        return EventsIdsDictionary.getUserDownvotesCommentOfOrg();
       }
 
-      return NotificationsEventIdDictionary.getUserDownvotesCommentOfOtherUser();
+      return EventsIdsDictionary.getUserDownvotesCommentOfOtherUser();
     }
 
     throw new Error(`Unsupported activityTypeId: ${interactionType}`);

@@ -1,8 +1,8 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../../lib/users/interfaces/model-interfaces';
 
 import ActivityHelper = require('../../../helpers/activity-helper');
 import SeedsHelper = require('../../../helpers/seeds-helper');
-import NotificationsEventIdDictionary = require('../../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityCommonHelper = require('../../../../helpers/users/activity/users-activity-common-helper');
 
 const { SocialApi } = require('ucom-libs-wallet');
@@ -29,7 +29,7 @@ it('Follow', async () => {
 
   await ActivityHelper.requestToCreateFollow(userVlad, userJane, 201, signedTransactionObject);
 
-  const eventId = NotificationsEventIdDictionary.getUserFollowsYou();
+  const eventId = EventsIdsDictionary.getUserFollowsYou();
   await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
 }, JEST_TIMEOUT);
 
@@ -50,7 +50,7 @@ it('Unfollow', async () => {
 
   await ActivityHelper.requestToCreateUnfollow(userVlad, userJane, 201, signedTransactionObject);
 
-  const eventId = NotificationsEventIdDictionary.getUserUnfollowsYou();
+  const eventId = EventsIdsDictionary.getUserUnfollowsYou();
   await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
 }, JEST_TIMEOUT);
 

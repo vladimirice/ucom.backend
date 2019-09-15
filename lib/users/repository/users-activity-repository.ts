@@ -1,16 +1,20 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
-import { InteractionTypesDictionary } from 'ucom.libs.common';
+import { EventsIdsDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
 import { EntityParamAggregatesDto } from '../../stats/interfaces/dto-interfaces';
 import { UsersActivityModelDto } from '../interfaces/users-activity/model-interfaces';
 import { IActivityModel } from '../interfaces/users-activity/dto-interfaces';
+import { AppError } from '../../api/errors';
 
-import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import knex = require('../../../config/knex');
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import UsersActivityWhere = require('./users-activity/users-activity-where');
 import BlockchainModelProvider = require('../../eos/service/blockchain-model-provider');
+import UsersModelProvider = require('../users-model-provider');
+import PostsModelProvider = require('../../posts/service/posts-model-provider');
+import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 
+const { Dictionary } = require('ucom-libs-wallet');
 const models = require('../../../models');
 
 const db = models.sequelize;
@@ -19,16 +23,11 @@ const { Op } = models.Sequelize;
 const activityGroupDictionary = require('../../activity/activity-group-dictionary');
 const blockchainStatusDictionary = require('../../eos/eos-blockchain-status-dictionary');
 
-const eventIdDictionary = require('../../entities/dictionary').EventId;
-
-const usersModelProvider  = require('../../users/service').ModelProvider;
-const orgModelProvider    = require('../../organizations/service').ModelProvider;
-const postsModelProvider  = require('../../posts/service').ModelProvider;
 const commentsModelProvider  = require('../../comments/service/comments-model-provider');
 
 const TABLE_NAME = 'users_activity';
 
-const model = usersModelProvider.getUsersActivityModel();
+const model = UsersModelProvider.getUsersActivityModel();
 
 class UsersActivityRepository {
   public static async countAllUpvotes(): Promise<number> {
@@ -55,11 +54,11 @@ class UsersActivityRepository {
 
   public static async getPostsVotes(): Promise<any[]> {
     const eventIds: number[] = [
-      NotificationsEventIdDictionary.getUserUpvotesPostOfOrg(),
-      NotificationsEventIdDictionary.getUserUpvotesPostOfOtherUser(),
+      EventsIdsDictionary.getUserUpvotesPostOfOrg(),
+      EventsIdsDictionary.getUserUpvotesPostOfOtherUser(),
 
-      NotificationsEventIdDictionary.getUserDownvotesPostOfOrg(),
-      NotificationsEventIdDictionary.getUserDownvotesPostOfOtherUser(),
+      EventsIdsDictionary.getUserDownvotesPostOfOrg(),
+      EventsIdsDictionary.getUserDownvotesPostOfOtherUser(),
     ];
 
     const sql = `
@@ -83,8 +82,8 @@ class UsersActivityRepository {
     const paramField = 'event_id';
     const entityIdFields = 'entity_id_to';
     const eventIds: number[] = [
-      NotificationsEventIdDictionary.getUserFollowsOrg(),
-      NotificationsEventIdDictionary.getUserUnfollowsOrg(),
+      EventsIdsDictionary.getUserFollowsOrg(),
+      EventsIdsDictionary.getUserUnfollowsOrg(),
     ];
 
     return this.getManyEntityParametersByEvents(paramField, entityIdFields, eventIds);
@@ -150,8 +149,8 @@ class UsersActivityRepository {
       user_id_from: userId,
       entity_id_on: postId,
       event_id:     [
-        eventIdDictionary.getUserRepostsOtherUserPost(),
-        eventIdDictionary.getUserRepostsOrgPost(),
+        EventsIdsDictionary.getUserRepostsOtherUserPost(),
+        EventsIdsDictionary.getUserRepostsOrgPost(),
       ],
     };
 
@@ -189,9 +188,9 @@ class UsersActivityRepository {
 
     const groupIdContentCreation     = activityGroupDictionary.getGroupContentCreation();
     const groupIdContentInteraction     = activityGroupDictionary.getGroupContentInteraction();
-    const postsEntityName = postsModelProvider.getEntityName();
+    const postsEntityName = PostsModelProvider.getEntityName();
 
-    const eventIdRelatedToRepost = eventIdDictionary.getEventIdsRelatedToRepost();
+    const eventIdRelatedToRepost = EventsIdsDictionary.getEventIdsRelatedToRepost();
 
     const votingActivityTypes = [
       InteractionTypesDictionary.getUpvoteId(),
@@ -266,8 +265,7 @@ class UsersActivityRepository {
     userId: number,
     blockchainNodesType: number,
   ): Promise<number[]> {
-    const { eventIdUp, eventIdDown } =
-      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
+    const { eventIdUp, eventIdDown } = this.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT entity_id_to FROM (
@@ -295,8 +293,7 @@ class UsersActivityRepository {
   public static async findAllUpvoteUsersBlockchainNodesActivity(
     blockchainNodesType: number,
   ): Promise<any> {
-    const { eventIdUp, eventIdDown } =
-      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
+    const { eventIdUp, eventIdDown } = this.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT id, user_id_from, entity_id_to FROM (
@@ -325,8 +322,7 @@ class UsersActivityRepository {
   public static async findAllUpvoteCancelUsersBlockchainNodesActivity(
     blockchainNodesType: number,
   ): Promise<any> {
-    const { eventIdUp, eventIdDown } =
-      NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
+    const { eventIdUp, eventIdDown } = this.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
     const sql = `
       SELECT id, user_id_from, entity_id_to FROM (
@@ -506,8 +502,8 @@ class UsersActivityRepository {
    * @returns {Promise<Object>}
    */
   static async findOneWithPostById(id) {
-    const entityTableName = postsModelProvider.getTableName();
-    const entityName = postsModelProvider.getEntityName();
+    const entityTableName = PostsModelProvider.getTableName();
+    const entityName = PostsModelProvider.getEntityName();
     const allowedGroups = [
       activityGroupDictionary.getGroupContentCreation(),
       activityGroupDictionary.getGroupContentUpdating(),
@@ -658,10 +654,10 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
     const activityTypeFollow  = InteractionTypesDictionary.getFollowId();
     const activityTypeUnfollow  = InteractionTypesDictionary.getUnfollowId();
 
-    const usersTableName      = usersModelProvider.getUsersTableName();
-    const activityTableName   = usersModelProvider.getUsersActivityTableName();
+    const usersTableName      = UsersModelProvider.getUsersTableName();
+    const activityTableName   = UsersModelProvider.getUsersActivityTableName();
     const activityGroupId     = activityGroupDictionary.getGroupUserUserInteraction();
-    const entityName          = usersModelProvider.getEntityName();
+    const entityName          = UsersModelProvider.getEntityName();
 
     const sql = `
       SELECT
@@ -713,11 +709,11 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
     const activityTypeFollow  =  InteractionTypesDictionary.getFollowId();
     const activityTypeUnfollow = InteractionTypesDictionary.getUnfollowId();
 
-    const activityTableName   = usersModelProvider.getUsersActivityTableName();
+    const activityTableName   = UsersModelProvider.getUsersActivityTableName();
     const activityGroupId     = activityGroupDictionary.getGroupUserUserInteraction();
-    const userEntityName      = usersModelProvider.getEntityName();
+    const userEntityName      = UsersModelProvider.getEntityName();
 
-    const orgEntityName       = orgModelProvider.getEntityName();
+    const orgEntityName       = OrganizationsModelProvider.getEntityName();
     const orgActivityGroupId  = activityGroupDictionary.getGroupContentInteraction();
 
     const sql = `
@@ -750,9 +746,9 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
     const usersIds: any  = [];
 
     data.forEach((row) => {
-      if (row.entity_name === usersModelProvider.getEntityName()) {
+      if (row.entity_name === UsersModelProvider.getEntityName()) {
         usersIds.push(+row.entity_id_to);
-      } else if (row.entity_name === orgModelProvider.getEntityName()) {
+      } else if (row.entity_name === OrganizationsModelProvider.getEntityName()) {
         orgIds.push(+row.entity_id_to);
       }
     });
@@ -771,9 +767,9 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
     const activityTypeFollow = InteractionTypesDictionary.getFollowId();
     const activityTypeUnfollow = InteractionTypesDictionary.getUnfollowId();
 
-    const activityTableName = usersModelProvider.getUsersActivityTableName();
+    const activityTableName = UsersModelProvider.getUsersActivityTableName();
 
-    const orgEntityName = orgModelProvider.getEntityName();
+    const orgEntityName = OrganizationsModelProvider.getEntityName();
     const orgActivityGroupId = activityGroupDictionary.getGroupContentInteraction();
 
     const data = await knex(activityTableName)
@@ -801,12 +797,12 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
    * @returns {Promise<any>}
    */
   static async findOneUserFollowActivityData(userId) {
-    const entityName       = usersModelProvider.getEntityName();
+    const entityName       = UsersModelProvider.getEntityName();
     const activityGroupId = activityGroupDictionary.getGroupUserUserInteraction();
 
     const excludeEventIds: number[] = [
-      NotificationsEventIdDictionary.getUserTrustsYou(),
-      NotificationsEventIdDictionary.getUserUntrustsYou(),
+      EventsIdsDictionary.getUserTrustsYou(),
+      EventsIdsDictionary.getUserUntrustsYou(),
     ];
 
     const sql = `SELECT
@@ -838,7 +834,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
         where: {
           user_id_from:       userIdFrom,
           entity_id_to:       userIdTo,
-          entity_name:        usersModelProvider.getEntityName(),
+          entity_name:        UsersModelProvider.getEntityName(),
 
           activity_type_id:   InteractionTypesDictionary.getFollowId(),
           activity_group_id:  activityGroupDictionary.getGroupUserUserInteraction(),
@@ -862,7 +858,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
         where: {
           user_id_from:       userIdFrom,
           entity_id_to:       userIdTo,
-          entity_name:        usersModelProvider.getEntityName(),
+          entity_name:        UsersModelProvider.getEntityName(),
 
           activity_type_id:   InteractionTypesDictionary.getUnfollowId(),
           activity_group_id:  activityGroupDictionary.getGroupUserUserInteraction(),
@@ -893,7 +889,7 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
 
           user_id_from:       userIdFrom,
           entity_id_to:       userIdTo,
-          entity_name:        usersModelProvider.getEntityName(),
+          entity_name:        UsersModelProvider.getEntityName(),
 
           activity_group_id:  activityGroupDictionary.getGroupUserUserInteraction(),
         },
@@ -914,6 +910,29 @@ WHERE activity_type_id = ${activityTypeId} AND activity_group_id = ${activityGro
 
   static getModel() {
     return models[TABLE_NAME];
+  }
+
+  public static getUpDownEventsByBlockchainNodesType(type: number): { eventIdUp, eventIdDown } {
+    let eventIdUp: number;
+    let eventIdDown: number;
+
+    switch (type) {
+      case Dictionary.BlockchainNodes.typeBlockProducer():
+        eventIdUp   = EventsIdsDictionary.getUserVotesForBlockchainNode();
+        eventIdDown = EventsIdsDictionary.getUserCancelVoteForBlockchainNode();
+        break;
+      case Dictionary.BlockchainNodes.typeCalculator():
+        eventIdUp   = EventsIdsDictionary.getUserVotesForCalculatorNode();
+        eventIdDown = EventsIdsDictionary.getUserCancelVoteForCalculatorNode();
+        break;
+      default:
+        throw new AppError(`Unsupported blockchain node type: ${type}`);
+    }
+
+    return {
+      eventIdUp,
+      eventIdDown,
+    };
   }
 }
 

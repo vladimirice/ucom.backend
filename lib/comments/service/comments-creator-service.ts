@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+import { EventsIdsDictionary } from 'ucom.libs.common';
 import { CommentModel, CommentModelInput } from '../interfaces/model-interfaces';
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { IRequestBody } from '../../common/interfaces/common-types';
@@ -8,7 +9,6 @@ import PostsRepository = require('../../posts/posts-repository');
 import CommentsRepository = require('../comments-repository');
 import PostStatsService = require('../../posts/stats/post-stats-service');
 import PostsModelProvider = require('../../posts/service/posts-model-provider');
-import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import CommentsModelProvider = require('./comments-model-provider');
 import UserActivityService = require('../../users/user-activity-service');
 import UsersTeamRepository = require('../../users/repository/users-team-repository');
@@ -129,18 +129,18 @@ export class CommentsCreatorService {
 
     if (PostsModelProvider.isPost(entityName)) {
       if (commentableModel.organization) {
-        return NotificationsEventIdDictionary.getUserCommentsOrgPost();
+        return EventsIdsDictionary.getUserCommentsOrgPost();
       }
 
-      return NotificationsEventIdDictionary.getUserCommentsPost();
+      return EventsIdsDictionary.getUserCommentsPost();
     }
 
     if (CommentsModelProvider.isComment(entityName)) {
       if (commentableModel.organization) {
-        return NotificationsEventIdDictionary.getUserCommentsOrgComment();
+        return EventsIdsDictionary.getUserCommentsOrgComment();
       }
 
-      return NotificationsEventIdDictionary.getUserCommentsComment();
+      return EventsIdsDictionary.getUserCommentsComment();
     }
 
     return null;

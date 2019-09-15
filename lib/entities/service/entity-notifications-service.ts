@@ -1,16 +1,17 @@
 /* tslint:disable:max-line-length */
+import { EventsIdsDictionary } from 'ucom.libs.common';
 import { StringToAnyCollection } from '../../common/interfaces/common-types';
+
+import NotificationsStatusDictionary = require('../dictionary/notifications-status-dictionary');
 
 const notificationsRepo = require('../repository').Notifications;
 const apiPostProcessor = require('../../common/service').PostProcessor;
 const { BadRequestError } = require('../../api/errors');
 
-const notificationsStatusDictionary = require('../../entities/dictionary').NotificationsStatus;
 const usersTeamRepository = require('../../users/repository').UsersTeam;
 const orgModelProvider = require('../../organizations/service').ModelProvider;
 
 const queryFilterService = require('../../api/filters/query-filter-service');
-const eventIdDictionary = require('../../entities/dictionary').EventId;
 const entityNotificationsRepository = require('../../entities/repository').Notifications;
 
 const NOTIFICATION_STATUS__PENDING      = 0;
@@ -20,7 +21,7 @@ const db = require('../../../models').sequelize;
 class EntityNotificationsService {
   public static async confirmPromptNotification(notificationId: number, userId: number) {
     // #task validate a request
-    const confirmed = notificationsStatusDictionary.getStatusConfirmed();
+    const confirmed = NotificationsStatusDictionary.getStatusConfirmed();
     const seen = true;
     const finished = true;
 
@@ -49,7 +50,7 @@ class EntityNotificationsService {
       throw new BadRequestError({ general: `There is no notification with ID ${notificationId} which belongs to you` });
     }
 
-    if (eventIdDictionary.doesEventRequirePrompt(notification)) {
+    if (EventsIdsDictionary.doesEventRequirePrompt(notification)) {
       await notificationsRepo.setStatusSeen(notificationId);
     } else {
       await notificationsRepo.setStatusSeenAndFinished(notificationId);
@@ -60,7 +61,7 @@ class EntityNotificationsService {
 
   public static async declinePromptNotification(notificationId: number, userId: number) {
     // #task validate request
-    const confirmed = notificationsStatusDictionary.getStatusDeclined();
+    const confirmed = NotificationsStatusDictionary.getStatusDeclined();
     const seen = true;
     const finished = true;
 

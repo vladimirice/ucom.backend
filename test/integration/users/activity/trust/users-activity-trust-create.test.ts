@@ -1,9 +1,11 @@
 import _ from 'lodash';
+import { ContentTypesDictionary, EntityNames, EventsIdsDictionary } from 'ucom.libs.common';
 import {
   UsersActivityModelDto,
   UsersActivityIndexModelDto,
 } from '../../../../../lib/users/interfaces/users-activity/model-interfaces';
 import { UserModel } from '../../../../../lib/users/interfaces/model-interfaces';
+import { FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION } from '../../../../generators/common/fake-data-generator';
 
 import SeedsHelper = require('../../../helpers/seeds-helper');
 import UsersActivityRequestHelper = require('../../../../helpers/users/activity/users-activity-request-helper');
@@ -11,6 +13,9 @@ import UsersActivityRepository = require('../../../../../lib/users/repository/us
 import UsersActivityTrustRepository = require('../../../../../lib/users/repository/users-activity/users-activity-trust-repository');
 import UsersModelProvider = require('../../../../../lib/users/users-model-provider');
 import CommonChecker = require('../../../../helpers/common/common-checker');
+import PostsModelProvider = require('../../../../../lib/posts/service/posts-model-provider');
+import knex = require('../../../../../config/knex');
+import UsersHelper = require('../../../helpers/users-helper');
 
 require('jest-expect-message');
 
@@ -39,7 +44,7 @@ describe('Users activity trust creation', () => {
 
   describe('Trust workflow', () => {
     describe('Positive', () => {
-      it('Vlad trusts Jane - should create correct activity record', async () => {
+      it('Vlad trusts Jane without autoUpdate (Legacy) - should create correct activity record', async () => {
         const signedTransaction = 'sample_one';
         await UsersActivityRequestHelper.trustOneUser(userVlad, userJane.id, signedTransaction);
 
@@ -79,6 +84,18 @@ describe('Users activity trust creation', () => {
         CommonChecker.expectNotEmpty(trustIndexRow);
         expect(trustIndexRow).toMatchObject(trustIndexRowExpected);
       });
+
+      it('should create auto-update post if blockchain id is provided', async () => {
+        const eventId = EventsIdsDictionary.getUserTrustsYou();
+        await UsersActivityRequestHelper.trustOneUserWithAutoUpdate(
+          userVlad,
+          userJane.id,
+          FAKE_BLOCKCHAIN_ID,
+          FAKE_SIGNED_TRANSACTION,
+        );
+
+        await checkPostAutoUpdate(eventId);
+      });
     });
     describe('Negative', () => {
       it('Not possible to trust user which does not exist', async () => {
@@ -103,7 +120,7 @@ describe('Users activity trust creation', () => {
 
   describe('Untrust workflow', () => {
     describe('Positive', () => {
-      it('Vlad untrusts Jane - should create correct activity record', async () => {
+      it('Vlad untrusts Jane without autoUpdate - (legacy) should create correct activity record', async () => {
         const signedTransaction = 'sample_one';
         await UsersActivityRequestHelper.trustOneUser(userVlad, userJane.id, signedTransaction);
         await UsersActivityRequestHelper.untrustOneUser(userVlad, userJane.id, signedTransaction);
@@ -136,6 +153,25 @@ describe('Users activity trust creation', () => {
 
         expect(_.isEmpty(trustIndexRow)).toBeTruthy();
       });
+
+      it('should create auto-update post if blockchain id is provided', async () => {
+        await UsersActivityRequestHelper.trustOneUserWithAutoUpdate(
+          userVlad,
+          userJane.id,
+          FAKE_BLOCKCHAIN_ID,
+          FAKE_SIGNED_TRANSACTION,
+        );
+
+        const eventId = EventsIdsDictionary.getUserUntrustsYou();
+        await UsersActivityRequestHelper.untrustOneUserWithAutoUpdate(
+          userVlad,
+          userJane.id,
+          FAKE_BLOCKCHAIN_ID,
+          FAKE_SIGNED_TRANSACTION,
+        );
+
+        await checkPostAutoUpdate(eventId);
+      });
     });
     describe('Negative', () => {
       it('Not possible to untrust user which does not exist', async () => {
@@ -158,5 +194,28 @@ describe('Users activity trust creation', () => {
     });
   });
 });
+
+async function checkPostAutoUpdate(eventId: number) {
+  const post = await knex(PostsModelProvider.getTableName())
+    .where({
+      post_type_id:     ContentTypesDictionary.getTypeAutoUpdate(),
+      user_id:          userVlad.id,
+      entity_id_for:    userVlad.id,
+      entity_name_for:  EntityNames.USERS,
+      blockchain_id:    FAKE_BLOCKCHAIN_ID,
+    })
+    .orderBy('id', 'DESC')
+    .first();
+
+  CommonChecker.expectNotEmpty(post);
+
+  const { meta_data: metaData, data, target_entity: targetEntity } = post.json_data;
+
+  CommonChecker.expectNotEmpty(metaData);
+  expect(metaData.eventId).toBe(eventId);
+
+  UsersHelper.checkIncludedUserPreview(data);
+  UsersHelper.checkIncludedUserPreview(targetEntity);
+}
 
 export {};

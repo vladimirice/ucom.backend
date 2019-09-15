@@ -1,4 +1,4 @@
-import { ContentTypesDictionary } from 'ucom.libs.common';
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
 
 import MockHelper = require('../../helpers/mock-helper');
 import UsersHelper = require('../../helpers/users-helper');
@@ -16,8 +16,6 @@ const usersActivityRepository = require('../../../../lib/users/repository').Acti
 const activityGroupDictionary = require('../../../../lib/activity/activity-group-dictionary');
 
 const postsModelProvider      = require('../../../../lib/posts/service').ModelProvider;
-
-const eventIdDictionary = require('../../../../lib/entities/dictionary').EventId;
 
 let userVlad;
 let userJane;
@@ -99,7 +97,7 @@ describe('Post repost API', () => {
         expect(+activity.entity_id_on).toBe(postId);
         expect(activity.entity_name_on).toBe(postsModelProvider.getEntityName());
 
-        expect(activity.event_id).toBe(eventIdDictionary.getUserRepostsOtherUserPost());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserRepostsOtherUserPost());
       });
 
       it('create repost of organization post', async () => {
@@ -114,7 +112,7 @@ describe('Post repost API', () => {
         const activity =
           await usersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
 
-        expect(activity.event_id).toBe(eventIdDictionary.getUserRepostsOrgPost());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserRepostsOrgPost());
       });
 
       it.skip('get list of posts with repost inside with different structure', async () => {

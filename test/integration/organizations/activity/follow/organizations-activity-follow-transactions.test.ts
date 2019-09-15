@@ -1,6 +1,7 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
+
 import ActivityHelper = require('../../../helpers/activity-helper');
 import SeedsHelper = require('../../../helpers/seeds-helper');
-import NotificationsEventIdDictionary = require('../../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityCommonHelper = require('../../../../helpers/users/activity/users-activity-common-helper');
 import OrganizationsGenerator = require('../../../../generators/organizations-generator');
 
@@ -35,7 +36,7 @@ it('Follow', async () => {
     signedTransactionObject,
   );
 
-  const eventId = NotificationsEventIdDictionary.getUserFollowsOrg();
+  const eventId = EventsIdsDictionary.getUserFollowsOrg();
   await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
 }, JEST_TIMEOUT);
 
@@ -57,7 +58,7 @@ it('Unfollow', async () => {
     signedTransactionObject,
   );
 
-  const eventId = NotificationsEventIdDictionary.getUserUnfollowsOrg();
+  const eventId = EventsIdsDictionary.getUserUnfollowsOrg();
   await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
 }, JEST_TIMEOUT);
 

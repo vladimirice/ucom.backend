@@ -1,3 +1,4 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 
 import CommentsGenerator = require('../../../generators/comments-generator');
@@ -11,9 +12,7 @@ import CommentsRepository = require('../../../../lib/comments/comments-repositor
 import ActivityUserCommentRepository = require('../../../../lib/activity/activity-user-comment-repository');
 import ActivityTypesDictionary = require('../../../../lib/activity/activity-types-dictionary');
 import UsersActivityRepository = require('../../../../lib/users/repository/users-activity-repository');
-import NotificationsNotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import OrganizationsGenerator = require('../../../generators/organizations-generator');
-import NotificationsEventIdDictionary = require('../../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import knex = require('../../../../config/knex');
 import UsersModelProvider = require('../../../../lib/users/users-model-provider');
 import CommonChecker = require('../../../helpers/common/common-checker');
@@ -143,7 +142,7 @@ describe('Comments', () => {
 
         const activity =
           await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newComment.id);
-        expect(activity.event_id).toBe(NotificationsNotificationsEventIdDictionary.getUserUpvotesCommentOfOtherUser());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserUpvotesCommentOfOtherUser());
 
         const indexRecord = await knex(UsersModelProvider.getUsersActivityVoteTableName())
           .where({
@@ -166,7 +165,7 @@ describe('Comments', () => {
 
         const activity =
           await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, comment.id);
-        expect(activity.event_id).toBe(NotificationsEventIdDictionary.getUserUpvotesCommentOfOrg());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserUpvotesCommentOfOrg());
       });
     });
     describe('Negative scenarios', () => {
@@ -238,7 +237,7 @@ describe('Comments', () => {
 
         const activity =
           await UsersActivityRepository.findLastByUserIdAndEntityId(userVlad.id, newComment.id);
-        expect(activity.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesCommentOfOtherUser());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserDownvotesCommentOfOtherUser());
 
         const indexRecord = await knex(UsersModelProvider.getUsersActivityVoteTableName())
           .where({
@@ -261,7 +260,7 @@ describe('Comments', () => {
 
         const activity =
           await UsersActivityRepository.findLastByUserIdAndEntityId(userJane.id, comment.id);
-        expect(activity.event_id).toBe(NotificationsEventIdDictionary.getUserDownvotesCommentOfOrg());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserDownvotesCommentOfOrg());
       });
     });
     describe('Negative scenarios', () => {

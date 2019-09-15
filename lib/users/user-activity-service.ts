@@ -1,6 +1,6 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
-import { ContentTypesDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
+import { ContentTypesDictionary, EventsIdsDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
 import { AppError, BadRequestError, getErrorMessagePair } from '../api/errors';
 import { UserModel } from './interfaces/model-interfaces';
 import { ISignedTransactionObject } from '../eos/interfaces/transactions-interfaces';
@@ -10,7 +10,6 @@ import { IRequestBody } from '../common/interfaces/common-types';
 
 import knex = require('../../config/knex');
 import UsersActivityRepository = require('./repository/users-activity-repository');
-import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityFollowRepository = require('./repository/users-activity/users-activity-follow-repository');
 import ActivityGroupDictionary = require('../activity/activity-group-dictionary');
 import UsersModelProvider = require('./users-model-provider');
@@ -141,7 +140,7 @@ class UserActivityService {
       entity_name_on:     OrganizationsModelProvider.getEntityName(),
 
       signed_transaction: '',
-      event_id:           NotificationsEventIdDictionary.getOrgUsersTeamInvitation(),
+      event_id:           EventsIdsDictionary.getOrgUsersTeamInvitation(),
     };
 
     return UsersActivityRepository.createNewActivity(data, transaction);
@@ -387,7 +386,7 @@ class UserActivityService {
     const postEntityName      = PostsModelProvider.getEntityName();
     const userEntityName      = UsersModelProvider.getEntityName();
 
-    const eventId = NotificationsEventIdDictionary.getUserHasMentionedYouInPost();
+    const eventId = EventsIdsDictionary.getUserHasMentionedYouInPost();
 
     const data = {
       activity_type_id:   activityGroupId, // #task - refactor activity/group/event structure
@@ -423,7 +422,7 @@ class UserActivityService {
     const entityNameOn        = CommentsModelProvider.getEntityName();
     const userEntityName      = UsersModelProvider.getEntityName();
 
-    const eventId = NotificationsEventIdDictionary.getUserHasMentionedYouInComment();
+    const eventId = EventsIdsDictionary.getUserHasMentionedYouInComment();
 
     const data = {
       activity_type_id:   activityGroupId, // #task - refactor activity/group/event structure
@@ -712,7 +711,7 @@ class UserActivityService {
     const activityGroupId = ActivityGroupDictionary.getGroupUserUserInteraction();
     const entityName      = UsersModelProvider.getEntityName();
     const eventId         = activityTypeId === InteractionTypesDictionary.getFollowId() ?
-      NotificationsEventIdDictionary.getUserFollowsYou() : NotificationsEventIdDictionary.getUserUnfollowsYou();
+      EventsIdsDictionary.getUserFollowsYou() : EventsIdsDictionary.getUserUnfollowsYou();
 
     return knex.transaction(async (trx) => {
       await this.createFollowIndex(eventId, currentUserId, userIdTo, trx);
@@ -738,13 +737,13 @@ class UserActivityService {
     userIdTo: number,
     trx: Transaction,
   ): Promise<void> {
-    if (NotificationsEventIdDictionary.doesUserFollowOtherUser(eventId)) {
+    if (EventsIdsDictionary.doesUserFollowOtherUser(eventId)) {
       await UsersActivityFollowRepository.insertOneFollowsOtherUser(userIdFrom, userIdTo, trx);
 
       return;
     }
 
-    if (NotificationsEventIdDictionary.doesUserUnfollowOtherUser(eventId)) {
+    if (EventsIdsDictionary.doesUserUnfollowOtherUser(eventId)) {
       const deleteRes = await UsersActivityFollowRepository.deleteOneFollowsOtherUser(userIdFrom, userIdTo, trx);
       if (deleteRes === null) {
         throw new AppError(`No record to delete. It is possible that it is a concurrency issue. User ID from: ${userIdFrom}, user ID to ${userIdTo}`);

@@ -1,4 +1,4 @@
-import { ContentTypesDictionary } from 'ucom.libs.common';
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { PostModel } from '../../../lib/posts/interfaces/model-interfaces';
@@ -11,7 +11,6 @@ import knex = require('../../../config/knex');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import CommonChecker = require('../../helpers/common/common-checker');
 import UsersActivityCommonHelper = require('../../helpers/users/activity/users-activity-common-helper');
-import NotificationsEventIdDictionary = require('../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import ActivityGroupDictionary = require('../../../lib/activity/activity-group-dictionary');
 import CommentsGenerator = require('../../generators/comments-generator');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
@@ -65,7 +64,7 @@ it('Create comment for post and provide a transaction', async () => {
 
   expect(comment.blockchain_id).toBe(blockchain_id);
 
-  const eventId = NotificationsEventIdDictionary.getUserCommentsPost();
+  const eventId = EventsIdsDictionary.getUserCommentsPost();
 
   const activity = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({
@@ -122,7 +121,7 @@ it('create comment for comment and provide a transaction', async () => {
 
   expect(comment.blockchain_id).toBe(blockchain_id);
 
-  const eventId = NotificationsEventIdDictionary.getUserCommentsComment();
+  const eventId = EventsIdsDictionary.getUserCommentsComment();
 
   const activity = await knex(UsersModelProvider.getUsersActivityTableName())
     .where({

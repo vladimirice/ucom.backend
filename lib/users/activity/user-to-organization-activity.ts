@@ -1,6 +1,6 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
-import { InteractionTypesDictionary } from 'ucom.libs.common';
+import { EventsIdsDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../interfaces/model-interfaces';
 import { IRequestBody } from '../../common/interfaces/common-types';
 import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
@@ -8,7 +8,6 @@ import { AppError, BadRequestError } from '../../api/errors';
 
 import UsersActivityRepository = require('../repository/users-activity-repository');
 import knex = require('../../../config/knex');
-import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
 
 import EosTransactionService = require('../../eos/eos-transaction-service');
@@ -55,7 +54,7 @@ class UserToOrganizationActivity {
 
     const activity = await knex.transaction(async (trx) => {
       const eventId = activityTypeId === InteractionTypesDictionary.getFollowId() ?
-        NotificationsEventIdDictionary.getUserFollowsOrg() : NotificationsEventIdDictionary.getUserUnfollowsOrg();
+        EventsIdsDictionary.getUserFollowsOrg() : EventsIdsDictionary.getUserUnfollowsOrg();
 
       await this.createFollowIndex(eventId, userFrom.id, organizationId, trx);
 
@@ -86,13 +85,13 @@ class UserToOrganizationActivity {
     orgIdTo: number,
     trx: Transaction,
   ): Promise<void> {
-    if (NotificationsEventIdDictionary.doesUserFollowOrg(eventId)) {
+    if (EventsIdsDictionary.doesUserFollowOrg(eventId)) {
       await UsersActivityFollowRepository.insertOneFollowsOrganization(userIdFrom, orgIdTo, trx);
 
       return;
     }
 
-    if (NotificationsEventIdDictionary.doesUserUnfollowOrg(eventId)) {
+    if (EventsIdsDictionary.doesUserUnfollowOrg(eventId)) {
       const deleteRes = await UsersActivityFollowRepository.deleteOneFollowsOrg(userIdFrom, orgIdTo, trx);
       if (deleteRes === null) {
         throw new AppError(`No record to delete. It is possible that it is a concurrency issue. User ID from: ${userIdFrom}, org ID to ${orgIdTo}`);

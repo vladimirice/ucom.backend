@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /* tslint:disable:max-line-length */
-import { InteractionTypesDictionary } from 'ucom.libs.common';
+import { EventsIdsDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
 import { IActivityOptions } from '../interfaces/activity-interfaces';
 import { AppError } from '../../api/errors';
 
@@ -10,18 +10,15 @@ const { SocialApi } = require('ucom-libs-wallet');
 
 const usersActivityRepository = require('../../users/repository').Activity;
 
-
 const { ConsumerLogger } = require('../../../config/winston');
-
-const eventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 
 const activityIdsToSkip = [
   InteractionTypesDictionary.getOrgTeamInvitation(),
 ];
 
 const eventIdsToSkip = [
-  eventIdDictionary.getUserHasMentionedYouInPost(),
-  eventIdDictionary.getUserHasMentionedYouInComment(),
+  EventsIdsDictionary.getUserHasMentionedYouInPost(),
+  EventsIdsDictionary.getUserHasMentionedYouInComment(),
 ];
 
 class BlockchainJobProcessor {
