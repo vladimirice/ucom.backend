@@ -2,6 +2,27 @@
 
 This file is for frontend team only
 
+## Trust with auto-update
+
+* Use a different method to sign the Trust/untrust transaction:
+```
+const { blockchain_id, signed_transaction } = await SocialApi.getTrustUserWithAutoUpdateSignedTransaction();
+// or
+const { blockchain_id, signed_transaction } = await SocialApi.getUntrustUserWithAutoUpdateSignedTransaction();
+```
+
+* Add the blockchain_id to the backend trust/untrust action request as for other post creation request
+* Auto-update will be shown in user feed who trust (who acts) - without title and description, only with filled json_data
+* json_data content structure is the same as for notifications. Event ids:
+
+```
+import { EventsIdsDictionary } from 'ucom.libs.common';
+
+EventsIdsDictionary.getUserTrustsYou();
+EventsIdsDictionary.getUserUntrustsYou();
+```
+
+
 ## Social key
 
 ### Add more social permissions during the authorization:
