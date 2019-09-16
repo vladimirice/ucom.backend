@@ -10,7 +10,6 @@ const currentTableName    = PostsModelProvider.getCurrentParamsTableName();
 const whenFieldName       = 'post_id';
 
 const windowIntervalHours = 24 * 3;
-const windowIntervalHoursShorter = 24;
 
 const oneToOneSet: DeltaParams[] = [
   {
@@ -24,7 +23,7 @@ const oneToOneSet: DeltaParams[] = [
     paramFieldDelta:  'importance_delta',
     isFloat:          true,
     description:      `Importance delta for ${ENTITY_NAME}`,
-    windowIntervalHours: windowIntervalHoursShorter,
+    windowIntervalHours,
 
     currentParams: {
       whenFieldName,
