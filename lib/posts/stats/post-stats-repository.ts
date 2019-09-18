@@ -1,3 +1,5 @@
+import { Transaction } from 'knex';
+
 const models = require('../../../models');
 
 const db = models.sequelize;
@@ -5,10 +7,24 @@ const db = models.sequelize;
 const postsModelProvider = require('../service/posts-model-provider');
 
 class PostStatsRepository {
+  /**
+   * @deprecated
+   * #task - use posts_current_params instead
+   * @param postId
+   * @param transaction
+   */
   static async createNew(postId, transaction) {
     return this.getModel().create({
       post_id: postId,
     }, { transaction });
+  }
+
+  /**
+   * @deprecated
+   * #task - use posts_current_params instead
+   */
+  public static async createNewByKnex(post_id: number, transaction: Transaction): Promise<void> {
+    await transaction('post_stats').insert({ post_id });
   }
 
   static async increaseField(postId, field, increaseBy, transaction) {

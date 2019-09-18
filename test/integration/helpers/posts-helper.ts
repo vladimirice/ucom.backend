@@ -15,6 +15,7 @@ import knex = require('../../../config/knex');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const request = require('supertest');
 
@@ -284,6 +285,9 @@ class PostsHelper {
       case ContentTypesDictionary.getTypeRepost():
         // #task - check repost itself fields
         break;
+      case ContentTypesDictionary.getTypeAutoUpdate():
+        this.checkAutoUpdateFields(post);
+        break;
       default:
         throw new Error(`Unsupported post_type_id ${post.post_type_id}`);
     }
@@ -297,6 +301,13 @@ class PostsHelper {
     const field: string = EntityImagesModelProvider.entityImagesColumn();
 
     ResponseHelper.expectToBeObject(model[field]);
+  }
+
+  public static checkAutoUpdateFields(post): void {
+    expect(post.title).toBeNull();
+    expect(post.description).toBeNull();
+
+    CommonChecker.expectNotEmpty(post.json_data);
   }
 
   /**

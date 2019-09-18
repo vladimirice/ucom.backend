@@ -1,4 +1,5 @@
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+import { FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION } from '../../../generators/common/fake-data-generator';
 
 import RequestHelper = require('../../../integration/helpers/request-helper');
 
@@ -35,6 +36,13 @@ class UsersActivityRequestHelper {
     const url: string = this.getTrustUrl(targetUserId);
 
     return this.makeActivityRequest(whoActs, url, signedTransaction, expectedStatus);
+  }
+
+  public static async trustOneUserWithFakeAutoUpdate(
+    myself: UserModel,
+    targetUserId: number,
+  ): Promise<any> {
+    return this.trustOneUserWithAutoUpdate(myself, targetUserId, FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION);
   }
 
   public static async trustOneUserWithAutoUpdate(

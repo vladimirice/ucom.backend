@@ -1,3 +1,5 @@
+import { Transaction } from 'knex';
+
 import { ApiLogger } from '../../../config/winston';
 
 import knex = require('../../../config/knex');
@@ -28,6 +30,14 @@ class PostsCurrentParamsRepository {
     };
 
     await knex(TABLE_NAME).insert(data);
+  }
+
+  public static async insertRowForNewEntityWithTransaction(postId: number, transaction: Transaction): Promise<void> {
+    const data = {
+      post_id: postId,
+    };
+
+    await transaction(TABLE_NAME).insert(data);
   }
 
   public static async updateValuesForEntity(entityId: number, values: any) {

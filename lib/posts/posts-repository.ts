@@ -847,8 +847,8 @@ class PostsRepository implements QueryFilteredRepository {
     entity_name_for: string,
     blockchain_id: string,
     json_data: StringToAnyCollection,
-  ) {
-    await transaction(TABLE_NAME).insert({
+  ): Promise<number> {
+    const result = await transaction(TABLE_NAME).insert({
       post_type_id: ContentTypesDictionary.getTypeAutoUpdate(),
       user_id,
       entity_id_for,
@@ -857,7 +857,9 @@ class PostsRepository implements QueryFilteredRepository {
 
       json_data,
       ...this.getCreateDefaultFields(),
-    });
+    }).returning('id');
+
+    return +result;
   }
 
   public static async createNewPost(

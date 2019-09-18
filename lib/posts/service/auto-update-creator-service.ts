@@ -7,6 +7,8 @@ import { StringToAnyCollection } from '../../common/interfaces/common-types';
 import PostsRepository = require('../posts-repository');
 import UsersRepository = require('../../users/users-repository');
 import UserPostProcessor = require('../../users/user-post-processor');
+import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
+import PostStatsRepository = require('../stats/post-stats-repository');
 
 class AutoUpdateCreatorService {
   public static async createUserToUser(
@@ -26,7 +28,14 @@ class AutoUpdateCreatorService {
       eventId,
     );
 
-    return PostsRepository.createAutoUpdate(transaction, userFrom.id, userFrom.id, EntityNames.USERS, blockchainId, jsonData);
+    const newPostId = await PostsRepository.createAutoUpdate(
+      transaction, userFrom.id, userFrom.id, EntityNames.USERS, blockchainId, jsonData,
+    );
+
+    await Promise.all([
+      PostStatsRepository.createNewByKnex(newPostId, transaction),
+      PostsCurrentParamsRepository.insertRowForNewEntityWithTransaction(newPostId, transaction),
+    ]);
   }
 
   private static getUserToUserJsonData(userFrom: UserModelPreview, userTo: UserModelPreview, eventId: number) {

@@ -87,11 +87,9 @@ describe('Users activity trust creation', () => {
 
       it('should create auto-update post if blockchain id is provided', async () => {
         const eventId = EventsIdsDictionary.getUserTrustsYou();
-        await UsersActivityRequestHelper.trustOneUserWithAutoUpdate(
+        await UsersActivityRequestHelper.trustOneUserWithFakeAutoUpdate(
           userVlad,
           userJane.id,
-          FAKE_BLOCKCHAIN_ID,
-          FAKE_SIGNED_TRANSACTION,
         );
 
         await checkPostAutoUpdate(eventId);
@@ -155,12 +153,7 @@ describe('Users activity trust creation', () => {
       });
 
       it('should create auto-update post if blockchain id is provided', async () => {
-        await UsersActivityRequestHelper.trustOneUserWithAutoUpdate(
-          userVlad,
-          userJane.id,
-          FAKE_BLOCKCHAIN_ID,
-          FAKE_SIGNED_TRANSACTION,
-        );
+        await UsersActivityRequestHelper.trustOneUserWithFakeAutoUpdate(userVlad, userJane.id);
 
         const eventId = EventsIdsDictionary.getUserUntrustsYou();
         await UsersActivityRequestHelper.untrustOneUserWithAutoUpdate(

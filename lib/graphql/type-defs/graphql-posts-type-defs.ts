@@ -26,6 +26,7 @@ export const graphqlPostsTypes = `
     views_count: Int!
 
     entity_images: JSON
+    json_data: JSON
     
     entity_tags: JSON
 
@@ -64,7 +65,7 @@ export const graphqlPostsTypes = `
     views_count: Int
 
     entity_images: JSON
-    
+    json_data: JSON
     entity_tags: JSON
 
     user_id: Int!

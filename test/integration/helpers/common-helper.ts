@@ -546,13 +546,21 @@ class CommonHelper {
     PostsHelper.checkPostItselfCommonFields(model.target_entity.comment.post, options);
   }
 
+  public static checkPotsListsFromResponse(
+    response: PostsListResponse,
+    expectedLength: number | null = null,
+    options: any = {},
+  ): void {
+    this.checkPostsListFromApi(response.data, expectedLength, options);
+  }
+
   /**
    *
    * @param {Object[]} posts
    * @param {number|null} expectedLength
    * @param {Object} options
    */
-  static checkPostsListFromApi(
+  public static checkPostsListFromApi(
     posts,
     expectedLength: number | null = null,
     options: any = {},
