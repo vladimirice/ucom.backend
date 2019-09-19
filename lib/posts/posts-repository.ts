@@ -880,6 +880,17 @@ class PostsRepository implements QueryFilteredRepository {
     return newPost;
   }
 
+  public static async findLastAutoUpdateId(): Promise<number> {
+    const result = await knex(TABLE_NAME).where({
+      post_type_id: ContentTypesDictionary.getTypeAutoUpdate(),
+    })
+      .orderBy('id', 'DESC')
+      .limit(1)
+      .first();
+
+    return result ? result.id : null;
+  }
+
   static async findOnlyPostItselfById(id, transaction = null) {
     return model.findOne({
       transaction,

@@ -9,10 +9,12 @@ import { CommentsListResponse } from '../../../lib/comments/interfaces/model-int
 import { OrgListResponse, OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 import { TagsListResponse } from '../../../lib/tags/interfaces/dto-interfaces';
 import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 import ResponseHelper = require('./response-helper');
 import TagsHelper = require('./tags-helper');
 import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
+import _ = require('lodash');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
 
@@ -721,23 +723,32 @@ export class GraphqlHelper {
 
   public static async getUserWallFeedQueryAsMyself(
     myself: UserModel,
-    userId: number,
+    user_id: number,
     page: number = 1,
-    perPage: number = 10,
+    per_page: number = 10,
     commentsPage: number = 1,
     commentsPerPage: number = 10,
+    givenParams: StringToAnyCollection = {},
   ): Promise<PostsListResponse> {
-    const query: string = GraphQLSchema.getUserWallFeedQuery(
-      userId,
+    const defaultParams = {
+      filters: {
+        user_id,
+      },
       page,
-      perPage,
-      commentsPage,
-      commentsPerPage,
-    );
+      per_page,
+      comments: {
+        page: commentsPage,
+        per_page: commentsPerPage,
+      },
+    };
+
+    const params = _.defaultsDeep(givenParams, defaultParams);
+    const queryPart: string = GraphQLSchema.getUserWallFeedQueryPart(params, true);
 
     const key: string = 'user_wall_feed';
 
-    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse =
+      await GraphqlRequestHelper.makeRequestFromOneQueryPartAsMyself(myself, queryPart, key);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -898,11 +909,26 @@ export class GraphqlHelper {
 
   public static async getUserNewsFeed(
     myself: UserModel,
+    givenParams: StringToAnyCollection = {},
   ): Promise<PostsListResponse> {
-    const query: string = GraphQLSchema.getUserNewsFeed(1, 10, 1, 10);
+    const params = {
+      page: 1,
+      per_page: 10,
+      comments: {
+        page: 1,
+        per_page: 10,
+      },
+      ...givenParams,
+    };
+
+    const queryPart: string = GraphQLSchema.getUserNewsFeedQueryPart(params, true);
     const key: string = 'user_news_feed';
 
-    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestFromOneQueryPartAsMyself(
+      myself,
+      queryPart,
+      key,
+    );
     ResponseHelper.checkListResponseStructure(response);
 
     return response;

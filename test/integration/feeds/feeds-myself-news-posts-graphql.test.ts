@@ -15,37 +15,20 @@ import CommonHelper = require('../helpers/common-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import UsersActivityRequestHelper = require('../../helpers/users/activity/users-activity-request-helper');
 import UsersHelper = require('../helpers/users-helper');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 let userVlad: UserModel;
 let userJane: UserModel;
 
 const JEST_TIMEOUT = 20000;
 
-beforeAll(async () => {
-  await SeedsHelper.withGraphQlMockAllWorkers();
-});
-
-afterAll(async () => {
-  await SeedsHelper.afterAllWithGraphQl();
-});
-
-beforeEach(async () => {
-  [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
-});
-
+beforeAll(async () => { await SeedsHelper.withGraphQlMockAllWorkers(); });
+afterAll(async () => { await SeedsHelper.afterAllWithGraphQl(); });
+beforeEach(async () => { [userVlad, userJane] = await SeedsHelper.beforeAllRoutineMockAccountsProperties(); });
 
 describe('Auto-updates', () => {
-  it('should contain Vlad auto update post inside Jane news feed', async () => {
-    // TODO
-  });
-
-  it('should contain auto-update post', async () => {
-    await Promise.all([
-      UsersActivityRequestHelper.trustOneUserWithFakeAutoUpdate(userVlad, userJane.id),
-      PostsGenerator.createMediaPostByUserHimself(userVlad),
-    ]);
-
-    const response = await GraphqlHelper.getUserNewsFeed(userVlad);
+  async function expectNewsFeed(myself: UserModel) {
+    const response = await GraphqlHelper.getUserNewsFeed(myself);
 
     const { data } = response;
 
@@ -63,9 +46,46 @@ describe('Auto-updates', () => {
     };
 
     await CommonHelper.checkPotsListsFromResponse(response, 2, options);
+  }
+
+  it('should contain Vlad auto update post inside Jane news feed', async () => {
+    await Promise.all([
+      UsersActivityRequestHelper.trustOneUserWithFakeAutoUpdate(userVlad, userJane.id),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      ActivityHelper.requestToCreateFollow(userJane, userVlad, 201),
+    ]);
+
+    await expectNewsFeed(userJane);
+  });
+
+  it('should contain auto-update post', async () => {
+    await Promise.all([
+      UsersActivityRequestHelper.trustOneUserWithFakeAutoUpdate(userVlad, userJane.id),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+    ]);
+
+    await expectNewsFeed(userVlad);
+  }, JEST_TIMEOUT);
+
+  it('should hide auto-updates if filter is provided', async () => {
+    const [firstPostId, secondPostId] = await Promise.all([
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      PostsGenerator.createMediaPostByUserHimself(userVlad),
+      UsersActivityRequestHelper.trustOneUserWithFakeAutoUpdate(userVlad, userJane.id),
+      ActivityHelper.requestToCreateFollow(userJane, userVlad, 201),
+    ]);
+
+    const posts = await GraphqlHelper.getUserNewsFeed(userVlad, {
+      filters: {
+        exclude_post_type_ids: [
+          ContentTypesDictionary.getTypeAutoUpdate(),
+        ],
+      },
+    });
+
+    CommonChecker.expectModelIdsExistenceInResponseList(posts, [firstPostId, secondPostId], 2);
   }, JEST_TIMEOUT);
 });
-
 
 it('#smoke - comment should contain organization data', async () => {
   const orgId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);

@@ -1,11 +1,10 @@
+import { EntityNames } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { PostModelMyselfResponse, PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../../generators/interfaces/dto-interfaces';
 import { GraphqlHelper } from '../../helpers/graphql-helper';
 
 import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
-
-const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import CommonHelper = require('../../helpers/common-helper');
@@ -21,6 +20,8 @@ import CommonChecker = require('../../../helpers/common/common-checker');
 import knex = require('../../../../config/knex');
 
 import UsersModelProvider = require('../../../../lib/users/users-model-provider');
+import PostsChecker = require('../../../helpers/posts/posts-checker');
+
 let userVlad: UserModel;
 
 let userJane: UserModel;
@@ -112,22 +113,7 @@ describe('Get One media post #graphql', () => {
 
       const post: PostModelResponse = await GraphqlHelper.getOnePostAsMyself(userVlad, postId);
 
-      const { comments } = post;
-
-      expect(comments.data.length).toBe(2);
-      expect(comments.data.some((item) => item.id === commentOne.id)).toBeTruthy();
-      expect(comments.data.some((item) => item.id === commentTwo.id)).toBeTruthy();
-
-      const options: CheckerOptions = {
-        myselfData    : true,
-        postProcessing: 'full',
-        comments: {
-          isEmpty: false,
-        },
-        ...UsersHelper.propsAndCurrentParamsOptions(true),
-      };
-
-      CommonHelper.checkOnePostV2(post, options);
+      PostsChecker.checkOnePostWithTwoComments(post, commentOne, commentTwo, true);
     }, JEST_TIMEOUT);
 
     it('Get one media post WITHOUT comments as GUEST. #smoke #guest #media-post', async () => {
@@ -155,22 +141,7 @@ describe('Get One media post #graphql', () => {
 
       const post: PostModelResponse = await GraphqlHelper.getOnePostAsGuest(postId);
 
-      const { comments } = post;
-
-      expect(comments.data.length).toBe(2);
-      expect(comments.data.some((item) => item.id === commentOne.id)).toBeTruthy();
-      expect(comments.data.some((item) => item.id === commentTwo.id)).toBeTruthy();
-
-      const options: CheckerOptions = {
-        myselfData    : false,
-        postProcessing: 'full',
-        comments: {
-          isEmpty: false,
-        },
-        ...UsersHelper.propsAndCurrentParamsOptions(true),
-      };
-
-      CommonHelper.checkOnePostV2(post, options);
+      PostsChecker.checkOnePostWithTwoComments(post, commentOne, commentTwo, false);
     }, JEST_TIMEOUT);
   });
 

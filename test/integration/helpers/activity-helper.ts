@@ -12,14 +12,14 @@ const server = RequestHelper.getApiApplication();
 
 class ActivityHelper {
   static async requestToCreateFollow(
-    whoActs: UserModel,
+    myself: UserModel,
     targetUser: UserModel,
     expectedStatus: number = 201,
     signedTransaction: any = null,
   ): Promise<any> {
     const req = request(server)
       .post(RequestHelper.getFollowUrl(targetUser.id))
-      .set('Authorization', `Bearer ${whoActs.token}`)
+      .set('Authorization', `Bearer ${myself.token}`)
     ;
 
     if (signedTransaction !== null) {

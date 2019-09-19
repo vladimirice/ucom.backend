@@ -1,10 +1,14 @@
 import { DbParamsDto } from '../../api/filters/interfaces/query-filter-interfaces';
+import { PostRequestQueryDto } from '../../posts/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../interfaces/common-types';
+
+import knex = require('../../../config/knex');
+import PostsModelProvider = require('../../posts/service/posts-model-provider');
+import KnexQueryBuilderHelper = require('../helper/repository/knex-query-builder-helper');
+import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
+import UsersModelProvider = require('../../users/users-model-provider');
 
 const _ = require('lodash');
-
-const postsModelProvider  = require('../../posts/service').ModelProvider;
-const usersModelProvider  = require('../../users/service').ModelProvider;
-const orgModelProvider    = require('../../organizations/service').ModelProvider;
 
 const sequelizeIncludes = require('./sequelize-includes');
 
@@ -35,7 +39,7 @@ class UsersFeedRepository {
    * @returns {Promise<number>}
    */
   static async countAllPostsForWallFeedByTag(tagTitle) {
-    return postsModelProvider.getModel().count({
+    return PostsModelProvider.getModel().count({
       where: this.whereEntityTagsContain([tagTitle]),
     });
   }
@@ -54,25 +58,25 @@ class UsersFeedRepository {
     };
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @param {Object} givenParams
-   * @return {Promise<any[]>}
-   */
-  static async findAllForUserWallFeed(userId: number, givenParams = {}) {
+  public static async findAllForUserWallFeed(
+    userId: number,
+    givenParams = {},
+    requestQuery: PostRequestQueryDto | null = null,
+  ) {
     const params: DbParamsDto = _.defaults(givenParams, this.getDefaultListParams());
 
-    params.attributes = postsModelProvider.getPostsFieldsForPreview();
+    params.attributes = PostsModelProvider.getPostsFieldsForPreview();
 
     params.where = {
-      entity_name_for:  usersModelProvider.getEntityName(),
+      entity_name_for:  UsersModelProvider.getEntityName(),
       entity_id_for:    userId,
     };
 
-    const data = await postsModelProvider.getModel().findAll(params);
+    this.addExcludePostTypeIdsToSequelizeWhere(requestQuery, params);
 
-    return data.map(model => model.toJSON());
+    const data = await PostsModelProvider.getModel().findAll(params);
+
+    return data.map((model) => model.toJSON());
   }
 
   static getIncludeProcessor() {
@@ -82,89 +86,84 @@ class UsersFeedRepository {
     };
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @param {number[]} usersIds
-   * @param {number[]} orgIds
-   * @param {Object} givenParams
-   * @return {Promise<any[]>}
-   */
-  static async findAllForUserNewsFeed(
+  public static async findAllForUserNewsFeed(
     userId: number,
     usersIds: number[],
     orgIds: number[],
-    givenParams,
+    givenParams: StringToAnyCollection,
+    requestQuery: PostRequestQueryDto,
   ) {
     const params = _.defaults(givenParams, this.getDefaultListParams());
 
     // #task - move to default params
-    params.attributes = postsModelProvider.getPostsFieldsForPreview();
+    params.attributes = PostsModelProvider.getPostsFieldsForPreview();
 
     params.where = {
       [Op.or]: [
         {
           entity_id_for:   Array.prototype.concat(usersIds, userId),
-          entity_name_for: usersModelProvider.getEntityName(),
+          entity_name_for: UsersModelProvider.getEntityName(),
         },
         {
           entity_id_for:    orgIds,
-          entity_name_for:  orgModelProvider.getEntityName(),
+          entity_name_for:  OrganizationsModelProvider.getEntityName(),
         },
       ],
     };
 
-    const data = await postsModelProvider.getModel().findAll(params);
+    this.addExcludePostTypeIdsToSequelizeWhere(requestQuery, params);
 
-    return data.map(model => model.toJSON());
+    const data = await PostsModelProvider.getModel().findAll(params);
+
+    return data.map((model) => model.toJSON());
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @param {number[]} usersIds
-   * @param {number[]} orgIds
-   * @return {Promise<any[]>}
-   */
-  static async countAllForUserNewsFeed(userId, usersIds, orgIds) {
-    const where = {
-      [Op.or]: [
-        {
-          entity_id_for:   Array.prototype.concat(usersIds, userId),
-          entity_name_for: usersModelProvider.getEntityName(),
-        },
-        {
-          entity_id_for:    orgIds,
-          entity_name_for:  orgModelProvider.getEntityName(),
-        },
-      ],
+  private static addExcludePostTypeIdsToSequelizeWhere(
+    requestQuery: PostRequestQueryDto | null,
+    params: StringToAnyCollection,
+  ): void {
+    if (requestQuery && requestQuery.exclude_post_type_ids) {
+      params.where.post_type_id = {
+        [Op.notIn]: requestQuery.exclude_post_type_ids,
+      };
+    }
+  }
+
+  public static async countAllForUserNewsFeed(
+    userId: number,
+    usersIds: number[],
+    orgIds: number[],
+    requestQuery: PostRequestQueryDto,
+  ) {
+    const params = {
+      where: {
+        [Op.or]: [
+          {
+            entity_id_for:   Array.prototype.concat(usersIds, userId),
+            entity_name_for: UsersModelProvider.getEntityName(),
+          },
+          {
+            entity_id_for:    orgIds,
+            entity_name_for:  OrganizationsModelProvider.getEntityName(),
+          },
+        ],
+      },
     };
 
-    return postsModelProvider.getModel().count({
-      where,
-    });
+    this.addExcludePostTypeIdsToSequelizeWhere(requestQuery, params);
+
+    return PostsModelProvider.getModel().count(params);
   }
 
-  /**
-   *
-   * @param {number} entityId
-   * @return {Promise<*>}
-   */
-  static async countAllForOrgWallFeed(entityId) {
-    const entityNameFor = orgModelProvider.getEntityName();
-
-    return this.countAllForWallFeed(entityId, entityNameFor);
+  public static async countAllForOrgWallFeed(entityId: number): Promise<number> {
+    return this.countAllForWallFeed(entityId, OrganizationsModelProvider.getEntityName());
   }
 
-  /**
-   *
-   * @param {number} wallOwnerId
-   * @return {Promise<*>}
-   */
-  static async countAllForUserWallFeed(wallOwnerId: number) {
-    const entityNameFor = usersModelProvider.getEntityName();
-
-    return this.countAllForWallFeed(wallOwnerId, entityNameFor);
+  public static async countAllForUserWallFeed(
+    wallOwnerId: number,
+    postsQuery: PostRequestQueryDto | null = null,
+  ): Promise<number> {
+    return this.countAllForWallFeed(wallOwnerId, UsersModelProvider.getEntityName(), postsQuery);
   }
 
   /**
@@ -176,16 +175,16 @@ class UsersFeedRepository {
   static async findAllForOrgWallFeed(entityId, givenParams = {}) {
     const params = _.defaults(givenParams, this.getDefaultListParams());
 
-    params.attributes = postsModelProvider.getPostsFieldsForPreview();
+    params.attributes = PostsModelProvider.getPostsFieldsForPreview();
 
     params.where = {
-      entity_name_for:  orgModelProvider.getEntityName(),
+      entity_name_for:  OrganizationsModelProvider.getEntityName(),
       entity_id_for:    entityId,
     };
 
-    const data = await postsModelProvider.getModel().findAll(params);
+    const data = await PostsModelProvider.getModel().findAll(params);
 
-    return data.map(model => model.toJSON());
+    return data.map((model) => model.toJSON());
   }
 
   /**
@@ -197,36 +196,30 @@ class UsersFeedRepository {
   private static async findAllForWallFeed(givenParams) {
     const params = _.defaults(givenParams, this.getDefaultListParams());
 
-    params.attributes = postsModelProvider.getPostsFieldsForPreview();
+    params.attributes = PostsModelProvider.getPostsFieldsForPreview();
     params.include = sequelizeIncludes.getIncludeForPostList();
 
-    const data = await postsModelProvider.getModel().findAll(params);
+    const data = await PostsModelProvider.getModel().findAll(params);
 
-    return data.map(model => model.toJSON());
+    return data.map((model) => model.toJSON());
   }
 
-  /**
-   *
-   * @param {number} entityId
-   * @param {string} entityNameFor
-   * @return {Promise<*>}
-   * @private
-   */
-  private static async countAllForWallFeed(entityId, entityNameFor) {
-    const tableName = postsModelProvider.getTableName();
+  private static async countAllForWallFeed(
+    entityIdFor: number,
+    entityNameFor: string,
+    requestQuery: PostRequestQueryDto | null = null,
+  ) {
+    const queryBuilder = knex(PostsModelProvider.getTableName())
+      .where({
+        entity_name_for: entityNameFor,
+        entity_id_for: entityIdFor,
+      });
 
-    const sql = `
-      SELECT COUNT(1)
-      FROM
-        ${tableName}
-      WHERE
-        entity_name_for   = '${entityNameFor}'
-        AND entity_id_for = ${+entityId}
-      `;
+    if (requestQuery && requestQuery.exclude_post_type_ids) {
+      queryBuilder.whereNotIn('post_type_id', requestQuery.exclude_post_type_ids);
+    }
 
-    const res = await db.query(sql, { type: db.QueryTypes.SELECT });
-
-    return +res[0].count;
+    return KnexQueryBuilderHelper.addCountToQueryBuilderAndCalculate(queryBuilder);
   }
 
   public static getDefaultListParams() {

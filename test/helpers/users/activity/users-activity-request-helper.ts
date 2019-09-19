@@ -2,6 +2,7 @@ import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION } from '../../../generators/common/fake-data-generator';
 
 import RequestHelper = require('../../../integration/helpers/request-helper');
+import PostsRepository = require('../../../../lib/posts/posts-repository');
 
 class UsersActivityRequestHelper {
   public static async trustOneUserWithMockTransaction(
@@ -43,6 +44,15 @@ class UsersActivityRequestHelper {
     targetUserId: number,
   ): Promise<any> {
     return this.trustOneUserWithAutoUpdate(myself, targetUserId, FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION);
+  }
+
+  public static async trustOneUserWithFakeAutoUpdateAndGetId(
+    myself: UserModel,
+    targetUserId: number,
+  ): Promise<number> {
+    await this.trustOneUserWithAutoUpdate(myself, targetUserId, FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION);
+
+    return PostsRepository.findLastAutoUpdateId();
   }
 
   public static async trustOneUserWithAutoUpdate(
