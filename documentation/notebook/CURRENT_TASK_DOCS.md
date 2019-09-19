@@ -2,6 +2,17 @@
 
 This file is for frontend team only
 
+## Trust with auto-update API
+
+* Add og:tags to the auto-update based on json_data
+* Repost - it's content for postType = auto-update is based on json_data not on the description
+* To add filter to the feeds follow JSDoc instruction of such GraphQL methods:
+
+```
+getUserNewsFeedQueryPart
+getUserWallFeedQueryPart
+```
+
 ## Trust with auto-update
 
 * Use a different method to sign the Trust/untrust transaction:
