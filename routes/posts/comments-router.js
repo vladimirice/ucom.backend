@@ -3,6 +3,7 @@ const comments_creator_service_1 = require("../../lib/comments/service/comments-
 const CommentsActivityService = require("../../lib/comments/comments-activity-service");
 const CommentsFetchService = require("../../lib/comments/service/comments-fetch-service");
 const DiServiceLocator = require("../../lib/api/services/di-service-locator");
+const CommentsUpdateService = require("../../lib/comments/service/comments-update-service");
 const express = require('express');
 const router = express.Router();
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
@@ -32,6 +33,13 @@ router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare, cpU
     // #opt need optimization
     const forResponse = await CommentsFetchService.findAndProcessOneComment(newComment.id, currentUser.id);
     res.status(201).send(forResponse);
+});
+router.patch('/comments/:comment_id', [authTokenMiddleWare, cpUploadArray], async (req, res) => {
+    const currentUserId = DiServiceLocator.getCurrentUserIdOrException(req);
+    await CommentsUpdateService.updateComment(req.comment_id, req.body, currentUserId);
+    // #opt need optimization
+    const forResponse = await CommentsFetchService.findAndProcessOneComment(req.comment_id, currentUserId);
+    res.send(forResponse);
 });
 router.param('comment_id', (req, 
 // @ts-ignore

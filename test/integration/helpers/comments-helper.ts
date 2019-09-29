@@ -2,6 +2,7 @@
 /* tslint:disable:max-line-length */
 import { CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { FAKE_SIGNED_TRANSACTION } from '../../generators/common/fake-data-generator';
 
 import CommentsModelProvider = require('../../../lib/comments/service/comments-model-provider');
 import ResponseHelper = require('./response-helper');
@@ -108,6 +109,27 @@ class CommentsHelper {
 
     return res.body;
   }
+
+  public static async updateCommentForPostWithField(
+    commentId: number,
+    myself: UserModel,
+    givenFields: any = {},
+    expectedStatus: number = 200,
+  ): Promise<CommentModelResponse> {
+    const url: string = RequestHelper.getCommentsUpdateUrl(commentId);
+
+    const fields = {
+      description:        'New comment description',
+      entity_images:      '{}',
+      signed_transaction: FAKE_SIGNED_TRANSACTION,
+      ...givenFields,
+    };
+
+    const response = await RequestHelper.makePatchRequestAsMyselfWithFields(url, myself, fields, expectedStatus);
+
+    return response.body;
+  }
+
 
   public static async requestToDownvoteComment(
     postId: number,

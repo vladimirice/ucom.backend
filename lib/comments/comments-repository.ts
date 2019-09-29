@@ -159,6 +159,10 @@ class CommentsRepository {
     return res.toJSON();
   }
 
+  public static async findOnlyCommentItselfById(id) {
+    return knex(TABLE_NAME).where({ id }).first();
+  }
+
   public static async countAllByParentIdAndDepth(
     parentId: number,
     depth: number,

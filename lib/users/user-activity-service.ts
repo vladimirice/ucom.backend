@@ -305,6 +305,35 @@ class UserActivityService {
     return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
+  public static async processCommentIsUpdated(
+    commentId,
+    currentUserId,
+    eventId: number,
+    transaction,
+    signedTransaction,
+    commentableId: number,
+    commentableName: string,
+  ) {
+    const activityGroupId = ActivityGroupDictionary.getGroupContentUpdating();
+    const entityName      = CommentsModelProvider.getEntityName();
+
+    const data = {
+      activity_type_id:   eventId,
+      activity_group_id:  activityGroupId,
+      user_id_from:       currentUserId,
+      entity_id_to:       commentId,
+      entity_name:        entityName,
+      event_id:           eventId,
+
+      signed_transaction: signedTransaction,
+
+      entity_id_on:       commentableId,
+      entity_name_on:     commentableName,
+    };
+
+    return UsersActivityRepository.createNewKnexActivity(data, transaction);
+  }
+
   /**
    *
    * @param {Object} newPost

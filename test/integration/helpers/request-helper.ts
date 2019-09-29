@@ -736,6 +736,10 @@ class RequestHelper {
     return `/api/v1/posts/${postId}/comments`;
   }
 
+  public static getCommentsUpdateUrl(commentId: number): string {
+    return `${apiV1Prefix}/posts/comments/${commentId}`;
+  }
+
   /**
    *
    * @param {number} postId

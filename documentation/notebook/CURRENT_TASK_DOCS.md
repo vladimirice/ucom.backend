@@ -2,6 +2,14 @@
 
 This file is for frontend team only
 
+## Comments updating
+
+* Only description and entity_images are updated
+* If no changes - pass current (old) values of these variables
+
+
+Autotests-samples are [here](../../test/integration/comments/comments-update-transactions.test.ts)
+
 ## Trust with auto-update API
 
 * Add og:tags to the auto-update based on json_data
@@ -134,7 +142,6 @@ Add as much data to the post/comment content - as possible. Examples contain onl
 
 * [Send direct posts transaction](../../test/integration/posts/direct-posts/posts-direct-create-update-transactions.test.ts)
 * [Send reposts transaction - creation only](../../test/integration/posts/post-repost/posts-reposts-create-transactions.test.ts)
-* [Send comments and replies](../../test/integration/comments/comments-create-update-transactions.test.ts)
 
 ### Communities
 * [Create/update communities](../../test/integration/organizations/organizations-create-update-transactions.test.ts)
