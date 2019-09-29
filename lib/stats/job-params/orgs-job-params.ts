@@ -10,7 +10,9 @@ const currentTableName  = OrganizationsModelProvider.getCurrentParamsTableName()
 const whenFieldName       = 'organization_id';
 
 const windowIntervalHours           = 24 * 3;
+// @ts-ignore
 const windowIntervalOneWeekInHours  = 24 * 7;
+const windowIntervalHoursShorter    = 24;
 
 const oneToOneSet: DeltaParams[] = [
   {
@@ -34,7 +36,7 @@ const oneToOneSet: DeltaParams[] = [
     },
   },
   {
-    windowIntervalHours: windowIntervalOneWeekInHours,
+    windowIntervalHours: windowIntervalHoursShorter,
     entityName:       ENTITY_NAME,
 
     initialEventType: EventParamTypeDictionary.getOrgPostsCurrentAmount(),
