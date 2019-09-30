@@ -34,7 +34,7 @@
     "graphql": "^14.4.2",
     "graphql-type-json": "^0.3.0",
     "hashids": "^1.2.2",
-    "helmet": "^3.18.0",
+    "helmet": "^3.21.1",
     "inversify": "^5.0.1",
     "ioredis": "^4.11.2",
     "joi": "^14.3.1",
