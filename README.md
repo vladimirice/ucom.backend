@@ -1,7 +1,5 @@
 # U°Community Backend API Service
 
-[![Known Vulnerabilities](https://snyk.io/test/github/vladimirice/ucom.backend/badge.svg)](https://snyk.io/test/github/vladimirice/ucom.backend)
-
 ## Most interesting features
 * Social network - Users, Posts, Comments etc.
 * All social actions are written to the blockchain
