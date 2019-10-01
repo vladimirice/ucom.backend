@@ -1,5 +1,9 @@
 # U°Community Backend API Service
 
+## Video materials
+* [Into video about project features](https://youtu.be/td4y2i5gpaE)
+* [Intro video about project architecture](https://youtu.be/7bPXdI3oR8Q)
+
 ## Most interesting features
 * Social network - Users, Posts, Comments etc.
 * All social actions are written to the blockchain
