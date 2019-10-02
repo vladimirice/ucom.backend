@@ -1,6 +1,8 @@
 # U°Community Backend API Service
 
-[![Known Vulnerabilities](https://snyk.io/test/github/vladimirice/ucom.backend/badge.svg)](https://snyk.io/test/github/vladimirice/ucom.backend)
+## Video materials
+* [Into video about project features](https://youtu.be/td4y2i5gpaE)
+* [Intro video about project architecture](https://youtu.be/7bPXdI3oR8Q)
 
 ## Most interesting features
 * Social network - Users, Posts, Comments etc.
