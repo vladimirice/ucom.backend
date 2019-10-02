@@ -102,6 +102,7 @@ class UserInputSanitizer {
     ];
 
     const tagsWithCommonAttributes: string[] = [
+      'pre',
       'blockquote',
       'div',
       'h1',
