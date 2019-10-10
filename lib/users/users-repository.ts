@@ -39,6 +39,20 @@ const airdropsUsersExternalData = AirdropsModelProvider.airdropsUsersExternalDat
 const taggableRepository = require('../common/repository/taggable-repository');
 
 class UsersRepository {
+  public static async areUsersWithGivenPublicKeys(
+    publicKeys: { owner: string, active: string, social: string },
+  ): Promise<boolean> {
+    const queryBuilder = knex(TABLE_NAME)
+      .where('owner_public_key', publicKeys.owner)
+      .orWhere('public_key', publicKeys.active)
+      .orWhere('social_public_key', publicKeys.social)
+    ;
+
+    const count = await KnexQueryBuilderHelper.addCountToQueryBuilderAndCalculate(queryBuilder);
+
+    return count > 0;
+  }
+
   public static async findAllAirdropParticipants(
     airdropId: number,
     params: DbParamsDto,

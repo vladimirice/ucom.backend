@@ -1,4 +1,8 @@
 /* eslint-disable unicorn/filename-case */
+import { StringToAnyCollection } from '../common/interfaces/common-types';
+import { BadRequestError } from '../api/errors';
+import { IPublicKeys } from '../auth/interfaces/auth-interfaces-dto';
+
 import EnvHelper = require('../common/helper/env-helper');
 
 const { WalletApi, ConfigService, RegistrationApi } = require('ucom-libs-wallet');
@@ -40,6 +44,14 @@ const initBlockchainExecutors = {
 };
 
 class EosApi {
+  public static getCreatorAccountName(): string {
+    return accountCreator.account_name;
+  }
+
+  public static getCreatorActivePrivateKey(): string {
+    return accountCreator.activePk;
+  }
+
   public static getGithubAirdropAccountName(): string {
     return accountsData[AIRDROPS_GITHUB_SENDER].account_name;
   }
@@ -69,6 +81,38 @@ class EosApi {
     ConfigService.initNodeJsEnv();
 
     EnvHelper.executeByEnvironment(initBlockchainExecutors);
+  }
+
+  public static getPublicKeysFromPermissions(
+    permissions: StringToAnyCollection[], accountName: string,
+  ): IPublicKeys {
+    const result: IPublicKeys = {
+      owner: '',
+      active: '',
+      social: '',
+    };
+
+    for (const name of Object.keys(result)) {
+      const details = permissions.find((item) => item.perm_name === name);
+
+      if (!details) {
+        throw new BadRequestError(`${name} permission must exist, account ${accountName}`);
+      }
+
+      const { keys } = details.required_auth;
+
+      if (keys.length === 0) {
+        throw new BadRequestError(`${name} permission must have public keys, account ${accountName}`);
+      }
+
+      if (keys.length !== 1) {
+        throw new BadRequestError(`${name} permission must have only one public key, account ${accountName}`);
+      }
+
+      result[name] = keys[0].key;
+    }
+
+    return result;
   }
 
   public static async doesAccountExist(accountName: string): Promise<boolean> {

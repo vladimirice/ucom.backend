@@ -8,6 +8,7 @@ import EosJsEcc = require('../../crypto/eosjs-ecc');
 import AuthService = require('../../auth/authService');
 import UsersModelProvider = require('../users-model-provider');
 import knex = require('../../../config/knex');
+import RegisterNewUserService = require('./registration/register-new-user-service');
 
 const { SocialKeyApi } = require('ucom-libs-wallet');
 
@@ -20,10 +21,14 @@ class LoginService {
       throw new BadRequestError(messages);
     }
 
-    const user = await UsersService.findOneByAccountName(requestData.account_name);
+    let user = await UsersService.findOneByAccountName(requestData.account_name);
 
     if (!user) {
-      throw new BadRequestError(getErrorMessagePair('account_name', 'Incorrect Brainkey or Account name'));
+      user = await RegisterNewUserService.processRegistrationByAuthorization(
+        requestData.account_name,
+        requestData.social_public_key,
+        requestData.sign,
+      );
     }
 
     const socialPublicKey: string | null = await this.processSocialPublicKey(requestData, user);
