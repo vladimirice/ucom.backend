@@ -45,27 +45,6 @@ describe('Positive', () => {
 });
 
 describe('Negative', () => {
-  it('Send correct auth request but with account which does not exist in blockchain', async () => {
-    const accountName = 'testuser';
-
-    const sign = await EosJsEcc.sign(accountName, eosAccount.activePk);
-
-    const res = await request(server)
-      .post(RequestHelper.getLogInUrl())
-      .field('account_name', accountName)
-      .field('public_key', eosAccount.activePubKey)
-      .field('sign', sign)
-    ;
-
-    expect(res.status).toBe(400);
-    const body = res.body.errors;
-    expect(body.length).toBe(1);
-
-    const publicKeyError = body.find((e) => e.field === 'account_name');
-    expect(publicKeyError).toBeDefined();
-    expect(publicKeyError.message).toMatch('Incorrect Brainkey or Account name');
-  });
-
   it('Should receive validation error if no fields provided', async () => {
     const res = await request(server)
       .post(RequestHelper.getLogInUrl())
