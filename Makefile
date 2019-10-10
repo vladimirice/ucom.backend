@@ -110,6 +110,11 @@ deploy-staging deploy:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
+deploy-staging-without-tests deploy-without-tests:
+	git checkout staging
+	git push
+	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
+
 deploy-staging-no-check deploy-no-check:
 	git checkout staging
 	git push
