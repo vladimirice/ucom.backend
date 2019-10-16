@@ -2,6 +2,52 @@
 
 This file is for frontend team only
 
+
+## Multi-signature community
+
+### Multi-signature social actions through logging out
+
+Check - does social key exist - use checking method
+```
+SocialKeyApi.getAccountCurrentSocialKey
+```
+If does not exist - call the same method as for registration, it now grants all permissions at once
+```
+SocialKeyApi.bindSocialKeyWithSocialPermissions
+```
+
+If the social key exist - try to call a new method of permissions binding - no exceptions must be
+```
+SocialKeyApi.addSocialPermissionsToEmissionAndProfile
+```
+
+And then, try to call yet another new method of permissions binding - no exceptions must be
+```
+SocialKeyApi.addSocialPermissionsToProposeApproveAndExecute
+```
+
+### Create a multiSignature community
+TODO
+
+### Update a multiSignature community:
+1. Check social members changed
+```
+const areChanged = await MultiSignatureApi.areSocialMembersChanged(multiSignatureAccountName, socialMembersAccountNames);
+```
+
+2.A - If they are changed then call the following method providing an active private key
+await MultiSignatureApi.createAndExecuteProfileUpdateAndSocialMembers
+
+2.B  - If they are not changed then call another method proving a social private key
+await MultiSignatureApi.updateProfile
+
+### Make social actions on behalf of a community
+TODO
+
+-------------
+
+# Already deployed tasks
+
 ## Comments updating
 
 * Only description and entity_images are updated
