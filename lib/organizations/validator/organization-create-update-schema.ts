@@ -30,7 +30,7 @@ const commonRules = {
 const creationSchema = {
   ...commonRules,
 
-  signed_transaction:   joi.any().required(),
+  signed_transaction:   joi.any(),
   blockchain_id:        joi.any().required(),
 };
 

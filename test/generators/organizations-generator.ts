@@ -1,6 +1,7 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
 import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
+import { FAKE_SIGNED_TRANSACTION } from './common/fake-data-generator';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
@@ -117,22 +118,25 @@ class OrganizationsGenerator {
   public static async createOrgWithTeam(
     author: UserModel,
     teamMembers: UserModel[] = [],
-    extraFields: StringToAnyCollection | null = null,
+    extraFields: StringToAnyCollection = {},
   ): Promise<number> {
     const req = request(server)
       .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${author.token}`)
     ;
 
-    const defaultFields = {
+    const defaultFields: any = {
       title:              faker.company.companyName(),
       about:              faker.company.companyName(),
       powered_by:         faker.company.companyName(),
       nickname:           `${faker.name.firstName()}_${RequestHelper.generateRandomNumber(0, 10, 0)}`,
       email:              faker.internet.email(),
-      signed_transaction: 'signed_transaction',
       blockchain_id:      BlockchainUniqId.getUniqidByScope('organizations'),
     };
+
+    if (!extraFields.is_multi_signature) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+    }
 
     const fields = {
       ...defaultFields,

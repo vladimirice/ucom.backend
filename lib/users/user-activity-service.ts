@@ -660,6 +660,17 @@ class UserActivityService {
     await ActivityProducer.publishWithUserActivity(jsonPayload);
   }
 
+  public static async sendPayloadToRabbitEosV2WithSuppressEmpty(activity: IActivityModel): Promise<void> {
+    const options: IActivityOptions = {
+      eosJsV2: true,
+      suppressEmptyTransactionError: true,
+    };
+
+    const jsonPayload: string = UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await ActivityProducer.publishWithUserActivity(jsonPayload);
+  }
+
   static async sendContentCreationPayloadToRabbit(activity) {
     const jsonPayload = UserActivitySerializer.getActivityDataToCreateJob(activity.id);
 

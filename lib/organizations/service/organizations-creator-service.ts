@@ -9,7 +9,7 @@ import OrganizationsRepository = require('../repository/organizations-repository
 import UsersTeamService = require('../../users/users-team-service');
 import UserActivityService = require('../../users/user-activity-service');
 import OrganizationsUpdatingService = require('./organizations-updating-service');
-import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
+import EosInputProcessor = require('../../eos/input-processor/content/eos-input-processor');
 
 const models = require('../../../models');
 
@@ -20,7 +20,7 @@ class OrganizationsCreatorService {
     OrganizationsInputProcessor.process(req.body);
     EntityImageInputService.processEntityImageOrMakeItEmpty(req.body);
 
-    EosContentInputProcessor.validateContentSignedTransactionDetailsOrError(req.body);
+    const signedTransaction = EosInputProcessor.processWithIsMultiSignatureForCreation(req.body);
 
     const body = await OrganizationsInputProcessor.processCreation(req, currentUser);
 
@@ -41,7 +41,7 @@ class OrganizationsCreatorService {
 
         // eslint-disable-next-line no-shadow
         const newUserActivity = await UserActivityService.processNewOrganization(
-          body.signed_transaction,
+          signedTransaction,
           currentUser.id,
           newModel.id,
           transaction,
@@ -77,10 +77,9 @@ class OrganizationsCreatorService {
       });
 
     // #task - create new entity via knex only and provide related transaction
-    // #task use Promise.all when possible
     await Promise.all([
       OrgsCurrentParamsRepository.insertRowForNewEntity(newOrganization.id),
-      UserActivityService.sendPayloadToRabbitWithEosVersion(newUserActivity, body.signed_transaction),
+      UserActivityService.sendPayloadToRabbitEosV2WithSuppressEmpty(newUserActivity),
       OrganizationsUpdatingService.sendOrgTeamInvitationsToRabbit(boardInvitationActivity),
     ]);
 

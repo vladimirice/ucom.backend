@@ -13,7 +13,7 @@ class UserActivitySerializer {
   }
 
   public static createJobWithOnlyEosJsV2Option(activityId: number): string {
-    const options = {
+    const options: IActivityOptions = {
       eosJsV2: true,
     };
 
