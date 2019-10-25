@@ -131,6 +131,11 @@ deploy-production:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
 
+deploy-production-without-checks:
+	git checkout master
+	git push
+	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
+
 prepare-deploy-production:
 	git checkout master
 	make docker-check-project
