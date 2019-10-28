@@ -82,7 +82,12 @@ orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], a
 /* Create new organization */
 orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (request: Request, response: Response) => {
   const currentUser = DiServiceLocator.getCurrentUserOrException(request);
-  const model = await OrganizationsCreatorService.processNewOrganizationCreation(request, currentUser);
+
+  const { is_multi_signature } = request.body;
+
+  const model = await OrganizationsCreatorService.processNewOrganizationCreation(
+    request, currentUser, is_multi_signature || false,
+  );
 
   return response.status(201).send({
     id: model.id,

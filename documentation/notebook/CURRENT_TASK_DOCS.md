@@ -2,7 +2,6 @@
 
 This file is for frontend team only
 
-
 ## Multi-signature community
 
 ### Multi-signature social actions through logging out
@@ -27,7 +26,17 @@ SocialKeyApi.addSocialPermissionsToProposeApproveAndExecute
 ```
 
 ### Create a multiSignature community
-TODO
+Autotests are [here: Smoke - create a new organization as a multi-signature](../../test/integration/organizations/organizations-create-update-transactions.test.ts)
+
+Textual description:
+* Create a new multi-signature account completely on the frontend.
+* Send a regular community information to the backend as usual BUT
+* send only a blockchain_id (generate it as in auto-tests), do not send signed_transaction - no such argument, transaction is sent on the frontend.
+* place an account_name to the nickname community property. There is NO account_name property for the organization.
+* add an extra parameter (backward compatibility)
+```
+is_multi_signature: true
+```
 
 ### Update a multiSignature community:
 1. Check social members changed

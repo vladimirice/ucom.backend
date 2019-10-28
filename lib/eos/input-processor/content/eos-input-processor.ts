@@ -1,13 +1,22 @@
 import { IRequestBody } from '../../../common/interfaces/common-types';
 import { BadRequestError, getErrorMessagePair } from '../../../api/errors';
 
+import EosApi = require('../../eosApi');
+
 class EosInputProcessor {
-  public static processWithIsMultiSignatureForCreation(body: IRequestBody): string {
-    const { is_multi_signature } = body;
+  public static async processWithIsMultiSignatureForCreation(
+    body: IRequestBody, accountNameField: string, isMultiSignature: boolean,
+  ): Promise<string> {
     EosInputProcessor.isBlockchainIdOrError(body);
 
-    if (is_multi_signature) {
+    if (isMultiSignature) {
       EosInputProcessor.isNotSignedTransactionOrError(body);
+
+      const doesExist = await EosApi.doesAccountExist(body[accountNameField]);
+
+      if (!doesExist) {
+        throw new BadRequestError(`There is no such account in the blockchain: ${body[accountNameField]}`);
+      }
     } else {
       EosInputProcessor.isSignedTransactionOrError(body);
     }

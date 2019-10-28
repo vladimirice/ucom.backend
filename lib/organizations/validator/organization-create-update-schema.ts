@@ -30,7 +30,7 @@ const commonRules = {
 const creationSchema = {
   ...commonRules,
 
-  signed_transaction:   joi.any(),
+  signed_transaction:   joi.any(), // backward compatibility - multi-signature creation should be without signed_transaction
   blockchain_id:        joi.any().required(),
 };
 

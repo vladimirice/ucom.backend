@@ -16,18 +16,22 @@ const models = require('../../../models');
 const db = models.sequelize;
 
 class OrganizationsCreatorService {
-  public static async processNewOrganizationCreation(req, currentUser: UserModel) {
+  public static async processNewOrganizationCreation(req, currentUser: UserModel, isMultiSignature: boolean) {
     OrganizationsInputProcessor.process(req.body);
     EntityImageInputService.processEntityImageOrMakeItEmpty(req.body);
 
-    const signedTransaction = EosInputProcessor.processWithIsMultiSignatureForCreation(req.body);
+    const signedTransaction = await EosInputProcessor.processWithIsMultiSignatureForCreation(
+      req.body,
+      'nickname',
+      isMultiSignature,
+    );
 
     const body = await OrganizationsInputProcessor.processCreation(req, currentUser);
 
     const { newOrganization, newUserActivity, boardInvitationActivity } = await db
       .transaction(async (transaction) => {
         const newModel =
-          await OrganizationsRepository.createNewOrganization(body, transaction);
+          await OrganizationsRepository.createNewOrganization(body, isMultiSignature, transaction);
 
         const usersTeam = await UsersTeamService.processNewModelWithTeam(
           newModel.id,

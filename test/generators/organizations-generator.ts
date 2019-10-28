@@ -131,11 +131,11 @@ class OrganizationsGenerator {
       powered_by:         faker.company.companyName(),
       nickname:           `${faker.name.firstName()}_${RequestHelper.generateRandomNumber(0, 10, 0)}`,
       email:              faker.internet.email(),
-      blockchain_id:      BlockchainUniqId.getUniqidByScope('organizations'),
     };
 
     if (!extraFields.is_multi_signature) {
-      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+      defaultFields.signed_transaction  = FAKE_SIGNED_TRANSACTION;
+      defaultFields.blockchain_id       = BlockchainUniqId.getUniqidByScope('organizations');
     }
 
     const fields = {

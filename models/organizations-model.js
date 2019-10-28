@@ -48,6 +48,9 @@ module.exports = (db, Sequelize) => {
     entity_images: {
       type: Sequelize.JSONB,
     },
+    organization_type_id: {
+      type: Sequelize.INTEGER,
+    },
     created_at: {
       type: Sequelize.DATE,
       defaultValue: Sequelize.NOW,
@@ -91,6 +94,7 @@ module.exports = (db, Sequelize) => {
       'powered_by',
       'about',
       'entity_images',
+      'organization_type_id',
     ];
   };
 

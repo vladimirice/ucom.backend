@@ -9,6 +9,11 @@ import {
 } from '../../api/filters/interfaces/query-filter-interfaces';
 import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 import { RequestQueryBlockchainNodes } from '../../blockchain-nodes/interfaces/blockchain-nodes-interfaces';
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
+import {
+  ORGANIZATION_TYPE_ID__CONTENT,
+  ORGANIZATION_TYPE_ID__MULTI_SIGNATURE,
+} from '../dictionary/organizations-dictionary';
 
 import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
@@ -84,14 +89,13 @@ class OrganizationsRepository implements QueryFilteredRepository {
     return queryBuilder;
   }
 
-  /**
-   *
-   * @param {Object} data
-   * @param {Object} transaction
-   * @returns {Promise<Object>}
-   */
-  static async createNewOrganization(data, transaction) {
-    return this.getOrganizationModel().create(data, { transaction });
+  public static async createNewOrganization(data: StringToAnyCollection, isMultiSignature: boolean, transaction) {
+    const modelData = {
+      ...data,
+      organization_type_id: isMultiSignature ? ORGANIZATION_TYPE_ID__MULTI_SIGNATURE : ORGANIZATION_TYPE_ID__CONTENT,
+    };
+
+    return this.getOrganizationModel().create(modelData, { transaction });
   }
 
   /**

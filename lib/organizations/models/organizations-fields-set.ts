@@ -102,6 +102,9 @@ const fieldsSet: IModelFieldsSet = {
   user_id: {
     type: 'number',
   },
+  organization_type_id: {
+    type: 'number',
+  },
   current_rate: {
     type: 'number',
   },
