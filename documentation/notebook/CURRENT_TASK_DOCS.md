@@ -26,7 +26,7 @@ SocialKeyApi.addSocialPermissionsToProposeApproveAndExecute
 ```
 
 ### Create a multiSignature community
-Autotests are [here: Smoke - new organization as a multi-signature](../../test/integration/organizations/organizations-create-update-transactions.test.ts)
+Autotests are [here: Smoke - new organization as a multi-signature](../../test/integration/organizations/organizations-multi-signature.test.ts)
 Please, notice that `random` is a dedicated method for the auto-tests. You should ask user for the new account_name and keys like for the regular
 registration.
 
@@ -42,7 +42,7 @@ is_multi_signature: true
 
 ### Update a multiSignature community
 
-Autotests are [here: Smoke - new organization as a multi-signature](../../test/integration/organizations/organizations-create-update-transactions.test.ts)
+Autotests are [here: Smoke - new organization as a multi-signature](../../test/integration/organizations/organizations-multi-signature.test.ts)
 
 1. Check are social members changed
 ```
@@ -81,4 +81,9 @@ body:
 After the success - redirect the author somewhere
 
 ### Make social actions on behalf of a community
-TODO
+
+Same principle - sign and send on the frontend and send to the backend only form data and blockchain_id.
+Autotests are [here: Smoke - new organization as a multi-signature](../../test/integration/organizations/organizations-multi-signature.test.ts)
+
+Create/Update a publication from organization - DONE
+Create/Update a comment/reply - TODO

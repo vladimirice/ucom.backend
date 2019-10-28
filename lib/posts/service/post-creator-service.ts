@@ -19,6 +19,7 @@ import UsersModelProvider = require('../../users/users-model-provider');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
 import PostsRepository = require('../posts-repository');
 import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
+import EosInputProcessor = require('../../eos/input-processor/content/eos-input-processor');
 
 const _ = require('lodash');
 
@@ -26,13 +27,14 @@ const db = require('../../../models').sequelize;
 const models = require('../../../models');
 
 class PostCreatorService {
+  /**
+   * legacy method - need refactoring
+   */
   public static async processNewPostCreation(
     req: any,
     eventId: number | null = null,
     currentUser: UserModel,
   ) {
-    // #task - wrap in database transaction
-
     const { files } = req;
     const { body }: { body: IRequestBody }  = req;
 
@@ -62,7 +64,8 @@ class PostCreatorService {
       }
     }
 
-    EosContentInputProcessor.areSignedTransactionDetailsOrError(body);
+    const signedTransaction = body.signed_transaction || '';
+    EosInputProcessor.isBlockchainIdOrError(body);
 
     await this.makeOrganizationRelatedChecks(body, currentUser);
     await this.addAttributesOfEntityFor(body, currentUser);
@@ -77,7 +80,7 @@ class PostCreatorService {
         const model     = await this.createPostByPostType(postTypeId, body, transaction, currentUser.id);
         const activity = await this.createNewActivity(
           model,
-          body.signed_transaction,
+          signedTransaction,
           currentUser.id,
           eventId,
           transaction,
@@ -92,7 +95,7 @@ class PostCreatorService {
     // #task - create new post via knex only and provide related transaction
     await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
 
-    await UserActivityService.sendContentCreationPayloadToRabbitWithEosVersion(newActivity, body.signed_transaction);
+    await UserActivityService.sendContentCreationPayloadToRabbitWithSuppressEmpty(newActivity);
 
     if (PostsFetchService.isDirectPost(newPost)) {
       // Direct Post creation = full post content, not only ID

@@ -115,6 +115,18 @@ class OrganizationsGenerator {
     return this.createOrgWithTeam(author, [], extraFields);
   }
 
+  public static async migrateOrganizationToMultiSignature(
+    myself: UserModel, organizationId: number, multiSignatureAccount: string,
+  ) {
+    return RequestHelper.makePostRequestAsMyselfWithFields(
+      `/api/v1/organizations/${organizationId}/migrate-to-multi-signature`,
+      myself,
+      {
+        account_name: multiSignatureAccount,
+      },
+    );
+  }
+
   public static async createOrgWithTeam(
     author: UserModel,
     teamMembers: UserModel[] = [],

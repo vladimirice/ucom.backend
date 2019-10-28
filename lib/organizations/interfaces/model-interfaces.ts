@@ -7,6 +7,7 @@ interface OrgModel extends ModelWithEntityImages {
   readonly current_vote: number;
   readonly organization_type_id: number;
   readonly user_id: number;
+  readonly blockchain_id: string;
 
   [index: string]: any;
 }

@@ -685,9 +685,19 @@ class UserActivityService {
     const options: IActivityOptions =
       EosTransactionService.getEosVersionBasedOnSignedTransaction(signedTransactions);
 
-    this.sendContentCreationPayloadToRabbitWithOptions(activity, options);
+    await this.sendContentCreationPayloadToRabbitWithOptions(activity, options);
   }
 
+  public static async sendContentCreationPayloadToRabbitWithSuppressEmpty(
+    activity: IActivityModel,
+  ): Promise<void> {
+    const options: IActivityOptions = {
+      eosJsV2: true,
+      suppressEmptyTransactionError: true,
+    };
+
+    this.sendContentCreationPayloadToRabbitWithOptions(activity, options);
+  }
 
   public static async sendPayloadToRabbitWithOptions(
     activity: IActivityModel,
@@ -703,6 +713,20 @@ class UserActivityService {
   ): Promise<void> {
     const jsonPayload: string =
       UserActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
+
+    await ActivityProducer.publishWithContentUpdating(jsonPayload);
+  }
+
+  public static async sendContentUpdatingPayloadToRabbitWithSuppressEmpty(
+    activity: IActivityModel,
+  ): Promise<void> {
+    const options: IActivityOptions = {
+      eosJsV2: true,
+      suppressEmptyTransactionError: true,
+    };
+
+    const jsonPayload: string =
+      UserActivitySerializer.createJobWithOptions(activity.id, options);
 
     await ActivityProducer.publishWithContentUpdating(jsonPayload);
   }

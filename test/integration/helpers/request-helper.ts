@@ -4,6 +4,7 @@ import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
 import { ISignedTransactionObject } from '../../../lib/eos/interfaces/transactions-interfaces';
+import { FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION } from '../../generators/common/fake-data-generator';
 
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
@@ -381,8 +382,8 @@ class RequestHelper {
 
   public static addFakeBlockchainIdAndSignedTransaction(req: SuperAgentRequest): void {
     this.addFormFieldsToRequestWithStringify(req, {
-      blockchain_id:      'blockchain-id-12345',
-      signed_transaction: 'signed_transaction',
+      blockchain_id:      FAKE_BLOCKCHAIN_ID,
+      signed_transaction: FAKE_SIGNED_TRANSACTION,
     });
   }
 

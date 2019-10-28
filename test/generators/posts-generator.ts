@@ -67,17 +67,11 @@ class PostsGenerator {
     return postsIds.sort();
   }
 
-  /**
-   *
-   * @param {Object} user
-   * @param {number} orgId
-   * @param {Object} values
-   * @return {Promise<number>}
-   */
-  static async createMediaPostOfOrganization(
-    user: UserModel,
-    orgId: number,
+  public static async createMediaPostOfOrganization(
+    myself: UserModel,
+    organizationId: number,
     values: any = {},
+    addFakeBlockchainData: boolean = true,
   ): Promise<number> {
     const defaultValues = {
       title: 'Extremely new post',
@@ -90,15 +84,19 @@ class PostsGenerator {
 
     const req = request(server)
       .post(RequestHelper.getPostsUrl())
-      .set('Authorization', `Bearer ${user.token}`)
+      .set('Authorization', `Bearer ${myself.token}`)
       .field('title', newPostFields.title)
       .field('description', newPostFields.description)
       .field('post_type_id', newPostFields.post_type_id)
       .field('leading_text', newPostFields.leading_text)
-      .field('organization_id', orgId)
+      .field('organization_id', organizationId)
       .field('entity_images', '{}');
 
-    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+    if (addFakeBlockchainData) {
+      RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+    } else {
+      req.field('blockchain_id', values.blockchain_id);
+    }
 
     const res = await req;
     ResponseHelper.expectStatusOk(res);
