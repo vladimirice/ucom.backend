@@ -18,6 +18,8 @@ const { OrganizationsApi } = require('ucom-libs-wallet').Content;
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
+const moment = require('moment');
+
 const { RegistrationApi, MultiSignatureApi, ContentIdGenerator } = require('ucom-libs-wallet');
 
 let userVlad: UserModel;
@@ -40,19 +42,20 @@ beforeEach(async () => {
 
 EosApi.initBlockchainLibraries();
 
-it('Smoke - create a new organization as a multi-signature', async () => {
+it('Smoke - new organization as a multi-signature', async () => {
   const multiSignatureData = RegistrationApi.generateRandomDataForRegistration();
 
   const blockchainId = ContentIdGenerator.getForOrganization();
 
   const fakeProfile = {
-    name: 'helloWorld',
+    title: 'helloWorld',
     about: 'about the community',
     nickname: multiSignatureData.accountName,
     blockchain_id: blockchainId,
   };
 
   const teamMembers: UserModel[] = [userRokky];
+  const teamMembersNames: string[] = teamMembers.map((user: UserModel) => user.account_name);
 
   await MultiSignatureApi.createMultiSignatureAccount(
     userVlad.account_name, userVlad.private_key,
@@ -62,7 +65,7 @@ it('Smoke - create a new organization as a multi-signature', async () => {
     multiSignatureData.ownerPublicKey,
     multiSignatureData.activePublicKey,
     fakeProfile,
-    teamMembers.map((user: UserModel) => user.account_name),
+    teamMembersNames,
   );
 
   const profile = {
@@ -70,10 +73,28 @@ it('Smoke - create a new organization as a multi-signature', async () => {
     is_multi_signature: true,
   };
 
-  await OrganizationsGenerator.createOrgWithTeam(userVlad, teamMembers, profile);
+  // Send information to the backend
+  const organizationId = await OrganizationsGenerator.createOrgWithTeam(userVlad, teamMembers, profile);
+
+  const updatedProfile = {
+    ...fakeProfile,
+    title: `helloWorld: ${moment().utc().format()}`,
+    about: `about the community: ${moment().utc().format()}`,
+  };
+
+  // this is the case for the auto-tests. In reality, if team members board is not changed - call different method
+  await MultiSignatureApi.createAndExecuteProfileUpdateAndSocialMembers(
+    userVlad.account_name,
+    userVlad.private_key,
+    multiSignatureData.accountName,
+    updatedProfile,
+    teamMembersNames,
+  );
+
+  await OrganizationsGenerator.updateOrganization(organizationId, userVlad, teamMembers, updatedProfile, false);
 }, JEST_TIMEOUT_DEBUG);
 
-it('Create new organization providing a frontend transaction', async () => {
+it('Legacy - create new organization providing a frontend transaction', async () => {
   const content: StringToAnyCollection = {
     // As much fields as possible in reality
     about:    'About new organization',

@@ -163,14 +163,19 @@ class OrganizationsGenerator {
     myself: UserModel,
     usersTeam: any[] = [],
     givenFields: any = {},
+    addFakeTransaction: boolean = true,
   ) {
     const url: string = RequestHelper.getOneOrganizationUrl(organizationId);
 
-    const defaultFields = {
+    const defaultFields: StringToAnyCollection = {
       title:    faker.company.companyName(),
       nickname: faker.name.firstName(),
-      signed_transaction: 'signed_transaction',
     };
+
+    // Backward compatibility
+    if (addFakeTransaction) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+    }
 
     const fields = {
       ...defaultFields,

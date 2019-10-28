@@ -1,5 +1,9 @@
 import { UserModel } from '../../users/interfaces/model-interfaces';
 import { AppError, BadRequestError, HttpForbiddenError } from '../../api/errors';
+import { OrgModel } from '../interfaces/model-interfaces';
+import {
+  ORGANIZATION_TYPE_ID__CONTENT,
+} from '../dictionary/organizations-dictionary';
 
 import UserActivityService = require('../../users/user-activity-service');
 import UsersTeamService = require('../../users/users-team-service');
@@ -10,7 +14,7 @@ import OrganizationsModelProvider = require('./organizations-model-provider');
 import EntitySourceService = require('../../entities/service/entity-sources-service');
 import EosInputProcessor = require('../../eos/input-processor/content/eos-input-processor');
 
-const _       = require('lodash');
+const _ = require('lodash');
 
 const status  = require('statuses');
 const models = require('../../../models');
@@ -31,10 +35,16 @@ class OrganizationsUpdatingService {
     const orgId = req.organization_id;
     const userId = currentUser.id;
 
-    await this.checkUpdatePermissions(orgId, userId);
+    const organization = await this.checkUpdatePermissionsAndGetOrganization(orgId, userId);
+
     const body = await OrganizationsInputProcessor.processUpdating(req, currentUser);
 
-    EosInputProcessor.isSignedTransactionOrError(body);
+    const signedTransaction = body.signed_transaction || '';
+    if (organization.organization_type_id === ORGANIZATION_TYPE_ID__CONTENT) {
+      EosInputProcessor.isSignedTransactionOrError(body);
+    } else {
+      delete body.nickname;
+    }
 
     const { updatedModel, newActivity, boardInvitationActivity } = await db
       .transaction(async (transaction) => {
@@ -74,9 +84,8 @@ class OrganizationsUpdatingService {
             await OrganizationsUpdatingService.processUsersTeamInvitations(deltaData.added, orgId, transaction, currentUser);
         }
 
-        // #task - remove backward compatibility
         const activity = await UserActivityService.processOrganizationUpdating(
-          body.signed_transaction,
+          signedTransaction,
           currentUser.id,
           updatedModels[0].id,
           transaction,
@@ -91,7 +100,7 @@ class OrganizationsUpdatingService {
 
     // #task - remove backward compatibility
     if (newActivity !== null) {
-      await UserActivityService.sendContentUpdatingPayloadToRabbitEosV2(newActivity);
+      await UserActivityService.sendPayloadToRabbitEosV2WithSuppressEmpty(newActivity);
     }
 
     await OrganizationsUpdatingService.sendOrgTeamInvitationsToRabbit(boardInvitationActivity);
@@ -126,12 +135,14 @@ class OrganizationsUpdatingService {
     return boardInvitationActivity;
   }
 
-  private static async checkUpdatePermissions(orgId: number, userId: number): Promise<void> {
-    const doesExist = await OrganizationsRepository.doesExistWithUserId(orgId, userId);
+  private static async checkUpdatePermissionsAndGetOrganization(orgId: number, userId: number): Promise<OrgModel> {
+    const organization = await OrganizationsRepository.findOnlyItselfById(orgId);
 
-    if (!doesExist) {
+    if (organization.user_id !== userId) {
       throw new HttpForbiddenError(`It is not allowed for user with ID ${userId} to update organization with ID: ${orgId}`);
     }
+
+    return organization;
   }
 }
 
