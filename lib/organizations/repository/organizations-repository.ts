@@ -331,12 +331,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
     return result;
   }
 
-  /**
-   *
-   * @param {number} id
-   * @return {Promise<Object>}
-   */
-  static async findOnlyItselfById(id) {
+  public static async findOnlyItselfById(id: number): Promise<OrgModel> {
     return OrganizationsModelProvider.getModel().findOne({
       where: { id },
       raw: true,

@@ -27,6 +27,8 @@ SocialKeyApi.addSocialPermissionsToProposeApproveAndExecute
 
 ### Create a multiSignature community
 Autotests are [here: Smoke - new organization as a multi-signature](../../test/integration/organizations/organizations-create-update-transactions.test.ts)
+Please, notice that `random` is a dedicated method for the auto-tests. You should ask user for the new account_name and keys like for the regular
+registration.
 
 Textual description:
 * Create a new multi-signature account completely on the frontend.
@@ -61,7 +63,22 @@ Don't forget to update a GraphQL library.
 `organization_type_id = 2` (community is a multi-signature)
 
 ### Disable a possibility to make any changes related to the community if the community is not a multi-signature one 
-TODO
+
+Notes:
+* Blocking only on frontend - no backend blocking
+* If organization_type_id = 1 then block all community activity and ask for multi-signature registration
+* Create a new multi-signature account like for the new community creation process but call the different API:
+
+```
+POST /organizations/:organization_id/migrate-to-multi-signature
+
+body:
+{
+    account_name: 'multisig1234' // a fresh multi-signature account name created by the author
+}
+```
+
+After the success - redirect the author somewhere
 
 ### Make social actions on behalf of a community
 TODO

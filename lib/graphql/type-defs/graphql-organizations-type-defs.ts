@@ -21,6 +21,7 @@ export const graphqlOrganizationsTypes = `
     powered_by: String
     
     entity_images: JSON
+    organization_type_id: Int!
     
     importance_delta: Float
     activity_index_delta: Float

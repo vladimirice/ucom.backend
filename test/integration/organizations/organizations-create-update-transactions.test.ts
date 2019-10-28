@@ -2,6 +2,7 @@ import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { OrgModel } from '../../../lib/organizations/interfaces/model-interfaces';
+import { JEST_TIMEOUT_LONGER } from '../../helpers/jest-dictionary';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
@@ -13,6 +14,7 @@ import UsersActivityCommonHelper = require('../../helpers/users/activity/users-a
 import OrganizationsRepository = require('../../../lib/organizations/repository/organizations-repository');
 import OrganizationsResendingService = require('../../../lib/organizations/service/content-resending/organizations-resending-service');
 import EosApi = require('../../../lib/eos/eosApi');
+import RequestHelper = require('../helpers/request-helper');
 
 const { OrganizationsApi } = require('ucom-libs-wallet').Content;
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
@@ -92,7 +94,7 @@ it('Smoke - new organization as a multi-signature', async () => {
   );
 
   await OrganizationsGenerator.updateOrganization(organizationId, userVlad, teamMembers, updatedProfile, false);
-}, JEST_TIMEOUT_DEBUG);
+}, JEST_TIMEOUT_LONGER);
 
 it('Legacy - create new organization providing a frontend transaction', async () => {
   const content: StringToAnyCollection = {
@@ -132,6 +134,18 @@ it('Legacy - create new organization providing a frontend transaction', async ()
 
   await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
 }, JEST_TIMEOUT);
+
+it('Smoke - create new organization as content and change it to the multi-signature', async () => {
+  const organizationId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+
+  await RequestHelper.makePostRequestAsMyselfWithFields(
+    `/api/v1/organizations/${organizationId}/migrate-to-multi-signature`,
+    userVlad,
+    {
+      account_name: 'j1lq5elqjeag',
+    },
+  );
+});
 
 it('Update organization providing a frontend transaction', async () => {
   const organizationBefore: OrgModel = await OrganizationsGenerator.createOrgWithoutTeamAndGetModel(userVlad);

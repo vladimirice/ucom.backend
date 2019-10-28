@@ -153,6 +153,14 @@ orgRouter.post('/:organization_id/follow', activityMiddlewareSet, async (req, re
   });
 });
 
+orgRouter.post('/:organization_id/migrate-to-multi-signature', activityMiddlewareSet, async (req, res) => {
+  const { organization_model, user } = req;
+
+  await OrganizationsCreatorService.updateOrganizationSetMultiSignature(organization_model.toJSON(), user, req.body);
+
+  res.send({ success: true });
+});
+
 /* One user unfollows organization */
 orgRouter.post('/:organization_id/unfollow', activityMiddlewareSet, async (req, res) => {
   const userFrom    = req.user;

@@ -1,4 +1,11 @@
 import { UserModel } from '../../users/interfaces/model-interfaces';
+import { BadRequestError } from '../../api/errors';
+import {
+  ORGANIZATION_TYPE_ID__CONTENT,
+  ORGANIZATION_TYPE_ID__MULTI_SIGNATURE,
+} from '../dictionary/organizations-dictionary';
+import { OrgModel } from '../interfaces/model-interfaces';
+import { IRequestBody } from '../../common/interfaces/common-types';
 
 import OrgsCurrentParamsRepository = require('../repository/organizations-current-params-repository');
 import OrganizationsModelProvider = require('./organizations-model-provider');
@@ -10,12 +17,46 @@ import UsersTeamService = require('../../users/users-team-service');
 import UserActivityService = require('../../users/user-activity-service');
 import OrganizationsUpdatingService = require('./organizations-updating-service');
 import EosInputProcessor = require('../../eos/input-processor/content/eos-input-processor');
+import EosApi = require('../../eos/eosApi');
+import knex = require('../../../config/knex');
 
 const models = require('../../../models');
 
 const db = models.sequelize;
 
 class OrganizationsCreatorService {
+  public static async updateOrganizationSetMultiSignature(
+    organization: OrgModel, user: UserModel, body: IRequestBody,
+  ): Promise<void> {
+    if (organization.user_id !== user.id) {
+      throw new BadRequestError('Only community author is able to change community type to the multi-signature');
+    }
+
+    if (organization.organization_type_id !== ORGANIZATION_TYPE_ID__CONTENT) {
+      throw new BadRequestError(`Only community with type: ${ORGANIZATION_TYPE_ID__CONTENT} might be migrated`);
+    }
+
+    const { account_name: accountName } = body;
+
+    if (!accountName) {
+      throw new BadRequestError('Please provide an existing multi-signature account_name');
+    }
+
+    // #task - check a multi-signature status of the account
+    const doesExist = await EosApi.doesAccountExist(accountName);
+
+    if (!doesExist) {
+      throw new BadRequestError(`account with the name: ${accountName} does not exist`);
+    }
+
+    await knex(OrganizationsModelProvider.getTableName())
+      .where({ id: organization.id })
+      .update({
+        nickname: accountName,
+        organization_type_id: ORGANIZATION_TYPE_ID__MULTI_SIGNATURE,
+      });
+  }
+
   public static async processNewOrganizationCreation(req, currentUser: UserModel, isMultiSignature: boolean) {
     OrganizationsInputProcessor.process(req.body);
     EntityImageInputService.processEntityImageOrMakeItEmpty(req.body);
