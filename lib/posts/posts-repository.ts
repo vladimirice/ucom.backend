@@ -246,6 +246,8 @@ class PostsRepository implements QueryFilteredRepository {
         };
       }
 
+      params.where.rates_participation = 1;
+
       this.andWhereByOverviewType(query, params);
 
       this.processEntityNamesFrom(query, params);
