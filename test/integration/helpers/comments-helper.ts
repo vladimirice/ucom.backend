@@ -3,6 +3,7 @@
 import { CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { FAKE_SIGNED_TRANSACTION } from '../../generators/common/fake-data-generator';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 import CommentsModelProvider = require('../../../lib/comments/service/comments-model-provider');
 import ResponseHelper = require('./response-helper');
@@ -110,18 +111,26 @@ class CommentsHelper {
     return res.body;
   }
 
-  public static async updateCommentForPostWithField(
+  public static async updateCommentWithFields(
     commentId: number,
     myself: UserModel,
     givenFields: any = {},
     expectedStatus: number = 200,
+    addFakeSignedTransaction: boolean = true,
   ): Promise<CommentModelResponse> {
     const url: string = RequestHelper.getCommentsUpdateUrl(commentId);
 
-    const fields = {
+    const defaultFields: StringToAnyCollection = {
       description:        'New comment description',
       entity_images:      '{}',
-      signed_transaction: FAKE_SIGNED_TRANSACTION,
+    };
+
+    if (addFakeSignedTransaction) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+    }
+
+    const fields = {
+      ...defaultFields,
       ...givenFields,
     };
 

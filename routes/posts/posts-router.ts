@@ -12,8 +12,6 @@ import PostActivityService = require('../../lib/posts/post-activity-service');
 import PostService = require('../../lib/posts/post-service');
 import PostToEventIdService = require('../../lib/posts/service/post-to-event-id-service');
 
-const requestIp = require('request-ip');
-
 const postsRouter = require('./comments-router');
 const { AppError, BadRequestError } = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
@@ -37,9 +35,6 @@ const activityMiddlewareSet: any = [
 
 /* Get all posts */
 postsRouter.get('/', async (req, res) => {
-  const clientIp = requestIp.getClientIp(req);
-  console.log(`Client IP is: ${clientIp}`);
-
   const currentUserId: number | null = DiServiceLocator.getCurrentUserIdOrNull(req);
   const result: PostsListResponse =
     await PostsFetchService.findManyPosts(req.query, currentUserId);

@@ -162,14 +162,22 @@ class CommentsGenerator {
     myself: UserModel,
     givenFields: StringToAnyCollection = {},
     expectedStatus: number = 201,
+    addFakeTransactionDetails: boolean = true,
   ): Promise<CommentModelResponse> {
     const url = requestHelper.getCommentOnCommentUrl(postId, parentCommentId);
 
-    const fields = {
+    const defaultFields: StringToAnyCollection = {
       description: 'New comment on comment description',
       entity_images: '{}',
-      signed_transaction: 'signed_transaction',
-      blockchain_id: 'blockchain_id',
+    };
+
+    if (addFakeTransactionDetails) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+      defaultFields.blockchain_id = FAKE_BLOCKCHAIN_ID;
+    }
+
+    const fields = {
+      ...defaultFields,
       ...givenFields,
     };
 

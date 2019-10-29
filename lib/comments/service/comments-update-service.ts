@@ -2,8 +2,6 @@ import { Transaction } from 'knex';
 import { IRequestBody } from '../../common/interfaces/common-types';
 import { BadRequestError, HttpForbiddenError } from '../../api/errors';
 
-import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
-
 import knex = require('../../../config/knex');
 import UserActivityService = require('../../users/user-activity-service');
 import CommentsRepository = require('../comments-repository');
@@ -17,7 +15,7 @@ class CommentsUpdateService {
     body: IRequestBody,
     currentUserId: number,
   ): Promise<void> {
-    EosContentInputProcessor.areSignedTransactionUpdateDetailsOrError(body);
+    const signedTransaction = body.signed_transaction || '';
 
     // #task #optimization
     const commentToUpdate = await CommentsRepository.findOnlyCommentItselfById(commentId);
@@ -53,13 +51,13 @@ class CommentsUpdateService {
         currentUserId,
         eventId,
         transaction,
-        body.signed_transaction,
+        signedTransaction,
         commentableId,
         commentableName,
       );
     });
 
-    await UserActivityService.sendContentUpdatingPayloadToRabbitEosV2(newActivity);
+    await UserActivityService.sendContentUpdatingPayloadToRabbitWithSuppressEmpty(newActivity);
   }
 }
 

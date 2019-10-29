@@ -51,7 +51,7 @@ describe('Update comment or reply from user with a real transaction', () => {
       description,
     };
 
-    await CommentsHelper.updateCommentForPostWithField(comment.id, userVlad, updateFields);
+    await CommentsHelper.updateCommentWithFields(comment.id, userVlad, updateFields);
 
     const eventId = EventsIdsDictionary.userUpdatesCommentFromAccount();
 
@@ -88,7 +88,7 @@ describe('Update comment or reply from user with a real transaction', () => {
       description,
     };
 
-    await CommentsHelper.updateCommentForPostWithField(commentOnComment.id, userVlad, updateFields);
+    await CommentsHelper.updateCommentWithFields(commentOnComment.id, userVlad, updateFields);
 
     const eventId = EventsIdsDictionary.userUpdatesCommentFromAccount();
     await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
@@ -125,7 +125,7 @@ describe('Update comment or reply from organization with a real transaction', ()
       signed_transaction,
     };
 
-    await CommentsHelper.updateCommentForPostWithField(comment.id, userVlad, updateFields);
+    await CommentsHelper.updateCommentWithFields(comment.id, userVlad, updateFields);
 
     const eventId = EventsIdsDictionary.userUpdatesCommentFromOrganization();
     await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);
@@ -166,7 +166,7 @@ describe('Update comment or reply from organization with a real transaction', ()
       description,
     };
 
-    await CommentsHelper.updateCommentForPostWithField(commentOnComment.id, userVlad, updateFields);
+    await CommentsHelper.updateCommentWithFields(commentOnComment.id, userVlad, updateFields);
 
     const eventId = EventsIdsDictionary.userUpdatesCommentFromOrganization();
     await UsersActivityCommonHelper.getProcessedActivity(userVlad.id, eventId);

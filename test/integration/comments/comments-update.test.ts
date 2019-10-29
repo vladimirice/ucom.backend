@@ -34,7 +34,7 @@ describe('Update comment or reply from user', () => {
       description: 'Updated description',
     };
 
-    const updatedComment = await CommentsHelper.updateCommentForPostWithField(comment.id, userVlad, updateFields);
+    const updatedComment = await CommentsHelper.updateCommentWithFields(comment.id, userVlad, updateFields);
 
     expect(updatedComment.description).toBe(updateFields.description);
 
@@ -65,7 +65,7 @@ describe('Update comment or reply from user', () => {
     const commentOnComment: CommentModel =
       await CommentsGenerator.createCommentOnCommentWithFields(postId, comment.id, userVlad);
 
-    const updatedComment = await CommentsHelper.updateCommentForPostWithField(commentOnComment.id, userVlad, updateFields);
+    const updatedComment = await CommentsHelper.updateCommentWithFields(commentOnComment.id, userVlad, updateFields);
 
     expect(updatedComment.description).toBe(updateFields.description);
 
@@ -96,7 +96,7 @@ describe('Update comment or reply from organization', () => {
       description: 'Updated description',
     };
 
-    const updatedComment = await CommentsHelper.updateCommentForPostWithField(comment.id, userVlad, updateFields);
+    const updatedComment = await CommentsHelper.updateCommentWithFields(comment.id, userVlad, updateFields);
 
     expect(updatedComment.description).toBe(updateFields.description);
 
@@ -127,7 +127,7 @@ describe('Update comment or reply from organization', () => {
     const commentOnComment: CommentModel =
       await CommentsGenerator.createCommentOnCommentWithFields(postId, comment.id, userVlad);
 
-    const updatedComment = await CommentsHelper.updateCommentForPostWithField(commentOnComment.id, userVlad, updateFields);
+    const updatedComment = await CommentsHelper.updateCommentWithFields(commentOnComment.id, userVlad, updateFields);
 
     expect(updatedComment.description).toBe(updateFields.description);
 
