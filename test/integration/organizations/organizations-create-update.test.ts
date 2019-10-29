@@ -1,5 +1,4 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { JEST_TIMEOUT_DEBUG } from '../../helpers/jest-dictionary';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
@@ -37,12 +36,6 @@ describe('Organizations. Create-update requests', () => {
   });
 
   describe('Create organization', () => {
-    it('Smoke - create organization with the multi-signature', async () => {
-      await OrganizationsGenerator.createOrgWithoutTeam(userVlad, {
-        is_multi_signature: true,
-      });
-    }, JEST_TIMEOUT_DEBUG);
-
     describe('Positive scenarios', () => {
       it('Post current params row should be created during post creation', async () => {
         const entityId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);

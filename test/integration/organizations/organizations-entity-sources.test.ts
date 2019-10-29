@@ -53,6 +53,7 @@ describe('Organizations. Entity source related creation-updating', () => {
           'current_rate',
 
           'avatar_filename',
+          'organization_type_id',
           'blockchain_id',
           'nickname',
           'title',

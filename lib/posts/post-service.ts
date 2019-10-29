@@ -15,7 +15,6 @@ import OrganizationsModelProvider = require('../organizations/service/organizati
 import OrganizationsRepository = require('../organizations/repository/organizations-repository');
 import PostStatsRepository = require('./stats/post-stats-repository');
 import PostOfferRepository = require('./repository/post-offer-repository');
-import EosInputProcessor = require('../eos/input-processor/content/eos-input-processor');
 
 const _ = require('lodash');
 
@@ -80,7 +79,6 @@ class PostService {
     delete body.current_vote;
 
     const signedTransaction = body.signed_transaction || '';
-    EosInputProcessor.isBlockchainIdOrError(body);
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({

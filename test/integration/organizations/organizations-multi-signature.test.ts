@@ -92,7 +92,7 @@ it('Smoke - new organization as a multi-signature', async () => {
   );
 
   await OrganizationsGenerator.updateOrganization(organizationId, userVlad, teamMembers, updatedProfile, false);
-}, JEST_TIMEOUT_LONGER);
+}, JEST_TIMEOUT_LONGER * 3);
 
 it('Smoke - create and update media-post from organization', async () => {
   const organization: OrgModel = await OrganizationsGenerator.createOrgWithoutTeamAndGetModel(userVlad);
@@ -148,10 +148,7 @@ it('Smoke - create and update media-post from organization', async () => {
   await RequestHelper.makePatchRequestAsMyselfWithFields(
     RequestHelper.getOnePostV2Url(postId),
     userVlad,
-    {
-      ...updatedContent,
-      blockchain_id,
-    },
+    updatedContent,
   );
 }, JEST_TIMEOUT_LONGER * 5);
 
