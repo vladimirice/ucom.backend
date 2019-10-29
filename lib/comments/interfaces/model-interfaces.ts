@@ -20,6 +20,7 @@ interface CommentModel extends CommentModelInterface {
   readonly parent_id: number | null;
   readonly organization_id: number | null;
   readonly organization: any;
+  readonly blockchain_id: string;
 
   [index: string]: any;
 }

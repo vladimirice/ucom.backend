@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 import { EventsIdsDictionary } from 'ucom.libs.common';
 import { CommentModel, CommentModelInput } from '../interfaces/model-interfaces';
 import { UserModel } from '../../users/interfaces/model-interfaces';
@@ -15,7 +14,7 @@ import UsersTeamRepository = require('../../users/repository/users-team-reposito
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
 import CommentsInputProcessor = require('../validators/comments-input-processor');
-import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
+import EosInputProcessor = require('../../eos/input-processor/content/eos-input-processor');
 
 const _ = require('lodash');
 
@@ -61,7 +60,8 @@ export class CommentsCreatorService {
     isCommentOnComment: boolean,
     currentUser: UserModel,
   ) {
-    EosContentInputProcessor.validateContentSignedTransactionDetailsOrError(body);
+    const signedTransaction = body.signed_transaction || '';
+    EosInputProcessor.isBlockchainIdOrError(body);
 
     await this.processOrganizationAction(post, body, currentUser);
 
@@ -93,7 +93,7 @@ export class CommentsCreatorService {
 
         const activity = await this.processBlockchainCommentCreation(
           newComment.id,
-          body.signed_transaction,
+          signedTransaction,
           transaction,
           !!body.organization_id,
           isCommentOnComment ? newComment.parent_id : newComment.commentable_id,
@@ -109,7 +109,7 @@ export class CommentsCreatorService {
         };
       });
 
-    await UserActivityService.sendContentCreationPayloadToRabbitWithEosVersion(newActivity, body.signed_transaction);
+    await UserActivityService.sendContentCreationPayloadToRabbitWithSuppressEmpty(newActivity);
 
     return newModel;
   }

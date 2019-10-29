@@ -28,7 +28,7 @@ describe('Update comment or reply from user', () => {
   it('update comment with a fake transaction', async () => {
     const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(postId, userVlad);
+    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(postId, userVlad);
 
     const updateFields = {
       description: 'Updated description',
@@ -56,7 +56,7 @@ describe('Update comment or reply from user', () => {
   it('update comment on comment with a fake transaction', async () => {
     const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(postId, userVlad);
+    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(postId, userVlad);
 
     const updateFields = {
       description: 'Updated description',
@@ -90,7 +90,7 @@ describe('Update comment or reply from organization', () => {
     const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
     const postId: number = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
 
-    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(postId, userVlad);
+    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(postId, userVlad);
 
     const updateFields = {
       description: 'Updated description',
@@ -119,7 +119,7 @@ describe('Update comment or reply from organization', () => {
     const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
     const postId: number = await PostsGenerator.createMediaPostOfOrganization(userVlad, orgId);
 
-    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(postId, userVlad);
+    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(postId, userVlad);
     const updateFields = {
       description: 'Updated description',
     };

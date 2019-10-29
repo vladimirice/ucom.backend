@@ -1,6 +1,7 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { CommentModel, CommentModelResponse } from '../../lib/comments/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
+import { FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION } from './common/fake-data-generator';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 
@@ -51,7 +52,7 @@ class CommentsGenerator {
 
   /**
    * @deprecated
-   * @see createCommentForPostWithField
+   * @see createCommentForPostWithFields
    */
   public static async createCommentForPost(
     postId: number,
@@ -81,23 +82,34 @@ class CommentsGenerator {
     return res.body;
   }
 
-  public static async createCommentForPostWithField(
+  public static async createCommentForPostWithFields(
     postId: number,
     myself: UserModel,
-    givenFields: any = {},
+    givenFields: StringToAnyCollection = {},
     expectedStatus: number = 201,
+    addFakeTransactionDetails: boolean = true,
   ): Promise<CommentModelResponse> {
     const url: string = requestHelper.getCommentsUrl(postId);
 
-    const fields = {
+    const defaultFields: StringToAnyCollection = {
       description: 'New comment description',
       entity_images: '{}',
-      signed_transaction: 'signed_transaction',
-      blockchain_id: 'blockchain_id',
-      ...givenFields,
     };
 
-    const response = await RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields, expectedStatus);
+    if (addFakeTransactionDetails) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+      defaultFields.blockchain_id = FAKE_BLOCKCHAIN_ID;
+    }
+
+    const response = await RequestHelper.makePostRequestAsMyselfWithFields(
+      url,
+      myself,
+      {
+        ...defaultFields,
+        ...givenFields,
+      },
+      expectedStatus,
+    );
 
     return response.body;
   }

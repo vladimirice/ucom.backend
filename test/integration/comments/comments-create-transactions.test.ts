@@ -60,7 +60,7 @@ it('Create comment for post and provide a transaction', async () => {
     blockchain_id,
   };
 
-  const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(post.id, userVlad, requestContent);
+  const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(post.id, userVlad, requestContent);
 
   expect(comment.blockchain_id).toBe(blockchain_id);
 
@@ -86,7 +86,7 @@ it('Create comment for post and provide a transaction', async () => {
 it('create comment for comment and provide a transaction', async () => {
   const post: PostModel = await PostsGenerator.createMediaPostByUserHimselfAndGetModel(userVlad);
 
-  const parentComment: CommentModel = await CommentsGenerator.createCommentForPostWithField(
+  const parentComment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(
     post.id,
     userJane,
   );
@@ -166,7 +166,7 @@ it('create comment for post from organization and provide a transaction', async 
     blockchain_id,
   };
 
-  const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(post.id, userVlad, requestContent);
+  const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(post.id, userVlad, requestContent);
 
   expect(comment.blockchain_id).toBe(blockchain_id);
 
@@ -191,7 +191,7 @@ it('create comment for comment from organization and provide a transaction', asy
   const post: PostModel = await PostsGenerator.createMediaPostOfOrganizationAndGetModel(userVlad, organization.id);
 
   const parentComment: CommentModel =
-    await CommentsGenerator.createCommentForPostWithField(post.id, userJane);
+    await CommentsGenerator.createCommentForPostWithFields(post.id, userJane);
 
   const commentContent = {
     description:    'New comment description',
@@ -246,7 +246,7 @@ it.skip('resend comments - historical transactions', async () => {
   const organizationId: number = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
   const postId: number = await PostsGenerator.createMediaPostOfOrganization(userVlad, organizationId);
 
-  const postComment: CommentModel = await CommentsGenerator.createCommentForPostWithField(postId, userVlad);
+  const postComment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(postId, userVlad);
   await CommentsGenerator.createCommentOnCommentWithFields(postId, postComment.id, userJane);
 
   await CommentsResendingService.resendComments('2019-11-11', 2, true);

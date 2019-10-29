@@ -28,7 +28,7 @@ describe('Update comment or reply from user with a real transaction', () => {
   it('should update comment', async () => {
     const post: PostModel = await PostsGenerator.createMediaPostByUserHimselfAndGetModel(userVlad);
 
-    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(post.id, userVlad);
+    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(post.id, userVlad);
 
     const description = 'Updated description';
 
@@ -61,7 +61,7 @@ describe('Update comment or reply from user with a real transaction', () => {
   it('should update comment on comment', async () => {
     const postId: number = await PostsGenerator.createMediaPostByUserHimself(userVlad);
 
-    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(postId, userVlad);
+    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(postId, userVlad);
 
     const commentOnComment: CommentModel =
       await CommentsGenerator.createCommentOnCommentWithFields(postId, comment.id, userVlad);
@@ -100,7 +100,7 @@ describe('Update comment or reply from organization with a real transaction', ()
     const organization: OrgModel = await OrganizationsGenerator.createOrgWithoutTeamAndGetModel(userVlad);
     const post: PostModel = await PostsGenerator.createMediaPostOfOrganizationAndGetModel(userVlad, organization.id);
 
-    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(post.id, userVlad);
+    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(post.id, userVlad);
 
     const description = 'Updated description';
 
@@ -136,7 +136,7 @@ describe('Update comment or reply from organization with a real transaction', ()
     const postId: number = await PostsGenerator.createMediaPostOfOrganization(userVlad, organization.id);
 
     const description = 'Updated description';
-    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithField(postId, userVlad, {
+    const comment: CommentModel = await CommentsGenerator.createCommentForPostWithFields(postId, userVlad, {
       blockchain_id: 'parent_comment_blockchain_id',
       description: 'hello @janejanejane',
     });

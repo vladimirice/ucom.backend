@@ -1,6 +1,7 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { JEST_TIMEOUT_LONGER } from '../../helpers/jest-dictionary';
 import { OrgModel } from '../../../lib/organizations/interfaces/model-interfaces';
+import { PostModel } from '../../../lib/posts/interfaces/model-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
@@ -8,11 +9,12 @@ import EosApi = require('../../../lib/eos/eosApi');
 
 import PostsGenerator = require('../../generators/posts-generator');
 import RequestHelper = require('../helpers/request-helper');
+import CommentsGenerator = require('../../generators/comments-generator');
 
 const moment = require('moment');
 
 const {
-  RegistrationApi, MultiSignatureApi, ContentIdGenerator, ContentPublicationsActionsApi,
+  RegistrationApi, MultiSignatureApi, ContentIdGenerator, ContentPublicationsActionsApi, ContentCommentsActionsApi,
 } = require('ucom-libs-wallet');
 
 let userVlad: UserModel;
@@ -151,6 +153,80 @@ it('Smoke - create and update media-post from organization', async () => {
     },
   );
 }, JEST_TIMEOUT_LONGER * 5);
+
+it('Smoke - create and update comment from organization', async () => {
+  const organization: OrgModel = await OrganizationsGenerator.createOrgWithoutTeamAndGetModel(userVlad);
+
+  // Test purposes only - create multi-signature organization directly in the real case
+  await OrganizationsGenerator.migrateOrganizationToMultiSignature(userVlad, organization.id, multiSignatureAccount);
+
+  // Also, test purposes only - in reality you should create every organization post from the multi-signature
+  const post: PostModel = await PostsGenerator.createMediaPostOfOrganizationAndGetModel(userVlad, organization.id);
+
+  const commentContent = {
+    description:                'New comment description',
+    entity_images:              '{}',
+  };
+
+  const commentBlockchainContent = {
+    ...commentContent,
+
+    path:                       [1],
+    depth:                      0,
+    commentable_blockchain_id:  post.blockchain_id,
+    parent_blockchain_id:       post.blockchain_id,
+    author_account_name:        userVlad.account_name,
+    organization_blockchain_id: organization.id,
+  };
+
+  const isReply = false;
+
+  const { action, blockchain_id } = ContentCommentsActionsApi.getCreateCommentFromOrganizationAction(
+    multiSignatureAccount,
+    organization.blockchain_id,
+    post.blockchain_id,
+    commentBlockchainContent,
+    isReply,
+  );
+
+  await MultiSignatureApi.proposeApproveAndExecuteByProposer(
+    userVlad.account_name, userVlad.social_private_key, 'social', [action],
+  );
+
+  const comment = await CommentsGenerator.createCommentForPostWithFields(
+    post.id,
+    userVlad,
+    {
+      ...commentContent,
+      blockchain_id,
+    },
+    201,
+    false,
+  );
+
+  const updatedDescription = 'Updated description';
+  const updateCommentAction = ContentCommentsActionsApi.getUpdateCommentFromOrganizationAction(
+    multiSignatureAccount,
+    organization.blockchain_id,
+    post.blockchain_id,
+    {
+      ...commentBlockchainContent,
+      description: updatedDescription,
+    },
+    isReply,
+    comment.blockchain_id,
+  );
+
+  await MultiSignatureApi.proposeApproveAndExecuteByProposer(
+    userVlad.account_name, userVlad.social_private_key, 'social', [updateCommentAction],
+  );
+
+  // TODO - call a comment updating API
+}, JEST_TIMEOUT_LONGER * 5);
+
+it('Smoke - create and update reply from the organization', async () => {
+  // TODO
+});
 
 it('Smoke - create new organization as content and change it to the multi-signature', async () => {
   const organizationId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
