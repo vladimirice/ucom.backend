@@ -207,26 +207,26 @@ module.exports = {
         NODE_ENV,
       },
     },
-    {
-      name: `${NODE_ENV}-worker-save-current-params`,
-      script: 'lib/stats/workers/save-current-params-worker.js',
-
-      watch: false,
-      cron_restart: CRON_PATTERN_EVERY_HOUR,
-      env: {
-        NODE_ENV,
-      },
-    },
-    {
-      name: `${NODE_ENV}-worker-stats-calculate-event-params`,
-      script: 'lib/stats/workers/stats-calculate-event-params-worker.js',
-
-      watch: false,
-      cron_restart: '30 */1 * * *',
-      env: {
-        NODE_ENV,
-      },
-    },
+    // {
+    //   name: `${NODE_ENV}-worker-save-current-params`,
+    //   script: 'lib/stats/workers/save-current-params-worker.js',
+    //
+    //   watch: false,
+    //   cron_restart: CRON_PATTERN_EVERY_HOUR,
+    //   env: {
+    //     NODE_ENV,
+    //   },
+    // },
+    // {
+    //   name: `${NODE_ENV}-worker-stats-calculate-event-params`,
+    //   script: 'lib/stats/workers/stats-calculate-event-params-worker.js',
+    //
+    //   watch: false,
+    //   cron_restart: '30 */1 * * *',
+    //   env: {
+    //     NODE_ENV,
+    //   },
+    // },
     {
       name: `${NODE_ENV}-sync-irreversible-traces-worker`,
       script: 'lib/blockchain-traces/workers/sync-irreversible-traces-worker.js',
