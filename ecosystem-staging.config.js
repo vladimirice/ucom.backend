@@ -138,36 +138,36 @@ module.exports = {
         NODE_ENV,
       },
     },
-    {
-      name: `${NODE_ENV}-worker-airdrops-users-to-pending`,
-      script: 'lib/airdrops/workers/airdrops-users-to-pending.js',
-
-      watch: false,
-      cron_restart: CRON_PATTERN_EVERY_MINUTE,
-      env: {
-        NODE_ENV,
-      },
-    },
-    {
-      name: `${NODE_ENV}-worker-airdrops-users-to-waiting`,
-      script: 'lib/airdrops/workers/airdrops-users-to-waiting.js',
-
-      watch: false,
-      cron_restart: CRON_PATTERN_EVERY_MINUTE,
-      env: {
-        NODE_ENV,
-      },
-    },
-    {
-      name: `${NODE_ENV}-worker-airdrops-users-to-received`,
-      script: 'lib/airdrops/workers/airdrops-users-to-received.js',
-
-      watch: false,
-      cron_restart: CRON_PATTERN_EVERY_MINUTE,
-      env: {
-        NODE_ENV,
-      },
-    },
+    // {
+    //   name: `${NODE_ENV}-worker-airdrops-users-to-pending`,
+    //   script: 'lib/airdrops/workers/airdrops-users-to-pending.js',
+    //
+    //   watch: false,
+    //   cron_restart: CRON_PATTERN_EVERY_MINUTE,
+    //   env: {
+    //     NODE_ENV,
+    //   },
+    // },
+    // {
+    //   name: `${NODE_ENV}-worker-airdrops-users-to-waiting`,
+    //   script: 'lib/airdrops/workers/airdrops-users-to-waiting.js',
+    //
+    //   watch: false,
+    //   cron_restart: CRON_PATTERN_EVERY_MINUTE,
+    //   env: {
+    //     NODE_ENV,
+    //   },
+    // },
+    // {
+    //   name: `${NODE_ENV}-worker-airdrops-users-to-received`,
+    //   script: 'lib/airdrops/workers/airdrops-users-to-received.js',
+    //
+    //   watch: false,
+    //   cron_restart: CRON_PATTERN_EVERY_MINUTE,
+    //   env: {
+    //     NODE_ENV,
+    //   },
+    // },
     {
       name: `${NODE_ENV}-uos-accounts-properties-update-worker`,
       script: 'lib/uos-accounts-properties/worker/uos-accounts-properties-update-worker.js',
