@@ -220,7 +220,7 @@ module.exports = {
       script: 'lib/stats/workers/save-current-params-worker.js',
 
       watch: false,
-      cron_restart: '0 */1 * * *',
+      cron_restart: '0 */3 * * *',
       env: {
         NODE_ENV,
       },
@@ -230,7 +230,7 @@ module.exports = {
       script: 'lib/stats/workers/stats-calculate-event-params-worker.js',
 
       watch: false,
-      cron_restart: '30 */1 * * *',
+      cron_restart: '30 */3 * * *',
       env: {
         NODE_ENV,
       },
