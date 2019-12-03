@@ -135,16 +135,16 @@ module.exports = {
         NODE_ENV,
       },
     },
-    {
-      name: `${NODE_ENV}-worker-balances-monitoring`,
-      script: 'lib/airdrops/workers/monitoring/balances-monitoring.js',
-
-      watch: false,
-      cron_restart: CRON_PATTERN_EVERY_MINUTE,
-      env: {
-        NODE_ENV,
-      },
-    },
+    // {
+    //   name: `${NODE_ENV}-worker-balances-monitoring`,
+    //   script: 'lib/airdrops/workers/monitoring/balances-monitoring.js',
+    //
+    //   watch: false,
+    //   cron_restart: CRON_PATTERN_EVERY_MINUTE,
+    //   env: {
+    //     NODE_ENV,
+    //   },
+    // },
     {
       name: `${NODE_ENV}-worker-airdrops-users-to-pending`,
       script: 'lib/airdrops/workers/airdrops-users-to-pending.js',
