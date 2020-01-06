@@ -1,6 +1,8 @@
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
+import { FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION } from '../../../generators/common/fake-data-generator';
 
 import RequestHelper = require('../../../integration/helpers/request-helper');
+import PostsRepository = require('../../../../lib/posts/posts-repository');
 
 class UsersActivityRequestHelper {
   public static async trustOneUserWithMockTransaction(
@@ -21,6 +23,11 @@ class UsersActivityRequestHelper {
     return this.untrustOneUser(whoActs, targetUserId, signedTransaction);
   }
 
+  /**
+   * @deprecated - legacy
+   * @see - trustOneUserWithAutoUpdate
+   *
+   */
   static async trustOneUser(
     whoActs: UserModel,
     targetUserId: number,
@@ -32,6 +39,58 @@ class UsersActivityRequestHelper {
     return this.makeActivityRequest(whoActs, url, signedTransaction, expectedStatus);
   }
 
+  public static async trustOneUserWithFakeAutoUpdate(
+    myself: UserModel,
+    targetUserId: number,
+  ): Promise<any> {
+    return this.trustOneUserWithAutoUpdate(myself, targetUserId, FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION);
+  }
+
+  public static async trustOneUserWithFakeAutoUpdateAndGetId(
+    myself: UserModel,
+    targetUserId: number,
+  ): Promise<number> {
+    await this.trustOneUserWithAutoUpdate(myself, targetUserId, FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION);
+
+    return PostsRepository.findLastAutoUpdateId();
+  }
+
+  public static async trustOneUserWithAutoUpdate(
+    myself: UserModel,
+    targetUserId: number,
+    blockchainId: string,
+    signedTransaction: string,
+  ): Promise<any> {
+    const url: string = this.getTrustUrl(targetUserId);
+
+    const fields = {
+      signed_transaction: signedTransaction,
+      blockchain_id:      blockchainId,
+    };
+
+    return RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields, 201);
+  }
+
+  public static async untrustOneUserWithAutoUpdate(
+    myself: UserModel,
+    targetUserId: number,
+    blockchainId: string,
+    signedTransaction: string,
+  ): Promise<any> {
+    const url: string = this.getUntrustUrl(targetUserId);
+
+    const fields = {
+      signed_transaction: signedTransaction,
+      blockchain_id:      blockchainId,
+    };
+
+    return RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields, 201);
+  }
+
+  /**
+   * @deprecated Legacy
+   * @see untrustOneUserWithAutoUpdate
+   */
   static async untrustOneUser(
     whoActs: UserModel,
     targetUserId: number,

@@ -1,10 +1,11 @@
 /* eslint-disable no-console */
 
+import { AppError } from '../../api/errors';
+import { IAirdropConditions } from '../interfaces/model-interfaces';
+
 import AirdropCreatorService = require('../../../lib/airdrops/service/airdrop-creator-service');
 import EnvHelper = require('../../../lib/common/helper/env-helper');
 import AirdropsModelProvider = require('../../../lib/airdrops/service/airdrops-model-provider');
-import { AppError } from '../../api/errors';
-import { IAirdropConditions } from '../interfaces/model-interfaces';
 import CurrencyHelper = require('../../common/helper/CurrencyHelper');
 import CloseHandlersHelper = require('../../common/helper/close-handlers-helper');
 

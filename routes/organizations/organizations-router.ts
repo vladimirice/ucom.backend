@@ -1,6 +1,9 @@
+import { Request, Response } from 'express';
 /* tslint:disable:max-line-length */
 import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
+
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
+import { IRequestWithParams } from '../../lib/common/interfaces/common-types';
 
 import OrganizationsFetchService = require('../../lib/organizations/service/organizations-fetch-service');
 import OrganizationsValidateDiscussions = require('../../lib/organizations/discussions/service/organizations-validate-discussions');
@@ -12,6 +15,9 @@ import ActivityApiMiddleware = require('../../lib/activity/middleware/activity-a
 import PostService = require('../../lib/posts/post-service');
 import OrganizationService = require('../../lib/organizations/service/organization-service');
 import PostsFetchService = require('../../lib/posts/service/posts-fetch-service');
+import OrganizationsCreatorService = require('../../lib/organizations/service/organizations-creator-service');
+import OrganizationsUpdatingService = require('../../lib/organizations/service/organizations-updating-service');
+import ApiPostEvents = require('../../lib/common/service/api-post-events');
 
 const express = require('express');
 const status  = require('statuses');
@@ -42,13 +48,16 @@ const activityMiddlewareSet: any = [
 ];
 
 // @deprecated @see GraphQL
-orgRouter.get('/:organization_id', async (req, res) => {
-  const targetId = req.organization_id;
+orgRouter.get('/:organization_id', async (request: IRequestWithParams, response: Response) => {
+  const targetId = request.organization_id;
 
-  const currentUser = DiServiceLocator.getCurrentUserOrNull(req);
-  const response = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
+  const currentUser = DiServiceLocator.getCurrentUserOrNull(request);
+  const currentUserId = currentUser ? currentUser.id : null;
+  const organization = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
 
-  res.send(response);
+  await ApiPostEvents.processForOrganizationAndChangeProps(currentUserId, organization.data, request);
+
+  response.send(organization);
 });
 
 orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {
@@ -71,11 +80,16 @@ orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], a
 });
 
 /* Create new organization */
-orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
-  const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-  const model = await OrganizationService.processNewOrganizationCreation(req, currentUser);
+orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (request: Request, response: Response) => {
+  const currentUser = DiServiceLocator.getCurrentUserOrException(request);
 
-  return res.status(201).send({
+  const { is_multi_signature } = request.body;
+
+  const model = await OrganizationsCreatorService.processNewOrganizationCreation(
+    request, currentUser, is_multi_signature || false,
+  );
+
+  return response.status(201).send({
     id: model.id,
   });
 });
@@ -120,7 +134,7 @@ orgRouter.delete('/:organization_id/discussions', [authTokenMiddleWare, cpUpload
 /* Update organization */
 orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
   const currentUser: UserModel = DiServiceLocator.getCurrentUserOrException(req);
-  await OrganizationService.updateOrganization(req, currentUser);
+  await OrganizationsUpdatingService.updateOrganization(req, currentUser);
 
   return res.status(200).send({
     status: 'ok',
@@ -137,6 +151,14 @@ orgRouter.post('/:organization_id/follow', activityMiddlewareSet, async (req, re
   res.status(status('201')).send({
     success: true,
   });
+});
+
+orgRouter.post('/:organization_id/migrate-to-multi-signature', activityMiddlewareSet, async (req, res) => {
+  const { organization_model, user } = req;
+
+  await OrganizationsCreatorService.updateOrganizationSetMultiSignature(organization_model.toJSON(), user, req.body);
+
+  res.send({ success: true });
 });
 
 /* One user unfollows organization */

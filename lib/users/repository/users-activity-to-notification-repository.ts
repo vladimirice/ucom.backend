@@ -1,5 +1,6 @@
 /* tslint:disable:max-line-length prefer-template */
 const models = require('../../../models');
+
 const db = models.sequelize;
 
 const usersModelProvider    = require('../../users/service').ModelProvider;
@@ -405,7 +406,7 @@ class UsersActivityToNotificationRepository {
       {
         schemaKey:    attributes.schema_key,
         dbKey:        attributes.data_alias,
-        dbAuthorKey:  attributes.data_alias + '_author',
+        dbAuthorKey:  `${attributes.data_alias}_author`,
       },
     ];
 
@@ -442,9 +443,9 @@ class UsersActivityToNotificationRepository {
     let sql = `SELECT ${selectString} from users_activity`;
 
     // tslint:disable-next-line:prefer-template
-    sql += ' ' + this.addRequiredJoin(dataAttributes.table_name, dataAttributes.data_alias, dataAttributes.related_activity_column);
+    sql += ` ${this.addRequiredJoin(dataAttributes.table_name, dataAttributes.data_alias, dataAttributes.related_activity_column)}`;
     // tslint:disable-next-line:prefer-template
-    sql += ' ' + this.addRequiredJoin(targetAttributes.table_name, targetAttributes.data_alias, targetAttributes.related_activity_column);
+    sql += ` ${this.addRequiredJoin(targetAttributes.table_name, targetAttributes.data_alias, targetAttributes.related_activity_column)}`;
 
     sql += ` WHERE users_activity.id = ${+activityId}`;
 
@@ -464,6 +465,7 @@ class UsersActivityToNotificationRepository {
    * @return {{data: {}, target_entity: {}}}
    * @private
    */
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   private static arrangeFieldsForNotification(dbData, schema) {
     const res = {
       data: {},
@@ -502,53 +504,54 @@ class UsersActivityToNotificationRepository {
       }
     });
 
+    // eslint-disable-next-line guard-for-in
     for (const field in dbData) {
       schema.data.forEach((set) => {
-        if (field.includes(set.dbKey + '__')) {
-          const fieldName = field.replace(set.dbKey + '__', '');
+        if (field.includes(`${set.dbKey}__`)) {
+          const fieldName = field.replace(`${set.dbKey}__`, '');
 
           res.data[set.schemaKey][fieldName] = dbData[field];
         }
 
-        if (set.dbAuthorKey && field.includes(set.dbAuthorKey + '__')) {
-          const fieldName = field.replace(set.dbAuthorKey + '__', '');
+        if (set.dbAuthorKey && field.includes(`${set.dbAuthorKey}__`)) {
+          const fieldName = field.replace(`${set.dbAuthorKey}__`, '');
 
           res.data[set.schemaKey].User[fieldName] = dbData[field];
         }
 
-        if (set.dbOrgKey && field.includes(set.dbOrgKey + '__')) {
-          const fieldName = field.replace(set.dbOrgKey + '__', '');
+        if (set.dbOrgKey && field.includes(`${set.dbOrgKey}__`)) {
+          const fieldName = field.replace(`${set.dbOrgKey}__`, '');
 
           res.data[set.schemaKey].organization[fieldName] = dbData[field];
         }
 
-        if (set.dbPostKey && field.includes(set.dbPostKey + '__')) {
-          const fieldName = field.replace(set.dbPostKey + '__', '');
+        if (set.dbPostKey && field.includes(`${set.dbPostKey}__`)) {
+          const fieldName = field.replace(`${set.dbPostKey}__`, '');
 
           res.data[set.schemaKey].post[fieldName] = dbData[field];
         }
       });
 
       schema.target_entity.forEach((set) => {
-        if (field.includes(set.dbKey + '__')) {
-          const fieldName = field.replace(set.dbKey + '__', '');
+        if (field.includes(`${set.dbKey}__`)) {
+          const fieldName = field.replace(`${set.dbKey}__`, '');
 
           res.target_entity[set.schemaKey][fieldName] = dbData[field];
         }
-        if (set.dbAuthorKey && field.includes(set.dbAuthorKey + '__')) {
-          const fieldName = field.replace(set.dbAuthorKey + '__', '');
+        if (set.dbAuthorKey && field.includes(`${set.dbAuthorKey}__`)) {
+          const fieldName = field.replace(`${set.dbAuthorKey}__`, '');
 
           res.target_entity[set.schemaKey].User[fieldName] = dbData[field];
         }
 
-        if (set.dbOrgKey && field.includes(set.dbOrgKey + '__')) {
-          const fieldName = field.replace(set.dbOrgKey + '__', '');
+        if (set.dbOrgKey && field.includes(`${set.dbOrgKey}__`)) {
+          const fieldName = field.replace(`${set.dbOrgKey}__`, '');
 
           res.target_entity[set.schemaKey].organization[fieldName] = dbData[field];
         }
 
-        if (set.dbPostKey && field.includes(set.dbPostKey + '__')) {
-          const fieldName = field.replace(set.dbPostKey + '__', '');
+        if (set.dbPostKey && field.includes(`${set.dbPostKey}__`)) {
+          const fieldName = field.replace(`${set.dbPostKey}__`, '');
 
           res.target_entity[set.schemaKey].post[fieldName] = dbData[field];
         }

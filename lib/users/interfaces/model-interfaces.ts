@@ -5,13 +5,19 @@ import {
 } from '../../uos-accounts-properties/interfaces/model-interfaces';
 import { ModelWithEntityImages } from '../../entity-images/interfaces/model-interfaces';
 
-interface UserModel extends ModelWithEntityImages {
+interface UserModel extends UserModelPreview {
   readonly id: number;
   readonly account_name: string;
 
   readonly uos_accounts_properties?: UosAccountPropertiesValuesDto
 
+  readonly social_public_key: string;
+
   [index: string]: any
+}
+
+interface UserModelTests extends UserModel {
+  social_private_key: string;
 }
 
 interface UserModelCard extends ModelWithEntityImages {
@@ -20,6 +26,8 @@ interface UserModelCard extends ModelWithEntityImages {
 
   [index: string]: string | number,
 }
+
+interface UserModelPreview extends UserModelCard {}
 
 interface UsersListResponse extends ListResponse {
   data: UserModelResponse[];
@@ -44,6 +52,12 @@ interface UsersActivityQueryDto extends UsersRequestQueryDto {
   readonly activity: string;
 }
 
+interface OneContentActivityUsersQueryDto extends RequestQueryDto {
+ readonly entity_id: number;
+ readonly entity_name: string;
+ readonly interaction_type?: number;
+}
+
 interface OrganizationsActivityQueryDto extends RequestQueryDto {
   readonly organization_identity: string;
   readonly activity:              string;
@@ -51,11 +65,15 @@ interface OrganizationsActivityQueryDto extends RequestQueryDto {
 
 export {
   UserModelCard,
+  UserModelPreview,
   UserModel,
+  UserModelTests,
+
   UserIdToUserModelCard,
   UsersListResponse,
   UsersRequestQueryDto,
   UsersActivityQueryDto,
 
   OrganizationsActivityQueryDto,
+  OneContentActivityUsersQueryDto,
 };

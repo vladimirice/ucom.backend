@@ -6,6 +6,7 @@ const DiServiceLocator = require("../../lib/api/services/di-service-locator");
 const PostCreatorService = require("../../lib/posts/service/post-creator-service");
 const PostActivityService = require("../../lib/posts/post-activity-service");
 const PostService = require("../../lib/posts/post-service");
+const PostToEventIdService = require("../../lib/posts/service/post-to-event-id-service");
 const postsRouter = require('./comments-router');
 const { AppError, BadRequestError } = require('../../lib/api/errors');
 const authTokenMiddleWare = require('../../lib/auth/auth-token-middleware');
@@ -65,7 +66,8 @@ res) => {
 postsRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     PostsInputProcessor.process(req.body);
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const newPost = await PostCreatorService.processNewPostCreation(req, null, currentUser);
+    const eventId = PostToEventIdService.getCreateMediaPostEventId(req.body);
+    const newPost = await PostCreatorService.processNewPostCreation(req, eventId, currentUser);
     const response = postService.isDirectPost(newPost) ? newPost : {
         id: newPost.id,
     };

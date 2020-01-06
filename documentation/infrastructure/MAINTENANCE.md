@@ -1,21 +1,22 @@
 # Maintenance
 
+## How to clean the database
+
+Run for the staging database (lasts at least 10 minutes). And use a date which is the current date minus 1 month
+```
+DELETE FROM entity_event_param WHERE created_at <= '2019-10-10';
+```
+
+Then, run:
+```
+    VACUUM FULL entity_event_param
+```
+
+
 ## How to reload/restart all processes on production
 
-It is required to reload 3 sets of services
+```
+    /var/www/ucom.backend/ci-scripts/deploy/pm2-reload-ecosystem-remote.sh production 1 1 1
+```
 
-### Backend
-1. cd /var/www/ucom.backend
-2. git checkout master
-3. pm2 reload ecosystem-production.config.js --update-env
-
-### Frontend 
-
-1. cd /var/www/ucom.frontend
-2. git checkout master
-3. pm2 reload ecosystem-production.config.js
-
-### Iframely
-
-1. cd /home/dev/iframely
-2. pm2 reload pm2.json 
+[script itself](../../ci-scripts/deploy/pm2-reload-ecosystem-remote.sh)

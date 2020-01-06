@@ -18,6 +18,7 @@ import FileToUploadHelper = require('./file-to-upload-helper');
 import OrgsCurrentParamsRepository = require('../../../lib/organizations/repository/organizations-current-params-repository');
 import UsersModelProvider = require('../../../lib/users/users-model-provider');
 import CommonChecker = require('../../helpers/common/common-checker');
+import BlockchainUniqId = require('../../../lib/eos/eos-blockchain-uniqid');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -185,6 +186,8 @@ class OrganizationsHelper {
     const res = await request(server)
       .post(RequestHelper.getOrgFollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
+      .field('signed_transaction', 'signed_transaction')
+      .field('blockchain_id', BlockchainUniqId.getUniqidByScope('organizations'))
     ;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
@@ -203,6 +206,8 @@ class OrganizationsHelper {
     const res = await request(server)
       .post(RequestHelper.getOrgUnfollowUrl(orgId))
       .set('Authorization', `Bearer ${user.token}`)
+      .field('signed_transaction', 'signed_transaction')
+      .field('blockchain_id', 'blockchain_id')
     ;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
@@ -439,11 +444,11 @@ class OrganizationsHelper {
   }
 
   static async checkSourcesAfterUpdating(sourceAfter, sourceSet) {
-    expect(sourceAfter.some(data => data.id === sourceSet.internal.to_delete.id)).toBeFalsy();
-    expect(sourceAfter.some(data => data.id === sourceSet.external.to_delete.id)).toBeFalsy();
+    expect(sourceAfter.some((data) => data.id === sourceSet.internal.to_delete.id)).toBeFalsy();
+    expect(sourceAfter.some((data) => data.id === sourceSet.external.to_delete.id)).toBeFalsy();
 
     sourceSet.internal.to_check.forEach((source) => {
-      const existed = sourceAfter.find(data => data.id === source.id);
+      const existed = sourceAfter.find((data) => data.id === source.id);
       expect(existed).toBeDefined();
 
       expect(existed).toEqual(source);
@@ -451,7 +456,7 @@ class OrganizationsHelper {
 
     // eslint-disable-next-line sonarjs/no-identical-functions
     sourceSet.external.to_check.forEach((source) => {
-      const existed = sourceAfter.find(data => data.id === source.id);
+      const existed = sourceAfter.find((data) => data.id === source.id);
       expect(existed).toBeDefined();
 
       expect(existed).toEqual(source);
@@ -459,12 +464,12 @@ class OrganizationsHelper {
 
     // adding
     const expectedAdded = sourceSet.internal.to_add;
-    const actualAdded = sourceAfter.find(data => +data.entity_id === +expectedAdded.entity_id);
+    const actualAdded = sourceAfter.find((data) => +data.entity_id === +expectedAdded.entity_id);
     expect(actualAdded).toBeDefined();
     expect(actualAdded).toMatchObject(expectedAdded);
 
     const expectedAddedExternal = sourceSet.external.to_add;
-    const actualAddedExternal = sourceAfter.find(data => data.source_url === expectedAddedExternal.source_url && data.source_type === 'external');
+    const actualAddedExternal = sourceAfter.find((data) => data.source_url === expectedAddedExternal.source_url && data.source_type === 'external');
     expect(actualAddedExternal).toBeDefined();
 
     await FileToUploadHelper.isFileUploaded(actualAddedExternal.avatar_filename);
@@ -811,13 +816,8 @@ class OrganizationsHelper {
   }
 
   /**
-   *
-   * @param {number} orgId
-   * @param {Object} user
-   * @param {Object} newModelFields
-   * @param {Object[]} usersTeam
-   * @return {Promise<Object>}
-   *
+   * @deprecated
+   * @see OrganizationsGenerator.updateOrganization()
    */
   static async requestToUpdateOrganization(orgId, user, newModelFields, usersTeam) {
     const res = await request(server)
@@ -838,6 +838,8 @@ class OrganizationsHelper {
       .field('users_team[0][id]', usersTeam[0].user_id)
       .field('users_team[1][id]', usersTeam[1].user_id)
       .field('users_team[2][id]', usersTeam[2].user_id)
+
+      .field('signed_transaction', 'signed_transaction')
 
       .attach('avatar_filename', newModelFields.avatar_filename)
     ;
@@ -949,6 +951,8 @@ class OrganizationsHelper {
     const req = request(server)
       .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${user.token}`)
+      .field('signed_transaction', 'signed_transaction')
+      .field('blockchain_id', BlockchainUniqId.getUniqidByScope('organizations'))
     ;
 
     if (_.isEmpty(fields)) {
@@ -1010,6 +1014,10 @@ class OrganizationsHelper {
     }
   }
 
+  /**
+   * @deprecated
+   * @see OrganizationsGenerator.updateOrganization()
+   */
   public static async updateOneOrganization(
     orgId: number,
     myself: UserModel,
@@ -1026,19 +1034,14 @@ class OrganizationsHelper {
     const req = RequestHelper.getRequestObjForPatch(RequestHelper.getOneOrganizationUrl(orgId), myself);
     RequestHelper.addFormFieldsToRequestWithStringify(req, fields);
 
+    RequestHelper.addFakeSignedTransactionString(req);
+
     return RequestHelper.makeRequestAndGetBody(req);
   }
 
-  // noinspection OverlyComplexFunctionJS
   /**
-   *
-   * @param {number} orgId
-   * @param {Object} user
-   * @param {Object} fields
-   * @param {Object} sources
-   * @param {Object[]} socialNetworks
-   * @param {number} expectedStatus
-   * @return {Promise<Object>}
+   * @deprecated
+   * @see OrganizationsGenerator.updateOrganization()
    */
   static async requestToUpdateExisting(
     orgId: number,
@@ -1078,6 +1081,8 @@ class OrganizationsHelper {
       }
     });
 
+    RequestHelper.addFakeSignedTransactionString(req);
+
     const res = await req;
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
@@ -1092,6 +1097,8 @@ class OrganizationsHelper {
       .field('title', 'sample title')
       .field('nickname', 'sample nickname')
     ;
+
+    RequestHelper.addFakeSignedTransactionString(req);
 
     const response = await req;
     ResponseHelper.expectStatusOk(response);
@@ -1131,6 +1138,8 @@ class OrganizationsHelper {
       .field('city', newModelFields.city)
       .field('address', newModelFields.address)
       .field('personal_website_url', newModelFields.personal_website_url)
+      .field('signed_transaction', 'signed_transaction')
+      .field('blockchain_id', BlockchainUniqId.getUniqidByScope('organizations'))
       .field('users_team[]', '') // this is to catch and fix bug by TDD
       .attach('avatar_filename', newModelFields.avatar_filename)
     ;

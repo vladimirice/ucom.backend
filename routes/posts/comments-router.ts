@@ -4,6 +4,7 @@ import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import CommentsActivityService = require('../../lib/comments/comments-activity-service');
 import CommentsFetchService = require('../../lib/comments/service/comments-fetch-service');
 import DiServiceLocator = require('../../lib/api/services/di-service-locator');
+import CommentsUpdateService = require('../../lib/comments/service/comments-update-service');
 
 const express = require('express');
 
@@ -65,6 +66,17 @@ router.post('/:post_id/comments/:comment_id/comments', [authTokenMiddleWare, cpU
   const forResponse = await CommentsFetchService.findAndProcessOneComment(newComment.id, currentUser.id);
 
   res.status(201).send(forResponse);
+});
+
+router.patch('/comments/:comment_id', [authTokenMiddleWare, cpUploadArray], async (req, res) => {
+  const currentUserId: number = DiServiceLocator.getCurrentUserIdOrException(req);
+
+  await CommentsUpdateService.updateComment(req.comment_id, req.body, currentUserId);
+
+  // #opt need optimization
+  const forResponse = await CommentsFetchService.findAndProcessOneComment(req.comment_id, currentUserId);
+
+  res.send(forResponse);
 });
 
 router.param('comment_id', (

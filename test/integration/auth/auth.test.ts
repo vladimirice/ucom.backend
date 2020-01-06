@@ -3,113 +3,67 @@ import UsersHelper = require('../helpers/users-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import ResponseHelper = require('../helpers/response-helper');
 import RequestHelper = require('../helpers/request-helper');
+import EosJsEcc = require('../../../lib/crypto/eosjs-ecc');
 
 const request = require('supertest');
-const models = require('../../../models');
+
 const server = RequestHelper.getApiApplication();
-const eosJsEcc = require('../../../lib/crypto/eosjs-ecc');
 
 const eosAccount = UsersHelper.getVladEosAccount();
-const registerUrl = '/api/v1/auth/login';
 
-const vladSeed = UsersHelper.getUserVladSeed();
-const vladEosAccount = UsersHelper.getVladEosAccount();
+let userVlad;
+let userJane;
 
-const janeSeed = UsersHelper.getUserJaneSeed();
-const janeEosAccount = UsersHelper.getJaneEosAccount();
+let userPetr;
 
-describe('Test auth workflow', () => {
-  beforeEach(async () => {
-    await SeedsHelper.beforeAllRoutine();
-  });
+const JEST_TIMEOUT = 10000;
 
-  afterAll(async () => {
-    await SeedsHelper.sequelizeAfterAll();
-  });
+beforeEach(async () => {
+  [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutine();
+});
 
-  describe('Positive scenarios', () => {
-    // #task put here all positive scenarios
-    it('Send correct login request with already existed user', async () => {
-      const { account_name } = janeSeed;
-      const privateKey = janeEosAccount.activePk;
-      const { public_key } = janeSeed;
+afterAll(async () => {
+  await SeedsHelper.sequelizeAfterAll();
+});
 
-      const usersCountBefore = await models.Users.count({ where: { account_name } });
-      expect(usersCountBefore).toBe(1);
+describe('Positive', () => {
+  it('Send correct login request with already existed user using social key', async () => {
+    const user = userVlad;
 
-      const sign = eosJsEcc.sign(account_name, privateKey);
+    const sign = EosJsEcc.sign(user.account_name, user.social_private_key);
 
-      const res = await request(server)
-        .post(registerUrl)
-        .field('account_name', account_name)
-        .field('public_key', public_key)
-        .field('sign', sign)
-      ;
+    const fields = {
+      account_name: user.account_name,
+      social_public_key: user.social_public_key,
+      sign,
+    };
 
-      AuthHelper.validateAuthResponse(res, account_name);
-      const usersCountAfter = await models.Users.count({ where: { account_name } });
-      expect(usersCountAfter).toBe(usersCountBefore);
-    }, 10000);
-  });
+    const response = await RequestHelper.makePostGuestRequestWithFields(RequestHelper.getLogInUrl(), fields);
 
-  it('Send correct auth request but with account which does not exist in blockchain', async () => {
-    const accountName = 'testuser';
+    AuthHelper.validateAuthResponse(response, user.account_name);
+  }, JEST_TIMEOUT);
+});
 
-    const sign = await eosJsEcc.sign(accountName, eosAccount.activePk);
-
+describe('Negative', () => {
+  it('Should receive validation error if no fields provided', async () => {
     const res = await request(server)
-      .post(registerUrl)
-      .field('account_name', accountName)
-      .field('public_key', eosAccount.activePubKey)
-      .field('sign', sign)
+      .post(RequestHelper.getLogInUrl())
+      .field('account_name', eosAccount.account_name)
     ;
 
     expect(res.status).toBe(400);
     const body = res.body.errors;
     expect(body.length).toBe(1);
 
-    const publicKeyError = body.find(e => e.field === 'account_name');
-    expect(publicKeyError).toBeDefined();
-    expect(publicKeyError.message).toMatch('Incorrect Brainkey or Account name');
-  });
-
-  it('Should receive validation error if no fields provided', async () => {
-    const res = await request(server)
-      .post(registerUrl)
-      .field('account_name', eosAccount.account_name)
-    ;
-
-    expect(res.status).toBe(400);
-    const body = res.body.errors;
-    expect(body.length).toBe(2);
-
-    const publicKeyError = body.find(e => e.field === 'public_key');
-    expect(publicKeyError).toBeDefined();
-    expect(publicKeyError.message).toMatch('Public key is required');
-
-    const signError = body.find(e => e.field === 'sign');
+    const signError = body.find((e) => e.field === 'sign');
     expect(signError).toBeDefined();
     expect(signError.message).toMatch('Sign is required');
   });
 
-  it('Should receive signature error if sign is not valid', async () => {
-    const res = await request(server)
-      .post(registerUrl)
-      .field('account_name', eosAccount.account_name)
-      .field('public_key', eosAccount.activePubKey)
-      .field('sign', 'invalidSign')
-    ;
-
-    ResponseHelper.expectStatusBadRequest(res);
-    const { body } = res;
-
-    expect(body.hasOwnProperty('errors')).toBeTruthy();
-    expect(body.errors).toMatch('Expecting signature like');
-  });
 
   it('Should receive public key error', async () => {
     const res = await request(server)
-      .post(registerUrl)
+      .post(RequestHelper.getLogInUrl())
       .field('account_name', eosAccount.account_name)
       .field('public_key', 'invalid public key')
       .field('sign', 'invalidSign')
@@ -119,7 +73,7 @@ describe('Test auth workflow', () => {
     const { body } = res;
 
     expect(body.hasOwnProperty('errors')).toBeTruthy();
-    expect(body.errors).toMatch('Public key is not valid');
+    expect(body.errors[0].message).toMatch('Incorrect Brainkey or Account name or one of the private keys');
   });
 
   it('should return 401 if token is malformed', async () => {
@@ -135,21 +89,49 @@ describe('Test auth workflow', () => {
   });
 
   it('Send account name and sign of invalid private key', async () => {
-    const { account_name } = janeSeed;
-    const privateKey = vladEosAccount.activePk;
-    const { public_key } = vladSeed;
-
-    const sign = eosJsEcc.sign(account_name, privateKey);
+    const sign = EosJsEcc.sign(userPetr.account_name, userJane.private_key);
 
     const res = await request(server)
-      .post(registerUrl)
-      .field('account_name', account_name)
-      .field('public_key', public_key)
+      .post(RequestHelper.getLogInUrl())
+      .field('account_name', userPetr.account_name)
+      .field('public_key', userPetr.public_key)
       .field('sign', sign)
     ;
 
     expect(res.status).toBe(400);
-  }, 10000);
+  }, JEST_TIMEOUT);
+
+  describe('skipped', () => {
+    it.skip('Should receive signature error if sign is not valid', async () => {
+      const res = await request(server)
+        .post(RequestHelper.getLogInUrl())
+        .field('account_name', eosAccount.account_name)
+        .field('public_key', eosAccount.activePubKey)
+        .field('sign', 'invalidSign')
+      ;
+
+      ResponseHelper.expectStatusBadRequest(res);
+      const { body } = res;
+
+      expect(body.hasOwnProperty('errors')).toBeTruthy();
+      expect(body.errors).toMatch('Expecting signature like');
+    });
+  });
+});
+
+describe('Legacy', () => {
+  it('Send correct login request with already existed user using active key', async () => {
+    const sign = EosJsEcc.sign(userPetr.account_name, userPetr.private_key);
+
+    const response = await request(server)
+      .post(RequestHelper.getLogInUrl())
+      .field('account_name', userPetr.account_name)
+      .field('public_key', userPetr.public_key)
+      .field('sign', sign)
+    ;
+
+    AuthHelper.validateAuthResponse(response, userPetr.account_name);
+  }, JEST_TIMEOUT);
 });
 
 export {};

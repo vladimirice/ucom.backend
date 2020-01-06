@@ -23,7 +23,7 @@ init-project ip:
 	npm ci
 	make docker-init-test-db
 	make docker-compile-typescript
-	make pm2-reload-test-ecosystem
+	make pm2-reload-ecosystem-test
 	make docker-pm2-list
 
 docker-rebuild:
@@ -38,11 +38,17 @@ docker-init-db-by-sql dis:
 	docker cp ./migrations/sequelize-migrations-final-dump.sql ucom_backend_db_test:/
 	${DOCKER_DB_EXEC_CMD} psql -U uos uos_backend_app -f sequelize-migrations-final-dump.sql
 
-pm2-reload-test-ecosystem pmt:
+pm2-reload-ecosystem-test pmt:
 	${DOCKER_B_EXEC_CMD} pm2 reload ecosystem-test.config.js --update-env
 
-pm2-reload-production-ecosystem:
-	ssh gt 'bash -s' < ./scripts/deployment/pm2-reload-production.sh
+pm2-reload-ecosystem-staging:
+	ssh gt 'bash -s' < ./ci-scripts/deploy/pm2-reload-ecosystem-remote.sh staging 1 1
+
+pm2-reload-ecosystem-production:
+	ssh gt 'bash -s' < ./ci-scripts/deploy/pm2-reload-ecosystem-remote.sh production 1 1
+
+pm2-reload-ecosystem-iframely:
+	ssh gt 'bash -s' < ./ci-scripts/deploy/pm2-reload-ecosystem-remote.sh production 0 0 1
 
 docker-npm-ci:
 	${DOCKER_B_EXEC_CMD} npm ci
@@ -104,8 +110,10 @@ deploy-staging deploy:
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
-pm2-reload-iframely:
-	ssh gt 'bash -s' < ./ifamely_reload.sh
+deploy-staging-without-tests deploy-without-tests:
+	git checkout staging
+	git push
+	ssh gt 'bash -s' < ./uos_backend_deploy_staging.sh
 
 deploy-staging-no-check deploy-no-check:
 	git checkout staging
@@ -120,6 +128,11 @@ deploy-production-snyk:
 deploy-production:
 	git checkout master
 	make docker-check-project
+	git push
+	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
+
+deploy-production-without-checks:
+	git checkout master
 	git push
 	ssh gt 'bash -s' < ./uos_backend_deploy_production.sh
 

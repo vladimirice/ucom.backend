@@ -1,4 +1,4 @@
-import IrreversibleTracesClient = require('../../../lib/eos/client/mongo/irreversible-traces-client');
+import IrreversibleTracesClient = require('../../../lib/blockchain-traces/client/irreversible-traces-client');
 import MongoExternalModelProvider = require('../../../lib/eos/service/mongo-external-model-provider');
 
 class MongoGenerator {

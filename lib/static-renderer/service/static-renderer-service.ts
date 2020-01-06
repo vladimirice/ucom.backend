@@ -74,14 +74,14 @@ class StaticRendererService {
       }
 
       return frontendTemplate.replace(CONTENT_META_TAGS_PLACEHOLDER, metaTagsFragment);
-    } catch (e) {
+    } catch (error) {
       if (!frontendTemplate) {
-        e.message += ' There is no frontend template - not possible to render anything. Lets rethrow the error';
-        throw e;
+        error.message += ' There is no frontend template - not possible to render anything. Lets rethrow the error';
+        throw error;
       }
 
-      e.message += ' Lets render template without static part.';
-      ApiLogger.error(e);
+      error.message += ' Lets render template without static part.';
+      ApiLogger.error(error);
 
       return frontendTemplate;
     }
@@ -111,9 +111,7 @@ class StaticRendererService {
     const searchString = Object.keys(metaTagsValues).join('|');
     const regex = new RegExp(searchString, 'gi');
 
-    return contentMetaTagsTemplate.replace(regex, (x) => {
-      return metaTagsValues[x];
-    });
+    return contentMetaTagsTemplate.replace(regex, x => metaTagsValues[x]);
   }
 }
 

@@ -1,11 +1,15 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
+import { OrgModel } from '../../lib/organizations/interfaces/model-interfaces';
+import { FAKE_SIGNED_TRANSACTION } from './common/fake-data-generator';
 
 import RequestHelper = require('../integration/helpers/request-helper');
 import ResponseHelper = require('../integration/helpers/response-helper');
 import UsersHelper = require('../integration/helpers/users-helper');
 
 import EntityImagesGenerator = require('./common/entity-images-generator');
+import OrganizationsRepository = require('../../lib/organizations/repository/organizations-repository');
+import BlockchainUniqId = require('../../lib/eos/eos-blockchain-uniqid');
 
 const request = require('supertest');
 const faker   = require('faker');
@@ -82,13 +86,14 @@ class OrganizationsGenerator {
     return Promise.all(promises);
   }
 
-  /**
-   *
-   * @param {Object} author
-   * @return {Promise<Object>}
-   */
-  static async createOrgWithoutTeam(author: UserModel): Promise<number> {
-    return this.createOrgWithTeam(author);
+  public static async createOrgWithoutTeam(author: UserModel, extraFields: any = {}): Promise<number> {
+    return this.createOrgWithTeam(author, [], extraFields);
+  }
+
+  public static async createOrgWithoutTeamAndGetModel(myself: UserModel, extraFields: any = {}): Promise<OrgModel> {
+    const orgId: number = await this.createOrgWithTeam(myself, [], extraFields);
+
+    return OrganizationsRepository.findOnlyItselfById(orgId);
   }
 
   public static async createOrgWithTeamAndConfirmAll(
@@ -110,27 +115,45 @@ class OrganizationsGenerator {
     return this.createOrgWithTeam(author, [], extraFields);
   }
 
+  public static async migrateOrganizationToMultiSignature(
+    myself: UserModel, organizationId: number, multiSignatureAccount: string,
+  ) {
+    return RequestHelper.makePostRequestAsMyselfWithFields(
+      `/api/v1/organizations/${organizationId}/migrate-to-multi-signature`,
+      myself,
+      {
+        account_name: multiSignatureAccount,
+      },
+    );
+  }
+
   public static async createOrgWithTeam(
     author: UserModel,
     teamMembers: UserModel[] = [],
-    extraFields: StringToAnyCollection | null = null,
+    extraFields: StringToAnyCollection = {},
   ): Promise<number> {
-    // noinspection JSUnresolvedFunction
-    const title = faker.company.companyName();
-    const about = faker.company.companyName();
-    const poweredBy = faker.company.companyName();
-    // noinspection JSCheckFunctionSignatures
-    const nickname = `${faker.name.firstName()}_${RequestHelper.generateRandomNumber(0, 10, 0)}`;
-
     const req = request(server)
       .post(RequestHelper.getOrganizationsUrl())
       .set('Authorization', `Bearer ${author.token}`)
-      .field('title',             title)
-      .field('nickname',          nickname)
-      .field('about',          about)
-      .field('powered_by',          poweredBy)
-      .field('email',          faker.internet.email())
     ;
+
+    const defaultFields: any = {
+      title:              faker.company.companyName(),
+      about:              faker.company.companyName(),
+      powered_by:         faker.company.companyName(),
+      nickname:           `${faker.name.firstName()}_${RequestHelper.generateRandomNumber(0, 10, 0)}`,
+      email:              faker.internet.email(),
+    };
+
+    if (!extraFields.is_multi_signature) {
+      defaultFields.signed_transaction  = FAKE_SIGNED_TRANSACTION;
+      defaultFields.blockchain_id       = BlockchainUniqId.getUniqidByScope('organizations');
+    }
+
+    const fields = {
+      ...defaultFields,
+      ...extraFields,
+    };
 
     // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < teamMembers.length; i += 1) {
@@ -139,9 +162,7 @@ class OrganizationsGenerator {
       req.field(field, user.id);
     }
 
-    if (extraFields) {
-      RequestHelper.addFormFieldsToRequestWithStringify(req, extraFields);
-    }
+    RequestHelper.addFormFieldsToRequestWithStringify(req, fields);
 
     const res = await req;
     ResponseHelper.expectStatusCreated(res);
@@ -149,32 +170,37 @@ class OrganizationsGenerator {
     return +res.body.id;
   }
 
-  /**
-   *
-   * @param {number} orgId
-   * @param {Object} user
-   * @param {Object[]} usersTeam
-   * @return {Promise<Object>}
-   */
-  static async updateOrgUsersTeam(orgId, user, usersTeam: any[] = []) {
-    // noinspection JSUnresolvedFunction
-    const title = faker.company.companyName();
-    // noinspection JSCheckFunctionSignatures
-    const nickname = faker.name.firstName();
+  public static async updateOrganization(
+    organizationId: number,
+    myself: UserModel,
+    usersTeam: any[] = [],
+    givenFields: any = {},
+    addFakeTransaction: boolean = true,
+  ) {
+    const url: string = RequestHelper.getOneOrganizationUrl(organizationId);
 
-    const req = request(server)
-      .patch(RequestHelper.getOneOrganizationUrl(orgId))
-      .set('Authorization', `Bearer ${user.token}`)
-      .field('title', title)
-      .field('nickname', nickname)
-    ;
+    const defaultFields: StringToAnyCollection = {
+      title:    faker.company.companyName(),
+      nickname: faker.name.firstName(),
+    };
 
+    // Backward compatibility
+    if (addFakeTransaction) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+    }
+
+    const fields = {
+      ...defaultFields,
+      ...givenFields,
+    };
+
+    const req = RequestHelper.getRequestObjForPatchWithFields(url, myself, fields);
     this.addUsersTeamToRequest(req, usersTeam);
 
-    const res = await req;
-    ResponseHelper.expectStatusOk(res);
+    const response = await req;
+    ResponseHelper.expectStatusOk(response);
 
-    return res.body;
+    return response.body;
   }
 
   static addUsersTeamToRequest(req, usersTeam) {

@@ -49,6 +49,9 @@ module.exports = (sequelize, DataTypes) => {
     entity_tags: {
       type: DataTypes.JSONB,
     },
+    json_data: {
+      type: DataTypes.JSONB,
+    },
     created_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
@@ -72,6 +75,7 @@ module.exports = (sequelize, DataTypes) => {
       'description',
 
       'entity_images',
+      'json_data',
 
       'current_vote',
       'current_rate',
@@ -117,6 +121,7 @@ module.exports = (sequelize, DataTypes) => {
       'current_rate',
 
       'entity_images',
+      'json_data',
       'entity_tags',
 
       'user_id',
@@ -135,6 +140,7 @@ module.exports = (sequelize, DataTypes) => {
     'id',
     'title',
     'entity_images',
+    'json_data',
     'comments_count',
 
     'user_id',

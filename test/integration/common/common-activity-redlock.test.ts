@@ -1,5 +1,3 @@
-export {};
-
 const helpers = require('../helpers');
 
 const userHelper = require('../helpers/users-helper');
@@ -53,3 +51,5 @@ describe('Activity redlock', () => {
     expect(responseTwo.errors.general).toMatch('Vote duplication is not allowed');
   }, 10000);
 });
+
+export {};

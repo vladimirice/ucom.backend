@@ -1,3 +1,5 @@
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
+
 import MockHelper = require('../../helpers/mock-helper');
 import UsersHelper = require('../../helpers/users-helper');
 import SeedsHelper = require('../../helpers/seeds-helper');
@@ -8,16 +10,12 @@ import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/
 
 const expect  = require('expect');
 
-const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
-
 const postsRepository         = require('../../../../lib/posts/repository').MediaPosts;
 
 const usersActivityRepository = require('../../../../lib/users/repository').Activity;
 const activityGroupDictionary = require('../../../../lib/activity/activity-group-dictionary');
 
 const postsModelProvider      = require('../../../../lib/posts/service').ModelProvider;
-
-const eventIdDictionary = require('../../../../lib/entities/dictionary').EventId;
 
 let userVlad;
 let userJane;
@@ -82,7 +80,7 @@ describe('Post repost API', () => {
 
         const repost = await postsRepository.findOnlyPostItselfById(repostId);
 
-        expect(repost.post_type_id).toBe(ContentTypeDictionary.getTypeRepost());
+        expect(repost.post_type_id).toBe(ContentTypesDictionary.getTypeRepost());
         expect(repost.title).toBeNull();
         expect(repost.parent_id).toBeDefined();
         expect(repost.parent_id).toBe(postId);
@@ -90,7 +88,7 @@ describe('Post repost API', () => {
         const activity =
           await usersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
 
-        expect(activity.activity_type_id).toBe(ContentTypeDictionary.getTypeRepost());
+        expect(activity.activity_type_id).toBe(ContentTypesDictionary.getTypeRepost());
         expect(activity.user_id_from).toBe(repostAuthor.id);
         expect(+activity.entity_id_to).toBe(+repostId);
         expect(activity.entity_name).toBe(postsModelProvider.getEntityName());
@@ -99,7 +97,7 @@ describe('Post repost API', () => {
         expect(+activity.entity_id_on).toBe(postId);
         expect(activity.entity_name_on).toBe(postsModelProvider.getEntityName());
 
-        expect(activity.event_id).toBe(eventIdDictionary.getUserRepostsOtherUserPost());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserRepostsOtherUserPost());
       });
 
       it('create repost of organization post', async () => {
@@ -114,7 +112,7 @@ describe('Post repost API', () => {
         const activity =
           await usersActivityRepository.findLastByUserIdAndEntityId(repostAuthor.id, repostId);
 
-        expect(activity.event_id).toBe(eventIdDictionary.getUserRepostsOrgPost());
+        expect(activity.event_id).toBe(EventsIdsDictionary.getUserRepostsOrgPost());
       });
 
       it.skip('get list of posts with repost inside with different structure', async () => {

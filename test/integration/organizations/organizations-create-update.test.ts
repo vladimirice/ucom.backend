@@ -12,6 +12,7 @@ import OrganizationsRepository = require('../../../lib/organizations/repository/
 import EntitySourcesRepository = require('../../../lib/entities/repository/entity-sources-repository');
 import CommonChecker = require('../../helpers/common/common-checker');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
+import BlockchainUniqId = require('../../../lib/eos/eos-blockchain-uniqid');
 
 const request = require('supertest');
 const _ = require('lodash');
@@ -25,11 +26,9 @@ let userPetr: UserModel;
 let userRokky: UserModel;
 
 const JEST_TIMEOUT = 5000;
-// @ts-ignore
-const JEST_TIMEOUT_DEBUG = JEST_TIMEOUT * 100;
 
 describe('Organizations. Create-update requests', () => {
-  beforeAll(async () => { await SeedsHelper.noGraphQlMockAllWorkers(); });
+  beforeAll(async () => { await SeedsHelper.noGraphQlNoMocking(); });
   afterAll(async () => { await SeedsHelper.afterAllWithoutGraphQl(); });
 
   beforeEach(async () => {
@@ -80,7 +79,7 @@ describe('Organizations. Create-update requests', () => {
         expect(sources.length).toBe(socialNetworks.length);
 
         for (const expected of socialNetworks) {
-          const actual = sources.find(data => data.source_url === expected.source_url);
+          const actual = sources.find((data) => data.source_url === expected.source_url);
 
           expect(actual.source_type_id).toBe(expected.source_type_id);
           expect(actual.source_group_id).toBe(1);
@@ -103,6 +102,8 @@ describe('Organizations. Create-update requests', () => {
           .field('nickname', 'nickname')
           .field('personal_website_url', '')
           .field('phone_number', '')
+          .field('signed_transaction', 'signed_transaction')
+          .field('blockchain_id', BlockchainUniqId.getUniqidByScope('organizations'))
         ;
 
         ResponseHelper.expectStatusCreated(res);
@@ -161,14 +162,21 @@ describe('Organizations. Create-update requests', () => {
           random_field_two: 'random_field_two_value',
         };
 
-        const res = await request(server)
+        const req = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', newModelFields.title)
           .field('nickname', newModelFields.nickname)
           .field('random_field_one', extraFields.random_field_one)
           .field('random_field_two', extraFields.random_field_two)
+          .field('signed_transaction', 'signed_transaction')
+          .field('random_field_two', extraFields.random_field_two)
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
 
         const lastModel = await OrganizationsRepository.findLastByAuthor(userPetr.id);
         expect(lastModel).not.toBeNull();
@@ -192,6 +200,10 @@ describe('Organizations. Create-update requests', () => {
           .field('email', '')
           .field('currency_to_show', '')
         ;
+
+        RequestHelper.addFakeSignedTransactionString(requestOnePromise);
+        RequestHelper.addFakeBlockchainIdForOrganization(requestOnePromise);
+
         const requestTwoPromise = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
@@ -200,6 +212,9 @@ describe('Organizations. Create-update requests', () => {
           .field('email', '')
           .field('currency_to_show', '')
         ;
+
+        RequestHelper.addFakeSignedTransactionString(requestTwoPromise);
+        RequestHelper.addFakeBlockchainIdForOrganization(requestTwoPromise);
 
         const [resultOne, resultTwo] = await Promise.all([
           requestOnePromise,
@@ -217,7 +232,8 @@ describe('Organizations. Create-update requests', () => {
       it('Empty values of unique fields must be written to DB as nulls', async () => {
         const user = userPetr;
 
-        const res = await request(server)
+
+        const req = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', 'Title12345')
@@ -225,6 +241,11 @@ describe('Organizations. Create-update requests', () => {
           .field('email', '')
           .field('currency_to_show', '')
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+        const res = await req;
+
         ResponseHelper.expectStatusCreated(res);
 
         const lastOrg = await OrganizationsRepository.findLastByAuthor(user.id);
@@ -283,7 +304,7 @@ describe('Organizations. Create-update requests', () => {
           },
         ];
 
-        const res = await request(server)
+        const req = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${author.token}`)
           .field('title',             'sample_title')
@@ -292,6 +313,11 @@ describe('Organizations. Create-update requests', () => {
           .field('users_team[1][id]', newPostUsersTeamFields[1].user_id)
           .field('users_team[2][id]', author.id)
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusCreated(res);
 
@@ -305,7 +331,7 @@ describe('Organizations. Create-update requests', () => {
         expect(usersTeam.length).toBe(2);
 
         newPostUsersTeamFields.forEach((teamMember) => {
-          const record = usersTeam.find(data => data.user_id === teamMember.user_id);
+          const record = usersTeam.find((data) => data.user_id === teamMember.user_id);
           expect(record).toBeDefined();
           expect(+record.entity_id).toBe(+lastModel.id);
           expect(record.entity_name).toMatch('org');
@@ -313,7 +339,7 @@ describe('Organizations. Create-update requests', () => {
         });
 
         // should not add author to the board - ignore it
-        expect(usersTeam.some(data => data.user_id === author.id)).toBeFalsy();
+        expect(usersTeam.some((data) => data.user_id === author.id)).toBeFalsy();
       });
     });
 
@@ -328,11 +354,16 @@ describe('Organizations. Create-update requests', () => {
       });
 
       it('should not be possible to create organization without required fields', async () => {
-        const res = await request(server)
+        const req = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
           .field('email', 'email@google.com')
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusBadRequest(res);
 
@@ -340,17 +371,17 @@ describe('Organizations. Create-update requests', () => {
 
         expect(errors).toBeDefined();
 
-        const titleError = errors.find(error => error.field === 'title');
+        const titleError = errors.find((error) => error.field === 'title');
         expect(titleError).toBeDefined();
         expect(titleError.message).toMatch('required');
 
-        const nicknameError = errors.find(error => error.field === 'nickname');
+        const nicknameError = errors.find((error) => error.field === 'nickname');
         expect(nicknameError).toBeDefined();
         expect(nicknameError.message).toMatch('required');
       });
 
       it('should not be possible to create organization with malformed email or url', async () => {
-        const res = await request(server)
+        const req = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
           .field('title', 'my_own_title')
@@ -359,16 +390,21 @@ describe('Organizations. Create-update requests', () => {
           .field('personal_website_url', 'wrong_url')
         ;
 
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
+
         ResponseHelper.expectStatusBadRequest(res);
 
         const { errors } = res.body;
 
-        expect(errors.some(data => data.field === 'email')).toBeTruthy();
-        expect(errors.some(data => data.field === 'personal_website_url')).toBeTruthy();
+        expect(errors.some((data) => data.field === 'email')).toBeTruthy();
+        expect(errors.some((data) => data.field === 'personal_website_url')).toBeTruthy();
       });
 
       it('should not be possible to set organization ID or user_id directly', async () => {
-        const res = await request(server)
+        const req = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${userPetr.token}`)
           .field('title', 'my_own_title')
@@ -376,6 +412,11 @@ describe('Organizations. Create-update requests', () => {
           .field('id', 100500)
           .field('user_id', userVlad.id)
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusCreated(res);
 
@@ -392,7 +433,7 @@ describe('Organizations. Create-update requests', () => {
         await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
         const existingOrg = await OrganizationsRepository.findFirstByAuthor(user.id);
 
-        const twoFieldsRes = await request(server)
+        const twoFieldsReq = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', 'somehow new title')
@@ -400,16 +441,21 @@ describe('Organizations. Create-update requests', () => {
           .field('nickname', existingOrg.nickname)
         ;
 
+        RequestHelper.addFakeSignedTransactionString(twoFieldsReq);
+        RequestHelper.addFakeBlockchainIdForOrganization(twoFieldsReq);
+
+        const twoFieldsRes = await twoFieldsReq;
+
         ResponseHelper.expectStatusBadRequest(twoFieldsRes);
 
         const { errors } = twoFieldsRes.body;
         expect(errors).toBeDefined();
         expect(errors.length).toBe(2);
 
-        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
-        expect(errors.some(error => error.field === 'email')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'nickname')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'email')).toBeTruthy();
 
-        const oneFieldRes = await request(server)
+        const oneFieldReq = request(server)
           .post(RequestHelper.getOrganizationsUrl())
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', 'somehow new title')
@@ -417,14 +463,19 @@ describe('Organizations. Create-update requests', () => {
           .field('nickname', existingOrg.nickname)
         ;
 
+        RequestHelper.addFakeSignedTransactionString(oneFieldReq);
+        RequestHelper.addFakeBlockchainIdForOrganization(oneFieldReq);
+
+        const oneFieldRes = await oneFieldReq;
+
         ResponseHelper.expectStatusBadRequest(oneFieldRes);
 
         const oneFieldErrors = oneFieldRes.body.errors;
         expect(oneFieldErrors).toBeDefined();
         expect(oneFieldErrors.length).toBe(1);
 
-        expect(oneFieldErrors.some(error => error.field === 'nickname')).toBeTruthy();
-        expect(oneFieldErrors.some(error => error.field === 'email')).toBeFalsy();
+        expect(oneFieldErrors.some((error) => error.field === 'nickname')).toBeTruthy();
+        expect(oneFieldErrors.some((error) => error.field === 'email')).toBeFalsy();
       }, JEST_TIMEOUT * 3);
     });
   });
@@ -498,9 +549,9 @@ describe('Organizations. Create-update requests', () => {
 
         expect(socialNetworksAfter.length).toBe(sources.length);
 
-        expect(socialNetworksAfter.some(source => source.id === sourceToDelete.id)).toBeFalsy();
+        expect(socialNetworksAfter.some((source) => source.id === sourceToDelete.id)).toBeFalsy();
 
-        const modifiedSource = socialNetworksAfter.find(source => source.id === sourceToModify.id);
+        const modifiedSource = socialNetworksAfter.find((source) => source.id === sourceToModify.id);
         expect(modifiedSource).toBeDefined();
 
         // sourceToModify.source_url = faker.internet.url();
@@ -532,7 +583,7 @@ describe('Organizations. Create-update requests', () => {
         const orgId = await OrganizationsGenerator.createOrgWithTeam(user, [userPetr]);
         const orgBefore = await OrganizationsRepository.findOneById(orgId, 0);
 
-        const userPetrBefore = orgBefore.users_team.find(data => data.user_id === userPetr.id);
+        const userPetrBefore = orgBefore.users_team.find((data) => data.user_id === userPetr.id);
 
         const avatarFilenameBefore = orgBefore.avatar_filename;
 
@@ -572,14 +623,14 @@ describe('Organizations. Create-update requests', () => {
         const usersTeam = orgAfter.users_team;
         expect(usersTeam).toBeDefined();
 
-        expect(usersTeam.some(data => data.user_id === userJane.id)).toBeFalsy();
-        expect(usersTeam.some(data => data.user_id === userRokky.id)).toBeTruthy();
+        expect(usersTeam.some((data) => data.user_id === userJane.id)).toBeFalsy();
+        expect(usersTeam.some((data) => data.user_id === userRokky.id)).toBeTruthy();
 
-        const userPetrAfter = usersTeam.find(data => data.user_id === userPetr.id);
+        const userPetrAfter = usersTeam.find((data) => data.user_id === userPetr.id);
 
         expect(userPetrAfter).toMatchObject(userPetrBefore);
 
-        expect(usersTeam.some(data => data.user_id === userVlad.id)).toBeFalsy();
+        expect(usersTeam.some((data) => data.user_id === userVlad.id)).toBeFalsy();
       });
 
       it.skip('should be possible to remove all board by clearing it', async () => {
@@ -608,7 +659,7 @@ describe('Organizations. Create-update requests', () => {
           infectedFields[field] = newModelFields[field] + injection;
         }
 
-        const res = await request(server)
+        const req = request(server)
           .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${user.token}`)
           .field('title',       infectedFields.title)
@@ -617,6 +668,11 @@ describe('Organizations. Create-update requests', () => {
           .field('about',       infectedFields.about)
           .field('country',     infectedFields.country)
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusOk(res);
 
@@ -639,7 +695,7 @@ describe('Organizations. Create-update requests', () => {
           about:    'expectedAbout',
         };
 
-        const res = await request(server)
+        const req = request(server)
           .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${user.token}`)
           .field('title',       newModelFields.title)
@@ -647,6 +703,11 @@ describe('Organizations. Create-update requests', () => {
           .field('email',       newModelFields.email)
           .field('about',       newModelFields.about)
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusOk(res);
 
@@ -672,7 +733,7 @@ describe('Organizations. Create-update requests', () => {
           random_field_two: 'random_field_two_value',
         };
 
-        const res = await request(server)
+        const req = request(server)
           .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${user.token}`)
           .field('title', fieldsToChange.title)
@@ -680,6 +741,11 @@ describe('Organizations. Create-update requests', () => {
           .field('random_field_one', extraFields.random_field_one)
           .field('random_field_two', extraFields.random_field_two)
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusOk(res);
 
@@ -710,13 +776,18 @@ describe('Organizations. Create-update requests', () => {
 
         const orgBefore = await OrganizationsRepository.findOneById(orgId);
 
-        const res = await request(server)
+        const req = request(server)
           .patch(RequestHelper.getOneOrganizationUrl(orgId))
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',       'sample_title100500')
           .field('nickname',    'sample_nickname100500')
           .field('avatar_filename', 'avatar_is_changed.jpg')
         ;
+
+        RequestHelper.addFakeSignedTransactionString(req);
+        RequestHelper.addFakeBlockchainIdForOrganization(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusOk(res);
 
@@ -785,8 +856,8 @@ describe('Organizations. Create-update requests', () => {
         expect(errors.length).toBe(2);
 
         expect(errors).toBeDefined();
-        expect(errors.some(error => error.field === 'email')).toBeTruthy();
-        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'email')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'nickname')).toBeTruthy();
       }, JEST_TIMEOUT * 3);
 
       // tslint:disable-next-line:max-line-length
@@ -818,8 +889,8 @@ describe('Organizations. Create-update requests', () => {
         expect(errors.length).toBe(1);
 
         expect(errors).toBeDefined();
-        expect(errors.some(error => error.field === 'email')).toBeFalsy();
-        expect(errors.some(error => error.field === 'nickname')).toBeTruthy();
+        expect(errors.some((error) => error.field === 'email')).toBeFalsy();
+        expect(errors.some((error) => error.field === 'nickname')).toBeTruthy();
       }, JEST_TIMEOUT * 3);
 
       it('should not be possible to update org without auth token', async () => {

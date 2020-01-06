@@ -1,5 +1,6 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
-import { PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
+import { PostModel, PostModelResponse } from '../../../lib/posts/interfaces/model-interfaces';
 import { CheckerOptions } from '../../generators/interfaces/dto-interfaces';
 import { NumberToNumberCollection } from '../../../lib/common/interfaces/common-types';
 
@@ -14,9 +15,9 @@ import knex = require('../../../config/knex');
 import PostsModelProvider = require('../../../lib/posts/service/posts-model-provider');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const request = require('supertest');
-const { ContentTypeDictionary }   = require('ucom-libs-social-transactions');
 
 const server = RequestHelper.getApiApplication();
 const postRepository = require('../../../lib/posts/posts-repository');
@@ -165,6 +166,29 @@ class PostsHelper {
   }
 
   /**
+   * #task - other update methods are deprecated
+   */
+  public static async updatePost(
+    postId: number,
+    myself: UserModel,
+    fields: any,
+  ): Promise<PostModel> {
+    const url = RequestHelper.getOnePostV2Url(postId);
+
+    const resultFields = {
+      entity_images: '{}',
+      ...fields,
+    };
+
+    const response = await RequestHelper.makePatchRequestAsMyselfWithFields(url, myself, resultFields);
+
+    return response.body;
+  }
+
+  /**
+   *
+   * @deprecated
+   * @see updatePost
    *
    * @param {Object} user
    * @param {number} postId
@@ -220,7 +244,7 @@ class PostsHelper {
       post_type_id: 1,
     };
 
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getPostsUrl())
       .set('Authorization', `Bearer ${user.token}`)
       .field('title', newPostFields.title)
@@ -229,6 +253,10 @@ class PostsHelper {
       .field('leading_text', newPostFields.leading_text)
       .field('organization_id', orgId)
     ;
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
 
     ResponseHelper.expectStatusToBe(res, expectedStatus);
 
@@ -245,17 +273,20 @@ class PostsHelper {
     expect(typeof post.entity_images).toBe('object');
 
     switch (post.post_type_id) {
-      case ContentTypeDictionary.getTypeMediaPost():
+      case ContentTypesDictionary.getTypeMediaPost():
         this.checkMediaPostFields(post, options);
         break;
-      case ContentTypeDictionary.getTypeOffer():
+      case ContentTypesDictionary.getTypeOffer():
         this.checkPostOfferFields(post, options);
         break;
-      case ContentTypeDictionary.getTypeDirectPost():
+      case ContentTypesDictionary.getTypeDirectPost():
         this.checkDirectPostItself(post, options);
         break;
-      case ContentTypeDictionary.getTypeRepost():
+      case ContentTypesDictionary.getTypeRepost():
         // #task - check repost itself fields
+        break;
+      case ContentTypesDictionary.getTypeAutoUpdate():
+        this.checkAutoUpdateFields(post);
         break;
       default:
         throw new Error(`Unsupported post_type_id ${post.post_type_id}`);
@@ -270,6 +301,13 @@ class PostsHelper {
     const field: string = EntityImagesModelProvider.entityImagesColumn();
 
     ResponseHelper.expectToBeObject(model[field]);
+  }
+
+  public static checkAutoUpdateFields(post): void {
+    expect(post.title).toBeNull();
+    expect(post.description).toBeNull();
+
+    CommonChecker.expectNotEmpty(post.json_data);
   }
 
   /**
@@ -382,7 +420,7 @@ class PostsHelper {
    * @return {Promise<void>}
    */
   static async requestToCreateDirectPostForUser(user, targetUser, givenDescription = null) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
+    const postTypeId  = ContentTypesDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
     const res = await request(server)
@@ -410,16 +448,20 @@ class PostsHelper {
     targetOrgId,
     givenDescription = null,
   ) {
-    const postTypeId  = ContentTypeDictionary.getTypeDirectPost();
+    const postTypeId  = ContentTypesDictionary.getTypeDirectPost();
     const description = givenDescription || 'sample direct post description';
 
-    const res = await request(server)
+    const req = request(server)
       .post(RequestHelper.getOrgDirectPostUrl(targetOrgId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('post_type_id',  postTypeId)
       .field(EntityImagesModelProvider.entityImagesColumn(),  '{}')
     ;
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+    const res = await req;
 
     ResponseHelper.expectStatusOk(res);
 
@@ -446,13 +488,16 @@ class PostsHelper {
       description += ` #${tag} `;
     });
 
-    const res = await request(server)
+    const req = request(server)
       .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field(EntityImagesModelProvider.entityImagesColumn(),   '{}')
     ;
 
+    RequestHelper.addFakeSignedTransactionString(req);
+
+    const res = await req;
     ResponseHelper.expectStatusOk(res);
 
     return res.body;
@@ -470,12 +515,16 @@ class PostsHelper {
       description += ` #${tag} `;
     });
 
-    const res = await request(server)
+    const req = request(server)
       .patch(RequestHelper.getOnePostV2Url(postId))
       .set('Authorization',   `Bearer ${user.token}`)
       .field('description',   description)
       .field('entity_images',   '{}')
     ;
+
+    RequestHelper.addFakeSignedTransactionString(req);
+
+    const res = await req;
 
     ResponseHelper.expectStatusOk(res);
 
@@ -663,11 +712,11 @@ class PostsHelper {
    * @returns {Promise<Object>}
    */
   static async requestToSetPostTeam(postId, user, teamUsers) {
-    const boardToChange = teamUsers.map(item => ({
+    const boardToChange = teamUsers.map((item) => ({
       user_id: item.id,
     }));
 
-    const res = await request(server)
+    const req = request(server)
       .patch(RequestHelper.getOnePostUrl(postId))
       .set('Authorization', `Bearer ${user.token}`)
       .field('post_users_team[0][id]', boardToChange[0].user_id)
@@ -675,20 +724,34 @@ class PostsHelper {
       .field(EntityImagesModelProvider.entityImagesColumn(), '{}')
     ;
 
+    RequestHelper.addFakeSignedTransactionString(req);
+
+    const res = await req;
+
     ResponseHelper.expectStatusOk(res);
 
     return res;
   }
 
-  static async requestToUpvotePost(
-    whoUpvote: UserModel,
+  public static async requestToUpvotePost(
+    myself: UserModel,
     postId: number,
-    expectCreated:boolean = true,
+    expectCreated: boolean = true,
+    signedTransaction: any = null,
   ) {
-    const res = await request(server)
-      .post(`/api/v1/posts/${postId}/upvote`)
-      .set('Authorization', `Bearer ${whoUpvote.token}`)
-    ;
+    const url = `/api/v1/posts/${postId}/upvote`;
+
+    const req = RequestHelper.getRequestObjForPostWithMyself(url, myself);
+
+    if (signedTransaction) {
+      RequestHelper.addFormFieldsToRequestWithStringify(req, {
+        signed_transaction: signedTransaction,
+      });
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
+    }
+
+    const res = await req;
 
     if (expectCreated) {
       ResponseHelper.expectStatusCreated(res);
@@ -697,19 +760,24 @@ class PostsHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {Object} user
-   * @param {number} postId
-   * @returns {Promise<void>}
-   */
-  static async requestToDownvotePost(user, postId) {
-    const res = await request(server)
-      .post(`/api/v1/posts/${postId}/downvote`)
-      .set('Authorization', `Bearer ${user.token}`)
-    ;
+  public static async requestToDownvotePost(
+    myself: UserModel,
+    postId: number,
+    signedTransaction: any = null,
+  ) {
+    const url = `/api/v1/posts/${postId}/downvote`;
 
-    ResponseHelper.expectStatusCreated(res);
+    const req = RequestHelper.getRequestObjForPostWithMyself(url, myself);
+
+    if (signedTransaction) {
+      RequestHelper.addFormFieldsToRequestWithStringify(req, {
+        signed_transaction: signedTransaction,
+      });
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
+    }
+
+    const res = await req;
 
     return res.body;
   }

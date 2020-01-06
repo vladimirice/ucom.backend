@@ -19,8 +19,8 @@ class TotalDeltaCalculationService {
       for (const params of set) {
         try {
           await this.processOneToOne(params);
-        } catch (err) {
-          WorkerLogger.error(err);
+        } catch (error) {
+          WorkerLogger.error(error);
           console.log('Lets skip and continue');
         }
       }

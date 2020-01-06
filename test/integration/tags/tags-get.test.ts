@@ -1,4 +1,6 @@
+import { EntityNames } from 'ucom.libs.common';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { DbTag } from '../../../lib/tags/interfaces/dto-interfaces';
 
 import SeedsHelper = require('../helpers/seeds-helper');
 import OrganizationsGenerator = require('../../generators/organizations-generator');
@@ -11,6 +13,10 @@ import UsersHelper = require('../helpers/users-helper');
 import CommonHelper = require('../helpers/common-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 
+import knex = require('../../../config/knex');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import CommonChecker = require('../../helpers/common/common-checker');
+
 let userVlad: UserModel;
 let userJane: UserModel;
 let userPetr: UserModel;
@@ -20,11 +26,54 @@ const options = {
   workersMocking: 'blockchainOnly',
 };
 
+const JEST_TIMEOUT = 5000;
+
 describe('GET Tags', () => {
   beforeAll(async () => { await SeedsHelper.beforeAllSetting(options); });
   afterAll(async () => { await SeedsHelper.doAfterAll(options); });
   beforeEach(async () => {
     [userVlad, userJane, userPetr] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
+  });
+
+  describe('One tag view', () => {
+    let tag: DbTag;
+    beforeEach(async () => {
+      tag = await EntityTagsGenerator.createTagViaNewPostAndGetTag(userVlad, 'summer');
+    });
+
+    it('should create a new record inside users activity views - from logged user', async () => {
+      await TagsHelper.requestToGetOneTagPageByTitleAsMyself(tag.title, userVlad);
+
+      const record = await knex(UsersModelProvider.getUsersActivityEventsViewTableName())
+        .where({
+          user_id:      userVlad.id,
+          entity_id:    tag.id,
+          entity_name:  EntityNames.TAGS,
+        });
+
+      CommonChecker.expectNotEmpty(record);
+    }, JEST_TIMEOUT);
+
+    it('should create a new record inside users activity views - from guest user', async () => {
+      await TagsHelper.requestToGetOneTagPageByTitleAsGuest(tag.title);
+
+      const record = await knex(UsersModelProvider.getUsersActivityEventsViewTableName())
+        .where({
+          user_id:      null,
+          entity_id:    tag.id,
+          entity_name:  EntityNames.TAGS,
+        });
+
+      CommonChecker.expectNotEmpty(record);
+    }, JEST_TIMEOUT);
+
+    it('should contain number of views - both for logged views and guest views', async () => {
+      await TagsHelper.requestToGetOneTagPageByTitleAsGuest(tag.title);
+      const tagResponse = await TagsHelper.requestToGetOneTagPageByTitleAsMyself(tag.title, userVlad);
+
+      expect(tagResponse.views_count).toBeDefined();
+      expect(tagResponse.views_count).toBe(2);
+    });
   });
 
   describe('pagination last id is required', () => {

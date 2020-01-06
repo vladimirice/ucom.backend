@@ -1,9 +1,10 @@
-import AffiliateUniqueIdService = require('../affiliate-unique-id-service');
 import { NumberToStringCollection, StringToAnyCollection } from '../../../common/interfaces/common-types';
-import OffersModel = require('../../models/offers-model');
 import { AppError, BadRequestError } from '../../../api/errors';
-import NumbersHelper = require('../../../common/helper/numbers-helper');
 import { ApiLogger } from '../../../../config/winston';
+
+import AffiliateUniqueIdService = require('../affiliate-unique-id-service');
+import OffersModel = require('../../models/offers-model');
+import NumbersHelper = require('../../../common/helper/numbers-helper');
 import ClicksRepository = require('../../repository/clicks-repository');
 import UnprocessableEntityError = require('../../errors/unprocessable-entity-error');
 
@@ -31,7 +32,7 @@ class AttributionService {
       throw new UnprocessableEntityError();
     }
 
-    const { eventId, action} = this.getEventIdAndActionOrException(request);
+    const { eventId, action } = this.getEventIdAndActionOrException(request);
     const uniqueId = AffiliateUniqueIdService.extractUniqueIdFromJwtTokenOrUnauthorizedError(jwtToken);
 
     const { winnerAccountName, offer } = await this.getWinnerAccountNameIfPossible(eventId, uniqueId);
@@ -46,8 +47,8 @@ class AttributionService {
             account_name_source: winnerAccountName,
           },
         ],
-      }
-    }
+      },
+    };
   }
 
   private static async getWinnerAccountNameIfPossible(
@@ -74,7 +75,7 @@ class AttributionService {
     return {
       winnerAccountName,
       offer,
-    }
+    };
   }
 
   private static async getOfferOrError(eventId: number): Promise<OffersModel> {
@@ -106,7 +107,7 @@ class AttributionService {
     NumbersHelper.isNumberFinitePositiveIntegerOrBadRequestError(eventId);
 
     if (!allowedEvents.includes(eventId)) {
-      throw new BadRequestError(`event ID ${eventId} is not allowed. Allowed values are: ${allowedEvents}`)
+      throw new BadRequestError(`event ID ${eventId} is not allowed. Allowed values are: ${allowedEvents}`);
     }
 
     const action = eventIdToAction[eventId];

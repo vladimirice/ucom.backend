@@ -1,6 +1,10 @@
 import { Transaction } from 'knex';
 import { DbTag, TagsModelResponse, TagWithEventParamsDto } from '../interfaces/dto-interfaces';
-import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
+import {
+  DbParamsDto,
+  QueryFilteredRepository,
+  RequestQueryDto,
+} from '../../api/filters/interfaces/query-filter-interfaces';
 import { TagDbModel } from '../models/tags-model';
 import { StringToNumberCollection } from '../../common/interfaces/common-types';
 
@@ -190,9 +194,10 @@ class TagsRepository implements QueryFilteredRepository {
   }
 
   public static async findManyTagsForList(
+    requestQuery: RequestQueryDto,
     params: DbParamsDto,
   ): Promise<TagsModelResponse[]> {
-    const res = await TagDbModel.prototype.findAllTagsBy(params).fetchAll();
+    const res = await TagDbModel.prototype.findAllTagsBy(requestQuery, params).fetchAll();
 
     return res.toJSON();
   }
@@ -205,17 +210,18 @@ class TagsRepository implements QueryFilteredRepository {
     return +res[0].amount;
   }
 
-  public static async countManyTagsForList(params: DbParamsDto): Promise<number> {
-    const query = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
+  public static async countManyTagsForList(requestQuery: RequestQueryDto, params: DbParamsDto): Promise<number> {
+    const queryBuilder = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
 
-    TagDbModel.prototype.addCurrentParamsInnerJoin(query);
+    TagDbModel.prototype.addCurrentParamsInnerJoin(queryBuilder);
+    TagDbModel.prototype.addSearchWhere(queryBuilder, requestQuery);
 
     if (params.whereRaw) {
       // noinspection JSIgnoredPromiseFromCall
-      query.whereRaw(params.whereRaw);
+      queryBuilder.whereRaw(params.whereRaw);
     }
 
-    const res = await query;
+    const res = await queryBuilder;
 
     return +res[0].amount;
   }

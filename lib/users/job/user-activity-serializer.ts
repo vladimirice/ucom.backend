@@ -1,3 +1,5 @@
+import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
+
 const userRepository = require('../repository');
 
 class UserActivitySerializer {
@@ -11,7 +13,7 @@ class UserActivitySerializer {
   }
 
   public static createJobWithOnlyEosJsV2Option(activityId: number): string {
-    const options = {
+    const options: IActivityOptions = {
       eosJsV2: true,
     };
 
@@ -34,7 +36,7 @@ class UserActivitySerializer {
     return JSON.parse(signedTransaction);
   }
 
-  private static createJobWithOptions(activityId: number, options): string {
+  public static createJobWithOptions(activityId: number, options: IActivityOptions): string {
     const payload = {
       options,
       id: activityId,
@@ -42,18 +44,6 @@ class UserActivitySerializer {
 
     return JSON.stringify(payload);
   }
-
-  // static async getPostDataForIpfs(postJobPayload) {
-  //   const postId = postJobPayload.id;
-  //   const postTypeId = postJobPayload.post_type_id;
-  //
-  //   const data = await PostRepository.findOneForIpfs(postId, postTypeId);
-  //
-  //   data['created_at'] = parseInt(moment(data['created_at']).valueOf() / 1000);
-  //   data['updated_at'] = parseInt(moment(data['updated_at']).valueOf() / 1000);
-  //
-  //   return data;
-  // }
 }
 
 export = UserActivitySerializer;

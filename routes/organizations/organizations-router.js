@@ -9,6 +9,9 @@ const ActivityApiMiddleware = require("../../lib/activity/middleware/activity-ap
 const PostService = require("../../lib/posts/post-service");
 const OrganizationService = require("../../lib/organizations/service/organization-service");
 const PostsFetchService = require("../../lib/posts/service/posts-fetch-service");
+const OrganizationsCreatorService = require("../../lib/organizations/service/organizations-creator-service");
+const OrganizationsUpdatingService = require("../../lib/organizations/service/organizations-updating-service");
+const ApiPostEvents = require("../../lib/common/service/api-post-events");
 const express = require('express');
 const status = require('statuses');
 require('express-async-errors');
@@ -28,11 +31,13 @@ const activityMiddlewareSet = [
     ActivityApiMiddleware.redlockBeforeActivity,
 ];
 // @deprecated @see GraphQL
-orgRouter.get('/:organization_id', async (req, res) => {
-    const targetId = req.organization_id;
-    const currentUser = DiServiceLocator.getCurrentUserOrNull(req);
-    const response = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
-    res.send(response);
+orgRouter.get('/:organization_id', async (request, response) => {
+    const targetId = request.organization_id;
+    const currentUser = DiServiceLocator.getCurrentUserOrNull(request);
+    const currentUserId = currentUser ? currentUser.id : null;
+    const organization = await OrganizationService.findOneOrgByIdAndProcess(targetId, currentUser);
+    await ApiPostEvents.processForOrganizationAndChangeProps(currentUserId, organization.data, request);
+    response.send(organization);
 });
 orgRouter.get('/:organization_id/wall-feed', [cpUploadArray], async (req, res) => {
     const currentUserId = DiServiceLocator.getCurrentUserIdOrNull(req);
@@ -47,10 +52,11 @@ orgRouter.post('/:organization_id/posts', [authTokenMiddleWare, cpPostUpload], a
     res.send(response);
 });
 /* Create new organization */
-orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
-    const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const model = await OrganizationService.processNewOrganizationCreation(req, currentUser);
-    return res.status(201).send({
+orgRouter.post('/', [authTokenMiddleWare, cpUpload], async (request, response) => {
+    const currentUser = DiServiceLocator.getCurrentUserOrException(request);
+    const { is_multi_signature } = request.body;
+    const model = await OrganizationsCreatorService.processNewOrganizationCreation(request, currentUser, is_multi_signature || false);
+    return response.status(201).send({
         id: model.id,
     });
 });
@@ -81,7 +87,7 @@ orgRouter.delete('/:organization_id/discussions', [authTokenMiddleWare, cpUpload
 /* Update organization */
 orgRouter.patch('/:organization_id', [authTokenMiddleWare, cpUpload], async (req, res) => {
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    await OrganizationService.updateOrganization(req, currentUser);
+    await OrganizationsUpdatingService.updateOrganization(req, currentUser);
     return res.status(200).send({
         status: 'ok',
     });
@@ -94,6 +100,11 @@ orgRouter.post('/:organization_id/follow', activityMiddlewareSet, async (req, re
     res.status(status('201')).send({
         success: true,
     });
+});
+orgRouter.post('/:organization_id/migrate-to-multi-signature', activityMiddlewareSet, async (req, res) => {
+    const { organization_model, user } = req;
+    await OrganizationsCreatorService.updateOrganizationSetMultiSignature(organization_model.toJSON(), user, req.body);
+    res.send({ success: true });
 });
 /* One user unfollows organization */
 orgRouter.post('/:organization_id/unfollow', activityMiddlewareSet, async (req, res) => {

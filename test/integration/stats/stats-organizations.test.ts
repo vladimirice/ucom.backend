@@ -101,10 +101,10 @@ describe('Stats for organizations', () => {
 
       await Promise.all([
         PostsGenerator.createManyMediaPostsOfOrganization(userVlad, orgOneId, 3),
-        PostsGenerator.createDirectPostForOrganization(userJane, orgOneId),
-        PostsGenerator.createDirectPostForOrganization(userPetr, orgOneId),
+        PostsGenerator.createDirectPostForOrganizationLegacy(userJane, orgOneId),
+        PostsGenerator.createDirectPostForOrganizationLegacy(userPetr, orgOneId),
 
-        PostsGenerator.createDirectPostForOrganization(userPetr, orgTwoId),
+        PostsGenerator.createDirectPostForOrganizationLegacy(userPetr, orgTwoId),
         PostsGenerator.createMediaPostOfOrganization(userRokky, orgThreeId),
       ]);
 

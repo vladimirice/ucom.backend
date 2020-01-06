@@ -21,17 +21,21 @@ export const graphqlOrganizationsTypes = `
     powered_by: String
     
     entity_images: JSON
+    organization_type_id: Int!
     
     importance_delta: Float
     activity_index_delta: Float
     posts_total_amount_delta: Int
     number_of_followers: Int
+    blockchain_id: String
   }
 
   input org_filtering {
     overview_type: String
     entity_name: String
     post_type_id: Int
+    
+    organizations_identity_pattern: String
   }
   
   input one_org_activity_filtering {

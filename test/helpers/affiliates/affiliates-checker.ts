@@ -1,5 +1,6 @@
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+
 import CommonChecker = require('../common/common-checker');
 
 class AffiliatesChecker {

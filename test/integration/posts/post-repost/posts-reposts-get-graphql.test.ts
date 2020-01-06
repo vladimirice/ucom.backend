@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../../helpers/graphql-helper';
 import {
@@ -6,8 +7,6 @@ import {
   PostsListResponse,
 } from '../../../../lib/posts/interfaces/model-interfaces';
 import { GraphqlRequestHelper } from '../../../helpers/common/graphql-request-helper';
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 import SeedsHelper = require('../../helpers/seeds-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
@@ -68,7 +67,7 @@ describe('GET one or many reposts via graphql', () => {
           await PostsGenerator.createUserPostAndRepost(userVlad, userJane);
         const post: PostModelResponse = await GraphqlHelper.getOnePostAsMyself(userVlad, repostId);
 
-        expect(post.post_type_id).toBe(ContentTypeDictionary.getTypeRepost());
+        expect(post.post_type_id).toBe(ContentTypesDictionary.getTypeRepost());
         CommonHelper.checkOnePostV2WithoutOrg(post, true, false, true);
 
         expect(post.post!.id).toBe(postId);

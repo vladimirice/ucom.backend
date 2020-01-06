@@ -1,5 +1,3 @@
-export {};
-
 const mockHelper = require('../helpers/mock-helper');
 const seedsHelper = require('../helpers/seeds-helper');
 
@@ -34,6 +32,7 @@ describe('Tags services', () => {
         'hello from no mentions': [],
       };
 
+      // eslint-disable-next-line guard-for-in
       for (const input in data) {
         const expected = data[input];
         const actual = tagsParser.parseMentions(input);
@@ -51,3 +50,5 @@ describe('Tags services', () => {
     });
   });
 });
+
+export {};

@@ -1,3 +1,4 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { UserModel } from '../../../../lib/users/interfaces/model-interfaces';
 import { GraphqlHelper } from '../../helpers/graphql-helper';
 import { PostModelResponse } from '../../../../lib/posts/interfaces/model-interfaces';
@@ -10,7 +11,6 @@ import PostsHelper = require('../../helpers/posts-helper');
 import PostsGenerator = require('../../../generators/posts-generator');
 import PostsRepository = require('../../../../lib/posts/posts-repository');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const request = require('supertest');
 
 const server = RequestHelper.getApiApplication();
@@ -43,12 +43,12 @@ describe('media posts entity images', () => {
           title: 'Extremely new post',
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
 
           [fieldName]: {},
         };
 
-        const res = await request(server)
+        const req = request(server)
           .post(RequestHelper.getPostsUrl())
           .set('Authorization', `Bearer ${myself.token}`)
           .field('title', newPostFields.title)
@@ -58,10 +58,14 @@ describe('media posts entity images', () => {
           .field(fieldName, '{}')
         ;
 
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
+
         ResponseHelper.expectStatusOk(res);
 
         const posts = await GraphqlHelper.getManyMediaPostsAsMyself(myself);
-        const newPost: PostModelResponse | undefined = posts.data.find(data => data.title === newPostFields.title);
+        const newPost: PostModelResponse | undefined = posts.data.find((data) => data.title === newPostFields.title);
 
         expect(newPost).toMatchObject(newPostFields);
 
@@ -76,10 +80,10 @@ describe('media posts entity images', () => {
           title: 'Extremely new post',
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
         };
 
-        const res = await request(server)
+        const req = request(server)
           .post(RequestHelper.getPostsUrl())
           .set('Authorization', `Bearer ${myself.token}`)
           .field('title', newPostFields.title)
@@ -89,10 +93,14 @@ describe('media posts entity images', () => {
           .field(fieldName, '{}')
         ;
 
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
+
         ResponseHelper.expectStatusOk(res);
 
         const posts = await GraphqlHelper.getManyMediaPostsAsMyself(myself);
-        const newPost: PostModelResponse | undefined = posts.data.find(data => data.title === newPostFields.title);
+        const newPost: PostModelResponse | undefined = posts.data.find((data) => data.title === newPostFields.title);
 
         expect(newPost).toMatchObject(newPostFields);
 
@@ -107,7 +115,7 @@ describe('media posts entity images', () => {
           title: 'Extremely new post',
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
           [fieldName]: {
             something: [
               {
@@ -121,7 +129,7 @@ describe('media posts entity images', () => {
           },
         };
 
-        const res = await request(server)
+        const req = request(server)
           .post(RequestHelper.getPostsUrl())
           .set('Authorization', `Bearer ${myself.token}`)
           .field('title', newPostFields.title)
@@ -131,11 +139,15 @@ describe('media posts entity images', () => {
           .field(fieldName, JSON.stringify(newPostFields.entity_images))
         ;
 
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
+
         ResponseHelper.expectStatusOk(res);
 
         const posts = await PostsHelper.requestToGetManyPostsAsGuest();
 
-        const newPost = posts.find(data => data.title === newPostFields.title);
+        const newPost = posts.find((data) => data.title === newPostFields.title);
         ResponseHelper.expectNotEmpty(newPost);
 
         PostsHelper.checkEntityImages(newPost);
@@ -167,7 +179,7 @@ describe('media posts entity images', () => {
         },
       };
 
-      const res = await request(server)
+      const req = request(server)
         .patch(`${RequestHelper.getPostsUrl()}/${firstPostBefore.id}`)
         .set('Authorization', `Bearer ${userVlad.token}`)
         .field('title',         fieldsToChange.title)
@@ -175,6 +187,10 @@ describe('media posts entity images', () => {
         .field('leading_text',  fieldsToChange.leading_text)
         .field(fieldName,  JSON.stringify(fieldsToChange.entity_images))
       ;
+
+      RequestHelper.addFakeSignedTransactionString(req);
+
+      const res = await req;
 
       ResponseHelper.expectStatusOk(res);
 

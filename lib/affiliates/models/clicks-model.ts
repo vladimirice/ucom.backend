@@ -1,4 +1,5 @@
 import { IModelDto } from '../../common/interfaces/common-model-interfaces';
+
 import RepositoryHelper = require('../../common/repository/repository-helper');
 import OffersModel = require('./offers-model');
 import StreamsModel = require('./streams-model');
@@ -8,15 +9,21 @@ class ClicksModel extends Model implements IModelDto {
   readonly id!:             number;
 
   readonly offer_id!:       number;
+
   readonly stream_id!:      number;
+
   readonly user_unique_id!: number;
+
   readonly json_headers!:   unknown;
+
   readonly referer!:        string;
 
   readonly created_at!:   Date;
 
   readonly offer!:  OffersModel;
+
   readonly stream!: StreamsModel;
+
   readonly click!:  ClicksModel;
 
   public static getTableName(): string {
@@ -42,7 +49,7 @@ class ClicksModel extends Model implements IModelDto {
         join: {
           from: `${this.getTableName()}.offer_id`,
           to: `${OffersModel.getTableName()}.id`,
-        }
+        },
       },
       stream: {
         relation: Model.BelongsToOneRelation,
@@ -50,11 +57,12 @@ class ClicksModel extends Model implements IModelDto {
         join: {
           from: `${this.getTableName()}.stream_id`,
           to: `${StreamsModel.getTableName()}.id`,
-        }
+        },
       },
-    }
+    };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   getNumericalFields(): string[] {
     return [
       'id',

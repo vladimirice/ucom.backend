@@ -7,26 +7,18 @@ import {
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { UosAccountPropertiesDto, UosAccountsResponseDto } from '../../../lib/uos-accounts-properties/interfaces/model-interfaces';
 
-import PostCreatorService = require('../../../lib/posts/service/post-creator-service');
 import AirdropsTransactionsSender = require('../../../lib/airdrops/service/blockchain/airdrops-transactions-sender');
 import AirdropsFetchTableRowsService = require('../../../lib/airdrops/service/blockchain/airdrops-fetch-table-rows-service');
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ImportanceGenerator = require('../../generators/blockchain/importance/uos-accounts-properties-generator');
 import UosAccountsPropertiesFetchService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-fetch-service');
 import EosApi = require('../../../lib/eos/eosApi');
+import ActivityProducer = require('../../../lib/jobs/activity-producer');
+import UserToOrganizationActivity = require('../../../lib/users/activity/user-to-organization-activity');
+import UserActivityService = require('../../../lib/users/user-activity-service');
 
 // @ts-ignore
 const uniqid = require('uniqid');
-
-const userActivityService = require('../../../lib/users/user-activity-service');
-const organizationService = require('../../../lib/organizations/service/organization-service');
-const usersToOrgActivity = require('../../../lib/users/activity/user-to-organization-activity');
-const activityProducer = require('../../../lib/jobs/activity-producer');
-
-const eosTransactionService = require('../../../lib/eos/eos-transaction-service');
-
-let orgCounter = 1;
-let postCreationCounter = 1;
 
 class MockHelper {
   public static mockUosAccountsPropertiesFetchService(
@@ -440,21 +432,16 @@ class MockHelper {
   }
 
   static mockAllTransactionSigning() {
-    orgCounter = 1;
-    postCreationCounter = 1;
-
-    this.mockPostTransactionSigning();
     this.mockUsersActivityBackendSigner();
     this.mockCommentTransactionSigning();
-    this.mockOrganizationBlockchain();
     this.mockOrganizationFollowingSigning();
-
-    this.mockUserVotesPost();
   }
 
+  /**
+   * @deprecated
+   */
   static mockAllBlockchainJobProducers() {
     // #task - only organization now. In process
-    this.mockOrganizationCreationBlockchainProducer();
   }
 
   public static mockAllBlockchainPart(mockSending: boolean = true): void {
@@ -468,21 +455,16 @@ class MockHelper {
 
   private static mockUserRegistration() {
     // @ts-ignore
-    EosApi.transactionToCreateNewAccount = async function(newAccountName, ownerPubKey, activePubKey) {};
+    // eslint-disable-next-line no-empty-function
+    EosApi.transactionToCreateNewAccount = async function (newAccountName, ownerPubKey, activePubKey) {};
     // @ts-ignore
-    EosApi.isAccountAvailable = async function(accountName: string) { return true };
-  }
-
-  static mockOrganizationCreationBlockchainProducer() {
-    // noinspection JSUnusedLocalSymbols
-    // @ts-ignore
-    organizationService.sendOrgCreationActivityToRabbit = async function (newUserActivity) {};
+    EosApi.isAccountAvailable = async function (accountName: string) { return true; };
   }
 
   static mockUsersActivityBackendSigner() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
-    userActivityService.getSignedFollowTransaction = async function (userFrom, userToAccountName, activityTypeId) {
+    UserActivityService.getSignedFollowTransaction = async function (userFrom, userToAccountName, activityTypeId) {
       // console.log('MOCK UserActivityService.getSignedFollowTransaction is called');
 
       return 'sample_signed_transaction';
@@ -492,7 +474,7 @@ class MockHelper {
   static mockCommentTransactionSigning() {
     // noinspection JSUnusedLocalSymbols
     // @ts-ignore
-    CommentsCreatorService.addTransactionDataToBody = async function (
+    CommentsCreatorService.addLegacyTransactionDataToBody = async function (
       body,
       // @ts-ignore
       currentUser,
@@ -512,7 +494,8 @@ class MockHelper {
 
   static mockSendingToQueue() {
     // noinspection JSUnusedLocalSymbols
-    activityProducer.publish = async function (
+    // @ts-ignore
+    ActivityProducer.publish = async function (
       // @ts-ignore
       message,
       // @ts-ignore
@@ -522,93 +505,10 @@ class MockHelper {
     };
   }
 
-  static mockPostTransactionSigning() {
-    // @ts-ignore
-    PostCreatorService.addSignedTransactionDetailsToBody = async function (
-      body,
-      // @ts-ignore
-      user,
-      // @ts-ignore
-      postTypeId,
-      organizationBlockchainId = null,
-    ) {
-      if (organizationBlockchainId) {
-        body.blockchain_id = `sample_new_org_post_blockchain_id_${postCreationCounter}`;
-        body.signed_transaction = 'sample_new_org_post_transaction';
-      } else {
-        body.blockchain_id = `sample_user_himself_new_post_blockchain_id_${postCreationCounter}`;
-        body.signed_transaction = 'sample_user_himself_new_post_transaction';
-      }
-
-      postCreationCounter += 1;
-    };
-
-    // noinspection JSUnusedLocalSymbols
-    eosTransactionService.appendSignedUserCreatesRepost = function (
-      body,
-      // @ts-ignore
-      user,
-      // @ts-ignore
-      parentContentBlockchainId,
-    ) {
-      body.blockchain_id = 'sample_blockchain_id';
-      body.signed_transaction = 'sample_signed_transaction';
-    };
-
-    // noinspection JSUnusedLocalSymbols
-    eosTransactionService.appendSignedUserCreatesDirectPostForOtherUser = function (
-      body,
-      // @ts-ignore
-      user,
-      // @ts-ignore
-      accountNameTo,
-    ) {
-      body.blockchain_id = 'sample_blockchain_id';
-
-      body.signed_transaction = 'sample_signed_transaction';
-    };
-
-    // noinspection JSUnusedLocalSymbols
-    eosTransactionService.appendSignedUserCreatesDirectPostForOrg = function (
-      body,
-      // @ts-ignore
-      user,
-      // @ts-ignore
-      orgBlockchainIdTo,
-    ) {
-      body.blockchain_id = 'sample_blockchain_id';
-
-      body.signed_transaction = 'sample_signed_transaction';
-    };
-  }
-
-  static mockOrganizationBlockchain() {
-    organizationService.addSignedTransactionsForOrganizationCreation = async function (req) {
-      req.blockchain_id = `sample_blockchain_id_${orgCounter}`;
-      req.signed_transaction = 'sample_signed_transaction';
-
-      orgCounter += 1;
-    };
-  }
-
-  static mockUserVotesPost() {
-    // noinspection JSUnusedLocalSymbols
-    eosTransactionService.appendSignedUserVotesContent = function (
-      // @ts-ignore
-      user,
-      body,
-      // @ts-ignore
-      contentBlockchainId,
-      // @ts-ignore
-      activityTypeId,
-    ) {
-      body.signed_transaction = 'sample_signed_for_content_voting';
-    };
-  }
-
   static mockOrganizationFollowingSigning() {
     // noinspection JSUnusedLocalSymbols
-    usersToOrgActivity.addSignedTransactionsForOrganizationFollowing = async function (
+    // @ts-ignore
+    UserToOrganizationActivity.addSignedTransactionsForOrganizationFollowing = async function (
       body,
       // @ts-ignore
       currentUser,
@@ -625,7 +525,8 @@ class MockHelper {
    */
   static mockBlockchainPart() {
     // noinspection JSUnusedLocalSymbols
-    userActivityService.sendPayloadToRabbit = function (
+    // @ts-ignore
+    UserActivityService.sendPayloadToRabbit = async function (
       // @ts-ignore
       activity,
       // @ts-ignore
@@ -634,17 +535,6 @@ class MockHelper {
       // console.log('SEND TO RABBIT MOCK IS CALLED');
     };
 
-    // noinspection JSUnusedLocalSymbols
-    userActivityService.sendPayloadToRabbit = function (
-      // @ts-ignore
-      activity,
-      // @ts-ignore
-      scope,
-    ) {
-      // console.log('SEND TO RABBIT MOCK IS CALLED');
-    };
-
-    this.mockOrganizationBlockchain();
     this.mockOrganizationFollowingSigning();
   }
 }

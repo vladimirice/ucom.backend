@@ -27,7 +27,7 @@ class ErrorEventToLogDto {
   public logAsError() {
     ApiLogger.error(this.message, {
       parentError: this.parentError,
-      ...this.extraJson
+      ...this.extraJson,
     });
   }
 }

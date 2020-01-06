@@ -1,41 +1,30 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
-import { AppError } from '../api/errors';
+import { ContentTypesDictionary, EventsIdsDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
+import { AppError, BadRequestError, getErrorMessagePair } from '../api/errors';
 import { UserModel } from './interfaces/model-interfaces';
 import { ISignedTransactionObject } from '../eos/interfaces/transactions-interfaces';
 import { IActivityModel } from './interfaces/users-activity/dto-interfaces';
+import { IActivityOptions } from '../eos/interfaces/activity-interfaces';
+import { IRequestBody } from '../common/interfaces/common-types';
 
 import knex = require('../../config/knex');
 import UsersActivityRepository = require('./repository/users-activity-repository');
-import NotificationsEventIdDictionary = require('../entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityFollowRepository = require('./repository/users-activity/users-activity-follow-repository');
 import ActivityGroupDictionary = require('../activity/activity-group-dictionary');
 import UsersModelProvider = require('./users-model-provider');
+import UserActivitySerializer = require('./job/user-activity-serializer');
+import ActivityProducer = require('../jobs/activity-producer');
+import PostsModelProvider = require('../posts/service/posts-model-provider');
+import CommentsModelProvider = require('../comments/service/comments-model-provider');
+
+import EosTransactionService = require('../eos/eos-transaction-service');
+import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
+import BlockchainModelProvider = require('../eos/service/blockchain-model-provider');
 
 const { EventsIds } = require('ucom.libs.common').Events.Dictionary;
 
 const status = require('statuses');
-const _ = require('lodash');
-
-// tslint:disable-next-line:max-line-length
-const { TransactionFactory, ContentTypeDictionary, InteractionTypeDictionary } = require('ucom-libs-social-transactions');
-const usersRepository = require('../users/users-repository');
-
-const { BadRequestError } = require('../api/errors');
-
-const usersActivityRepository = require('../users/repository').Activity;
-const activityGroupDictionary = require('../activity/activity-group-dictionary');
-
-const userActivitySerializer = require('./job/user-activity-serializer');
-const activityProducer = require('../jobs/activity-producer');
-
-const commentsModelProvider   = require('../comments/service').ModelProvider;
-const postsModelProvider      = require('../posts/service').ModelProvider;
-const usersModelProvider      = require('../users/service').ModelProvider;
-const orgModelProvider        = require('../organizations/service').ModelProvider;
-const blockchainModelProvider = require('../eos/service/blockchain-model-provider');
-
-const eventIdDictionary = require('../entities/dictionary').EventId;
 
 const ACTIVITY_TYPE__UPVOTE_NODE = 20;
 const ACTIVITY_TYPE__CANCEL_NODE_UPVOTING_NODE = 30;
@@ -47,12 +36,12 @@ class UserActivityService {
     for (const element of blockchainNodeIds) {
       data.push({
         activity_type_id:   ACTIVITY_TYPE__UPVOTE_NODE,
-        activity_group_id:  activityGroupDictionary.getUserInteractsWithBlockchainNode(),
+        activity_group_id:  ActivityGroupDictionary.getUserInteractsWithBlockchainNode(),
 
         user_id_from: userId,
         entity_id_to: element,
 
-        entity_name:  blockchainModelProvider.getEntityName(),
+        entity_name:  BlockchainModelProvider.getEntityName(),
         event_id:     eventId,
 
         // Not required fields
@@ -64,7 +53,7 @@ class UserActivityService {
       });
     }
 
-    return usersActivityRepository.bulkCreateNewActivity(data, transaction);
+    return UsersActivityRepository.bulkCreateNewActivity(data, transaction);
   }
 
   static async processUserCancelVotesForBlockProducers(userId, blockchainNodeIds, transaction, eventId: number) {
@@ -73,12 +62,12 @@ class UserActivityService {
     for (const element of blockchainNodeIds) {
       data.push({
         activity_type_id:   ACTIVITY_TYPE__CANCEL_NODE_UPVOTING_NODE,
-        activity_group_id:  activityGroupDictionary.getUserInteractsWithBlockchainNode(),
+        activity_group_id:  ActivityGroupDictionary.getUserInteractsWithBlockchainNode(),
 
         user_id_from: userId,
         entity_id_to: element,
 
-        entity_name:  blockchainModelProvider.getEntityName(),
+        entity_name:  BlockchainModelProvider.getEntityName(),
         event_id:     eventId,
 
         // Not required fields
@@ -90,28 +79,45 @@ class UserActivityService {
       });
     }
 
-    return usersActivityRepository.bulkCreateNewActivity(data, transaction);
+    return UsersActivityRepository.bulkCreateNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} newOrganizationId
-   * @param {Object} transaction
-   * @return {Promise<Object>}
-   */
-  static async processNewOrganization(signedTransaction, currentUserId, newOrganizationId, transaction) {
+  public static async processNewOrganization(
+    signedTransaction: string,
+    currentUserId: number,
+    newOrganizationId: string,
+    transaction,
+  ) {
     const data = {
-      activity_type_id:   ContentTypeDictionary.getTypeOrganization(),
-      activity_group_id:  activityGroupDictionary.getGroupContentCreation(),
+      activity_type_id:   ContentTypesDictionary.getTypeOrganization(),
+      activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
       user_id_from:       currentUserId,
       entity_id_to:       newOrganizationId,
-      entity_name:        orgModelProvider.getEntityName(),
+      entity_name:        OrganizationsModelProvider.getEntityName(),
       signed_transaction: signedTransaction,
+      event_id:           EventsIds.userCreatesOrganization(),
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
+  }
+
+  public static async processOrganizationUpdating(
+    signedTransaction: string,
+    currentUserId: number,
+    newOrganizationId: number,
+    transaction,
+  ) {
+    const data = {
+      activity_type_id:   ContentTypesDictionary.getTypeOrganization(),
+      activity_group_id:  ActivityGroupDictionary.getGroupContentUpdating(),
+      user_id_from:       currentUserId,
+      entity_id_to:       newOrganizationId,
+      entity_name:        OrganizationsModelProvider.getEntityName(),
+      signed_transaction: signedTransaction,
+      event_id:           EventsIds.userUpdatesOrganization(),
+    };
+
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -124,55 +130,42 @@ class UserActivityService {
    */
   static async processUsersBoardInvitation(currentUserId, targetUserId, newOrganizationId, transaction) {
     const data: any = {
-      activity_type_id:   InteractionTypeDictionary.getOrgTeamInvitation(),
-      activity_group_id:  activityGroupDictionary.getGroupUsersTeamInvitation(),
+      activity_type_id:   InteractionTypesDictionary.getOrgTeamInvitation(),
+      activity_group_id:  ActivityGroupDictionary.getGroupUsersTeamInvitation(),
       user_id_from:       currentUserId, // who acts. Org creator
       entity_id_to:       targetUserId, // who is invited. User from usersAdded
-      entity_name:        usersModelProvider.getEntityName(), // user_entity_name
+      entity_name:        UsersModelProvider.getEntityName(), // user_entity_name
 
       entity_id_on:       newOrganizationId,
-      entity_name_on:     orgModelProvider.getEntityName(),
+      entity_name_on:     OrganizationsModelProvider.getEntityName(),
 
       signed_transaction: '',
-      event_id:           eventIdDictionary.getOrgUsersTeamInvitation(),
+      event_id:           EventsIdsDictionary.getOrgUsersTeamInvitation(),
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {number} activityTypeId
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} postIdTo
-   * @param {number} eventId
-   * @param {Object} transaction
-   * @return {Promise<void|Object|*>}
-   */
   public static async createForUserVotesPost(
-    activityTypeId,
-    signedTransaction,
-    currentUserId,
-    postIdTo,
-    eventId,
-    transaction = null,
+    activityTypeId: number,
+    signedTransaction: string,
+    currentUserId: number,
+    postIdTo: number,
+    eventId: number,
+    transaction: Transaction,
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentInteraction();
-    const entityName      = postsModelProvider.getEntityName();
-
     const data = {
       activity_type_id:   activityTypeId,
-      activity_group_id:  activityGroupId,
+      activity_group_id:  ActivityGroupDictionary.getGroupContentInteraction(),
       user_id_from:       currentUserId,
       entity_id_to:       postIdTo,
-      entity_name:        entityName,
+      entity_name:        PostsModelProvider.getEntityName(),
       signed_transaction: signedTransaction,
 
       event_id:           eventId,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
   public static async createForUserCreatesProfile(
@@ -192,7 +185,7 @@ class UserActivityService {
       event_id:           EventsIds.userCreatesProfile(),
     };
 
-    return usersActivityRepository.createNewKnexActivity(data, transaction);
+    return UsersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
   public static async createForUserUpdatesProfile(
@@ -212,7 +205,7 @@ class UserActivityService {
       event_id:           EventsIds.userUpdatesProfile(),
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
   public static async createForUserUpdatesProfileViaKnex(
@@ -232,53 +225,33 @@ class UserActivityService {
       event_id:           EventsIds.userUpdatesProfile(),
     };
 
-    return usersActivityRepository.createNewKnexActivity(data, transaction);
+    return UsersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {number} activityTypeId
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} modelIdTo
-   * @param {number} eventId
-   * @param {Object} transaction
-   * @return {Promise<void|Object|*>}
-   */
   public static async createForUserVotesComment(
-    activityTypeId,
-    signedTransaction,
-    currentUserId,
-    modelIdTo,
-    eventId,
-    transaction = null,
+    interactionType: number,
+    signedTransaction: string,
+    currentUserId: number,
+    commentId: number,
+    eventId: number,
+    transaction: Transaction,
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentInteraction();
-    const entityName      = commentsModelProvider.getEntityName();
-
     const data = {
-      activity_type_id:   activityTypeId,
-      activity_group_id:  activityGroupId,
+      activity_type_id:   interactionType,
+      activity_group_id:  ActivityGroupDictionary.getGroupContentInteraction(),
+
       user_id_from:       currentUserId,
-      entity_id_to:       modelIdTo,
-      entity_name:        entityName,
+      entity_id_to:       commentId,
+
+      entity_name:        CommentsModelProvider.getEntityName(),
       signed_transaction: signedTransaction,
 
       event_id:           eventId,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {Object} newPost
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} eventId
-   * @param {Object|null} transaction
-   * @return {Promise<void|Object|*>}
-   */
   public static async processOrganizationCreatesPost(
     newPost,
     eventId,
@@ -286,8 +259,8 @@ class UserActivityService {
     currentUserId,
     transaction = null,
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentCreationByOrganization();
-    const entityName      = postsModelProvider.getEntityName();
+    const activityGroupId = ActivityGroupDictionary.getGroupContentCreationByOrganization();
+    const entityName      = PostsModelProvider.getEntityName();
 
     const data = {
       activity_type_id:   newPost.post_type_id,
@@ -302,23 +275,18 @@ class UserActivityService {
       entity_name_on:     newPost.entity_name_for,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {Object} updatedPost
-   * @param {number} currentUserId
-   * @param {Object} transaction
-   * @returns {Promise<Object>}
-   */
   public static async processPostIsUpdated(
     updatedPost,
     currentUserId,
+    eventId: number | null,
     transaction,
+    signedTransaction = '',
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentUpdating();
-    const entityName      = postsModelProvider.getEntityName();
+    const activityGroupId = ActivityGroupDictionary.getGroupContentUpdating();
+    const entityName      = PostsModelProvider.getEntityName();
 
     const data = {
       activity_type_id:   updatedPost.post_type_id,
@@ -326,11 +294,44 @@ class UserActivityService {
       user_id_from:       currentUserId,
       entity_id_to:       updatedPost.id,
       entity_name:        entityName,
+      event_id:           eventId,
 
-      signed_transaction: '',
+      signed_transaction: signedTransaction,
+
+      entity_id_on: updatedPost.entity_id_for,
+      entity_name_on: updatedPost.entity_name_for,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
+  }
+
+  public static async processCommentIsUpdated(
+    commentId,
+    currentUserId,
+    eventId: number,
+    transaction,
+    signedTransaction,
+    commentableId: number,
+    commentableName: string,
+  ) {
+    const activityGroupId = ActivityGroupDictionary.getGroupContentUpdating();
+    const entityName      = CommentsModelProvider.getEntityName();
+
+    const data = {
+      activity_type_id:   eventId,
+      activity_group_id:  activityGroupId,
+      user_id_from:       currentUserId,
+      entity_id_to:       commentId,
+      entity_name:        entityName,
+      event_id:           eventId,
+
+      signed_transaction: signedTransaction,
+
+      entity_id_on:       commentableId,
+      entity_name_on:     commentableName,
+    };
+
+    return UsersActivityRepository.createNewKnexActivity(data, transaction);
   }
 
   /**
@@ -349,10 +350,10 @@ class UserActivityService {
     currentUserId,
     transaction = null,
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentCreationByOrganization();
-    const entityName      = postsModelProvider.getEntityName();
+    const activityGroupId = ActivityGroupDictionary.getGroupContentCreationByOrganization();
+    const entityName      = PostsModelProvider.getEntityName();
 
-    const entityNameOn    = postsModelProvider.getEntityName();
+    const entityNameOn    = PostsModelProvider.getEntityName();
 
     const data = {
       activity_type_id:   newPost.post_type_id,
@@ -367,27 +368,18 @@ class UserActivityService {
       entity_name_on:     entityNameOn,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
-  /**
-   *
-   * @param {Object} newPost
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number} eventId
-   * @param {Object|null} transaction
-   * @return {Promise<void|Object|*>}
-   */
-  static async processUserHimselfCreatesPost(
+  public static async processUserHimselfCreatesPost(
     newPost,
     eventId,
     signedTransaction,
     currentUserId,
     transaction = null,
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentCreation();
-    const entityName      = postsModelProvider.getEntityName();
+    const activityGroupId = ActivityGroupDictionary.getGroupContentCreation();
+    const entityName      = PostsModelProvider.getEntityName();
 
     const data = {
       activity_type_id:   newPost.post_type_id,
@@ -402,7 +394,7 @@ class UserActivityService {
       entity_name_on:     newPost.entity_name_for,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -419,11 +411,11 @@ class UserActivityService {
     mentionedUserId,
     transaction = null,
   ) {
-    const activityGroupId     = activityGroupDictionary.getGroupTagEvent();
-    const postEntityName      = postsModelProvider.getEntityName();
-    const userEntityName      = usersModelProvider.getEntityName();
+    const activityGroupId     = ActivityGroupDictionary.getGroupTagEvent();
+    const postEntityName      = PostsModelProvider.getEntityName();
+    const userEntityName      = UsersModelProvider.getEntityName();
 
-    const eventId = eventIdDictionary.getUserHasMentionedYouInPost();
+    const eventId = EventsIdsDictionary.getUserHasMentionedYouInPost();
 
     const data = {
       activity_type_id:   activityGroupId, // #task - refactor activity/group/event structure
@@ -438,7 +430,7 @@ class UserActivityService {
       entity_name_on:     postEntityName,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -455,11 +447,11 @@ class UserActivityService {
     mentionedUserId,
     transaction = null,
   ) {
-    const activityGroupId     = activityGroupDictionary.getGroupTagEvent();
-    const entityNameOn        = commentsModelProvider.getEntityName();
-    const userEntityName      = usersModelProvider.getEntityName();
+    const activityGroupId     = ActivityGroupDictionary.getGroupTagEvent();
+    const entityNameOn        = CommentsModelProvider.getEntityName();
+    const userEntityName      = UsersModelProvider.getEntityName();
 
-    const eventId = eventIdDictionary.getUserHasMentionedYouInComment();
+    const eventId = EventsIdsDictionary.getUserHasMentionedYouInComment();
 
     const data = {
       activity_type_id:   activityGroupId, // #task - refactor activity/group/event structure
@@ -474,7 +466,7 @@ class UserActivityService {
       entity_name_on:     entityNameOn,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -493,9 +485,9 @@ class UserActivityService {
     currentUserId,
     transaction = null,
   ) {
-    const activityGroupId = activityGroupDictionary.getGroupContentCreation();
-    const entityName      = postsModelProvider.getEntityName();
-    const entityNameOn    = postsModelProvider.getEntityName();
+    const activityGroupId = ActivityGroupDictionary.getGroupContentCreation();
+    const entityName      = PostsModelProvider.getEntityName();
+    const entityNameOn    = PostsModelProvider.getEntityName();
 
     const data = {
       activity_type_id:   newPost.post_type_id,
@@ -510,7 +502,7 @@ class UserActivityService {
       entity_name_on:     entityNameOn,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -535,14 +527,14 @@ class UserActivityService {
     eventId,
     transaction,
   ) {
-    const activityTypeId      = ContentTypeDictionary.getTypeComment();
-    const commentsEntityName  = commentsModelProvider.getEntityName();
+    const activityTypeId      = ContentTypesDictionary.getTypeComment();
+    const commentsEntityName  = CommentsModelProvider.getEntityName();
 
     let activityGroupId;
     if (isOrganization) {
-      activityGroupId = activityGroupDictionary.getGroupContentCreationByOrganization();
+      activityGroupId = ActivityGroupDictionary.getGroupContentCreationByOrganization();
     } else {
-      activityGroupId = activityGroupDictionary.getGroupContentCreation();
+      activityGroupId = ActivityGroupDictionary.getGroupContentCreation();
     }
 
     const data = {
@@ -559,7 +551,7 @@ class UserActivityService {
       event_id:           eventId,
     };
 
-    return usersActivityRepository.createNewActivity(data, transaction);
+    return UsersActivityRepository.createNewActivity(data, transaction);
   }
 
   /**
@@ -574,7 +566,7 @@ class UserActivityService {
       };
     }
 
-    const data = await usersActivityRepository.findOneUserFollowActivityData(userId);
+    const data = await UsersActivityRepository.findOneUserFollowActivityData(userId);
 
     // tslint:disable-next-line:variable-name
     const IFollow: any = [];
@@ -582,7 +574,7 @@ class UserActivityService {
     data.forEach((activity) => {
       activity.entity_id_to = +activity.entity_id_to;
 
-      if (InteractionTypeDictionary.isFollowActivity(activity)) {
+      if (InteractionTypesDictionary.isFollowActivity(activity)) {
         if (activity.user_id_from === userId) {
           IFollow.push(activity.entity_id_to);
         } else if (activity.entity_id_to === userId) {
@@ -597,91 +589,50 @@ class UserActivityService {
     };
   }
 
-  /**
-   * @param {Object} userFrom
-   * @param {number} userIdTo
-   * @param {Object} body
-   * @returns {Promise<void>} created activity model
-   */
-  static async userFollowsAnotherUser(userFrom, userIdTo, body) {
-    const activityTypeId = InteractionTypeDictionary.getFollowId();
+  public static async userFollowsAnotherUser(
+    userFrom: UserModel,
+    userIdTo: number,
+    body: IRequestBody,
+  ): Promise<void> {
+    const activityTypeId = InteractionTypesDictionary.getFollowId();
 
     await this.userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body);
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} userIdTo
-   * @param {Object} body
-   * @returns {Promise<Object>}
-   */
-  public static async userUnfollowsUser(userFrom, userIdTo, body): Promise<void> {
-    const activityTypeId = InteractionTypeDictionary.getUnfollowId();
+  public static async userUnfollowsUser(
+    userFrom: UserModel,
+    userIdTo: number,
+    body: IRequestBody,
+  ): Promise<void> {
+    const activityTypeId = InteractionTypesDictionary.getUnfollowId();
 
     await this.userFollowOrUnfollowUser(userFrom, userIdTo, activityTypeId, body);
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {string} newOrganizationBlockchainId
-   * @return {Promise<Object>}
-   */
-  static async createAndSignOrganizationCreationTransaction(userFrom, newOrganizationBlockchainId) {
-    // noinspection JSUnresolvedFunction
-    return TransactionFactory.createSignedUserCreatesOrganization(
-      userFrom.account_name,
-      userFrom.private_key,
-      newOrganizationBlockchainId,
-    );
-  }
-
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} userIdTo
-   * @param {number} activityTypeId
-   * @param {Object} body
-   * @returns {Promise<boolean>}
-   * @private
-   */
   private static async userFollowOrUnfollowUser(
     userFrom: UserModel,
     userIdTo: number,
     activityTypeId: number,
-    body: any,
+    body: IRequestBody,
   ) {
     await this.checkPreconditions(userFrom, userIdTo, activityTypeId);
-    const userToAccountName = await usersRepository.findAccountNameById(userIdTo);
 
-    let signed: string;
-    if (body && !_.isEmpty(body) && body.signed_transaction) {
-      signed = body.signed_transaction;
-    } else {
-      signed = await this.getSignedFollowTransaction(
-        userFrom, userToAccountName, activityTypeId,
-      );
+    if (!body.signed_transaction) {
+      throw new BadRequestError(getErrorMessagePair('signed_transaction', 'this field is required'));
     }
 
     const activity = await this.processUserFollowsOrUnfollowsUser(
       activityTypeId,
-      signed,
+      body.signed_transaction,
       userFrom.id,
       userIdTo,
     );
 
-    await this.sendPayloadToRabbit(activity);
-  }
-
-  private static async getSignedFollowTransaction(userFrom, userToAccountName, activityTypeId) {
-    // eslint-disable-next-line no-underscore-dangle
-    return TransactionFactory._getSignedUserToUser(
-      userFrom.account_name,
-      userFrom.private_key,
-      userToAccountName,
-      activityTypeId,
+    const options: IActivityOptions = EosTransactionService.getEosVersionBasedOnSignedTransaction(
+      body.signed_transaction,
     );
+
+    await UserActivityService.sendPayloadToRabbitWithOptions(activity, options);
   }
 
   /**
@@ -690,33 +641,94 @@ class UserActivityService {
    * @return {Promise<void>}
    */
   static async sendPayloadToRabbit(activity: IActivityModel) {
-    const jsonPayload = userActivitySerializer.getActivityDataToCreateJob(activity.id);
+    const jsonPayload = UserActivitySerializer.getActivityDataToCreateJob(activity.id);
 
-    await activityProducer.publishWithUserActivity(jsonPayload);
+    await ActivityProducer.publishWithUserActivity(jsonPayload);
   }
 
-  static async sendPayloadToRabbitEosV2(activity: IActivityModel) {
-    const jsonPayload: string =
-      userActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
+  public static async sendPayloadToRabbitWithEosVersion(activity: IActivityModel, signedTransaction: string) {
+    const options: IActivityOptions =
+      EosTransactionService.getEosVersionBasedOnSignedTransaction(signedTransaction);
 
-    await activityProducer.publishWithUserActivity(jsonPayload);
+    this.sendPayloadToRabbitWithOptions(activity, options);
+  }
+
+  public static async sendPayloadToRabbitEosV2(activity: IActivityModel): Promise<void> {
+    const jsonPayload: string =
+      UserActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
+
+    await ActivityProducer.publishWithUserActivity(jsonPayload);
+  }
+
+  public static async sendPayloadToRabbitEosV2WithSuppressEmpty(activity: IActivityModel): Promise<void> {
+    const options: IActivityOptions = {
+      eosJsV2: true,
+      suppressEmptyTransactionError: true,
+    };
+
+    const jsonPayload: string = UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await ActivityProducer.publishWithUserActivity(jsonPayload);
   }
 
   static async sendContentCreationPayloadToRabbit(activity) {
-    const jsonPayload = userActivitySerializer.getActivityDataToCreateJob(activity.id);
+    const jsonPayload = UserActivitySerializer.getActivityDataToCreateJob(activity.id);
 
-    await activityProducer.publishWithContentCreation(jsonPayload);
+    await ActivityProducer.publishWithContentCreation(jsonPayload);
   }
 
-  /**
-   *
-   * @param {Object} activity
-   * @returns {Promise<void>}
-   */
-  public static async sendContentUpdatingPayloadToRabbit(activity) {
-    const jsonPayload = userActivitySerializer.getActivityDataToCreateJob(activity.id);
 
-    await activityProducer.publishWithContentUpdating(jsonPayload);
+  public static async sendContentCreationPayloadToRabbitWithEosVersion(
+    activity: IActivityModel,
+    signedTransactions: string,
+  ): Promise<void> {
+    const options: IActivityOptions =
+      EosTransactionService.getEosVersionBasedOnSignedTransaction(signedTransactions);
+
+    await this.sendContentCreationPayloadToRabbitWithOptions(activity, options);
+  }
+
+  public static async sendContentCreationPayloadToRabbitWithSuppressEmpty(
+    activity: IActivityModel,
+  ): Promise<void> {
+    const options: IActivityOptions = {
+      eosJsV2: true,
+      suppressEmptyTransactionError: true,
+    };
+
+    this.sendContentCreationPayloadToRabbitWithOptions(activity, options);
+  }
+
+  public static async sendPayloadToRabbitWithOptions(
+    activity: IActivityModel,
+    options: IActivityOptions,
+  ): Promise<void> {
+    const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await ActivityProducer.publishWithUserActivity(jsonPayload);
+  }
+
+  public static async sendContentUpdatingPayloadToRabbitEosV2(
+    activity: IActivityModel,
+  ): Promise<void> {
+    const jsonPayload: string =
+      UserActivitySerializer.createJobWithOnlyEosJsV2Option(activity.id);
+
+    await ActivityProducer.publishWithContentUpdating(jsonPayload);
+  }
+
+  public static async sendContentUpdatingPayloadToRabbitWithSuppressEmpty(
+    activity: IActivityModel,
+  ): Promise<void> {
+    const options: IActivityOptions = {
+      eosJsV2: true,
+      suppressEmptyTransactionError: true,
+    };
+
+    const jsonPayload: string =
+      UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await ActivityProducer.publishWithContentUpdating(jsonPayload);
   }
 
   /**
@@ -734,7 +746,7 @@ class UserActivityService {
       },                        status('400'));
     }
 
-    const currentFollowActivity = await usersActivityRepository.getLastFollowOrUnfollowActivityForUser(userFrom.id, userIdTo);
+    const currentFollowActivity = await UsersActivityRepository.getLastFollowOrUnfollowActivityForUser(userFrom.id, userIdTo);
     const currentFollowStatus = currentFollowActivity ? currentFollowActivity.activity_type_id : null;
 
     if (currentFollowStatus && currentFollowActivity.activity_type_id === activityTypeId) {
@@ -743,11 +755,11 @@ class UserActivityService {
       },                        status('400'));
     }
 
-    if (!InteractionTypeDictionary.isOppositeActivityRequired(activityTypeId)) {
+    if (!InteractionTypesDictionary.isOppositeActivityRequired(activityTypeId)) {
       return;
     }
 
-    if (!currentFollowStatus || currentFollowStatus !== InteractionTypeDictionary.getOppositeFollowActivityTypeId(activityTypeId)) {
+    if (!currentFollowStatus || currentFollowStatus !== InteractionTypesDictionary.getOppositeFollowActivityTypeId(activityTypeId)) {
       throw new BadRequestError({
         general: 'It is not possible to unfollow before follow',
       },                        status('400'));
@@ -762,8 +774,8 @@ class UserActivityService {
   ): Promise<any> {
     const activityGroupId = ActivityGroupDictionary.getGroupUserUserInteraction();
     const entityName      = UsersModelProvider.getEntityName();
-    const eventId         = activityTypeId === InteractionTypeDictionary.getFollowId() ?
-      NotificationsEventIdDictionary.getUserFollowsYou() : NotificationsEventIdDictionary.getUserUnfollowsYou();
+    const eventId         = activityTypeId === InteractionTypesDictionary.getFollowId() ?
+      EventsIdsDictionary.getUserFollowsYou() : EventsIdsDictionary.getUserUnfollowsYou();
 
     return knex.transaction(async (trx) => {
       await this.createFollowIndex(eventId, currentUserId, userIdTo, trx);
@@ -789,13 +801,13 @@ class UserActivityService {
     userIdTo: number,
     trx: Transaction,
   ): Promise<void> {
-    if (NotificationsEventIdDictionary.doesUserFollowOtherUser(eventId)) {
+    if (EventsIdsDictionary.doesUserFollowOtherUser(eventId)) {
       await UsersActivityFollowRepository.insertOneFollowsOtherUser(userIdFrom, userIdTo, trx);
 
       return;
     }
 
-    if (NotificationsEventIdDictionary.doesUserUnfollowOtherUser(eventId)) {
+    if (EventsIdsDictionary.doesUserUnfollowOtherUser(eventId)) {
       const deleteRes = await UsersActivityFollowRepository.deleteOneFollowsOtherUser(userIdFrom, userIdTo, trx);
       if (deleteRes === null) {
         throw new AppError(`No record to delete. It is possible that it is a concurrency issue. User ID from: ${userIdFrom}, user ID to ${userIdTo}`);
@@ -805,6 +817,15 @@ class UserActivityService {
     }
 
     throw new AppError(`Unsupported eventId: ${eventId}`);
+  }
+
+  private static async sendContentCreationPayloadToRabbitWithOptions(
+    activity: IActivityModel,
+    options: IActivityOptions,
+  ): Promise<void> {
+    const jsonPayload = UserActivitySerializer.createJobWithOptions(activity.id, options);
+
+    await ActivityProducer.publishWithContentCreation(jsonPayload);
   }
 }
 

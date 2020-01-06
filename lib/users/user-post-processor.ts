@@ -1,5 +1,7 @@
 import { MyselfDataDto } from '../common/interfaces/post-processing-dto';
-import { UserIdToUserModelCard, UserModel } from './interfaces/model-interfaces';
+import {
+  UserIdToUserModelCard, UserModel, UserModelCard, UserModelPreview,
+} from './interfaces/model-interfaces';
 
 import NumbersHelper = require('../common/helper/numbers-helper');
 import UosAccountsModelProvider = require('../uos-accounts-properties/service/uos-accounts-model-provider');
@@ -118,12 +120,27 @@ class UserPostProcessor {
     }
   }
 
-  public static processOnlyUserItself(user: UserModel): void {
+  public static processOnlyUserItself(user: UserModel | UserModelCard): void {
     this.normalizeMultiplier(user);
     this.deleteSensitiveData(user);
 
     this.processUosAccountsProperties(user);
     this.processUsersCurrentParams(user);
+  }
+
+  public static processOnlyUserForPreview(user: UserModel): UserModelPreview {
+    const fields: string[] = UsersModelProvider.getUserFieldsForPreview();
+
+    const processed: any = {};
+    for (const field in user) {
+      if (fields.includes(field)) {
+        processed[field] = user[field];
+      }
+    }
+
+    this.processOnlyUserItself(processed);
+
+    return processed;
   }
 
   /**

@@ -1,3 +1,5 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
+
 import RequestHelper = require('../../helpers/request-helper');
 import MockHelper = require('../../helpers/mock-helper');
 import SeedsHelper = require('../../helpers/seeds-helper');
@@ -11,8 +13,6 @@ import PostsGenerator = require('../../../generators/posts-generator');
 import UsersModelProvider = require('../../../../lib/users/users-model-provider');
 import PostsModelProvider = require('../../../../lib/posts/service/posts-model-provider');
 import PostsCurrentParamsRepository = require('../../../../lib/posts/repository/posts-current-params-repository');
-
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const request = require('supertest');
 
@@ -64,13 +64,13 @@ describe('Posts API', () => {
           title: 'Extremely new post',
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
           user_id: myself.id,
           current_rate: 0,
           current_vote: 0,
         };
 
-        const res = await request(server)
+        const req = request(server)
           .post(postsUrl)
           .set('Authorization', `Bearer ${myself.token}`)
           .field('title', newPostFields.title)
@@ -80,10 +80,14 @@ describe('Posts API', () => {
           .field('entity_images', '{}')
         ;
 
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
+
         ResponseHelper.expectStatusOk(res);
 
         const posts = await PostsRepository.findAllByAuthor(myself.id);
-        const newPost = posts.find(data => data.title === newPostFields.title);
+        const newPost = posts.find((data) => data.title === newPostFields.title);
         expect(newPost).toBeDefined();
 
         const { body } = res;
@@ -114,7 +118,7 @@ describe('Posts API', () => {
           title,
           description: 'Our super post description',
           leading_text: 'extremely leading text',
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
           user_id: myself.id,
         };
 
@@ -138,7 +142,7 @@ describe('Posts API', () => {
           title: 'New title for post',
           description: 'Our super post description',
           leading_text: leadingText,
-          post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+          post_type_id: ContentTypesDictionary.getTypeMediaPost(),
           user_id: myself.id,
         };
 
@@ -177,7 +181,7 @@ describe('Posts API', () => {
           leading_text: 'And leading text',
         };
 
-        const res = await request(server)
+        const req = request(server)
           .patch(`${postsUrl}/${postId}`)
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',         fieldsToChange.title)
@@ -185,6 +189,10 @@ describe('Posts API', () => {
           .field('leading_text',  fieldsToChange.leading_text)
           .field('entity_images',  '{}')
         ;
+
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusOk(res);
 
@@ -194,8 +202,7 @@ describe('Posts API', () => {
         // expect this is updating
 
         expect(activity.activity_group_id).toBe(ActivityGroupDictionary.getGroupContentUpdating());
-        expect(activity.activity_type_id).toBe(ContentTypeDictionary.getTypeMediaPost());
-        expect(activity.event_id).toBeNull();
+        expect(activity.activity_type_id).toBe(ContentTypesDictionary.getTypeMediaPost());
       });
 
       it('Update Media Post by its author', async () => {
@@ -209,7 +216,7 @@ describe('Posts API', () => {
           leading_text: 'And leading text',
         };
 
-        const res = await request(server)
+        const req = request(server)
           .patch(`${postsUrl}/${firstPostBefore.id}`)
           .set('Authorization', `Bearer ${userVlad.token}`)
           .field('title',         fieldsToChange.title)
@@ -217,6 +224,10 @@ describe('Posts API', () => {
           .field('leading_text',  fieldsToChange.leading_text)
           .field('entity_images',  '{}')
         ;
+
+        RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
+
+        const res = await req;
 
         ResponseHelper.expectStatusOk(res);
 
@@ -257,7 +268,7 @@ describe('Posts API', () => {
       expect(activity).not.toBeNull();
 
       const expectedValues = {
-        activity_type_id:   ContentTypeDictionary.getTypeMediaPost(), // media post creation
+        activity_type_id:   ContentTypesDictionary.getTypeMediaPost(), // media post creation
         activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
         entity_id_to:       `${newPostId}`,
         entity_name:        PostsModelProvider.getEntityName(),
@@ -277,7 +288,7 @@ describe('Posts API', () => {
         description: 'Our super post description',
         leading_text: 'extremely leading text',
         user_id: userVlad.id,
-        post_type_id: ContentTypeDictionary.getTypeOffer(),
+        post_type_id: ContentTypesDictionary.getTypeOffer(),
         current_rate: '0.0000000000',
         current_vote: 0,
       };
@@ -352,7 +363,7 @@ describe('Posts API', () => {
       expect(activity).not.toBeNull();
 
       const expectedValues = {
-        activity_type_id:   ContentTypeDictionary.getTypeOffer(), // media post creation
+        activity_type_id:   ContentTypesDictionary.getTypeOffer(), // media post creation
         activity_group_id:  ActivityGroupDictionary.getGroupContentCreation(),
         entity_id_to:       `${newPostId}`,
         entity_name:        PostsModelProvider.getEntityName(),
@@ -398,11 +409,11 @@ describe('Posts API', () => {
       expect(postUsersTeam).toBeDefined();
       expect(postUsersTeam.length).toBe(1);
 
-      const userJaneInTeam = postUsersTeam.find(data => data.user_id === userJane.id);
+      const userJaneInTeam = postUsersTeam.find((data) => data.user_id === userJane.id);
       expect(userJaneInTeam).toBeDefined();
       expect(userJaneInTeam.post_id).toBe(firstPostBefore.id);
 
-      const userVladInTeam = postUsersTeam.find(data => data.user_id === userVlad.id);
+      const userVladInTeam = postUsersTeam.find((data) => data.user_id === userVlad.id);
       expect(userVladInTeam).not.toBeDefined();
     });
     it.skip('not possible to create media post or post offer as direct post', async () => {
@@ -415,7 +426,7 @@ describe('Posts API', () => {
         description: 'Our super post description',
         leading_text: 'extremely leading text',
         user_id: userVlad.id,
-        post_type_id: ContentTypeDictionary.getTypeOffer(),
+        post_type_id: ContentTypesDictionary.getTypeOffer(),
         current_rate: '0.0000000000',
         current_vote: 0,
       };
@@ -465,7 +476,7 @@ describe('Posts API', () => {
       const postUsersTeam = lastPost.post_users_team;
       expect(postUsersTeam).toBeDefined();
       newPostUsersTeamFields.forEach((teamMember) => {
-        const record = postUsersTeam.find(data => data.user_id === teamMember.user_id);
+        const record = postUsersTeam.find((data) => data.user_id === teamMember.user_id);
         expect(record).toBeDefined();
         expect(record.post_id).toBe(lastPost.id);
       });

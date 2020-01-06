@@ -175,14 +175,14 @@ describe('User to user activity', () => {
       const usersResponse = await UsersHelper.requestUserListByMyself(userPetr);
       const users = usersResponse.data;
 
-      const responseVlad = users.find(data => data.id === userVlad.id);
+      const responseVlad = users.find((data) => data.id === userVlad.id);
       expect(responseVlad.myselfData.follow).toBeTruthy();
 
-      const responseJane = users.find(data => data.id === userJane.id);
+      const responseJane = users.find((data) => data.id === userJane.id);
       expect(responseJane.myselfData.follow).toBeTruthy();
       expect(responseJane.myselfData.myFollower).toBeTruthy();
 
-      const responseRokky = users.find(data => data.id === userRokky.id);
+      const responseRokky = users.find((data) => data.id === userRokky.id);
       expect(responseRokky.myselfData).toBeDefined();
       expect(responseRokky.myselfData.follow).toBeFalsy();
     }, JEST_TIMEOUT);
@@ -194,7 +194,7 @@ describe('User to user activity', () => {
 
         const users = await UsersHelper.requestUserListAsGuest();
 
-        const userWithMyself = users.some(user => user.myselfData !== undefined);
+        const userWithMyself = users.some((user) => user.myselfData !== undefined);
 
         expect(userWithMyself).toBeFalsy();
       }, JEST_TIMEOUT);

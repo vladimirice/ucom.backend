@@ -1,5 +1,6 @@
-/* eslint-disable max-len */
 /* tslint:disable:max-line-length */
+/* eslint-disable max-len */
+import { ContentTypesDictionary } from 'ucom.libs.common';
 import { DbParamsDto, RequestQueryComments, RequestQueryDto } from '../../api/filters/interfaces/query-filter-interfaces';
 import {
   PostModel, PostModelResponse, PostRequestQueryDto, PostsListResponse,
@@ -8,7 +9,10 @@ import { ApiLogger } from '../../../config/winston';
 import { AppError, BadRequestError } from '../../api/errors';
 import { OrgModelCard } from '../../organizations/interfaces/model-interfaces';
 import { UserIdToUserModelCard, UserModel, UsersRequestQueryDto } from '../../users/interfaces/model-interfaces';
+
 import { StringToAnyCollection } from '../../common/interfaces/common-types';
+
+const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
 
 import PostsRepository = require('../posts-repository');
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
@@ -22,11 +26,11 @@ import EntityListCategoryDictionary = require('../../stats/dictionary/entity-lis
 import PostsModelProvider = require('./posts-model-provider');
 import AirdropFetchService = require('../../airdrops/service/airdrop-fetch-service');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
+import UsersActivityEventsViewRepository = require('../../users/repository/users-activity/users-activity-events-view-repository');
 
 const queryFilterService  = require('../../api/filters/query-filter-service');
-
 const usersActivityRepository    = require('../../users/repository/users-activity-repository');
+
 const commentsFetchService = require('../../comments/service/comments-fetch-service');
 
 /**
@@ -34,7 +38,7 @@ const commentsFetchService = require('../../comments/service/comments-fetch-serv
  */
 class PostsFetchService {
   public static isDirectPost(post) {
-    return post.post_type_id === ContentTypeDictionary.getTypeDirectPost();
+    return post.post_type_id === ContentTypesDictionary.getTypeDirectPost();
   }
 
   /**
@@ -99,7 +103,7 @@ class PostsFetchService {
     postId: number,
     currentUserId: number | null,
     commentsQuery: RequestQueryComments,
-  ): Promise<PostModelResponse | null> {
+  ): Promise<PostModelResponse> {
     const post = await PostsRepository.findOneByIdV2(postId, true);
 
     if (!post) {
@@ -139,6 +143,8 @@ class PostsFetchService {
       commentsQuery,
     );
 
+    post.views_count = await UsersActivityEventsViewRepository.getViewsCountForEntity(postId, EntityNames.POSTS);
+
     return post;
   }
 
@@ -165,19 +171,19 @@ class PostsFetchService {
   public static async findAndProcessAllForUserWallFeed(
     userId: number,
     currentUserId: number | null,
-    query: RequestQueryDto,
+    requestQuery: PostRequestQueryDto,
   ): Promise<PostsListResponse> {
-    const params: DbParamsDto = queryFilterService.getQueryParameters(query);
+    const params: DbParamsDto = queryFilterService.getQueryParameters(requestQuery);
 
     const includeProcessor = UsersFeedRepository.getIncludeProcessor();
-    includeProcessor(query, params);
+    includeProcessor(requestQuery, params);
 
     const findCountPromises: Promise<any>[] = [
-      UsersFeedRepository.findAllForUserWallFeed(userId, params),
-      UsersFeedRepository.countAllForUserWallFeed(userId),
+      UsersFeedRepository.findAllForUserWallFeed(userId, params, requestQuery),
+      UsersFeedRepository.countAllForUserWallFeed(userId, requestQuery),
     ];
 
-    return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
+    return this.findAndProcessAllForWallFeed(requestQuery, params, currentUserId, findCountPromises);
   }
 
   public static async findAndProcessAllForOrgWallFeed(
@@ -212,8 +218,8 @@ class PostsFetchService {
       await usersActivityRepository.findOneUserFollowActivity(currentUserId);
 
     const findCountPromises = [
-      UsersFeedRepository.findAllForUserNewsFeed(currentUserId, usersIds, orgIds, params),
-      UsersFeedRepository.countAllForUserNewsFeed(currentUserId, usersIds, orgIds),
+      UsersFeedRepository.findAllForUserNewsFeed(currentUserId, usersIds, orgIds, params, query),
+      UsersFeedRepository.countAllForUserNewsFeed(currentUserId, usersIds, orgIds, query),
     ];
 
     return this.findAndProcessAllForWallFeed(query, params, currentUserId, findCountPromises);
@@ -234,7 +240,7 @@ class PostsFetchService {
 
   private static async processEntityForCardForRepost(post: PostModelResponse): Promise<void> {
     // #task - it is not optimal. Here is N+1 problem. it is required to use JOIN or REDIS cache
-    if (post.post_type_id !== ContentTypeDictionary.getTypeRepost()) {
+    if (post.post_type_id !== ContentTypesDictionary.getTypeRepost()) {
       return;
     }
 

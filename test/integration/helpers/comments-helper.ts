@@ -1,13 +1,18 @@
 /* eslint-disable max-len */
 /* tslint:disable:max-line-length */
 import { CommentModelResponse } from '../../../lib/comments/interfaces/model-interfaces';
+import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { FAKE_SIGNED_TRANSACTION } from '../../generators/common/fake-data-generator';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 import CommentsModelProvider = require('../../../lib/comments/service/comments-model-provider');
 import ResponseHelper = require('./response-helper');
 import RequestHelper = require('./request-helper');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 const request = require('supertest');
 const _ = require('lodash');
+
 const server = RequestHelper.getApiApplication();
 
 const models = require('../../../models');
@@ -74,40 +79,74 @@ class CommentsHelper {
     return res.body;
   }
 
-  /**
-   *
-   * @param {number} postId
-   * @param {number} commentId
-   * @param {Object} user
-   * @returns {Promise<Object>}
-   */
-  static async requestToUpvoteComment(postId, commentId, user) {
-    const res = await request(server)
-      .post(`/api/v1/posts/${postId}/comments/${commentId}/upvote`)
-      .set('Authorization', `Bearer ${user.token}`)
-    ;
+  public static async requestToUpvoteComment(
+    postId: number,
+    commentId: number,
+    myself: UserModel,
+    signedTransaction: any = null,
+  ) {
+    return this.requestToVoteComment('upvote', postId, commentId, myself, signedTransaction);
+  }
+
+  private static async requestToVoteComment(
+    voteString: string,
+    postId: number,
+    commentId: number,
+    myself: UserModel,
+    signedTransaction: any,
+  ) {
+    const url = `/api/v1/posts/${postId}/comments/${commentId}/${voteString}`;
+    const req = RequestHelper.getRequestObjForPostWithMyself(url, myself);
+
+    if (signedTransaction) {
+      RequestHelper.addSignedTransactionToRequest(req, signedTransaction);
+    } else {
+      RequestHelper.addFakeSignedTransactionString(req);
+    }
+
+    const res = await req;
 
     ResponseHelper.expectStatusCreated(res);
 
     return res.body;
   }
 
-  /**
-   *
-   * @param {number} postId
-   * @param {number} commentId
-   * @param {Object} user
-   * @returns {Promise<Object>}
-   */
-  static async requestToDownvoteComment(postId, commentId, user) {
-    const res = await request(server)
-      .post(`/api/v1/posts/${postId}/comments/${commentId}/downvote`)
-      .set('Authorization', `Bearer ${user.token}`)
-    ;
+  public static async updateCommentWithFields(
+    commentId: number,
+    myself: UserModel,
+    givenFields: any = {},
+    expectedStatus: number = 200,
+    addFakeSignedTransaction: boolean = true,
+  ): Promise<CommentModelResponse> {
+    const url: string = RequestHelper.getCommentsUpdateUrl(commentId);
 
-    ResponseHelper.expectStatusCreated(res);
+    const defaultFields: StringToAnyCollection = {
+      description:        'New comment description',
+      entity_images:      '{}',
+    };
 
-    return res.body;
+    if (addFakeSignedTransaction) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+    }
+
+    const fields = {
+      ...defaultFields,
+      ...givenFields,
+    };
+
+    const response = await RequestHelper.makePatchRequestAsMyselfWithFields(url, myself, fields, expectedStatus);
+
+    return response.body;
+  }
+
+
+  public static async requestToDownvoteComment(
+    postId: number,
+    commentId: number,
+    myself: UserModel,
+    signedTransaction: any = null,
+  ) {
+    return this.requestToVoteComment('downvote', postId, commentId, myself, signedTransaction);
   }
 
   /**
@@ -140,7 +179,7 @@ class CommentsHelper {
 
     this.checkOneCommentMetadataStructure(model);
 
-    ResponseHelper.expectAllFieldsExistence(
+    CommonChecker.expectAllFieldsExistence(
       model,
       Array.prototype.concat(expected, fieldsFromRelations),
     );
@@ -199,7 +238,7 @@ class CommentsHelper {
       expect(model.metadata.next_depth_total_amount).toBeGreaterThanOrEqual(0);
     }
 
-    ResponseHelper.expectAllFieldsExistence(
+    CommonChecker.expectAllFieldsExistence(
       model,
       Array.prototype.concat(expected, fieldsFromRelations),
     );

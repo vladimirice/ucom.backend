@@ -16,7 +16,7 @@ class RedirectChecker {
     return {
       jwtToken: uniqueIdCookie[1],
       uniqueId: jwtData.uniqueId,
-    }
+    };
   }
 }
 

@@ -5,7 +5,6 @@ import { VotersToProcessDto } from '../interfaces/blockchain-nodes-interfaces';
 import UsersRepository = require('../../users/users-repository');
 import BlockchainNodesRepository = require('../repository/blockchain-nodes-repository');
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
-import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import UserActivityService = require('../../users/user-activity-service');
 
 const _             = require('lodash');
@@ -137,7 +136,7 @@ class BlockchainCacheService {
 
 
       const { eventIdUp, eventIdDown } =
-        NotificationsEventIdDictionary.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
+        UsersActivityRepository.getUpDownEventsByBlockchainNodesType(blockchainNodesType);
 
       if (producersToCreate.length > 0) {
         promises.push(

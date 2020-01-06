@@ -1,9 +1,11 @@
+// eslint-disable-next-line unicorn/filename-case
 const d3 = require('d3-format');
 
 class CurrencyHelper {
   public static convertToMajor(value: number, precision): number {
     return value / (10 ** precision);
   }
+
   public static convertToMinor(value: number, precision): number {
     return value * (10 ** precision);
   }
@@ -17,7 +19,7 @@ class CurrencyHelper {
   }
 
   public static getHumanReadableNumber(value: number): string {
-    return d3.format(",.10r")(value);
+    return d3.format(',.10r')(value);
   }
 }
 

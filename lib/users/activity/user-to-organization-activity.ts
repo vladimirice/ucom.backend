@@ -1,78 +1,67 @@
 /* tslint:disable:max-line-length */
 import { Transaction } from 'knex';
+import { EventsIdsDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
+import { UserModel } from '../interfaces/model-interfaces';
+import { IRequestBody } from '../../common/interfaces/common-types';
+import { IActivityOptions } from '../../eos/interfaces/activity-interfaces';
+import { AppError, BadRequestError } from '../../api/errors';
 
 import UsersActivityRepository = require('../repository/users-activity-repository');
 import knex = require('../../../config/knex');
-import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
+
+import EosTransactionService = require('../../eos/eos-transaction-service');
+import UserActivityService = require('../user-activity-service');
+import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
+import ActivityGroupDictionary = require('../../activity/activity-group-dictionary');
+import EosInputProcessor = require('../../eos/input-processor/content/eos-input-processor');
 
 const status = require('statuses');
 
-const { TransactionFactory, InteractionTypeDictionary } = require('ucom-libs-social-transactions');
-const usersActivityRepository = require('../../users/repository').Activity;
-
-const orgModelProvider = require('../../organizations/service').ModelProvider;
-const activityGroupDictionary = require('../../activity/activity-group-dictionary');
-
-const { BadRequestError, AppError } = require('../../api/errors');
-const organizationsRepositories = require('../../organizations/repository');
-
-const userActivityService = require('../../users/user-activity-service');
-
-const eventIdDictionary = require('../../entities/dictionary').EventId;
-
-const ENTITY_NAME = orgModelProvider.getEntityName();
+const ENTITY_NAME = OrganizationsModelProvider.getEntityName();
 
 class UserToOrganizationActivity {
-  /**
-   * @param {Object} userFrom
-   * @param {number} orgIdTo
-   * @param {Object} body
-   * @returns {Promise<void>} created activity model
-   */
-  static async userFollowsOrganization(userFrom, orgIdTo, body) {
-    const activityTypeId = InteractionTypeDictionary.getFollowId();
+  public static async userFollowsOrganization(
+    userFrom: UserModel,
+    organizationId: number,
+    body: IRequestBody,
+  ): Promise<void> {
+    const activityTypeId = InteractionTypesDictionary.getFollowId();
 
-    await this.userFollowsOrUnfollowsOrganization(userFrom, orgIdTo, activityTypeId, body);
+    await this.userFollowsOrUnfollowsOrganization(userFrom, organizationId, activityTypeId, body);
   }
 
-  /**
-   * @param {Object} userFrom
-   * @param {number} orgIdTo
-   * @param {Object} body
-   * @returns {Promise<void>} created activity model
-   */
-  static async userUnfollowsOrganization(userFrom, orgIdTo, body) {
-    const activityTypeId = InteractionTypeDictionary.getUnfollowId();
+  public static async userUnfollowsOrganization(
+    userFrom: UserModel,
+    organizationId: number,
+    body: IRequestBody,
+  ): Promise<void> {
+    const activityTypeId = InteractionTypesDictionary.getUnfollowId();
 
-    return this.userFollowsOrUnfollowsOrganization(userFrom, orgIdTo, activityTypeId, body);
+    await this.userFollowsOrUnfollowsOrganization(userFrom, organizationId, activityTypeId, body);
   }
 
-  /**
-   *
-   * @param {Object} userFrom
-   * @param {number} orgId
-   * @param {number} activityTypeId
-   * @param {Object|string|null} body
-   * @returns {Promise<boolean>}
-   * @private
-   */
-  private static async userFollowsOrUnfollowsOrganization(userFrom, orgId, activityTypeId, body) {
-    await this.addSignedTransactionsForOrganizationFollowing(body, userFrom, orgId, activityTypeId);
+  private static async userFollowsOrUnfollowsOrganization(
+    userFrom: UserModel,
+    organizationId: number,
+    activityTypeId: number,
+    body: IRequestBody,
+  ): Promise<void> {
+    EosInputProcessor.isSignedTransactionOrError(body);
 
-    const activityGroupId = activityGroupDictionary.getGroupContentInteraction();
-    await this.checkFollowPreconditions(userFrom, orgId, activityTypeId, activityGroupId);
+    const activityGroupId = ActivityGroupDictionary.getGroupContentInteraction();
+    await this.checkFollowPreconditions(userFrom, organizationId, activityTypeId, activityGroupId);
 
     const activity = await knex.transaction(async (trx) => {
-      const eventId = activityTypeId === InteractionTypeDictionary.getFollowId() ?
-        eventIdDictionary.getUserFollowsOrg() : eventIdDictionary.getUserUnfollowsOrg();
+      const eventId = activityTypeId === InteractionTypesDictionary.getFollowId() ?
+        EventsIdsDictionary.getUserFollowsOrg() : EventsIdsDictionary.getUserUnfollowsOrg();
 
-      await this.createFollowIndex(eventId, userFrom.id, orgId, trx);
+      await this.createFollowIndex(eventId, userFrom.id, organizationId, trx);
 
       const newActivityData = {
         activity_type_id:   activityTypeId,
         user_id_from:       userFrom.id,
-        entity_id_to:       orgId,
+        entity_id_to:       organizationId,
         signed_transaction: body.signed_transaction,
         entity_name:        ENTITY_NAME,
         activity_group_id:  activityGroupId,
@@ -83,9 +72,11 @@ class UserToOrganizationActivity {
       return UsersActivityRepository.createNewKnexActivity(newActivityData, trx);
     });
 
-    await userActivityService.sendPayloadToRabbit(activity);
+    const options: IActivityOptions = EosTransactionService.getEosVersionBasedOnSignedTransaction(
+      body.signed_transaction,
+    );
 
-    return true;
+    await UserActivityService.sendPayloadToRabbitWithOptions(activity, options);
   }
 
   private static async createFollowIndex(
@@ -94,13 +85,13 @@ class UserToOrganizationActivity {
     orgIdTo: number,
     trx: Transaction,
   ): Promise<void> {
-    if (NotificationsEventIdDictionary.doesUserFollowOrg(eventId)) {
+    if (EventsIdsDictionary.doesUserFollowOrg(eventId)) {
       await UsersActivityFollowRepository.insertOneFollowsOrganization(userIdFrom, orgIdTo, trx);
 
       return;
     }
 
-    if (NotificationsEventIdDictionary.doesUserUnfollowOrg(eventId)) {
+    if (EventsIdsDictionary.doesUserUnfollowOrg(eventId)) {
       const deleteRes = await UsersActivityFollowRepository.deleteOneFollowsOrg(userIdFrom, orgIdTo, trx);
       if (deleteRes === null) {
         throw new AppError(`No record to delete. It is possible that it is a concurrency issue. User ID from: ${userIdFrom}, org ID to ${orgIdTo}`);
@@ -122,7 +113,7 @@ class UserToOrganizationActivity {
    * @private
    */
   private static async checkFollowPreconditions(userFrom, orgIdTo, activityTypeId, activityGroupId) {
-    const currentFollowStatus = await usersActivityRepository.getCurrentActivity(
+    const currentFollowStatus = await UsersActivityRepository.getCurrentActivity(
       activityGroupId,
       userFrom.id,
       orgIdTo,
@@ -135,49 +126,14 @@ class UserToOrganizationActivity {
       },                        status('400'));
     }
 
-    if (!InteractionTypeDictionary.isOppositeActivityRequired(activityTypeId)) {
+    if (!InteractionTypesDictionary.isOppositeActivityRequired(activityTypeId)) {
       return;
     }
 
-    if (!currentFollowStatus || currentFollowStatus !== InteractionTypeDictionary.getOppositeFollowActivityTypeId(activityTypeId)) {
+    if (!currentFollowStatus || currentFollowStatus !== InteractionTypesDictionary.getOppositeFollowActivityTypeId(activityTypeId)) {
       throw new BadRequestError({
         general: 'It is not possible to unfollow before follow',
       },                        status('400'));
-    }
-  }
-
-  /**
-   * Remove this after signing transactions on frontend
-   *
-   * @param   {Object} body
-   * @param   {Object} currentUser
-   * @param   {number} orgId
-   * @param   {number} activityTypeId
-   * @return  {Promise<void>}
-   * @private
-   */
-  private static async addSignedTransactionsForOrganizationFollowing(body, currentUser, orgId, activityTypeId) {
-    if (body.signed_transaction) {
-      return;
-    }
-
-    const blockchainId = await organizationsRepositories.Main.findBlockchainIdById(orgId);
-    if (!blockchainId) {
-      throw new AppError(`There is no blockchainId for orgId: ${orgId}`);
-    }
-
-    if (activityTypeId === InteractionTypeDictionary.getFollowId()) {
-      body.signed_transaction = await TransactionFactory.getSignedUserFollowsOrg(
-        currentUser.account_name,
-        currentUser.private_key,
-        blockchainId,
-      );
-    } else {
-      body.signed_transaction = await TransactionFactory.getSignedUserUnfollowsOrg(
-        currentUser.account_name,
-        currentUser.private_key,
-        blockchainId,
-      );
     }
   }
 }

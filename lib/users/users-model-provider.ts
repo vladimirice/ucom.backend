@@ -16,14 +16,22 @@ const USERS_TEAM_TABLE_NAME               = 'users_team';
 const USERS_ACTIVITY_TABLE_NAME           = 'users_activity';
 const USERS_ACTIVITY_TRUST_TABLE_NAME     = 'users_activity_trust';
 const USERS_ACTIVITY_FOLLOW_TABLE_NAME    = 'users_activity_follow';
+const USERS_ACTIVITY_VOTE_TABLE_NAME      = 'users_activity_vote';
 const USERS_ACTIVITY_REFERRAL_TABLE_NAME  = 'affiliates.users_activity_referral';
 const USERS_SOURCES_TABLE_NAME            = 'users_sources';
+
+const USERS_ACTIVITY_EVENTS_VIEW_TABLE_NAME  = 'users_activity_events_view';
 
 const USERS_ENTITY_NAME = EntityNames.USERS; // in db there is a fixed char length of 10
 
 class UsersModelProvider {
   public static getCurrentParamsTableName(): string {
     return 'users_current_params';
+  }
+
+  // legacy comments activity table
+  public static getActivityUserCommentTableName(): string {
+    return 'activity_user_comment';
   }
 
   public static getForeignKeyField(): string {
@@ -80,6 +88,14 @@ class UsersModelProvider {
 
   public static getUsersActivityFollowTableName(): string {
     return USERS_ACTIVITY_FOLLOW_TABLE_NAME;
+  }
+
+  public static getUsersActivityVoteTableName(): string {
+    return USERS_ACTIVITY_VOTE_TABLE_NAME;
+  }
+
+  public static getUsersActivityEventsViewTableName(): string {
+    return USERS_ACTIVITY_EVENTS_VIEW_TABLE_NAME;
   }
 
   /**

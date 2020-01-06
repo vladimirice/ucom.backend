@@ -28,7 +28,7 @@ class StreamsCreatorService {
         user_id:      oneUser.id,
         account_name: oneUser.account_name,
         offer_id:     offer.id,
-        landing_url: `${config.servers.frontend}/registration`,
+        landing_url: `${config.servers.frontend}/ambassador/${oneUser.account_name}`,
         redirect_url: offer.redirect_url_template.replace('{account_name}', oneUser.account_name),
       });
 

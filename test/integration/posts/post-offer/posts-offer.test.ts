@@ -1,8 +1,7 @@
 import RequestHelper = require('../../helpers/request-helper');
 
-export {};
-
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 const expect = require('expect');
 
@@ -67,15 +66,15 @@ describe('Posts API', () => {
 
     responseHelper.expectStatusOk(res);
 
-    const body = res.body;
+    const { body } = res;
 
-    expect(body['action_button_title']).toBeDefined();
-    expect(body['post_offer']).not.toBeDefined();
+    expect(body.action_button_title).toBeDefined();
+    expect(body.post_offer).not.toBeDefined();
 
-    expect(body['post_users_team']).toBeDefined();
+    expect(body.post_users_team).toBeDefined();
 
-    body['post_users_team'].forEach((data) => {
-      expect(data['account_name']).toBeDefined();
+    body.post_users_team.forEach((data) => {
+      expect(data.account_name).toBeDefined();
     });
 
     // #task
@@ -89,9 +88,11 @@ describe('Posts API', () => {
 
   it('Not possible to create post without token', async () => {
     const res = await request(server)
-        .post(postOfferUrl)
+      .post(postOfferUrl)
     ;
 
     responseHelper.expectStatusUnauthorized(res);
   });
 });
+
+export {};

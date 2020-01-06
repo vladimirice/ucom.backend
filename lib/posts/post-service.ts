@@ -1,35 +1,26 @@
-/* eslint-disable max-len */
-/* tslint:disable:max-line-length no-parameter-reassignment */
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
 import { PostModelResponse } from './interfaces/model-interfaces';
+import { UserModel } from '../users/interfaces/model-interfaces';
+import { IRequestBody } from '../common/interfaces/common-types';
 
 import PostsFetchService = require('./service/posts-fetch-service');
 import PostCreatorService = require('./service/post-creator-service');
 import UserActivityService = require('../users/user-activity-service');
 import PostsRepository = require('./posts-repository');
 import EntityImageInputService = require('../entity-images/service/entity-image-input-service');
-import { UserModel } from '../users/interfaces/model-interfaces';
+import PostToEventIdService = require('./service/post-to-event-id-service');
+import UsersModelProvider = require('../users/users-model-provider');
+import UsersRepository = require('../users/users-repository');
+import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
+import OrganizationsRepository = require('../organizations/repository/organizations-repository');
+import PostStatsRepository = require('./stats/post-stats-repository');
+import PostOfferRepository = require('./repository/post-offer-repository');
 
 const _ = require('lodash');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
-const postsRepository = require('./posts-repository');
-const postStatsRepository = require('./stats/post-stats-repository');
-
-const postsOffersRepository = require('./repository').PostOffer;
 const models = require('../../models');
 
 const { BadRequestError } = require('../../lib/api/errors');
-
-const usersRepositories = require('../users/repository');
-
-const organizationsModelProvider = require('../organizations/service/organizations-model-provider');
-
-const organizationRepositories = require('../organizations/repository');
-const usersModelProvider = require('../users/service').ModelProvider;
-
-const eventIdDictionary = require('../entities/dictionary').EventId;
-
-const eosTransactionService = require('../eos/eos-transaction-service');
 
 /**
  * Post Creation functions should be placed in PostCreatorService
@@ -42,7 +33,7 @@ class PostService {
    * @returns {Promise<Object>}
    */
   static async findPostStatsById(postId, raw = true) {
-    return postStatsRepository.findOneByPostId(postId, raw);
+    return PostStatsRepository.findOneByPostId(postId, raw);
   }
 
   /**
@@ -73,16 +64,21 @@ class PostService {
     await this.updateRelations(postId, deltas, 'post_users_team', transaction);
   }
 
-  public static async updateAuthorPost(postId, userId, params, currentUser: UserModel) {
+  public static async updateAuthorPost(
+    postId: number,
+    userId: number,
+    body: IRequestBody,
+    currentUser: UserModel,
+  ) {
     const currentUserId = currentUser.id;
 
     // #task #refactor - use pick and wrap into transaction
-    delete params.id;
-    delete params.user_id;
-    delete params.current_rate;
-    delete params.current_vote;
+    delete body.id;
+    delete body.user_id;
+    delete body.current_rate;
+    delete body.current_vote;
 
-    // noinspection JSDeprecatedSymbols
+    const signedTransaction = body.signed_transaction || '';
 
     // #task #optimization
     const postToUpdate = await models.posts.findOne({
@@ -93,22 +89,22 @@ class PostService {
 
     PostService.checkPostUpdatingConditions(postToUpdate, currentUserId);
 
-    if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeMediaPost()) {
+    if (postToUpdate.post_type_id === ContentTypesDictionary.getTypeMediaPost()) {
       // noinspection AssignmentToFunctionParameterJS
       // noinspection JSValidateTypes
-      params = _.pick(params, ['post_type_id', 'title', 'description', 'leading_text', 'entity_images']);
+      body = _.pick(body, ['post_type_id', 'title', 'description', 'leading_text', 'entity_images', 'signed_transaction']);
     }
 
     const { updatedPost, newActivity } = await models.sequelize.transaction(async (transaction) => {
-      if (postToUpdate.post_type_id === ContentTypeDictionary.getTypeOffer() && params.post_users_team) {
-        await PostService.updatePostUsersTeam(postId, params, transaction);
+      if (postToUpdate.post_type_id === ContentTypesDictionary.getTypeOffer() && body.post_users_team) {
+        await PostService.updatePostUsersTeam(postId, body, transaction);
       }
 
       // #refactor
-      const updatePostParams = _.cloneDeep(params);
+      const updatePostParams = _.cloneDeep(body);
       delete updatePostParams.entity_images;
 
-      EntityImageInputService.addEntityImageFieldFromBodyOrException(updatePostParams, params);
+      EntityImageInputService.addEntityImageFieldFromBodyOrException(updatePostParams, body);
 
       await models.posts.update(updatePostParams, {
         transaction,
@@ -122,8 +118,8 @@ class PostService {
 
       const updated = await PostsRepository.findOnlyPostItselfById(postId, transaction);
 
-      if (updated.post_type_id === ContentTypeDictionary.getTypeOffer()) {
-        await models.post_offer.update(params, {
+      if (updated.post_type_id === ContentTypesDictionary.getTypeOffer()) {
+        await models.post_offer.update(body, {
           transaction,
           where: {
             post_id: postId,
@@ -131,10 +127,14 @@ class PostService {
         });
       }
 
+      const eventId: number | null = PostToEventIdService.getUpdatingEventIdByPost(updated);
+
       const activity = await UserActivityService.processPostIsUpdated(
         updated,
         currentUserId,
+        eventId,
         transaction,
+        signedTransaction,
       );
 
       return {
@@ -143,7 +143,7 @@ class PostService {
       };
     });
 
-    await UserActivityService.sendContentUpdatingPayloadToRabbit(newActivity);
+    await UserActivityService.sendContentUpdatingPayloadToRabbitWithSuppressEmpty(newActivity);
 
     if (PostService.isDirectPost(updatedPost)) {
       return PostsFetchService.findOnePostByIdAndProcess(updatedPost.id, currentUser.id);
@@ -158,35 +158,27 @@ class PostService {
    * @return {boolean}
    */
   static isDirectPost(post) {
-    return post.post_type_id === ContentTypeDictionary.getTypeDirectPost();
+    return post.post_type_id === ContentTypesDictionary.getTypeDirectPost();
   }
-
 
   public static async processNewDirectPostCreationForUser(req, currentUser: UserModel) {
     const userIdTo = req.user_id;
     delete req.user_id;
 
-    if (+req.body.post_type_id !== ContentTypeDictionary.getTypeDirectPost()) {
+    if (+req.body.post_type_id !== ContentTypesDictionary.getTypeDirectPost()) {
       throw new BadRequestError({
-        general: `Direct post is allowed only for post type ID ${ContentTypeDictionary.getTypeDirectPost()}`,
+        general: `Direct post is allowed only for post type ID ${ContentTypesDictionary.getTypeDirectPost()}`,
       });
     }
 
-    // noinspection JSUnusedGlobalSymbols
     req.body.entity_id_for    = userIdTo;
-    req.body.entity_name_for  = usersModelProvider.getEntityName();
-    const eventId = eventIdDictionary.getUserCreatesDirectPostForOtherUser();
+    req.body.entity_name_for  = UsersModelProvider.getEntityName();
+    const eventId = EventsIdsDictionary.userCreatesDirectPostForOtherUser();
 
-    const accountNameTo = await usersRepositories.Main.findAccountNameById(userIdTo);
+    const accountNameTo = await UsersRepository.findAccountNameById(userIdTo);
     if (!accountNameTo) {
       throw new Error(`There is no account name for userIdTo: ${userIdTo}. Body is: ${JSON.stringify(req.body, null, 2)}`);
     }
-
-    await eosTransactionService.appendSignedUserCreatesDirectPostForOtherUser(
-      req.body,
-      currentUser,
-      accountNameTo,
-    );
 
     return PostCreatorService.processNewPostCreation(req, eventId, currentUser);
   }
@@ -195,27 +187,21 @@ class PostService {
     const orgIdTo = req.organization_id;
     delete req.organization_id;
 
-    if (+req.body.post_type_id !== ContentTypeDictionary.getTypeDirectPost()) {
+    if (+req.body.post_type_id !== ContentTypesDictionary.getTypeDirectPost()) {
       throw new BadRequestError({
-        general: `Direct post is allowed only for post type ID ${ContentTypeDictionary.getTypeDirectPost()}`,
+        general: `Direct post is allowed only for post type ID ${ContentTypesDictionary.getTypeDirectPost()}`,
       });
     }
 
     req.body.entity_id_for    = orgIdTo;
-    req.body.entity_name_for  = organizationsModelProvider.getEntityName();
+    req.body.entity_name_for  = OrganizationsModelProvider.getEntityName();
 
-    const eventId = eventIdDictionary.getUserCreatesDirectPostForOrg();
+    const eventId = EventsIdsDictionary.getUserCreatesDirectPostForOrg();
 
-    const orgBlockchainId = await organizationRepositories.Main.findBlockchainIdById(orgIdTo);
+    const orgBlockchainId = await OrganizationsRepository.findBlockchainIdById(orgIdTo);
     if (!orgBlockchainId) {
       throw new Error(`There is no blockchain ID for orgIdTo: ${orgIdTo}. Body is: ${JSON.stringify(req.body, null, 2)}`);
     }
-
-    await eosTransactionService.appendSignedUserCreatesDirectPostForOrg(
-      req.body,
-      currentUser,
-      orgBlockchainId,
-    );
 
     return PostCreatorService.processNewPostCreation(req, eventId, currentUser);
   }
@@ -228,15 +214,15 @@ class PostService {
   }
 
   static async findLastPostOfferByAuthor(userId: number) {
-    return postsOffersRepository.findLastByAuthor(userId);
+    return PostOfferRepository.findLastByAuthor(userId);
   }
 
   static async findLastMediaPostByAuthor(userId: number) {
-    return postsRepository.findLastByAuthor(userId);
+    return PostsRepository.findLastByAuthor(userId);
   }
 
   static async findLastPostOffer() {
-    return postsOffersRepository.findLast();
+    return PostOfferRepository.findLast();
   }
 
   // @ts-ignore
@@ -245,7 +231,7 @@ class PostService {
       return;
     }
     // #task Fetch all at once by JOIN
-    model.organization = await organizationRepositories.Main.findOneByIdForPreview(model.organization_id);
+    model.organization = await OrganizationsRepository.findOneByIdForPreview(model.organization_id);
   }
 
   /**
@@ -285,10 +271,10 @@ class PostService {
   }
 
   static getDelta(source, updated) {
-    const added = updated.filter(updatedItem => source.find(sourceItem => sourceItem.id === updatedItem.id) === undefined);
+    const added = updated.filter((updatedItem) => source.find((sourceItem) => sourceItem.id === updatedItem.id) === undefined);
 
     const deleted = source.filter(
-      sourceItem => updated.find(updatedItem => updatedItem.id === sourceItem.id) === undefined,
+      (sourceItem) => updated.find((updatedItem) => updatedItem.id === sourceItem.id) === undefined,
     );
 
     return {
@@ -299,7 +285,7 @@ class PostService {
 
   private static checkPostUpdatingConditions(postToUpdate, currentUserId: number) {
     const unableToEdit = [
-      ContentTypeDictionary.getTypeRepost(),
+      ContentTypesDictionary.getTypeRepost(),
     ];
 
     if (~unableToEdit.indexOf(postToUpdate.post_type_id)) {

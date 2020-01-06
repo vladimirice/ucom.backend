@@ -36,7 +36,10 @@ const server = new ApolloServer({
 
     if (originalError && originalError instanceof BadRequestError) {
       error = new UserInputError(originalError.message);
-    } else if (originalError && originalError.status === 401) {
+    } else if (
+      originalError
+      // @ts-ignore
+      && originalError.status === 401) {
       error = new AuthenticationError(originalError.message, 401);
     } else if (originalError && originalError.name === 'JsonWebTokenError') {
       error = new AuthenticationError('Invalid token', 401);

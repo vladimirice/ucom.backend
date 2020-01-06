@@ -5,6 +5,9 @@ import { ModelWithEntityImages } from '../../entity-images/interfaces/model-inte
 interface OrgModel extends ModelWithEntityImages {
   readonly id: number;
   readonly current_vote: number;
+  readonly organization_type_id: number;
+  readonly user_id: number;
+  readonly blockchain_id: string;
 
   [index: string]: any;
 }

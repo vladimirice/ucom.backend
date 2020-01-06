@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 class AppError extends Error {
   public status;
 
@@ -96,10 +97,19 @@ function formatJoiErrorMessages(errors) {
   return result;
 }
 
+function getErrorMessagePair(field: string, message: string) {
+  return [{
+    field,
+    message,
+  }];
+}
+
 export {
   AppError,
   BadRequestError,
   HttpForbiddenError,
   HttpUnauthorizedError,
   JoiBadRequestError,
+
+  getErrorMessagePair,
 };

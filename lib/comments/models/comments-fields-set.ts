@@ -32,6 +32,12 @@ const fieldsSet: IModelFieldsSet = {
       sanitizationType: 'any',
     },
   },
+  blockchain_id: {
+    type: 'string',
+    request: {
+      sanitizationType: 'any',
+    },
+  },
 
   // Not editable by a user request
   id: {
@@ -45,9 +51,6 @@ const fieldsSet: IModelFieldsSet = {
   },
   blockchain_status: { // @deprecated
     type: 'number',
-  },
-  blockchain_id: {
-    type: 'string',
   },
   created_at: {
     type: 'datetime',

@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
-import { DbParamsDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
+import { EntityNames } from 'ucom.libs.common';
+import { DbParamsDto, RequestQueryDto } from '../../../lib/api/filters/interfaces/query-filter-interfaces';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 
@@ -13,9 +14,9 @@ import OrganizationsRepository = require('../../../lib/organizations/repository/
 import CommonHelper = require('../helpers/common-helper');
 import PostsGenerator = require('../../generators/posts-generator');
 import EntityResponseState = require('../../../lib/common/dictionary/EntityResponseState');
-
-const organizationsRepositories = require('../../../lib/organizations/repository');
-const orgRepository             = require('../../../lib/organizations/repository').Main;
+import knex = require('../../../config/knex');
+import UsersModelProvider = require('../../../lib/users/users-model-provider');
+import CommonChecker = require('../../helpers/common/common-checker');
 
 let userVlad: UserModel;
 let userJane: UserModel;
@@ -46,7 +47,7 @@ describe('Organizations. Get requests', () => {
 
         expect(organizations).toBeDefined();
 
-        const expectedModels = await organizationsRepositories.Main.findAllAvailableForUser(userId);
+        const expectedModels = await OrganizationsRepository.findAllAvailableForUser(userId);
         expect(organizations.length).toBe(expectedModels.length);
 
         organizations.forEach((org) => {
@@ -58,7 +59,7 @@ describe('Organizations. Get requests', () => {
         });
 
         expectedModels.forEach((expected) => {
-          expect(organizations.some(org => org.id === expected.id)).toBeTruthy();
+          expect(organizations.some((org) => org.id === expected.id)).toBeTruthy();
         });
 
         OrganizationsHelper.checkIncludedOrganizationPreview(model);
@@ -77,7 +78,7 @@ describe('Organizations. Get requests', () => {
         const model = await UsersHelper.requestToGetUserAsGuest(userVlad.id);
         const { organizations } = model;
 
-        expect(organizations.some(org => org.id === orgId)).toBeFalsy();
+        expect(organizations.some((org) => org.id === orgId)).toBeFalsy();
       });
 
       it.skip('should NOT contain organizations which invitation you declined', () => {
@@ -122,8 +123,8 @@ describe('Organizations. Get requests', () => {
         const queryString = 'sort_by=current_rate,-id';
         const orgs = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest(queryString);
 
-        const minPostId = await orgRepository.findMinOrgIdByParameter('current_rate');
-        const maxOrgId = await orgRepository.findMaxOrgIdByParameter('current_rate');
+        const minPostId = await OrganizationsRepository.findMinOrgIdByParameter('current_rate');
+        const maxOrgId = await OrganizationsRepository.findMaxOrgIdByParameter('current_rate');
 
         expect(orgs[orgs.length - 1].id).toBe(maxOrgId);
         expect(orgs[0].id).toBe(minPostId);
@@ -133,8 +134,8 @@ describe('Organizations. Get requests', () => {
         const queryString = 'sort_by=title,-id';
         const models = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest(queryString);
 
-        const minId = await orgRepository.findMinOrgIdByParameter('title');
-        const maxId = await orgRepository.findMaxOrgIdByParameter('title');
+        const minId = await OrganizationsRepository.findMinOrgIdByParameter('title');
+        const maxId = await OrganizationsRepository.findMaxOrgIdByParameter('title');
 
         expect(models[models.length - 1].id).toBe(maxId);
         expect(models[0].id).toBe(minId);
@@ -144,8 +145,8 @@ describe('Organizations. Get requests', () => {
         const queryString = 'sort_by=-title,-id';
         const models = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest(queryString);
 
-        const minId = await orgRepository.findMinOrgIdByParameter('title');
-        const maxId = await orgRepository.findMaxOrgIdByParameter('title');
+        const minId = await OrganizationsRepository.findMinOrgIdByParameter('title');
+        const maxId = await OrganizationsRepository.findMaxOrgIdByParameter('title');
 
         expect(models[models.length - 1].id).toBe(minId);
         expect(models[0].id).toBe(maxId);
@@ -160,7 +161,7 @@ describe('Organizations. Get requests', () => {
 
         const { metadata } = response;
 
-        const totalAmount = await orgRepository.countAllOrganizations();
+        const totalAmount = await OrganizationsRepository.countAllOrganizations();
 
         expect(metadata).toBeDefined();
         expect(metadata.has_more).toBeTruthy();
@@ -189,7 +190,9 @@ describe('Organizations. Get requests', () => {
           ],
         };
 
-        const posts = await OrganizationsRepository.findAllOrgForList(params);
+        // #task - this is a legacy related to wrong params concept
+        const requestQuery = {};
+        const posts = await OrganizationsRepository.findAllOrgForList(<RequestQueryDto>requestQuery, params);
         // noinspection JSDeprecatedSymbols
         const firstPage = await OrganizationsHelper.requestAllOrgsWithPagination(page, perPage, true);
 
@@ -233,7 +236,7 @@ describe('Organizations. Get requests', () => {
     });
 
     it('Get organization lists without query string', async () => {
-      const totalCount = await organizationsRepositories.Main.countAllOrganizations();
+      const totalCount = await OrganizationsRepository.countAllOrganizations();
       const organizations = await OrganizationsHelper.requestToGetManyOrganizationsAsGuest();
 
       expect(organizations).toBeDefined();
@@ -255,6 +258,47 @@ describe('Organizations. Get requests', () => {
     });
     beforeEach(async ()  => {
       [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutineMockAccountsProperties();
+    });
+
+    describe('One organization views', () => {
+      let organizationId: number;
+      beforeEach(async () => {
+        organizationId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
+      });
+
+      it('should create a new record inside users activity views - from logged user', async () => {
+        await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, organizationId);
+
+        const record = await knex(UsersModelProvider.getUsersActivityEventsViewTableName())
+          .where({
+            user_id:      userVlad.id,
+            entity_id:    organizationId,
+            entity_name:  EntityNames.ORGANIZATIONS,
+          });
+
+        CommonChecker.expectNotEmpty(record);
+      }, JEST_TIMEOUT);
+
+      it('should create a new record inside users activity views - from guest', async () => {
+        await OrganizationsHelper.requestToGetOneOrganizationAsGuest(organizationId);
+
+        const record = await knex(UsersModelProvider.getUsersActivityEventsViewTableName())
+          .where({
+            user_id:      null,
+            entity_id:    organizationId,
+            entity_name:  EntityNames.ORGANIZATIONS,
+          });
+
+        CommonChecker.expectNotEmpty(record);
+      }, JEST_TIMEOUT);
+
+      it('should contain number of views - both for logged views and guest views', async () => {
+        await OrganizationsHelper.requestToGetOneOrganizationAsGuest(organizationId);
+        const organization = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, organizationId);
+
+        expect(organization.views_count).toBeDefined();
+        expect(organization.views_count).toBe(2);
+      });
     });
 
     it('Get one organization by ID as guest', async () => {
@@ -351,7 +395,7 @@ describe('Organizations. Get requests', () => {
   it('should contain myselfData editable true and member true if author request his organization', async () => {
     const user = userVlad;
 
-    const modelId = await organizationsRepositories.Main.findLastIdByAuthor(user.id);
+    const modelId = await OrganizationsRepository.findLastIdByAuthor(user.id);
     const model = await OrganizationsHelper.requestToGetOneOrganizationAsMyself(user, modelId);
 
     expect(model.myselfData.editable).toBeTruthy();
@@ -385,9 +429,9 @@ describe('Organizations. Get requests', () => {
           await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userVlad, orgId);
 
       const usersTeam = model.users_team;
-      expect(usersTeam.some(user => user.id === userVlad.id
+      expect(usersTeam.some((user) => user.id === userVlad.id
           && user.users_team_status === 1)).toBeFalsy();
-      expect(usersTeam.some(user => user.id === userPetr.id)).toBeTruthy();
+      expect(usersTeam.some((user) => user.id === userPetr.id)).toBeTruthy();
     });
 
     // tslint:disable-next-line:max-line-length
@@ -412,7 +456,7 @@ describe('Organizations. Get requests', () => {
     });
 
     it('should contain myselfData editable false if request not from author', async () => {
-      const modelId = await organizationsRepositories.Main.findLastIdByAuthor(userVlad.id);
+      const modelId = await OrganizationsRepository.findLastIdByAuthor(userVlad.id);
       const model =
           await OrganizationsHelper.requestToGetOneOrganizationAsMyself(userJane, modelId);
 

@@ -1,3 +1,4 @@
+import { Transaction } from 'knex';
 import { ApiLogger } from '../../../config/winston';
 
 import UsersModelProvider = require('../users-model-provider');
@@ -24,12 +25,17 @@ class UsersCurrentParamsRepository {
     return data;
   }
 
-  public static async insertRowForNewEntity(entityId: number): Promise<void> {
+  public static async insertRowForNewEntity(
+    entityId: number,
+    transaction: Transaction | null,
+  ): Promise<void> {
     const data = {
       [foreignKeyField]: entityId,
     };
 
-    await knex(TABLE_NAME).insert(data);
+    const queryBuilderObject = transaction || knex;
+
+    await queryBuilderObject(TABLE_NAME).insert(data);
   }
 
   public static getNumericalFields(): string[] {

@@ -1,7 +1,8 @@
 /* eslint-disable no-console */
-import ConsoleHelper = require('./console-helper');
 import { WorkerLogger } from '../../../config/winston';
 import { TotalParametersResponse } from '../interfaces/response-interfaces';
+
+import ConsoleHelper = require('./console-helper');
 
 class MeasurementHelper {
   private startPoint;

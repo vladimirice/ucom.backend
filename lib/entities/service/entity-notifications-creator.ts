@@ -1,3 +1,5 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
+
 const superagent = require('superagent');
 
 const config    = require('config');
@@ -11,7 +13,6 @@ const activityToNotificationRepository  = require('../../users/repository').Acti
 const usersActivityRepository           = require('../../users/repository').Activity;
 
 const apiPostProcessor = require('../../common/service').PostProcessor;
-const eventIdDictionary = require('../../../lib/entities/dictionary').EventId;
 
 class EntityNotificationsCreator {
   /**
@@ -343,45 +344,45 @@ class EntityNotificationsCreator {
   private static getExecutor(eventId) {
     const eventExecutors = {
       // mention
-      [eventIdDictionary.getUserHasMentionedYouInPost()]:         this.userMentionsYouInsidePost,
-      [eventIdDictionary.getUserHasMentionedYouInComment()]:      this.userMentionsYouInsideComment,
+      [EventsIdsDictionary.getUserHasMentionedYouInPost()]:         this.userMentionsYouInsidePost,
+      [EventsIdsDictionary.getUserHasMentionedYouInComment()]:      this.userMentionsYouInsideComment,
 
       // Following
-      [eventIdDictionary.getUserFollowsYou()]:                    this.userFollowsOtherUser,
-      [eventIdDictionary.getUserFollowsOrg()]:                    this.userFollowsOrg,
+      [EventsIdsDictionary.getUserFollowsYou()]:                    this.userFollowsOtherUser,
+      [EventsIdsDictionary.getUserFollowsOrg()]:                    this.userFollowsOrg,
 
       // Trust
-      [eventIdDictionary.getUserTrustsYou()]:                    this.userTrustsOtherUser,
+      [EventsIdsDictionary.getUserTrustsYou()]:                    this.userTrustsOtherUser,
 
       // Commenting
-      [eventIdDictionary.getUserCommentsOrgPost()]:               this.processUserCommentsOrgPost,
-      [eventIdDictionary.getUserCommentsOrgComment()]:            this.processUserCommentsOrgComment,
-      [eventIdDictionary.getUserCommentsPost()]:                  this.userCreatesCommentForPost,
-      [eventIdDictionary.getUserCommentsComment()]:               this.userCreatesCommentForComment,
+      [EventsIdsDictionary.getUserCommentsOrgPost()]:               this.processUserCommentsOrgPost,
+      [EventsIdsDictionary.getUserCommentsOrgComment()]:            this.processUserCommentsOrgComment,
+      [EventsIdsDictionary.getUserCommentsPost()]:                  this.userCreatesCommentForPost,
+      [EventsIdsDictionary.getUserCommentsComment()]:               this.userCreatesCommentForComment,
 
       // Posting
-      [eventIdDictionary.getUserCreatesDirectPostForOtherUser()]: this.userCreatesDirectPostForOtherUser,
-      [eventIdDictionary.getUserCreatesDirectPostForOrg()]:       this.userCreatesDirectPostForOrg,
+      [EventsIdsDictionary.userCreatesDirectPostForOtherUser()]:    this.userCreatesDirectPostForOtherUser,
+      [EventsIdsDictionary.getUserCreatesDirectPostForOrg()]:       this.userCreatesDirectPostForOrg,
 
       // Invitations
-      [eventIdDictionary.getOrgUsersTeamInvitation()]:            this.createOrgBoardInvitation,
+      [EventsIdsDictionary.getOrgUsersTeamInvitation()]:            this.createOrgBoardInvitation,
 
       // Voting
-      [eventIdDictionary.getUserUpvotesPostOfOtherUser()]:        this.userVotesPostOfOtherUser,
-      [eventIdDictionary.getUserDownvotesPostOfOtherUser()]:      this.userVotesPostOfOtherUser,
+      [EventsIdsDictionary.getUserUpvotesPostOfOtherUser()]:        this.userVotesPostOfOtherUser,
+      [EventsIdsDictionary.getUserDownvotesPostOfOtherUser()]:      this.userVotesPostOfOtherUser,
 
-      [eventIdDictionary.getUserUpvotesPostOfOrg()]:              this.userVotesPostOfOrg,
-      [eventIdDictionary.getUserDownvotesPostOfOrg()]:            this.userVotesPostOfOrg,
+      [EventsIdsDictionary.getUserUpvotesPostOfOrg()]:              this.userVotesPostOfOrg,
+      [EventsIdsDictionary.getUserDownvotesPostOfOrg()]:            this.userVotesPostOfOrg,
 
-      [eventIdDictionary.getUserUpvotesCommentOfOtherUser()]:     this.userVotesCommentOfOtherUser,
-      [eventIdDictionary.getUserDownvotesCommentOfOtherUser()]:   this.userVotesCommentOfOtherUser,
+      [EventsIdsDictionary.getUserUpvotesCommentOfOtherUser()]:     this.userVotesCommentOfOtherUser,
+      [EventsIdsDictionary.getUserDownvotesCommentOfOtherUser()]:   this.userVotesCommentOfOtherUser,
 
-      [eventIdDictionary.getUserUpvotesCommentOfOrg()]:           this.userVotesCommentOfOrg,
-      [eventIdDictionary.getUserDownvotesCommentOfOrg()]:         this.userVotesCommentOfOrg,
+      [EventsIdsDictionary.getUserUpvotesCommentOfOrg()]:           this.userVotesCommentOfOrg,
+      [EventsIdsDictionary.getUserDownvotesCommentOfOrg()]:         this.userVotesCommentOfOrg,
 
       // Repost
-      [eventIdDictionary.getUserRepostsOtherUserPost()]:          this.userRepostsOtherUserPost,
-      [eventIdDictionary.getUserRepostsOrgPost()]:                this.userRepostsOrgPost,
+      [EventsIdsDictionary.getUserRepostsOtherUserPost()]:          this.userRepostsOtherUserPost,
+      [EventsIdsDictionary.getUserRepostsOrgPost()]:                this.userRepostsOrgPost,
 
     };
 

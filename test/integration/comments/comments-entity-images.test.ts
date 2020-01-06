@@ -12,7 +12,7 @@ import RequestHelper = require('../helpers/request-helper');
 let userVlad: UserModel;
 let userJane: UserModel;
 
-const JEST_TIMEOUT = 5000;
+const JEST_TIMEOUT = 15000;
 
 const beforeAfterOptions = {
   isGraphQl: false,
@@ -145,6 +145,8 @@ describe('Comments entity images', () => {
 
       const fields = {
         description: 'sample description',
+        signed_transaction: 'signed_transaction',
+        blockchain_id: 'blockchain_id',
         'entity_images[article_title][0][url]': 'https://example.com',
       };
 

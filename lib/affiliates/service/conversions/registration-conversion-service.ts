@@ -1,23 +1,24 @@
 import { injectable } from 'inversify';
 import { Request } from 'express';
+import { transaction } from 'objection';
+import { Transaction } from 'knex';
+import { ApiLogger } from '../../../../config/winston';
+import { UserModel } from '../../../users/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../../common/interfaces/common-types';
+import { BadRequestError, JoiBadRequestError } from '../../../api/errors';
+
 import AffiliateUniqueIdService = require('../affiliate-unique-id-service');
 import AffiliatesActionsValidator = require('../../validators/affiliates-actions-validator');
-import { ApiLogger } from '../../../../config/winston';
 import OffersModel = require('../../models/offers-model');
 import OffersRepository = require('../../repository/offers-repository');
 import ConversionsModel = require('../../models/conversions-model');
-import { transaction } from 'objection';
 import UsersActivityRepository = require('../../../users/repository/users-activity-repository');
-import { Transaction } from 'knex';
 import ActivityGroupDictionary = require('../../../activity/activity-group-dictionary');
-import { UserModel } from '../../../users/interfaces/model-interfaces';
 import UsersModelProvider = require('../../../users/users-model-provider');
 import ClicksModel = require('../../models/clicks-model');
 import StreamsModel = require('../../models/streams-model');
 import ProcessStatusesDictionary = require('../../../common/dictionary/process-statuses-dictionary');
-import { StringToAnyCollection } from '../../../common/interfaces/common-types';
 import UnprocessableEntityError = require('../../errors/unprocessable-entity-error');
-import { BadRequestError, JoiBadRequestError } from '../../../api/errors';
 import UserActivitySerializer = require('../../../users/job/user-activity-serializer');
 import ActivityProducer = require('../../../jobs/activity-producer');
 
@@ -102,8 +103,9 @@ class RegistrationConversionService {
     await ActivityProducer.publishWithUserActivity(job);
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private getUniqueIdAndAffiliatesAction(
-    request: Request
+    request: Request,
   ): { uniqueId: string, affiliatesAction: IAffiliatesAction } {
     const uniqueId: string | null =
       AffiliateUniqueIdService.extractUniqueIdFromRequestOrNull(request);
@@ -122,9 +124,10 @@ class RegistrationConversionService {
     return {
       uniqueId,
       affiliatesAction: body,
-    }
+    };
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private async createReferralActivity(
     signedTransaction: string,
     newUserId: number,
@@ -154,6 +157,7 @@ class RegistrationConversionService {
   /**
    * It is forbidden to interrupt a registration because of a referral errors. But we must know about errors
    */
+  // eslint-disable-next-line class-methods-use-this
   private processReferralError(
     whatIsWrong: string,
     uniqueId: string,

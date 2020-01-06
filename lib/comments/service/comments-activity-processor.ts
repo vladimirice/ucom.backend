@@ -1,17 +1,13 @@
+/* eslint-disable no-console */
 import { ActivityWithContentEntity } from '../../users/interfaces/dto-interfaces';
 
-const mentionsProcessor       = require('../../mentions/service/mentions-processor-service');
-
-const usersActivityRepository = require('../../users/repository/users-activity-repository');
+import UsersActivityRepository = require('../../users/repository/users-activity-repository');
+import MentionsProcessorService = require('../../mentions/service/mentions-processor-service');
 
 class CommentsActivityProcessor {
-  /**
-   *
-   * @param {number} activityId
-   */
-  static async processOneActivity(activityId: number) {
+  public static async processOneActivity(activityId: number): Promise<void> {
     const activity: ActivityWithContentEntity | null =
-      await usersActivityRepository.findOneWithCommentById(activityId);
+      await UsersActivityRepository.findOneWithCommentById(activityId);
 
     if (!activity) {
       console.log(
@@ -22,7 +18,7 @@ class CommentsActivityProcessor {
       return;
     }
 
-    await mentionsProcessor.processMentions(activity);
+    await MentionsProcessorService.processMentions(activity);
   }
 }
 

@@ -10,8 +10,8 @@ class CloseHandlersHelper {
   public static async closeDbConnections() {
     this.closeSequelizeAndKnex();
 
-    await this.terminateConnections(config.db_knex_monolith.connection);
-    await this.terminateConnections(config.db_knex_events.connection);
+    await this.terminateConnections(config.db_knex_monolith.connection, 'uos_backend_app');
+    await this.terminateConnections(config.db_knex_events.connection, 'uos_backend_events');
   }
 
   public static async closeSequelizeAndKnex() {
@@ -23,7 +23,7 @@ class CloseHandlersHelper {
     ]);
   }
 
-  private static async terminateConnections(pgConfigSection) {
+  private static async terminateConnections(pgConfigSection, datname: string) {
     const pgConfig = _.pick(pgConfigSection, ['user', 'host', 'database', 'password']);
 
     const client = new Client(pgConfig);
@@ -32,7 +32,7 @@ class CloseHandlersHelper {
     const sql = `
       SELECT pg_terminate_backend(pg_stat_activity.pid)
         FROM pg_stat_activity
-      WHERE pg_stat_activity.datname = 'uos_backend_app' -- ← change this to your DB
+      WHERE pg_stat_activity.datname = '${datname}' -- ← change this to your DB
         AND pid <> pg_backend_pid();
     `;
 

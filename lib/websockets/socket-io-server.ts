@@ -16,16 +16,16 @@ class SocketIoServer {
     server.use((socket, next) => {
       if (socket.handshake.query && socket.handshake.query.token) {
         try {
-          const token = socket.handshake.query.token;
+          const { token } = socket.handshake.query;
           const userId = authService.extractCurrentUserIdByTokenOrError(token);
 
           socket.uos_app_user_id = userId;
 
           next();
-        } catch (err) {
+        } catch (error) {
           console.warn('An auth error is occurred');
 
-          next(err);
+          next(error);
         }
       } else {
         console.warn('Auth token is required');
@@ -34,7 +34,6 @@ class SocketIoServer {
     });
 
     server.on('connection', (socket) => {
-
       if (!userToSockets[socket.uos_app_user_id]) {
         userToSockets[socket.uos_app_user_id] = [];
       }
@@ -45,7 +44,6 @@ class SocketIoServer {
         const indexToDelete = userToSockets[socket.uos_app_user_id].indexOf(socket);
 
         delete userToSockets[socket.uos_app_user_id][indexToDelete];
-
       });
     });
   }
@@ -60,7 +58,6 @@ class SocketIoServer {
   static emitToUser(userId, eventName, payload) {
     const socketSet = userToSockets[userId];
     if (!socketSet) {
-
       return false;
     }
 

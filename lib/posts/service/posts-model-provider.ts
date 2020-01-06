@@ -46,7 +46,8 @@ class PostsModelProvider {
   }
 
   /**
-   *
+   * @deprecated
+   * should be generated on the frontend using wallet library
    * @return {string}
    */
   static getRepostBlockchainIdPrefix() {

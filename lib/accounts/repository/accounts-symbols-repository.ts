@@ -9,7 +9,7 @@ class AccountsSymbolsRepository {
   public static async findAllAccountsSymbols(): Promise<AccountsSymbolsModel[]> {
     return knex(TABLE_NAME);
   }
-  
+
   public static async findAllAccountsSymbolsIndexedByTitle(): Promise<StringToNumberCollection> {
     const data = await this.findAllAccountsSymbols();
 

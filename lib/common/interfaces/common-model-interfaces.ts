@@ -3,5 +3,5 @@ interface IModelDto {
 }
 
 export {
-  IModelDto
-}
+  IModelDto,
+};

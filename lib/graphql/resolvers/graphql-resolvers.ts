@@ -40,8 +40,13 @@ export const resolvers = {
       return BlockchainApiFetchService.getAndProcessNodes(query);
     },
 
-    // @ts-ignore
-    async many_tags(parent, args, ctx) {
+    async many_tags(
+      // @ts-ignore
+      parent,
+      args,
+      // @ts-ignore
+      ctx,
+    ) {
       const query: RequestQueryDto = {
         page: args.page,
         per_page: args.per_page,

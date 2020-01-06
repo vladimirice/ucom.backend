@@ -19,6 +19,9 @@ interface PostModel {
 
   readonly post?: PostModel; // for repost. Repost includes reposted post
 
+  readonly blockchain_id: string;
+  readonly created_at:    Date;
+
   [index: string]: any;
 }
 
@@ -39,9 +42,11 @@ interface PostModelMyselfResponse extends PostModelResponse {
 }
 
 interface PostRequestQueryDto extends RequestQueryDto {
-  readonly entity_state?: string;
-  readonly post_type_id?: number;
-  readonly created_at?: string;
+  readonly entity_state?: string,
+  readonly post_type_id?: number,
+  readonly created_at?: string,
+
+  readonly exclude_post_type_ids?: number[],
 }
 
 interface PostModelInput extends PostModelInterface, ModelWithEntityImages {

@@ -1,3 +1,5 @@
+/* eslint-disable unicorn/catch-error-name */
+// eslint-disable-next-line unicorn/filename-case
 import { BadRequestError, HttpUnauthorizedError } from '../api/errors';
 import { IdsFromTokensDto } from './interfaces/auth-interfaces-dto';
 

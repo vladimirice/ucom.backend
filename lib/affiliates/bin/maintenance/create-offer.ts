@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import OffersCreatorService = require('../../service/offers-creator-service');
 import DatetimeHelper = require('../../../common/helper/datetime-helper');
 import CloseHandlersHelper = require('../../../common/helper/close-handlers-helper');
@@ -5,7 +6,7 @@ import CloseHandlersHelper = require('../../../common/helper/close-handlers-help
 
 const yargs = require('yargs');
 
-const argv = yargs
+const { argv } = yargs
   .option('title', {
     describe: 'A title of offer',
     type: 'string',
@@ -28,14 +29,14 @@ const argv = yargs
   })
   .help()
   .alias('help', 'h')
-  .argv;
+  ;
 
 (async () => {
-  const title: string = argv.title;
-  const postId: number = argv.postId;
+  const { title } = argv;
+  const { postId } = argv;
 
-  const startedAt: string = argv.startedAt;
-  const finishedAt: string | null = argv.finishedAt;
+  const { startedAt } = argv;
+  const { finishedAt } = argv;
 
   try {
     const offer = await OffersCreatorService.createOfferForRegistration(

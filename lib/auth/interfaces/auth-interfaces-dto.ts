@@ -17,7 +17,14 @@ interface userExternalDataDto {
   external_id: number;
 }
 
+interface IPublicKeys {
+  owner: string,
+  active: string,
+  social: string,
+}
+
 export  {
+  IPublicKeys,
   IdsFromTokensDto,
   CurrentUserDataDto,
 

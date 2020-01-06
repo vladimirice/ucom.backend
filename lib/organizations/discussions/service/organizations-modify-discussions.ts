@@ -1,9 +1,9 @@
 import { BadRequestError } from '../../../api/errors';
+import { OrgModel } from '../../interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../../common/interfaces/common-types';
 
 import OrganizationsDiscussionsRepository = require('../repository/organizations-discussions-repository');
 import OrganizationsValidateDiscussions = require('./organizations-validate-discussions');
-import { OrgModel } from '../../interfaces/model-interfaces';
-import { StringToAnyCollection } from '../../../common/interfaces/common-types';
 
 class OrganizationsModifyDiscussions {
   public static async processNewDiscussionsState(

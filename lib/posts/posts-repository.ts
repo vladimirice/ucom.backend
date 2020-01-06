@@ -1,3 +1,5 @@
+import { Transaction } from 'knex';
+import { InteractionTypesDictionary, ContentTypesDictionary, EntityNames } from 'ucom.libs.common';
 import { PostWithTagCurrentRateDto } from '../tags/interfaces/dto-interfaces';
 import { EntityAggregatesDto, ModelWithEventParamsDto } from '../stats/interfaces/dto-interfaces';
 import {
@@ -6,15 +8,16 @@ import {
 } from '../api/filters/interfaces/query-filter-interfaces';
 import { PostRequestQueryDto } from './interfaces/model-interfaces';
 import { AppError, BadRequestError } from '../api/errors';
+import { StringToAnyCollection } from '../common/interfaces/common-types';
+
 
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
 import RepositoryHelper = require('../common/repository/repository-helper');
 import PostsModelProvider = require('./service/posts-model-provider');
 import EntityListCategoryDictionary = require('../stats/dictionary/entity-list-category-dictionary');
 
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 const _ = require('lodash');
-const { EntityNames } = require('ucom.libs.common').Common.Dictionary;
+const moment = require('moment');
 
 const models = require('../../models');
 
@@ -30,12 +33,14 @@ const { Op } = db.Sequelize;
 
 const orgModelProvider    = require('../organizations/service/organizations-model-provider');
 const postsModelProvider  = require('./service/posts-model-provider');
+
 const usersModelProvider  = require('../users/users-model-provider');
 
-const POST_TYPE__MEDIA_POST = ContentTypeDictionary.getTypeMediaPost();
-const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
+const POST_TYPE__MEDIA_POST = ContentTypesDictionary.getTypeMediaPost();
 
+const userPreviewAttributes = usersModelProvider.getUserFieldsForPreview();
 const postStatsRepository = require('./stats/post-stats-repository');
+
 const commentsRepository  = require('../comments/comments-repository');
 
 const TABLE_NAME = 'posts';
@@ -47,19 +52,19 @@ const knex = require('../../config/knex');
 // @ts-ignore
 class PostsRepository implements QueryFilteredRepository {
   public static async countAllRepostsOfMediaPosts(): Promise<number> {
-    const typeId = ContentTypeDictionary.getTypeMediaPost();
+    const typeId = ContentTypesDictionary.getTypeMediaPost();
 
     return PostsRepository.countAllRepostsByParentType(typeId);
   }
 
   public static async countAllRepostsByDirectPosts(): Promise<number> {
-    const typeId = ContentTypeDictionary.getTypeDirectPost();
+    const typeId = ContentTypesDictionary.getTypeDirectPost();
 
     return PostsRepository.countAllRepostsByParentType(typeId);
   }
 
   private static async countAllRepostsByParentType(parentType: number): Promise<number> {
-    const typeRepost = ContentTypeDictionary.getTypeRepost();
+    const typeRepost = ContentTypesDictionary.getTypeRepost();
 
     const sql = `
       SELECT COUNT(1) FROM posts AS t
@@ -79,7 +84,7 @@ class PostsRepository implements QueryFilteredRepository {
     const res = await knex(TABLE_NAME)
       .count(`${TABLE_NAME}.id AS amount`)
       .where({
-        post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+        post_type_id: ContentTypesDictionary.getTypeMediaPost(),
       })
     ;
 
@@ -90,7 +95,7 @@ class PostsRepository implements QueryFilteredRepository {
     const res = await knex(TABLE_NAME)
       .count(`${TABLE_NAME}.id AS amount`)
       .where({
-        post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+        post_type_id: ContentTypesDictionary.getTypeDirectPost(),
       })
     ;
 
@@ -101,8 +106,8 @@ class PostsRepository implements QueryFilteredRepository {
     const orgEntityName: string = OrganizationsModelProvider.getEntityName();
 
     const postTypes: number[] = [
-      ContentTypeDictionary.getTypeMediaPost(),
-      ContentTypeDictionary.getTypeDirectPost(),
+      ContentTypesDictionary.getTypeMediaPost(),
+      ContentTypesDictionary.getTypeDirectPost(),
     ];
 
     const sql = `
@@ -119,7 +124,7 @@ class PostsRepository implements QueryFilteredRepository {
 
     const data = await knex.raw(sql);
 
-    return data.rows.map(row => ({
+    return data.rows.map((row) => ({
       aggregates: RepositoryHelper.splitAggregates(row),
       entityId: +row.entity_id_for,
     }));
@@ -128,8 +133,8 @@ class PostsRepository implements QueryFilteredRepository {
   public static async getManyUsersPostsAmount(
   ): Promise<EntityAggregatesDto[]> {
     const postTypes: number[] = [
-      ContentTypeDictionary.getTypeMediaPost(),
-      ContentTypeDictionary.getTypeDirectPost(),
+      ContentTypesDictionary.getTypeMediaPost(),
+      ContentTypesDictionary.getTypeDirectPost(),
     ];
 
     const sql = `
@@ -145,14 +150,14 @@ class PostsRepository implements QueryFilteredRepository {
 
     const data = await knex.raw(sql);
 
-    return data.rows.map(row => ({
+    return data.rows.map((row) => ({
       aggregates: RepositoryHelper.splitAggregates(row),
       entityId: +row.user_id,
     }));
   }
 
   public static async getManyPostsRepostsAmount() {
-    const postTypeId: number = ContentTypeDictionary.getTypeRepost();
+    const postTypeId: number = ContentTypesDictionary.getTypeRepost();
 
     const sql = `
        SELECT parent_id, blockchain_id, COUNT(1) AS amount FROM posts
@@ -162,7 +167,7 @@ class PostsRepository implements QueryFilteredRepository {
 
     const data = await knex.raw(sql);
 
-    return data.rows.map(item => ({
+    return data.rows.map((item) => ({
       entityId:       item.parent_id,
       blockchainId:   item.blockchain_id,
       repostsAmount:  +item.amount,
@@ -240,6 +245,8 @@ class PostsRepository implements QueryFilteredRepository {
           [Op.in]: query.post_type_ids,
         };
       }
+
+      params.where.rates_participation = 1;
 
       this.andWhereByOverviewType(query, params);
 
@@ -341,32 +348,30 @@ class PostsRepository implements QueryFilteredRepository {
     return !!res;
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  static async incrementCurrentVoteCounter(id, by = 1) {
-    // noinspection TypeScriptValidateJSTypes
-    return this.getModel().increment('current_vote', {
-      by,
-      where: {
-        id,
-      },
-    });
-  }
+  public static async changeCurrentVotesByActivityType(
+    postId: number,
+    interactionType: number,
+    transaction: Transaction,
+  ) {
+    const allowed = [
+      InteractionTypesDictionary.getUpvoteId(),
+      InteractionTypesDictionary.getDownvoteId(),
+    ];
 
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {number} id
-   * @param {number} by
-   * @returns {Promise<*>}
-   */
-  static async decrementCurrentVoteCounter(id, by = 1) {
-    // noinspection TypeScriptValidateJSTypes
-    return this.getModel().decrement('current_vote', {
-      by,
-      where: {
-        id,
-      },
-    });
+    if (!allowed.includes(interactionType)) {
+      throw new AppError(`Allowed interaction types are: ${allowed}`);
+    }
+
+    const queryBuilder = transaction(TABLE_NAME)
+      .where('id', postId);
+
+    if (interactionType === InteractionTypesDictionary.getUpvoteId()) {
+      queryBuilder.increment('current_vote', 1);
+    } else {
+      queryBuilder.decrement('current_vote', 1);
+    }
+
+    await queryBuilder;
   }
 
   static async findLastByAuthor(userId, isRaw = true) {
@@ -534,7 +539,7 @@ class PostsRepository implements QueryFilteredRepository {
 
     const data = await postsModelProvider.getModel().findAll(params);
 
-    return data.map(item => item.toJSON());
+    return data.map((item) => item.toJSON());
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -563,7 +568,7 @@ class PostsRepository implements QueryFilteredRepository {
       },
     ];
 
-    if (postTypeId === ContentTypeDictionary.getTypeOffer()) {
+    if (postTypeId === ContentTypesDictionary.getTypeOffer()) {
       include.push({
         attributes: postOfferAttributes,
         model: models.post_offer,
@@ -749,7 +754,7 @@ class PostsRepository implements QueryFilteredRepository {
       ],
     });
 
-    return rows.map(row => row.toJSON());
+    return rows.map((row) => row.toJSON());
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -837,14 +842,33 @@ class PostsRepository implements QueryFilteredRepository {
     return TABLE_NAME;
   }
 
-  /**
-   *
-   * @param {Object} data
-   * @param {number} userId
-   * @param {Object} transaction
-   * @returns {Promise<Object>}
-   */
-  static async createNewPost(data, userId, transaction) {
+  public static async createAutoUpdate(
+    transaction: Transaction,
+    user_id: number,
+    entity_id_for: number,
+    entity_name_for: string,
+    blockchain_id: string,
+    json_data: StringToAnyCollection,
+  ): Promise<number> {
+    const result = await transaction(TABLE_NAME).insert({
+      post_type_id: ContentTypesDictionary.getTypeAutoUpdate(),
+      user_id,
+      entity_id_for,
+      entity_name_for,
+      blockchain_id,
+
+      json_data,
+      ...this.getCreateDefaultFields(),
+    }).returning('id');
+
+    return +result;
+  }
+
+  public static async createNewPost(
+    data: StringToAnyCollection,
+    userId: number,
+    transaction,
+  ) {
     data.user_id = userId;
     data.current_rate = 0;
     data.current_vote = 0;
@@ -856,6 +880,17 @@ class PostsRepository implements QueryFilteredRepository {
     await postStatsRepository.createNew(newPost.id, transaction);
 
     return newPost;
+  }
+
+  public static async findLastAutoUpdateId(): Promise<number> {
+    const result = await knex(TABLE_NAME).where({
+      post_type_id: ContentTypesDictionary.getTypeAutoUpdate(),
+    })
+      .orderBy('id', 'DESC')
+      .limit(1)
+      .first();
+
+    return result ? result.id : null;
   }
 
   static async findOnlyPostItselfById(id, transaction = null) {
@@ -1192,6 +1227,15 @@ class PostsRepository implements QueryFilteredRepository {
     const tableName = PostsModelProvider.getCurrentParamsTableName();
 
     return `${tableName}.activity_index_delta > ${lowerLimit}`;
+  }
+
+  private static getCreateDefaultFields() {
+    return {
+      current_vote: 0,
+      entity_images: {},
+      created_at: moment().utc().toDate(),
+      updated_at: moment().utc().toDate(),
+    };
   }
 }
 

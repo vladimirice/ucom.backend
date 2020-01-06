@@ -5,7 +5,6 @@ const knex = require('../../../config/knex');
 const TABLE_NAME = 'entity_tags';
 
 class EntityTagsRepository {
-
   static async createNewEntityTags(toInsert: Object[], trx: Transaction) : Promise<any> {
     return trx(TABLE_NAME).insert(toInsert);
   }
@@ -21,7 +20,7 @@ class EntityTagsRepository {
     };
 
     const unprocessed = await knex(TABLE_NAME).select(['id', 'tag_title'])
-        .where(where)
+      .where(where)
     ;
 
     const res: Object = {};
@@ -47,7 +46,7 @@ class EntityTagsRepository {
     };
 
     return knex(TABLE_NAME)
-        .where(where)
+      .where(where)
     ;
   }
 }

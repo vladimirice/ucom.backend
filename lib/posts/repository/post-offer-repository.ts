@@ -1,7 +1,8 @@
+import { ContentTypesDictionary } from 'ucom.libs.common';
+
 import UsersModelProvider = require('../../users/users-model-provider');
 
 const _ = require('lodash');
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 const models = require('../../../models');
 
@@ -9,7 +10,7 @@ const userPreviewAttributes = UsersModelProvider.getUserFieldsForPreview();
 
 const postStatsRepository = require('../stats/post-stats-repository');
 
-const POST_TYPE__OFFER = ContentTypeDictionary.getTypeOffer();
+const POST_TYPE__OFFER = ContentTypesDictionary.getTypeOffer();
 
 class PostOfferRepository {
   /**
@@ -112,7 +113,7 @@ class PostOfferRepository {
           }),
 
           deltaData.changed.map(async (data) => {
-            const toUpdate = user[modelName].find(itemData => itemData.id === data.id);
+            const toUpdate = user[modelName].find((itemData) => itemData.id === data.id);
             await toUpdate.update(data, { transaction });
           }),
         ]);

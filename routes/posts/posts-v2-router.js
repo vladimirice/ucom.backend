@@ -6,6 +6,7 @@ const PostsInputProcessor = require("../../lib/posts/validators/posts-input-proc
 const DiServiceLocator = require("../../lib/api/services/di-service-locator");
 const PostCreatorService = require("../../lib/posts/service/post-creator-service");
 const PostService = require("../../lib/posts/post-service");
+const PostToEventIdService = require("../../lib/posts/service/post-to-event-id-service");
 const express = require('express');
 const PostsV2Router = express.Router();
 const { AppError, BadRequestError } = require('../../lib/api/errors');
@@ -18,7 +19,8 @@ require('express-async-errors');
 PostsV2Router.post('/', [authTokenMiddleWare, cpUpload], async (req, res) => {
     PostsInputProcessor.process(req.body);
     const currentUser = DiServiceLocator.getCurrentUserOrException(req);
-    const newPost = await PostCreatorService.processNewPostCreation(req, null, currentUser);
+    const eventId = PostToEventIdService.getCreateMediaPostEventId(req.body);
+    const newPost = await PostCreatorService.processNewPostCreation(req, eventId, currentUser);
     const response = postService.isDirectPost(newPost) ? newPost : {
         id: newPost.id,
     };
@@ -33,9 +35,8 @@ PostsV2Router.patch('/:post_id', [authTokenMiddleWare, cpUpload], async (req, re
     if (!_.isEmpty(req.files)) {
         throw new BadRequestError('It is not allowed to upload files. Please consider to use a entity_images');
     }
-    const params = req.body;
-    PostsInputProcessor.process(params);
-    const updatedPost = await PostService.updateAuthorPost(postId, userId, params, currentUser);
+    PostsInputProcessor.process(req.body);
+    const updatedPost = await PostService.updateAuthorPost(postId, userId, req.body, currentUser);
     if (postService.isDirectPost(updatedPost)) {
         ApiPostProcessor.deleteCommentsFromModel(updatedPost);
         res.send(updatedPost);

@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const BalancesHelper = require("../../../lib/common/helper/blockchain/balances-helper");
 const EosApi = require("../../../lib/eos/eosApi");
 const yargs = require('yargs');
-const argv = yargs
+const { argv } = yargs
     .option('account_name', {
     alias: 'a',
     describe: 'account_name',
@@ -18,12 +18,12 @@ const argv = yargs
     default: 'UOS',
 })
     .help()
-    .alias('help', 'h')
-    .argv;
+    .alias('help', 'h');
 (async () => {
     EosApi.initBlockchainLibraries();
     const doesExist = await EosApi.doesAccountExist(argv.account_name);
     if (!doesExist) {
+        // eslint-disable-next-line no-console
         console.error(`There is no such account: ${argv.account_name}`);
     }
     else {

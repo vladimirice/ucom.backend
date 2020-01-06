@@ -2,9 +2,18 @@
 
 import { QueryBuilder } from 'knex';
 import { OrgIdToOrgModelCard, OrgModel, OrgModelResponse } from '../interfaces/model-interfaces';
-import { DbParamsDto, QueryFilteredRepository } from '../../api/filters/interfaces/query-filter-interfaces';
+import {
+  DbParamsDto,
+  QueryFilteredRepository,
+  RequestQueryDto,
+} from '../../api/filters/interfaces/query-filter-interfaces';
 import { ModelWithEventParamsDto } from '../../stats/interfaces/dto-interfaces';
 import { RequestQueryBlockchainNodes } from '../../blockchain-nodes/interfaces/blockchain-nodes-interfaces';
+import { StringToAnyCollection } from '../../common/interfaces/common-types';
+import {
+  ORGANIZATION_TYPE_ID__CONTENT,
+  ORGANIZATION_TYPE_ID__MULTI_SIGNATURE,
+} from '../dictionary/organizations-dictionary';
 
 import knex = require('../../../config/knex');
 import OrganizationsModelProvider = require('../service/organizations-model-provider');
@@ -80,14 +89,13 @@ class OrganizationsRepository implements QueryFilteredRepository {
     return queryBuilder;
   }
 
-  /**
-   *
-   * @param {Object} data
-   * @param {Object} transaction
-   * @returns {Promise<Object>}
-   */
-  static async createNewOrganization(data, transaction) {
-    return this.getOrganizationModel().create(data, { transaction });
+  public static async createNewOrganization(data: StringToAnyCollection, isMultiSignature: boolean, transaction) {
+    const modelData = {
+      ...data,
+      organization_type_id: isMultiSignature ? ORGANIZATION_TYPE_ID__MULTI_SIGNATURE : ORGANIZATION_TYPE_ID__CONTENT,
+    };
+
+    return this.getOrganizationModel().create(modelData, { transaction });
   }
 
   /**
@@ -127,7 +135,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
 
     const data = await db.query(sql, { type: db.QueryTypes.SELECT });
 
-    return data.map(row => row.user_id);
+    return data.map((row) => row.user_id);
   }
 
   /**
@@ -158,17 +166,24 @@ class OrganizationsRepository implements QueryFilteredRepository {
     });
   }
 
-  static async countAllOrganizations(params: DbParamsDto | null = null): Promise<number> {
-    const query = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
+  public static async countAllOrganizations(
+    requestQuery: RequestQueryDto | null = null,
+    params: DbParamsDto | null = null,
+  ): Promise<number> {
+    const queryBuilder = knex(TABLE_NAME).count(`${TABLE_NAME}.id AS amount`);
 
-    orgDbModel.prototype.addCurrentParamsLeftJoin(query);
+    orgDbModel.prototype.addCurrentParamsLeftJoin(queryBuilder);
+
+    if (requestQuery) {
+      orgDbModel.prototype.addSearchWhere(queryBuilder, requestQuery);
+    }
 
     if (params && params.whereRaw) {
       // noinspection JSIgnoredPromiseFromCall
-      query.whereRaw(params.whereRaw);
+      queryBuilder.whereRaw(params.whereRaw);
     }
 
-    const res = await query;
+    const res = await queryBuilder;
 
     return +res[0].amount;
   }
@@ -316,13 +331,8 @@ class OrganizationsRepository implements QueryFilteredRepository {
     return result;
   }
 
-  /**
-   *
-   * @param {number} id
-   * @return {Promise<Object>}
-   */
-  static async findOnlyItselfById(id) {
-    return orgModelProvider.getModel().findOne({
+  public static async findOnlyItselfById(id: number): Promise<OrgModel> {
+    return OrganizationsModelProvider.getModel().findOne({
       where: { id },
       raw: true,
     });
@@ -517,12 +527,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
     });
   }
 
-  /**
-   *
-   * @param {number} userId
-   * @return {Promise<void>}
-   */
-  static async findAllAvailableForUser(userId) {
+  public static async findAllAvailableForUser(userId: number) {
     const status = usersTeamStatusDictionary.getStatusConfirmed();
 
     const mainPreviewAttributes = models[TABLE_NAME].getFieldsForPreview();
@@ -544,6 +549,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
   }
 
   public static async findAllOrgForList(
+    query: RequestQueryDto,
     params: DbParamsDto,
   ): Promise<OrgModelResponse[]> {
     QueryFilterService.addExtraAttributes(
@@ -552,7 +558,7 @@ class OrganizationsRepository implements QueryFilteredRepository {
       OrganizationsModelProvider.getCurrentParamsTableName(),
     );
 
-    const res = await orgDbModel.prototype.findAllOrgsBy(params).fetchAll();
+    const res = await orgDbModel.prototype.findAllOrgsBy(query, params).fetchAll();
     const numericalFields = this.getNumericalFields()
       .concat(OrgsCurrentParamsRepository.getStatsFields(), ['number_of_followers']);
 

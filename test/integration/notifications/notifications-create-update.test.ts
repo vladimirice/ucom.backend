@@ -1,3 +1,5 @@
+import { EventsIdsDictionary } from 'ucom.libs.common';
+
 import MockHelper = require('../helpers/mock-helper');
 import SeedsHelper = require('../helpers/seeds-helper');
 import PostsGenerator = require('../../generators/posts-generator');
@@ -9,7 +11,6 @@ import CommentsGenerator = require('../../generators/comments-generator');
 import CommentsHelper = require('../helpers/comments-helper');
 import OrganizationsHelper = require('../helpers/organizations-helper');
 import ActivityHelper = require('../helpers/activity-helper');
-import NotificationsEventIdDictionary = require('../../../lib/entities/dictionary/notifications-event-id-dictionary');
 import UsersTeamStatusDictionary = require('../../../lib/users/dictionary/users-team-status-dictionary');
 import UsersTeamRepository = require('../../../lib/users/repository/users-team-repository');
 import OrganizationsModelProvider = require('../../../lib/organizations/service/organizations-model-provider');
@@ -31,7 +32,7 @@ MockHelper.mockAllBlockchainJobProducers();
 
 describe('Notifications create-update', () => {
   afterAll(async () => {
-    // await helpers.SeedsHelper.doAfterAll();
+    await SeedsHelper.doAfterAll();
   });
   beforeEach(async () => {
     [userVlad, userJane, userPetr, userRokky] = await SeedsHelper.beforeAllRoutine();
@@ -101,7 +102,7 @@ describe('Notifications create-update', () => {
         const notification: any = notifications[0];
 
         expect(notification.event_id)
-          .toBe(NotificationsEventIdDictionary.getUserCreatesDirectPostForOtherUser());
+          .toBe(EventsIdsDictionary.userCreatesDirectPostForOtherUser());
 
         const options = {
           postProcessing: 'notification',
@@ -113,7 +114,7 @@ describe('Notifications create-update', () => {
       it('User creates direct post for organization', async () => {
         const orgId = await OrganizationsGenerator.createOrgWithTeam(userVlad);
 
-        await PostsGenerator.createDirectPostForOrganization(userJane, orgId);
+        await PostsGenerator.createDirectPostForOrganizationLegacy(userJane, orgId);
 
         let notifications = [];
         while (_.isEmpty(notifications)) {
@@ -126,7 +127,7 @@ describe('Notifications create-update', () => {
 
         const notification: any = notifications[0];
 
-        expect(notification.event_id).toBe(NotificationsEventIdDictionary.getUserCreatesDirectPostForOrg());
+        expect(notification.event_id).toBe(EventsIdsDictionary.getUserCreatesDirectPostForOrg());
 
         const options = {
           postProcessing: 'notification',
@@ -156,7 +157,7 @@ describe('Notifications create-update', () => {
 
       const notification: any = notifications[0];
 
-      expect(notification.event_id).toBe(NotificationsEventIdDictionary.getUserCommentsPost());
+      expect(notification.event_id).toBe(EventsIdsDictionary.getUserCommentsPost());
 
       const options = {
         postProcessing: 'notification',
@@ -179,9 +180,7 @@ describe('Notifications create-update', () => {
       let notification;
 
       while (!notification) {
-        const notifications =
-          await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(userJane);
-        [notification] = notifications;
+        [notification] = await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(userJane);
         await delay(100);
       }
 
@@ -279,7 +278,7 @@ describe('Notifications create-update', () => {
         };
 
         CommonHelper.checkUserDownvotesCommentOfOtherUser(notification, options);
-      });
+      }, JEST_TIMEOUT);
 
       it('user UPVOTES comment of organization', async () => {
         const orgId = await OrganizationsGenerator.createOrgWithoutTeam(userVlad);
@@ -340,10 +339,11 @@ describe('Notifications create-update', () => {
 
         const notification: any = notifications[0];
 
-        expect(notification.event_id).toBe(NotificationsEventIdDictionary.getUserCommentsOrgComment());
+        expect(notification.event_id).toBe(EventsIdsDictionary.getUserCommentsOrgComment());
 
         CommonHelper.checkUserCommentsOrgCommentNotification(notification);
-      });
+      }, JEST_TIMEOUT);
+
       it('User creates comment on organization post', async () => {
         const orgAuthor = userVlad;
         const commentAuthor = userJane;
@@ -357,9 +357,7 @@ describe('Notifications create-update', () => {
 
         while (!notification) {
           await delay(100);
-          const notifications =
-            await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(orgAuthor);
-          [notification] = notifications;
+          [notification] = await NotificationsHelper.requestToGetOnlyOneNotificationBeforeReceive(orgAuthor);
         }
 
         const options = {
@@ -367,7 +365,7 @@ describe('Notifications create-update', () => {
         };
 
         CommonHelper.checkOneNotificationsFromList(notification, options);
-      }, 10000);
+      }, JEST_TIMEOUT);
 
       it.skip('should not create notification if user comments his own post', async () => {
       });
@@ -477,7 +475,7 @@ describe('Notifications create-update', () => {
 
           const newTeamMembers: any[] = Array.prototype.concat(teamMembers, userRokky);
 
-          await OrganizationsGenerator.updateOrgUsersTeam(newOrgId, author, newTeamMembers);
+          await OrganizationsGenerator.updateOrganization(newOrgId, author, newTeamMembers);
 
           const notification = await NotificationsHelper.requestToGetOnlyOneNotification(userRokky);
 
@@ -523,7 +521,7 @@ describe('Notifications create-update', () => {
 
           const usersTeam = org.users_team;
 
-          const userJaneMember = usersTeam.find(data => data.id === userJane.id);
+          const userJaneMember = usersTeam.find((data) => data.id === userJane.id);
           expect(userJaneMember.users_team_status)
             .toBe(UsersTeamStatusDictionary.getStatusConfirmed());
         }, 10000);
@@ -563,7 +561,7 @@ describe('Notifications create-update', () => {
             newOrgId,
           );
 
-          const userPetrMember = usersTeam.find(data => data.user_id === userPetr.id);
+          const userPetrMember = usersTeam.find((data) => data.user_id === userPetr.id);
           expect(userPetrMember.status).toBe(UsersTeamStatusDictionary.getStatusDeclined());
         });
 

@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-for-loop */
 /* tslint:disable:max-line-length */
 import { ListMetadata, ListResponse } from '../../../lib/common/interfaces/lists-interfaces';
 import { PostsListResponse } from '../../../lib/posts/interfaces/model-interfaces';
@@ -104,7 +105,7 @@ class ResponseHelper {
     expect(errorsArray).toBeDefined();
 
     invalidFields.forEach((field) => {
-      const target = errorsArray.find(err => err.field === field);
+      const target = errorsArray.find((err) => err.field === field);
       expect(target).toBeDefined();
       expect(target.message).toBeDefined();
       expect(target.message).toMatch(field);
@@ -116,7 +117,7 @@ class ResponseHelper {
     expect(actual.length).toBe(expected.length);
 
     expected.forEach((post) => {
-      const existed = actual.find(data => data.id === post.id);
+      const existed = actual.find((data) => data.id === post.id);
 
       expect(existed).toBeDefined();
       expect(JSON.stringify(existed)).toBe(JSON.stringify(post));

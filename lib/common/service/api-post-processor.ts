@@ -1,3 +1,4 @@
+import { ContentTypesDictionary, InteractionTypesDictionary } from 'ucom.libs.common';
 import { EmptyListResponse, ListMetadata } from '../interfaces/lists-interfaces';
 import { AppError } from '../../api/errors';
 import { PostModelResponse } from '../../posts/interfaces/model-interfaces';
@@ -6,14 +7,12 @@ import { TagsModelResponse } from '../../tags/interfaces/dto-interfaces';
 import CommentsPostProcessor = require('../../comments/service/comments-post-processor');
 import TagsModelProvider = require('../../tags/service/tags-model-provider');
 import PostsPostProcessor = require('../../posts/service/posts-post-processor');
+import UserPostProcessor = require('../../users/user-post-processor');
 
 const PAGE_FOR_EMPTY_METADATA = 1;
 const PER_PAGE_FOR_EMPTY_METADATA = 10;
 
 const moment = require('moment');
-
-const { InteractionTypeDictionary, ContentTypeDictionary } =
-  require('ucom-libs-social-transactions');
 
 const commentsPostProcessor = require('../../comments/service/comments-post-processor');
 const usersPostProcessor    = require('../../users/user-post-processor');
@@ -96,8 +95,8 @@ class ApiPostProcessor {
    * @param {Object} model
    */
   public static processOneUserTrustsOtherUserNotification(model) {
-    usersPostProcessor.processModelAuthorForListEntity(model.data.User);
-    usersPostProcessor.processModelAuthorForListEntity(model.target_entity.User);
+    UserPostProcessor.processModelAuthorForListEntity(model.data.User);
+    UserPostProcessor.processModelAuthorForListEntity(model.target_entity.User);
   }
 
   /**
@@ -105,10 +104,10 @@ class ApiPostProcessor {
    * @param {Object} model
    */
   static processUserVotesPostOfOtherUser(model) {
-    usersPostProcessor.processModelAuthorForListEntity(model.data.User);
+    UserPostProcessor.processModelAuthorForListEntity(model.data.User);
 
     this.processOnePostItselfForList(model.target_entity.post);
-    usersPostProcessor.processModelAuthorForListEntity(model.target_entity.post.User);
+    UserPostProcessor.processModelAuthorForListEntity(model.target_entity.post.User);
   }
 
   /**
@@ -314,7 +313,7 @@ class ApiPostProcessor {
     for (const post of posts) {
       this.processOnePostForList(post, currentUserId, userActivity);
 
-      if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
+      if (post.post_type_id === ContentTypesDictionary.getTypeRepost()) {
         // @ts-ignore #task - should create new object, not processing existing one
         this.processOnePostForList(post.post!);
       }
@@ -399,7 +398,7 @@ class ApiPostProcessor {
 
     this.processPostTeam(post);
 
-    if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
+    if (post.post_type_id === ContentTypesDictionary.getTypeRepost()) {
       this.processOnePostForList(post.post);
     }
 
@@ -537,9 +536,10 @@ class ApiPostProcessor {
 
     const repostAvailable = this.getRepostAvailableFlag(model, userPostActivity, currentUserId);
 
+    // eslint-disable-next-line sonarjs/no-collapsible-if
     if (userPostActivity) {
       if (userPostActivity.voting) {
-        myselfVote = userPostActivity.voting === InteractionTypeDictionary.getUpvoteId() ?
+        myselfVote = userPostActivity.voting === InteractionTypesDictionary.getUpvoteId() ?
           'upvote' : 'downvote';
       }
     }
@@ -572,11 +572,11 @@ class ApiPostProcessor {
   }
 
   private static getRepostAvailableFlag(post, userPostActivity, currentUserId) {
-    if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
+    if (post.post_type_id === ContentTypesDictionary.getTypeRepost()) {
       return false;
     }
 
-    if (post.post_type_id === ContentTypeDictionary.getTypeDirectPost()
+    if (post.post_type_id === ContentTypesDictionary.getTypeDirectPost()
       && post.entity_id_for === currentUserId
       && post.entity_name_for === usersModelProvider.getEntityName()
     ) {

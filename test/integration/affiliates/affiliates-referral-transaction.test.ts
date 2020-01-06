@@ -34,16 +34,16 @@ describe('Affiliates referral transaction', () => {
 
   beforeAll(async () => {
     await SeedsHelper.beforeAllSetting(beforeAfterOptions);
-  });
+  }, JEST_TIMEOUT);
 
   afterAll(async () => {
     await SeedsHelper.doAfterAll(beforeAfterOptions);
-  });
+  }, JEST_TIMEOUT);
   beforeEach(async () => {
     [userVlad, , userPetr] = await SeedsHelper.beforeAllRoutine();
 
     ({ offer } = await AffiliatesBeforeAllHelper.beforeAll(userVlad, userPetr));
-  });
+  }, JEST_TIMEOUT);
 
   describe('Positive', () => {
     it('Register a referral with the transaction', async () => {
@@ -56,7 +56,7 @@ describe('Affiliates referral transaction', () => {
 
       const signedTransaction: string = await SocialApi.getReferralFromUserSignedTransactionAsJson(
         response.accountData.accountName,
-        response.accountData.privateActiveKey,
+        response.accountData.activePrivateKey,
         AffiliatesResponse.getAccountNameSourceFromResponse(statusResponseBody),
       );
 

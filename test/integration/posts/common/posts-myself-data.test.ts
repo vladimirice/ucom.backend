@@ -1,5 +1,3 @@
-export {};
-
 const orgHelper   = require('../../helpers/organizations-helper');
 const usersHelper = require('../../helpers/users-helper');
 const seedsHelper = require('../../helpers/seeds-helper');
@@ -201,3 +199,5 @@ describe('Posts myself data', () => {
     });
   });
 });
+
+export {};

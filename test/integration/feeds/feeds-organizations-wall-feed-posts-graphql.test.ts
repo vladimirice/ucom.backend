@@ -42,7 +42,7 @@ describe('#organizations #feed #graphql', () => {
 
       const promisesToCreatePosts = [
         PostsGenerator.createMediaPostOfOrganization(userVlad, orgId),
-        PostsGenerator.createDirectPostForOrganization(userJane, orgId),
+        PostsGenerator.createDirectPostForOrganizationLegacy(userJane, orgId),
       ];
 
       // @ts-ignore

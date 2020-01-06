@@ -1,3 +1,4 @@
+/* eslint-disable new-cap */
 // tslint:disable-next-line:import-name
 import RedlockType = require('redlock');
 
@@ -5,6 +6,7 @@ const ioredis     = require('ioredis');
 const redlockLib  = require('redlock');
 
 const config            = require('config');
+
 const redisConfig: any  = config.redis;
 
 let mainDbClient: any = null;

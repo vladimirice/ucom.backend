@@ -54,6 +54,29 @@ class UsersActivityCommonHelper {
     };
   }
 
+  public static async getProcessedActivityById(
+    id: number,
+  ): Promise<{ activity: UsersActivityModelDto, blockchainResponse: StringToAnyCollection}> {
+    let activity: UsersActivityModelDto | null = null;
+
+    let counter = 0;
+    while (!activity) {
+      activity =
+        await UsersActivityRepository.findLastByEventIdWithBlockchainIsSentStatusById(id);
+      counter += 1;
+      await delay(100);
+
+      if (counter >= 100) {
+        throw new AppError('Timeout is occurred - there is no processed activity in 10 seconds');
+      }
+    }
+
+    return {
+      activity,
+      blockchainResponse: JSON.parse(activity.blockchain_response),
+    };
+  }
+
   public static getOneUserToOtherPushResponse(
     accountNameFrom: string,
     accountNameTo: string,
@@ -74,7 +97,7 @@ class UsersActivityCommonHelper {
           },
           act: {
             account: 'uos.activity',
-            name: 'socialaction',
+            name: 'socialactndt',
             authorization: [
               {
                 actor: accountNameFrom,
@@ -118,7 +141,7 @@ class UsersActivityCommonHelper {
           },
           act: {
             account: 'uos.activity',
-            name: 'socialaction',
+            name: 'socialactndt',
             authorization: [
               {
                 actor: accountNameFrom,

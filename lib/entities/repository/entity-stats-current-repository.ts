@@ -133,6 +133,7 @@ class EntityStatsCurrentRepository {
    */
   static async upsertUpvoteDelta(toProcess) {
     const values: any = [];
+    // eslint-disable-next-line guard-for-in
     for (const accountName in toProcess) {
       const current = toProcess[accountName];
 

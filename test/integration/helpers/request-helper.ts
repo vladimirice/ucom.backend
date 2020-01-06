@@ -3,10 +3,13 @@ import responseHelper from './response-helper';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 import { IResponseBody } from '../../../lib/common/interfaces/request-interfaces';
+import { ISignedTransactionObject } from '../../../lib/eos/interfaces/transactions-interfaces';
+import { FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION } from '../../generators/common/fake-data-generator';
 
 import NumbersHelper = require('../../../lib/common/helper/numbers-helper');
 import ResponseHelper = require('./response-helper');
 import EntityImagesModelProvider = require('../../../lib/entity-images/service/entity-images-model-provider');
+import BlockchainUniqId = require('../../../lib/eos/eos-blockchain-uniqid');
 
 const { CommonHeaders } = require('ucom.libs.common').Common.Dictionary;
 
@@ -35,6 +38,10 @@ const tagsUrl = `${apiV1Prefix}/tags`;
 const myselfBlockchainTransactionsUrl = `${myselfUrl}/blockchain/transactions`;
 
 class RequestHelper {
+  public static getLogInUrl(): string {
+    return `${apiV1Prefix}/auth/login`;
+  }
+
   public static getApiApplication() {
     return server;
   }
@@ -114,6 +121,38 @@ class RequestHelper {
     return req;
   }
 
+  public static async makePostRequestAsMyselfWithFields(
+    url: string,
+    myself: UserModel,
+    fields: any,
+    expectedStatus: number = 200,
+  ) {
+    const req = RequestHelper.getRequestObjForPostWithMyself(url, myself);
+
+    this.addFormFieldsToRequestWithStringify(req, fields);
+
+    const res = await req;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res;
+  }
+
+  public static async makePatchRequestAsMyselfWithFields(
+    url: string,
+    myself: UserModel,
+    fields: any,
+    expectedStatus: number = 200,
+  ) {
+    const req = RequestHelper.getRequestObjForPatch(url, myself);
+
+    this.addFormFieldsToRequestWithStringify(req, fields);
+
+    const res = await req;
+    ResponseHelper.expectStatusToBe(res, expectedStatus);
+
+    return res;
+  }
+
   public static getRequestObjForGet(url: string): SuperAgentRequest {
     return request(server).get(url);
   }
@@ -122,6 +161,13 @@ class RequestHelper {
     const req =  request(server).patch(url);
 
     RequestHelper.addAuthToken(req, myself);
+
+    return req;
+  }
+
+  public static getRequestObjForPatchWithFields(url: string, myself: UserModel, fields: any): SuperAgentRequest {
+    const req = this.getRequestObjForPatch(url, myself);
+    this.addFormFieldsToRequestWithStringify(req, fields);
 
     return req;
   }
@@ -305,6 +351,40 @@ class RequestHelper {
     this.addFieldsToRequest(req, fields);
 
     return req;
+  }
+
+  public static addSignedTransactionToRequestIfSet(
+    req: SuperAgentRequest,
+    signedTransaction: ISignedTransactionObject | null = null,
+  ): void {
+    if (signedTransaction === null) {
+      return;
+    }
+
+    this.addSignedTransactionToRequest(req, signedTransaction);
+  }
+
+  public static addSignedTransactionToRequest(req: SuperAgentRequest, signedTransaction): void {
+    this.addFormFieldsToRequestWithStringify(req, {
+      signed_transaction: signedTransaction,
+    });
+  }
+
+  public static addFakeSignedTransactionString(req: SuperAgentRequest) {
+    this.addSignedTransactionToRequest(req, 'signed_transaction');
+  }
+
+  public static addFakeBlockchainIdForOrganization(req: SuperAgentRequest) {
+    this.addFormFieldsToRequestWithStringify(req, {
+      blockchain_id: BlockchainUniqId.getUniqidByScope('organizations'),
+    });
+  }
+
+  public static addFakeBlockchainIdAndSignedTransaction(req: SuperAgentRequest): void {
+    this.addFormFieldsToRequestWithStringify(req, {
+      blockchain_id:      FAKE_BLOCKCHAIN_ID,
+      signed_transaction: FAKE_SIGNED_TRANSACTION,
+    });
   }
 
   public static addFormFieldsToRequestWithStringify(
@@ -623,7 +703,7 @@ class RequestHelper {
     return `${organizationsUrl}/${orgId}/posts`;
   }
 
-  public static getOrgDirectPostV2UrlV(orgId: number): string {
+  public static getOrgDirectPostV2Url(orgId: number): string {
     return `${organizationsV2Url}/${orgId}/posts`;
   }
 
@@ -655,6 +735,10 @@ class RequestHelper {
    */
   static getCommentsUrl(postId) {
     return `/api/v1/posts/${postId}/comments`;
+  }
+
+  public static getCommentsUpdateUrl(commentId: number): string {
+    return `${apiV1Prefix}/posts/comments/${commentId}`;
   }
 
   /**

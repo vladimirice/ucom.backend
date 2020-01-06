@@ -1,48 +1,42 @@
 /* tslint:disable:max-line-length */
 
-import { IdOnlyDto } from '../../common/interfaces/common-types';
+import { ContentTypesDictionary, EventsIdsDictionary } from 'ucom.libs.common';
+import { IdOnlyDto, IRequestBody } from '../../common/interfaces/common-types';
 import { UserModel } from '../../users/interfaces/model-interfaces';
+import { IActivityModel } from '../../users/interfaces/users-activity/dto-interfaces';
+import { PostModel } from '../interfaces/model-interfaces';
+import { AppError, BadRequestError } from '../../api/errors';
 
 import OrganizationsRepository = require('../../organizations/repository/organizations-repository');
-import BlockchainUniqId = require('../../eos/eos-blockchain-uniqid');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 import PostOfferRepository = require('../repository/post-offer-repository');
 import UsersTeamRepository = require('../../users/repository/users-team-repository');
 import PostsFetchService = require('./posts-fetch-service');
 import PostsCurrentParamsRepository = require('../repository/posts-current-params-repository');
 import EntityImageInputService = require('../../entity-images/service/entity-image-input-service');
+import UserActivityService = require('../../users/user-activity-service');
+import UsersModelProvider = require('../../users/users-model-provider');
+import UsersActivityRepository = require('../../users/repository/users-activity-repository');
+import PostsRepository = require('../posts-repository');
+import EosContentInputProcessor = require('../../eos/input-processor/content/eos-content-input-processor');
+import EosInputProcessor = require('../../eos/input-processor/content/eos-input-processor');
 
 const _ = require('lodash');
 
-
-const { TransactionFactory, ContentTypeDictionary } = require('ucom-libs-social-transactions');
-const { AppError } = require('../../../lib/api/errors');
-
 const db = require('../../../models').sequelize;
-
-const { BadRequestError } = require('../../../lib/api/errors');
-
-const eosTransactionService = require('../../eos/eos-transaction-service');
-
-const usersActivityService  = require('../../users/user-activity-service');
-
-const usersModelProvider = require('../../users/service').ModelProvider;
-const eventIdDictionary         = require('../../entities/dictionary').EventId;
-
-const usersActivityRepository = require('../../users/repository/users-activity-repository');
-const postsRepository         = require('../posts-repository');
-
 const models = require('../../../models');
 
-/**
- * beginning of refactoring
- */
 class PostCreatorService {
-  public static async processNewPostCreation(req, eventId = null, currentUser: UserModel) {
-    // #task - wrap in database transaction
-
+  /**
+   * legacy method - need refactoring
+   */
+  public static async processNewPostCreation(
+    req: any,
+    eventId: number | null = null,
+    currentUser: UserModel,
+  ) {
     const { files } = req;
-    const { body }  = req;
+    const { body }: { body: IRequestBody }  = req;
 
     // #task - provide Joi validation
     if (body && body.title && body.title.length > 255) {
@@ -70,7 +64,8 @@ class PostCreatorService {
       }
     }
 
-    await this.addSignedTransactionDetailsToBody(body, currentUser, postTypeId, orgBlockchainId);
+    const signedTransaction = body.signed_transaction || '';
+    EosInputProcessor.isBlockchainIdOrError(body);
 
     await this.makeOrganizationRelatedChecks(body, currentUser);
     await this.addAttributesOfEntityFor(body, currentUser);
@@ -85,7 +80,7 @@ class PostCreatorService {
         const model     = await this.createPostByPostType(postTypeId, body, transaction, currentUser.id);
         const activity = await this.createNewActivity(
           model,
-          body.signed_transaction,
+          signedTransaction,
           currentUser.id,
           eventId,
           transaction,
@@ -99,7 +94,8 @@ class PostCreatorService {
 
     // #task - create new post via knex only and provide related transaction
     await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
-    await usersActivityService.sendContentCreationPayloadToRabbit(newActivity);
+
+    await UserActivityService.sendContentCreationPayloadToRabbitWithSuppressEmpty(newActivity);
 
     if (PostsFetchService.isDirectPost(newPost)) {
       // Direct Post creation = full post content, not only ID
@@ -109,36 +105,34 @@ class PostCreatorService {
     return newPost;
   }
 
-  /**
-   *
-   * @param {Object} givenBody
-   * @param {number} postId
-   * @param {Object} user
-   * @return {Promise<{id: *}>}
-   */
-  public static async processRepostCreation(givenBody, postId, user): Promise<IdOnlyDto> {
-    const parentPost = await this.checkParentPostOfRepost(postId, user.id);
+  public static async processRepostCreation(
+    givenBody: IRequestBody,
+    postId: number,
+    currentUser: UserModel,
+  ): Promise<IdOnlyDto> {
+    const parentPost: PostModel = await this.checkParentPostOfRepost(postId, currentUser.id);
 
     const body = _.pick(givenBody, ['signed_transaction', 'blockchain_id']);
-    body.post_type_id = ContentTypeDictionary.getTypeRepost();
+    body.post_type_id = ContentTypesDictionary.getTypeRepost();
     body.parent_id = postId;
 
-    body.entity_id_for    = user.id;
-    body.entity_name_for  = usersModelProvider.getEntityName();
+    body.entity_id_for    = currentUser.id;
+    body.entity_name_for  = UsersModelProvider.getEntityName();
 
     EntityImageInputService.setEmptyEntityImages(body);
 
-    await eosTransactionService.appendSignedUserCreatesRepost(body, user, parentPost.blockchain_id);
-    const eventId = eventIdDictionary.getRepostEventId(parentPost.organization_id);
+    EosContentInputProcessor.areSignedTransactionDetailsOrError(body);
+
+    const eventId = EventsIdsDictionary.getRepostEventId(parentPost.organization_id);
 
     const { newPost, newActivity } = await db
       .transaction(async (transaction) => {
-        const model = await postsRepository.createNewPost(body, user.id, transaction);
+        const model = await PostsRepository.createNewPost(body, currentUser.id, transaction);
 
         const activity = await PostCreatorService.createNewActivityForRepost(
           model,
           body.signed_transaction,
-          user.id,
+          currentUser.id,
           eventId,
           transaction,
         );
@@ -152,55 +146,14 @@ class PostCreatorService {
 
     // #task - create new post via knex only and provide related transaction
     await PostsCurrentParamsRepository.insertRowForNewEntity(newPost.id);
-    await usersActivityService.sendContentCreationPayloadToRabbit(newActivity);
+
+    await UserActivityService.sendContentCreationPayloadToRabbitWithEosVersion(newActivity, body.signed_transaction);
 
     return {
       id: newPost.id,
     };
   }
 
-  /**
-   *
-   * @param {Object} body
-   * @param {Object} user
-   * @param {number} postTypeId
-   * @param {string|null} organizationBlockchainId
-   * @return {Promise<void>}
-   * @private
-   */
-  private static async addSignedTransactionDetailsToBody(body, user, postTypeId, organizationBlockchainId = null) {
-    if (postTypeId === ContentTypeDictionary.getTypeDirectPost()) {
-      return;
-    }
-
-    // noinspection IfStatementWithTooManyBranchesJS
-    if (postTypeId === ContentTypeDictionary.getTypeMediaPost()) {
-      body.blockchain_id = BlockchainUniqId.getUniqidForMediaPost();
-    } else if (postTypeId === ContentTypeDictionary.getTypeOffer()) {
-      body.blockchain_id = BlockchainUniqId.getUniqidForPostOffer();
-    } else {
-      throw new BadRequestError({ post_type_id: `Unsupported post type id: ${postTypeId}` });
-    }
-
-    if (organizationBlockchainId) {
-      // eslint-disable-next-line no-underscore-dangle
-      body.signed_transaction = await TransactionFactory._getSignedOrganizationCreatesContent(
-        user.account_name,
-        user.private_key,
-        organizationBlockchainId,
-        body.blockchain_id,
-        postTypeId,
-      );
-    } else {
-      // eslint-disable-next-line no-underscore-dangle
-      body.signed_transaction = await TransactionFactory._userHimselfCreatesPost(
-        user.account_name,
-        user.private_key,
-        body.blockchain_id,
-        postTypeId,
-      );
-    }
-  }
 
   /**
    *
@@ -209,17 +162,17 @@ class PostCreatorService {
    * @return {Promise<Object>}
    */
   private static async checkParentPostOfRepost(postId, userId) {
-    const post = await postsRepository.findOneOnlyWithOrganization(postId);
+    const post = await PostsRepository.findOneOnlyWithOrganization(postId);
 
-    if (post.post_type_id === ContentTypeDictionary.getTypeRepost()) {
+    if (post.post_type_id === ContentTypesDictionary.getTypeRepost()) {
       throw new BadRequestError({
         general: 'It is not possible to create repost on repost',
       });
     }
 
-    if (post.post_type_id === ContentTypeDictionary.getTypeDirectPost()
+    if (post.post_type_id === ContentTypesDictionary.getTypeDirectPost()
       && post.entity_id_for === userId
-      && post.entity_name_for === usersModelProvider.getEntityName()
+      && post.entity_name_for === UsersModelProvider.getEntityName()
     ) {
       throw new BadRequestError({
         general: 'It is not possible to create repost on direct post of yours',
@@ -232,7 +185,7 @@ class PostCreatorService {
       });
     }
 
-    const isRepost = await usersActivityRepository.doesUserHaveRepost(userId, postId);
+    const isRepost = await UsersActivityRepository.doesUserHaveRepost(userId, postId);
 
     if (isRepost) {
       throw new BadRequestError({
@@ -253,11 +206,17 @@ class PostCreatorService {
    * @return {Promise<Object>}
    * @private
    */
-  private static async createNewActivityForRepost(newPost, signedTransaction, currentUserId, eventId = null, transaction = null) {
+  private static async createNewActivityForRepost(
+    newPost,
+    signedTransaction,
+    currentUserId,
+    eventId: number | null = null,
+    transaction = null,
+  ) {
     let newActivity;
 
     if (newPost.organization_id) {
-      newActivity = await usersActivityService.processOrganizationCreatesRepost(
+      newActivity = await UserActivityService.processOrganizationCreatesRepost(
         newPost,
         eventId,
         signedTransaction,
@@ -265,7 +224,7 @@ class PostCreatorService {
         transaction,
       );
     } else {
-      newActivity = await usersActivityService.processUserHimselfCreatesRepost(
+      newActivity = await UserActivityService.processUserHimselfCreatesRepost(
         newPost,
         eventId,
         signedTransaction,
@@ -306,7 +265,7 @@ class PostCreatorService {
    * @private
    */
   private static async addAttributesOfEntityFor(body, user) {
-    if (+body.post_type_id === ContentTypeDictionary.getTypeDirectPost()) {
+    if (+body.post_type_id === ContentTypesDictionary.getTypeDirectPost()) {
       // direct post entity_id_for is set beforehand. Refactor this in future
       return;
     }
@@ -315,7 +274,7 @@ class PostCreatorService {
 
     if (!body.organization_id) {
       body.entity_id_for = user.id;
-      body.entity_name_for = usersModelProvider.getEntityName();
+      body.entity_name_for = UsersModelProvider.getEntityName();
 
       return;
     }
@@ -333,17 +292,17 @@ class PostCreatorService {
 
     let newPost;
     switch (postTypeId) {
-      case ContentTypeDictionary.getTypeMediaPost():
-        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
+      case ContentTypesDictionary.getTypeMediaPost():
+        newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
-      case ContentTypeDictionary.getTypeOffer():
+      case ContentTypesDictionary.getTypeOffer():
         newPost = await PostOfferRepository.createNewOffer(data, currentUserId, transaction);
         break;
-      case ContentTypeDictionary.getTypeDirectPost():
-        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
+      case ContentTypesDictionary.getTypeDirectPost():
+        newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
-      case ContentTypeDictionary.getTypeRepost():
-        newPost = await postsRepository.createNewPost(data, currentUserId, transaction);
+      case ContentTypesDictionary.getTypeRepost():
+        newPost = await PostsRepository.createNewPost(data, currentUserId, transaction);
         break;
       default:
         throw new BadRequestError({
@@ -354,29 +313,15 @@ class PostCreatorService {
     return newPost;
   }
 
-  /**
-   *
-   * @param {Object} newPost
-   * @param {string} signedTransaction
-   * @param {number} currentUserId
-   * @param {number|null} eventId
-   * @param {Object} transaction
-   * @return {Promise<Object>}
-   * @private
-   */
-  private static async createNewActivity(newPost, signedTransaction, currentUserId, eventId = null, transaction = null) {
-    let newActivity;
-
+  private static async createNewActivity(
+    newPost,
+    signedTransaction,
+    currentUserId,
+    eventId: number | null = null,
+    transaction = null,
+  ): Promise<IActivityModel> {
     if (newPost.organization_id) {
-      newActivity = await usersActivityService.processOrganizationCreatesPost(
-        newPost,
-        eventId,
-        signedTransaction,
-        currentUserId,
-        transaction,
-      );
-    } else {
-      newActivity = await usersActivityService.processUserHimselfCreatesPost(
+      return UserActivityService.processOrganizationCreatesPost(
         newPost,
         eventId,
         signedTransaction,
@@ -385,7 +330,13 @@ class PostCreatorService {
       );
     }
 
-    return newActivity;
+    return UserActivityService.processUserHimselfCreatesPost(
+      newPost,
+      eventId,
+      signedTransaction,
+      currentUserId,
+      transaction,
+    );
   }
 
   /**

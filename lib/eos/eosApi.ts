@@ -1,23 +1,23 @@
 /* eslint-disable unicorn/filename-case */
+import { StringToAnyCollection } from '../common/interfaces/common-types';
+import { BadRequestError } from '../api/errors';
+import { IPublicKeys } from '../auth/interfaces/auth-interfaces-dto';
+
 import EnvHelper = require('../common/helper/env-helper');
 
-const { WalletApi, ConfigService } = require('ucom-libs-wallet');
+const { WalletApi, ConfigService, RegistrationApi } = require('ucom-libs-wallet');
 
 const ecc = require('eosjs-ecc');
 
 const { TransactionFactory, TransactionSender } = require('ucom-libs-social-transactions');
-const brainkey = require('../crypto/brainkey');
 
 const accountsData = require('../../config/accounts-data');
 
 const accountCreator = accountsData.account_creator;
 
-const BRAINKEY_LENGTH = 12;
-
-const ACCOUNT_NAME_LENGTH = 12;
-
 const AIRDROPS_GITHUB_SENDER = 'airdrops_github_sender';
 const AIRDROPS_GITHUB_HOLDER = 'airdrops_github_holder';
+const HISTORICAL_SENDER_ACCOUNT_NAME = 'uoshistorian';
 
 const initBlockchainExecutors = {
   [EnvHelper.testEnv()]: () => {
@@ -44,12 +44,28 @@ const initBlockchainExecutors = {
 };
 
 class EosApi {
+  public static getCreatorAccountName(): string {
+    return accountCreator.account_name;
+  }
+
+  public static getCreatorActivePrivateKey(): string {
+    return accountCreator.activePk;
+  }
+
   public static getGithubAirdropAccountName(): string {
     return accountsData[AIRDROPS_GITHUB_SENDER].account_name;
   }
 
   public static getGithubAirdropActivePrivateKey(): string {
     return accountsData[AIRDROPS_GITHUB_SENDER].activePk;
+  }
+
+  public static getHistoricalSenderAccountName(): string {
+    return HISTORICAL_SENDER_ACCOUNT_NAME;
+  }
+
+  public static getHistoricalSenderPrivateKey(): string {
+    return accountsData[HISTORICAL_SENDER_ACCOUNT_NAME].activePk;
   }
 
   public static getGithubAirdropHolderAccountName(): string {
@@ -67,51 +83,61 @@ class EosApi {
     EnvHelper.executeByEnvironment(initBlockchainExecutors);
   }
 
-  /**
-   *
-   * @return {string}
-   */
-  static createRandomAccountName() {
-    let text = '';
-    const possible = 'abcdefghijklmnopqrstuvwxyz12345';
+  public static getPublicKeysFromPermissions(
+    permissions: StringToAnyCollection[], accountName: string,
+  ): IPublicKeys {
+    const result: IPublicKeys = {
+      owner: '',
+      active: '',
+      social: '',
+    };
 
-    for (let i = 0; i < ACCOUNT_NAME_LENGTH; i += 1) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    for (const name of Object.keys(result)) {
+      const details = permissions.find((item) => item.perm_name === name);
+
+      if (!details) {
+        throw new BadRequestError(`${name} permission must exist, account ${accountName}`);
+      }
+
+      const { keys } = details.required_auth;
+
+      if (keys.length === 0) {
+        throw new BadRequestError(`${name} permission must have public keys, account ${accountName}`);
+      }
+
+      if (keys.length !== 1) {
+        throw new BadRequestError(`${name} permission must have only one public key, account ${accountName}`);
+      }
+
+      result[name] = keys[0].key;
     }
 
-    return text;
+    return result;
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  static async doesAccountExist(accountName: string) {
-    const result = await TransactionSender.isAccountAvailable(accountName);
+  public static async doesAccountExist(accountName: string): Promise<boolean> {
+    const state = await WalletApi.getAccountState(accountName);
 
-    return !result;
+    return state && Object.keys(state).length > 0;
   }
 
-  public static async isAccountAvailable(accountName: string) {
-    return TransactionSender.isAccountAvailable(accountName);
+  public static async isAccountAvailable(accountName: string): Promise<boolean> {
+    const exists = await this.doesAccountExist(accountName);
+
+    return !exists;
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  static generateBrainkey() {
-    return brainkey.generateSimple(BRAINKEY_LENGTH);
-  }
-
-  /**
-   *
-   * @param {string} newAccountName
-   * @param {string} ownerPubKey
-   * @param {string} activePubKey
-   * @return {Promise<*>}
-   */
-  static async transactionToCreateNewAccount(newAccountName, ownerPubKey, activePubKey) {
-    return TransactionSender.createNewAccountInBlockchain(
+  public static async transactionToCreateNewAccount(
+    newAccountName: string,
+    ownerPublicKey: string,
+    activePublicKey: string,
+  ) {
+    return RegistrationApi.createNewAccountInBlockchain(
       accountCreator.account_name,
       accountCreator.activePk,
       newAccountName,
-      ownerPubKey,
-      activePubKey,
+      ownerPublicKey,
+      activePublicKey,
     );
   }
 

@@ -1,4 +1,5 @@
-import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+import { ContentTypesDictionary } from 'ucom.libs.common';
+import { UserModel, UsersListResponse } from '../../../lib/users/interfaces/model-interfaces';
 import {
   PostModelMyselfResponse,
   PostModelResponse, PostRequestQueryDto,
@@ -8,13 +9,14 @@ import { CommentsListResponse } from '../../../lib/comments/interfaces/model-int
 import { OrgListResponse, OrgModelResponse } from '../../../lib/organizations/interfaces/model-interfaces';
 import { TagsListResponse } from '../../../lib/tags/interfaces/dto-interfaces';
 import { GraphqlRequestHelper } from '../../helpers/common/graphql-request-helper';
+import { StringToAnyCollection } from '../../../lib/common/interfaces/common-types';
 
 import ResponseHelper = require('./response-helper');
 import TagsHelper = require('./tags-helper');
 import EntityListCategoryDictionary = require('../../../lib/stats/dictionary/entity-list-category-dictionary');
+import _ = require('lodash');
 
 const { GraphQLSchema } = require('ucom-libs-graphql-schemas');
-const { ContentTypeDictionary } = require('ucom-libs-social-transactions');
 
 require('cross-fetch/polyfill');
 
@@ -85,7 +87,7 @@ export class GraphqlHelper {
   ): Promise<PostsListResponse> {
     // @ts-ignore
     const postFiltering: PostRequestQueryDto = {
-      post_type_id: ContentTypeDictionary.getTypeMediaPost(),
+      post_type_id: ContentTypesDictionary.getTypeMediaPost(),
     };
 
     return this.getManyPostsAsMyself(
@@ -139,6 +141,94 @@ export class GraphqlHelper {
     const query: string = GraphQLSchema.getManyTrendingOrganizationsQuery(page, perPage);
 
     return GraphqlRequestHelper.makeRequestAsMyself(myself, query, null, false);
+  }
+
+  public static async getManyOrgsBySearchPatternAsMyself(
+    searchPattern: string,
+    orderBy: string = '-current_rate',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const params = {
+      filters: {
+        organizations_identity_pattern: searchPattern,
+      },
+      page,
+      order_by: orderBy,
+      per_page: perPage,
+    };
+
+    const query: string = GraphQLSchema.getManyOrganizationQueryPart(params);
+
+    return GraphqlRequestHelper.makeRequestFromOneQueryPartByFetch(query, 'many_organizations');
+  }
+
+  public static async getManyTagsBySearchPatternAsMyself(
+    searchPattern: string,
+    orderBy: string = '-current_rate',
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<OrgListResponse> {
+    const params = {
+      filters: {
+        tags_identity_pattern: searchPattern,
+      },
+      page,
+      order_by: orderBy,
+      per_page: perPage,
+    };
+
+    const query: string = GraphQLSchema.getManyTagsQueryPart(params);
+
+    return GraphqlRequestHelper.makeRequestFromOneQueryPartByFetch(query, 'many_tags');
+  }
+
+  public static async getManyEntitiesBySearchPattern(
+    searchPattern: string,
+  ): Promise<{
+    many_organizations: OrgListResponse,
+    many_tags: TagsListResponse,
+    many_users: UsersListResponse,
+  }> {
+    const commonParams = {
+      page: 1,
+      per_page: 10,
+    };
+
+    const tagsParams = {
+      filters: {
+        tags_identity_pattern: searchPattern,
+      },
+      order_by: '-current_rate',
+      ...commonParams,
+    };
+
+    const organizationParams = {
+      filters: {
+        organizations_identity_pattern: searchPattern,
+      },
+      order_by: '-current_rate',
+
+      ...commonParams,
+    };
+
+    const usersParams = {
+      filters: {
+        users_identity_pattern: searchPattern,
+      },
+
+      order_by: '-scaled_importance',
+
+      ...commonParams,
+    };
+
+    const queryParts: string[] = [
+      GraphQLSchema.getManyTagsQueryPart(tagsParams),
+      GraphQLSchema.getManyOrganizationQueryPart(organizationParams),
+      GraphQLSchema.getManyUsersQueryPart(usersParams, false),
+    ];
+
+    return GraphqlRequestHelper.makeRequestFromQueryPartsByFetch(queryParts);
   }
 
   public static async getManyOrgsForHot(
@@ -260,7 +350,7 @@ export class GraphqlHelper {
   ): Promise<PostsListResponse> {
     // @ts-ignore
     const postFiltering: PostRequestQueryDto = {
-      post_type_id: ContentTypeDictionary.getTypeDirectPost(),
+      post_type_id: ContentTypesDictionary.getTypeDirectPost(),
     };
 
     return this.getManyPostsAsMyself(
@@ -633,23 +723,32 @@ export class GraphqlHelper {
 
   public static async getUserWallFeedQueryAsMyself(
     myself: UserModel,
-    userId: number,
+    user_id: number,
     page: number = 1,
-    perPage: number = 10,
+    per_page: number = 10,
     commentsPage: number = 1,
     commentsPerPage: number = 10,
+    givenParams: StringToAnyCollection = {},
   ): Promise<PostsListResponse> {
-    const query: string = GraphQLSchema.getUserWallFeedQuery(
-      userId,
+    const defaultParams = {
+      filters: {
+        user_id,
+      },
       page,
-      perPage,
-      commentsPage,
-      commentsPerPage,
-    );
+      per_page,
+      comments: {
+        page: commentsPage,
+        per_page: commentsPerPage,
+      },
+    };
+
+    const params = _.defaultsDeep(givenParams, defaultParams);
+    const queryPart: string = GraphQLSchema.getUserWallFeedQueryPart(params, true);
 
     const key: string = 'user_wall_feed';
 
-    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse =
+      await GraphqlRequestHelper.makeRequestFromOneQueryPartAsMyself(myself, queryPart, key);
     ResponseHelper.checkListResponseStructure(response);
 
     return response;
@@ -810,11 +909,26 @@ export class GraphqlHelper {
 
   public static async getUserNewsFeed(
     myself: UserModel,
+    givenParams: StringToAnyCollection = {},
   ): Promise<PostsListResponse> {
-    const query: string = GraphQLSchema.getUserNewsFeed(1, 10, 1, 10);
+    const params = {
+      page: 1,
+      per_page: 10,
+      comments: {
+        page: 1,
+        per_page: 10,
+      },
+      ...givenParams,
+    };
+
+    const queryPart: string = GraphQLSchema.getUserNewsFeedQueryPart(params, true);
     const key: string = 'user_news_feed';
 
-    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestAsMyself(myself, query, key, false);
+    const response: PostsListResponse = await GraphqlRequestHelper.makeRequestFromOneQueryPartAsMyself(
+      myself,
+      queryPart,
+      key,
+    );
     ResponseHelper.checkListResponseStructure(response);
 
     return response;

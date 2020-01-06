@@ -28,16 +28,16 @@ class ConsumerTagsParser {
         }
 
         console.log('end of block');
-      } catch (err) {
+      } catch (error) {
         // Our test user. In order to clean logs from his invalid actions
-        err.message +=
+        error.message +=
           ` It is not possible to process message. Message is acked.
           Raw content is: ${JSON.stringify(message)}.
           String content is: ${messageContent}`;
-        ConsumerLogger.error(err);
+        ConsumerLogger.error(error);
 
         // In order to terminate consumer properly - with error exit code
-        throw err;
+        throw error;
       } finally {
         channel.ack(message);
         console.log('acked!');

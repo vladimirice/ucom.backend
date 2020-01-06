@@ -23,7 +23,7 @@ const typeCalculator: number = Dictionary.BlockchainNodes.typeCalculator();
 const _ = require('lodash');
 
 let initialMockFunction;
-const JEST_TIMEOUT = 5000;
+const JEST_TIMEOUT = 20000;
 
 describe('Blockchain nodes updating', () => {
   beforeAll(async () => {
@@ -161,7 +161,7 @@ describe('Blockchain nodes updating', () => {
       });
     }, JEST_TIMEOUT * 2);
 
-    it('should update users activity if somebody votes', async () => {
+    it.skip('should update users activity if somebody votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
 
@@ -282,13 +282,13 @@ describe('Blockchain nodes updating', () => {
       rokkyMustVoteTo.forEach((node) => {
         expect(rokkyActivity.some(data => +data.entity_id_to === node.id)).toBeTruthy();
       });
-    }, JEST_TIMEOUT * 2);
+    }, JEST_TIMEOUT * 3);
   });
 
   describe('Calculators processing', () => {
     const blockchainNodesType: number = typeCalculator;
 
-    it('should create basic users activity of calculators votes', async () => {
+    it.skip('should create basic users activity of calculators votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
 
@@ -356,7 +356,7 @@ describe('Blockchain nodes updating', () => {
       });
     }, JEST_TIMEOUT * 2);
 
-    it('should update users activity if somebody votes', async () => {
+    it.skip('should update users activity if somebody votes', async () => {
       const petrAccountName   = BlockchainHelper.getAccountNameByUserAlias('petr');
       const rokkyAccountName  = BlockchainHelper.getAccountNameByUserAlias('rokky');
 

@@ -1,4 +1,4 @@
-import { QueryBuilder } from 'knex';
+import { QueryBuilder, Transaction } from 'knex';
 import { UserIdToUserModelCard, UserModel, UsersRequestQueryDto } from './interfaces/model-interfaces';
 import { OrgModel, OrgModelResponse } from '../organizations/interfaces/model-interfaces';
 import { DbParamsDto, RequestQueryDto } from '../api/filters/interfaces/query-filter-interfaces';
@@ -20,6 +20,7 @@ import QueryFilterService = require('../api/filters/query-filter-service');
 import KnexQueryBuilderHelper = require('../common/helper/repository/knex-query-builder-helper');
 import RepositoryHelper = require('../common/repository/repository-helper');
 import OrganizationsModelProvider = require('../organizations/service/organizations-model-provider');
+import EosBlockchainStatusDictionary = require('../eos/eos-blockchain-status-dictionary');
 
 const _ = require('lodash');
 
@@ -38,6 +39,20 @@ const airdropsUsersExternalData = AirdropsModelProvider.airdropsUsersExternalDat
 const taggableRepository = require('../common/repository/taggable-repository');
 
 class UsersRepository {
+  public static async areUsersWithGivenPublicKeys(
+    publicKeys: { owner: string, active: string, social: string },
+  ): Promise<boolean> {
+    const queryBuilder = knex(TABLE_NAME)
+      .where('owner_public_key', publicKeys.owner)
+      .orWhere('public_key', publicKeys.active)
+      .orWhere('social_public_key', publicKeys.social)
+    ;
+
+    const count = await KnexQueryBuilderHelper.addCountToQueryBuilderAndCalculate(queryBuilder);
+
+    return count > 0;
+  }
+
   public static async findAllAirdropParticipants(
     airdropId: number,
     params: DbParamsDto,
@@ -65,6 +80,16 @@ class UsersRepository {
     RepositoryHelper.convertStringFieldsToNumbersForArray(data, this.getPropsFields(), []);
 
     return data;
+  }
+
+  public static async setBlockchainRegistrationIsSent(user: UserModel, transaction: Transaction): Promise<void> {
+    await transaction(UsersModelProvider.getTableName())
+      .update({
+        blockchain_registration_status: EosBlockchainStatusDictionary.getStatusIsSent(),
+      })
+      .where({
+        id: user.id,
+      });
   }
 
   public static async findManyAsRelatedToEntity(
@@ -164,16 +189,10 @@ class UsersRepository {
     );
   }
 
-  /**
-   *
-   * @param {Object} data
-   * @param {Object} transaction
-   * @return {Promise<data>}
-   */
-  static async createNewUser(data, transaction) {
-    return model.create(data, {
-      transaction,
-    });
+  public static async createNewUser(data, transaction: Transaction): Promise<any> {
+    const result = await transaction(TABLE_NAME).returning('*').insert(data);
+
+    return result[0];
   }
 
   /**
@@ -219,12 +238,7 @@ class UsersRepository {
     });
   }
 
-  /**
-   *
-   * @param {number} id
-   * @returns {Promise<string>}
-   */
-  static async findAccountNameById(id) {
+  public static async findAccountNameById(id: number): Promise<string> {
     const result = await this.getModel().findOne({
       attributes: ['account_name'],
       where: { id },
@@ -425,6 +439,32 @@ class UsersRepository {
     return UsersRepository.findAllWhoActsForUser(userId, params, activityTableName);
   }
 
+  public static findAllWhoVoteContent(
+    entityId: number,
+    entityName: string,
+    params: DbParamsDto,
+    interactionType: number | null = null,
+  ): QueryBuilder {
+    const tableName = UsersModelProvider.getUsersActivityVoteTableName();
+
+    const queryBuilder = knex(TABLE_NAME)
+      .innerJoin(tableName, function () {
+        this.on(`${tableName}.user_id`, `${TABLE_NAME}.id`)
+          .andOn(`${tableName}.entity_name`, knex.raw(`'${entityName}'`))
+          .andOn(`${tableName}.entity_id`, knex.raw(entityId));
+
+        if (interactionType !== null) {
+          this.andOn(`${tableName}.interaction_type`, knex.raw(interactionType));
+        }
+      });
+
+    UsersRepository.addListParamsToQueryBuilder(queryBuilder, params);
+
+    queryBuilder.select(`${tableName}.interaction_type`);
+
+    return queryBuilder;
+  }
+
   public static findAllWhoFollowsOrganization(
     organizationId: number,
     params: DbParamsDto,
@@ -622,7 +662,7 @@ class UsersRepository {
     });
 
     if (isRaw) {
-      return modelResult.map(data => data.toJSON());
+      return modelResult.map((data) => data.toJSON());
     }
 
     return modelResult;
@@ -664,7 +704,7 @@ class UsersRepository {
       ],
     });
 
-    return rows.map(row => row.toJSON());
+    return rows.map((row) => row.toJSON());
   }
 
   public static getDefaultListParams() {
@@ -834,6 +874,7 @@ class UsersRepository {
     const set: string[] = [
       UsersModelProvider.getUsersActivityFollowTableName(),
       UsersModelProvider.getUsersActivityTrustTableName(),
+      UsersModelProvider.getUsersActivityVoteTableName(),
     ];
 
     if (!set.includes(tableName)) {

@@ -34,6 +34,8 @@ interface DbTag {
   readonly current_media_posts_amount: number;
   readonly current_direct_posts_amount: number;
   readonly first_entity_id: number;
+
+  views_count: number;
 }
 
 // #task DbTag name breaks naming conventions

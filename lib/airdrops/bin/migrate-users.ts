@@ -8,5 +8,6 @@ const ROUND_TWO_ID = 4;
   await AirdropUsersMigrateService.migrateFromFirstRoundToSecond(ROUND_ONE_ID, ROUND_TWO_ID);
   await CloseHandlersHelper.closeDbConnections();
 
+  // eslint-disable-next-line no-console
   console.log('Script is executed');
 })();

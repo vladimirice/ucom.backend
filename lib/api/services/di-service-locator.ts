@@ -18,7 +18,7 @@ class DiServiceLocator {
   }
 
   public static getCurrentUserIdOrNull(req): number | null{
-    const currentUser = req.currentUser;
+    const { currentUser } = req;
 
     if (currentUser) {
       return currentUser.id;
@@ -28,9 +28,9 @@ class DiServiceLocator {
   }
 
   public static getCurrentUserOrNull(req): UserModel | null{
-    const currentUser = req.currentUser;
+    const { currentUser } = req;
 
-    return currentUser ? currentUser : null;
+    return currentUser || null;
   }
 }
 

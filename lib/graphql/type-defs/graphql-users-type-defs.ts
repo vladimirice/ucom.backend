@@ -9,6 +9,7 @@ export const graphqlUsersQueryPart = `
     one_user_activity(filters: one_user_activity_filtering, order_by: String!, page: Int!, per_page: Int!): users!
 
     one_user_follows_organizations(filters: one_user_filtering!, order_by: String!, page: Int!, per_page: Int!): organizations!
+    one_content_voting_users(filters: one_content_voting_users_filter!, order_by: String!, page: Int!, per_page: Int!): users!
 `;
 
 export const graphqlUsersTypes = `
@@ -26,6 +27,8 @@ export const graphqlUsersTypes = `
     I_follow: JSON, 
     followed_by: JSON,
     myselfData: MyselfData,
+    
+    relatedMetadata: JSON,
     
     score: Float
     external_login: String
@@ -103,5 +106,11 @@ export const graphqlUsersTypes = `
   input one_user_filtering {
     user_id: Int
     user_identity: String
+  }
+  
+  input one_content_voting_users_filter {
+    entity_id: Int!
+    entity_name: String!
+    interaction_type: Int,
   }
 `;

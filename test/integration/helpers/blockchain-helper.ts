@@ -1,14 +1,11 @@
 /* eslint-disable no-console */
-/* tslint:disable:max-line-length */
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
 
-// import BlockchainService = require('../../../lib/eos/service/blockchain-service');
 import RequestHelper = require('./request-helper');
 import ResponseHelper = require('./response-helper');
 import BlockchainModelProvider = require('../../../lib/eos/service/blockchain-model-provider');
 import BlockchainCacheService = require('../../../lib/blockchain-nodes/service/blockchain-cache-service');
 
-const { TransactionSender } = require('ucom-libs-social-transactions');
 const { WalletApi } = require('ucom-libs-wallet');
 
 const request = require('supertest');
@@ -2406,34 +2403,6 @@ class BlockchainHelper {
     return privateKey;
   }
 
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {string} accountName
-   * @param {string} activePrivateKey
-   * @return {Promise<void>}
-   */
-  static async rollbackAllUnstakingRequests(accountName, activePrivateKey) {
-    const state = await WalletApi.getAccountState(accountName);
-
-    if (state.resources.net.unstaking_request.amount === 0 && state.resources.cpu.unstaking_request.amount === 0) {
-      console.warn('nothing to rollback');
-
-      return;
-    }
-
-    const net = state.resources.net.tokens.self_delegated + state.resources.net.unstaking_request.amount;
-    const cpu = state.resources.cpu.tokens.self_delegated + state.resources.cpu.unstaking_request.amount;
-
-    await TransactionSender.stakeOrUnstakeTokens(accountName, activePrivateKey, net, cpu);
-
-    const stateAfter = await WalletApi.getAccountInfo(accountName);
-
-    expect(stateAfter.resources.net.unstaking_request.amount).toBe(0);
-    expect(stateAfter.resources.cpu.unstaking_request.amount).toBe(0);
-  }
-
-  // noinspection JSUnusedGlobalSymbols
   /**
    *
    * @param {string} accountName

@@ -1,4 +1,5 @@
 import { Response } from 'express';
+
 const usersRepository = require('../users-repository');
 const { BadRequestError } = require('../../../lib/api/errors');
 
@@ -45,8 +46,8 @@ class UsersApiMiddleware {
       }
 
       next();
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   }
 }

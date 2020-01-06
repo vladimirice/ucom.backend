@@ -1,3 +1,4 @@
+// eslint-disable-next-line unicorn/filename-case
 const EVENT_TYPE__RATE_FROM_BLOCKCHAIN = 1;
 
 class EventTypeDictionary {

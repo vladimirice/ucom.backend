@@ -1,13 +1,14 @@
 const entityModelProvider = require('../service/entity-model-provider');
+
 const model = entityModelProvider.getNotificationsModel();
 
 const usersModelProvider  = require('../../users/service').ModelProvider;
 const orgModelProvider    = require('../../organizations/service').ModelProvider;
 
+// eslint-disable-next-line import/order
 const _ = require('lodash');
 
 class EntityNotificationsRepository {
-
   /**
    *
    * @param {number} eventId
@@ -54,7 +55,7 @@ class EntityNotificationsRepository {
       finished:             false,
     };
 
-    return await model.count({
+    return model.count({
       where,
     });
   }
@@ -93,7 +94,7 @@ class EntityNotificationsRepository {
       id,
     };
 
-    return await model.update(data, { where, transaction });
+    return model.update(data, { where, transaction });
   }
 
   /**
@@ -109,7 +110,7 @@ class EntityNotificationsRepository {
 
     const where = { id };
 
-    return await model.update(data, { where });
+    return model.update(data, { where });
   }
 
   /**
@@ -124,7 +125,7 @@ class EntityNotificationsRepository {
 
     const where = { id };
 
-    return await model.update(data, { where });
+    return model.update(data, { where });
   }
 
   /**
@@ -143,9 +144,7 @@ class EntityNotificationsRepository {
 
     const data = await model.findAll(params);
 
-    return data.map((item) => {
-      return item.toJSON();
-    });
+    return data.map(item => item.toJSON());
   }
 
   /**
@@ -197,7 +196,7 @@ class EntityNotificationsRepository {
   static async findAllNotificationsListByUserId(userId, givenParams = {}) {
     this.andWhereRecipientIsUser(userId, givenParams);
 
-    return await this.findAllNotificationsByParams(givenParams);
+    return this.findAllNotificationsByParams(givenParams);
   }
 
   /**
@@ -228,7 +227,7 @@ class EntityNotificationsRepository {
     const params = _.defaults(givenParams, this.getNotificationsDefaultListParams());
     params.attributes = entityModelProvider.getNotificationsRequiredFieldsToProcess();
 
-    return await model.findAll(params);
+    return model.findAll(params);
   }
 
   /**
@@ -241,7 +240,7 @@ class EntityNotificationsRepository {
 
     this.andWhereRecipientIsUser(userId, params);
 
-    return await model.count(params);
+    return model.count(params);
   }
 
   // @ts-ignore
@@ -251,7 +250,6 @@ class EntityNotificationsRepository {
       usersModelProvider.getIncludeAuthorForPreview(),
     ];
   }
-
 }
 
 export = EntityNotificationsRepository;

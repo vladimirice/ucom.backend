@@ -1,36 +1,32 @@
 /* tslint:disable:max-line-length */
 import { AppError } from '../../../lib/api/errors';
 import { UserModel } from '../../../lib/users/interfaces/model-interfaces';
+
 import RequestHelper = require('./request-helper');
+import NotificationsStatusDictionary = require('../../../lib/entities/dictionary/notifications-status-dictionary');
 
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
+const _ = require('lodash');
+const delay = require('delay');
 const requestHelper = require('./request-helper');
 const responseHelper = require('./response-helper');
 
-const _ = require('lodash');
-
-const delay = require('delay');
 
 const entityModelProvider = require('../../../lib/entities/service').ModelProvider;
 const usersModelProvider = require('../../../lib/users/service').ModelProvider;
-
-const notificationsStatusDictionary =
-  require('../../../lib/entities/dictionary').NotificationsStatus;
 
 const notificationsRepo =
   require('../../../lib/entities/repository').Notifications;
 
 class NotificationsHelper {
-
   /**
    *
    * @param {Object} myself
    * @param {number} id
    * @param {number} expectedStatus
    * @return {Promise<Object>}
-   *
-   * @link EntityNotificationsService#confirmPromptNotification
    */
   static async requestToConfirmPrompt(myself, id, expectedStatus = 200) {
     const url = requestHelper.getConfirmNotificationUrl(id);
@@ -51,8 +47,6 @@ class NotificationsHelper {
    * @param {number} id
    * @param {number} expectedStatus
    * @return {Promise<Object>}
-   *
-   * @link EntityNotificationsService#markNotificationAsSeen
    */
   static async requestToMarkNotificationSeen(myself, id, expectedStatus = 200) {
     const url = requestHelper.getMarkAsSeenNotificationUrl(id);
@@ -73,8 +67,6 @@ class NotificationsHelper {
    * @param {number} id
    * @param {number} expectedStatus
    * @return {Promise<Object>}
-   *
-   * @link EntityNotificationsService#declinePromptNotification
    */
   static async requestToDeclinePrompt(myself, id, expectedStatus = 200) {
     const url = requestHelper.getDeclineNotificationUrl(id);
@@ -95,8 +87,6 @@ class NotificationsHelper {
    * @param {number} id
    * @param {number} expectedStatus
    * @return {Promise<Object>}
-   *
-   * @link EntityNotificationsService#pendingPromptNotification
    */
   static async requestToPendingPrompt(myself, id, expectedStatus = 200) {
     const url = requestHelper.getPendingNotificationUrl(id);
@@ -118,11 +108,8 @@ class NotificationsHelper {
    * @param {boolean} dataOnly
    * @param {number} expectedStatus
    * @return {Promise<*>}
-   *
-   * @link EntityNotificationsService#getAllNotifications
    */
   static async requestToGetNotificationsList(myself, queryString = '', dataOnly = true, expectedStatus = 200) {
-
     const url = `${requestHelper.getMyselfNotificationsList()}/${queryString}`;
 
     const res = await request(server)
@@ -262,10 +249,10 @@ class NotificationsHelper {
       fieldsToCheck.confirmed  = 0;
     } else if (status === 'confirmed') {
       fieldsToCheck.finished   = true;
-      fieldsToCheck.confirmed  = notificationsStatusDictionary.getStatusConfirmed();
+      fieldsToCheck.confirmed  = NotificationsStatusDictionary.getStatusConfirmed();
     } else if (status === 'declined') {
       fieldsToCheck.finished   = true;
-      fieldsToCheck.confirmed  = notificationsStatusDictionary.getStatusDeclined();
+      fieldsToCheck.confirmed  = NotificationsStatusDictionary.getStatusDeclined();
     }
 
     expect(model).toMatchObject(fieldsToCheck);

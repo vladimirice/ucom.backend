@@ -1,15 +1,16 @@
-import AttributionService = require('../service/conversions/attribution-service');
 import { formDataParser } from '../../api/middleware/form-data-parser-middleware';
-import UnprocessableEntityError = require('../errors/unprocessable-entity-error');
-const authTokenMiddleWare = require('../../../lib/auth/auth-token-middleware');
 import { AffiliatesDiTypes } from '../interfaces/di-interfaces';
+import { UserModel } from '../../users/interfaces/model-interfaces';
+
+import AttributionService = require('../service/conversions/attribution-service');
+import UnprocessableEntityError = require('../errors/unprocessable-entity-error');
 import RegistrationConversionService = require('../service/conversions/registration-conversion-service');
 import ActivityApiMiddleware = require('../../activity/middleware/activity-api-middleware');
 import DiServiceLocator = require('../../api/services/di-service-locator');
-import { UserModel } from '../../users/interfaces/model-interfaces';
 
 const express = require('express');
 const statuses = require('statuses');
+const authTokenMiddleWare = require('../../../lib/auth/auth-token-middleware');
 
 require('express-async-errors');
 

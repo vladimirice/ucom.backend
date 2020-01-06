@@ -1,8 +1,7 @@
 import RequestHelper = require('../helpers/request-helper');
 
-export {};
-
 const request = require('supertest');
+
 const server = RequestHelper.getApiApplication();
 const responseHelper = require('../helpers/response-helper');
 const requestHelper = require('../helpers/request-helper');
@@ -10,7 +9,6 @@ const requestHelper = require('../helpers/request-helper');
 const seedsHelper = require('../helpers/seeds-helper');
 
 describe('Test registration workflow', () => {
-
   beforeEach(async () => {
     await seedsHelper.initSeeds();
   });
@@ -20,7 +18,6 @@ describe('Test registration workflow', () => {
   });
 
   it('Must return error if invalid account name is provided', async () => {
-
     const res = await request(server)
       .post(requestHelper.getCheckAccountNameRoute())
       .field('account_name', 'vladInvalid9')
@@ -30,7 +27,6 @@ describe('Test registration workflow', () => {
   });
 
   it('Must return error if account name is not provided', async () => {
-
     const res = await request(server)
       .post(requestHelper.getCheckAccountNameRoute())
       .field('wrong_parameter', 'vladInvalid9')
@@ -57,3 +53,5 @@ describe('Test registration workflow', () => {
     responseHelper.expectStatusOk(res);
   });
 });
+
+export {};

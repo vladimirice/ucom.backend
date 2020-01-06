@@ -28,6 +28,7 @@ import knex = require('../../../config/knex');
 import IrreversibleTracesClient = require('../../../lib/blockchain-traces/client/irreversible-traces-client');
 import MongoExternalModelProvider = require('../../../lib/eos/service/mongo-external-model-provider');
 import UosAccountsPropertiesUpdateService = require('../../../lib/uos-accounts-properties/service/uos-accounts-properties-update-service');
+import UsersRepository = require('../../../lib/users/users-repository');
 
 const models = require('../../../models');
 const usersSeeds = require('../../../seeders/users/users');
@@ -72,6 +73,9 @@ const minorTablesToSkipSequences = [
   UsersExternalModelProvider.usersExternalAuthLogTableName(),
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
+  UsersModelProvider.getUsersActivityVoteTableName(),
+  UsersModelProvider.getUsersActivityEventsViewTableName(),
+
   AirdropsModelProvider.airdropsTableName(),
 
   'offers',
@@ -91,6 +95,7 @@ const minorTables = [
   UsersModelProvider.getUsersActivityTrustTableName(),
   UsersModelProvider.getUsersActivityFollowTableName(),
   UsersModelProvider.getUsersActivityReferralTableName(),
+  UsersModelProvider.getUsersActivityVoteTableName(),
 
   UosAccountsModelProvider.uosAccountsPropertiesTableName(),
 
@@ -99,6 +104,7 @@ const minorTables = [
   AirdropsModelProvider.airdropsUsersExternalDataTableName(),
   AirdropsModelProvider.airdropsTokensTableName(),
   AirdropsModelProvider.airdropsUsersTableName(),
+  UsersModelProvider.getUsersActivityEventsViewTableName(),
 
   'entity_tags',
   'entity_state_log',
@@ -323,7 +329,7 @@ class SeedsHelper {
 
     await mongoDbConnection.deleteMany({});
 
-    const usersModel = usersRepositories.Main.getUsersModelName();
+    const usersModel = UsersRepository.getUsersModelName();
 
     // init users
     const usersSequence = this.getSequenceNameByModelName(usersModel);
@@ -346,10 +352,10 @@ class SeedsHelper {
       ]);
 
     await Promise.all([
-      UsersCurrentParamsRepository.insertRowForNewEntity(userVlad.id),
-      UsersCurrentParamsRepository.insertRowForNewEntity(userJane.id),
-      UsersCurrentParamsRepository.insertRowForNewEntity(userPetr.id),
-      UsersCurrentParamsRepository.insertRowForNewEntity(userRokky.id),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userVlad.id, null),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userJane.id, null),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userPetr.id, null),
+      UsersCurrentParamsRepository.insertRowForNewEntity(userRokky.id, null),
     ]);
 
     if (options && options.mock.uosAccountsProperties) {
@@ -395,47 +401,28 @@ class SeedsHelper {
     }
 
     // noinspection SqlResolve
-    const allSequences = await models.sequelize.query('SELECT sequence_name FROM information_schema.sequences;');
+    const allSequences = await knex.raw('SELECT sequence_name FROM information_schema.sequences;');
 
-    const resetSequencePromises: any = [];
-
-    allSequences[0].forEach((data) => {
+    const sequenceRestarts: string[] = [];
+    allSequences.rows.forEach((data) => {
       const name = data.sequence_name;
 
       if (!skipSequencesNames.includes(name)) {
         // @deprecated - sequence reset was required for seeds, not for generators
-        resetSequencePromises.push(models.sequelize.query(`ALTER SEQUENCE "${name}" RESTART;`));
+        sequenceRestarts.push(`ALTER SEQUENCE "${name}" RESTART;`);
       }
     });
 
-    await Promise.all(resetSequencePromises);
+    await knex.raw(sequenceRestarts.join('; '));
+    await knex.raw(`TRUNCATE TABLE ${minorTables}`);
 
-    const minorTablesPromises: any = [];
-
-    minorTables.forEach((table) => {
-      minorTablesPromises.push(models.sequelize.query(`DELETE FROM ${table} WHERE 1=1`));
-    });
-
-    await Promise.all(minorTablesPromises);
-
-    // eslint-disable-next-line unicorn/no-for-loop
-    for (let i = 0; i < majorTables.length; i += 1) {
-      if (majorTables[i] === 'Users') {
-        await models.sequelize.query('DELETE FROM "Users" WHERE 1=1');
+    for (const table of majorTables) {
+      if (table === 'Users') {
+        await knex.raw('DELETE FROM "Users" WHERE 1=1');
       } else {
-        await models.sequelize.query(`DELETE FROM ${majorTables[i]} WHERE 1=1`);
+        await knex.raw(`DELETE FROM ${table} WHERE 1=1`);
       }
     }
-  }
-
-  // noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @param {string} tableName
-   * @returns {Promise<void>}
-   */
-  static async truncateTable(tableName) {
-    await models.sequelize.query(`TRUNCATE TABLE ${tableName};`);
   }
 
   static async initSeedsForUsers() {
@@ -526,6 +513,15 @@ class SeedsHelper {
     return this.doAfterAll(beforeAfterOptions);
   }
 
+  public static async afterAllWithoutGraphQlNoConnectionsKill() {
+    const beforeAfterOptions = {
+      isGraphQl: false,
+      noConnectionsKill: true,
+    };
+
+    return this.doAfterAll(beforeAfterOptions);
+  }
+
   public static async afterAllWithGraphQl() {
     const beforeAfterOptions = {
       isGraphQl: true,
@@ -537,15 +533,17 @@ class SeedsHelper {
   public static async doAfterAll(
     options: any = null,
   ): Promise<void> {
-    await this.sequelizeAfterAll();
+    await this.sequelizeAfterAll(options);
 
     if (options && options.isGraphQl) {
       await GraphqlRequestHelper.afterAll();
     }
   }
 
-  public static async sequelizeAfterAll() {
-    await CloseHandlersHelper.closeDbConnections();
+  public static async sequelizeAfterAll(options: any = null) {
+    if (!options || !options.noConnectionsKill) {
+      await CloseHandlersHelper.closeDbConnections();
+    }
 
     await RabbitMqService.purgeAllQueues();
     await RabbitMqService.closeAll();

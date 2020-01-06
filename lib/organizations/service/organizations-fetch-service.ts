@@ -143,8 +143,8 @@ class OrganizationsFetchService {
       QueryFilterService.getQueryParametersWithRepository(query, repository, true);
 
     const promises = [
-      OrganizationsRepository.findAllOrgForList(params),
-      OrganizationsRepository.countAllOrganizations(params),
+      OrganizationsRepository.findAllOrgForList(query, params),
+      OrganizationsRepository.countAllOrganizations(query, params),
     ];
 
     return {

@@ -1,4 +1,5 @@
 /* eslint-disable guard-for-in */
+import { EventsIdsDictionary } from 'ucom.libs.common';
 import { EntityEventParamDto } from '../interfaces/model-interfaces';
 import { EntityEventRepository } from '../repository/entity-event-repository';
 import {
@@ -15,7 +16,6 @@ import PostsRepository = require('../../posts/posts-repository');
 import OrganizationsModelProvider = require('../../organizations/service/organizations-model-provider');
 
 import UsersActivityRepository = require('../../users/repository/users-activity-repository');
-import NotificationsEventIdDictionary = require('../../entities/dictionary/notifications-event-id-dictionary');
 import ActivityIndexFormulas = require('../formulas/activity-index-formulas');
 import CommonStatsJob = require('./common-stats-job');
 import CommonModelProvider = require('../../common/service/common-model-provider');
@@ -86,8 +86,8 @@ class OrgStatsJob {
     const dataRes: IdToNumberCollection = {};
 
     data.forEach((item) => {
-      const up = item.aggregates[NotificationsEventIdDictionary.getUserFollowsOrg()] || 0;
-      const down = item.aggregates[NotificationsEventIdDictionary.getUserUnfollowsOrg()] || 0;
+      const up = item.aggregates[EventsIdsDictionary.getUserFollowsOrg()] || 0;
+      const down = item.aggregates[EventsIdsDictionary.getUserUnfollowsOrg()] || 0;
 
       const followers = up - down;
       const payload = {

@@ -2,8 +2,7 @@ import EntityImagesModelProvider = require('../../entity-images/service/entity-i
 
 const joi = require('joi');
 
-// tslint:disable-next-line:variable-name
-const CreateOrUpdateOrganizationSchema = joi.object().keys({
+const commonRules = {
   title: joi.string().min(2).max(255).required(),
   nickname: joi.string().min(2).max(255).required(),
 
@@ -26,8 +25,25 @@ const CreateOrUpdateOrganizationSchema = joi.object().keys({
   partnership_sources:  joi.array(),
 
   [EntityImagesModelProvider.entityImagesColumn()]:        joi.any(),
-});
+};
+
+const creationSchema = {
+  ...commonRules,
+
+  signed_transaction:   joi.any(), // backward compatibility - multi-signature creation should be without signed_transaction
+  blockchain_id:        joi.any().required(),
+};
+
+const updatingSchema = {
+  ...commonRules,
+
+  signed_transaction:   joi.any().allow(''), // backward compatibility
+};
+
+const createOrganizationSchema = joi.object().keys(creationSchema);
+const updateOrganizationSchema = joi.object().keys(updatingSchema);
 
 export {
-  CreateOrUpdateOrganizationSchema,
+  createOrganizationSchema,
+  updateOrganizationSchema,
 };

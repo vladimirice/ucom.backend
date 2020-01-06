@@ -1,11 +1,15 @@
 import { UserModel } from '../../lib/users/interfaces/model-interfaces';
 import { CommentModel, CommentModelResponse } from '../../lib/comments/interfaces/model-interfaces';
+import { StringToAnyCollection } from '../../lib/common/interfaces/common-types';
+import { FAKE_BLOCKCHAIN_ID, FAKE_SIGNED_TRANSACTION } from './common/fake-data-generator';
+
 import RequestHelper = require('../integration/helpers/request-helper');
 
 const request = require('supertest');
 
 const requestHelper = require('../integration/helpers/request-helper.ts');
 const responseHelper = require('../integration/helpers/response-helper.ts');
+
 const server = RequestHelper.getApiApplication();
 
 class CommentsGenerator {
@@ -45,7 +49,11 @@ class CommentsGenerator {
     return res;
   }
 
-  // @ts-ignore
+
+  /**
+   * @deprecated
+   * @see createCommentForPostWithFields
+   */
   public static async createCommentForPost(
     postId: number,
     user: UserModel,
@@ -56,6 +64,8 @@ class CommentsGenerator {
     const req = request(server)
       .post(requestHelper.getCommentsUrl(postId))
       .field('description', description);
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
 
     if (typeof entityImages !== 'undefined') {
       RequestHelper.addEntityImagesField(req, entityImages);
@@ -72,6 +82,38 @@ class CommentsGenerator {
     return res.body;
   }
 
+  public static async createCommentForPostWithFields(
+    postId: number,
+    myself: UserModel,
+    givenFields: StringToAnyCollection = {},
+    expectedStatus: number = 201,
+    addFakeTransactionDetails: boolean = true,
+  ): Promise<CommentModelResponse> {
+    const url: string = requestHelper.getCommentsUrl(postId);
+
+    const defaultFields: StringToAnyCollection = {
+      description: 'New comment description',
+      entity_images: '{}',
+    };
+
+    if (addFakeTransactionDetails) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+      defaultFields.blockchain_id = FAKE_BLOCKCHAIN_ID;
+    }
+
+    const response = await RequestHelper.makePostRequestAsMyselfWithFields(
+      url,
+      myself,
+      {
+        ...defaultFields,
+        ...givenFields,
+      },
+      expectedStatus,
+    );
+
+    return response.body;
+  }
+
   public static async createCommentForPostAndGetId(
     postId: number,
     user: UserModel,
@@ -82,6 +124,10 @@ class CommentsGenerator {
     return body.id;
   }
 
+  /**
+   * @deprecated
+   * @see createCommentOnCommentWithFields
+   */
   public static async createCommentOnComment(
     postId: number,
     parentCommentId: number,
@@ -91,9 +137,11 @@ class CommentsGenerator {
     expectedStatus: number = 201,
   ): Promise<CommentModelResponse> {
     const req = request(server)
-      .post(requestHelper.getCommentOnCommentUrl(postId, parentCommentId))
+      .post(RequestHelper.getCommentOnCommentUrl(postId, parentCommentId))
       .field('description', description);
-    requestHelper.addAuthToken(req, user);
+    RequestHelper.addAuthToken(req, user);
+
+    RequestHelper.addFakeBlockchainIdAndSignedTransaction(req);
 
     if (entityImages !== null) {
       RequestHelper.addEntityImagesField(req, entityImages);
@@ -106,6 +154,36 @@ class CommentsGenerator {
     responseHelper.expectStatusToBe(res, expectedStatus);
 
     return res.body;
+  }
+
+  public static async createCommentOnCommentWithFields(
+    postId: number,
+    parentCommentId: number,
+    myself: UserModel,
+    givenFields: StringToAnyCollection = {},
+    expectedStatus: number = 201,
+    addFakeTransactionDetails: boolean = true,
+  ): Promise<CommentModelResponse> {
+    const url = requestHelper.getCommentOnCommentUrl(postId, parentCommentId);
+
+    const defaultFields: StringToAnyCollection = {
+      description: 'New comment on comment description',
+      entity_images: '{}',
+    };
+
+    if (addFakeTransactionDetails) {
+      defaultFields.signed_transaction = FAKE_SIGNED_TRANSACTION;
+      defaultFields.blockchain_id = FAKE_BLOCKCHAIN_ID;
+    }
+
+    const fields = {
+      ...defaultFields,
+      ...givenFields,
+    };
+
+    const response = await RequestHelper.makePostRequestAsMyselfWithFields(url, myself, fields, expectedStatus);
+
+    return response.body;
   }
 
   public static async createCommentOnCommentAndGetId(

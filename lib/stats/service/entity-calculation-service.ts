@@ -138,7 +138,7 @@ class EntityCalculationService {
     isFloat: boolean,
   ): void {
     if (lastOfGivenDateData.length === 0) {
-      throw new Error('lastOfGivenDateData is empty');
+      throw new Error(`lastOfGivenDateData is empty. Param field: ${JSON.stringify(paramField)}`);
     }
 
     for (const current of lastOfGivenDateData) {

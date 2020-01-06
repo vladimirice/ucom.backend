@@ -1,5 +1,5 @@
 class RabbitMqError extends Error {
-  constructor (message, status) {
+  constructor(message, status) {
     // noinspection JSCheckFunctionSignatures
     super(message);
 
@@ -12,7 +12,7 @@ class RabbitMqError extends Error {
 }
 
 class ConnectionRefusedError extends Error {
-  constructor (message) {
+  constructor(message) {
     // noinspection JSCheckFunctionSignatures
     super(message);
     this.name = this.constructor.name;

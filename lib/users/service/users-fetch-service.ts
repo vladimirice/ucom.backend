@@ -1,4 +1,6 @@
+import { EntityNames } from 'ucom.libs.common';
 import {
+  OneContentActivityUsersQueryDto,
   UserIdToUserModelCard,
   UserModel, UsersActivityQueryDto,
   UsersListResponse, UsersRequestQueryDto,
@@ -31,6 +33,8 @@ import StreamsRepository = require('../../affiliates/repository/streams-reposito
 import ConversionsRepository = require('../../affiliates/repository/conversions-repository');
 import UsersQueryBuilderService = require('./users-fetch-query-builder-service');
 import UsersActivityFollowRepository = require('../repository/users-activity/users-activity-follow-repository');
+import UsersActivityVoteRepository = require('../repository/users-activity/users-activity-vote-repository');
+import UsersActivityEventsViewRepository = require('../repository/users-activity/users-activity-events-view-repository');
 
 class UsersFetchService {
   public static async findOneAndProcessFully(
@@ -73,6 +77,9 @@ class UsersFetchService {
       await this.addCurrentUserData(userJson);
     }
 
+    userJson.views_count =
+      await UsersActivityEventsViewRepository.getViewsCountForEntity(userJson.id, EntityNames.USERS);
+
     return userJson;
   }
 
@@ -113,6 +120,33 @@ class UsersFetchService {
       UsersQueryBuilderService.getPromisesByActivityType(query, userId, params);
 
     return this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+  }
+
+  public static async findOneContentVotingUsers(
+    query: OneContentActivityUsersQueryDto,
+    currentUserId: number | null,
+  ): Promise<UsersListResponse> {
+    const repository  = UsersRepository;
+    const params      = QueryFilterService.getQueryParametersWithRepository(query, repository, true, false, true);
+
+    const { interaction_type } = query;
+
+    const promises = [
+      UsersRepository.findAllWhoVoteContent(query.entity_id, query.entity_name, params, interaction_type),
+      UsersActivityVoteRepository.countUsersThatVoteContent(query.entity_id, query.entity_name, interaction_type),
+    ];
+
+    const processed = await this.findAllAndProcessForListByParams(promises, query, params, currentUserId);
+
+    for (const user of processed.data) {
+      user.relatedMetadata = {
+        contentVote: user.interaction_type,
+      };
+
+      delete user.interaction_type;
+    }
+
+    return processed;
   }
 
   public static async findManyOrganizationFollowers(

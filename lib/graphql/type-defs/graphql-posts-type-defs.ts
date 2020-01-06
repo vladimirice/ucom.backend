@@ -1,5 +1,5 @@
 export const graphqlPostsQueryPart = `
-    user_wall_feed(filters: one_user_filtering, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    user_wall_feed(filters: one_user_feed_filtering, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     org_wall_feed(organization_id: Int!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     tag_wall_feed(tag_identity: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     
@@ -7,7 +7,7 @@ export const graphqlPostsQueryPart = `
     many_posts(filters: post_filtering, order_by: String!, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
     posts_feed(filters: posts_feed_filters, order_by: String!, page: Int!, per_page: Int!, include: JSON): posts!
     
-    user_news_feed(page: Int!, per_page: Int!, comments_query: comments_query!): posts!
+    user_news_feed(filters: one_user_feed_filtering, page: Int!, per_page: Int!, comments_query: comments_query!): posts!
 
     one_post(id: Int!, comments_query: comments_query!): Post
     one_post_offer(id: Int!, comments_query: comments_query!, users_team_query: users_team_query!): PostOffer!
@@ -23,8 +23,10 @@ export const graphqlPostsTypes = `
     current_vote: Float!
     current_rate: Float!
     comments_count: Int!
+    views_count: Int
 
     entity_images: JSON
+    json_data: JSON
     
     entity_tags: JSON
 
@@ -60,9 +62,10 @@ export const graphqlPostsTypes = `
     current_vote: Float!
     current_rate: Float!
     comments_count: Int!
+    views_count: Int
 
     entity_images: JSON
-    
+    json_data: JSON
     entity_tags: JSON
 
     user_id: Int!
@@ -113,5 +116,11 @@ export const graphqlPostsTypes = `
     created_at: String
     entity_names_from:  [String!]
     entity_names_for:   [String!]
+  }
+  
+  input one_user_feed_filtering {
+    user_id: Int
+    user_identity: String
+    exclude_post_type_ids: [Int!]
   }
 `;

@@ -1,7 +1,8 @@
 /* tslint:disable:max-line-length */
+// eslint-disable-next-line unicorn/filename-case
 const joi = require('joi');
-const { JoiBadRequestError } = require('../../api/errors');
 const _ = require('lodash');
+const { JoiBadRequestError } = require('../../api/errors');
 
 class UpdateManyToManyHelper {
   /**
@@ -13,9 +14,7 @@ class UpdateManyToManyHelper {
    * @return {Object[]}
    */
   static getCreateDeleteOnlyDelta(source, updated, sourceIdField = 'id', updatedIdField = 'id') {
-    const added = updated.filter((updatedItem) => {
-      return source.find(sourceItem => +sourceItem[sourceIdField] === +updatedItem[updatedIdField]) === undefined;
-    });
+    const added = updated.filter(updatedItem => source.find(sourceItem => +sourceItem[sourceIdField] === +updatedItem[updatedIdField]) === undefined);
 
     const deleted = source.filter(
       sourceItem => updated.find(updatedItem => +sourceItem[sourceIdField] === +updatedItem[updatedIdField]) === undefined,
@@ -35,20 +34,16 @@ class UpdateManyToManyHelper {
    */
   static getCreateUpdateDeleteDelta(source, updated) {
     const added = updated.filter((updatedItem) => {
-      if (!updatedItem['id']) {
+      if (!updatedItem.id) {
         return true;
       }
 
       return source.find(sourceItem => +sourceItem.id === +updatedItem.id) === undefined;
     });
 
-    const changed = updated.filter((updatedItem) => {
-      return source.some(sourceItem => +sourceItem.id === +updatedItem.id);
-    });
+    const changed = updated.filter(updatedItem => source.some(sourceItem => +sourceItem.id === +updatedItem.id));
 
-    const deleted = source.filter((sourceItem) => {
-      return !updated.some(updatedItem => +updatedItem.id === +sourceItem.id);
-    });
+    const deleted = source.filter(sourceItem => !updated.some(updatedItem => +updatedItem.id === +sourceItem.id));
 
     return {
       added,
@@ -71,6 +66,7 @@ class UpdateManyToManyHelper {
     const deletionPromises = this.getDeletionPromises(model, deltaData, transaction);
 
     return Promise.all(
+      // eslint-disable-next-line you-dont-need-lodash-underscore/concat
       _.concat(
         creationPromises,
         updatePromises,
@@ -171,9 +167,7 @@ class UpdateManyToManyHelper {
    * @private
    */
   private static filterManySources(updatedModels, joiSchema) {
-    return updatedModels.map((source) => {
-      return this.filterOneSource(source, joiSchema);
-    });
+    return updatedModels.map(source => this.filterOneSource(source, joiSchema));
   }
 
   /**

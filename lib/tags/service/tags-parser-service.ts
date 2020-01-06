@@ -17,6 +17,7 @@ class TagsParserService {
       return [];
     }
 
+    // eslint-disable-next-line you-dont-need-lodash-underscore/uniq
     const uniqueValues = _.uniq(
       tagsArray.map(item => item.replace('#', '').toLowerCase()),
     );
@@ -35,6 +36,7 @@ class TagsParserService {
       return [];
     }
 
+    // eslint-disable-next-line you-dont-need-lodash-underscore/uniq
     return _.uniq(
       tagsArray.map(item => item.replace('@', '').toLowerCase()),
     );

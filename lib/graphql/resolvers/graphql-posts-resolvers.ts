@@ -12,7 +12,9 @@ const { ForbiddenError } = require('apollo-server-express');
 import AuthService = require('../../auth/authService');
 import OneUserInputProcessor = require('../../users/input-processor/one-user-input-processor');
 import PostsFetchService = require('../../posts/service/posts-fetch-service');
+import ApiPostEvents = require('../../common/service/api-post-events');
 
+// @ts-ignore
 export const graphqlPostsResolvers = {
   // @ts-ignore
   async many_posts(parent, args, ctx): Promise<PostsListResponse> {
@@ -91,45 +93,33 @@ export const graphqlPostsResolvers = {
 
     return PostsFetchService.findOnePostOfferWithAirdrop(args.id, currentUserId, commentsQuery, usersTeamQuery);
   },
-  // @ts-ignore
-  async one_post(parent, args, ctx): PostModelResponse {
-    // MaintenanceHelper.hideAirdropsOfferIfRequired(ctx.req, args.id);
 
+  async one_post(
+    // @ts-ignore
+    parent,
+    args,
+    ctx,
+  ): Promise<PostModelResponse | null> {
     const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
     const commentsQuery: RequestQueryComments = args.comments_query;
     commentsQuery.depth = 0;
 
-    return PostsFetchService.findOnePostByIdAndProcessV2(args.id, currentUserId, commentsQuery);
+    const postId: number = args.id;
+
+    const post = await PostsFetchService.findOnePostByIdAndProcessV2(postId, currentUserId, commentsQuery);
+
+    await ApiPostEvents.processForPostAndChangeProps(currentUserId, post, ctx.req);
+
+    return post;
   },
   // @ts-ignore
-  async user_wall_feed(parent, args, ctx, info): PostsListResponse {
-    const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
-
-    const postsQuery: RequestQueryDto = {
-      page: args.page,
-      per_page: args.per_page,
-      include: [
-        'comments',
-      ],
-      included_query: {
-        comments: args.comments_query,
-      },
-    };
-
-    let userId: number = args.user_id;
-    if (args.filters) {
-      userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
-    }
-
-    return PostsFetchService.findAndProcessAllForUserWallFeed(
-      userId,
-      currentUserId,
-      postsQuery,
-    );
-  },
-  // @ts-ignore
-  async org_wall_feed(parent, args, ctx, info): PostsListResponse {
+  async org_wall_feed(
+    // @ts-ignore
+    parent,
+    args,
+    ctx,
+  ): Promise<PostsListResponse> {
     const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
     const postsQuery: RequestQueryDto = {
@@ -171,8 +161,47 @@ export const graphqlPostsResolvers = {
       postsQuery,
     );
   },
-  // @ts-ignore
-  async user_news_feed(parent, args, ctx, info): PostsListResponse {
+  async user_wall_feed(
+    // @ts-ignore
+    parent,
+    args,
+    ctx,
+    // @ts-ignore
+    info,
+  ): Promise<PostsListResponse> {
+    const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
+
+    const postsQuery: RequestQueryDto = {
+      page: args.page,
+      per_page: args.per_page,
+      include: [
+        'comments',
+      ],
+      included_query: {
+        comments: args.comments_query,
+      },
+      ...args.filters,
+    };
+
+    let userId: number = args.user_id;
+    if (args.filters) {
+      userId = await OneUserInputProcessor.getUserIdByFilters(args.filters);
+    }
+
+    return PostsFetchService.findAndProcessAllForUserWallFeed(
+      userId,
+      currentUserId,
+      postsQuery,
+    );
+  },
+  async user_news_feed(
+    // @ts-ignore
+    parent,
+    args,
+    ctx,
+    // @ts-ignore
+    info,
+  ): Promise<PostsListResponse> {
     const currentUserId: number | null = AuthService.extractCurrentUserByToken(ctx.req);
 
     if (!currentUserId) {
@@ -188,6 +217,7 @@ export const graphqlPostsResolvers = {
       included_query: {
         comments: args.comments_query,
       },
+      ...args.filters,
     };
 
     return PostsFetchService.findAndProcessAllForMyselfNewsFeed(

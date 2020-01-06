@@ -25,6 +25,7 @@ router.get('/search', async (req, res) => {
         delete model.followed_by;
         delete model.about;
         delete model.powered_by;
+        delete model.organization_type_id;
     });
     users.forEach((model) => {
         model.entity_name = usersModelProvider.getEntityName();
