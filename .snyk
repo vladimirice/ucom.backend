@@ -1,4 +1,26 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.13.5
+version: v1.14.1
 ignore: {}
-patch: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - bookshelf > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - knex > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - objection > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - sequelize > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - ucom-libs-wallet > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - winston-sentry-raven-transport > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - request-promise-native > request-promise-core > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - winston > async > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
+    - winston-sentry-raven-transport > winston > async > lodash:
+        patched: '2020-05-01T03:37:06.012Z'
