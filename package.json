@@ -13,7 +13,7 @@
     "node": ">=10.6.0"
   },
   "dependencies": {
-    "amqplib": "^0.5.5",
+    "amqplib": "^0.7.1",
     "apollo-cache-control": "^0.8.5",
     "apollo-cache-inmemory": "^1.6.3",
     "apollo-server-core": "^2.9.7",
